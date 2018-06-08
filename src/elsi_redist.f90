@@ -173,7 +173,8 @@ subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
       enddo
    endif
 
-   call MPI_Allreduce(dest,nnz,bh%n_procs,mpi_integer4,mpi_sum,bh%comm,ierr)
+   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,mpi_integer4,mpi_sum,&
+           bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -250,7 +251,8 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
       enddo
    endif
 
-   call MPI_Allreduce(dest,nnz,bh%n_procs,mpi_integer4,mpi_sum,bh%comm,ierr)
+   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,mpi_integer4,mpi_sum,&
+           bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -3574,7 +3576,8 @@ subroutine elsi_siesta_to_pexsi_hs_dim(ph,bh,col_ptr2)
       dest(i_proc+1) = dest(i_proc+1)+col_ptr2(i_col+1)-col_ptr2(i_col)
    enddo
 
-   call MPI_Allreduce(dest,nnz,bh%n_procs,mpi_integer4,mpi_sum,bh%comm,ierr)
+   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,mpi_integer4,mpi_sum,&
+           bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
