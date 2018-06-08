@@ -785,6 +785,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
 
    ! Compute destination and global id
    i_val = 0
+
    if(.not. ph%ovlp_is_unit) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
@@ -847,8 +848,6 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
 
    ! Set local number of nonzero
    nnz_l_aux = sum(recv_count,1)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
    ! Set send and receive displacement
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)

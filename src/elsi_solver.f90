@@ -351,7 +351,7 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
                call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp1,&
                        "row_ind_sp1",caller)
                call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp1+1,&
-                       "col_ptr_sp1,",caller)
+                       "col_ptr_sp1",caller)
             endif
 
             call elsi_siesta_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp2,&
@@ -568,7 +568,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
          call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp,"row_ind_sp1",&
                  caller)
          call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp+1,&
-                 "col_ptr_sp1,",caller)
+                 "col_ptr_sp1",caller)
       endif
 
       call elsi_blacs_to_pexsi_hs(eh%ph,eh%bh,ham,ovlp,eh%ham_real_csc,&
@@ -834,7 +834,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
          call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp,"row_ind_sp1",&
                  caller)
          call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp+1,&
-                 "col_ptr_sp1,",caller)
+                 "col_ptr_sp1",caller)
       endif
 
       call elsi_blacs_to_pexsi_hs(eh%ph,eh%bh,ham,ovlp,eh%ham_cmplx_csc,&
@@ -1117,7 +1117,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
             call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp1,&
                     "row_ind_sp1",caller)
             call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp1+1,&
-                    "col_ptr_sp1,",caller)
+                    "col_ptr_sp1",caller)
          endif
 
          call elsi_siesta_to_pexsi_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp2,&
@@ -1256,7 +1256,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
                call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp1,&
                        "row_ind_sp1",caller)
                call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp1+1,&
-                       "col_ptr_sp1,",caller)
+                       "col_ptr_sp1",caller)
             endif
 
             call elsi_siesta_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp2,&
@@ -1613,7 +1613,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
             call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp1,&
                     "row_ind_sp1",caller)
             call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp1+1,&
-                    "col_ptr_sp1,",caller)
+                    "col_ptr_sp1",caller)
          endif
 
          call elsi_siesta_to_pexsi_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp2,&
