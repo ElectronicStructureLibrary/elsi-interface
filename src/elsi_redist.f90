@@ -134,7 +134,6 @@ subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_col
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: myid_in_pole
    integer(kind=i4) :: ierr
 
    integer(kind=i4), allocatable :: dest(:)
@@ -173,21 +172,19 @@ subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
       enddo
    endif
 
-   call MPI_Allreduce(dest,nnz,bh%n_procs,mpi_integer4,mpi_sum,bh%comm,ierr)
+   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,mpi_integer4,mpi_sum,&
+           bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-   call MPI_Comm_rank(ph%pexsi_comm_in_pole,myid_in_pole,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Comm_rank",ierr,caller)
-
-   bh%nnz_l_sp  = nnz(myid_in_pole+1)
+   bh%nnz_l_sp  = nnz(ph%pexsi_my_pcol+1)
    bh%nnz_l_sp1 = bh%nnz_l_sp
 
-   call MPI_Allreduce(bh%nnz_l_sp,bh%nnz_g,1,mpi_integer4,mpi_sum,&
-           ph%pexsi_comm_among_pole,ierr)
+   call MPI_Allreduce(bh%nnz_l_sp,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+
+   bh%nnz_g = bh%nnz_g/(bh%n_procs/ph%pexsi_np_per_pole)
 
    call elsi_deallocate(bh,dest,"dest")
    call elsi_deallocate(bh,nnz,"nnz")
@@ -211,7 +208,6 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_col
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: myid_in_pole
    integer(kind=i4) :: ierr
 
    integer(kind=i4), allocatable :: dest(:)
@@ -250,21 +246,19 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
       enddo
    endif
 
-   call MPI_Allreduce(dest,nnz,bh%n_procs,mpi_integer4,mpi_sum,bh%comm,ierr)
+   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,mpi_integer4,mpi_sum,&
+           bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-   call MPI_Comm_rank(ph%pexsi_comm_in_pole,myid_in_pole,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Comm_rank",ierr,caller)
-
-   bh%nnz_l_sp  = nnz(myid_in_pole+1)
+   bh%nnz_l_sp  = nnz(ph%pexsi_my_pcol+1)
    bh%nnz_l_sp1 = bh%nnz_l_sp
 
-   call MPI_Allreduce(bh%nnz_l_sp,bh%nnz_g,1,mpi_integer4,mpi_sum,&
-           ph%pexsi_comm_among_pole,ierr)
+   call MPI_Allreduce(bh%nnz_l_sp,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+
+   bh%nnz_g = bh%nnz_g/(bh%n_procs/ph%pexsi_np_per_pole)
 
    call elsi_deallocate(bh,dest,"dest")
    call elsi_deallocate(bh,nnz,"nnz")
@@ -783,6 +777,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
 
    ! Compute destination and global id
    i_val = 0
+
    if(.not. ph%ovlp_is_unit) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
@@ -845,8 +840,6 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
 
    ! Set local number of nonzero
    nnz_l_aux = sum(recv_count,1)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
    ! Set send and receive displacement
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
@@ -3554,7 +3547,6 @@ subroutine elsi_siesta_to_pexsi_hs_dim(ph,bh,col_ptr2)
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_col
    integer(kind=i4) :: i_proc
-   integer(kind=i4) :: myid_in_pole
    integer(kind=i4) :: ierr
 
    integer(kind=i4), allocatable :: dest(:)
@@ -3574,15 +3566,12 @@ subroutine elsi_siesta_to_pexsi_hs_dim(ph,bh,col_ptr2)
       dest(i_proc+1) = dest(i_proc+1)+col_ptr2(i_col+1)-col_ptr2(i_col)
    enddo
 
-   call MPI_Allreduce(dest,nnz,bh%n_procs,mpi_integer4,mpi_sum,bh%comm,ierr)
+   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,mpi_integer4,mpi_sum,&
+           bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-   call MPI_Comm_rank(ph%pexsi_comm_in_pole,myid_in_pole,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Comm_rank",ierr,caller)
-
-   bh%nnz_l_sp1 = nnz(myid_in_pole+1)
+   bh%nnz_l_sp1 = nnz(ph%pexsi_my_pcol+1)
 
    call elsi_deallocate(bh,dest,"dest")
    call elsi_deallocate(bh,nnz,"nnz")
@@ -4474,10 +4463,9 @@ subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    character(len=40), parameter :: caller = "elsi_siesta_to_sips_hs_real"
 
-   ph%pexsi_my_prow         = 0
-   ph%pexsi_np_per_pole     = bh%n_procs
-   ph%pexsi_comm_among_pole = mpi_comm_self
-   n_calls_save                = ph%n_calls
+   ph%pexsi_my_prow     = 0
+   ph%pexsi_np_per_pole = bh%n_procs
+   n_calls_save         = ph%n_calls
 
    if(ph%n_calls == 1+ph%sips_n_elpa) then
       ph%n_calls = 1
@@ -4514,10 +4502,9 @@ subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    character(len=40), parameter :: caller = "elsi_siesta_to_sips_hs_cmplx"
 
-   ph%pexsi_my_prow         = 0
-   ph%pexsi_np_per_pole     = bh%n_procs
-   ph%pexsi_comm_among_pole = mpi_comm_self
-   n_calls_save                = ph%n_calls
+   ph%pexsi_my_prow     = 0
+   ph%pexsi_np_per_pole = bh%n_procs
+   n_calls_save         = ph%n_calls
 
    if(ph%n_calls == 1+ph%sips_n_elpa) then
       ph%n_calls = 1

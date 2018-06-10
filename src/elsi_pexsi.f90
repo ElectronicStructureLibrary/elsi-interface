@@ -103,19 +103,13 @@ subroutine elsi_init_pexsi(ph,bh)
          endif
       enddo
 
-      ph%pexsi_n_prow = i
-      ph%pexsi_n_pcol = ph%pexsi_np_per_pole/i
-
       ! PEXSI process grid
-      ph%pexsi_my_pcol = mod(bh%myid,ph%pexsi_np_per_pole)
+      ph%pexsi_n_prow  = i
+      ph%pexsi_n_pcol  = ph%pexsi_np_per_pole/i
       ph%pexsi_my_prow = bh%myid/ph%pexsi_np_per_pole
+      ph%pexsi_my_pcol = mod(bh%myid,ph%pexsi_np_per_pole)
 
       ! PEXSI MPI communicators
-      call MPI_Comm_split(bh%comm,ph%pexsi_my_pcol,ph%pexsi_my_prow,&
-              ph%pexsi_comm_among_pole,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
-
       call MPI_Comm_split(bh%comm,ph%pexsi_my_prow,ph%pexsi_my_pcol,&
               ph%pexsi_comm_in_pole,ierr)
 
@@ -123,11 +117,6 @@ subroutine elsi_init_pexsi(ph,bh)
 
       call MPI_Comm_split(bh%comm,ph%pexsi_myid_point,ph%pexsi_my_point,&
               ph%pexsi_comm_among_point,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
-
-      call MPI_Comm_split(bh%comm,ph%pexsi_my_point,ph%pexsi_myid_point,&
-              ph%pexsi_comm_in_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
 
@@ -1257,10 +1246,8 @@ subroutine elsi_cleanup_pexsi(ph)
 
    if(ph%pexsi_started) then
       call f_ppexsi_plan_finalize(ph%pexsi_plan,ierr)
-      call MPI_Comm_free(ph%pexsi_comm_among_pole,ierr)
       call MPI_Comm_free(ph%pexsi_comm_in_pole,ierr)
       call MPI_Comm_free(ph%pexsi_comm_among_point,ierr)
-      call MPI_Comm_free(ph%pexsi_comm_in_point,ierr)
    endif
 
    ph%pexsi_started = .false.
