@@ -2,12 +2,11 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0 FATAL_ERROR)
 
 ### Project ###
-PROJECT(elsi LANGUAGES NONE)
+PROJECT(elsi VERSION 2.0.0 LANGUAGES NONE)
 SET(elsi_URL "http://elsi-interchange.org")
 SET(elsi_EMAIL "elsi-team@duke.edu")
 SET(elsi_LICENSE "BSD 3")
 SET(elsi_DESCRIPTION "Electronic Structure Infrastructure")
-SET(elsi_DATESTAMP "180521")
 
 ### CMake modules ###
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -50,6 +49,7 @@ SET(SCOTCH_LAST_RESORT "NOT_USED" CACHE STRING "Command to run PT-SCOTCH header 
 SET(LIB_PATHS "" CACHE STRING "List of directories containing libraries to be linked against")
 SET(INC_PATHS "" CACHE STRING "List of include directories")
 SET(LIBS "" CACHE STRING "List of external libraries to be linked against")
+option(BUILD_SHARED_LIBS "Whether to build shared or static libraries" ON)
 
 ### Compilers ###
 IF(NOT DEFINED CMAKE_Fortran_COMPILER)
@@ -75,7 +75,7 @@ ENDIF()
 
 ### External libraries ###
 STRING(REPLACE "-l" "" LIBS "${LIBS}")
-FOREACH(str LIBS LIB_PATHS INC_PATHS) 
+FOREACH(str LIBS LIB_PATHS INC_PATHS)
   convert_to_list(${str})
 ENDFOREACH()
 generate_library_targets(LIB_PATHS LIBS)

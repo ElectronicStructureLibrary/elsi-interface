@@ -1,6 +1,6 @@
 ### Generate version info ###
 ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
-  COMMAND perl ${PROJECT_SOURCE_DIR}/src/elsi_version_writer.pl ${elsi_DATESTAMP} > ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
+  COMMAND perl ${PROJECT_SOURCE_DIR}/src/elsi_version_writer.pl ${PROJECT_VERSION} > ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
   VERBATIM
 )
 
@@ -68,10 +68,10 @@ IF(ENABLE_SIPS)
 ENDIF()
 
 IF(NOT USE_EXTERNAL_OMM)
-  TARGET_LINK_LIBRARIES(elsi PRIVATE OMM MatrixSwitch)
+  TARGET_LINK_LIBRARIES(elsi PUBLIC OMM MatrixSwitch)
 ENDIF()
 IF(NOT USE_EXTERNAL_ELPA)
-  TARGET_LINK_LIBRARIES(elsi PRIVATE elpa)
+  TARGET_LINK_LIBRARIES(elsi PUBLIC elpa)
 ENDIF()
 TARGET_LINK_LIBRARIES(elsi PRIVATE fortjson)
 IF(ENABLE_SIPS)
@@ -91,14 +91,35 @@ IF(ENABLE_PEXSI)
     )
   ENDIF()
 ENDIF()
+
 TARGET_LINK_LIBRARIES(elsi PRIVATE ${LIBS})
 
 TARGET_INCLUDE_DIRECTORIES(elsi PRIVATE ${INC_PATHS})
 
 ### Installation ###
 IF(NOT "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" STREQUAL "${PROJECT_BINARY_DIR}/lib")
-  INSTALL(TARGETS elsi
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+  install(TARGETS elsi
+    EXPORT elsiConfig
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  # Install elsiConfig.cmake
+  install(EXPORT elsiConfig
+    NAMESPACE elsi::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/elsi)
+  # Install elsiConfigVersion.cmake
+  include(CMakePackageConfigHelpers)
+  write_basic_package_version_file(
+    ${PROJECT_BINARY_DIR}/elsiConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion)
+  install(FILES ${PROJECT_BINARY_DIR}/elsiConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/elsi)
+  # Export ELSI
+  target_include_directories(elsi INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_Fortran_MODULE_DIRECTORY}>)
+  export(EXPORT elsiConfig NAMESPACE elsi::
+    FILE ${PROJECT_BINARY_DIR}/elsiConfig.cmake)
 ENDIF()
 
 IF(NOT "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}" STREQUAL "${PROJECT_BINARY_DIR}/include")
