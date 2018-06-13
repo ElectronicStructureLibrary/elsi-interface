@@ -62,8 +62,8 @@ module ELSI_CONSTANTS
    ! Matrix reading and writing
    integer(kind=i4), parameter :: HEADER_SIZE  = 16
    integer(kind=i4), parameter :: FILE_VERSION = 170915
-   integer(kind=i4), parameter :: READ_FILE  = 0
-   integer(kind=i4), parameter :: WRITE_FILE = 1
+   integer(kind=i4), parameter :: READ_FILE    = 0
+   integer(kind=i4), parameter :: WRITE_FILE   = 1
 
    ! IO
    integer(kind=i4), parameter :: STR_LEN      = 20

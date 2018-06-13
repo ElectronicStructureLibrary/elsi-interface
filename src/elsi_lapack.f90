@@ -54,7 +54,7 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   integer(kind=i4),  parameter :: nblk = 128
+   integer(kind=i4),  parameter :: nblk   = 128
    character(len=40), parameter :: caller = "elsi_to_standard_evp_sp_real"
 
    if(ph%check_sing) then
@@ -404,7 +404,7 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   integer(kind=i4),  parameter :: nblk = 128
+   integer(kind=i4),  parameter :: nblk   = 128
    character(len=40), parameter :: caller = "elsi_to_standard_evp_sp_cmplx"
 
    if(ph%check_sing) then

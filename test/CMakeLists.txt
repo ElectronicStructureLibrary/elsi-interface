@@ -12,8 +12,7 @@ LIST(APPEND ftest_src
   Fortran/test_ev_cmplx_csc2.f90
   Fortran/test_ev_real_den.f90
   Fortran/test_ev_real_csc1.f90
-  Fortran/test_ev_real_csc2.f90
-)
+  Fortran/test_ev_real_csc2.f90)
 
 MACRO(add_test_target arg1)
   ADD_DEPENDENCIES(${arg1} elsi)
@@ -39,8 +38,7 @@ MACRO(add_test_target arg1)
         ptscotcherr
         scotchmetis
         scotch
-        scotcherr
-      )
+        scotcherr)
     ENDIF()
   ENDIF()
   TARGET_LINK_LIBRARIES(${arg1} PRIVATE ${LIBS})
@@ -59,8 +57,7 @@ SET_TARGET_PROPERTIES(elsi_test
 LIST(APPEND ftestrw_src
   Fortran/elsi_test_rw.f90
   Fortran/test_rw_cmplx.f90
-  Fortran/test_rw_real.f90
-)
+  Fortran/test_rw_real.f90)
 
 ADD_EXECUTABLE(elsi_test_rw ${ftestrw_src})
 add_test_target(elsi_test_rw)
@@ -74,8 +71,7 @@ IF(ENABLE_C_TESTS)
     C/test_dm_cmplx_den_c.c
     C/test_dm_real_den_c.c
     C/test_ev_cmplx_den_c.c
-    C/test_ev_real_den_c.c
-  )
+    C/test_ev_real_den_c.c)
 
   ADD_EXECUTABLE(elsi_test_c ${ctest_src})
   add_test_target(elsi_test_c)
@@ -98,11 +94,9 @@ SEPARATE_ARGUMENTS(MPIEXEC_1P UNIX_COMMAND "${MPIEXEC_1P}")
 MACRO(test_fortran arg1 arg2 arg3 arg4 arg5 arg6 arg7)
   ADD_TEST(test_fortran_${arg1}
     ${MPIEXEC_NP} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
-    ${arg2} ${arg3} ${arg4} ${arg5} ${arg6} ${arg7}
-  )
+    ${arg2} ${arg3} ${arg4} ${arg5} ${arg6} ${arg7})
   SET_TESTS_PROPERTIES(test_fortran_${arg1}
-    PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
-  )
+    PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
 ENDMACRO()
 
 ### Parallel Fortran tests: ev + ELPA ###
@@ -155,63 +149,43 @@ ENDIF()
 
 ### Serial Fortran tests: ev + ELPA (LAPACK) ###
 ADD_TEST(test_serial_01
-  ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
-  e 0 r 1 ${h_real} ${s_real}
-)
+  ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test e 0 r 1 ${h_real} ${s_real})
 SET_TESTS_PROPERTIES(test_serial_01
-  PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
-)
+  PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
 
 ADD_TEST(test_serial_02
-  ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test
-  e 0 c 1 ${h_cmplx} ${s_cmplx}
-)
+  ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test e 0 c 1 ${h_cmplx} ${s_cmplx})
 SET_TESTS_PROPERTIES(test_serial_02
-  PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
-)
+  PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
 
 ### Fortran tests: matrix IO ###
 ADD_TEST(test_matio_01
-  ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
-  r ${h_real} ${s_real}
-)
+  ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw r ${h_real} ${s_real})
 SET_TESTS_PROPERTIES(test_matio_01
-  PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
-)
+  PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
 
 ADD_TEST(test_matio_02
-  ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
-  c ${h_cmplx} ${s_cmplx}
-)
+  ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw c ${h_cmplx} ${s_cmplx})
 SET_TESTS_PROPERTIES(test_matio_02
-  PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
-)
+  PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
 
 ADD_TEST(test_matio_03
-  ${MPIEXEC_NP} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
-  r ${h_real} ${s_real}
-)
+  ${MPIEXEC_NP} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw r ${h_real} ${s_real})
 SET_TESTS_PROPERTIES(test_matio_03
-  PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
-)
+  PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
 
 ADD_TEST(test_matio_04
-  ${MPIEXEC_NP} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw
-  c ${h_cmplx} ${s_cmplx}
-)
+  ${MPIEXEC_NP} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw c ${h_cmplx} ${s_cmplx})
 SET_TESTS_PROPERTIES(test_matio_04
-  PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
-)
+  PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
 
 IF(ENABLE_C_TESTS)
   MACRO(test_c arg1 arg2 arg3 arg4 arg5 arg6 arg7)
     ADD_TEST(test_c_${arg1}
       ${MPIEXEC_NP} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_c
-      ${arg2} ${arg3} ${arg4} ${arg5} ${arg6} ${arg7}
-    )
+      ${arg2} ${arg3} ${arg4} ${arg5} ${arg6} ${arg7})
     SET_TESTS_PROPERTIES(test_c_${arg1}
-      PROPERTIES PASS_REGULAR_EXPRESSION "Passed"
-    )
+      PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
   ENDMACRO()
 
   ### Parallel C tests: ev + ELPA ###

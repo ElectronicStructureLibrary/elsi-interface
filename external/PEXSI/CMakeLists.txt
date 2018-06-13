@@ -16,8 +16,7 @@ LIST(APPEND pexsi_src
   src/superlu_dist_internal_complex.cpp
   src/superlu_dist_internal_real.cpp
   src/timer.cpp
-  src/utility.cpp
-)
+  src/utility.cpp)
 
 ADD_LIBRARY(pexsi ${pexsi_src})
 
@@ -39,8 +38,7 @@ IF(NOT USE_EXTERNAL_SUPERLU)
     ptscotcherr
     scotchmetis
     scotch
-    scotcherr
-  )
+    scotcherr)
 ENDIF()
 
 TARGET_INCLUDE_DIRECTORIES(pexsi PRIVATE include)
@@ -50,8 +48,7 @@ IF(NOT USE_EXTERNAL_SUPERLU)
     ${PROJECT_SOURCE_DIR}/external/SuperLU_DIST/src
     ${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotch
     ${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotchmetis
-    ${PROJECT_BINARY_DIR}/generated
-  )
+    ${PROJECT_BINARY_DIR}/generated)
 ENDIF()
 
 IF(NOT "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" STREQUAL "${PROJECT_BINARY_DIR}/lib")

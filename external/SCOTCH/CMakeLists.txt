@@ -37,53 +37,45 @@ IF(NOT SCOTCH_LAST_RESORT STREQUAL "NOT_USED")
     COMMAND ${SCOTCH_LAST_RESORT} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library.h ${PROJECT_BINARY_DIR}/generated/scotch.h
     COMMAND ${SCOTCH_LAST_RESORT} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_f.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
     DEPENDS dummysizes
-    VERBATIM
-  )
+    VERBATIM)
 
   ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/metis.h
     COMMAND ${SCOTCH_LAST_RESORT} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dummysizes ${SCOTCH_SOURCE_DIR}/libscotchmetis/library_metis.h ${PROJECT_BINARY_DIR}/generated/metis.h
     DEPENDS dummysizes
-    VERBATIM
-  )
+    VERBATIM)
 
   ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/parmetis.h
     COMMAND ${SCOTCH_LAST_RESORT} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dummysizes ${SCOTCH_SOURCE_DIR}/libscotchmetis/library_parmetis.h ${PROJECT_BINARY_DIR}/generated/parmetis.h
     DEPENDS dummysizes
-    VERBATIM
-  )
+    VERBATIM)
 
   ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/ptscotch.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
     COMMAND ${SCOTCH_LAST_RESORT} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt.h ${PROJECT_BINARY_DIR}/generated/ptscotch.h
     COMMAND ${SCOTCH_LAST_RESORT} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt_f.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
     DEPENDS ptdummysizes
-    VERBATIM
-  )
+    VERBATIM)
 ELSE()
   ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/scotch.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
     COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library.h ${PROJECT_BINARY_DIR}/generated/scotch.h
     COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_f.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
     DEPENDS dummysizes
-    VERBATIM
-  )
+    VERBATIM)
 
   ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/metis.h
     COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotchmetis/library_metis.h ${PROJECT_BINARY_DIR}/generated/metis.h
     DEPENDS dummysizes
-    VERBATIM
-  )
+    VERBATIM)
 
   ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/parmetis.h
     COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotchmetis/library_parmetis.h ${PROJECT_BINARY_DIR}/generated/parmetis.h
     DEPENDS dummysizes
-    VERBATIM
-  )
+    VERBATIM)
 
   ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/ptscotch.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
     COMMAND ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt.h ${PROJECT_BINARY_DIR}/generated/ptscotch.h
     COMMAND ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt_f.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
     DEPENDS ptdummysizes
-    VERBATIM
-  )
+    VERBATIM)
 ENDIF()
 
 ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/parser_ll.c ${PROJECT_BINARY_DIR}/generated/parser_yy.c
@@ -92,8 +84,7 @@ ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/parser_ll.c ${PROJECT_
   COMMAND mv ${PROJECT_BINARY_DIR}/generated/tmp2.h ${PROJECT_BINARY_DIR}/generated/parser_ly.h
   COMMAND flex -Pscotchyy -o${PROJECT_BINARY_DIR}/generated/tmp1.c ${SCOTCH_SOURCE_DIR}/libscotch/parser_ll.l
   COMMAND mv ${PROJECT_BINARY_DIR}/generated/tmp1.c ${PROJECT_BINARY_DIR}/generated/parser_ll.c
-  VERBATIM
-)
+  VERBATIM)
 
 ### Source files ###
 LIST(APPEND scotch_src
@@ -307,8 +298,7 @@ LIST(APPEND scotch_src
   src/libscotch/wgraph_part_rb.c
   src/libscotch/wgraph_part_st.c
   src/libscotch/wgraph_part_zr.c
-  src/libscotch/wgraph_store.c
-)
+  src/libscotch/wgraph_store.c)
 
 LIST(APPEND ptscotch_src
   ${PROJECT_BINARY_DIR}/generated/ptscotch.h
@@ -430,8 +420,7 @@ LIST(APPEND ptscotch_src
   src/libscotch/vdgraph_separate_sq.c
   src/libscotch/vdgraph_separate_st.c
   src/libscotch/vdgraph_separate_zr.c
-  src/libscotch/vdgraph_store.c
-)
+  src/libscotch/vdgraph_store.c)
 
 SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/scotch.h
   PROPERTIES GENERATED TRUE)
@@ -487,16 +476,14 @@ LIST(APPEND scotchmetis_src
   src/libscotchmetis/metis_graph_order.c
   src/libscotchmetis/metis_graph_order_f.c
   src/libscotchmetis/metis_graph_part.c
-  src/libscotchmetis/metis_graph_part_f.c
-)
+  src/libscotchmetis/metis_graph_part_f.c)
 
 LIST(APPEND ptscotchparmetis_src
   ${PROJECT_BINARY_DIR}/generated/parmetis.h
   src/libscotchmetis/parmetis_dgraph_order.c
   src/libscotchmetis/parmetis_dgraph_order_f.c
   src/libscotchmetis/parmetis_dgraph_part.c
-  src/libscotchmetis/parmetis_dgraph_part_f.c
-)
+  src/libscotchmetis/parmetis_dgraph_part_f.c)
 
 SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/metis.h
   PROPERTIES GENERATED TRUE)

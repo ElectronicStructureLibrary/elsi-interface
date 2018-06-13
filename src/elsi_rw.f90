@@ -23,8 +23,7 @@ module ELSI_RW
                              mpi_info_null,mpi_status_ignore,mpi_success,&
                              elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4,i8
-   use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_blacs,&
-                             elsi_set_csc,elsi_cleanup
+   use ELSI_SETUP,     only: elsi_init,elsi_set_mpi,elsi_set_blacs,elsi_cleanup
    use ELSI_UTILS,     only: elsi_get_nnz,elsi_reset_basic,elsi_check_init
 
    implicit none
@@ -1459,16 +1458,15 @@ subroutine elsi_read_mat_dim_sp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
 
    close(unit=99)
 
-   n_basis    = header(4)
-   n_electron = real(header(5),kind=r8)
-   n_lrow     = n_basis
-   n_lcol     = n_basis
-
-   rwh%n_basis      = n_basis
-   rwh%n_electrons  = n_electron
-   rwh%bh%n_lrow = n_lrow
-   rwh%bh%n_lcol = n_lcol
-   rwh%header_user  = header(9:16)
+   n_basis         = header(4)
+   n_electron      = real(header(5),kind=r8)
+   n_lrow          = n_basis
+   n_lcol          = n_basis
+   rwh%n_basis     = n_basis
+   rwh%n_electrons = n_electron
+   rwh%bh%n_lrow   = n_lrow
+   rwh%bh%n_lcol   = n_lcol
+   rwh%header_user = header(9:16)
 
 end subroutine
 

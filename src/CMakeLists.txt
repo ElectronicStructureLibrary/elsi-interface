@@ -28,8 +28,7 @@ LIST(APPEND elsi_src
   elsi_sips.f90
   elsi_solver.f90
   elsi_sort.f90
-  elsi_utils.f90
-)
+  elsi_utils.f90)
 
 SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/elsi_version.f90
   PROPERTIES GENERATED TRUE)
@@ -45,8 +44,7 @@ ENDIF()
 IF(NOT USE_EXTERNAL_ELPA)
   LIST(APPEND elsi_src
     elsi_elpa.f90
-    stub_aeo.f90
-  )
+    stub_aeo.f90)
 ELSE()
   LIST(APPEND elsi_src elsi_aeo.f90)
 ENDIF()
@@ -87,8 +85,7 @@ IF(ENABLE_PEXSI)
       ptscotcherr
       scotchmetis
       scotch
-      scotcherr
-    )
+      scotcherr)
   ENDIF()
 ENDIF()
 
@@ -98,27 +95,27 @@ TARGET_INCLUDE_DIRECTORIES(elsi PRIVATE ${INC_PATHS})
 
 ### Installation ###
 IF(NOT "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" STREQUAL "${PROJECT_BINARY_DIR}/lib")
-  install(TARGETS elsi
+  INSTALL(TARGETS elsi
     EXPORT elsiConfig
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
   # Install elsiConfig.cmake
-  install(EXPORT elsiConfig
+  INSTALL(EXPORT elsiConfig
     NAMESPACE elsi::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/elsi)
   # Install elsiConfigVersion.cmake
-  include(CMakePackageConfigHelpers)
-  write_basic_package_version_file(
+  INCLUDE(CMakePackageConfigHelpers)
+  WRITE_BASIC_PACKAGE_VERSION_FILE(
     ${PROJECT_BINARY_DIR}/elsiConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion)
-  install(FILES ${PROJECT_BINARY_DIR}/elsiConfigVersion.cmake
+  INSTALL(FILES ${PROJECT_BINARY_DIR}/elsiConfigVersion.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/elsi)
   # Export ELSI
-  target_include_directories(elsi INTERFACE
+  TARGET_INCLUDE_DIRECTORIES(elsi INTERFACE
     $<BUILD_INTERFACE:${CMAKE_Fortran_MODULE_DIRECTORY}>)
-  export(EXPORT elsiConfig NAMESPACE elsi::
+  EXPORT(EXPORT elsiConfig NAMESPACE elsi::
     FILE ${PROJECT_BINARY_DIR}/elsiConfig.cmake)
 ENDIF()
 
