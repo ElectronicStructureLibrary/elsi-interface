@@ -88,8 +88,7 @@ LIST(APPEND superlu_src
   src/zreadtriple.c
   src/zsp_blas2_dist.c
   src/zsp_blas3_dist.c
-  src/zutil_dist.c
-)
+  src/zutil_dist.c)
 
 ADD_LIBRARY(superlu_dist ${superlu_src})
 
@@ -107,8 +106,7 @@ ADD_DEPENDENCIES(superlu_dist
   ptscotcherr
   scotchmetis
   scotch
-  scotcherr
-)
+  scotcherr)
 
 TARGET_LINK_LIBRARIES(superlu_dist PRIVATE
   ptscotchparmetis
@@ -117,15 +115,13 @@ TARGET_LINK_LIBRARIES(superlu_dist PRIVATE
   scotchmetis
   scotch
   scotcherr
-  ${LIBS}
-)
+  ${LIBS})
 
 TARGET_INCLUDE_DIRECTORIES(superlu_dist PRIVATE
   src
   ${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotch
   ${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotchmetis
-  ${PROJECT_BINARY_DIR}/generated
-)
+  ${PROJECT_BINARY_DIR}/generated)
 
 IF(NOT "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" STREQUAL "${PROJECT_BINARY_DIR}/lib")
   INSTALL(TARGETS superlu_dist

@@ -146,8 +146,8 @@ module ELSI_DATATYPE
       integer(kind=i4)         :: pexsi_n_pcol
       integer(kind=i4)         :: pexsi_my_point
       integer(kind=i4)         :: pexsi_myid_point
-      integer(kind=i4)         :: pexsi_comm_in_pole
-      integer(kind=i4)         :: pexsi_comm_among_point
+      integer(kind=i4)         :: pexsi_comm_intra_pole
+      integer(kind=i4)         :: pexsi_comm_inter_point
       real(kind=r8)            :: pexsi_ne
       logical                  :: pexsi_started = .false.
       integer(kind=c_intptr_t) :: pexsi_plan

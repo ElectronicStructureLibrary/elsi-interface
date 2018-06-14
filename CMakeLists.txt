@@ -42,6 +42,7 @@ OPTION(USE_EXTERNAL_ELPA "Use external ELPA" OFF)
 OPTION(USE_EXTERNAL_OMM "Use external libOMM" OFF)
 OPTION(USE_EXTERNAL_SUPERLU "Use external SuperLU_DIST" OFF)
 OPTION(ADD_UNDERSCORE "Suffix C functions with an underscore" ON)
+OPTION(BUILD_SHARED_LIBS "Whether to build shared or static libraries" OFF)
 SET(ELPA2_KERNEL "" CACHE STRING "Use AVX/AVX2/AVX512/BGQ ELPA2 kernel")
 SET(MPIEXEC_NP "mpirun -n 4" CACHE STRING "Command to run parallel tests with multiple MPI tasks")
 SET(MPIEXEC_1P "mpirun -n 1" CACHE STRING "Command to run serial tests with 1 MPI task")
@@ -49,7 +50,6 @@ SET(SCOTCH_LAST_RESORT "NOT_USED" CACHE STRING "Command to run PT-SCOTCH header 
 SET(LIB_PATHS "" CACHE STRING "List of directories containing libraries to be linked against")
 SET(INC_PATHS "" CACHE STRING "List of include directories")
 SET(LIBS "" CACHE STRING "List of external libraries to be linked against")
-option(BUILD_SHARED_LIBS "Whether to build shared or static libraries" OFF)
 
 ### Compilers ###
 IF(NOT DEFINED CMAKE_Fortran_COMPILER)

@@ -1,6 +1,19 @@
-===================
-   ELSI May 2018
-===================
+============================
+   ELSI May 2018 (v2.0.1)
+============================
+
+   ELSI:
+   * Switched to the semantic versioning scheme (http://semver.org).
+   * Fixed building ELSI as a shared library with tests enabled.
+   * Improved stability when calling PBLAS routines pdtran and pztranc.
+
+   Known Issues:
+   * Depending on the choice of k-points, complex PEXSI solver may fail at
+     the inertia counting stage.
+
+============================
+   ELSI May 2018 (v2.0.0)
+============================
 
    ELSI:
    * CMake build system has replaced the Makefile-based system.
@@ -43,9 +56,9 @@
      against any compatible sparse matrix reordering library.
    * Removed ParMETIS as a mandatory external dependency for PEXSI.
 
-===================
-   ELSI May 2017
-===================
+============================
+   ELSI May 2017 (v1.0.0)
+============================
 
    Initial release of ELSI
 

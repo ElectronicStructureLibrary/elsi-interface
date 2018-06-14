@@ -21,7 +21,7 @@
 
 \begin{document}
 % Title
-\title{\includegraphics[scale=0.07]{elsi_logo.png}\\ \textcolor{white}{nothing}\\ \textbf{ELSI Interface\\ Development Version\\ \textcolor{white}{nothing} \\ User's Guide}}
+\title{\includegraphics[scale=0.07]{elsi_logo.png}\\ \textcolor{white}{nothing}\\ \textbf{ELSI Interface\\ May 2018 (v2.0.1)\\ \textcolor{white}{nothing} \\ User's Guide}}
 \author{The ELSI Team\\ \textcolor{white}{nothing}\\ \url{http://elsi-interchange.org}}
 \maketitle
 
@@ -472,6 +472,8 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 \multicolumn{1}{|c|}{\textbf{Option}} & \multicolumn{1}{c|}{\textbf{Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
 \hline
 \textcolor{blue}{ADD\_UNDERSCORE}            & boolean & ON          & Suffix C functions with an underscore\\
+\hline
+\textcolor{blue}{BUILD\_SHARED\_LIBS}        & boolean & OFF         & Build ELSI as a shared library\\
 \hline
 \textcolor{blue}{CMAKE\_C\_COMPILER}         & string  & none        & MPI C compiler\\
 \hline
@@ -1097,7 +1099,6 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sing\_check}(handle, sing\_check)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sing\_tol}(handle, sing\_tol)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sing\_stop}(handle, sing\_stop)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_uplo}(handle, uplo)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_mu\_broaden\_scheme}(handle, mu\_broaden\_scheme)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_mu\_mp\_order}(handle, mu\_mp\_order)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_mu\_broaden\_width}(handle, mu\_broaden\_width)]
@@ -1123,8 +1124,6 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \textcolor{blue}{sing\_tol}           & real double        & $10^{-5}$  & Eigenfunctions of the overlap matrix with eigenvalues smaller than this threshold will be removed to avoid ill-conditioning.  See remark 1.\\
 \hline
 \textcolor{blue}{sing\_stop}          & integer            & 0          & If not 0, the code always stops if the overlap matrix is detected to be singular.  See remark 1.\\
-\hline
-\textcolor{blue}{uplo}                & integer            & 0          & The input matrix format.  0:  Input matrix is full, not triangular.  This is currently the only supported option.\\
 \hline
 \textcolor{blue}{mu\_broaden\_scheme} & integer            & 0          & The broadening scheme employed to compute the occupation numbers and the Fermi level.  0:  Gaussian.  1:  Fermi-Dirac.  2:  Methfessel-Paxton.  4:  Marzari-Vanderbilt.\\
 \hline

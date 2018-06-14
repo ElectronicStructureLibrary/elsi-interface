@@ -123,8 +123,8 @@ subroutine elsi_reset_param(ph)
    ph%pexsi_n_pcol           = UNSET
    ph%pexsi_my_point         = UNSET
    ph%pexsi_myid_point       = UNSET
-   ph%pexsi_comm_in_pole     = UNSET
-   ph%pexsi_comm_among_point = UNSET
+   ph%pexsi_comm_intra_pole  = UNSET
+   ph%pexsi_comm_inter_point = UNSET
    ph%pexsi_ne               = 0.0_r8
    ph%pexsi_started          = .false.
    ph%sips_n_elpa            = 0

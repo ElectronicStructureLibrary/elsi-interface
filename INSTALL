@@ -6,10 +6,9 @@
 A) PREREQUISITES
 ===========================================================================
 
-   Note:  Starting from February 2018, the installation of ELSI makes use
-   of the CMake software.
+   The installation of ELSI makes use of the CMake software.
 
-   To build the ELSI interface, minimum requirements include:
+   Minimum requirements are:
 
      - CMake             [3.0 or newer]
      - Fortran compiler  [Fortran 2003]

@@ -4358,8 +4358,8 @@ subroutine elsi_sips_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
 
    character(len=40), parameter :: caller = "elsi_sips_to_siesta_dm_real"
 
-   ph%pexsi_my_prow      = 0
-   ph%pexsi_np_per_pole  = bh%n_procs
+   ph%pexsi_my_prow     = 0
+   ph%pexsi_np_per_pole = bh%n_procs
 
    call elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,row_ind2,&
            col_ptr2,dm_csc2)
