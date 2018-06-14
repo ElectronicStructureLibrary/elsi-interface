@@ -3,9 +3,9 @@
 ============================
 
    ELSI:
-   * Switched to the semantic versioning scheme 2.0.0 (http://semver.org).
+   * Switched to the semantic versioning scheme (http://semver.org).
    * Fixed building ELSI as a shared library with tests enabled.
-   * Improved safety when calling PBLAS routines pdtran and pztranc.
+   * Improved stability when calling PBLAS routines pdtran and pztranc.
 
    Known Issues:
    * Depending on the choice of k-points, complex PEXSI solver may fail at
