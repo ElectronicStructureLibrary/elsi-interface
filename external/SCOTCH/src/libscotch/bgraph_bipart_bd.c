@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2011,2014,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -45,7 +45,7 @@
 /**                # Version 5.1  : from : 09 nov 2008     **/
 /**                                 to   : 26 mar 2011     **/
 /**                # Version 6.0  : from : 07 nov 2011     **/
-/**                                 to   : 13 aug 2016     **/
+/**                                 to   : 15 nov 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -445,7 +445,9 @@ const BgraphBipartBdParam * const paraptr)        /*+ Method parameters +*/
     Gnum                bndfronnnd;
     Gnum                bndvertnum;
     Gnum                bndedgenum;
+    Gnum                bndedloval;
 
+    bndedloval      = 1;                          /* Assume unity edge weights */
     bndcommloadintn = 0;
     for (bndvertnum = orggrafptr->s.baseval, bndfronnnd = bndvertnum + orggrafptr->fronnbr; /* Compute communication load at frontier */
          bndvertnum < bndfronnnd; bndvertnum ++) {
@@ -459,11 +461,12 @@ const BgraphBipartBdParam * const paraptr)        /*+ Method parameters +*/
         Gnum                bndpartend;
 
         bndpartend = (Gnum) bndgrafdat.parttax[bndedgetax[bndedgenum]];
-        bndcommloadintn += bndedlotax[bndedgenum] * bndpartend;
+        bndedloval = bndedlotax[bndedgenum];
+        bndcommloadintn += bndedloval * bndpartend;
       }
     }
 
-    bndcommloadintn *= orggrafptr->domndist;
+    bndcommloadintn *= orggrafptr->domdist;
     bndveextax[bndvertnnd + 1] = (orggrafptr->commload - orggrafptr->commloadextn0 - bndcommloadintn) - bndcommgainextn1;
     bndveextax[bndvertnnd]     = (orggrafptr->commload - orggrafptr->commloadextn0 - bndcommloadintn) - bndcommgainextn + bndcommgainextn1 + orggrafptr->commgainextn;
   }
@@ -479,13 +482,11 @@ const BgraphBipartBdParam * const paraptr)        /*+ Method parameters +*/
   bndgrafdat.commloadextn0 = orggrafptr->commloadextn0;
   bndgrafdat.commgainextn  = orggrafptr->commgainextn;
   bndgrafdat.commgainextn0 = orggrafptr->commgainextn0;
-  bndgrafdat.domndist      = orggrafptr->domndist;
-  bndgrafdat.domnwght[0]   = orggrafptr->domnwght[0];
-  bndgrafdat.domnwght[1]   = orggrafptr->domnwght[1];
-  bndgrafdat.vfixload[0]   = orggrafptr->vfixload[0];
-  bndgrafdat.vfixload[1]   = orggrafptr->vfixload[1];
-  bndgrafdat.bbalval       = orggrafptr->bbalval;
+  bndgrafdat.domdist       = orggrafptr->domdist;
+  bndgrafdat.domwght[0]    = orggrafptr->domwght[0];
+  bndgrafdat.domwght[1]    = orggrafptr->domwght[1];
   bndgrafdat.levlnum       = orggrafptr->levlnum;
+  bndgrafdat.bbalval       = orggrafptr->bbalval;
 
 #ifdef SCOTCH_DEBUG_BGRAPH2
   if ((graphCheck (&bndgrafdat.s) != 0) ||        /* Check band graph consistency */

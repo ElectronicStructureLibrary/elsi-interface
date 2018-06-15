@@ -1,4 +1,4 @@
-/* Copyright 2008,2010,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2008,2010 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -44,8 +44,6 @@
 /**                                 to   : 21 mar 2008     **/
 /**                # Version 5.1  : from : 27 apr 2010     **/
 /**                                 to   : 11 aug 2010     **/
-/**                # Version 6.0  : from : 04 aug 2016     **/
-/**                                 to     04 aug 2016     **/
 /**                                                        **/
 /************************************************************/
 
@@ -161,9 +159,6 @@ const char * const          dataptr)              /* Fake base value  */
   grafptr->verttax -= baseval;
   grafptr->vendtax  = grafptr->verttax + 1;
   grafptr->velosum  = grafptr->vertnbr;
-  grafptr->velotax  = NULL;
-  grafptr->vnumtax  = NULL;
-  grafptr->vlbltax  = NULL;
 
   if ((sorttab = (GraphGeomMmktEdge *) memAlloc (2 * linenbr * sizeof (GraphGeomMmktEdge))) == NULL) { /* Twice the space for symmetric edges */
     errorPrint ("graphGeomLoadMmkt: out of memory (2)");
@@ -171,7 +166,6 @@ const char * const          dataptr)              /* Fake base value  */
     return     (1);
   }
   grafptr->edgetax = ((Gnum *) sorttab) - baseval; /* TRICK: will be freed if graph is freed */
-  grafptr->edlotax = NULL;
 
   for (linenum = sortnbr = 0; linenum < linenbr; linenum ++) {
     if ((intLoad (filesrcptr, &sorttab[sortnbr].vertnum[0]) != 1) || /* Read edge ends */

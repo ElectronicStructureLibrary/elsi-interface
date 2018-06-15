@@ -3716,7 +3716,7 @@ void PPEXSIData::CalculateFermiOperatorComplexDeprecate(
     if( isEnergyDensityMatrix )
     {
       Real local = 0.0;
-      if( SRealMat_.size != 0 ){
+      if( SComplexMat_.size != 0 ){
         local = (blas::Dotu( SComplexMat_.nnzLocal, 
             SComplexMat_.nzvalLocal.Data(),
             1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();
@@ -4327,7 +4327,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     if( isEnergyDensityMatrix )
     {
       Real local = 0.0;
-      if( SRealMat_.size != 0 ){
+      if( SComplexMat_.size != 0 ){
         local = (blas::Dotu( SComplexMat_.nnzLocal, 
             SComplexMat_.nzvalLocal.Data(),
             1, energyDensityComplexMat_.nzvalLocal.Data(), 1 )).real();

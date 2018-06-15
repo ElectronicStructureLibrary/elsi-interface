@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2009,2014,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2009 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -49,8 +49,6 @@
 /**                                 to     22 may 2008     **/
 /**                # Version 5.1  : from : 01 oct 2009     **/
 /**                                 to   : 01 oct 2009     **/
-/**                # Version 6.0  : from : 04 aug 2014     **/
-/**                                 to   : 24 feb 2015     **/
 /**                                                        **/
 /**   NOTES      : # Pre-hashing proves itself extremely   **/
 /**                  efficient, since for graphs that      **/
@@ -99,12 +97,10 @@ const HgraphOrderCpParam * const  paraptr)
 {
   Hgraph                        coargrafdat;      /* Compressed halo subgraph                                              */
   Order                         coarordedat;      /* Ordering of compressed halo subgraph                                  */
-  Gnum *                        coarperitab;      /* Coarse permutation array                                              */
+  Gnum * restrict               coarperitab;      /* Coarse permutation array                                              */
   const Gnum * restrict         coarperitax;      /* Temporary based access to coarperitab                                 */
   Gnum                          coarvertnbr;      /* Number of compressed vertices                                         */
   Gnum                          coarvertnum;      /* Number of current compressed vertex                                   */
-  Gnum                          coarvnhdsiz;      /* Size of non-halo end vertex array; zero if graph has no halo          */
-  Gnum                          coarvsizsiz;      /* Size of coarse vertex sizes array; zero if no fine vertex loads       */
   Gnum * restrict               coarvsiztax;      /* Array of coarse vertex sizes (as number of merged fine vertices)      */
   Gnum                          coaredgenbr;      /* Number of compressed edges                                            */
   Gnum                          coaredgenum;      /* Number of current compressed edge                                     */
@@ -122,11 +118,8 @@ const HgraphOrderCpParam * const  paraptr)
   Gnum                          finevsizsum;      /* Sum of compressed vertex sizes to build fine inverse permutation      */
   void *                        dataptr;          /* Flag of memory allocation success                                     */
 
-  Gnum * restrict const         fineperitab = fineordeptr->peritab;
   const Gnum * restrict const   fineverttax = finegrafptr->s.verttax;
-  const Gnum * restrict const   finevelotax = finegrafptr->s.velotax;
   const Gnum * restrict const   finevendtax = finegrafptr->s.vendtax;
-  const Gnum * restrict const   finevnumtax = finegrafptr->s.vnumtax;
   const Gnum * restrict const   finevnhdtax = finegrafptr->vnhdtax;
   const Gnum * restrict const   fineedgetax = finegrafptr->s.edgetax;
 
@@ -291,7 +284,7 @@ loop_failed: ;
   for ( ; finevertnum < finegrafptr->s.vertnnd; finevertnum ++) /* For all halo vertices */
     finecoartax[finevertnum] = coarvertnbr ++;    /* Halo vertices are never compressed  */
 
-  coargrafdat.s.flagval = GRAPHFREETABS | GRAPHVERTGROUP; /* Do not set HGRAPHFREEVNHD since vnhdtax allocated in group */
+  coargrafdat.s.flagval = HGRAPHFREETABS | GRAPHVERTGROUP;
   coargrafdat.s.vertnbr = coarvertnbr - coargrafdat.s.baseval;
   coargrafdat.s.vertnnd = coarvertnbr;
   coargrafdat.s.velosum = finegrafptr->s.velosum;
@@ -299,13 +292,38 @@ loop_failed: ;
   coargrafdat.vnohnbr   = coargrafdat.vnohnnd - coargrafdat.s.baseval;
   coargrafdat.vnlosum   = finegrafptr->vnlosum;
 
-  coarvnhdsiz = (finegrafptr->s.vertnbr == finegrafptr->vnohnbr) ? 0 : coargrafdat.vnohnbr; /* If no halo, no need for vnhdtax; will use vendtax */
-  coarvsizsiz = (finevelotax == NULL) ? 0 : coarvertnbr; /* If no fine vertex loads, use coarse velotax as coarvsiztax                           */
-  if ((dataptr = memAllocGroup ((void **) (void *)
-                                &coargrafdat.s.verttax, (size_t) ((coarvertnbr + 1) * sizeof (Gnum)),
-                                &coargrafdat.vnhdtax,   (size_t) (coarvnhdsiz       * sizeof (Gnum)),
-                                &coargrafdat.s.velotax, (size_t) (coarvertnbr       * sizeof (Gnum)),
-                                &coarvsiztax,           (size_t) (coarvsizsiz       * sizeof (Gnum)), NULL)) != NULL) {
+  if (finegrafptr->s.velotax == NULL) {
+    if (finegrafptr->s.vertnbr == finegrafptr->vnohnbr) { /* If no halo present */
+      dataptr = memAllocGroup ((void **) (void *)
+                               &coargrafdat.s.verttax, (size_t) ((coarvertnbr + 1)   * sizeof (Gnum)),
+                               &coargrafdat.s.velotax, (size_t) (coarvertnbr         * sizeof (Gnum)), NULL);
+      coargrafdat.vnhdtax = coargrafdat.s.verttax + 1;
+    }
+    else {
+      dataptr = memAllocGroup ((void **) (void *)
+                               &coargrafdat.s.verttax, (size_t) ((coarvertnbr + 1)   * sizeof (Gnum)),
+                               &coargrafdat.vnhdtax,   (size_t) (coargrafdat.vnohnbr * sizeof (Gnum)),
+                               &coargrafdat.s.velotax, (size_t) (coarvertnbr         * sizeof (Gnum)), NULL);
+    }
+    coarvsiztax = coargrafdat.s.velotax;
+  }
+  else {
+    if (finegrafptr->s.vertnbr == finegrafptr->vnohnbr) { /* If no halo present */
+      dataptr = memAllocGroup ((void **) (void *)
+                               &coargrafdat.s.verttax, (size_t) ((coarvertnbr + 1)   * sizeof (Gnum)),
+                               &coargrafdat.s.velotax, (size_t) (coarvertnbr         * sizeof (Gnum)),
+                               &coarvsiztax,           (size_t) (coarvertnbr         * sizeof (Gnum)), NULL);
+      coargrafdat.vnhdtax = coargrafdat.s.verttax + 1;
+    }
+    else {
+      dataptr = memAllocGroup ((void **) (void *)
+                               &coargrafdat.s.verttax, (size_t) ((coarvertnbr + 1)   * sizeof (Gnum)),
+                               &coargrafdat.vnhdtax,   (size_t) (coargrafdat.vnohnbr * sizeof (Gnum)),
+                               &coargrafdat.s.velotax, (size_t) (coarvertnbr         * sizeof (Gnum)),
+                               &coarvsiztax,           (size_t) (coarvertnbr         * sizeof (Gnum)), NULL);
+    }
+  }
+  if (dataptr != NULL) {
     dataptr               =
     coargrafdat.s.edgetax = (Gnum *) memAlloc (coaredgenbr * sizeof (Gnum));
   }
@@ -320,8 +338,8 @@ loop_failed: ;
   coargrafdat.s.vendtax  = coargrafdat.s.verttax + 1; /* Use compact representation of arrays */
   coargrafdat.s.velotax -= coargrafdat.s.baseval;
   coargrafdat.s.edgetax -= coargrafdat.s.baseval;
-  coargrafdat.vnhdtax    = (finegrafptr->s.vertnbr == finegrafptr->vnohnbr) ? coargrafdat.s.vendtax : coargrafdat.vnhdtax - coargrafdat.s.baseval;
-  coarvsiztax            = (finevelotax == NULL) ? coargrafdat.s.velotax : coarvsiztax - coargrafdat.s.baseval;
+  coargrafdat.vnhdtax   -= coargrafdat.s.baseval;
+  coarvsiztax           -= coargrafdat.s.baseval;
 
   memSet (finehashtab, ~0, (finehashmsk + 1) * sizeof (HgraphOrderCpHash));
 
@@ -329,7 +347,7 @@ loop_failed: ;
        finevertnum < finegrafptr->vnohnnd; finevertnum ++) {
     Gnum                fineedgenum;              /* Current edge number */
 
-    if (finecoartax[finevertnum] != coarvertnum)  /* Skip fine vertices until we find one that is part of current coarse vertex */
+    if (finecoartax[finevertnum] != coarvertnum)
       continue;
 
     coargrafdat.s.verttax[coarvertnum] = coaredgenum;
@@ -349,7 +367,7 @@ loop_failed: ;
            finehashnum = (finehashnum + 1) & finehashmsk) {
         if (finehashtab[finehashnum].vertnum != coarvertnum) {
           finehashtab[finehashnum].vertnum = coarvertnum;
-          finehashtab[finehashnum].vertend =
+          finehashtab[finehashnum].vertend = finecoartax[finevertend];
           coargrafdat.s.edgetax[coaredgenum ++] = finecoartax[finevertend];
           break;
         }
@@ -370,39 +388,15 @@ loop_failed: ;
   for (coarenohnnd = coaredgenum; finevertnum < finegrafptr->s.vertnnd; finevertnum ++) { /* For all halo vertices */
     Gnum                fineedgenum;              /* Current edge number */
 
-#ifdef SCOTCH_DEBUG_ORDER2
-    if (finecoartax[finevertnum] != coarvertnum) {
-      errorPrint ("hgraphOrderCp: internal error (1)");
-      return     (1);
-    }
-#endif /* SCOTCH_DEBUG_ORDER2 */
-
     coargrafdat.s.verttax[coarvertnum] = coaredgenum;
     coarvsiztax[coarvertnum] = 1;                 /* Fill coargrafdat.s.velotax if finegrafptr has no vertex loads */
 
     for (fineedgenum = fineverttax[finevertnum];  /* For all edges of halo vertex */
          fineedgenum < finevendtax[finevertnum]; fineedgenum ++) {
       Gnum                finevertend;
-      Gnum                finehashnum;
 
       finevertend = fineedgetax[fineedgenum];
-#ifdef SCOTCH_DEBUG_ORDER2
-      if (finecoartax[finevertend] == coarvertnum) { /* No neighbor can be merged into us since halo vertices are unique */
-        errorPrint ("hgraphOrderCp: internal error (2)");
-        return     (1);
-      }
-#endif /* SCOTCH_DEBUG_ORDER2 */
-      for (finehashnum = (finecoartax[finevertend] * HGRAPHORDERCPHASHPRIME) & finehashmsk; ; /* Search for end vertex in hash table */
-           finehashnum = (finehashnum + 1) & finehashmsk) {
-        if (finehashtab[finehashnum].vertnum != coarvertnum) {
-          finehashtab[finehashnum].vertnum = coarvertnum;
-          finehashtab[finehashnum].vertend =
-          coargrafdat.s.edgetax[coaredgenum ++] = finecoartax[finevertend];
-          break;
-        }
-        if (finehashtab[finehashnum].vertend == finecoartax[finevertend])
-          break;                                  /* If edge already exists */
-      }
+      coargrafdat.s.edgetax[coaredgenum ++] = finecoartax[finevertend];
     }
     coarvertnum ++;
   }
@@ -412,11 +406,11 @@ loop_failed: ;
   coargrafdat.enohsum   =
   coargrafdat.enohnbr   = coargrafdat.s.edgenbr - 2 * (coaredgenum - coarenohnnd);
 
-  if (finevelotax != NULL) {                      /* If fine graph has vertex loads */
+  if (finegrafptr->s.velotax != NULL) {           /* If fine graph has vertex loads */
     memSet (coargrafdat.s.velotax + coargrafdat.s.baseval, 0, coargrafdat.s.vertnbr * sizeof (Gnum));
 
     for (finevertnum = finegrafptr->s.baseval; finevertnum < finegrafptr->s.vertnnd; finevertnum ++) /* Compute vertex loads for compressed graph */
-      coargrafdat.s.velotax[finecoartax[finevertnum]] += finevelotax[finevertnum];
+      coargrafdat.s.velotax[finecoartax[finevertnum]] += finegrafptr->s.velotax[finevertnum];
   }
 
   memFree (finehashtab);
@@ -425,18 +419,20 @@ loop_failed: ;
 
 #ifdef SCOTCH_DEBUG_ORDER2
   if (hgraphCheck (&coargrafdat) != 0) {
-    errorPrint ("hgraphOrderCp: internal error (3)");
+    errorPrint ("hgraphOrderCp: internal error (1)");
+    hgraphExit (&coargrafdat);
+    memFree    (finecoartax + finegrafptr->s.baseval);
     return     (1);
   }
 #endif /* SCOTCH_DEBUG_ORDER2 */
 
-  if ((coarperitab = memAlloc (coargrafdat.vnohnbr * sizeof (Gnum))) == NULL) { /* Coarse permutation only for non-halo vertices */
+  if ((coarperitab = memAlloc (coargrafdat.s.vertnbr * sizeof (Gnum))) == NULL) {
     errorPrint ("hgraphOrderCp: out of memory (3)");
     hgraphExit (&coargrafdat);
     memFree    (finecoartax + finegrafptr->s.baseval);
     return     (1);
   }
-  orderInit (&coarordedat, coargrafdat.s.baseval, coargrafdat.vnohnbr, coarperitab); /* Build ordering of compressed subgraph */
+  orderInit (&coarordedat, coargrafdat.s.baseval, coargrafdat.s.vertnbr, coarperitab); /* Build ordering of compressed subgraph */
   if (hgraphOrderSt (&coargrafdat, &coarordedat, 0, &coarordedat.cblktre, paraptr->stratcpr) != 0) {
     memFree    (coarperitab);
     hgraphExit (&coargrafdat);
@@ -449,8 +445,11 @@ loop_failed: ;
   finevertnbr = hgraphOrderCpTree (coarordedat.peritab, /* Expand sub-tree             */
                                    coarvsiztax, cblkptr, 0);
 #ifdef SCOTCH_DEBUG_ORDER2
-  if (finevertnbr != finegrafptr->vnohnbr) {
-    errorPrint ("hgraphOrderCp: internal error (4)");
+  if (finevertnbr != finegrafptr->s.vertnbr) {
+    errorPrint ("hgraphOrderCp: internal error (2)");
+    memFree    (coarperitab);
+    hgraphExit (&coargrafdat);
+    memFree    (finecoartax + finegrafptr->s.baseval);
     return     (1);
   }
 #endif /* SCOTCH_DEBUG_ORDER2 */
@@ -461,18 +460,12 @@ loop_failed: ;
   coarperitax = coarperitab - coargrafdat.s.baseval;
 
   for (coarvertnum = coargrafdat.s.baseval, finevsizsum = 0; /* Compute initial indices for inverse permutation expansion */
-       coarvertnum < coargrafdat.vnohnnd; coarvertnum ++) {
+       coarvertnum < coargrafdat.s.vertnnd; coarvertnum ++) {
     coarvpostax[coarperitax[coarvertnum]] = finevsizsum;
     finevsizsum += coarvsiztax[coarperitax[coarvertnum]];
   }
-  if (finevnumtax == NULL) {                      /* If fine graph is original graph */
-    for (finevertnum = finegrafptr->s.baseval; finevertnum < finegrafptr->vnohnnd; finevertnum ++) /* Compute fine permutation */
-      fineperitab[coarvpostax[finecoartax[finevertnum]] ++] = finevertnum;
-  }
-  else {                                          /* Graph is not original graph */
-    for (finevertnum = finegrafptr->s.baseval; finevertnum < finegrafptr->vnohnnd; finevertnum ++) /* Compute fine permutation */
-      fineperitab[coarvpostax[finecoartax[finevertnum]] ++] = finevnumtax[finevertnum];
-  }
+  for (finevertnum = finegrafptr->s.baseval; finevertnum < finegrafptr->s.vertnnd; finevertnum ++) /* Compute fine permutation */
+    fineordeptr->peritab[coarvpostax[finecoartax[finevertnum]] ++] = finevertnum;
 
   memFree    (coarperitab);
   memFree    (finecoartax + finegrafptr->s.baseval);
@@ -496,7 +489,7 @@ hgraphOrderCpTree (
 const Gnum * restrict const coarperitab,          /* Coarse inverse permutation              */
 const Gnum * restrict const coarvsiztax,          /* Array of fine sizes of coarse vertices  */
 OrderCblk * restrict const  coficblkptr,          /* Current coarse/fine column block cell   */
-const Gnum                  coarordenum)          /* Compressed vertex to start expansion at */
+Gnum                        coarordenum)          /* Compressed vertex to start expansion at */
 {
   Gnum                finevertnbr;                /* Number of fine vertices in subtree */
 

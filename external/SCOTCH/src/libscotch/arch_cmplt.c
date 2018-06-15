@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010,2011,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -62,7 +62,7 @@
 /**                # Version 5.1  : from : 19 jan 2008     **/
 /**                                 to     11 aug 2010     **/
 /**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     02 may 2015     **/
+/**                                 to     14 fev 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -95,6 +95,8 @@ archCmpltArchLoad (
 ArchCmplt * restrict const  archptr,
 FILE * restrict const       stream)
 {
+  long                numnbr;
+
 #ifdef SCOTCH_DEBUG_ARCH1
   if ((sizeof (ArchCmplt)    > sizeof (ArchDummy)) ||
       (sizeof (ArchCmpltDom) > sizeof (ArchDomDummy))) {
@@ -103,11 +105,12 @@ FILE * restrict const       stream)
   }
 #endif /* SCOTCH_DEBUG_ARCH1 */
 
-  if ((intLoad (stream, &archptr->termnbr) != 1) ||
-      (archptr->termnbr < 1)) {
+  if ((fscanf (stream, "%ld", &numnbr) != 1) ||
+      (numnbr < 1)) {
     errorPrint ("archCmpltArchLoad: bad input");
     return     (1);
   }
+  archptr->numnbr = (Anum) numnbr;
 
   return (0);
 }
@@ -132,113 +135,12 @@ FILE * restrict const       stream)
   }
 #endif /* SCOTCH_DEBUG_ARCH1 */
 
-  if (fprintf (stream, ANUMSTRING "\n", (Anum) archptr->termnbr) == EOF) {
+  if (fprintf (stream, ANUMSTRING " ", (Anum) archptr->numnbr) == EOF) {
     errorPrint ("archCmpltArchSave: bad output");
     return     (1);
   }
 
   return (0);
-}
-
-/* This routine initializes the matching
-** data structure according to the number
-** of vertices to be managed.
-** It returns:
-** - 0   : if the data structure has been
-**         successfully initialized.
-** - !0  : on error.
-*/
-
-int
-archCmpltMatchInit (
-ArchCmpltMatch * restrict const   matcptr,
-const ArchCmplt * restrict const  archptr)
-{
-  Anum                vertnbr;
-
-  vertnbr = archptr->termnbr;
-
-  if ((matcptr->multtab = memAlloc (((vertnbr + 1) >> 1) * sizeof (ArchCoarsenMulti))) == NULL) { /* In case vertnbr is odd */
-    errorPrint ("archCmpltMatchInit: out of memory");
-    return     (1);
-  }
-
-  matcptr->vertnbr = vertnbr;
-  matcptr->passnum = 0;
-
-  return (0);
-}
-
-/* This routine frees the matching data
-** structure.
-** It returns:
-** - void  : in all cases.
-*/
-
-void
-archCmpltMatchExit (
-ArchCmpltMatch * restrict const matcptr)
-{
-  memFree (matcptr->multtab);
-}
-
-/* This routine computes a matching from
-** the current state of the matching structure.
-** It returns:
-** - >=0  : size of matching.
-** - <0   : on error.
-*/
-
-Anum
-archCmpltMatchMate (
-ArchCmpltMatch * restrict const     matcptr,
-ArchCoarsenMulti ** restrict const  multptr)
-{
-  ArchCoarsenMulti * restrict coarmulttab;
-  Anum                        coarvertmax;        /* Maximum coarse vertex index to be processed for matching */
-  Anum                        coarvertnum;
-  Anum                        finevertnbr;
-  Anum                        finevertnum;
-  Anum                        passnum;
-
-  finevertnbr = matcptr->vertnbr;
-  if (finevertnbr <= 1)
-    return (-1);
-
-  coarvertmax = finevertnbr >> 1;                 /* One less slot when finevertnbr is odd */
-  coarmulttab = matcptr->multtab;
-  coarvertnum =
-  finevertnum = 0;
-  passnum     = matcptr->passnum;
-
-  if ((finevertnbr & passnum) != 0) {             /* If finevertnbr is odd and old passnum == 1 */
-    coarmulttab[coarvertnum].vertnum[0] =         /* First coarse vertex is single multinode    */
-    coarmulttab[coarvertnum].vertnum[1] = finevertnum ++;
-    coarvertnum ++;
-  }
-  for ( ; coarvertnum < coarvertmax; coarvertnum ++) { /* For all even slots       */
-    coarmulttab[coarvertnum].vertnum[0] = finevertnum ++; /* Dimensional splatting */
-    coarmulttab[coarvertnum].vertnum[1] = finevertnum ++;
-  }
-  if ((finevertnbr & (passnum ^ 1)) != 0) {       /* If finevertnbr is odd and old passnum == 0 */
-    coarmulttab[coarvertnum].vertnum[0] =         /* Last coarse vertex is single multinode     */
-    coarmulttab[coarvertnum].vertnum[1] = finevertnum ++;
-    coarvertnum ++;
-  }
-#ifdef SCOTCH_DEBUG_ARCH2
-  if (coarvertnum != ((finevertnbr + 1) >> 1)) {  /* Number of coarse vertices in all cases */
-    errorPrint ("archCmpltMatchMate: internal error");
-    return     (-1);
-  }
-#endif /* SCOTCH_DEBUG_ARCH2 */
-
-  matcptr->vertnbr = coarvertnum;                 /* Prepare for next mating               */
-  if (finevertnbr & 1)                            /* Invert pass value if dimension is odd */
-    matcptr->passnum = passnum;
-
-  *multptr = coarmulttab;                         /* Always provide same mating array */
-
-  return (coarvertnum);
 }
 
 /* This function returns the smallest number
@@ -249,9 +151,9 @@ ArchCoarsenMulti ** restrict const  multptr)
 ArchDomNum
 archCmpltDomNum (
 const ArchCmplt * const     archptr,
-const ArchCmpltDom * const  domnptr)
+const ArchCmpltDom * const  domptr)
 {
-  return (domnptr->termmin);                      /* Return vertex number */
+  return (domptr->nummin);                        /* Return vertex number */
 }
 
 /* This function returns the terminal domain associated
@@ -265,12 +167,12 @@ const ArchCmpltDom * const  domnptr)
 int
 archCmpltDomTerm (
 const ArchCmplt * const     archptr,
-ArchCmpltDom * const        domnptr,
-const ArchDomNum            domnnum)
+ArchCmpltDom * const        domptr,
+const ArchDomNum            domnum)
 {
-  if (domnnum < archptr->termnbr) {               /* If valid label */
-    domnptr->termmin = domnnum;                   /* Set the domain */
-    domnptr->termnbr = 1;
+  if (domnum < archptr->numnbr) {                 /* If valid label */
+    domptr->nummin = domnum;                      /* Set the domain */
+    domptr->numnbr = 1;
 
     return (0);
   }
@@ -285,9 +187,9 @@ const ArchDomNum            domnnum)
 Anum 
 archCmpltDomSize (
 const ArchCmplt * const     archptr,
-const ArchCmpltDom * const  domnptr)
+const ArchCmpltDom * const  domptr)
 {
-  return (domnptr->termnbr);
+  return (domptr->numnbr);
 }
 
 /* This function returns the average
@@ -301,8 +203,8 @@ const ArchCmplt * const     archptr,
 const ArchCmpltDom * const  dom0ptr,
 const ArchCmpltDom * const  dom1ptr)
 {
-  return (((dom0ptr->termmin == dom1ptr->termmin) && /* All domains are at distance 1 */
-           (dom0ptr->termnbr == dom1ptr->termnbr)) ? 0 : 1); /* If they are different */
+  return (((dom0ptr->nummin == dom1ptr->nummin) && /* All domains are at distance 1 */
+           (dom0ptr->numnbr == dom1ptr->numnbr)) ? 0 : 1); /* If they are different */
 }
 
 /* This function sets the biggest
@@ -316,10 +218,10 @@ const ArchCmpltDom * const  dom1ptr)
 int
 archCmpltDomFrst (
 const ArchCmplt * const         archptr,
-ArchCmpltDom * restrict const   domnptr)
+ArchCmpltDom * restrict const   domptr)
 {
-  domnptr->termmin = 0;
-  domnptr->termnbr = archptr->termnbr;
+  domptr->nummin = 0;
+  domptr->numnbr = archptr->numnbr;
 
   return (0);
 }
@@ -334,21 +236,22 @@ ArchCmpltDom * restrict const   domnptr)
 int
 archCmpltDomLoad (
 const ArchCmplt * const       archptr,
-ArchCmpltDom * restrict const domnptr,
+ArchCmpltDom * restrict const domptr,
 FILE * const                  stream)
 {
-  Anum                termmin;
-  Anum                termnbr;
+  long                nummin;
+  long                numnbr;
 
-  if ((intLoad (stream, &termmin) != 1) ||
-      (intLoad (stream, &termnbr) != 1) ||
-      (termnbr < 1)                     ||
-      ((termnbr + termmin) > archptr->termnbr)) {
+  if ((fscanf (stream, "%ld%ld",
+               &nummin,
+               &numnbr) != 2) ||
+      (numnbr < 1)            ||
+      (numnbr + nummin > (long) archptr->numnbr)) {
     errorPrint ("archCmpltDomLoad: bad input");
     return     (1);
   }
-  domnptr->termmin = termmin;
-  domnptr->termnbr = termnbr;
+  domptr->nummin = (Anum) nummin;
+  domptr->numnbr = (Anum) numnbr;
 
   return (0);
 }
@@ -363,12 +266,12 @@ FILE * const                  stream)
 int
 archCmpltDomSave (
 const ArchCmplt * const     archptr,
-const ArchCmpltDom * const  domnptr,
+const ArchCmpltDom * const  domptr,
 FILE * const                stream)
 {
   if (fprintf (stream, ANUMSTRING " " ANUMSTRING " ",
-               (Anum) domnptr->termmin,
-               (Anum) domnptr->termnbr) == EOF) {
+               (Anum) domptr->nummin,
+               (Anum) domptr->numnbr) == EOF) {
     errorPrint ("archCmpltDomSave: bad output");
     return     (1);
   }
@@ -387,17 +290,17 @@ FILE * const                stream)
 int
 archCmpltDomBipart (
 const ArchCmplt * const       archptr,
-const ArchCmpltDom * const    domnptr,
+const ArchCmpltDom * const    domptr,
 ArchCmpltDom * restrict const dom0ptr,
 ArchCmpltDom * restrict const dom1ptr)
 {
-  if (domnptr->termnbr <= 1)                      /* Return if cannot bipartition more */
+  if (domptr->numnbr <= 1)                        /* Return if cannot bipartition more */
     return (1);
 
-  dom0ptr->termmin = domnptr->termmin;            /* Bipartition vertices */
-  dom0ptr->termnbr = domnptr->termnbr / 2;
-  dom1ptr->termmin = domnptr->termmin + dom0ptr->termnbr;
-  dom1ptr->termnbr = domnptr->termnbr - dom0ptr->termnbr;
+  dom0ptr->nummin = domptr->nummin;               /* Bipartition vertices */
+  dom0ptr->numnbr = domptr->numnbr / 2;
+  dom1ptr->nummin = domptr->nummin + dom0ptr->numnbr;
+  dom1ptr->numnbr = domptr->numnbr - dom0ptr->numnbr;
 
   return (0);
 }
@@ -416,8 +319,8 @@ const ArchCmplt * const     archptr,
 const ArchCmpltDom * const  dom0ptr,
 const ArchCmpltDom * const  dom1ptr)
 {
-  if ((dom1ptr->termmin >= dom0ptr->termmin) &&
-      ((dom1ptr->termmin + dom1ptr->termnbr) <= (dom0ptr->termmin + dom0ptr->termnbr)))
+  if ((dom1ptr->nummin >= dom0ptr->nummin) &&
+      ((dom1ptr->nummin + dom1ptr->numnbr) <= (dom0ptr->nummin + dom0ptr->numnbr)))
     return (1);
 
   return (0);

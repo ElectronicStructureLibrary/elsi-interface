@@ -1,4 +1,4 @@
-/* Copyright 2007,2013 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -48,8 +48,6 @@
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 29 oct 2007     **/
 /**                                 to     24 may 2008     **/
-/**                # Version 6.0  : from : 24 dec 2013     **/
-/**                                 to     24 dec 2013     **/
 /**                                                        **/
 /************************************************************/
 
@@ -91,7 +89,6 @@ const VgraphSeparateDfParam * const paraptr)      /*+ Method parameters +*/
   float * restrict      edlstax;                  /* Degree array              */
   float * restrict      difotax;                  /* Old diffusion value array */
   float * restrict      difntax;                  /* New diffusion value array */
-  float * restrict      difttax;                  /* Temporary swap value      */
   float                 cdifval;
   float                 cremval;
   Gnum                  fronnum;
@@ -103,11 +100,8 @@ const VgraphSeparateDfParam * const paraptr)      /*+ Method parameters +*/
   INT                   movenum;
   INT                   passnum;
 
-  const Gnum * restrict const verttax = grafptr->s.verttax; /* Fast accesses */
-  const Gnum * restrict const vendtax = grafptr->s.vendtax;
-  const Gnum * restrict const edgetax = grafptr->s.edgetax;
-  Gnum *       restrict const frontab = grafptr->frontab;
-  GraphPart *  restrict const parttax = grafptr->parttax;
+Gnum brol;
+brol = grafptr->fronnbr;
 
   if (memAllocGroup ((void **) (void *)
                      &edlstax, (size_t) (grafptr->s.vertnbr * sizeof (float)),
@@ -124,7 +118,7 @@ const VgraphSeparateDfParam * const paraptr)      /*+ Method parameters +*/
     Gnum                vertnum;
 
     for (vertnum = grafptr->s.baseval; vertnum < grafptr->s.vertnnd; vertnum ++)
-      edlstax[vertnum] = (float) (vendtax[vertnum] - verttax[vertnum]);
+      edlstax[vertnum] = (float) (grafptr->s.vendtax[vertnum] - grafptr->s.verttax[vertnum]);
   }
   else {                                          /* If graph has edge weights */
     Gnum                vertnum;
@@ -133,8 +127,8 @@ const VgraphSeparateDfParam * const paraptr)      /*+ Method parameters +*/
       Gnum                edgenum;
       Gnum                edlosum;
 
-      for (edgenum = verttax[vertnum], edlosum = 0;
-           edgenum < vendtax[vertnum]; edgenum ++)
+      for (edgenum = grafptr->s.verttax[vertnum], edlosum = 0;
+           edgenum < grafptr->s.vendtax[vertnum]; edgenum ++)
         edlosum += grafptr->s.edlotax[edgenum];
 
       edlstax[vertnum] = (float) edlosum;
@@ -174,6 +168,7 @@ const VgraphSeparateDfParam * const paraptr)      /*+ Method parameters +*/
       Gnum                vertnum;
       Gnum                vertnnd;
       float               vancval;                /* Value to load vertex with if anchor */
+      float * restrict    difttax;                /* Temporary swap value                */
 
       vancval = 0.0F;                             /* At first vertices are not anchors */
       vertnum = grafptr->s.baseval;
@@ -184,15 +179,15 @@ const VgraphSeparateDfParam * const paraptr)      /*+ Method parameters +*/
           Gnum                edgennd;
           float               diffval;
 
-          edgenum = verttax[vertnum];
-          edgennd = vendtax[vertnum];
+          edgenum = grafptr->s.verttax[vertnum];
+          edgennd = grafptr->s.vendtax[vertnum];
           diffval = 0.0F;
           if (grafptr->s.edlotax != NULL)
             for ( ; edgenum < edgennd; edgenum ++)
-              diffval += difotax[edgetax[edgenum]] * (float) grafptr->s.edlotax[edgenum];
+              diffval += difotax[grafptr->s.edgetax[edgenum]] * (float) grafptr->s.edlotax[edgenum];
           else
             for ( ; edgenum < edgennd; edgenum ++)
-              diffval += difotax[edgetax[edgenum]];
+              diffval += difotax[grafptr->s.edgetax[edgenum]];
 
           if (grafptr->s.velotax != NULL)
             veloval = (float) grafptr->s.velotax[vertnum];
@@ -227,7 +222,7 @@ const VgraphSeparateDfParam * const paraptr)      /*+ Method parameters +*/
 abort :                                           /* If overflow occured, resume here */
 
     for (vertnum = grafptr->s.baseval; vertnum < grafptr->s.vertnnd; vertnum ++) /* Pre-set parts without separator */
-      parttax[vertnum] = (difotax[vertnum] <= 0.0F) ? 0 : 1;
+      grafptr->parttax[vertnum] = (difotax[vertnum] <= 0.0F) ? 0 : 1;
 
     if (grafptr->s.velotax != NULL) {
       velobax = grafptr->s.velotax;
@@ -245,18 +240,18 @@ abort :                                           /* If overflow occured, resume
       GraphPart           partend;
       Gnum                veloval;
 
-      partend = parttax[vertnum] ^ 1;
-      partval = (Gnum) parttax[vertnum];
+      partend = grafptr->parttax[vertnum] ^ 1;
+      partval = (Gnum) grafptr->parttax[vertnum];
       veloval = velobax[vertnum & velomsk];
       compsize1 += partval;                       /* Here, part is 0 or 1 only */
       compload1 += partval * veloval;
       if (partval == (Gnum) rootval) {            /* Only vertices of aggregated part can be in separator */
         Gnum                edgenum;
 
-        for (edgenum = verttax[vertnum]; edgenum < vendtax[vertnum]; edgenum ++) {
-          if (parttax[edgetax[edgenum]] == partend) { /* If end vertex is in other part (and not in separator) */
-            frontab[fronnum ++] = vertnum;        /* Record it                                                 */
-            parttax[vertnum]    = 2;
+        for (edgenum = grafptr->s.verttax[vertnum]; edgenum < grafptr->s.vendtax[vertnum]; edgenum ++) {
+          if (grafptr->parttax[grafptr->s.edgetax[edgenum]] == partend) { /* If end vertex is in other part (and not in separator) */
+            grafptr->frontab[fronnum ++] = vertnum; /* Record it */
+            grafptr->parttax[vertnum]    = 2;
             compload2 += veloval;
             break;                                /* No need to go further */
           }
@@ -282,6 +277,8 @@ abort :                                           /* If overflow occured, resume
     return     (1);
   }
 #endif /* SCOTCH_DEBUG_VGRAPH2 */
+
+  fprintf (stderr, "BROL OLD=%ld, New=%ld, gain=%lf\n", (long) brol, (long) grafptr->fronnbr, ((double) grafptr->fronnbr - (double) brol) / ((double) brol));
 
   return (0);
 }

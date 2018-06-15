@@ -1,4 +1,4 @@
-/* Copyright 2004,2010-2012,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2010-2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -47,7 +47,7 @@
 /**                # Version 5.0  : from : 11 oct 2006     **/
 /**                                 to     12 oct 2006     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     27 aug 2016     **/
+/**                                 to     19 sep 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -97,7 +97,7 @@ typedef GainLink KgraphMapFmLink;
 
 #else /* SCOTCH_TABLE_GAIN */
 
-typedef FiboHeap KgraphMapFmTabl;
+typedef FiboTree KgraphMapFmTabl;
 typedef FiboNode KgraphMapFmLink;
 
 #endif /* SCOTCH_TABLE_GAIN */
@@ -197,11 +197,11 @@ int                         kgraphMapFm         (Kgraph * restrict const, const 
 
 /*+ Service routines. +*/
 
-#define kgraphMapFmTablInit(t)      (fiboHeapInit ((t), kgraphMapFmCmpFunc))
-#define kgraphMapFmTablFree(t)      fiboHeapFree (t)
-#define kgraphMapFmTablExit(t)      fiboHeapExit (t)
-#define kgraphMapFmTablAdd(t,e)     fiboHeapAdd ((t), &(e)->gainlink)
-#define kgraphMapFmTablDel(t,e)     fiboHeapDel ((t), &(e)->gainlink)
+#define kgraphMapFmTablInit(t)      (fiboTreeInit ((t), kgraphMapFmCmpFunc))
+#define kgraphMapFmTablFree(t)      fiboTreeFree (t)
+#define kgraphMapFmTablExit(t)      fiboTreeExit (t)
+#define kgraphMapFmTablAdd(t,e)     fiboTreeAdd ((t), &(e)->gainlink)
+#define kgraphMapFmTablDel(t,e)     fiboTreeDel ((t), &(e)->gainlink)
 
 #endif /* SCOTCH_TABLE_GAIN */
 

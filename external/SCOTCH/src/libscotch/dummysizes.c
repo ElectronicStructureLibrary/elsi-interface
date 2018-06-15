@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2010,2012,2014 Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -52,7 +52,7 @@
 /**                # Version 5.1  : from : 16 jun 2008     **/
 /**                                 to   : 15 aug 2010     **/
 /**                # Version 6.0  : from : 01 dec 2012     **/
-/**                                 to   : 12 nov 2014     **/
+/**                                 to   : 01 dec 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -69,11 +69,11 @@
 #define C_FILENBR                   2             /* Number of files in list                */
 #define C_FILEARGNBR                2             /* Number of files which can be arguments */
 
-#define C_filenamehedinp            C_fileTab[0].nameptr /* Source graph input file name */
-#define C_filenamehedout            C_fileTab[1].nameptr /* Statistics output file name  */
+#define C_filenamehedinp            C_fileTab[0].name /* Source graph input file name */
+#define C_filenamehedout            C_fileTab[1].name /* Statistics output file name  */
 
-#define C_filepntrhedinp            C_fileTab[0].fileptr /* Source graph input file */
-#define C_filepntrhedout            C_fileTab[1].fileptr /* Statistics output file  */
+#define C_filepntrhedinp            C_fileTab[0].pntr /* Source graph input file */
+#define C_filepntrhedout            C_fileTab[1].pntr /* Statistics output file  */
 
 #define EXPAND(s)                   EXPANDTWO(s)
 #define EXPANDTWO(s)                #s
@@ -103,8 +103,8 @@
 
 static int                  C_fileNum = 0;        /* Number of file in arg list */
 static File                 C_fileTab[C_FILENBR] = { /* The file array          */
-                              { "r" },
-                              { "w" } };
+                              { "-", NULL, "r" },
+                              { "-", NULL, "w" } };
 
 /******************************/
 /*                            */
@@ -150,12 +150,12 @@ char *                      argv[])
   }
 
   for (i = 0; i < C_FILENBR; i ++)                /* Set default stream pointers */
-    C_fileTab[i].fileptr = (C_fileTab[i].modeptr[0] == 'r') ? stdin : stdout;
+    C_fileTab[i].pntr = (C_fileTab[i].mode[0] == 'r') ? stdin : stdout;
   for (i = 1; i < argc; i ++) {                   /* Loop for all option codes */
     if ((argv[i][0] != '+') &&                    /* If found a file name      */
         ((argv[i][0] != '-') || (argv[i][1] == '\0'))) {
       if (C_fileNum < C_FILEARGNBR)               /* A file name has been given */
-        C_fileTab[C_fileNum ++].nameptr = argv[i];
+        C_fileTab[C_fileNum ++].name = argv[i];
       else {
         fprintf (stderr, "dummysizes: ERROR: main: too many file names given");
         exit    (1);
@@ -180,9 +180,9 @@ char *                      argv[])
   }
 
   for (i = 0; i < C_FILENBR; i ++) {              /* For all file names     */
-    if ((C_fileTab[i].nameptr[0] != '-') ||       /* If not standard stream */
-        (C_fileTab[i].nameptr[1] != '\0')) {
-      if ((C_fileTab[i].fileptr = fopen (C_fileTab[i].nameptr, C_fileTab[i].modeptr)) == NULL) { /* Open the file */
+    if ((C_fileTab[i].name[0] != '-') ||          /* If not standard stream */
+        (C_fileTab[i].name[1] != '\0')) {
+      if ((C_fileTab[i].pntr = fopen (C_fileTab[i].name, C_fileTab[i].mode)) == NULL) { /* Open the file */
           fprintf (stderr, "dummysizes: ERROR: main: cannot open file (%d)", i);
           exit    (1);
       }

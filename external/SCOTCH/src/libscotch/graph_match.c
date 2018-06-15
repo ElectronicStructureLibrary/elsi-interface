@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2009,2011,2012,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2009,2011,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -40,7 +40,7 @@
 /**                generic pattern.                        **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 05 oct 2012     **/
-/**                                 to     25 may 2015     **/
+/**                                 to     21 nov 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -308,27 +308,6 @@ static void              (* graphmatchfuncthrendtab[]) (GraphCoarsenThread *) = 
 
 /* This routine performs the sequential
 ** initialization of the global mating
-** data structures, so as to indicate
-** that no mating will be performed.
-** It returns:
-** - 0  : in all cases.
-*/
-
-void
-graphMatchNone (
-GraphCoarsenData * restrict coarptr)
-{
-#ifdef SCOTCH_PTHREAD
-  coarptr->finelocktax = NULL;
-  coarptr->finequeutab = NULL;
-  coarptr->fendptr     = (void (*) (void *)) NULL;
-  coarptr->fmidptr     = (void (*) (void *)) NULL;
-#endif /* SCOTCH_PTHREAD */
-  coarptr->fbegptr     = (void (*) (void *)) NULL;
-}
-
-/* This routine performs the sequential
-** initialization of the global mating
 ** data structures, before the threads
 ** are launched.
 ** It returns:
@@ -386,7 +365,7 @@ GraphCoarsenData * restrict coarptr)
 }
 
 /* This routine merges the results of two mating
-** threads and re-launches a mating operation
+** threads and re-launches a mating operations
 ** if necessary.
 */
 

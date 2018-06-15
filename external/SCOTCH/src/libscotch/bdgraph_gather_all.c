@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2010,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,8 +43,6 @@
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 21 dec 2007     **/
 /**                                 to     14 apr 2011     **/
-/**                # Version 6.0  : from : 29 aug 2014     **/
-/**                                 to     31 aug 2014     **/
 /**                                                        **/
 /**   NOTES      : # The definitions of MPI_Gather and     **/
 /**                  MPI_Gatherv indicate that elements in **/
@@ -184,11 +182,9 @@ Bgraph * restrict              cgrfptr)            /* Centralized graph */
   cgrfptr->compload0avg  = dgrfptr->compglbload0avg;
   cgrfptr->commloadextn0 = dgrfptr->commglbloadextn0; 
   cgrfptr->commgainextn0 = dgrfptr->commglbgainextn0;
-  cgrfptr->domndist      = dgrfptr->domndist; 
-  cgrfptr->domnwght[0]   = dgrfptr->domnwght[0]; 
-  cgrfptr->domnwght[1]   = dgrfptr->domnwght[1]; 
-  cgrfptr->vfixload[0]   =                        /* Fixed vertices will soon be available in PT-Scotch */
-  cgrfptr->vfixload[1]   = 0;
+  cgrfptr->domdist       = dgrfptr->domdist; 
+  cgrfptr->domwght[0]    = dgrfptr->domwght[0]; 
+  cgrfptr->domwght[1]    = dgrfptr->domwght[1]; 
   cgrfptr->levlnum       = dgrfptr->levlnum;           
 
   if (dgrfptr->partgsttax == NULL) {              /* If distributed graph does not have a part array yet */

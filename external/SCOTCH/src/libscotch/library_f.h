@@ -1,4 +1,4 @@
-!* Copyright 2004,2007,2009,2010,2012,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+!* Copyright 2004,2007,2009,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 !*
 !* This file is part of the Scotch software package for static mapping,
 !* graph partitioning and sparse matrix ordering.
@@ -49,20 +49,14 @@
 !*                # Version 5.1  : from : 26 mar 2009     **
 !*                                 to     12 feb 2011     **
 !*                # Version 6.0  : from : 22 oct 2011     **
-!*                                 to     28 sep 2014     **
+!*                                 to     29 nov 2012     **
 !*                                                        **
 !***********************************************************
 
 !* Flag definitions for the coarsening
 !* routines.
 
-        INTEGER SCOTCH_COARSENNONE
-        INTEGER SCOTCH_COARSENFOLD
-        INTEGER SCOTCH_COARSENFOLDDUP
         INTEGER SCOTCH_COARSENNOMERGE
-        PARAMETER (SCOTCH_COARSENNONE    = 0)
-        PARAMETER (SCOTCH_COARSENFOLD    = 4096)
-        PARAMETER (SCOTCH_COARSENFOLDDUP = 12288)
         PARAMETER (SCOTCH_COARSENNOMERGE = 16384)
 
 !* Flag definitions for the strategy

@@ -1,4 +1,4 @@
-/* Copyright 2010,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,7 +43,7 @@
 /**   DATES      : # Version 5.1  : from : 10 jul 2010     **/
 /**                                 to     10 jul 2010     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     01 jun 2014     **/
+/**                                 to     18 apr 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -69,8 +69,8 @@ typedef struct KgraphMapMlParam_ {
 #define static
 #endif
 
-static int                  kgraphMapMlCoarsen  (Kgraph * const, Kgraph * restrict const, GraphCoarsenMulti * restrict * const, const KgraphMapMlParam * const);
-static int                  kgraphMapMlUncoarsen (Kgraph * restrict const, Kgraph * const, const GraphCoarsenMulti * const);
+static int                  kgraphMapMlCoarsen  (const Kgraph * const, Kgraph * restrict const, GraphCoarsenMulti * restrict * const, const KgraphMapMlParam * const);
+static int                  kgraphMapMlUncoarsen (Kgraph * restrict const, const Kgraph * const, const GraphCoarsenMulti * const);
 
 int                         kgraphMapMl         (Kgraph * restrict const, const KgraphMapMlParam * const);
 static int                  kgraphMapMl2        (Kgraph * restrict const, const KgraphMapMlParam * const);

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010-2012,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010-2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -64,7 +64,7 @@
 /**                # Version 5.1  : from : 21 jan 2008     **/
 /**                                 to     11 aug 2010     **/
 /**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     12 apr 2015     **/
+/**                                 to     01 jul 2012     **/
 /**                                                        **/
 /**   NOTES      : # The ltleaf architecture was proposed  **/
 /**                  by Emmanuel Jeannot and Francois      **/
@@ -209,153 +209,7 @@ FILE * restrict const       stream)
     }
   }
 
-  if (fprintf (stream, "\n") == EOF) {
-    errorPrint ("archTleafArchSave: bad output (3)");
-    return     (1);
-  }
-
   return (0);
-}
-
-/* This routine initializes the matching
-** data structure according to the number
-** of vertices to be managed.
-** It returns:
-** - 0   : if the data structure has been
-**         successfully initialized.
-** - !0  : on error.
-*/
-
-int
-archTleafMatchInit (
-ArchTleafMatch * restrict const    matcptr,
-const ArchTleaf * restrict const   archptr)
-{
-  Anum                multnbr;                    /* Maximum number of multinodes       */
-  Anum                vertnbr;                    /* Number of vertices in architecture */
-  Anum                levlnnd;
-  Anum                levlnum;
-
-  const Anum * restrict const sizetab = archptr->sizetab;
-
-  for (levlnum = 0, levlnnd = archptr->levlnbr - 1, vertnbr = 1; /* Compute size of blocks save for last level */
-       levlnum < levlnnd; levlnum ++)
-    vertnbr *= sizetab[levlnum];
-  multnbr  = vertnbr * ((sizetab[levlnum] + 1) >> 1); /* Number of multinodes will account for half the number of vertices in last level */
-  vertnbr *= sizetab[levlnum];
-
-  if ((matcptr->multtab = memAlloc (multnbr * sizeof (ArchCoarsenMulti))) == NULL) {
-    errorPrint ("archTleafMatchInit: out of memory");
-    return     (1);
-  }
-
-  matcptr->archptr = archptr;
-  matcptr->passnum = 0;
-  matcptr->levlnum = levlnnd;
-  matcptr->levlsiz = sizetab[levlnnd];
-  matcptr->vertnbr = vertnbr;
-
-  return (0);
-}
-
-/* This routine frees the matching data
-** structure.
-** It returns:
-** - void  : in all cases.
-*/
-
-void
-archTleafMatchExit (
-ArchTleafMatch * restrict const matcptr)
-{
-  memFree (matcptr->multtab);
-}
-
-/* This routine computes a matching from
-** the current state of the matching structure.
-** It returns:
-** - >=0  : size of matching.
-** - <0   : on error.
-*/
-
-Anum
-archTleafMatchMate (
-ArchTleafMatch * restrict const     matcptr,
-ArchCoarsenMulti ** restrict const  multptr)
-{
-  ArchCoarsenMulti * restrict coarmulttab;
-  Anum                        finevertnbr;
-  Anum                        finevertnum;
-  Anum                        coarvertnum;
-  Anum                        levlsiz;            /* Number of fine vertices in each block */
-  Anum                        bloksiz;            /* Number of multinodes in each block    */
-  Anum                        bloknbr;            /* Number of blocks                      */
-  Anum                        bloknum;
-  Anum                        passnum;
-
-  levlsiz = matcptr->levlsiz;
-  while (levlsiz == 1) {                          /* If has to change level */
-    Anum                levlnum;
-
-    levlnum = matcptr->levlnum - 1;
-    if (levlnum < 0)                              /* If upper level exceeded */
-      return (-1);                                /* Return an error         */
-
-    matcptr->passnum = 0;                         /* Reset pass at next level */
-    matcptr->levlnum = levlnum;
-    levlsiz          = matcptr->archptr->sizetab[levlnum];
-  }
-
-  finevertnbr = matcptr->vertnbr;
-#ifdef SCOTCH_DEBUG_ARCH2
-  if (finevertnbr % levlsiz != 0) {
-    errorPrint ("archTleafMatchMate: internal error (1)");
-    return     (-1);
-  }
-#endif /* SCOTCH_DEBUG_ARCH2 */
-  bloknbr = finevertnbr / levlsiz;
-
-  if ((levlsiz & 1) != 0)
-    passnum = matcptr->passnum ^= 1;
-  else
-    passnum = -1;
-
-  bloksiz = levlsiz >> 1;                         /* Number of multinodes in each block      */
-  levlsiz = (levlsiz + 1) >> 1;                   /* Number of coarse vertices in each block */
-  matcptr->levlsiz = levlsiz;
-  matcptr->vertnbr = levlsiz * bloknbr;
-
-  coarmulttab = matcptr->multtab;
-  for (finevertnum = coarvertnum = 0;
-       bloknbr > 0; bloknbr --) {
-    Anum                bloktmp;
-
-    if (passnum == 0) {                           /* If block starts with a single node */
-      coarmulttab[coarvertnum].vertnum[0] =       /* Create single node                 */
-      coarmulttab[coarvertnum].vertnum[1] = finevertnum ++;
-      coarvertnum ++;
-    }
-    for (bloktmp = bloksiz; bloktmp > 0; bloktmp --) { /* For all pairs of fine vertices within blocks */
-      coarmulttab[coarvertnum].vertnum[0] = finevertnum ++; /* Create multinode                        */
-      coarmulttab[coarvertnum].vertnum[1] = finevertnum ++;
-      coarvertnum ++;
-    }
-    if (passnum == 1) {                           /* If block ends with a single node */
-      coarmulttab[coarvertnum].vertnum[0] =       /* Create single node               */
-      coarmulttab[coarvertnum].vertnum[1] = finevertnum ++;
-      coarvertnum ++;
-    }
-  }
-#ifdef SCOTCH_DEBUG_ARCH2
-  if (finevertnum != finevertnbr) {
-    errorPrint ("archTleafMatchMate: internal error (2)");
-    return     (-1);
-  }
-#endif /* SCOTCH_DEBUG_ARCH2 */
-
-  *multptr = coarmulttab;                         /* Always provide same mating array */
-
-  return (coarvertnum);
 }
 
 /* This function returns the smallest number
@@ -762,11 +616,6 @@ FILE * restrict const       stream)
       errorPrint ("archLtleafArchSave: bad output (2)");
       return     (1);
     }
-  }
-
-  if (fprintf (stream, "\n") == EOF) {
-    errorPrint ("archLtleafArchSave: bad output (3)");
-    return     (1);
   }
 
   return (0);

@@ -1,4 +1,4 @@
-/* Copyright 2007-2010,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2010 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -44,7 +44,7 @@
 /**   DATES      : # Version 5.1  : from : 01 dec 2007     **/
 /**                                 to   : 01 jul 2008     **/
 /**                # Version 6.0  : from : 05 nov 2009     **/
-/**                                 to   : 29 oct 2014     **/
+/**                                 to   : 14 mar 2010     **/
 /**                                                        **/
 /************************************************************/
 
@@ -298,8 +298,8 @@ const WgraphPartGpParam * const paraptr)      /*+ Method parameters +*/
     }
   }
   for (partval = 0; partval < wgrafptr->partnbr; partval ++) /* for each part */
-    printf("\033[0;33mcompload[" GNUMSTRING "] " GNUMSTRING " " GNUMSTRING "\033[0m\n", partval, wgrafptr->compload[partval], wgrafptr->compsize[partval]);
-  printf("\033[0;33mfronload " GNUMSTRING " " GNUMSTRING "\033[0m\n", wgrafptr->fronload, wgrafptr->fronnbr);
+    printf("\033[0;33mcompload[%d] %d %d\033[0m\n", partval, wgrafptr->compload[partval], wgrafptr->compsize[partval]);
+  printf("\033[0;33mfronload %d %d\033[0m\n", wgrafptr->fronload, wgrafptr->fronnbr);
   memFree(vexxtax + wgrafptr->s.baseval);          /* Free work arrays */
 
   return (0);

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -54,8 +54,6 @@
 /**                                 to     31 dec 1998     **/
 /**                # Version 4.0  : from : 24 nov 2001     **/
 /**                                 to     22 apr 2004     **/
-/**                # Version 6.0  : from : 05 aug 2014     **/
-/**                                 to     05 aug 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -114,8 +112,6 @@ const Gnum                  baseval)
   grafptr->vendtax -= baseadj;
   grafptr->edgetax -= baseadj;
 
-  if (grafptr->velotax != NULL)
-    grafptr->velotax -= baseadj;
   if (grafptr->vnumtax != NULL)
     grafptr->vnumtax -= baseadj;
   if (grafptr->vlbltax != NULL)

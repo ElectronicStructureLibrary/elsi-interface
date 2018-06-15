@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,7 +43,7 @@
 /**   DATES      : # Version 5.1  : from : 10 sep 2007     **/
 /**                                 to     14 apr 2011     **/
 /**                # Version 6.0  : from : 11 sep 2011     **/
-/**                                 to     31 aug 2014     **/
+/**                                 to     11 sep 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -81,24 +81,24 @@ Bdgraph * restrict const        actgrafptr,       /* Active graph               
 const Dgraph * restrict const   indgrafptr,       /* Induced source subdgraph         */
 const Dgraph * restrict const   srcgrafptr,       /* Original source graph            */
 const Arch * restrict const     archptr,          /* Current mapping of halo vertices */
-const ArchDom                   domnsubtab[])     /* Subdomains                       */
+const ArchDom                   domsubtab[])      /* Subdomains                       */
 {
-  Anum                domndist;                   /* Distance between both subdomains   */
-  Anum                domnwght0;                  /* Processor workforce in each domain */
-  Anum                domnwght1;
+  Anum                domdist;                    /* Distance between both subdomains   */
+  Anum                domwght0;                   /* Processor workforce in each domain */
+  Anum                domwght1;
 
-  domndist  = archDomDist (archptr, &domnsubtab[0], &domnsubtab[1]); /* Get distance between subdomains */
-  domnwght0 = archDomWght (archptr, &domnsubtab[0]); /* Get weights of subdomains                       */
-  domnwght1 = archDomWght (archptr, &domnsubtab[1]);
+  domdist  = archDomDist (archptr, &domsubtab[0], &domsubtab[1]); /* Get distance between subdomains */
+  domwght0 = archDomWght (archptr, &domsubtab[0]); /* Get weights of subdomains                      */
+  domwght1 = archDomWght (archptr, &domsubtab[1]);
   actgrafptr->s            = *indgrafptr;            /* Get source graph data                        */
   actgrafptr->s.flagval   &= ~DGRAPHFREEALL;         /* Do not free contents of separation graph     */
   actgrafptr->s.vlblloctax = NULL;                   /* Never mind about vertex labels in the future */
   actgrafptr->veexloctax   = NULL;                   /* No external gain (yet)                       */
   actgrafptr->veexglbsum   = 0;
-  actgrafptr->partgsttax   = NULL;                   /* Do not allocate frontier arrays yet */
+  actgrafptr->partgsttax   = NULL;                   /* Do not allocate frontier arrays yet          */
   actgrafptr->fronloctab   = NULL;
  
-  bdgraphInit2 (actgrafptr, domndist, domnwght0, domnwght1);
+  bdgraphInit2 (actgrafptr, domdist, domwght0, domwght1);
 
 /* TODO: Compute external gains */
   
@@ -115,9 +115,9 @@ const ArchDom                   domnsubtab[])     /* Subdomains                 
 void
 bdgraphInit2 (
 Bdgraph * restrict const        actgrafptr,       /* Active graph                       */
-const Anum                      domndist,         /* Distance between both subdomains   */
-const Anum                      domnwght0,        /* Processor workforce in each domain */
-const Anum                      domnwght1)
+const Anum                      domdist,          /* Distance between both subdomains   */
+const Anum                      domwght0,         /* Processor workforce in each domain */
+const Anum                      domwght1)
 {
   actgrafptr->fronlocnbr       =                  /* No frontier vertices */
   actgrafptr->fronglbnbr       = 0;
@@ -125,7 +125,7 @@ const Anum                      domnwght1)
   actgrafptr->compglbload0     = actgrafptr->s.veloglbsum;
   actgrafptr->compglbload0min  = 0;               /* No external constraints on bipartition (yet) */
   actgrafptr->compglbload0max  = actgrafptr->s.veloglbsum;
-  actgrafptr->compglbload0avg  = (Gnum) (((double) actgrafptr->s.veloglbsum * (double) domnwght0) / (double) (domnwght0 + domnwght1));
+  actgrafptr->compglbload0avg  = (Gnum) (((double) actgrafptr->s.veloglbsum * (double) domwght0) / (double) (domwght0 + domwght1));
   actgrafptr->compglbload0dlt  = actgrafptr->s.veloglbsum - actgrafptr->compglbload0avg;
   actgrafptr->complocsize0     = actgrafptr->s.vertlocnbr;
   actgrafptr->compglbsize0     = actgrafptr->s.vertglbnbr;
@@ -134,9 +134,9 @@ const Anum                      domnwght1)
   actgrafptr->commglbgainextn  = 0;
   actgrafptr->commglbgainextn0 = 0; 
   actgrafptr->bbalglbval       = (double) actgrafptr->compglbload0dlt / (double) actgrafptr->compglbload0avg;
-  actgrafptr->domndist         = domndist;
-  actgrafptr->domnwght[0]      = domnwght0;
-  actgrafptr->domnwght[1]      = domnwght1;
+  actgrafptr->domdist          = domdist;
+  actgrafptr->domwght[0]       = domwght0;
+  actgrafptr->domwght[1]       = domwght1;
   actgrafptr->levlnum          = 0;
 }
 

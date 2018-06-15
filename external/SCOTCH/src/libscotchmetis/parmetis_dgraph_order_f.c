@@ -1,4 +1,4 @@
-/* Copyright 2007,2010,2012,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -44,7 +44,7 @@
 /**                # Version 5.1  : from : 30 jun 2010     **/
 /**                                 to     30 jun 2010     **/
 /**                # Version 6.0  : from : 13 sep 2012     **/
-/**                                 to     27 apr 2015     **/
+/**                                 to     13 sep 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -54,7 +54,6 @@
 
 #define LIBRARY
 
-#include "module.h"
 #include "common.h"
 #include "ptscotch.h"
 #include "parmetis.h"                             /* Our "parmetis.h" file */

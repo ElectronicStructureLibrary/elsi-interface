@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -44,7 +44,7 @@
 /**   DATES      : # Version 5.1  : from : 16 nov 2007     **/
 /**                                 to   : 19 jul 2011     **/
 /**                # Version 6.0  : from : 11 sep 2011     **/
-/**                                 to   : 31 aug 2014     **/
+/**                                 to   : 11 sep 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -81,7 +81,7 @@ Bdgraph * const                     grafptr,      /*+ Distributed graph +*/
 const BdgraphBipartDfParam * const  paraptr)      /*+ Method parameters +*/
 {
   float * restrict        ielsloctax;             /* Inverse of degree array   */
-  float * restrict        veexloctax;             /* Veexval over domndist     */
+  float * restrict        veexloctax;             /* Veexval over domdist      */
   float * restrict        difogsttax;             /* Old diffusion value array */
   float * restrict        difngsttax;             /* New diffusion value array */
   const Gnum * restrict   edgegsttax;
@@ -384,7 +384,7 @@ abort :                                           /* If overflow occured, resume
   grafptr->compglbload0    = reduglbtab[1];
   grafptr->compglbload0dlt = grafptr->compglbload0 - grafptr->compglbload0avg;
   grafptr->compglbsize0    = reduglbtab[2];
-  grafptr->commglbload     = (reduglbtab[3] / 2) * grafptr->domndist + reduglbtab[4];
+  grafptr->commglbload     = (reduglbtab[3] / 2) * grafptr->domdist + reduglbtab[4];
   grafptr->commglbgainextn = reduglbtab[5];
   grafptr->bbalglbval      = (double) ((grafptr->compglbload0dlt < 0) ? (- grafptr->compglbload0dlt) : grafptr->compglbload0dlt) / (double) grafptr->compglbload0avg;
 

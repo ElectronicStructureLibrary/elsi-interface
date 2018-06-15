@@ -1,4 +1,4 @@
-/* Copyright 2008,2012,2013 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2008,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -40,7 +40,7 @@
 /**                matching routines.                      **/
 /**                                                        **/
 /**    DATES     : # Version 6.0  : from : 04 dec 2008     **/
-/**                                 to   : 10 oct 2013     **/
+/**                                 to   : 03 oct 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -87,7 +87,6 @@ DgraphMatchData * restrict const  mateptr)
       Gnum                edgeendnbr;
       Gnum                edgefrenbr;
       Gnum                probval;
-      DGRAPHMATCHSCANCOUNTDECL
 
       if (mategsttax[vertlocnum] >= 0)            /* If vertex has been matched by one of the previous ones, skip it */
         continue;
@@ -201,7 +200,6 @@ DgraphMatchData * restrict const  mateptr)
       Gnum                edgeendnbr;
       Gnum                edgefrenbr;
       Gnum                probval;
-      DGRAPHMATCHSCANCOUNTDECL
 
       vertlocnum = queuloctab[queulocnum];        /* Get current vertex */
       if (mategsttax[vertlocnum] >= 0)            /* If already mated   */

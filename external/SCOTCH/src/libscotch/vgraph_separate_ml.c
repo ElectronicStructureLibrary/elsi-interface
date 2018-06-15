@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2009,2011,2014,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2009,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -48,7 +48,7 @@
 /**                # Version 5.1  : from : 11 nov 2009     **/
 /**                                 to     11 nov 2009     **/
 /**                # Version 6.0  : from : 09 mar 2011     **/
-/**                                 to     16 aug 2015     **/
+/**                                 to     16 apr 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -88,15 +88,12 @@
 static
 int
 vgraphSeparateMlCoarsen (
-const Vgraph * restrict const         finegrafptr, /*+ Finer graph                                  +*/
-Vgraph * restrict const               coargrafptr, /*+ Coarser graph to build                       +*/
-GraphCoarsenMulti * restrict * const  coarmultptr, /*+ Pointer to un-based multinode table to build +*/
-const VgraphSeparateMlParam * const   paraptr)    /*+ Method parameters                             +*/
+const Vgraph * restrict const         finegrafptr, /*+ Finer graph                         +*/
+Vgraph * restrict const               coargrafptr, /*+ Coarser graph to build              +*/
+GraphCoarsenMulti * restrict * const  coarmultptr, /*+ Pointer to multinode table to build +*/
+const VgraphSeparateMlParam * const   paraptr)    /*+ Method parameters                    +*/
 {
-  *coarmultptr = NULL;                            /* Allocate coarmulttab along with coarse graph */
-  if (graphCoarsen (&finegrafptr->s, &coargrafptr->s, NULL, coarmultptr,
-                    paraptr->coarnbr, paraptr->coarval, GRAPHCOARSENNONE,
-                    NULL, NULL, 0, NULL) != 0)
+  if (graphCoarsen (&finegrafptr->s, &coargrafptr->s, coarmultptr, paraptr->coarnbr, paraptr->coarval, NULL, NULL, 0, NULL) != 0)
     return (1);                                   /* Return if coarsening failed */
 
   coargrafptr->parttax = NULL;                    /* Do not allocate partition data yet      */
@@ -120,11 +117,10 @@ const VgraphSeparateMlParam * const   paraptr)    /*+ Method parameters         
 static
 int
 vgraphSeparateMlUncoarsen (
-Vgraph * restrict const                   finegrafptr, /*+ Finer graph              +*/
-const Vgraph * restrict const             coargrafptr, /*+ Coarser graph            +*/
-const GraphCoarsenMulti * restrict const  coarmulttab) /*+ Un-based multinode array +*/
+Vgraph * restrict const                   finegrafptr, /*+ Finer graph     +*/
+const Vgraph * restrict const             coargrafptr, /*+ Coarser graph   +*/
+const GraphCoarsenMulti * restrict const  coarmulttax) /*+ Multinode array +*/
 {
-  Gnum                coarvertnbr;
   Gnum                coarvertnum;                /* Number of current coarse vertex           */
   Gnum                finefronnbr;                /* Number of frontier vertices in fine graph */
 
@@ -140,33 +136,29 @@ const GraphCoarsenMulti * restrict const  coarmulttab) /*+ Un-based multinode ar
     GraphPart * restrict  fineparttax;
     Gnum                  finesize1;              /* Number of vertices in fine part 1 */
 
-    const GraphPart * restrict const  coarparttab = coargrafptr->parttax + coargrafptr->s.baseval;
-    Gnum * restrict const             finefrontab = finegrafptr->frontab;
+    const GraphPart * restrict const  coarparttax = coargrafptr->parttax;
 
     finesize1   = coargrafptr->compsize[1];       /* Pre-allocate size */
     fineparttax = finegrafptr->parttax;
-    for (coarvertnum = finefronnbr = 0, coarvertnbr = coargrafptr->s.vertnbr;
-         coarvertnum < coarvertnbr; coarvertnum ++) {
-      Gnum                finevertnum0;           /* First multinode vertex          */
-      Gnum                finevertnum1;           /* Second multinode vertex         */
+    for (coarvertnum = coargrafptr->s.baseval, finefronnbr = 0;
+         coarvertnum < coargrafptr->s.vertnnd; coarvertnum ++) {
       GraphPart           coarpartval;            /* Value of current multinode part */
 
-      finevertnum0 = coarmulttab[coarvertnum].vertnum[0];
-      finevertnum1 = coarmulttab[coarvertnum].vertnum[1];
-      coarpartval  = coarparttab[coarvertnum];
-
-      fineparttax[finevertnum0] = coarpartval;
+      coarpartval = coarparttax[coarvertnum];
+      fineparttax[coarmulttax[coarvertnum].vertnum[0]] = coarpartval;
       if (coarpartval != 2) {                     /* If vertex is not in separator */
-        if (finevertnum0 != finevertnum1) {
-          fineparttax[finevertnum1] = coarpartval;
-          finesize1 += (Gnum) coarpartval;        /* One extra vertex accounted for in part 1 if (coarpartval == 1) */
+        if (coarmulttax[coarvertnum].vertnum[0] !=
+            coarmulttax[coarvertnum].vertnum[1]) {
+          fineparttax[coarmulttax[coarvertnum].vertnum[1]] = coarpartval;
+          finesize1 += (Gnum) coarpartval;        /* One extra vertex created in part 1 if (coarpartval == 1) */
         }
       }
       else {                                      /* Vertex is in separator */
-        finefrontab[finefronnbr ++] = finevertnum0;
-        if (finevertnum0 != finevertnum1) {
-          fineparttax[finevertnum1] = coarpartval;
-          finefrontab[finefronnbr ++] = finevertnum1; /* One extra vertex in separator */
+        finegrafptr->frontab[finefronnbr ++] = coarmulttax[coarvertnum].vertnum[0];
+        if (coarmulttax[coarvertnum].vertnum[0] !=
+            coarmulttax[coarvertnum].vertnum[1]) {
+          fineparttax[coarmulttax[coarvertnum].vertnum[1]] = coarpartval;
+          finegrafptr->frontab[finefronnbr ++] = coarmulttax[coarvertnum].vertnum[1]; /* One extra vertex in separator */
         }
       }
     }
@@ -206,12 +198,12 @@ Vgraph * restrict const             grafptr,      /* Vertex-separation graph */
 const VgraphSeparateMlParam * const paraptr)      /* Method parameters       */
 {
   Vgraph                        coargrafdat;
-  GraphCoarsenMulti * restrict  coarmulttab;
+  GraphCoarsenMulti * restrict  coarmulttax;
   int                           o;
 
-  if (vgraphSeparateMlCoarsen (grafptr, &coargrafdat, &coarmulttab, paraptr) == 0) {
+  if (vgraphSeparateMlCoarsen (grafptr, &coargrafdat, &coarmulttax, paraptr) == 0) {
     if (((o = vgraphSeparateMl2         (&coargrafdat, paraptr))              == 0) &&
-        ((o = vgraphSeparateMlUncoarsen (grafptr, &coargrafdat, coarmulttab)) == 0) &&
+        ((o = vgraphSeparateMlUncoarsen (grafptr, &coargrafdat, coarmulttax)) == 0) &&
         ((o = vgraphSeparateSt          (grafptr, paraptr->stratasc))         != 0)) /* Apply ascending strategy */
       errorPrint ("vgraphSeparateMl2: cannot apply ascending strategy");
     coargrafdat.frontab = NULL;                   /* Prevent frontab of fine graph from being freed */

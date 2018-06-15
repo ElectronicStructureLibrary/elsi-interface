@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2011,2013 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -46,7 +46,7 @@
 /**                # Version 4.0  : from : 13 dec 2001     **/
 /**                                 to     02 feb 2004     **/
 /**                # Version 6.0  : from : 16 apr 2011     **/
-/**                                 to     25 sep 2013     **/
+/**                                 to     16 apr 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -59,7 +59,6 @@
 typedef struct VgraphSeparateMlParam_ {
   INT                       coarnbr;             /*+ Minimum number of vertices   +*/
   double                    coarval;             /*+ Coarsening ratio             +*/
-  GraphCoarsenType          coartype;            /*+ Edge matching function type  +*/
   Strat *                   stratlow;            /*+ Strategy at lowest level     +*/
   Strat *                   stratasc;            /*+ Strategy at ascending levels +*/
 } VgraphSeparateMlParam;

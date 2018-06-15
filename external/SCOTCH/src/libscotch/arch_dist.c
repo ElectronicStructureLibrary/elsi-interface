@@ -1,4 +1,4 @@
-/* Copyright 2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -44,7 +44,7 @@
 /**                costs.                                  **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to   : 30 jun 2014     **/
+/**                                 to   : 22 oct 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -83,7 +83,8 @@ ArchDist * restrict const   archptr,
 FILE * restrict const       stream)
 {
 #ifdef SCOTCH_DEBUG_ARCH1
-  if (sizeof (ArchDist) > sizeof (ArchDummy)) {
+  if ((sizeof (ArchDist)    > sizeof (ArchDummy)) ||
+      (sizeof (ArchDistDom) > sizeof (ArchDomDummy))) {
     errorPrint ("archDistArchLoad: invalid type specification");
     return     (1);
   }
@@ -110,13 +111,14 @@ const ArchDist * const      archptr,
 FILE * restrict const       stream)
 {
 #ifdef SCOTCH_DEBUG_ARCH1
-  if (sizeof (ArchDist) > sizeof (ArchDummy)) {
+  if ((sizeof (ArchDist)    > sizeof (ArchDummy)) ||
+      (sizeof (ArchDistDom) > sizeof (ArchDomDummy))) {
     errorPrint ("archDistArchSave: invalid type specification");
     return     (1);
   }
 #endif /* SCOTCH_DEBUG_ARCH1 */
 
-  if (fprintf (stream, ANUMSTRING "\t",
+  if (fprintf (stream, ANUMSTRING "\n",
                (Anum) archptr->crloval) == EOF) {
     errorPrint ("archDistArchSave: bad output");
     return     (1);
@@ -125,8 +127,9 @@ FILE * restrict const       stream)
   return (archSave (archptr->archptr, stream));   /* Save sub-architecture */
 }
 
-/* This routine builds the distance graph
-** architecture of an original architecture.
+/* This routine build the
+** distance graph architecture of
+** an original one.
 ** It returns:
 ** - 0   : if the architecture has been successfully built.
 ** - !0  : on error.
@@ -138,11 +141,11 @@ Arch * const                archptr,
 Arch * const                orgarchptr,
 const Anum                  crloval)
 {
-  ArchDist *          archdataptr;
+  ArchDist *                   archdataptr;
 
-  archInit (archptr);                             /* Initialize architecture body */
-  archptr->class   = archClass ("dist");          /* Set architecture class       */
-  archptr->flagval = orgarchptr->flagval;         /* Set architecture flag        */
+  archInit (archptr);                             /* Initialize architecture body  */
+  archptr->class = archClass ("dist");            /* Set architecture class        */
+  archptr->flagval = orgarchptr->flagval;         /* Set architecture flag         */
   archdataptr = (ArchDist *) (void *) &archptr->data;
   archdataptr->archptr = orgarchptr;
   archdataptr->crloval = crloval;
@@ -157,10 +160,10 @@ const Anum                  crloval)
 
 ArchDomNum
 archDistDomNum (
-const ArchDist * const      archptr,
-const ArchDom * const       domptr)
+const ArchDist * const     archptr,
+const ArchDistDom * const  domptr)
 {
-  return (archDomNum (archptr->archptr, domptr)); /* Call proper routine */
+  return (archDomNum (archptr->archptr, &domptr->domval)); /* Call proper routine */
 }
 
 /* This function returns the terminal domain associated
@@ -174,10 +177,10 @@ const ArchDom * const       domptr)
 int
 archDistDomTerm (
 const ArchDist * const      archptr,
-ArchDom * const             domptr,
+ArchDistDom * const         domptr,
 const ArchDomNum            domnum)
 {
-  return (archDomTerm (archptr->archptr, domptr, domnum)); /* Call proper routine */
+  return (archDomTerm (archptr->archptr, &domptr->domval, domnum)); /* Call proper routine */
 }
 
 /* This function returns the number of
@@ -187,9 +190,9 @@ const ArchDomNum            domnum)
 Anum 
 archDistDomSize (
 const ArchDist * const      archptr,
-const ArchDom * const       domptr)
+const ArchDistDom * const   domptr)
 {
-  return (archDomSize (archptr->archptr, domptr)); /* Call proper routine */
+  return (archDomSize (archptr->archptr, &domptr->domval)); /* Call proper routine */
 }
 
 /* This function returns the weight of
@@ -199,9 +202,9 @@ const ArchDom * const       domptr)
 Anum 
 archDistDomWght (
 const ArchDist * const      archptr,
-const ArchDom * const       domptr)
+const ArchDistDom * const   domptr)
 {
-  return (archDomWght (archptr->archptr, domptr)); /* Call proper routine */
+  return (archDomWght (archptr->archptr, &domptr->domval)); /* Call proper routine */
 }
 
 /* This function returns the average
@@ -212,10 +215,10 @@ const ArchDom * const       domptr)
 Anum 
 archDistDomDist (
 const ArchDist * const      archptr,
-const ArchDom * const       dom0ptr,
-const ArchDom * const       dom1ptr)
+const ArchDistDom * const   dom0ptr,
+const ArchDistDom * const   dom1ptr)
 {
-  return (archptr->crloval * archDomDist (archptr->archptr, dom0ptr, dom1ptr));
+  return (archptr->crloval * archDomDist (archptr->archptr, &dom0ptr->domval, &dom1ptr->domval));
 }
 
 /* This function sets the biggest
@@ -228,10 +231,10 @@ const ArchDom * const       dom1ptr)
 
 int
 archDistDomFrst (
-const ArchDist * const      archptr,
-ArchDom * restrict const    domptr)
+const ArchDist * const          archptr,
+ArchDistDom * restrict const    domptr)
 {
-  return (archDomFrst (archptr->archptr, domptr)); /* Call proper routine */
+  return (archDomFrst (archptr->archptr, &domptr->domval));    /* Call proper routine */
 }
 
 /* This routine reads domain information
@@ -243,11 +246,11 @@ ArchDom * restrict const    domptr)
 
 int
 archDistDomLoad (
-const ArchDist * const      archptr,
-ArchDom * restrict const    domptr,
-FILE * const                stream)
+const ArchDist * const        archptr,
+ArchDistDom * restrict const  domptr,
+FILE * const                  stream)
 {
-  return (archDomLoad (archptr->archptr, domptr, stream)); /* Call proper routine */
+  return (archDomLoad (archptr->archptr, &domptr->domval, stream)); /* Call proper routine */
 }
 
 /* This routine saves domain information
@@ -260,10 +263,10 @@ FILE * const                stream)
 int
 archDistDomSave (
 const ArchDist * const      archptr,
-const ArchDom * const       domptr,
+const ArchDistDom * const   domptr,
 FILE * const                stream)
 {
-  return (archDomSave (archptr->archptr, domptr, stream)); /* Call proper routine */
+  return (archDomSave (archptr->archptr, &domptr->domval, stream)); /* Call proper routine */
 }
 
 /* This function tries to split a distance
@@ -276,12 +279,12 @@ FILE * const                stream)
 
 int
 archDistDomBipart (
-const ArchDist * const      archptr,
-const ArchDom * const       domptr,
-ArchDom * restrict const    dom0ptr,
-ArchDom * restrict const    dom1ptr)
+const ArchDist * const        archptr,
+const ArchDistDom * const     domptr,
+ArchDistDom * restrict const  dom0ptr,
+ArchDistDom * restrict const  dom1ptr)
 {
-  return (archDomBipart (archptr->archptr, domptr, dom0ptr, dom1ptr)); /* Call proper routine */
+  return (archDomBipart (archptr->archptr, &domptr->domval, &dom0ptr->domval, &dom1ptr->domval)); /* Call proper routine */
 }
 
 /* This function checks if dom1 is
@@ -295,10 +298,10 @@ ArchDom * restrict const    dom1ptr)
 int
 archDistDomIncl (
 const ArchDist * const      archptr,
-const ArchDom * const       dom0ptr,
-const ArchDom * const       dom1ptr)
+const ArchDistDom * const   dom0ptr,
+const ArchDistDom * const   dom1ptr)
 {
-  return (archDomIncl (archptr->archptr, dom0ptr, dom1ptr)); /* Call proper routine */
+  return (archDomIncl (archptr->archptr, &dom0ptr->domval, &dom1ptr->domval)); /* Call proper routine */
 }
 
 /* This function creates the MPI_Datatype for

@@ -1,15 +1,15 @@
 /*********************************************************
 **                                                      **
 **  WARNING: THIS IS NOT THE ORIGINAL INCLUDE FILE OF   **
-**  THE MeTiS SOFTWARE PACKAGE.                         **
+**  THE ParMeTiS SOFTWARE PACKAGE.                      **
 **  This file is a compatibility include file provided  **
 **  as part of the Scotch software distribution.        **
-**  Preferably use the original MeTiS include file to   **
-**  keep definitions of routines not overloaded by      **
-**  the libScotchMeTiS library.                         **
+**  Preferably use the original ParMeTiS include file   **
+**  to keep definitions of routines not overloaded by   **
+**  the libPTScotchMeTiS library.                       **
 **                                                      **
 *********************************************************/
-/* Copyright 2007,2010,2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -42,7 +42,7 @@
 */
 /************************************************************/
 /**                                                        **/
-/**   NAME       : library_metis.h                         **/
+/**   NAME       : parmetis.h                              **/
 /**                                                        **/
 /**   AUTHOR     : Francois PELLEGRINI                     **/
 /**                                                        **/
@@ -50,18 +50,25 @@
 /**                MeTiS interface routines provided by    **/
 /**                the Scotch project.                     **/
 /**                                                        **/
-/**   DATES      : # Version 5.0  : from : 08 sep 2006     **/
-/**                                 to     07 jun 2007     **/
-/**                # Version 5.1  : from : 30 jun 2010     **/
+/**   DATES      : # Version 5.0  : from : 17 oct 2007     **/
+/**                                 to     18 oct 2007     **/
+/**                # Version 5.1  : from : 19 jun 2008     **/
 /**                                 to     30 jun 2010     **/
 /**                # Version 6.0  : from : 13 sep 2012     **/
-/**                                 to     14 feb 2018     **/
+/**                                 to     13 sep 2012     **/
 /**                                                        **/
 /************************************************************/
 
 /*
-**  The defines.
+**  The defines and includes.
 */
+
+#ifndef __parmetis_h__
+#define __parmetis_h__
+
+#include <mpi.h>                                  /* Since ParMeTiS does it, do it too */
+
+#endif /* __parmetis_h__ */
 
 #ifdef SCOTCH_METIS_PREFIX
 #define SCOTCH_METIS_PREFIXL        scotch_
@@ -84,32 +91,10 @@
 #define METISNAME4(p,s)             p##s
 #endif /* METISNAMEL */
 
-#ifndef SCOTCH_METIS_RETURN
-#define SCOTCH_METIS_RETURN
-typedef enum {
-  METIS_OK           = 1,
-  METIS_ERROR_INPUT  = -2,
-  METIS_ERROR_MEMORY = -3,
-  METIS_ERROR        = -4
-} rstatus_et; 
-#endif /* SCOTCH_METIS_RETURN */
-
-/*
-**  The type and structure definitions.
-*/
-
-#ifndef SCOTCH_H                                  /* In case "scotch.h" not included before */
-typedef DUMMYINT SCOTCH_Num;
-#endif /* SCOTCH_H */
-
 /*
 **  The function prototypes.
 */
 
-int                         METISNAMEU(METIS_EdgeND) (const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const);
-int                         METISNAMEU(METIS_NodeND) (const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const);
-int                         METISNAMEU(METIS_NodeWND) (const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const);
-
-int                         METISNAMEU(METIS_PartGraphKway) (const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const);
-int                         METISNAMEU(METIS_PartGraphRecursive) (const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const);
-int                         METISNAMEU(METIS_PartGraphVKway) (const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const);
+void                        METISNAMEU(ParMETIS_V3_NodeND) (const SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, MPI_Comm * const);
+void                        METISNAMEU(ParMETIS_V3_PartGeomKway) (const SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const float * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const float * const, const float * const, const SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, MPI_Comm * const);
+void                        METISNAMEU(ParMETIS_V3_PartKway) (const SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const SCOTCH_Num * const, const float * const, const float * const, const SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, MPI_Comm * const);

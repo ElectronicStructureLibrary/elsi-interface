@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2013 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -42,8 +42,6 @@
 /**                                 to     10 sep 2007     **/
 /**                # Version 5.1  : from : 28 sep 2008     **/
 /**                                 to     28 sep 2008     **/
-/**                # Version 6.0  : from : 10 oct 2013     **/
-/**                                 to     10 oct 2013     **/
 /**                                                        **/
 /************************************************************/
 
@@ -218,7 +216,7 @@ Order * restrict const        cordptr)
     memSet (cordptr->peritab, ~0, dordptr->vnodglbnbr * sizeof (Gnum));
 #endif /* SCOTCH_DEBUG_DORDER2 */
 
-    for (linklocptr = dordptr->linkdat.nextptr; linklocptr != &dordptr->linkdat; linklocptr = linklocptr->nextptr) { /* For all nodes */
+    for (linklocptr = dordptr->linkdat.nextptr; linklocptr != &dordptr->linkdat; linklocptr = linklocptr->nextptr) {; /* For all nodes */
       const DorderCblk * restrict cblklocptr;
 
       cblklocptr = (DorderCblk *) linklocptr;     /* TRICK: FIRST                              */
@@ -231,7 +229,7 @@ Order * restrict const        cordptr)
     Gnum                  vnodlocnum;
 
     for (linklocptr = dordptr->linkdat.nextptr, leaflocnum = vnodlocnum = 0;
-         linklocptr != &dordptr->linkdat; linklocptr = linklocptr->nextptr) { /* For all nodes */
+         linklocptr != &dordptr->linkdat; linklocptr = linklocptr->nextptr) {; /* For all nodes */
       const DorderCblk * restrict cblklocptr;
 
       cblklocptr = (DorderCblk *) linklocptr;     /* TRICK: FIRST           */

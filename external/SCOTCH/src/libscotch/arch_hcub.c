@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010-2011,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010-2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -60,7 +60,7 @@
 /**                # Version 5.1  : from : 21 jan 2008     **/
 /**                                 to     11 aug 2010     **/
 /**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     02 may 2015     **/
+/**                                 to     14 fev 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -101,9 +101,9 @@ FILE * restrict const       stream)
   }
 #endif /* SCOTCH_DEBUG_ARCH1 */
 
-  if ((intLoad (stream, &archptr->dimnnbr) != 1) ||
-      (archptr->dimnnbr < 1)                     ||
-      (archptr->dimnnbr > (sizeof (archptr->dimnnbr) << 3))) {
+  if ((intLoad (stream, &archptr->dimmax) != 1) ||
+      (archptr->dimmax < 1)                     ||
+      (archptr->dimmax > (sizeof (archptr->dimmax) << 3))) {
     errorPrint ("archHcubArchLoad: bad input");
     return     (1);
   }
@@ -131,85 +131,12 @@ FILE * restrict const       stream)
   }
 #endif /* SCOTCH_DEBUG_ARCH1 */
 
-  if (fprintf (stream, ANUMSTRING "\n", (Anum) archptr->dimnnbr) == EOF) {
+  if (fprintf (stream, ANUMSTRING " ", (Anum) archptr->dimmax) == EOF) {
     errorPrint ("archHcubArchSave: bad output");
     return     (1);
   }
 
   return (0);
-}
-
-/* This routine initializes the matching
-** data structure according to the number
-** of vertices to be managed.
-** It returns:
-** - 0   : if the data structure has been
-**         successfully initialized.
-** - !0  : on error.
-*/
-
-int
-archHcubMatchInit (
-ArchHcubMatch * restrict const  matcptr,
-const ArchHcub * restrict const archptr)
-{
-  Anum                vertnbr;
-
-  vertnbr = 1 << archptr->dimnnbr;
-  if ((matcptr->multtab = memAlloc ((vertnbr >> 1) * sizeof (ArchCoarsenMulti))) == NULL) { /* Multinodes are half the number of vertices */
-    errorPrint ("archHcubMatchInit: out of memory");
-    return     (1);
-  }
-
-  matcptr->vertnbr = vertnbr;
-
-  return (0);
-}
-
-/* This routine frees the matching data
-** structure.
-** It returns:
-** - void  : in all cases.
-*/
-
-void
-archHcubMatchExit (
-ArchHcubMatch * restrict const  matcptr)
-{
-  memFree (matcptr->multtab);
-}
-
-/* This routine computes a matching from
-** the current state of the matching structure.
-** It returns:
-** - >=0  : size of matching.
-** - <0   : on error.
-*/
-
-Anum
-archHcubMatchMate (
-ArchHcubMatch * restrict const      matcptr,
-ArchCoarsenMulti ** restrict const  multptr)
-{
-  ArchCoarsenMulti * restrict coarmulttab;
-  Anum                        coarvertnbr;
-  Anum                        coarvertnum;
-  Anum                        finevertnum;
-
-  coarvertnbr = matcptr->vertnbr >> 1;
-  if (coarvertnbr <= 0)
-    return (-1);
-
-  coarmulttab = matcptr->multtab;
-  for (coarvertnum = finevertnum = 0; coarvertnum < coarvertnbr; coarvertnum ++) {
-    coarmulttab[coarvertnum].vertnum[0] = finevertnum ++; /* Dimensional splatting */
-    coarmulttab[coarvertnum].vertnum[1] = finevertnum ++;
-  }
-  matcptr->vertnbr = coarvertnbr;                 /* Prepare for next mating */
-
-  *multptr = coarmulttab;                         /* Always provide same mating array */
-
-  return (coarvertnbr);
 }
 
 /* This function returns the smallest number
@@ -220,9 +147,9 @@ ArchCoarsenMulti ** restrict const  multptr)
 ArchDomNum
 archHcubDomNum (
 const ArchHcub * const      archptr,
-const ArchHcubDom * const   domnptr)
+const ArchHcubDom * const   domptr)
 {
-  return (domnptr->bitsset);                      /* Return vertex number */
+  return (domptr->bitset);                        /* Return vertex number */
 }
 
 /* This function returns the terminal domain associated
@@ -236,12 +163,12 @@ const ArchHcubDom * const   domnptr)
 int
 archHcubDomTerm (
 const ArchHcub * const      archptr,
-ArchHcubDom * const         domnptr,
-const ArchDomNum            domnnum)
+ArchHcubDom * const         domptr,
+const ArchDomNum            domnum)
 {
-  if (domnnum < (1 << archptr->dimnnbr)) {        /* If valid label */
-    domnptr->dimncur = 0;                         /* Set the domain */
-    domnptr->bitsset = domnnum;
+  if (domnum < (1 << archptr->dimmax)) {          /* If valid label */
+    domptr->dimcur = 0;                           /* Set the domain */
+    domptr->bitset = domnum;
 
     return (0);
   }
@@ -256,9 +183,9 @@ const ArchDomNum            domnnum)
 Anum 
 archHcubDomSize (
 const ArchHcub * const      archptr,
-const ArchHcubDom * const   domnptr)
+const ArchHcubDom * const   domptr)
 {
-  return (1 << domnptr->dimncur);
+  return (1 << domptr->dimcur);
 }
 
 /* This function returns the average distance
@@ -273,17 +200,17 @@ const ArchHcubDom * const   dom1ptr)
 {
   Anum                i, j, k;
 
-  if (dom0ptr->dimncur > dom1ptr->dimncur) {      /* Get smallest set dimension value */
-    i = dom0ptr->dimncur;
-    j = i - dom1ptr->dimncur;
+  if (dom0ptr->dimcur > dom1ptr->dimcur) {        /* Get smallest set dimension value */
+    i = dom0ptr->dimcur;
+    j = i - dom1ptr->dimcur;
   }
   else {
-    i = dom1ptr->dimncur;
-    j = i - dom0ptr->dimncur;
+    i = dom1ptr->dimcur;
+    j = i - dom0ptr->dimcur;
   }
   j /= 2;                                         /* For set/unset bits, assume 1/2 difference */
 
-  for (k = (dom0ptr->bitsset ^ dom1ptr->bitsset) >> i, i = archptr->dimnnbr - i;
+  for (k = (dom0ptr->bitset ^ dom1ptr->bitset) >> i, i = archptr->dimmax - i;
        i > 0;
        k >>= 1, i --)
     j += (k & 1);                                 /* Add Hamming difference on set dimensions */
@@ -302,10 +229,10 @@ const ArchHcubDom * const   dom1ptr)
 int
 archHcubDomFrst (
 const ArchHcub * const        archptr,
-ArchHcubDom * restrict const  domnptr)
+ArchHcubDom * restrict const  domptr)
 {
-  domnptr->dimncur = archptr->dimnnbr;
-  domnptr->bitsset = 0;
+  domptr->dimcur = archptr->dimmax;
+  domptr->bitset = 0;
 
   return (0);
 }
@@ -320,12 +247,12 @@ ArchHcubDom * restrict const  domnptr)
 int
 archHcubDomLoad (
 const ArchHcub * const        archptr,
-ArchHcubDom * restrict const  domnptr,
+ArchHcubDom * restrict const  domptr,
 FILE * restrict const         stream)
 {
-  if ((intLoad (stream, &domnptr->dimncur) != 1) ||
-      (intLoad (stream, &domnptr->bitsset) != 1) ||
-      (domnptr->dimncur > archptr->dimnnbr)) {
+  if ((intLoad (stream, &domptr->dimcur) != 1) ||
+      (intLoad (stream, &domptr->bitset) != 1) ||
+      (domptr->dimcur > archptr->dimmax)) {
     errorPrint ("archHcubDomLoad: bad input");
     return     (1);
   }
@@ -343,12 +270,12 @@ FILE * restrict const         stream)
 int
 archHcubDomSave (
 const ArchHcub * const      archptr,
-const ArchHcubDom * const   domnptr,
+const ArchHcubDom * const   domptr,
 FILE * restrict const       stream)
 {
   if (fprintf (stream, ANUMSTRING " " ANUMSTRING " ",
-               (Anum) domnptr->dimncur,
-               (Anum) domnptr->bitsset) == EOF) {
+               (Anum) domptr->dimcur,
+               (Anum) domptr->bitset) == EOF) {
     errorPrint ("archHcubDomSave: bad output");
     return     (1);
   }
@@ -367,17 +294,17 @@ FILE * restrict const       stream)
 int
 archHcubDomBipart (
 const ArchHcub * const        archptr,
-const ArchHcubDom * const     domnptr,
+const ArchHcubDom * const     domptr,
 ArchHcubDom * restrict const  dom0ptr,
 ArchHcubDom * restrict const  dom1ptr)
 {
-  if (domnptr->dimncur <= 0)                      /* Return if cannot bipartition more */
+  if (domptr->dimcur <= 0)                        /* Return if cannot bipartition more */
     return (1);
 
-  dom0ptr->dimncur =
-  dom1ptr->dimncur = domnptr->dimncur - 1;
-  dom0ptr->bitsset = domnptr->bitsset;
-  dom1ptr->bitsset = domnptr->bitsset | (1 << dom1ptr->dimncur);
+  dom0ptr->dimcur =
+  dom1ptr->dimcur = domptr->dimcur - 1;
+  dom0ptr->bitset = domptr->bitset;
+  dom1ptr->bitset = domptr->bitset | (1 << dom1ptr->dimcur);
 
   return (0);
 }
@@ -396,8 +323,8 @@ const ArchHcub * const      archptr,
 const ArchHcubDom * const   dom0ptr,
 const ArchHcubDom * const   dom1ptr)
 {
-  if ((dom0ptr->dimncur >= dom1ptr->dimncur) &&
-      (((dom0ptr->bitsset ^ dom1ptr->bitsset) >> dom0ptr->dimncur) == 0))
+  if ((dom0ptr->dimcur >= dom1ptr->dimcur) &&
+      (((dom0ptr->bitset ^ dom1ptr->bitset) >> dom0ptr->dimcur) == 0))
     return (1);
 
   return (0);

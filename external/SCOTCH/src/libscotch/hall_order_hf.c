@@ -134,7 +134,7 @@
 /**    --------------------------                                        **/
 /**    NBBUCK : integer greater than 1 (advised value is 2*N)            **/
 /**    HEAD   : HEAD(0:NBBUCK+1) integer array of size NBBUCK+2          **/
-/**    NOTE that it starts at index 0 !!                                 **/
+/**    NOTE that it start at index 0 !!                                  **/
 /**                                                                      **/
 /** 2/ Interface for MA41 or SCOTCH                                      **/
 /**                                                                      **/

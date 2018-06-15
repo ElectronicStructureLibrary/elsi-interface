@@ -1,3 +1,11 @@
+==================
+   Not Released
+==================
+
+   ELSI:
+   * Downgraged redistributed (PT-)SCOTCH source code to version 6.0.0, as
+     the 6.0.5a version may lead to random crashes on some platforms.
+
 ============================
    ELSI May 2018 (v2.0.1)
 ============================
@@ -7,9 +15,9 @@
    * Fixed building ELSI as a shared library with tests enabled.
    * Improved stability when calling PBLAS routines pdtran and pztranc.
 
-   Known Issues:
-   * Depending on the choice of k-points, complex PEXSI solver may fail at
-     the inertia counting stage.
+   Known Issue:
+   * Depending on the choice of k-points, the complex PEXSI solver may fail
+     at the inertia counting stage.
 
 ============================
    ELSI May 2018 (v2.0.0)
@@ -34,7 +42,7 @@
    * (Experimental) Implemented density matrix purification with dense
      linear algebra operations.
 
-   New Matrix Storage Formats:
+   New Matrix Storage Format:
    * Added 1D block-cyclic compressed sparse column (SIESTA_CSC) format.
 
    ELPA:

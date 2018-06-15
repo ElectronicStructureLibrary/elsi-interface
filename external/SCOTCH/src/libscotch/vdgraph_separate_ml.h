@@ -1,4 +1,4 @@
-/* Copyright 2007-2009, 2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2009 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -44,8 +44,6 @@
 /**                                 to   : 03 aug 2007     **/
 /**                # Version 5.1  : from : 14 dec 2008     **/
 /**                                 to   : 29 may 2009     **/
-/**                # Version 6.0  : from : 28 sep 2014     **/
-/**                                 to   : 28 sep 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -56,14 +54,15 @@
 /*+ This structure holds the method parameters. +*/
 
 typedef struct VdgraphSeparateMlParam_ {
-  INT                       passnbr;              /*+ Number of coarsening passes to go                      +*/
-  INT                       foldmax;              /*+ Maximum number of vertices per processor to do folding +*/
-  int                       foldval;              /*+ Type of folding                                        +*/
-  INT                       coarnbr;              /*+ Minimum number of vertices                             +*/
-  double                    coarrat;              /*+ Coarsening ratio                                       +*/
-  Strat *                   stratlow;             /*+ Strategy at lowest level                               +*/
-  Strat *                   stratasc;             /*+ Strategy at ascending levels                           +*/
-  Strat *                   stratseq;             /*+ Strategy when running on a single processor            +*/
+  INT                       passnbr;              /*+ Number of coarsening passes to go           +*/
+  INT                       coarnbr;              /*+ Minimum number of vertices                  +*/
+  INT                       dupmax;               /*+ Maximum number of vertices to do fold-dup   +*/
+  INT                       duplvlmax;            /*+ Maximum level for allowing fold-dup         +*/
+  double                    coarrat;              /*+ Coarsening ratio                            +*/
+  Strat *                   stratlow;             /*+ Strategy at lowest level                    +*/
+  Strat *                   stratasc;             /*+ Strategy at ascending levels                +*/
+  Strat *                   stratseq;             /*+ Strategy when running on a single processor +*/
+  INT                       seqnbr;               /*+ Threshold when entering into seq mode       +*/
 } VdgraphSeparateMlParam;
 
 /*

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2011,2012,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2011,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -57,7 +57,7 @@
 /**                # Version 5.1  : from : 08 mar 2011     **/
 /**                                 to     08 mar 2011     **/
 /**                # Version 6.0  : from : 09 sep 2012     **/
-/**                                 to     09 aug 2014     **/
+/**                                 to     09 sep 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -151,4 +151,23 @@ Graph * const               grafptr)
   memSet (grafptr, ~0, sizeof (Graph));           /* Purge graph fields */
 #endif /* SCOTCH_DEBUG_GRAPH2 */
   grafptr->flagval = GRAPHNONE;                   /* Allow to double-call graphFree or call graphExit */
+}
+
+/* This routine returns the SCOTCH_PTSCOTCH
+** flag. It is used to detect discrepancies
+** resulting from a mixed use of the libscotch
+** and libptscotch libraries.
+** It returns:
+** - 0  : if not compiled as part of the PT-Scotch library.
+** - 1  : if compiled as part of the PT-Scotch library.
+*/
+
+int
+graphPtscotch ()
+{
+#ifdef SCOTCH_PTSCOTCH
+  return (1);
+#else /* SCOTCH_PTSCOTCH */
+  return (0);
+#endif /* SCOTCH_PTSCOTCH */
 }

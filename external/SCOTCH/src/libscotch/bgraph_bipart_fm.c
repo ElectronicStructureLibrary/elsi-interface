@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2011,2014,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -65,7 +65,7 @@
 /**                # Version 5.1  : from : 30 oct 2008     **/
 /**                                 to   : 14 apr 2011     **/
 /**                # Version 6.0  : from : 23 fev 2011     **/
-/**                                 to     27 aug 2016     **/
+/**                                 to     22 sep 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -74,8 +74,6 @@
 */
 
 #define BGRAPH_BIPART_FM
-
-#define SCOTCH_TABLE_GAIN
 
 #include "module.h"
 #include "common.h"
@@ -189,7 +187,7 @@ const Gnum                           deltmax)     /*+ Maximum imbalance +*/
   deltbest = deltmax;
   remoptr = NULL;
 
-  while ((linkptr = fiboHeapMin (tablptr)) != NULL) { /* Select candidate vertices */
+  while ((linkptr = fiboTreeMin (tablptr)) != NULL) { /* Select candidate vertices */
     Gnum                deltnew;
     Gnum                gainval;                  /* Separator gain of current link */
 
@@ -198,7 +196,7 @@ const Gnum                           deltmax)     /*+ Maximum imbalance +*/
     if (gainval > gainbest)                       /* If no more interesting vertices, stop searching */
       break;
 
-    fiboHeapDel (tablptr, linkptr);               /* Remove vertex link from table */
+    fiboTreeDel (tablptr, linkptr);               /* Remove vertex link from table */
     linkptr->linkdat.prevptr = remoptr;           /* Node has been removed but is not kept */
     remoptr = linkptr;                            /* It will be chained back afterwards    */
 
@@ -219,7 +217,7 @@ const Gnum                           deltmax)     /*+ Maximum imbalance +*/
 
     tempptr = remoptr;                            /* Get pointer to node */
     remoptr = remoptr->linkdat.prevptr;           /* Find next node      */
-    fiboHeapAdd (tablptr, tempptr);               /* Re-link node        */
+    fiboTreeAdd (tablptr, tempptr);               /* Re-link node        */
   }
 
   return (vertbest);
@@ -262,7 +260,6 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
   Gnum                            hashmax;
   Gnum                            hashnbr;
   void *                          hashtmp;        /* Temporary variable to avoid "restrict"   */
-  Gnum                            comploadsum;    /* Overall vertex load sum, including fixed */
   Gnum                            compload0dltmit; /* Theoretical smallest imbalance allowed  */
   Gnum                            compload0dltmat; /* Theoretical largest imbalance allowed   */
   Gnum                            compload0dltmin; /* Smallest imbalance allowed              */
@@ -274,7 +271,7 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
   Gnum                            commgainextnbst; /* External gain of best recorded position */
   Gnum                            commload;       /* Communication load of current position   */
   Gnum                            commloadbst;    /* Best communication load to date          */
-  Gnum                            domndist;       /* Distance between the two subdomains      */
+  Gnum                            domdist;        /* Distance between the two subdomains      */
   Gnum                            fronnbr;
   Gnum                            fronnum;
   BgraphBipartFmType              typeval;
@@ -286,10 +283,9 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
   const Gnum * restrict const edlotax = grafptr->s.edlotax;
   const Gnum * restrict const veextax = grafptr->veextax;
 
-  comploadsum = grafptr->s.velosum + grafptr->vfixload[0] + grafptr->vfixload[1];
   compload0dltmat = (paraptr->deltval <= 0.0L) ? 0
-                    : ((Gnum) ((double) comploadsum * paraptr->deltval /
-                               (double) MAX (grafptr->domnwght[0], grafptr->domnwght[1])) + 1);
+                    : ((Gnum) ((double) grafptr->s.velosum * paraptr->deltval /
+                               (double) MAX (grafptr->domwght[0], grafptr->domwght[1])) + 1);
   compload0dltmit = MAX ((grafptr->compload0min - grafptr->compload0avg), - compload0dltmat);
   compload0dltmat = MIN ((grafptr->compload0max - grafptr->compload0avg), compload0dltmat);
   compload0dltmin = MIN (grafptr->compload0dlt, compload0dltmit); /* Set current maximum distance */
@@ -337,7 +333,7 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
   }
 
   tablptr = &tabldat;
-  if (memAllocGroup ((void **) (void *)
+  if (memAllocGroup ((void **)
                      &hashtmp, (size_t) (hashsiz * sizeof (BgraphBipartFmVertex)),
                      &savetab, (size_t) (hashsiz * sizeof (BgraphBipartFmSave)), NULL) == NULL) {
     errorPrint ("bgraphBipartFm: out of memory (1)");
@@ -345,14 +341,14 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
     return (1);
   }
   hashtab = hashtmp;
-  memSet (hashtab, ~0, hashsiz * sizeof (BgraphBipartFmVertex)); /* Set all vertex numbers to ~0 */
+  memset (hashtab, ~0, hashsiz * sizeof (BgraphBipartFmVertex)); /* Set all vertex numbers to ~0 */
 
-  domndist = grafptr->domndist;
+  domdist = grafptr->domdist;
 
   if (typeval == BGRAPHBIPARTFMTYPEALL) {
     Gnum                vertnum;
 
-    for (vertnum = grafptr->s.baseval; vertnum < grafptr->s.vertnnd; vertnum ++) { /* Set initial gains */
+    for (vertnum = grafptr->s.baseval; vertnum < grafptr->s.vertnbr; vertnum ++) { /* Set initial gains */
       Gnum                veloval;
       Gnum                hashnum;
       Gnum                edgenum;
@@ -379,7 +375,7 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
         commcut  += partdlt;
         commgain += (1 - 2 * partdlt) * edloval;
       }
-      commgain *= domndist;                       /* Adjust internal gains with respect to external gains */
+      commgain *= domdist;                        /* Adjust internal gains with respect to external gains */
       partdlt   = 2 * partval - 1;
       veloval   = (velotax != NULL) ? velotax[vertnum] : 1;
 
@@ -425,7 +421,7 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
         commcut  += partdlt;
         commgain += (1 - 2 * partdlt) * edloval;
       }
-      commgain *= domndist;                       /* Adjust internal gains with respect to external gains */
+      commgain *= domdist;                        /* Adjust internal gains with respect to external gains */
       partdlt   = 2 * partval - 1;
       veloval   = (velotax != NULL) ? velotax[vertnum] : 1;
 
@@ -479,7 +475,7 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
         bgraphBipartFmSetFree (&hashtab[hashnum]);          /* Set it as free      */
       }
       if (bgraphBipartFmIsFree (&hashtab[hashnum]) && (partval == 2)) /* If vertex not locked and in separator */
-        bgraphBipartFmTablAdd (tablptr, &hashtab[hashnum]); /* Re-link it                                      */
+        bgraphBipartFmTablAdd (tablptr, &hashtab[hashnum]);           /* Re-link it                            */
     }
     compload0dlt = compload0dltbst;               /* Restore best separator parameters */
     commload     = commloadbst;
@@ -572,7 +568,7 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
             }
 
             partdlt = 2 * (partval ^ hashtab[hashnum].partval) - 1;
-            hashtab[hashnum].commgain += (domndist * 2) * edloval * partdlt;
+            hashtab[hashnum].commgain += (domdist * 2) * edloval * partdlt;
             hashtab[hashnum].commcut  -= partdlt;
 
             if (! bgraphBipartFmIsUsed(&hashtab[hashnum])) {        /* If vertex is of use      */
@@ -633,7 +629,7 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
             savetab[savenbr].hashnum  = hashnum;  /* Record initial state of new vertex                                       */
             savetab[savenbr].partval  = partold;
             savetab[savenbr].compgain = partdlt * veloval;
-            savetab[savenbr].commgain = commgainold * domndist - (partdlt * veexval);
+            savetab[savenbr].commgain = commgainold * domdist - (partdlt * veexval);
             savetab[savenbr].commcut  = 0;
             savenbr ++;
 
@@ -641,7 +637,7 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
             hashtab[hashnum].vertnum  = vertend;
             hashtab[hashnum].partval  = partval;  /* It was a neighbor of the moved vertex, in current global swap state */
             hashtab[hashnum].compgain = partdlt * veloval;
-            hashtab[hashnum].commgain = commgain * domndist - (partdlt * veexval);
+            hashtab[hashnum].commgain = commgain * domdist - (partdlt * veexval);
             hashtab[hashnum].commcut  = 1;
             hashtab[hashnum].mswpnum  = mswpnum;  /* Vertex has just been saved    */
             hashnbr ++;                           /* One more vertex in hash table */
@@ -980,6 +976,7 @@ BgraphBipartFmVertex ** const     lockptr)        /*+ Pointer to locked list    
 ** - !0  : in case of error.
 */
 
+#ifdef SCOTCH_DEBUG_BGRAPH2
 #ifdef SCOTCH_DEBUG_BGRAPH3
 static
 int
@@ -992,14 +989,14 @@ const Gnum                                  compload0dlt,
 const Gnum                                  commload,
 const Gnum                                  commgainextn)
 {
-  Gnum                  domndist;
+  Gnum                  domdist;
   Gnum                  hashnum;
   Gnum                  compload0tmp;
   Gnum                  commloaddlttmp;           /* Difference between old and current communication load */
   Gnum                  commloadextndlttmp;
   Gnum                  commgainextntmp;
 
-  domndist           = grafptr->domndist;
+  domdist            = grafptr->domdist;
   compload0tmp       = (swapval == 0) ? grafptr->compload0 : (grafptr->s.velosum - grafptr->compload0);
   commloaddlttmp     = 0;                         /* No difference yet */
   commloadextndlttmp = swapval * grafptr->commgainextn;
@@ -1071,7 +1068,7 @@ const Gnum                                  commgainextn)
       errorPrint ("bgraphBipartFmCheck: invalid vertex cut value");
       return     (1);
     }
-    if ((commgain * domndist + commgainextn) != hashtab[hashnum].commgain) {
+    if ((commgain * domdist + commgainextn) != hashtab[hashnum].commgain) {
       errorPrint ("bgraphBipartFmCheck: invalid vertex communication gain value");
       return     (1);
     }
@@ -1080,7 +1077,7 @@ const Gnum                                  commgainextn)
     errorPrint ("bgraphBipartFmCheck: invalid computation load");
     return     (1);
   }
-  if ((grafptr->commload + (commloaddlttmp / 2) * domndist) != (commload - commloadextndlttmp)) {
+  if ((grafptr->commload + (commloaddlttmp / 2) * domdist) != (commload - commloadextndlttmp)) {
     errorPrint ("bgraphBipartFmCheck: invalid communication load");
     return     (1);
   }
@@ -1092,3 +1089,4 @@ const Gnum                                  commgainextn)
   return (0);
 }
 #endif /* SCOTCH_DEBUG_BGRAPH3 */
+#endif /* SCOTCH_DEBUG_BGRAPH2 */

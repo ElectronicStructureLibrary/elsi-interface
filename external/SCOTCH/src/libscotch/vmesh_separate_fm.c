@@ -377,7 +377,7 @@ const VmeshSeparateFmParam * restrict const paraptr) /*+ Method parameters    +*
   ncmpload2      = meshptr->ncmpload[2];          /* Set current partition loads    */
   ncmploaddlt    = meshptr->ncmploaddlt;
 
-  memSet (helmtab, ~0, (byte *) &hnodtab[hashsiz] - (byte *) helmtab); /* Set all vertex numbers to ~0 */
+  memset (helmtab, ~0, (byte *) &hnodtab[hashsiz] - (byte *) helmtab); /* Set all vertex numbers to ~0 */
 
   helmnbr =
   hnodnbr = 0;

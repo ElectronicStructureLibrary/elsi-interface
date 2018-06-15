@@ -45,7 +45,7 @@
 /**                # Version 5.1  : from : 04 nov 2010     **/
 /**                                 to     17 nov 2010     **/
 /**                # Version 6.0  : from : 15 apr 2011     **/
-/**                                 to     23 aug 2014     **/
+/**                                 to     15 apr 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -66,8 +66,8 @@
 /*+ User mapping. +*/
 
 typedef struct LibMapping_ {
-  Gnum                      flagval;
   Graph *                   grafptr;              /*+ Graph data        +*/
   Arch *                    archptr;              /*+ Architecture data +*/
   Gnum *                    parttab;              /*+ Mapping array     +*/
+  Gnum                      flagval;
 } LibMapping;

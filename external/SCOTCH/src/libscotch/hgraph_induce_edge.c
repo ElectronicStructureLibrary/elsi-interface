@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010,2012,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -47,7 +47,7 @@
 /**                # Version 5.1  : from : 24 oct 2010     **/
 /**                                 to     24 oct 2010     **/
 /**                # Version 6.0  : from : 22 mar 2012     **/
-/**                                 to     07 nov 2014     **/
+/**                                 to     22 mar 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -70,21 +70,6 @@ Hgraph * restrict const       indgrafptr)         /* Pointer to induced halo gra
 #ifdef HGRAPHINDUCE2L                             /* If edge loads present */
   Gnum                indedlosum;
   Gnum                indenohsum;
-#endif /* HGRAPHINDUCE2L */
-
-  const Gnum * restrict const orgverttax = orggrafptr->s.verttax;
-  const Gnum * restrict const orgvendtax = orggrafptr->s.vendtax;
-  const Gnum * restrict const orgvelotax = orggrafptr->s.velotax;
-  const Gnum * restrict const orgvnumtax = orggrafptr->s.vnumtax;
-  const Gnum * restrict const orgedgetax = orggrafptr->s.edgetax;
-  Gnum * restrict const       indvnhdtax = indgrafptr->vnhdtax;
-  Gnum * restrict const       indverttax = indgrafptr->s.verttax;
-  Gnum * restrict const       indvelotax = indgrafptr->s.velotax;
-  Gnum * restrict const       indvnumtax = indgrafptr->s.vnumtax;
-  Gnum * restrict const       indedgetax = indgrafptr->s.edgetax;
-#ifdef HGRAPHINDUCE2L                             /* If edge loads present */
-  const Gnum * restrict const orgedlotax = orggrafptr->s.edlotax;
-  Gnum * restrict             indedlotax = indgrafptr->s.edlotax; /* Not const because location will change */
 
   indedlosum =
   indenohsum = 0;
@@ -98,36 +83,36 @@ Hgraph * restrict const       indgrafptr)         /* Pointer to induced halo gra
     Gnum                indedhdnum;               /* Index of after-last edge linking to non-halo vertices */
     Gnum                inddegrval;
 
-    orgvertnum = indvnumtax[indvertnum];
-    indverttax[indvertnum] = indedgenum;
+    orgvertnum = indgrafptr->s.vnumtax[indvertnum];
+    indgrafptr->s.verttax[indvertnum] = indedgenum;
     indenohnbr -= indedgenum;                     /* Subtract base of non-halo edges */
-    if (indvelotax != NULL) {                     /* If graph has vertex weights     */
+    if (indgrafptr->s.velotax != NULL) {          /* If graph has vertex weights     */
       indvelosum +=                               /* Accumulate vertex loads         */
-      indvelotax[indvertnum] = orgvelotax[orgvertnum];
+      indgrafptr->s.velotax[indvertnum] = orggrafptr->s.velotax[orgvertnum];
     }
 
-    inddegrval = orgvendtax[orgvertnum] - orgverttax[orgvertnum]; /* Get degree of non-halo node */
-    if (inddegrmax < inddegrval)                  /* Keep maximum degree                         */
+    inddegrval = orggrafptr->s.vendtax[orgvertnum] - orggrafptr->s.verttax[orgvertnum]; /* Get degree of non-halo node */
+    if (inddegrmax < inddegrval)                  /* Keep maximum degree */
       inddegrmax = inddegrval;
 
-    for (orgedgenum = orgverttax[orgvertnum], indedhdnum = indedgennd = indedgenum + inddegrval;
-         orgedgenum < orgvendtax[orgvertnum]; orgedgenum ++) {
+    for (orgedgenum = orggrafptr->s.verttax[orgvertnum], indedhdnum = indedgennd = indedgenum + inddegrval;
+         orgedgenum < orggrafptr->s.vendtax[orgvertnum]; orgedgenum ++) {
       Gnum                orgvertend;             /* Number of current end vertex in original halo graph   */
       Gnum                indvertend;             /* Number of current end vertex in induced halo subgraph */
 
-      orgvertend = orgedgetax[orgedgenum];
+      orgvertend = orggrafptr->s.edgetax[orgedgenum];
       indvertend = orgindxtax[orgvertend];
       if (indvertend == ~0) {                     /* If neighbor is yet undeclared halo vertex */
-        indvnumtax[indvertnnd] = orgvertend;      /* Add number of halo vertex to array        */
+        indgrafptr->s.vnumtax[indvertnnd] = orgvertend; /* Add number of halo vertex to array  */
         indvertend = orgindxtax[orgvertend] = indvertnnd ++; /* Get induced number of vertex   */
       }
       if (indvertend >= indgrafptr->vnohnnd) {    /* If neighbor is halo vertex            */
         indedhdnum --;                            /* Add neighbor at end of edge sub-array */
-        indedgetax[indedhdnum] = indvertend;
+        indgrafptr->s.edgetax[indedhdnum] = indvertend;
         HGRAPHINDUCE2EDLOINIT (indedhdnum);
       }
-      else {                                      /* If heighbor is non-halo vertex              */
-        indedgetax[indedgenum] = indvertend;      /* Add neighbor at beginning of edge sub-array */
+      else {                                      /* If heighbor is non-halo vertex                    */
+        indgrafptr->s.edgetax[indedgenum] = indvertend; /* Add neighbor at beginning of edge sub-array */
         HGRAPHINDUCE2EDLOINIT (indedgenum);
         HGRAPHINDUCE2ENOHINIT;
         indedgenum ++;
@@ -140,10 +125,10 @@ Hgraph * restrict const       indgrafptr)         /* Pointer to induced halo gra
     }
 #endif /* SCOTCH_DEBUG_HGRAPH2 */
     indenohnbr += indedhdnum;                     /* Add position to number of non-halo edges */
-    indvnhdtax[indvertnum] = indedhdnum;          /* Set end of non-halo sub-array            */
+    indgrafptr->vnhdtax[indvertnum] = indedhdnum; /* Set end of non-halo sub-array            */
     indedgenum = indedgennd;                      /* Point to next free space in edge array   */
   }
-  indgrafptr->vnlosum = (indvelotax != NULL) ? indvelosum : indgrafptr->vnohnbr;
+  indgrafptr->vnlosum = (indgrafptr->s.velotax != NULL) ? indvelosum : indgrafptr->vnohnbr;
   indgrafptr->enohnbr = indenohnbr;
 
 #ifdef SCOTCH_DEBUG_HGRAPH2
@@ -159,13 +144,12 @@ Hgraph * restrict const       indgrafptr)         /* Pointer to induced halo gra
     indedgenbs = 2 * (indedgenum - indgrafptr->s.baseval) - indenohnbr; /* Compute total number of edges */
 #endif /* SCOTCH_DEBUG_HGRAPH2 */
 
-    indedlotab = indedlotax + indgrafptr->s.baseval; /* Save old offset of move area */
-    memOffset (indedgetax + indgrafptr->s.baseval, /* Compute new offsets            */
-               &indedgetab, (size_t) (indedgenbs * sizeof (Gnum)),
-               &indedlotax, (size_t) (indedgenbs * sizeof (Gnum)), NULL);
-    memMov (indedlotax, indedlotab, (indedgenum - indgrafptr->s.baseval) * sizeof (Gnum)); /* Move already existing edge load array */
-    indgrafptr->s.edlotax =                       /* Record new position of edge load array */
-    indedlotax           -= indgrafptr->s.baseval;
+    indedlotab = indgrafptr->s.edlotax + indgrafptr->s.baseval; /* Save old offset of move area */
+    memOffset (indgrafptr->s.edgetax + indgrafptr->s.baseval, /* Compute new offsets            */
+               &indedgetab,            (size_t) (indedgenbs * sizeof (Gnum)),
+               &indgrafptr->s.edlotax, (size_t) (indedgenbs * sizeof (Gnum)), NULL);
+    memMov (indgrafptr->s.edlotax, indedlotab, (indedgenum - indgrafptr->s.baseval) * sizeof (Gnum)); /* Move already existing edge load array */
+    indgrafptr->s.edlotax -= indgrafptr->s.baseval;
   }
 #endif /* HGRAPHINDUCE2L */
 
@@ -173,29 +157,29 @@ Hgraph * restrict const       indgrafptr)         /* Pointer to induced halo gra
     Gnum                orgvertnum;               /* Number of current vertex in original halo graph */
     Gnum                orgedgenum;               /* Number of current edge in original halo graph   */
 
-    orgvertnum = indvnumtax[indvertnum];
-    indverttax[indvertnum] = indedgenum;
-    if (indvelotax != NULL) {                     /* If graph has vertex weights */
+    orgvertnum = indgrafptr->s.vnumtax[indvertnum];
+    indgrafptr->s.verttax[indvertnum] = indedgenum;
+    if (indgrafptr->s.velotax != NULL) {          /* If graph has vertex weights */
       indvelosum +=                               /* Accumulate vertex loads     */
-      indvelotax[indvertnum] = orgvelotax[orgvertnum];
+      indgrafptr->s.velotax[indvertnum] = orggrafptr->s.velotax[orgvertnum];
     }
 
-    for (orgedgenum = orgverttax[orgvertnum];
-         orgedgenum < orgvendtax[orgvertnum]; orgedgenum ++) {
+    for (orgedgenum = orggrafptr->s.verttax[orgvertnum];
+         orgedgenum < orggrafptr->s.vendtax[orgvertnum]; orgedgenum ++) {
       Gnum                orgvertend;             /* Number of current end vertex in original halo graph   */
       Gnum                indvertend;             /* Number of current end vertex in induced halo subgraph */
 
-      orgvertend = orgedgetax[orgedgenum];
+      orgvertend = orggrafptr->s.edgetax[orgedgenum];
       indvertend = orgindxtax[orgvertend];
       if ((indvertend != ~0) &&                   /* If end vertex in induced halo subgraph */
           (indvertend < indgrafptr->vnohnnd)) {   /* And in its non-halo part only          */
-        indedgetax[indedgenum] = indvertend;
+        indgrafptr->s.edgetax[indedgenum] = indvertend;
         HGRAPHINDUCE2EDLOINIT (indedgenum);
         indedgenum ++;
       }
     }
-    if (inddegrmax < (indedgenum - indverttax[indvertnum]))
-      inddegrmax = (indedgenum - indverttax[indvertnum]);
+    if (inddegrmax < (indedgenum - indgrafptr->s.verttax[indvertnum]))
+      inddegrmax = (indedgenum - indgrafptr->s.verttax[indvertnum]);
   }
 #ifdef SCOTCH_DEBUG_HGRAPH2
   if ((indedgenum - indgrafptr->s.baseval) != indedgenbs) {
@@ -203,11 +187,10 @@ Hgraph * restrict const       indgrafptr)         /* Pointer to induced halo gra
     return;
   }
 #endif /* SCOTCH_DEBUG_HGRAPH2 */
-  indverttax[indvertnnd] = indedgenum; /* Set end of compact vertex array */
-
+  indgrafptr->s.verttax[indvertnnd] = indedgenum; /* Set end of compact vertex array */
   indgrafptr->s.vertnbr = indvertnnd - indgrafptr->s.baseval;
   indgrafptr->s.vertnnd = indvertnnd;
-  indgrafptr->s.velosum = (indvelotax != NULL) ? indvelosum : indgrafptr->s.vertnbr;
+  indgrafptr->s.velosum = (indgrafptr->s.velotax != NULL) ? indvelosum : indgrafptr->s.vertnbr;
   indgrafptr->s.edgenbr = indedgenum - indgrafptr->s.baseval; /* Set actual number of edges */
   indgrafptr->s.edlosum = HGRAPHINDUCE2EDLOSUM;
   indgrafptr->s.degrmax = inddegrmax;

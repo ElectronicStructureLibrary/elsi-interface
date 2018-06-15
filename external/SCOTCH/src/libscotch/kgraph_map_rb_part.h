@@ -1,4 +1,4 @@
-/* Copyright 2008,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2008,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,9 +43,33 @@
 /**   DATES      : # Version 5.1  : from : 22 sep 2008     **/
 /**                                 to     14 apr 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     10 aug 2014     **/
+/**                                 to     25 oct 2011     **/
 /**                                                        **/
 /************************************************************/
+
+/*
+**  The type and structure definitions.
+*/
+
+/*+ This structure holds the data passed to each bipartitioning job. +*/
+
+typedef struct KgraphMapRbPartData_ {
+  const Graph *             topgrafptr;           /*+ Pointer to top-level graph                     +*/
+  const Graph *             fixgrafptr;           /*+ Pointer to top-level graph with fixed vertices +*/
+  Gnum *                    rvnutax;              /*+ Ancestor to current vertex number array        +*/
+  Gnum *                    topfrontab;           /*+ Pointer to top-level frontier array            +*/
+  Gnum                      topfronnbr;           /*+ Current number of frontier vertices            +*/
+  Mapping *                 mappptr;              /*+ Current mapping of graph vertices              +*/
+  struct {                                        /*+ Remapping structure                            +*/
+    Mapping *               mappptr;              /*+ Old mapping (for remapping only)               +*/  
+    Gnum                    cmloval;              /*+ Migration edge load                            +*/
+    const Gnum *            vmlotax;              /*+ Array of vertex multiplicity                   +*/
+  }                         r;
+  const Anum *              pfixtax;              /*+ Fixed partition array                          +*/
+  const KgraphMapRbParam *  paraptr;
+  double                    comploadmin;          /*+ Minimum vertex load per target load            +*/
+  double                    comploadmax;          /*+ Maximum vertex load per target load            +*/
+} KgraphMapRbPartData;
 
 /*
 **  The function prototypes.
@@ -55,6 +79,6 @@
 #define static
 #endif
 
-int                         kgraphMapRbPart     (const KgraphMapRbData * restrict const, const Graph * restrict const, const Anum, KgraphMapRbVflo * restrict);
+int                         kgraphMapRbPart     (Kgraph * const, const KgraphMapRbParam * const, const Graph * const, Gnum * const);
 
 #undef static

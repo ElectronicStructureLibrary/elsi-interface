@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2009-2012,2016,2017 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2009-2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -53,7 +53,7 @@
 /**                # Version 5.1  : from : 26 oct 2009     **/
 /**                                 to     15 apr 2011     **/
 /**                # Version 6.0  : from : 23 fev 2011     **/
-/**                                 to     02 jan 2017     **/
+/**                                 to     19 nov 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -170,10 +170,6 @@ static StratParamTab        bgraphbipartstparatab[] = { /* Method parameter list
                               { BGRAPHBIPARTSTMETHGG,  STRATPARAMINT,    "pass",
                                 (byte *) &bgraphbipartstdefaultgg.param,
                                 (byte *) &bgraphbipartstdefaultgg.param.passnbr,
-                                NULL },
-                              { BGRAPHBIPARTSTMETHGP,  STRATPARAMINT,    "pass",
-                                (byte *) &bgraphbipartstdefaultgp.param,
-                                (byte *) &bgraphbipartstdefaultgp.param.passnbr,
                                 NULL },
                               { BGRAPHBIPARTSTMETHML,  STRATPARAMSTRAT,  "asc",
                                 (byte *) &bgraphbipartstdefaultml.param,
@@ -328,7 +324,7 @@ const Strat * restrict const  strat)              /*+ Bipartitioning strategy   
         compload0 = grafptr->compload0avg + savetab[0].compload0dlt;
         b0 = ((compload0 < grafptr->compload0min) ||
               (compload0 > grafptr->compload0max)) ? 1 : o;
-        compload0 = grafptr->compload0avg + grafptr->compload0dlt;
+        compload0 = grafptr->compload0avg + savetab[1].compload0dlt;
         b1 = ((compload0 < grafptr->compload0min) ||
               (compload0 > grafptr->compload0max)) ? 1 : o2;
 

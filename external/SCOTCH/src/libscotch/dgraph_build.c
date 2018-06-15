@@ -1,4 +1,4 @@
-/* Copyright 2007,2010,2013,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2010 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -51,8 +51,6 @@
 /**                                 to   : 10 sep 2007     **/
 /**                # Version 5.1  : from : 30 jul 2010     **/
 /**                                 to   : 03 nov 2010     **/
-/**                # Version 6.0  : from : 23 dec 2013     **/
-/**                                 to   : 05 jun 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -96,18 +94,15 @@ Gnum * const                edgeloctax,           /* Local edge array           
 Gnum * const                edgegsttax,           /* Ghost edge array (if any); not const */
 Gnum * const                edloloctax)           /* Local edge load array (if any)       */
 {
-  Gnum                vertlocnum;
-  Gnum                vertlocnnd;
-  Gnum                velolocsum;
-  Gnum                degrlocmax;                 /* Local maximum degree */
+  Gnum                  vertlocnum;
+  Gnum                  vertlocnnd;
+  Gnum                  velolocsum;
+  Gnum                  degrlocmax;               /* Local maximum degree */
 
   for (vertlocnum = baseval, vertlocnnd = vertlocnbr + baseval, degrlocmax = 0;
-       vertlocnum < vertlocnnd; vertlocnum ++) {
-    Gnum                degrval;
-
-    degrval = vendloctax[vertlocnum] - vertloctax[vertlocnum];
-    if (degrlocmax < degrval)
-      degrlocmax = degrval;
+       vertlocnum < vertlocnnd; vertlocnum ++)  {
+    if (degrlocmax < (vendloctax[vertlocnum] - vertloctax[vertlocnum]))
+      degrlocmax = (vendloctax[vertlocnum] - vertloctax[vertlocnum]);
   }
 
   if (veloloctax == NULL)                         /* Get local vertex load sum */
@@ -185,18 +180,14 @@ const Gnum                  degrlocmax)
                        &grafptr->procngbtab, (size_t) (procglbnbr       * sizeof (int)),
                        &grafptr->procrcvtab, (size_t) (procglbnbr       * sizeof (int)),
                        &grafptr->procsndtab, (size_t) (procglbnbr       * sizeof (int)), NULL) == NULL) {
-      int *               dummtab;
+      int                 dummytab[procglbnbr * 2];
 
       errorPrint ("dgraphBuild2: out of memory");
-      if ((dummtab = memAlloc ((procglbnbr * 2) * sizeof (int))) != NULL) {
-        reduloctab[0] =
-        reduloctab[1] = -1;
-        if (MPI_Allgather (reduloctab, 2, MPI_INT, /* Use dummy receive array (if can be allocated too) */
-                           dummtab,    2, MPI_INT, grafptr->proccomm) != MPI_SUCCESS)
-          errorPrint ("dgraphBuild2: communication error (1)");
-
-        memFree (dummtab);
-      }
+      reduloctab[0] =
+      reduloctab[1] = -1;
+      if (MPI_Allgather (reduloctab, 2, MPI_INT,  /* Use dummy receive array (if can be allocated too) */
+                         dummytab,   2, MPI_INT, grafptr->proccomm) != MPI_SUCCESS)
+        errorPrint ("dgraphBuild2: communication error (1)");
       return (1);
     }
   }
@@ -412,7 +403,7 @@ const Gnum                  degrlocmax)
          procngbnbr < procglbnbr;
          procngbnbr ++, procngbsel = 1 - procngbsel) {
       procngbnum = (grafptr->proclocnum + procngbnbr) % procglbnbr; /* Get neighbor process */
-      vertngbmin = grafptr->procvrttab[procngbnum]; /* Get neighbor vertex number range     */
+      vertngbmin = grafptr->procdsptab[procngbnum]; /* Get neighbor vertex number range     */
 
       if (procngbnbr < (procglbnbr - 1)) {        /* If not last iteration */
         MPI_Irecv (vesongbtab[1 - procngbsel], 2 * grafptr->vertglbmax, GNUM_MPI, procrcvnum, TAGVLBLLOCTAB, grafptr->proccomm, &requloctab[0]);

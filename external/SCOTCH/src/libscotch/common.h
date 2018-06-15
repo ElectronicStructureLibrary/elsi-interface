@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -53,7 +53,7 @@
 /**                # Version 5.1  : from : 09 nov 2008     **/
 /**                                 to   : 23 nov 2010     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     19 mar 2016     **/
+/**                                 to     24 nov 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -71,7 +71,6 @@
 #endif /* __USE_XOPEN2K */
 
 #include            <ctype.h>
-#include            <fcntl.h>                     /* Fow Windows _pipe () call */
 #include            <math.h>
 #include            <memory.h>
 #include            <stdio.h>
@@ -96,21 +95,19 @@
 #include            <sys/resource.h>
 #endif /* ((defined COMMON_TIMING_OLD) || (defined HAVE_SYS_RESOURCE_H)) */
 #if ((defined COMMON_WINDOWS) || (defined HAVE_WINDOWS_H))
-#include            <io.h>                        /* For _pipe () */
-#include            <stddef.h>                    /* For intptr_t */
 #include            <windows.h>
 #endif /* ((defined COMMON_WINDOWS) || (defined HAVE_WINDOWS_H)) */
 #if ((! defined COMMON_WINDOWS) && (! defined HAVE_NOT_UNISTD_H))
 #include            <unistd.h>
 #endif /* ((! defined COMMON_WINDOWS) && (! defined HAVE_NOT_UNISTD_H)) */
 
-#ifdef COMMON_MPI
+#ifdef SCOTCH_PTSCOTCH
 #include            <mpi.h>
-#endif /* COMMON_MPI */
+#endif /* SCOTCH_PTSCOTCH */
 
-#ifdef COMMON_PTHREAD
+#if ((defined COMMON_PTHREAD) || (defined SCOTCH_PTHREAD))
 #include            <pthread.h>
-#endif /* COMMON_PTHREAD */
+#endif /* ((defined COMMON_PTHREAD) || (defined SCOTCH_PTHREAD)) */
 
 /*
 **  Working definitions.
@@ -151,7 +148,6 @@
 #define UINT                        UINT32
 #define COMM_INT                    MPI_INTEGER4
 #define INTSTRING                   "%d"
-#define UINTSTRING                  "%u"
 #else /* INTSIZE32 */
 #ifdef INTSIZE64
 #define INT                         int64_t
@@ -162,20 +158,17 @@
 #endif /* (((defined __STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)) || (defined HAVE_UINT_T)) */
 #define COMM_INT                    MPI_LONG_LONG
 #define INTSTRING                   "%lld"
-#define UINTSTRING                  "%llu"
 #else /* INTSIZE64 */
 #ifdef LONG                                       /* Better not use it */
 #define INT                         long          /* Long integer type */
 #define UINT                        unsigned long
 #define COMM_INT                    MPI_LONG
 #define INTSTRING                   "%ld"
-#define UINTSTRING                  "%lu"
 #else /* LONG */
 #define INT                         int           /* Default integer type */
 #define UINT                        unsigned int
 #define COMM_INT                    MPI_INT       /* Generic MPI integer type */
 #define INTSTRING                   "%d"
-#define UINTSTRING                  "%u"
 #endif /* LONG      */
 #endif /* INTSIZE64 */
 #endif /* INTSIZE32 */
@@ -240,14 +233,6 @@ typedef struct Clock_ {
 } Clock;
 
 /*
-**  Handling of Windows constructs.
-*/
-
-#if defined COMMON_WINDOWS
-#define pipe(fd)                    _pipe (fd, 32768, O_BINARY)
-#endif /* COMMON_WINDOWS */
-
-/*
 **  Handling of threads.
 */
 
@@ -303,25 +288,42 @@ typedef void (* ThreadScanFunc)   (void * const, void * const, void * const, con
 /** The thread group header block. **/
 
 typedef struct ThreadGroupHeader_ {
-#ifdef COMMON_PTHREAD
+#if ((defined COMMON_PTHREAD) || (defined SCOTCH_PTHREAD))
   int                       flagval;              /*+ Thread block flags       +*/
   size_t                    datasiz;              /*+ Size of data array cell  +*/
   int                       thrdnbr;              /*+ Number of threads        +*/
   ThreadLaunchStartFunc     stafptr;              /*+ Pointer to start routine +*/
   ThreadLaunchJoinFunc      joifptr;              /*+ Pointer to join routine  +*/
   ThreadBarrier             barrdat;              /*+ Barrier data structure   +*/
-#endif /* COMMON_PTHREAD */
+#endif /* ((defined COMMON_PTHREAD) || (defined SCOTCH_PTHREAD)) */
 } ThreadGroupHeader;
 
 /** The thread header block. **/
 
 typedef struct ThreadHeader_ {
   void *                    grouptr;              /*+ Pointer to thread group +*/
-#ifdef COMMON_PTHREAD
+#if ((defined COMMON_PTHREAD) || (defined SCOTCH_PTHREAD))
   pthread_t                 thidval;              /*+ Thread ID               +*/
   int                       thrdnum;              /*+ Thread instance number  +*/
-#endif /* COMMON_PTHREAD */
+#endif /* ((defined COMMON_PTHREAD) || (defined SCOTCH_PTHREAD)) */
 } ThreadHeader;
+
+/** The number of threads **/
+
+#ifdef SCOTCH_PTHREAD
+
+#ifndef SCOTCH_PTHREAD_NUMBER
+#define SCOTCH_PTHREAD_NUMBER       1
+#endif /* SCOTCH_PTHREAD_NUMBER */
+
+#else /* SCOTCH_PTHREAD */
+
+#ifdef SCOTCH_PTHREAD_NUMBER
+#undef SCOTCH_PTHREAD_NUMBER
+#endif /* SCOTCH_PTHREAD_NUMBER */
+#define SCOTCH_PTHREAD_NUMBER       1
+
+#endif /* SCOTCH_PTHREAD */
 
 /*
 **  Handling of files.
@@ -330,10 +332,9 @@ typedef struct ThreadHeader_ {
 /** The file structure. **/
 
 typedef struct File_ {
-  char *                    modeptr;              /*+ Opening mode  +*/
-  char *                    nameptr;              /*+ File name     +*/
-  FILE *                    fileptr;              /*+ File pointer  +*/
-  char *                    dataptr;              /*+ Array to free +*/
+  char *                    name;                 /*+ File name    +*/
+  FILE *                    pntr;                 /*+ File pointer +*/
+  char *                    mode;                 /*+ Opening mode +*/
 } File;
 
 /*
@@ -353,7 +354,6 @@ IDX                         memMax              ();
 
 void                        usagePrint          (FILE * const, const char (* []));
 
-void                        fileBlockInit       (File * const, const int);
 int                         fileBlockOpen       (File * const, const int);
 int                         fileBlockOpenDist   (File * const, const int, const int, const int, const int);
 void                        fileBlockClose      (File * const, const int);
@@ -372,12 +372,9 @@ int                         intSave             (FILE * const, const INT);
 void                        intAscn             (INT * const, const INT, const INT);
 void                        intPerm             (INT * const, const INT);
 void                        intRandInit         (void);
-void                        intRandProc         (int);
 void                        intRandReset        (void);
 void                        intRandSeed         (INT);
-#ifndef COMMON_RANDOM_SYSTEM
 INT                         intRandVal          (INT);
-#endif /* COMMON_RANDOM_SYSTEM */
 void                        intSort1asc1        (void * const, const INT);
 void                        intSort2asc1        (void * const, const INT);
 void                        intSort2asc2        (void * const, const INT);
@@ -408,18 +405,6 @@ void                        threadScan          (void * const, void * const, Thr
 #define clockStart(clk)             ((clk)->time[0]  = clockGet ())
 #define clockStop(clk)              ((clk)->time[1] += (clockGet () - (clk)->time[0]))
 #define clockVal(clk)               ((clk)->time[1])
-
-#define fileBlockFile(b,i)          ((b)[i].fileptr)
-#define fileBlockMode(b,i)          ((b)[i].modeptr)
-#define fileBlockName(b,i)          ((b)[i].nameptr)
-
-#ifdef COMMON_RANDOM_SYSTEM
-#ifdef COMMON_RANDOM_RAND
-#define intRandVal(ival)            ((INT) (((UINT) rand ()) % ((UINT) (ival))))
-#else /* COMMON_RANDOM_RAND */
-#define intRandVal(ival)            ((INT) (((UINT) random ()) % ((UINT) (ival))))
-#endif /* COMMON_RANDOM_RAND */
-#endif /* COMMON_RANDOM_SYSTEM */
 
 #define DATASIZE(n,p,i)             ((INT) (((n) + ((p) - 1 - (i))) / (p)))
 #define DATASCAN(n,p,i)             ((i) * ((INT) (n) / (INT) (p)) + (((i) > ((n) % (p))) ? ((n) % (p)) : (i)))

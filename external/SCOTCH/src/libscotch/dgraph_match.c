@@ -1,4 +1,4 @@
-/* Copyright 2008-2010,2012,2013 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2008-2010,2012 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,7 +43,7 @@
 /**    DATES     : # Version 5.1  : from : 01 dec 2008     **/
 /**                                 to   : 30 jul 2010     **/
 /**                # Version 6.0  : from : 03 oct 2012     **/
-/**                                 to   : 10 oct 2013     **/
+/**                                 to   : 03 oct 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -141,7 +141,6 @@ DgraphMatchData * restrict const  mateptr)
 #define DGRAPHMATCHSCANNAME         dgraphMatchSc /* Scan matching (no edge weights) */
 #define DGRAPHMATCHSCANINIT                      \
   probmax = (Gnum) (mateptr->probval * 32768.0);  /* Compute integer threshold of random value */
-#define DGRAPHMATCHSCANCOUNTDECL                 ;
 #define DGRAPHMATCHSCANCOUNTINIT                 \
       probval = intRandVal (32768);               /* Get proba for this vertex */
 #define DGRAPHMATCHSCANCOUNTSELECT               \
@@ -152,7 +151,6 @@ DgraphMatchData * restrict const  mateptr)
 #undef DGRAPHMATCHSCANFINDSELECT
 #undef DGRAPHMATCHSCANCOUNTSELECT
 #undef DGRAPHMATCHSCANCOUNTINIT
-#undef DGRAPHMATCHSCANCOUNTDECL
 #undef DGRAPHMATCHSCANINIT
 #undef DGRAPHMATCHSCANNAME
 
@@ -164,9 +162,8 @@ DgraphMatchData * restrict const  mateptr)
     return;                                                     \
   }                                                             \
   probmax = (Gnum) (mateptr->probval * 32768.0);  /* Compute integer threshold of random value */
-#define DGRAPHMATCHSCANCOUNTDECL                                \
-      Gnum                edlolocmax;
 #define DGRAPHMATCHSCANCOUNTINIT                                \
+      Gnum                edlolocmax;                           \
       edlolocmax = 0;                                           \
       probval = intRandVal (32768);               /* Get proba for this vertex */
 #define DGRAPHMATCHSCANCOUNTSELECT                              \
@@ -185,7 +182,6 @@ DgraphMatchData * restrict const  mateptr)
 #undef DGRAPHMATCHSCANFINDSELECT
 #undef DGRAPHMATCHSCANCOUNTSELECT
 #undef DGRAPHMATCHSCANCOUNTINIT
-#undef DGRAPHMATCHSCANCOUNTDECL
 #undef DGRAPHMATCHSCANINIT
 #undef DGRAPHMATCHSCANNAME
 
@@ -198,9 +194,8 @@ DgraphMatchData * restrict const  mateptr)
     return;                                                        \
   }                                                                \
   probmax = (1 * grafptr->veloglbsum) / (5 * grafptr->vertglbnbr);
-#define DGRAPHMATCHSCANCOUNTDECL                                   \
-      Gnum                edlolocmax;
 #define DGRAPHMATCHSCANCOUNTINIT                                   \
+      Gnum                edlolocmax;                              \
       edlolocmax = 0;                                              \
       probval = veloloctax[vertlocnum];           /* Process vertex if vertex weight smaller than threshold */
 #define DGRAPHMATCHSCANCOUNTSELECT                                 \
@@ -219,14 +214,12 @@ DgraphMatchData * restrict const  mateptr)
 #undef DGRAPHMATCHSCANFINDSELECT
 #undef DGRAPHMATCHSCANCOUNTSELECT
 #undef DGRAPHMATCHSCANCOUNTINIT
-#undef DGRAPHMATCHSCANCOUNTDECL
 #undef DGRAPHMATCHSCANINIT
 #undef DGRAPHMATCHSCANNAME
 
 #define DGRAPHMATCHSCANNAME         dgraphMatchLc /* Local scan matching */
 #define DGRAPHMATCHSCANINIT             \
   probmax = 0;                                    /* Vertices will always be active */
-#define DGRAPHMATCHSCANCOUNTDECL        ;
 #define DGRAPHMATCHSCANCOUNTINIT        \
       probval = 0;                                /* Vertices will always be active */
 #define DGRAPHMATCHSCANCOUNTSELECT      \
@@ -241,7 +234,6 @@ DgraphMatchData * restrict const  mateptr)
 #undef DGRAPHMATCHSCANFINDSELECT
 #undef DGRAPHMATCHSCANCOUNTSELECT
 #undef DGRAPHMATCHSCANCOUNTINIT
-#undef DGRAPHMATCHSCANCOUNTDECL
 #undef DGRAPHMATCHSCANINIT
 #undef DGRAPHMATCHSCANNAME
 
@@ -253,9 +245,8 @@ DgraphMatchData * restrict const  mateptr)
     return;                                                                    \
   }                                                                            \
   probmax = 0;                                    /* Vertices will always be active */
-#define DGRAPHMATCHSCANCOUNTDECL                                               \
-      Gnum                edlolocmax;
 #define DGRAPHMATCHSCANCOUNTINIT                                               \
+      Gnum                edlolocmax;                                          \
       edlolocmax = 0;                                                          \
       probval = 0;                                /* Vertices will always be active */
 #define DGRAPHMATCHSCANCOUNTSELECT                                             \
@@ -279,6 +270,5 @@ DgraphMatchData * restrict const  mateptr)
 #undef DGRAPHMATCHSCANFINDSELECT
 #undef DGRAPHMATCHSCANCOUNTSELECT
 #undef DGRAPHMATCHSCANCOUNTINIT
-#undef DGRAPHMATCHSCANCOUNTDECL
 #undef DGRAPHMATCHSCANINIT
 #undef DGRAPHMATCHSCANNAME

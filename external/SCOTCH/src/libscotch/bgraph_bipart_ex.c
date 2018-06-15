@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -55,8 +55,6 @@
 /**                                 to     11 dec 2003     **/
 /**                # Version 5.1  : from : 30 nov 2007     **/
 /**                                 to     30 nov 2007     **/
-/**                # Version 6.0  : from : 14 aug 2016     **/
-/**                                 to     14 aug 2016     **/
 /**                                                        **/
 /************************************************************/
 
@@ -104,7 +102,7 @@ Bgraph * restrict const     grafptr)
     return (1);
 
   if ((grafptr->s.vertnbr > 1) &&                 /* If graph has several vertices but is completely imbalanced */
-      ((grafptr->compsize0 == 0) || (grafptr->compsize0 == grafptr->s.vertnbr))) {
+      ((grafptr->compload0 == 0) || (grafptr->compload0 == grafptr->s.velosum))) {
     BgraphBipartGgParam paraggdat;                /* Parameter area for the Greedy Graph Growing algorithm */
 
     paraggdat.passnbr = 4;

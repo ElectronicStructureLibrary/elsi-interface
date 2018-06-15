@@ -1,4 +1,4 @@
-/* Copyright 2010,2011,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -41,7 +41,7 @@
 /**   DATES      : # Version 5.1  : from : 01 may 2010     **/
 /**                                 to     12 may 2010     **/
 /**                # Version 6.0  : from : 22 oct 2011     **/
-/**                                 to     27 aug 2016     **/
+/**                                 to     22 oct 2011     **/
 /**                                                        **/
 /**   NOTES      : # Since this module is to be used as    **/
 /**                  the gain keeping data structure for   **/
@@ -56,16 +56,6 @@
 /**                  implementations do.                   **/
 /**                                                        **/
 /************************************************************/
-
-/*
-**  The defines.
-*/
-
-/*+ Degree range. +*/
-
-#ifndef FIBO_DEGRMAX
-#define FIBO_DEGRMAX                (sizeof (INT) << 3) /* Assume maximum degree derives from an integer range */
-#endif /* FIBO_DEGRMAX */
 
 /*
 **  The type and structure definitions.
@@ -98,18 +88,18 @@ typedef struct FiboNode_ {
    This is important as many insertions have to be
    performed.                                        */
 
-typedef struct FiboHeap_ {
+typedef struct FiboTree_ {
   FiboNode                  rootdat;              /*+ Dummy node for fast root insertion                      +*/
   FiboNode ** restrict      degrtab;              /*+ Consolidation array of size "bitsizeof (INT)"           +*/
   int                    (* cmpfptr) (const FiboNode * const, const FiboNode * const); /*+ Comparison routine +*/
-} FiboHeap;
+} FiboTree;
 
 /*
 **  The marco definitions.
 */
 
-#define fiboHeapLinkAfter(o,n)      do {                              \
-                                      FiboNode *          nextptr;    \
+#define fiboTreeLinkAfter(o,n)      do {                              \
+                                      FiboNode *        nextptr;      \
                                       nextptr = (o)->linkdat.nextptr; \
                                       (n)->linkdat.nextptr = nextptr; \
                                       (n)->linkdat.prevptr = (o);     \
@@ -117,81 +107,48 @@ typedef struct FiboHeap_ {
                                       (o)->linkdat.nextptr = (n);     \
                                     } while (0)
 
-#define fiboHeapUnlink(n)           do {                                                            \
+#define fiboTreeUnlink(n)           do {                                                            \
                                       (n)->linkdat.prevptr->linkdat.nextptr = (n)->linkdat.nextptr; \
                                       (n)->linkdat.nextptr->linkdat.prevptr = (n)->linkdat.prevptr; \
                                     } while (0)
 
-#define fiboHeapAddMacro(t,n)       do {                                        \
+#define fiboTreeAddMacro(t,n)       do {                                        \
                                       (n)->pareptr = NULL;                      \
                                       (n)->chldptr = NULL;                      \
                                       (n)->deflval = 0;                         \
-                                      fiboHeapLinkAfter (&((t)->rootdat), (n)); \
+                                      fiboTreeLinkAfter (&((t)->rootdat), (n)); \
                                     } while (0)
 
-#define fiboHeapMinMacro(t)         (fiboHeapConsolidate (t))
+#define fiboTreeMinMacro(t)         (fiboTreeConsolidate (t))
 
-#define fiboHeapMoveToRoot(t,n,p)   do {                                              \
-                                      FiboNode *          rghtptr;                    \
-                                      int                 deflval;                    \
-                                      rghtptr = (n)->linkdat.nextptr;                 \
-                                      fiboHeapUnlink (n);                             \
-                                      (n)->pareptr  = NULL;                           \
-                                      (n)->deflval &= ~1;                             \
-                                      deflval = (p)->deflval - 2;                     \
-                                      (p)->deflval = deflval;                         \
-                                      (p)->chldptr = (deflval <= 1) ? NULL : rghtptr; \
-                                      fiboHeapLinkAfter (&((t)->rootdat), (n));       \
-                                    } while (0)
-
-#define fiboHeapDecreaseMacro(t,n)  do {                                                  \
-                                      FiboNode *          pareptr;                        \
-                                      pareptr = (n)->pareptr;                             \
-                                      if ((pareptr != NULL) &&                            \
-                                          (treeptr->cmpfptr (nodeptr, pareptr) < 0)) {    \
-                                        FiboNode *          gdpaptr;                      \
-                                        fiboHeapMoveToRoot (treeptr, nodeptr, pareptr);   \
-                                        gdpaptr = pareptr->pareptr;                       \
-                                        while (gdpaptr != NULL) {                         \
-                                          if ((pareptr->deflval & 1) == 0) {              \
-                                            pareptr->deflval |= 1;                        \
-                                            break;                                        \
-                                          }                                               \
-                                          fiboHeapMoveToRoot (treeptr, pareptr, gdpaptr); \
-                                          pareptr = gdpaptr;                              \
-                                          gdpaptr = gdpaptr->pareptr;                     \
-                                        }                                                 \
-                                      }                                                   \
-                                    } while (0)
-
-#define fiboHeapCutChildren(t,n)    do {                                                \
-                                      FiboNode *          chldptr;                      \
+#define fiboTreeCutChildren(t,n)    do {                                                \
+                                      FiboNode *        chldptr;                        \
                                       chldptr = (n)->chldptr;                           \
                                       if (chldptr != NULL) {                            \
-                                        FiboNode *          cendptr;                    \
+                                        FiboNode *        cendptr;                      \
                                         cendptr = chldptr;                              \
                                         do {                                            \
-                                          FiboNode *          nextptr;                  \
+                                          FiboNode *        nextptr;                    \
                                           nextptr = chldptr->linkdat.nextptr;           \
                                           chldptr->pareptr = NULL;                      \
-                                          fiboHeapLinkAfter (&((t)->rootdat), chldptr); \
+                                          fiboTreeLinkAfter (&((t)->rootdat), chldptr); \
                                           chldptr = nextptr;                            \
                                         } while (chldptr != cendptr);                   \
                                       }                                                 \
                                     } while (0)
 
-#define fiboHeapDelMacro(t,n)       do {                                                    \
-                                      FiboNode *          pareptr;                          \
-                                      FiboNode *          rghtptr;                          \
+#define fiboTreeDelMacro(t,n)       do {                                                    \
+                                      FiboNode *        pareptr;                            \
+                                      FiboNode *        rghtptr;                            \
                                       pareptr = (n)->pareptr;                               \
-                                      fiboHeapUnlink (n);                                   \
-                                      fiboHeapCutChildren ((t), (n));                       \
+                                      fiboTreeUnlink (n);                                   \
+                                      fiboTreeCutChildren ((t), (n));                       \
                                       if (pareptr == NULL)                                  \
                                         break;                                              \
                                       rghtptr = (n)->linkdat.nextptr;                       \
                                       while (1) {                                           \
-                                        FiboNode *          gdpaptr;                        \
-                                        int                 deflval;                        \
+                                        FiboNode *        gdpaptr;                          \
+                                        int               deflval;                          \
                                         deflval = pareptr->deflval - 2;                     \
                                         pareptr->deflval = deflval | 1;                     \
                                         gdpaptr = pareptr->pareptr;                         \
@@ -199,9 +156,9 @@ typedef struct FiboHeap_ {
                                         if (((deflval & 1) == 0) || (gdpaptr == NULL))      \
                                           break;                                            \
                                         rghtptr = pareptr->linkdat.nextptr;                 \
-                                        fiboHeapUnlink (pareptr);                           \
+                                        fiboTreeUnlink (pareptr);                           \
                                         pareptr->pareptr = NULL;                            \
-                                        fiboHeapLinkAfter (&((t)->rootdat), pareptr);       \
+                                        fiboTreeLinkAfter (&((t)->rootdat), pareptr);       \
                                         pareptr = gdpaptr;                                  \
                                       }                                                     \
                                     } while (0)
@@ -210,40 +167,31 @@ typedef struct FiboHeap_ {
 **  The function prototypes.
 */
 
-#define fiboHeapAddIsMacro
-#define fiboHeapMinIsMacro
+#define fiboTreeAddIsMacro
+#define fiboTreeAdd              fiboTreeAddMacro
+/* #define fiboTreeDel              fiboTreeDelMacro */
+/* #define fiboTreeMin              fiboTreeMinMacro */
 
 #ifndef FIBO
 #define static
 #endif
 
-int                         fiboHeapInit        (FiboHeap * const, int (*) (const FiboNode * const, const FiboNode * const));
-void                        fiboHeapExit        (FiboHeap * const);
-void                        fiboHeapFree        (FiboHeap * const);
-FiboNode *                  fiboHeapConsolidate (FiboHeap * const);
-#ifndef fiboHeapAddIsMacro
-void                        fiboHeapAdd         (FiboHeap * const, FiboNode * const);
-#else /* fiboHeapAddIsMacro */
-#define fiboHeapAdd              fiboHeapAddMacro
-#endif /* fiboHeapAddIsMacro */
-#ifndef fiboHeapDecreaseIsMacro
-void                        fiboHeapDecrease    (FiboHeap * const, FiboNode * const);
-#else /* fiboHeapDecreaseIsMacro */
-#define fiboHeapDecrease         fiboHeapDecreaseMacro
-#endif /* fiboHeapDecreaseIsMacro */
-#ifndef fiboHeapDelIsMacro
-void                        fiboHeapDel         (FiboHeap * const, FiboNode * const);
-#else /* fiboHeapDelIsMacro */
-#define fiboHeapDel              fiboHeapDelMacro
-#endif /* fiboHeapDelIsMacro */
-#ifndef fiboHeapMinIsMacro
-FiboNode *                  fiboHeapMin         (FiboHeap * const);
-#else /* fiboHeapMinIsMacro */
-#define fiboHeapMin              fiboHeapMinMacro
-#endif /* fiboHeapMinIsMacro */
+int                         fiboTreeInit        (FiboTree * const, int (*) (const FiboNode * const, const FiboNode * const));
+void                        fiboTreeExit        (FiboTree * const);
+void                        fiboTreeFree        (FiboTree * const);
+FiboNode *                  fiboTreeConsolidate (FiboTree * const);
+#ifndef fiboTreeAddIsMacro
+void                        fiboTreeAdd         (FiboTree * const, FiboNode * const);
+#endif /* fiboTreeAddIsMacro */
+#ifndef fiboTreeDelIsMacro
+void                        fiboTreeDel         (FiboTree * const, FiboNode * const);
+#endif /* fiboTreeDelIsMacro */
+#ifndef fiboTreeMinIsMacro
+FiboNode *                  fiboTreeMin         (FiboTree * const);
+#endif /* fiboTreeMinIsMacro */
 #ifdef SCOTCH_DEBUG_FIBO3
-int                         fiboHeapCheck       (const FiboHeap * const);
-static int                  fiboHeapCheck2      (const FiboNode * const);
+int                         fiboTreeCheck       (const FiboTree * const);
+static int                  fiboTreeCheck2      (const FiboNode * const);
 #endif /* SCOTCH_DEBUG_FIBO3 */
 
 #undef static

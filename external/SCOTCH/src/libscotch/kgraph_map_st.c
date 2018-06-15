@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2009-2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2009-2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -51,7 +51,7 @@
 /**                # Version 5.1  : from : 04 oct 2009     **/
 /**                                 to     29 mar 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     28 sep 2014     **/
+/**                                 to     20 feb 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -94,8 +94,9 @@ static union {
 } kgraphmapstdefaultbd = { { 3, &stratdummy, &stratdummy } };
 
 static union {
+  KgraphMapCpParam          param;
   StratNodeMethodData       padding;
-} kgraphmapstdefaultcp;
+} kgraphmapstdefaultcp = { { KGRAPHMAPCPTYPEREPART } };
 
 static union {
   KgraphMapDfParam          param;
@@ -145,6 +146,10 @@ static StratParamTab        kgraphmapstparatab[] = { /* Method parameter list */
                                 (byte *) &kgraphmapstdefaultbd.param,
                                 (byte *) &kgraphmapstdefaultbd.param.stratorg,
                                 (void *) &kgraphmapststratab },
+                              { KGRAPHMAPSTMETHCP,  STRATPARAMCASE,   "type",
+                                (byte *) &kgraphmapstdefaultcp.param,
+                                (byte *) &kgraphmapstdefaultcp.param.typeval,
+                                (void *) "pr" },
                               { KGRAPHMAPSTMETHDF,  STRATPARAMINT,    "pass",
                                 (byte *) &kgraphmapstdefaultdf.param,
                                 (byte *) &kgraphmapstdefaultdf.param.passnbr,
@@ -189,7 +194,7 @@ static StratParamTab        kgraphmapstparatab[] = { /* Method parameter list */
                                 (byte *) &kgraphmapstdefaultml.param,
                                 (byte *) &kgraphmapstdefaultml.param.coarval,
                                 NULL },
-                              { KGRAPHMAPSTMETHML,  STRATPARAMCASE,   "type",
+                              { KGRAPHMAPSTMETHML,  STRATPARAMDOUBLE, "type",
                                 (byte *) &kgraphmapstdefaultml.param,
                                 (byte *) &kgraphmapstdefaultml.param.typeval,
                                 (void *) "hscd" },

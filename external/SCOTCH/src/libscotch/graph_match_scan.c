@@ -1,4 +1,4 @@
-/* Copyright 2012,2014,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -41,7 +41,7 @@
 /**                graph matching functions.               **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 01 oct 2012     **/
-/**                                 to     14 aug 2015     **/
+/**                                 to     01 nov 2012     **/
 /**                                                        **/
 /**   NOTES      : # This code partly derives from the     **/
 /**                  code of graph_match.c partly updated  **/
@@ -74,8 +74,8 @@ GraphCoarsenThread * restrict thrdptr)            /* Thread-dependent data */
   Gnum                              finevertnum;  /* Current vertex index        */
   Gnum                              finevertnnd;  /* Current end of vertex array */
 #ifdef GRAPHMATCHSCANVELOTAB
-  Gnum                    finevelomin = (1 * finegrafptr->velosum) / (4 * finegrafptr->vertnbr); /* Minimum load of neighbor */
-  Gnum                    coarvelomax = (4 * finegrafptr->velosum) / (1 * (coarptr->coarvertmax - coarptr->finevfixnbr)) + 1;
+  Gnum                    finevelomin = (1 * finegrafptr->velosum) / (5 * finegrafptr->vertnbr); /* Minimum load of neighbor */
+  Gnum                    coarvelomax = (3 * finegrafptr->velosum) / (2 * ((coarptr->coarvertmax > coarptr->finevfixnbr) ? (coarptr->coarvertmax - coarptr->finevfixnbr) : 1)) + 1;
 #endif /* GRAPHMATCHSCANVELOTAB */
   Gnum                    coarvertnbr = thrdptr->coarvertnbr; /* Current number of multinode vertices */
 #if ((defined GRAPHMATCHSCANP1INPERT) || defined (GRAPHMATCHSCANP2INPERT))
@@ -84,7 +84,7 @@ GraphCoarsenThread * restrict thrdptr)            /* Thread-dependent data */
   Gnum                    pertnnd;
   Gnum                    pertnbr;
   Gunum                   randval = thrdptr->randval; /* Unsigned to avoid negative random numbers */
-#endif /* ((defined GRAPHMATCHSCANP1INPERT) || defined (GRAPHMATCHSCANP2INPERT)) */
+#endif /* ((defined GRAPHMATCHSCANP1INPERT) || defined (GRAPHMATCHSCANP2OUTQUEUE)) */
 #if ((defined GRAPHMATCHSCANP1INQUEUE) || defined (GRAPHMATCHSCANP2INQUEUE) || defined (GRAPHMATCHSCANP2OUTQUEUE))
   Gnum * const            queutab = coarptr->finequeutab;
   volatile int * const    locktax = coarptr->finelocktax;
@@ -96,7 +96,6 @@ GraphCoarsenThread * restrict thrdptr)            /* Thread-dependent data */
 #if ((defined GRAPHMATCHSCANP1OUTQUEUE) || defined (GRAPHMATCHSCANP2OUTQUEUE))
   Gnum                    queunew;
 #endif /* ((defined GRAPHMATCHSCANP1OUTQUEUE) || defined (GRAPHMATCHSCANP2OUTQUEUE)) */
-  const int               flagval = coarptr->flagval;
 
   const Gnum * restrict const     fineverttax = finegrafptr->verttax;
   const Gnum * restrict const     finevendtax = finegrafptr->vendtax;
@@ -113,8 +112,8 @@ GraphCoarsenThread * restrict thrdptr)            /* Thread-dependent data */
   const Gnum * restrict const     finepfixtax = coarptr->finepfixtax;
 #endif /* GRAPHMATCHSCANPFIXTAB */
 
-#ifdef GRAPHMATCHSCANP1INPERT                     /* First pass is only for start or sequential routines */
-#ifdef GRAPHMATCHSCANVELOTAB
+#ifdef GRAPHMATCHSCANP1INPERT
+#if ((defined GRAPHMATCHSCANPFIXTAB) || defined (GRAPHMATCHSCANVELOTAB))
 #ifdef GRAPHMATCHSCANP1OUTQUEUE
   queunew = thrdptr->queubas;
 #endif /* GRAPHMATCHSCANP1OUTQUEUE */
@@ -139,47 +138,81 @@ GraphCoarsenThread * restrict thrdptr)            /* Thread-dependent data */
       finevertnum = pertbas + pertval;            /* Compute corresponding vertex number  */
 #endif /* GRAPHMATCHSCANP1INPERT */
   {
-    Gnum                fineedgenum;
     Gnum                finevertbst;
-#ifdef GRAPHMATCHSCANEDLOTAB
-    Gnum                fineedlobst = -1;         /* Edge load of current best neighbor */
-#endif /* GRAPHMATCHSCANEDLOTAB */
 
     if (finematetax[finevertnum] >= 0)            /* If vertex already mated, skip it without remembering it */
       goto loop1;
 
     finevertbst = finevertnum;                    /* Assume we match with ourselves */
 
-    if ((finevelotax[finevertnum] >= finevelomin) || /* If vertex is not too light, skip it and record it  */
-        (fineverttax[finevertnum] == finevendtax[finevertnum])) /* Same for isolated vertex: process later */
+#ifdef GRAPHMATCHSCANPFIXTAB
+    if (finepfixtax[finevertnum] >= 0) {          /* If vertex is fixed */
+      Gnum                fineedgenum;
+#ifdef GRAPHMATCHSCANEDLOTAB
+      Gnum                fineedlobst = -1;       /* Edge load of current best neighbor */
+#endif /* GRAPHMATCHSCANEDLOTAB */
+
+      for (fineedgenum = fineverttax[finevertnum];
+           fineedgenum < finevendtax[finevertnum]; fineedgenum ++) {
+        Gnum                finevertend;
+
+        finevertend = fineedgetax[fineedgenum];
+        if ((finematetax[finevertend] < 0) &&
+            (finepfixtax[finevertend] == finepfixtax[finevertnum]) && /* We can only mate if potential mate is also fixed    */
+            ((fineparotax == NULL) || (fineparotax[finevertend] == fineparotax[finevertend])) /* And was in the same part */
+#ifdef GRAPHMATCHSCANEDLOTAB
+            && (fineedlotax[fineedgenum] > fineedlobst) /* And is better candidate */
+#endif /* GRAPHMATCHSCANEDLOTAB */
+           ) {
+          finevertbst = finevertend;              /* Stop searching for more */
+#ifdef GRAPHMATCHSCANEDLOTAB
+          fineedlobst = fineedlotax[fineedgenum];
+#else /* GRAPHMATCHSCANEDLOTAB */
+          break;
+#endif /* GRAPHMATCHSCANEDLOTAB */
+        }
+      }
+    }
+    else
+#endif /* GRAPHMATCHSCANPFIXTAB */
+    {
+#ifdef GRAPHMATCHSCANVELOTAB
+      Gnum                fineedgenum;
+#ifdef GRAPHMATCHSCANEDLOTAB
+      Gnum                fineedlobst = -1;       /* Edge load of current best neighbor */
+#endif /* GRAPHMATCHSCANEDLOTAB */
+
+      if ((finevelotax[finevertnum] >= finevelomin) || /* If vertex is not too light, skip it and record it  */
+          (fineverttax[finevertnum] == finevendtax[finevertnum])) /* Same for isolated vertex: process later */
 #ifdef GRAPHMATCHSCANP1OUTQUEUE
-      goto record1;
+        goto record1;
 #else /* GRAPHMATCHSCANP1OUTQUEUE */
-      goto loop1;
+        goto loop1;
 #endif /* GRAPHMATCHSCANP1OUTQUEUE */
 
-    for (fineedgenum = fineverttax[finevertnum];
-         fineedgenum < finevendtax[finevertnum]; fineedgenum ++) {
-      Gnum                finevertend;
+      for (fineedgenum = fineverttax[finevertnum];
+           fineedgenum < finevendtax[finevertnum]; fineedgenum ++) {
+        Gnum                finevertend;
 
-      finevertend = fineedgetax[fineedgenum];
+        finevertend = fineedgetax[fineedgenum];
 
-      if ((finematetax[finevertend] < 0)          /* If unmatched vertex */
+        if ((finematetax[finevertend] < 0)        /* If unmatched vertex */
 #ifdef GRAPHMATCHSCANPFIXTAB
-          && ((finepfixtax == NULL) || (finepfixtax[finevertend] == finepfixtax[finevertnum])) /* We can only mate if potential mate has same value */
-          && ((fineparotax == NULL) || (fineparotax[finevertend] == fineparotax[finevertnum])) /* And is in the same old part                       */
+            && ((fineparotax == NULL) || (fineparotax[finevertend] == fineparotax[finevertnum])) /* And is in the same part */
 #endif /* GRAPHMATCHSCANPFIXTAB */
 #ifdef GRAPHMATCHSCANEDLOTAB
-          && (fineedlotax[fineedgenum] > fineedlobst) /* And is better candidate */
+            && (fineedlotax[fineedgenum] > fineedlobst) /* And is better candidate */
 #endif /* GRAPHMATCHSCANEDLOTAB */
-      ) {
-        finevertbst = finevertend;
+           ) {
+          finevertbst = finevertend;
 #ifdef GRAPHMATCHSCANEDLOTAB
-        fineedlobst = fineedlotax[fineedgenum];
+          fineedlobst = fineedlotax[fineedgenum];
 #else /* GRAPHMATCHSCANEDLOTAB */
-        break;
+          break;
 #endif /* GRAPHMATCHSCANEDLOTAB */
+        }
       }
+#endif /* GRAPHMATCHSCANVELOTAB */
     }
 
 #ifdef GRAPHMATCHSCANP2OUTQUEUE
@@ -216,8 +249,8 @@ loop1: ;
 #ifdef GRAPHMATCHSCANP1OUTQUEUE
   thrdptr->queunnd = queunew;                     /* Record queue index for next pass */
 #endif /* GRAPHMATCHSCANP1OUTQUEUE */
-#endif /* GRAPHMATCHSCANVELOTAB    */
-#endif /* GRAPHMATCHSCANP1INPERT   */
+#endif /* ((defined GRAPHMATCHSCANPFIXTAB) || defined (GRAPHMATCHSCANVELOTAB)) */
+#endif /* GRAPHMATCHSCANP1INPERT */
 
 #ifdef GRAPHMATCHSCANP2OUTQUEUE
   queunew = thrdptr->finequeubas;
@@ -249,31 +282,36 @@ loop1: ;
     if (finematetax[finevertnum] >= 0)            /* If vertex already mated, skip it without remembering it */
       goto loop2;
 
-    if (((flagval & GRAPHCOARSENNOMERGE) == 0) && /* If merging isolated vertices is allowed */
-        (fineverttax[finevertnum] == finevendtax[finevertnum])) { /* And if isolated vertex  */
-#ifdef GRAPHMATCHSCANP2INPERT
-      Gnum                perttmp = pertnnd;
-      do
-        finevertbst = -- perttmp;
-#endif /* GRAPHMATCHSCANP2INPERT */
-#ifdef GRAPHMATCHSCANP2INQUEUE
-      Gnum                queutmp = queunnd;
-      do
-        finevertbst = queutab[-- queutmp];
-#endif /* GRAPHMATCHSCANP2INQUEUE */
-      while ((finematetax[finevertbst] >= 0)      /* No test for overflow; we will always mate ourselves as we are isolated */
+    if (fineverttax[finevertnum] == finevendtax[finevertnum]) { /* If isolated vertex */
 #ifdef GRAPHMATCHSCANPFIXTAB
-             || ((finepfixtax != NULL) && (finepfixtax[finevertbst] != fineparotax[finevertnum]))
-             || ((fineparotax != NULL) && (fineparotax[finevertbst] != fineparotax[finevertnum])));
-#else /* GRAPHMATCHSCANPFIXTAB */
-      );
+      if (fineparotax != NULL) {                  /* If old part array to manage     */
 #ifdef GRAPHMATCHSCANP2INPERT
-      pertnnd = perttmp;                          /* If no extra conditions on mating, no longer consider traversed array */
+        Gnum                perttmp = pertnnd;
+        do
+          finevertbst = -- perttmp;
+        while ((fineparotax[finevertbst] != fineparotax[finevertnum]) || (finematetax[finevertbst] >= 0)); /* No test for overflow; we will always mate ourselves as we are isolated */
 #endif /* GRAPHMATCHSCANP2INPERT */
 #ifdef GRAPHMATCHSCANP2INQUEUE
-      queunnd = queutmp;
+        Gnum                queutmp = queunnd;
+        do
+          finevertbst = queutab[-- queutmp];
+        while ((fineparotax[finevertbst] != fineparotax[finevertnum]) || (finematetax[finevertbst] >= 0)); /* No test for overflow; we will always mate ourselves as we are isolated */
 #endif /* GRAPHMATCHSCANP2INQUEUE */
-#endif /* GRAPHMATCHSCANPFIXTAB   */
+      }
+      else                                        /* No fixed vertices */
+#endif /* GRAPHMATCHSCANPFIXTAB */
+      {
+#ifdef GRAPHMATCHSCANP2INPERT
+        do                                        /* Search for a possible candidate */
+          finevertbst = -- pertnnd;
+        while (finematetax[finevertbst] >= 0);    /* No test for overflow; we will always mate ourselves as we are isolated */
+#endif /* GRAPHMATCHSCANP2INPERT */
+#ifdef GRAPHMATCHSCANP2INQUEUE
+        do                                        /* Search for a possible candidate */
+          finevertbst = queutab[-- queunnd];
+        while (finematetax[finevertbst] >= 0);    /* No test for overflow; we will always mate ourselves as we are isolated */
+#endif /* GRAPHMATCHSCANP2INQUEUE */
+      }
     }
     else {
       Gnum                fineedgenum;
@@ -292,8 +330,7 @@ loop1: ;
         finevertend = fineedgetax[fineedgenum];
         if ((finematetax[finevertend] < 0)        /* If unmatched vertex */
 #ifdef GRAPHMATCHSCANPFIXTAB
-            && ((finepfixtax == NULL) || (finepfixtax[finevertend] == finepfixtax[finevertnum])) /* And is in the same part */
-            && ((fineparotax == NULL) || (fineparotax[finevertend] == fineparotax[finevertnum]))
+            && ((fineparotax == NULL) || (fineparotax[finevertend] == fineparotax[finevertnum])) /* And is in the same part */
 #endif /* GRAPHMATCHSCANPFIXTAB */
 #ifdef GRAPHMATCHSCANVELOTAB
             && (finevelodlt >= finevelotax[finevertend]) /* And does not create overloads */

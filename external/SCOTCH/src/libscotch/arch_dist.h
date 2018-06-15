@@ -1,4 +1,4 @@
-/* Copyright 2011,2012,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2011,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,7 +43,7 @@
 /**                point migration costs.                  **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to   : 01 jul 2014     **/
+/**                                 to   : 13 sep 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -51,56 +51,41 @@
 **  The type and structure definitions.
 */
 
-#ifndef ARCH_DIST_H_STRUCT
-#define ARCH_DIST_H_STRUCT
-
 /*+ The distance graph definitions. +*/
 
 typedef struct ArchDist_ {
-  struct Arch_ *            archptr;              /*+ Encapsulated architecture          +*/
+  Arch *                    archptr;              /*+ Encapsulated architecture          +*/
   Anum                      crloval;              /*+ Coefficient load for regular edges +*/
 } ArchDist;
 
-#define ArchDistDom                 ArchDom       /*+ Domain is the regular domain +*/
-
-#endif /* ARCH_DIST_H_STRUCT */
+typedef struct ArchDistDom_ {
+  ArchDom                   domval;               /*+ Encapsulated architecture domain +*/
+} ArchDistDom;
 
 /*
 **  The function prototypes.
 */
 
-#ifndef ARCH_NOPROTO
-#ifndef ARCH_DIST_H_PROTO
-#define ARCH_DIST_H_PROTO
-
 #ifndef ARCH_DIST
 #define static
 #endif
 
-int                         archDistArchLoad    (ArchDist * restrict const, FILE * restrict const);
-int                         archDistArchSave    (const ArchDist * const, FILE * restrict const);
-#define archDistArchFree            NULL
-
-#define archDistMatchInit           NULL
-#define archDistMatchExit           NULL
-#define archDistMatchMate           NULL
-
-int                         archDistArchBuild   (struct Arch_ * const, struct Arch_ * const, const Anum);
-ArchDomNum                  archDistDomNum      (const ArchDist * const, const ArchDom * const);
-int                         archDistDomTerm     (const ArchDist * const, ArchDom * restrict const, const ArchDomNum);
-Anum                        archDistDomSize     (const ArchDist * const, const ArchDom * const);
-Anum                        archDistDomWght     (const ArchDist * const, const ArchDom * const);
-Anum                        archDistDomDist     (const ArchDist * const, const ArchDom * const, const ArchDom * const);
-int                         archDistDomFrst     (const ArchDist * const, ArchDom * const);
-int                         archDistDomLoad     (const ArchDist * const, ArchDom * const, FILE * const);
-int                         archDistDomSave     (const ArchDist * const, const ArchDom * const, FILE * const);
-int                         archDistDomBipart   (const ArchDist * const, const ArchDom * const, ArchDom * restrict const, ArchDom * restrict const);
-int                         archDistDomIncl     (const ArchDist * const, const ArchDom * const, const ArchDom * const);
+int                         archDistArchLoad   (ArchDist * restrict const, FILE * restrict const);
+int                         archDistArchSave   (const ArchDist * const, FILE * restrict const);
+#define archDistArchFree    NULL
+int                         archDistArchBuild  (Arch * const, Arch * const, const Anum);
+ArchDomNum                  archDistDomNum     (const ArchDist * const, const ArchDistDom * const);
+int                         archDistDomTerm    (const ArchDist * const, ArchDistDom * restrict const, const ArchDomNum);
+Anum                        archDistDomSize    (const ArchDist * const, const ArchDistDom * const);
+Anum                        archDistDomWght    (const ArchDist * const, const ArchDistDom * const);
+Anum                        archDistDomDist    (const ArchDist * const, const ArchDistDom * const, const ArchDistDom * const);
+int                         archDistDomFrst    (const ArchDist * const, ArchDistDom * const);
+int                         archDistDomLoad    (const ArchDist * const, ArchDistDom * const, FILE * const);
+int                         archDistDomSave    (const ArchDist * const, const ArchDistDom * const, FILE * const);
+int                         archDistDomBipart  (const ArchDist * const, const ArchDistDom * const, ArchDistDom * restrict const, ArchDistDom * restrict const);
+int                         archDistDomIncl    (const ArchDist * const, const ArchDistDom * const, const ArchDistDom * const);
 #ifdef SCOTCH_PTSCOTCH
-int                         archDistDomMpiType  (const ArchDist * const, MPI_Datatype * const);
+int                         archDistDomMpiType (const ArchDist * const, MPI_Datatype * const);
 #endif /* SCOTCH_PTSCOTCH */
 
 #undef static
-
-#endif /* ARCH_DIST_H_PROTO */
-#endif /* ARCH_NOPROTO      */

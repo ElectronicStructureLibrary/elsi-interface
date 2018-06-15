@@ -1,4 +1,4 @@
-/* Copyright 2007-2010,2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -44,7 +44,7 @@
 /**                # Version 5.1  : from : 18 mar 2009     **/
 /**                                 to     30 jun 2010     **/
 /**                # Version 6.0  : from : 13 sep 2012     **/
-/**                                 to     14 feb 2012     **/
+/**                                 to     13 sep 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -97,7 +97,7 @@ SCOTCH_Num                  cblkidx)
 **
 */
 
-int
+void
 METISNAMEU(ParMETIS_V3_NodeND) (
 const SCOTCH_Num * const    vtxdist,
 SCOTCH_Num * const          xadj,
@@ -117,13 +117,10 @@ MPI_Comm *                  comm)
   SCOTCH_Strat        stradat;
   SCOTCH_Num          vertlocnbr;
   SCOTCH_Num          edgelocnbr;
-  int                 o;
-
-  o = METIS_ERROR;                                /* Assume something will go wrong */
 
   proccomm = *comm;
   if (SCOTCH_dgraphInit (&grafdat, proccomm) != 0)
-    return (o);
+    return;
 
   MPI_Comm_size (proccomm, &procglbnbr);
   MPI_Comm_rank (proccomm, &proclocnum);
@@ -206,7 +203,6 @@ MPI_Comm *                  comm)
                 if ((rootnum >= 0) && (sizes != NULL)) { /* If no error above, go on processing separator tree         */
                   memSet (sizes, 0, (2 * procglbnbr - 1) * sizeof (SCOTCH_Num)); /* Set array of sizes to 0 by default */
                   _SCOTCH_ParMETIS_V3_NodeNDTree (sizes + (2 * procglbnbr - 1), sizeglbtab, sepaglbtab, levlmax, 0, rootnum, 1);
-                  o = METIS_OK;
                 }
               }
 
@@ -221,6 +217,4 @@ MPI_Comm *                  comm)
     SCOTCH_stratExit (&stradat);
   }
   SCOTCH_dgraphExit (&grafdat);
-
-  return (o);
 }

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2012,2014,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,7 +43,7 @@
 /**                # Version 5.0  : from : 19 dec 2006     **/
 /**                                 to     30 may 2008     **/
 /**                # Version 6.0  : from : 17 oct 2012     **/
-/**                                 to     14 aug 2016     **/
+/**                                 to     17 oct 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -101,9 +101,10 @@ void
 hgraphFree (
 Hgraph * restrict const     grafptr)
 {
-  if ((grafptr->vnhdtax != NULL) &&               /* Free end vertex array for non-halo vertices */
+  if ((grafptr->vnhdtax != NULL)               && /* Free end vertex array for non-halo vertices */
+      (grafptr->vnhdtax != grafptr->s.vendtax) &&
       ((grafptr->s.flagval & HGRAPHFREEVNHD) != 0))
-    memFree (grafptr->vnhdtax + grafptr->s.baseval);
+    memFree (grafptr->vnhdtax);
 
   graphFree (&grafptr->s);                        /* Free graph data */
 
@@ -138,5 +139,4 @@ Graph * restrict const        ugrfptr)
   ugrfptr->edlotax = grafptr->s.edlotax;
   ugrfptr->edlosum = grafptr->enohsum;
   ugrfptr->degrmax = grafptr->s.degrmax;          /* Upper bound */
-  ugrfptr->procptr = grafptr->s.procptr;
 }

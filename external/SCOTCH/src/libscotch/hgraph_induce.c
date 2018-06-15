@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2012,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -45,7 +45,7 @@
 /**                # Version 5.1  : from : 24 oct 2010     **/
 /**                                 to     24 oct 2010     **/
 /**                # Version 6.0  : from : 27 mar 2012     **/
-/**                                 to     07 nov 2014     **/
+/**                                 to     27 mar 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -209,11 +209,8 @@ Gnum * restrict const           indedgetab)       /* Pointer to pre-allocated sp
   indgrafptr->levlnum   = orggrafptr->levlnum + 1; /* Induced subgraph is one level below    */
 
   if (orggrafptr->s.vnumtax != NULL) {            /* Adjust vnumtax */
-    const Gnum * restrict const orgvnumtax = orggrafptr->s.vnumtax;
-    Gnum * restrict const indvnumtax       = indgrafptr->s.vnumtax;
-
     for (indvertnum = indgrafptr->s.baseval; indvertnum < indgrafptr->s.vertnnd; indvertnum ++)
-      indvnumtax[indvertnum] = orgvnumtax[indvnumtax[indvertnum]];
+      indgrafptr->s.vnumtax[indvertnum] = orggrafptr->s.vnumtax[indgrafptr->s.vnumtax[indvertnum]];
   }
 
 #ifdef SCOTCH_DEBUG_HGRAPH2
@@ -243,9 +240,9 @@ Gnum * restrict const           indedgetab)       /* Pointer to pre-allocated sp
 
 #define HGRAPHINDUCE2L
 #define HGRAPHINDUCE2NAME           hgraphInduce2L
-#define HGRAPHINDUCE2EDLOINIT(e)    indedlosum += indedlotax[e] = orgedlotax[orgedgenum]
+#define HGRAPHINDUCE2EDLOINIT(e)    indedlosum += indgrafptr->s.edlotax[e] = orggrafptr->s.edlotax[orgedgenum]
 #define HGRAPHINDUCE2EDLOSUM        indedlosum
-#define HGRAPHINDUCE2ENOHINIT       indenohsum += orgedlotax[orgedgenum]
+#define HGRAPHINDUCE2ENOHINIT       indenohsum += orggrafptr->s.edlotax[orgedgenum]
 #define HGRAPHINDUCE2ENOHSUM        indenohsum
 #include "hgraph_induce_edge.c"
 #undef HGRAPHINDUCE2NAME
@@ -277,31 +274,26 @@ const VertList * restrict const orglistptr)       /* Pointer to vertex list    *
   Gnum                indvertnum;                 /* Current vertex number in induced halo graph   */
   Gnum * restrict     orgindxtax;                 /* Array of numbers of selected vertices         */
 
-  const Gnum * restrict const orglistvnumtab = orglistptr->vnumtab;
-  const Gnum * restrict const orgverttax = orggrafptr->s.verttax;
-  const Gnum * restrict const orgvendtax = orggrafptr->s.vendtax;
-  const Gnum * restrict const orgedgetax = orggrafptr->s.edgetax;
-
   if ((orgindxtax = memAlloc (orggrafptr->s.vertnbr * sizeof (Gnum))) == NULL)
     return (-1);
   memSet (orgindxtax, ~0, orggrafptr->s.vertnbr * sizeof (Gnum)); /* Preset index array */
   orgindxtax -= orggrafptr->s.baseval;            /* Base access to orgindxtab          */
 
   for (indvertnum = 0; indvertnum < orglistptr->vnumnbr; indvertnum ++) /* For all vertices in list */
-    orgindxtax[orglistvnumtab[indvertnum]] = indvertnum; /* Mark selected vertices                  */
+    orgindxtax[orglistptr->vnumtab[indvertnum]] = indvertnum; /* Mark selected vertices             */
 
   for (indvertnum = 0, indedgenbr = 0;            /* For all vertices in list */
        indvertnum < orglistptr->vnumnbr; indvertnum ++) {
     Gnum                orgvertnum;               /* Current vertex number in original halo graph */
     Gnum                orgedgenum;               /* Current edge number in original halo graph   */
 
-    orgvertnum = orglistvnumtab[indvertnum];      /* Get number of original vertex                  */
-    indedgenbr += orgvendtax[orgvertnum] - orgverttax[orgvertnum]; /* Add degree of original vertex */
+    orgvertnum = orglistptr->vnumtab[indvertnum]; /* Get number of original vertex */
+    indedgenbr += orggrafptr->s.vendtax[orgvertnum] - orggrafptr->s.verttax[orgvertnum]; /* Add degree of original vertex */
 
-    for (orgedgenum = orgverttax[orgvertnum];     /* For all neighbors of original halo vertex */
-         orgedgenum < orgvendtax[orgvertnum]; orgedgenum ++) {
-      if (orgindxtax[orgedgetax[orgedgenum]] == ~0) /* If neighbor is halo vertex  */
-        indedgenbr ++;                            /* Account for the arc once more */
+    for (orgedgenum = orggrafptr->s.verttax[orgvertnum]; /* For all neighbors of original halo vertex */
+         orgedgenum < orggrafptr->s.vendtax[orgvertnum]; orgedgenum ++) {
+      if (orgindxtax[orggrafptr->s.edgetax[orgedgenum]] == ~0) /* If neighbor is halo vertex */
+        indedgenbr ++;                            /* Account for the arc once more           */
     }
   }
 

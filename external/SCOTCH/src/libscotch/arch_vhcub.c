@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -46,7 +46,7 @@
 /**                # Version 5.1  : from : 21 jan 2008     **/
 /**                                 to     27 feb 2008     **/
 /**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     26 aug 2014     **/
+/**                                 to     14 fev 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -98,13 +98,11 @@ const ArchDomNum            domnum)
   Anum                termnum;
   Anum                termlvl;
 
-  if (domnum != ARCHDOMNOTTERM) {                 /* If valid label     */
-    if (domnum == 0)                              /* Not a legal domain */
-      return (2);
-
-    domptr->termnum = domnum;                     /* Set the domain */
-    for (termnum = domnum, termlvl = 0; termnum > 1; termnum >>= 1, termlvl ++) ; /* Compute level */
-    domptr->termlvl = termlvl;                    /* Set level */
+  if (domnum != ARCHDOMNOTTERM) {                 /* If valid label   */
+    domptr->termnum = domnum;                     /* Set the domain   */
+    for (termnum = domnum, termlvl = 0; termnum > 1; /* Compute level */
+         termnum >>= 1, termlvl ++) ;
+    domptr->termlvl = termnum;                    /* Set level */
 
     return (0);
   }
@@ -149,7 +147,7 @@ const ArchVhcubDom * const  dom1ptr)
     distval = (dom1ptr->termlvl - dom0ptr->termlvl) >> 1; /* One half of unknown bits */
   }
 
-  for (dom0num ^= dom1num; dom0num != 0;          /* Compute Hamming distance */
+  for (dom0num ^= dom1num; dom0num != 0;          /* Compute number of bit differences */
        distval += (dom0num & 1), dom0num >>= 1) ;
 
   return (distval);
@@ -188,16 +186,14 @@ const ArchVhcub * const       archptr,
 ArchVhcubDom * restrict const domptr,
 FILE * const                  stream)
 {
-  Anum                termnum;
-  Anum                termlvl;
-
-  if (intLoad (stream, &domptr->termnum) != 1) {
+  if ((intLoad (stream, &domptr->termlvl) != 1)    ||
+      (intLoad (stream, &domptr->termnum) != 1)    ||
+      (domptr->termlvl < 0)                        ||
+      (domptr->termnum <  (1 <<  domptr->termlvl)) ||
+      (domptr->termnum >= (1 << (domptr->termlvl + 1)))) {
     errorPrint ("archVhcubDomLoad: bad input");
     return     (1);
   }
-
-  for (termnum = domptr->termnum, termlvl = 0; termnum > 1; termnum >>= 1, termlvl ++) ; /* Compute level */
-  domptr->termlvl = termlvl;
 
   return (0);
 }
@@ -215,7 +211,8 @@ const ArchVhcub * const     archptr,
 const ArchVhcubDom * const  domptr,
 FILE * const                stream)
 {
-  if (fprintf (stream, ANUMSTRING " ",
+  if (fprintf (stream, ANUMSTRING " " ANUMSTRING " ",
+               (Anum) domptr->termlvl,
                (Anum) domptr->termnum) == EOF) {
     errorPrint ("archVhcubDomSave: bad output");
     return     (1);
@@ -260,7 +257,7 @@ const ArchVhcub * const     archptr,
 const ArchVhcubDom * const  dom0ptr,
 const ArchVhcubDom * const  dom1ptr)
 {
-  if ((dom1ptr->termlvl >= dom0ptr->termlvl) &&
+  if ((dom1ptr->termlvl <= dom0ptr->termlvl) &&
       ((dom1ptr->termnum >> (dom1ptr->termlvl - dom0ptr->termlvl)) == dom0ptr->termnum))
     return (1);
 

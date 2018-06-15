@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2012,2014,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -52,7 +52,7 @@
 /**                # Version 5.1  : from : 22 oct 2008     **/
 /**                                 to     11 aug 2010     **/
 /**                # Version 6.0  : from : 01 jun 2012     **/
-/**                                 to     30 dec 2016     **/
+/**                                 to     01 jun 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -78,11 +78,6 @@
 static StratTab             stratdummytab = { NULL, NULL, NULL }; /* Dummy strategy table for the dummy empty object       */
 Strat                       stratdummy = { &stratdummytab, STRATNODEEMPTY }; /* Dummy empty object for offset computations */
 
-#ifdef COMMON_PTHREAD_MEMORY
-static int                  muteflag = 1;         /*+ Flag for mutex initialization +*/
-static pthread_mutex_t      mutelocdat;           /*+ Local mutex for parsing       +*/
-#endif /* COMMON_PTHREAD_MEMORY */
-
 /**************************/
 /*                        */
 /* The strategy routines. */
@@ -102,8 +97,6 @@ stratInit (
 const StratTab * const      strattab,             /*+ Pointer to strategy parsing table +*/
 const char * const          string)               /*+ Strategy string to parse          +*/
 {
-  Strat *             o;
-
 #ifdef SCOTCH_DEBUG_PARSER1
   if ((strattab == NULL) || (string == NULL)) {
     errorPrint ("stratInit: invalid parameter");
@@ -111,21 +104,7 @@ const char * const          string)               /*+ Strategy string to parse  
   }
 #endif /* SCOTCH_DEBUG_PARSER1 */
 
-#ifdef COMMON_PTHREAD_MEMORY
-  if (muteflag != 0) {                            /* Unsafe code with respect to race conditions but should work; portable TSL needed */
-    muteflag = 0;
-    pthread_mutex_init (&mutelocdat, NULL);       /* Initialize local mutex */
-  }
-  pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
-
-  o = stratParserParse (strattab, string);        /* Parse strategy string */
-
-#ifdef COMMON_PTHREAD_MEMORY
-  pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
-
-  return (o);
+  return (stratParserParse (strattab, string));   /* Parse strategy string */
 }
 
 /* This routine frees a strategy structure.
@@ -169,9 +148,9 @@ Strat * const               strat)
     case STRATNODEMETHOD :                        /* Method strategy node       */
       paratab = strat->tabl->paratab;             /* Free the method parameters */
       for (i = 0; paratab[i].name != NULL; i ++) {
-        if ((paratab[i].meth == strat->data.method.meth) && /* For all parameters of that method    */
-            (paratab[i].type == STRATPARAMSTRAT)) { /* Which are non-deprecated strategy parameters */
-          paraofft = (byte *) &strat->data.method.data + /* Compute parameter offset within method  */
+        if ((paratab[i].meth == strat->data.method.meth) && /* For all parameters of that method   */
+            (paratab[i].type == STRATPARAMSTRAT)) { /* Which are strategy parameters               */
+          paraofft = (byte *) &strat->data.method.data + /* Compute parameter offset within method */
                       (paratab[i].dataofft -
                        paratab[i].database);
           o |= stratExit (*((Strat **) paraofft)); /* Perform recursion */
@@ -246,8 +225,7 @@ FILE * const                stream)
       paraflag = 0;                               /* No method parameters seen yet */
       paratab  = strat->tabl->paratab;
       for (i = 0; paratab[i].name != NULL; i ++) {
-        if ((paratab[i].meth == strat->data.method.meth) && /* For all parameters of that method  */
-            ((paratab[i].type & STRATPARAMDEPRECATED) == 0)) { /* Which are not deprecated        */
+        if (paratab[i].meth == strat->data.method.meth) { /* For all parameters of that method    */
           paraofft = (byte*) &strat->data.method.data + /* Compute parameter offset within method */
                      (paratab[i].dataofft -
                       paratab[i].database);
