@@ -239,99 +239,100 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    endif
 
    ! Inertia counting
-   call elsi_get_time(t0)
+   mu_range = ph%pexsi_options%muMax0-ph%pexsi_options%muMin0
 
-   n_iner_steps = 0
-   mu_range     = ph%pexsi_options%muMax0-ph%pexsi_options%muMin0
-   n_shift      = max(10,bh%n_procs/ph%pexsi_np_per_pole)
+   if(mu_range > ph%pexsi_options%muInertiaTolerance) then
+      call elsi_get_time(t0)
 
-   call elsi_allocate(bh,shifts,n_shift,"shifts",caller)
-   call elsi_allocate(bh,inertias,n_shift,"inertias",caller)
-   call elsi_allocate(bh,ne_lower,n_shift,"ne_lower",caller)
-   call elsi_allocate(bh,ne_upper,n_shift,"ne_upper",caller)
+      n_iner_steps = 0
+      n_shift      = max(10,bh%n_procs/ph%pexsi_np_per_pole)
 
-   do while(n_iner_steps < 10 .and. &
-            mu_range > ph%pexsi_options%muInertiaTolerance)
-      n_iner_steps = n_iner_steps+1
-      shift_width  = mu_range/(n_shift-1)
-      ne_lower     = 0.0_r8
-      ne_upper     = ph%n_basis*ph%spin_degen
+      call elsi_allocate(bh,shifts,n_shift,"shifts",caller)
+      call elsi_allocate(bh,inertias,n_shift,"inertias",caller)
+      call elsi_allocate(bh,ne_lower,n_shift,"ne_lower",caller)
+      call elsi_allocate(bh,ne_upper,n_shift,"ne_upper",caller)
 
-      do i = 1,n_shift
-         shifts(i) = ph%pexsi_options%muMin0+(i-1)*shift_width
-      enddo
+      do while(n_iner_steps < 10 .and. &
+               mu_range > ph%pexsi_options%muInertiaTolerance)
+         n_iner_steps = n_iner_steps+1
+         shift_width  = mu_range/(n_shift-1)
+         ne_lower     = 0.0_r8
+         ne_upper     = ph%n_basis*ph%spin_degen
 
-      call f_ppexsi_inertia_count_real_matrix(ph%pexsi_plan,ph%pexsi_options,&
-              n_shift,shifts,inertias,ierr)
+         do i = 1,n_shift
+            shifts(i) = ph%pexsi_options%muMin0+(i-1)*shift_width
+         enddo
 
-      inertias = inertias*ph%spin_degen*ph%i_weight
+         call f_ppexsi_inertia_count_real_matrix(ph%pexsi_plan,&
+                 ph%pexsi_options,n_shift,shifts,inertias,ierr)
 
-      ! Get global inertias
-      if(ph%n_spins*ph%n_kpts > 1) then
-         call elsi_allocate(bh,send_buf,n_shift,"send_buf",caller)
+         inertias = inertias*ph%spin_degen*ph%i_weight
 
-         if(bh%myid == 0) then
-            send_buf = inertias
+         ! Get global inertias
+         if(ph%n_spins*ph%n_kpts > 1) then
+            call elsi_allocate(bh,send_buf,n_shift,"send_buf",caller)
+
+            if(bh%myid == 0) then
+               send_buf = inertias
+            else
+               send_buf = 0.0_r8
+            endif
+
+            call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
+                    bh%comm_all,ierr)
+
+            call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+
+            call elsi_deallocate(bh,send_buf,"send_buf")
+         endif
+
+         idx = ceiling(3*ph%pexsi_options%temperature/shift_width)
+
+         do i = idx+1,n_shift
+            ne_lower(i)     = 0.5_r8*(inertias(i-idx)+inertias(i))
+            ne_upper(i-idx) = ne_lower(i)
+         enddo
+
+         aux_min = 1
+         aux_max = n_shift
+
+         do i = 2,n_shift-1
+            if(ne_upper(i) < ph%n_electrons .and. &
+               ne_upper(i+1) >= ph%n_electrons) then
+               aux_min = i
+            endif
+
+            if(ne_lower(i) > ph%n_electrons .and. &
+               ne_lower(i-1) <= ph%n_electrons) then
+               aux_max = i
+            endif
+         enddo
+
+         if(aux_min == 1 .and. aux_max == n_shift) then
+            exit
          else
-            send_buf = 0.0_r8
-         endif
+            ph%pexsi_options%muMin0 = shifts(aux_min)
+            ph%pexsi_options%muMax0 = shifts(aux_max)
 
-         call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
-                 bh%comm_all,ierr)
-
-         call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-         call elsi_deallocate(bh,send_buf,"send_buf")
-      endif
-
-      idx = ceiling(3*ph%pexsi_options%temperature/shift_width)
-
-      do i = idx+1,n_shift
-         ne_lower(i)     = 0.5_r8*(inertias(i-idx)+inertias(i))
-         ne_upper(i-idx) = ne_lower(i)
-      enddo
-
-      aux_min = 1
-      aux_max = n_shift
-
-      do i = 2,n_shift-1
-         if(ne_upper(i) < ph%n_electrons .and. &
-            ne_upper(i+1) >= ph%n_electrons) then
-            aux_min = i
-         endif
-
-         if(ne_lower(i) > ph%n_electrons .and. &
-            ne_lower(i-1) <= ph%n_electrons) then
-            aux_max = i
+            mu_range = ph%pexsi_options%muMax0-ph%pexsi_options%muMin0
          endif
       enddo
 
-      if(aux_min == 1 .and. aux_max == n_shift) then
-         exit
-      else
-         ph%pexsi_options%muMin0 = shifts(aux_min)
-         ph%pexsi_options%muMax0 = shifts(aux_max)
+      call elsi_deallocate(bh,shifts,"shifts")
+      call elsi_deallocate(bh,inertias,"inertias")
+      call elsi_deallocate(bh,ne_lower,"ne_lower")
+      call elsi_deallocate(bh,ne_upper,"ne_upper")
 
-         mu_range = ph%pexsi_options%muMax0-ph%pexsi_options%muMin0
-      endif
-   enddo
+      call elsi_get_time(t1)
 
-   call elsi_deallocate(bh,shifts,"shifts")
-   call elsi_deallocate(bh,inertias,"inertias")
-   call elsi_deallocate(bh,ne_lower,"ne_lower")
-   call elsi_deallocate(bh,ne_upper,"ne_upper")
-
-   call elsi_get_time(t1)
-
-   if(n_iner_steps > 0) then
       write(info_str,"(2X,A)") "Finished inertia counting"
       call elsi_say(bh,info_str)
       write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,info_str)
-   endif
 
-   if(ierr /= 0) then
-      call elsi_stop(bh,"Inertia counting failed.",caller)
+      if(ierr /= 0) then
+         call elsi_stop(bh,"Inertia counting failed.",caller)
+      endif
    endif
 
    ! Fermi operator expansion
@@ -764,99 +765,100 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    endif
 
    ! Inertia counting
-   call elsi_get_time(t0)
+   mu_range = ph%pexsi_options%muMax0-ph%pexsi_options%muMin0
 
-   n_iner_steps = 0
-   mu_range     = ph%pexsi_options%muMax0-ph%pexsi_options%muMin0
-   n_shift      = max(10,bh%n_procs/ph%pexsi_np_per_pole)
+   if(mu_range > ph%pexsi_options%muInertiaTolerance) then
+      call elsi_get_time(t0)
 
-   call elsi_allocate(bh,shifts,n_shift,"shifts",caller)
-   call elsi_allocate(bh,inertias,n_shift,"inertias",caller)
-   call elsi_allocate(bh,ne_lower,n_shift,"ne_lower",caller)
-   call elsi_allocate(bh,ne_upper,n_shift,"ne_upper",caller)
+      n_iner_steps = 0
+      n_shift      = max(10,bh%n_procs/ph%pexsi_np_per_pole)
 
-   do while(n_iner_steps < 10 .and. &
-            mu_range > ph%pexsi_options%muInertiaTolerance)
-      n_iner_steps = n_iner_steps+1
-      shift_width  = mu_range/(n_shift-1)
-      ne_lower     = 0.0_r8
-      ne_upper     = ph%n_basis*ph%spin_degen
+      call elsi_allocate(bh,shifts,n_shift,"shifts",caller)
+      call elsi_allocate(bh,inertias,n_shift,"inertias",caller)
+      call elsi_allocate(bh,ne_lower,n_shift,"ne_lower",caller)
+      call elsi_allocate(bh,ne_upper,n_shift,"ne_upper",caller)
 
-      do i = 1,n_shift
-         shifts(i) = ph%pexsi_options%muMin0+(i-1)*shift_width
-      enddo
+      do while(n_iner_steps < 10 .and. &
+               mu_range > ph%pexsi_options%muInertiaTolerance)
+         n_iner_steps = n_iner_steps+1
+         shift_width  = mu_range/(n_shift-1)
+         ne_lower     = 0.0_r8
+         ne_upper     = ph%n_basis*ph%spin_degen
 
-      call f_ppexsi_inertia_count_complex_matrix(ph%pexsi_plan,&
-              ph%pexsi_options,n_shift,shifts,inertias,ierr)
+         do i = 1,n_shift
+            shifts(i) = ph%pexsi_options%muMin0+(i-1)*shift_width
+         enddo
 
-      inertias = inertias*ph%spin_degen*ph%i_weight
+         call f_ppexsi_inertia_count_complex_matrix(ph%pexsi_plan,&
+                 ph%pexsi_options,n_shift,shifts,inertias,ierr)
 
-      ! Get global inertias
-      if(ph%n_spins*ph%n_kpts > 1) then
-         call elsi_allocate(bh,send_buf,n_shift,"send_buf",caller)
+         inertias = inertias*ph%spin_degen*ph%i_weight
 
-         if(bh%myid == 0) then
-            send_buf = inertias
+         ! Get global inertias
+         if(ph%n_spins*ph%n_kpts > 1) then
+            call elsi_allocate(bh,send_buf,n_shift,"send_buf",caller)
+
+            if(bh%myid == 0) then
+               send_buf = inertias
+            else
+               send_buf = 0.0_r8
+            endif
+
+            call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
+                    bh%comm_all,ierr)
+
+            call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+
+            call elsi_deallocate(bh,send_buf,"send_buf")
+         endif
+
+         idx = ceiling(3*ph%pexsi_options%temperature/shift_width)
+
+         do i = idx+1,n_shift
+            ne_lower(i)     = 0.5_r8*(inertias(i-idx)+inertias(i))
+            ne_upper(i-idx) = ne_lower(i)
+         enddo
+
+         aux_min = 1
+         aux_max = n_shift
+
+         do i = 2,n_shift-1
+            if(ne_upper(i) < ph%n_electrons .and. &
+               ne_upper(i+1) >= ph%n_electrons) then
+               aux_min = i
+            endif
+
+            if(ne_lower(i) > ph%n_electrons .and. &
+               ne_lower(i-1) <= ph%n_electrons) then
+               aux_max = i
+            endif
+         enddo
+
+         if(aux_min == 1 .and. aux_max == n_shift) then
+            exit
          else
-            send_buf = 0.0_r8
-         endif
+            ph%pexsi_options%muMin0 = shifts(aux_min)
+            ph%pexsi_options%muMax0 = shifts(aux_max)
 
-         call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
-                 bh%comm_all,ierr)
-
-         call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-         call elsi_deallocate(bh,send_buf,"send_buf")
-      endif
-
-      idx = ceiling(3*ph%pexsi_options%temperature/shift_width)
-
-      do i = idx+1,n_shift
-         ne_lower(i)     = 0.5_r8*(inertias(i-idx)+inertias(i))
-         ne_upper(i-idx) = ne_lower(i)
-      enddo
-
-      aux_min = 1
-      aux_max = n_shift
-
-      do i = 2,n_shift-1
-         if(ne_upper(i) < ph%n_electrons .and. &
-            ne_upper(i+1) >= ph%n_electrons) then
-            aux_min = i
-         endif
-
-         if(ne_lower(i) > ph%n_electrons .and. &
-            ne_lower(i-1) <= ph%n_electrons) then
-            aux_max = i
+            mu_range = ph%pexsi_options%muMax0-ph%pexsi_options%muMin0
          endif
       enddo
 
-      if(aux_min == 1 .and. aux_max == n_shift) then
-         exit
-      else
-         ph%pexsi_options%muMin0 = shifts(aux_min)
-         ph%pexsi_options%muMax0 = shifts(aux_max)
+      call elsi_deallocate(bh,shifts,"shifts")
+      call elsi_deallocate(bh,inertias,"inertias")
+      call elsi_deallocate(bh,ne_lower,"ne_lower")
+      call elsi_deallocate(bh,ne_upper,"ne_upper")
 
-         mu_range = ph%pexsi_options%muMax0-ph%pexsi_options%muMin0
-      endif
-   enddo
+      call elsi_get_time(t1)
 
-   call elsi_deallocate(bh,shifts,"shifts")
-   call elsi_deallocate(bh,inertias,"inertias")
-   call elsi_deallocate(bh,ne_lower,"ne_lower")
-   call elsi_deallocate(bh,ne_upper,"ne_upper")
-
-   call elsi_get_time(t1)
-
-   if(n_iner_steps > 0) then
       write(info_str,"(2X,A)") "Finished inertia counting"
       call elsi_say(bh,info_str)
       write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,info_str)
-   endif
 
-   if(ierr /= 0) then
-      call elsi_stop(bh,"Inertia counting failed.",caller)
+      if(ierr /= 0) then
+         call elsi_stop(bh,"Inertia counting failed.",caller)
+      endif
    endif
 
    ! Fermi operator expansion
