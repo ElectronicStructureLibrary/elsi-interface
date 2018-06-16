@@ -626,7 +626,7 @@ protected:
   std::vector<std::vector<Int> > snodeTreeToBlkidx_;
   std::list<Int> syncPoints_;
 
-  double localFlops_;
+//  double localFlops_;
 
   struct SuperNodeBufferType{
     //This is for the symmetric storage implementation
@@ -693,7 +693,7 @@ public:
   // Public member functions 
   // *********************************************************************
 
-  double GetTotalFlops();
+//  double GetTotalFlops();
 
   PMatrix();
 

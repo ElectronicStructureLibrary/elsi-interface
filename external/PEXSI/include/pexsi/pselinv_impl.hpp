@@ -52,8 +52,8 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include "pexsi/timer.h"
 #include "pexsi/superlu_dist_interf.hpp"
 
-#include "pexsi/flops.hpp"
-#include <omp.h>
+//#include "pexsi/flops.hpp"
+//#include <omp.h>
 
 #define MPI_MAX_COMM (1024)
 #define BCAST_THRESHOLD 16
@@ -7242,12 +7242,12 @@ sstm.rdbuf()->pubsetbuf((char*)tree->GetLocalBuffer(), tree->GetMsgSize());
       U_ = C.U_;
     }
 
-  template<typename T>
-    inline double PMatrix<T>::GetTotalFlops(){
-      double total = 0.0;
-      MPI_Allreduce( &this->localFlops_,&total, 1,MPI_DOUBLE, MPI_SUM, this->grid_->comm );
-      return total;
-    }
+//  template<typename T>
+//    inline double PMatrix<T>::GetTotalFlops(){
+//      double total = 0.0;
+//      MPI_Allreduce( &this->localFlops_,&total, 1,MPI_DOUBLE, MPI_SUM, this->grid_->comm );
+//      return total;
+//    }
 
 } // namespace PEXSI
 

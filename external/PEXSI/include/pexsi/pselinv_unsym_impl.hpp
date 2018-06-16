@@ -51,7 +51,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include <algorithm>
 #include <random>
 
-#include "pexsi/flops.hpp"
+//#include "pexsi/flops.hpp"
 
 
 namespace PEXSI{
