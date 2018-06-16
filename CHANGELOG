@@ -6,6 +6,9 @@
    * Downgraged redistributed (PT-)SCOTCH source code to version 6.0.0, as
      the 6.0.5a version may lead to random crashes on some platforms.
 
+   PEXSI:
+   * Updated redistributed PEXSI source code to version 1.0.1.
+
 ============================
    ELSI May 2018 (v2.0.1)
 ============================
@@ -54,7 +57,7 @@
      may be enabled through the ELSI interface for externally linked ELPA.
 
    PEXSI:
-   * Updated redistributed PEXSI source code to version 1.0.
+   * Updated redistributed PEXSI source code to version 1.0.0.
    * Reduced the default number of poles to 20 without sacrificing
      accuracy.
    * Switched to the PT-SCOTCH library as the default sparse matrix

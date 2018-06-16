@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin and Mathias Jacquelin
 
@@ -55,18 +55,18 @@ such enhancements or derivative works thereof, in binary and source code form.
 extern "C"{ void
 #ifdef SLU_MAJOR_VERSION
 #if SLU_MAJOR_VERSION < 5
-pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
+pzsymbfact(superlu_options_t *options, SuperMatrix *A,
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
     LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
     int *info, double *totalMemory, double *maxMemory );
 #else
-pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
+pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
     LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
     int *info, double *totalMemory, double *maxMemory );
 #endif
 #else
-pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
+pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
     LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
     int *info, double *totalMemory, double *maxMemory );
@@ -154,33 +154,33 @@ namespace PEXSI{
 class ComplexSuperLUData_internal{
   friend class ComplexSuperLUData;
 protected:
-  /// @brief SuperLU matrix. 
-  SuperMatrix         A;                        
+  /// @brief SuperLU matrix.
+  SuperMatrix         A;
 
-  /// @brief SuperLU options. 
+  /// @brief SuperLU options.
   ///
   /// Note
   /// ----
   ///
-  /// It is important to have 
+  /// It is important to have
   ///
   /// options.RowPerm           = NOROWPERM;
-  /// 
+  ///
   /// to make sure that symmetric permutation is used.
   ///
 #ifdef SLU_MAJOR_VERSION
 #if SLU_MAJOR_VERSION < 5
-  superlu_options_t   options;                  
+  superlu_options_t   options;
 #else
-  superlu_dist_options_t   options;                  
+  superlu_dist_options_t   options;
 #endif
 #else
-  superlu_dist_options_t   options;                  
+  superlu_dist_options_t   options;
 #endif
 
   /// @brief Saves the permutation vectors.  Only perm_c (permutation of
   /// column as well as rows due to the symmetric permutation) will be used.
-  ScalePermstruct_t   ScalePermstruct;          
+  ScalePermstruct_t   ScalePermstruct;
 
   /// @brief SuperLU grid structure.
   gridinfo_t*         grid;
@@ -241,10 +241,10 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
   options.IterRefine        = NOREFINE;
   options.ParSymbFact       = NO;
   if(opt.Equil == "YES"){
-    options.Equil             = YES; 
+    options.Equil             = YES;
   }
   else{
-    options.Equil             = NO; 
+    options.Equil             = NO;
   }
 
   options.ReplaceTinyPivot  = YES;
@@ -256,14 +256,18 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
   options.lookahead_etree   = YES;
   options.SymPattern        = YES;
 
+//#ifdef _PRINT_STATS_
+//  options.PrintStat         = YES;
+//#endif
+
   if(opt.Symmetric == 1){
     options.RowPerm         = NOROWPERM;
-    options.Equil             = NO; 
+    options.Equil             = NO;
   }
 
   if ( opt.ColPerm == "NATURAL" ){
     options.ColPerm = NATURAL;
-  } 
+  }
   else if( opt.ColPerm == "MMD_AT_PLUS_A" ){
     options.ColPerm = MMD_AT_PLUS_A;
   }
@@ -288,7 +292,7 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
 ComplexSuperLUData_internal::~ComplexSuperLUData_internal(){
   if( isLUstructAllocated ){
     Destroy_LU(A.ncol, grid, &LUstruct);
-    LUstructFree(&LUstruct); 
+    LUstructFree(&LUstruct);
   }
   if( isScalePermstructAllocated ){
     ScalePermstructFree(&ScalePermstruct);
@@ -339,7 +343,7 @@ void ComplexSuperLUData_internal::DestroyAOnly	(  )
   isSuperMatrixAllocated = false;
 
   return ;
-} 		// -----  end of method ComplexSuperLUData_internal::DestroyAOnly  ----- 
+} 		// -----  end of method ComplexSuperLUData_internal::DestroyAOnly  -----
 
 
 
@@ -400,16 +404,16 @@ ComplexSuperLUData & ComplexSuperLUData::operator = (const ComplexSuperLUData & 
 
 
 
-Int ComplexSuperLUData::m (  ) const	
+Int ComplexSuperLUData::m (  ) const
 {
   return ptrData->A.nrow;
-} 		// -----  end of method ComplexSuperLUData::m  ----- 
+} 		// -----  end of method ComplexSuperLUData::m  -----
 
 
-Int ComplexSuperLUData::n (  ) const	
+Int ComplexSuperLUData::n (  ) const
 {
   return ptrData->A.ncol;
-} 		// -----  end of method ComplexSuperLUData::n  ----- 
+} 		// -----  end of method ComplexSuperLUData::n  -----
 
 
 
@@ -431,12 +435,26 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
   Int firstRow = mpirank * numRowLocalFirst;
   Int numRowLocal = -1;
   Int nnzLocal = -1;
+#if 0
+    numRowLocal = sparseA.colptrLocal.m() - 1;
+    nnzLocal = sparseA.nnzLocal;
 
+    colindLocal = (int_t*)intMalloc_dist(sparseA.nnzLocal);
+    nzvalLocal  = (doublecomplex*)doublecomplexMalloc_dist(sparseA.nnzLocal);
+    rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
+
+    std::copy( sparseA.colptrLocal.Data(), sparseA.colptrLocal.Data() + sparseA.colptrLocal.m(),
+        rowptrLocal );
+    std::copy( sparseA.rowindLocal.Data(), sparseA.rowindLocal.Data() + sparseA.rowindLocal.m(),
+        colindLocal );
+    std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
+        (Complex*)nzvalLocal );
+#else
   if(options.Transpose == 1 || options.Symmetric == 1 ){
     numRowLocal = sparseA.colptrLocal.m() - 1;
     nnzLocal = sparseA.nnzLocal;
 
-    colindLocal = (int_t*)intMalloc_dist(sparseA.nnzLocal); 
+    colindLocal = (int_t*)intMalloc_dist(sparseA.nnzLocal);
     nzvalLocal  = (doublecomplex*)doublecomplexMalloc_dist(sparseA.nnzLocal);
     rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
 
@@ -449,13 +467,14 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
 
   }
   else{
+    statusOFS<<"CONVERTING TO CSR"<<std::endl;
     DistSparseMatrix<Complex> sparseB;
     CSCToCSR(sparseA,sparseB);
 
     numRowLocal = sparseB.colptrLocal.m() - 1;
     nnzLocal = sparseB.nnzLocal;
 
-    colindLocal = (int_t*)intMalloc_dist(sparseB.nnzLocal); 
+    colindLocal = (int_t*)intMalloc_dist(sparseB.nnzLocal);
     nzvalLocal  = (doublecomplex*)doublecomplexMalloc_dist(sparseB.nnzLocal);
     rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
 
@@ -466,6 +485,7 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
     std::copy( sparseB.nzvalLocal.Data(), sparseB.nzvalLocal.Data() + sparseB.nzvalLocal.m(),
         (Complex*)nzvalLocal );
   }
+#endif
 
   // Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices
   for(Int i = 0; i < nnzLocal; i++){
@@ -477,7 +497,7 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
   }
 
   // Construct the distributed matrix according to the SuperLU_DIST format
-  zCreate_CompRowLoc_Matrix_dist(&ptrData->A, sparseA.size, sparseA.size, nnzLocal, 
+  zCreate_CompRowLoc_Matrix_dist(&ptrData->A, sparseA.size, sparseA.size, nnzLocal,
       numRowLocal, firstRow,
       nzvalLocal, colindLocal, rowptrLocal,
       SLU_NR_loc, SLU_Z, SLU_GE);
@@ -487,7 +507,7 @@ void ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Co
 
   return;
 
-} 		// -----  end of method ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc ----- 
+} 		// -----  end of method ComplexSuperLUData::DistSparseMatrixToSuperMatrixNRloc -----
 
 
 void
@@ -495,7 +515,7 @@ ComplexSuperLUData::DestroyAOnly	(  )
 {
   ptrData->DestroyAOnly();
   return ;
-} 		// -----  end of method ComplexSuperLUData::DestroyAOnly  ----- 
+} 		// -----  end of method ComplexSuperLUData::DestroyAOnly  -----
 
 void
 ComplexSuperLUData::SymbolicFactorize	(  )
@@ -524,7 +544,7 @@ ComplexSuperLUData::SymbolicFactorize	(  )
 
   double totalMemory = 0.0, maxMemory = 0.0;
 
-  pzsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 
+  pzsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid,
       &ptrData->LUstruct, &ptrData->stat, &ptrData->numProcSymbFact, &ptrData->info,
       &totalMemory, &maxMemory);
   PStatFree(&ptrData->stat);
@@ -535,7 +555,7 @@ ComplexSuperLUData::SymbolicFactorize	(  )
 
 #if ( _DEBUGlevel_ >= 0 )
   statusOFS << "Memory cost of symbolic factorization (MB): " << std::endl;
-  statusOFS << "Total: " << totalMemory << ", Average: " << 
+  statusOFS << "Total: " << totalMemory << ", Average: " <<
     totalMemory / ( ptrData->grid->nprow * ptrData->grid->npcol )
     << ", Max: " << maxMemory << std::endl << std::endl;
 #endif
@@ -543,11 +563,11 @@ ComplexSuperLUData::SymbolicFactorize	(  )
 
 
   ptrData->isScalePermstructAllocated = true;
-  ptrData->isLUstructAllocated        = true; 
+  ptrData->isLUstructAllocated        = true;
 
 
   return ;
-} 		// -----  end of method ComplexSuperLUData::SymbolicFactorize  ----- 
+} 		// -----  end of method ComplexSuperLUData::SymbolicFactorize  -----
 
 
 void
@@ -555,13 +575,13 @@ ComplexSuperLUData::Distribute	(  )
 {
   if( ptrData->isScalePermstructAllocated == false ){
     ErrorHandling( "ScalePermstruct has not been allocated by SymbolicFactorize." );
-  }	
+  }
   if( ptrData->isLUstructAllocated == false ){
     ErrorHandling( "LUstruct has not been allocated by SymbolicFactorize." );
-  }	
+  }
   if( ptrData->isSuperMatrixAllocated == false ){
     ErrorHandling( "SuperMatrix has not been allocated." );
-  }	
+  }
 
   Int* perm_c = ptrData->ScalePermstruct.perm_c;
   NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
@@ -570,15 +590,15 @@ ComplexSuperLUData::Distribute	(  )
   // Apply column permutation to the original distributed A
   for(Int j = 0; j < nnzLocal; j++)
     colind[j] = perm_c[colind[j]];
-  // Distribute Pc*Pr*diag(R)*A*diag(C)*Pc' into L and U storage.  
+  // Distribute Pc*Pr*diag(R)*A*diag(C)*Pc' into L and U storage.
   // NOTE: the row permutation Pc*Pr is applied internally in the
-  // distribution routine. 
-  float dist_mem_use = pzdistribute(SamePattern_SameRowPerm, ptrData->A.nrow, 
+  // distribution routine.
+  float dist_mem_use = pzdistribute(SamePattern_SameRowPerm, ptrData->A.nrow,
       &ptrData->A, &ptrData->ScalePermstruct, NULL, &ptrData->LUstruct, ptrData->grid);
 
 
   return ;
-} 		// -----  end of method ComplexSuperLUData::Distribute  ----- 
+} 		// -----  end of method ComplexSuperLUData::Distribute  -----
 
 
 void
@@ -592,19 +612,22 @@ ComplexSuperLUData::NumericalFactorize	(  )
   double anorm = pzlangs( norm, &ptrData->A, ptrData->grid );
 
   PStatInit(&ptrData->stat);
-  pzgstrf(&ptrData->options, ptrData->A.nrow, ptrData->A.ncol, 
-      anorm, &ptrData->LUstruct, ptrData->grid, &ptrData->stat, &ptrData->info); 
+  pzgstrf(&ptrData->options, ptrData->A.nrow, ptrData->A.ncol,
+      anorm, &ptrData->LUstruct, ptrData->grid, &ptrData->stat, &ptrData->info);
 
 #ifdef _PRINT_STATS_
   statusOFS<<"******************SUPERLU STATISTICS****************"<<std::endl;
   statusOFS<<"Number of tiny pivots: "<<ptrData->stat.TinyPivots<<std::endl;
   statusOFS<<"Number of look aheads: "<<ptrData->stat.num_look_aheads<<std::endl;
-  statusOFS<<"Number of FLOPS during factorization: "<<ptrData->stat.ops[FACT]<<std::endl;
+
+  float flopcnt = 0;
+  MPI_Allreduce(&ptrData->stat.ops[FACT], &flopcnt, 1, MPI_FLOAT, MPI_SUM, ptrData->grid->comm);
+  statusOFS<<"Number of FLOPS for factorization: "<<flopcnt<<std::endl;
+  if(!ptrData->grid->iam){
+    std::cout<<"Total FLOPs for factorization is "<<flopcnt<<std::endl;
+  }
   statusOFS<<"****************************************************"<<std::endl;
 #endif
-
-
-
 
   PStatFree(&ptrData->stat);
   if( ptrData->info != 0 ){
@@ -620,7 +643,7 @@ ComplexSuperLUData::NumericalFactorize	(  )
 
 
   return ;
-} 		// -----  end of method ComplexSuperLUData::NumericalFactorize  ----- 
+} 		// -----  end of method ComplexSuperLUData::NumericalFactorize  -----
 
 
 void
@@ -636,14 +659,14 @@ ComplexSuperLUData::ConvertNRlocToNC	( ComplexSuperLUData * aptrData )
 
   // TODO real arithmetic
   const Int NEED_VALUE = 1;
-  pzCompRow_loc_to_CompCol_global(NEED_VALUE, &ptrData->A, ptrData->grid, 
+  pzCompRow_loc_to_CompCol_global(NEED_VALUE, &ptrData->A, ptrData->grid,
       &aptrData->ptrData->A);
 
   ptrData->isSuperMatrixAllocated = true;
 
 
   return ;
-} 		// -----  end of method ComplexSuperLUData::ConvertNRlocToNC  ----- 
+} 		// -----  end of method ComplexSuperLUData::ConvertNRlocToNC  -----
 
 void
 ComplexSuperLUData::MultiplyGlobalMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& bGlobal )
@@ -659,12 +682,12 @@ ComplexSuperLUData::MultiplyGlobalMultiVector	( NumMat<Complex>& xGlobal, NumMat
       << "The matrix is of type " << ptrData->A.Stype << std::endl
       << "Consider using ConvertNRlocToNC subroutine" << std::endl;
     ErrorHandling( msg.str().c_str() );
-  }	
-  zFillRHS_dist(trans, nrhs, (doublecomplex*)xGlobal.Data(), m, 
+  }
+  zFillRHS_dist(trans, nrhs, (doublecomplex*)xGlobal.Data(), m,
       &ptrData->A, (doublecomplex*) bGlobal.Data(), m);
 
   return ;
-} 		// -----  end of method ComplexSuperLUData::MultiplyGlobalMultiVector  ----- 
+} 		// -----  end of method ComplexSuperLUData::MultiplyGlobalMultiVector  -----
 
 
 void
@@ -676,7 +699,7 @@ ComplexSuperLUData::DistributeGlobalMultiVector	( NumMat<Complex>& xGlobal, NumM
     msg << "DistributeGlobalMultiVector requires SLU_NR_loc matrix with type " << SLU_NR_loc << std::endl
       << "The matrix is of type " << ptrData->A.Stype << std::endl;
     ErrorHandling( msg.str().c_str() );
-  }	
+  }
 
   NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
 
@@ -693,7 +716,7 @@ ComplexSuperLUData::DistributeGlobalMultiVector	( NumMat<Complex>& xGlobal, NumM
 
 
   return ;
-} 		// -----  end of method ComplexSuperLUData::DistributeGlobalMultiVector  ----- 
+} 		// -----  end of method ComplexSuperLUData::DistributeGlobalMultiVector  -----
 
 
 void ComplexSuperLUData::GatherDistributedMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal )
@@ -704,7 +727,7 @@ void ComplexSuperLUData::GatherDistributedMultiVector	( NumMat<Complex>& xGlobal
     msg << "GatherDistributedMultiVector requires SLU_NR_loc matrix with type " << SLU_NR_loc << std::endl
       << "The matrix is of type " << ptrData->A.Stype << std::endl;
     ErrorHandling( msg.str().c_str() );
-  }	
+  }
 
   NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
 
@@ -729,7 +752,7 @@ void ComplexSuperLUData::GatherDistributedMultiVector	( NumMat<Complex>& xGlobal
 
 
   return ;
-} 		// -----  end of method ComplexSuperLUData::GatherDistributedMultiVector  ----- 
+} 		// -----  end of method ComplexSuperLUData::GatherDistributedMultiVector  -----
 
 
 void
@@ -745,11 +768,11 @@ ComplexSuperLUData::SolveDistMultiVector	( NumMat<Complex>& bLocal, DblNumVec& b
   // TODO Complex arithmetic
 
   PStatInit(&ptrData->stat);
-  pzgssvx(&ptrData->options, &ptrData->A, &ptrData->ScalePermstruct, 
+  pzgssvx(&ptrData->options, &ptrData->A, &ptrData->ScalePermstruct,
       (doublecomplex*)bLocal.Data(), numRowLocal, nrhs, ptrData->grid,
-      &ptrData->LUstruct, &ptrData->SOLVEstruct, berr.Data(), 
+      &ptrData->LUstruct, &ptrData->SOLVEstruct, berr.Data(),
       &ptrData->stat, &ptrData->info);
-  PStatFree(&ptrData->stat); 
+  PStatFree(&ptrData->stat);
 
   if ( ptrData->options.SolveInitialized ) {
     zSolveFinalize(&ptrData->options, &ptrData->SOLVEstruct);
@@ -766,7 +789,7 @@ ComplexSuperLUData::SolveDistMultiVector	( NumMat<Complex>& bLocal, DblNumVec& b
 
 
   return ;
-} 		// -----  end of method ComplexSuperLUData::SolveDistMultiVector  ----- 
+} 		// -----  end of method ComplexSuperLUData::SolveDistMultiVector  -----
 
 
 void
@@ -776,13 +799,13 @@ ComplexSuperLUData::CheckErrorDistMultiVector	( NumMat<Complex>& xLocal, NumMat<
   NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
   Int numRowLocal = Astore->m_loc;
 
-  pzinf_norm_error(ptrData->grid->iam, numRowLocal, nrhs, 
-      (doublecomplex*)xLocal.Data(), numRowLocal, 
+  pzinf_norm_error(ptrData->grid->iam, numRowLocal, nrhs,
+      (doublecomplex*)xLocal.Data(), numRowLocal,
       (doublecomplex*)xTrueLocal.Data(), numRowLocal, ptrData->grid);
 
 
   return ;
-} 		// -----  end of method ComplexSuperLUData::CheckErrorDistMultiVector  ----- 
+} 		// -----  end of method ComplexSuperLUData::CheckErrorDistMultiVector  -----
 
 
 void
@@ -807,7 +830,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 
 
 
-  // L part   
+  // L part
 #if ( _DEBUGlevel_ >= 1 )
   statusOFS << std::endl << "LUstructToPMatrix::L part" << std::endl;
 #endif
@@ -837,6 +860,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
         cnt += numRow;
         LIndices[iblk] = blockIdx;
       }
+
       //      statusOFS<<"Unsorted blockidx for L are: "<<LIndices<<std::endl;
       //sort the array
       IntNumVec sortedIndices(Lcol.size());
@@ -859,7 +883,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
         LB.blockIdx    = blockIdx;
 
         PMloc.ColBlockIdx(jb).push_back(LB.blockIdx);
-        Int LBi = LB.blockIdx / grid->numProcRow; 
+        Int LBi = LB.blockIdx / grid->numProcRow;
         PMloc.RowBlockIdx( LBi ).push_back( bnum );
 
 
@@ -874,14 +898,14 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
         //sort the row indices (so as to speedup the index lookup
         std::sort(rowsPerm.Data(),rowsPerm.Data()+rowsPerm.m(),cmp);
 
-        for(Int i = 0; i<LB.rows.m(); ++i){ 
+        for(Int i = 0; i<LB.rows.m(); ++i){
           rowsSorted[i] = LB.rows[rowsPerm[i]];
         }
 
         LB.rows = rowsSorted;
 
-        LB.nzval.Resize( LB.numRow, LB.numCol );   
-        SetValue( LB.nzval, ZERO<Complex>() ); 
+        LB.nzval.Resize( LB.numRow, LB.numCol );
+        SetValue( LB.nzval, ZERO<Complex>() );
         cnt += LB.numRow;
 
         //sort the nzval
@@ -895,12 +919,12 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS 
+        statusOFS
           << "L part: bnum = " << bnum << ", numBlock = " << Lcol.size()
           << ", blockIdx = " << LB.blockIdx
-          << ", numRow = " << LB.numRow 
+          << ", numRow = " << LB.numRow
           << ", numCol = " << LB.numCol << std::endl;
-#endif 
+#endif
 
       } // for(iblk)
 
@@ -920,7 +944,8 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 
 
 
-
+        if(PMloc.Options()!=nullptr){
+          if (PMloc.Options()->symmetricStorage!=1){
 
   // U part
 #if ( _DEBUGlevel_ >= 1 )
@@ -933,11 +958,11 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
     Int cnt = 0;                                // Count for the index in LUstruct
     Int cntval = 0;                             // Count for the nonzero values
     Int cntidx = 0;                             // Count for the nonzero block indexes
-    const Int*    index = Llu->Ufstnz_br_ptr[ib]; 
+    const Int*    index = Llu->Ufstnz_br_ptr[ib];
     const Complex* pval  = reinterpret_cast<const Complex*>(Llu->Unzval_br_ptr[ib]);
-    if( index ){ 
+    if( index ){
       // Not an empty row
-      // Compute the number of nonzero columns 
+      // Compute the number of nonzero columns
 
       std::vector<UBlock<Complex> >& Urow = PMloc.U(ib);
       Urow.resize( index[cnt++] );
@@ -949,7 +974,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
         cols.clear();
 
         Int blockIdx = index[cnt];
-        Int LBj = blockIdx / grid->numProcCol; 
+        Int LBj = blockIdx / grid->numProcCol;
         UBlock<Complex> & UB = Urow[jblk];
         UB.blockIdx = blockIdx;
 
@@ -961,7 +986,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 
         UB.numRow = super->superPtr[bnum+1] - super->superPtr[bnum];
         cnt += UB_DESCRIPTOR;
-        //            for( Int j = FirstBlockCol( UB.blockIdx, super ); 
+        //            for( Int j = FirstBlockCol( UB.blockIdx, super );
         //                j < FirstBlockCol( UB.blockIdx+1, super ); j++ ){
         //              Int firstRow = index[cnt++];
         //              if( firstRow != FirstBlockCol( bnum+1, super ) )
@@ -971,7 +996,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
         //            cnt -= super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx];
 
         int pos = 0;
-        for( Int j = FirstBlockCol( UB.blockIdx, super ); 
+        for( Int j = FirstBlockCol( UB.blockIdx, super );
             j < FirstBlockCol( UB.blockIdx+1, super ); j++ ){
           Int firstRow = index[cnt++];
           if( firstRow != FirstBlockCol( bnum+1, super ) )
@@ -984,7 +1009,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 
 
         pos = 0;
-        for( Int j = FirstBlockCol( UB.blockIdx, super ); 
+        for( Int j = FirstBlockCol( UB.blockIdx, super );
             j < FirstBlockCol( UB.blockIdx+1, super ); j++ ){
           Int firstRow = index[cnt++];
           if( firstRow != FirstBlockCol( bnum+1, super ) )
@@ -1002,7 +1027,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
         SetValue( UB.nzval, ZERO<Complex>() );
 
         Int cntcol = 0;
-        for( Int j = 0; 
+        for( Int j = 0;
             j < super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx]; j++ ){
           Int firstRow = index[cnt++];
           if( firstRow != FirstBlockCol( bnum+1, super ) ){
@@ -1016,14 +1041,23 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
         } // for( j )
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS 
+        statusOFS
           << "U part: bnum = " << bnum << ", numBlock = " << Urow.size()
           << ", blockIdx = " << UB.blockIdx
-          << ", numRow = " << UB.numRow 
+          << ", numRow = " << UB.numRow
           << ", numCol = " << UB.numCol << std::endl;
-#endif 
+#endif
 
       } // for (jblk)
+
+
+#if ( _DEBUGlevel_ >= 2 )
+      statusOFS<<"Real Sorted blockidx for U are: ";
+      for( Int iblk = 0; iblk < Urow.size(); iblk++ ){
+        statusOFS<<Urow[iblk].blockIdx<<" ";
+      }
+      statusOFS<<std::endl;
+#endif
 
 
 
@@ -1031,7 +1065,8 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 
   } // for(ib)
 
-
+          }
+        }
 
 
   for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
@@ -1050,7 +1085,7 @@ ComplexSuperLUData::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
 
 
   return ;
-} 		// -----  end of method ComplexSuperLUData::LUstructToPMatrix  ----- 
+} 		// -----  end of method ComplexSuperLUData::LUstructToPMatrix  -----
 
 
 
@@ -1104,6 +1139,6 @@ ComplexSuperLUData::SymbolicToSuperNode	( SuperNodeType& super )
 
 
   return ;
-} 		// -----  end of method ComplexSuperLUData::SymbolicToSuperNode  ----- 
+} 		// -----  end of method ComplexSuperLUData::SymbolicToSuperNode  -----
 
 }

@@ -68,7 +68,9 @@ template<typename T>
       symPACK::symPACKMatrix<T>& SMat,
       PMatrix<T>& PMat );
 
+//#ifndef _SYM_STORAGE_
 template<typename T> void PMatrixLtoU( PMatrix<T>& PMat );
+//#endif
 }
 
 #include "sympack_interf_impl.hpp"

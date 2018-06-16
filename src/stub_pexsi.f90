@@ -223,7 +223,7 @@ subroutine f_ppexsi_inertia_count_complex_matrix(plan,options,numShift,&
 end subroutine
 
 subroutine f_ppexsi_calculate_fermi_operator_real3(plan,options,mu,&
-              numElectronExact,numElectronPEXSI,numElectronDrvMuPEXSI,info)
+              numElectronExact,numElectronPEXSI,info)
 
    implicit none
 
@@ -232,7 +232,6 @@ subroutine f_ppexsi_calculate_fermi_operator_real3(plan,options,mu,&
    real(kind=r8)          :: mu
    real(kind=r8)          :: numElectronExact
    real(kind=r8)          :: numElectronPEXSI
-   real(kind=r8)          :: numElectronDrvMuPEXSI
    integer(kind=i4)       :: info
 
    write(*,"(A)") "**Error! A PEXSI stub routine was called."

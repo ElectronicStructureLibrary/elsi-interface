@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin
 
@@ -90,12 +90,12 @@ private:
   // Outer layer communicator. Also used for distributing the
   // DistSparseMatrix.  Each DistSparseMatrix is replicated in the row
   // (numPoleGroup) direction of gridPole.
-  const GridType*           gridPole_;          
+  const GridType*           gridPole_;
   const GridType*           gridSelInv_;        // Inner layer communicator for SelInv
 
   // Inner layer communicator for SuperLU factorization
-  const SuperLUGrid<Real>*       gridSuperLUReal_;           
-  const SuperLUGrid<Complex>*    gridSuperLUComplex_;           
+  const SuperLUGrid<Real>*       gridSuperLUReal_;
+  const SuperLUGrid<Complex>*    gridSuperLUComplex_;
 
   // Used for performing "CopyPattern"
   DistSparseMatrix<Real>     PatternMat_;
@@ -110,7 +110,7 @@ private:
   DistSparseMatrix<Real>     shiftInvRealMat_;
   DistSparseMatrix<Complex>  shiftInvComplexMat_;
 
-  DistSparseMatrix<Real>     rhoRealMat_;                   // Density matrix 
+  DistSparseMatrix<Real>     rhoRealMat_;                   // Density matrix
   DistSparseMatrix<Real>     rhoDrvMuRealMat_;              // Derivative of the Fermi-Dirac with respect to mu
   DistSparseMatrix<Real>     rhoDrvTRealMat_;               // Derivative of the Fermi-Dirac with respect to T
   DistSparseMatrix<Real>     freeEnergyDensityRealMat_;     // Helmholtz free energy density matrix
@@ -121,7 +121,7 @@ private:
   DistSparseMatrix<Complex>  HComplexMat_;
   DistSparseMatrix<Complex>  SComplexMat_;
 
-  DistSparseMatrix<Complex>     rhoComplexMat_;               // Density matrix 
+  DistSparseMatrix<Complex>     rhoComplexMat_;               // Density matrix
   DistSparseMatrix<Complex>     rhoDrvMuComplexMat_;          // Derivative of the Fermi-Dirac with respect to mu
   DistSparseMatrix<Complex>     rhoDrvTComplexMat_;           // Derivative of the Fermi-Dirac with respect to T
   DistSparseMatrix<Complex>     freeEnergyDensityComplexMat_; // Helmholtz free energy density matrix
@@ -153,6 +153,8 @@ private:
 
   symPACK::DistSparseMatrix<Real>     symmShiftInvRealMat_;
   symPACK::DistSparseMatrix<Complex>  symmShiftInvComplexMat_;
+
+  Int outputFileIndex_;
 #endif
 
   SuperLUOptions             luOpt_;
@@ -174,20 +176,20 @@ private:
   bool                       isRealUnsymmetricSymbolicFactorized_;
   bool                       isComplexUnsymmetricSymbolicFactorized_;
   // Supernode partition for the real matrix
-  SuperNodeType              superReal_;             
+  SuperNodeType              superReal_;
   // Supernode partition for the complex matrix
-  SuperNodeType              superComplex_;             
+  SuperNodeType              superComplex_;
 
   // Saves all the indices of diagonal elements in H, so that
   // H.nzvalLocal(diagIdxLocal_[j]) are diagonal elements for all j.
   // This is manly used when S is implicitly given as an identity matrix.
-  std::vector<Int>           diagIdxLocal_;    
+  std::vector<Int>           diagIdxLocal_;
 
   // Energy computed from Tr[H*DM]
   Real                       totalEnergyH_;
   // Energy computed from Tr[S*EDM]
   Real                       totalEnergyS_;
-  // Free energy 
+  // Free energy
   Real                       totalFreeEnergy_;
 
 
@@ -198,35 +200,35 @@ private:
 public:
   PPEXSIData(
       MPI_Comm   comm,
-      Int        numProcRow, 
-      Int        numProcCol, 
+      Int        numProcRow,
+      Int        numProcCol,
       Int        outputFileIndex );
 
   ~PPEXSIData();
 
   void LoadRealMatrix(
-      Int           nrows,                        
-      Int           nnz,                          
-      Int           nnzLocal,                     
-      Int           numColLocal,                  
-      Int*          colptrLocal,                  
-      Int*          rowindLocal,                  
-      Real*         HnzvalLocal,                  
-      Int           isSIdentity,                  
+      Int           nrows,
+      Int           nnz,
+      Int           nnzLocal,
+      Int           numColLocal,
+      Int*          colptrLocal,
+      Int*          rowindLocal,
+      Real*         HnzvalLocal,
+      Int           isSIdentity,
       Real*         SnzvalLocal,
     Int               solver,
       Int           verbosity );
 
 
   void LoadComplexMatrix(
-      Int           nrows,                        
-      Int           nnz,                          
-      Int           nnzLocal,                     
-      Int           numColLocal,                  
-      Int*          colptrLocal,                  
-      Int*          rowindLocal,                  
-      Complex*      HnzvalLocal,                  
-      Int           isSIdentity,                  
+      Int           nrows,
+      Int           nnz,
+      Int           nnzLocal,
+      Int           numColLocal,
+      Int*          colptrLocal,
+      Int*          rowindLocal,
+      Complex*      HnzvalLocal,
+      Int           isSIdentity,
       Complex*      SnzvalLocal,
     Int               solver,
       Int           verbosity );
@@ -250,6 +252,7 @@ public:
   /// - = 2   : Detailed output.
   void SymbolicFactorizeRealSymmetricMatrix(
       Int                            solver,
+      Int                            symmetricStorage,
       std::string                    ColPerm,
       Int                            numProcSymbFact,
       Int                            verbosity );
@@ -268,7 +271,7 @@ public:
   /// @param[in] numProcSymbFact Number of processors used for parallel
   /// symbolic factorization and PARMETIS/PT-SCOTCH.
   /// @param[in] Transpose TODO
-  /// @param[in] AnzvalLocal non zero values for row permutation 
+  /// @param[in] AnzvalLocal non zero values for row permutation
   /// @param[in] verbosity The level of output information.
   /// - = 0   : No output.
   /// - = 1   : Basic output (default)
@@ -279,7 +282,7 @@ public:
       std::string                    RowPerm,
       Int                            numProcSymbFact,
       Int                            Transpose,
-      double*                        AnzvalLocal,                  
+      double*                        AnzvalLocal,
       Int                            verbosity );
 
 
@@ -302,6 +305,7 @@ public:
   /// - = 2   : Detailed output.
   void SymbolicFactorizeComplexSymmetricMatrix(
       Int                            solver,
+      Int                            symmetricStorage,
       std::string                    ColPerm,
       Int                            numProcSymbFact,
       Int                            verbosity );
@@ -320,7 +324,7 @@ public:
   /// @param[in] numProcSymbFact Number of processors used for parallel
   /// symbolic factorization and PARMETIS/PT-SCOTCH.
   /// @param[in] Transpose TODO
-  /// @param[in] AnzvalLocal non zero values for row permutation 
+  /// @param[in] AnzvalLocal non zero values for row permutation
   /// @param[in] verbosity The level of output information.
   /// - = 0   : No output.
   /// - = 1   : Basic output (default)
@@ -331,33 +335,35 @@ public:
       std::string                    RowPerm,
       Int                            numProcSymbFact,
       Int                            Transpose,
-      double*                        AnzvalLocal,                  
+      double*                        AnzvalLocal,
       Int                            verbosity );
 
 
 
   void SelInvRealSymmetricMatrix(
-    Int               solver,
-      double*           AnzvalLocal,                  
+      Int               solver,
+      Int               symmetricStorage,
+      double*           AnzvalLocal,
       Int               verbosity,
       double*           AinvnzvalLocal );
 
   void SelInvRealUnsymmetricMatrix(
-    Int               solver,
-      double*           AnzvalLocal,                  
+      Int               solver,
+      double*           AnzvalLocal,
       Int               verbosity,
       double*           AinvnzvalLocal );
 
 
   void SelInvComplexSymmetricMatrix(
-    Int               solver,
-      double*           AnzvalLocal,                  
+      Int               solver,
+      Int               symmetricStorage,
+      double*           AnzvalLocal,
       Int               verbosity,
       double*           AinvnzvalLocal );
 
   void SelInvComplexUnsymmetricMatrix(
-    Int               solver,
-      double*           AnzvalLocal,                  
+      Int               solver,
+      double*           AnzvalLocal,
       Int               verbosity,
       double*           AinvnzvalLocal );
 
@@ -386,20 +392,20 @@ public:
   /// sparse column format. See DistSparseMatrix.
   ///
   /// **Note**: If SMat.size == 0, SMat is treated as an identity matrix.
-  /// 
+  ///
   /// @param[in] verbosity The level of output information.
   /// - = 0   : No output.
   /// - = 1   : Basic output (default)
   /// - = 2   : Detailed output.
   void CalculateNegativeInertiaReal(
-      const std::vector<Real>&       shiftVec, 
+      const std::vector<Real>&       shiftVec,
       std::vector<Real>&             inertiaVec,
     Int               solver,
       Int                            verbosity );
 
   /// @brief Compute the negative inertia (the number of eigenvalues
   /// below a shift) for complex Hermitian matrices. Currently this is
-  /// performed with LU factorization without row permutation. 
+  /// performed with LU factorization without row permutation.
   ///
   /// This subroutine computes the negative inertia of the matrix
   ///
@@ -420,13 +426,13 @@ public:
   /// sparse column format. See DistSparseMatrix.
   ///
   /// **Note**: If SMat.size == 0, SMat is treated as an identity matrix.
-  /// 
+  ///
   /// @param[in] verbosity The level of output information.
   /// - = 0   : No output.
   /// - = 1   : Basic output (default)
   /// - = 2   : Detailed output.
   void CalculateNegativeInertiaComplex(
-      const std::vector<Real>&       shiftVec, 
+      const std::vector<Real>&       shiftVec,
       std::vector<Real>&             inertiaVec,
     Int               solver,
       Int                            verbosity );
@@ -459,18 +465,19 @@ public:
   /// @param[out] numElectronDrvMu The derivative of the number of
   /// electron calculated with respect to the chemical potential at mu.
   void CalculateFermiOperatorReal(
-      Int   numPole, 
+      Int   numPole,
       Real  temperature,
       Real  gap,
       Real  deltaE,
       Real  mu,
-      Real  numElectronExact, 
+      Real  numElectronExact,
       Real  numElectronTolerance,
-    Int               solver,
+      Int               solver,
       Int   verbosity,
       Real& numElectron,
       Real& numElectronDrvMu );
 
+#if 0
   /// @brief Compute the Fermi operator for a given chemical
   /// potential for complex Hermitian matrices.
   ///
@@ -497,18 +504,18 @@ public:
   /// @param[out] numElectronDrvMu The derivative of the number of
   /// electron calculated with respect to the chemical potential at mu.
   void CalculateFermiOperatorComplexDeprecate(
-      Int   numPole, 
+      Int   numPole,
       Real  temperature,
       Real  gap,
       Real  deltaE,
       Real  mu,
-      Real  numElectronExact, 
+      Real  numElectronExact,
       Real  numElectronTolerance,
       Int   solver,
       Int   verbosity,
       Real& numElectron,
       Real& numElectronDrvMu );
-
+#endif
 
   /// @brief Compute the Fermi operator for a given chemical
   /// potential for complex Hermitian matrices.
@@ -536,12 +543,12 @@ public:
   /// @param[out] numElectronDrvMu The derivative of the number of
   /// electron calculated with respect to the chemical potential at mu.
   void CalculateFermiOperatorComplex(
-      Int   numPole, 
+      Int   numPole,
       Real  temperature,
       Real  gap,
       Real  deltaE,
       Real  mu,
-      Real  numElectronExact, 
+      Real  numElectronExact,
       Real  numElectronTolerance,
       Int   solver,
       Int   verbosity,
@@ -559,7 +566,7 @@ public:
       Real       temperature,
       Real       gap,
       Real       deltaE,
-      Int        numPole, 
+      Int        numPole,
       Int        isInertiaCount,
       Int        maxPEXSIIter,
       Real       muMin0,
@@ -572,20 +579,21 @@ public:
       Int        matrixType,
       Int        isSymbolicFactorize,
       Int        solver,
+      Int        symmetricStorage,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,
-      Real&      muPEXSI,                   
-      Real&      numElectronPEXSI,         
-      Real&      muMinInertia,              
-      Real&      muMaxInertia,             
-      Int&       numTotalInertiaIter,   
+      Real&      muPEXSI,
+      Real&      numElectronPEXSI,
+      Real&      muMinInertia,
+      Real&      muMaxInertia,
+      Int&       numTotalInertiaIter,
       Int&       numTotalPEXSIIter );
 
 
-
+#if 0
   /// @brief Compute the Fermi operator and derivied quantities.
-  /// 
+  ///
   /// This routine also updates the chemical potential mu by reusing
   /// Green's functions but with updated contour.
   ///
@@ -616,22 +624,23 @@ public:
   /// @param[out] isConverged Whether the update strategy for finding
   /// the chemical potential has converged.
   void CalculateFermiOperatorReal2(
-      Int   numPole, 
+      Int   numPole,
       Real  temperature,
       Real  gap,
       Real  deltaE,
-      Real  numElectronExact, 
+      Real  numElectronExact,
       Real  numElectronTolerance,
       Real  muMinPEXSI,
       Real  muMaxPEXSI,
       Int   solver,
       Int   verbosity,
       Real& mu,
-      Real& numElectron, 
+      Real& numElectron,
       bool& isPEXSIConverged );
+#endif
 
   /// @brief Compute the Fermi operator and derivied quantities.
-  /// 
+  ///
   /// This routine also updates the chemical potential mu by reusing
   /// Green's functions but with updated contour.
   ///
@@ -661,13 +670,13 @@ public:
   /// @param[out] numElectron The number of electron calculated at mu.
   /// @param[out] isConverged Whether the update strategy for finding
   /// the chemical potential has converged.
- 
+
   void CalculateFermiOperatorReal3(
-      Int   numPole, 
+      Int   numPole,
       Real  temperature,
       Real  gap,
       Real  deltaE,
-      Real  numElectronExact, 
+      Real  numElectronExact,
       Real  numElectronTolerance,
       Int   solver,
       Int   verbosity,
@@ -675,26 +684,28 @@ public:
       Real& numElectron,
       Int   method,
       Int   nPoints,
-      Real  spin );
+      Real  spin);
 
   /// @brief Compute the Correction of the EDM matrix.
   void CalculateEDMCorrectionReal(
       Int   numPole,
+      Int   solver,
       Int   verbosity,
       Int   nPoints,
-      Real  spin );
+      Real  spin);
 
 
   /// @brief Compute the Correction of the EDM matrix.
   void CalculateEDMCorrectionComplex(
       Int   numPole,
+      Int   solver,
       Int   verbosity,
       Int   nPoints,
-      Real  spin );
+      Real  spin);
 
 
 
- 
+#if 0
   /// @brief Updated main driver for DFT. This reuses the pole
   /// expansion and only performs one PEXSI iteration per SCF step.
   void DFTDriver2_Deprecate(
@@ -702,7 +713,7 @@ public:
       Real       temperature,
       Real       gap,
       Real       deltaE,
-      Int        numPole, 
+      Int        numPole,
       Int        isInertiaCount,
       Real       muMin0,
       Real       muMax0,
@@ -713,14 +724,16 @@ public:
       Int        matrixType,
       Int        isSymbolicFactorize,
       Int        solver,
+      Int        symmetricStorage,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,
-      Real&      muPEXSI,                   
-      Real&      numElectronPEXSI,         
-      Real&      muMinInertia,              
-      Real&      muMaxInertia,             
+      Real&      muPEXSI,
+      Real&      numElectronPEXSI,
+      Real&      muMinInertia,
+      Real&      muMaxInertia,
       Int&       numTotalInertiaIter );
+#endif
 
   /// @brief Updated main driver for DFT. This reuses the pole
   /// expansion and only performs one PEXSI iteration per SCF step.
@@ -729,7 +742,7 @@ public:
       Real       temperature,
       Real       gap,
       Real       deltaE,
-      Int        numPole, 
+      Int        numPole,
       //Int        isInertiaCount,
       //Real       muMin0,
       //Real       muMax0,
@@ -740,17 +753,18 @@ public:
       Int        matrixType,
       Int        isSymbolicFactorize,
       Int        solver,
+      Int        symmetricStorage,
       Int        ordering,
       Int        numProcSymbFact,
       Int        verbosity,
-      Real&      muPEXSI,                   
-      Real&      numElectronPEXSI,         
-      Real&      muMinInertia,              
-      Real&      muMaxInertia,             
+      Real&      muPEXSI,
+      Real&      numElectronPEXSI,
+      Real&      muMinInertia,
+      Real&      muMaxInertia,
       Int&       numTotalInertiaIter,
       Int        method,
       Int        nPoints,
-      Real       spin );
+      Real       spin);
 
   /// @brief Interpolate the DM and get the total Energy
   void InterpolateDMReal(
@@ -791,22 +805,22 @@ public:
   const DistSparseMatrix<Real>&   RhoRealMat() const {return rhoRealMat_;}
   const DistSparseMatrix<Complex>&   RhoComplexMat() const {return rhoComplexMat_;}
 
-  /// @brief Energy density matrix.  
+  /// @brief Energy density matrix.
   ///
   /// Can be used to estimate the total band energy via Tr[EDM*S] or
   /// the force, including the Hellman-Feynman force and the Pulay
-  /// force. 
+  /// force.
   const DistSparseMatrix<Real>&   EnergyDensityRealMat() const {return energyDensityRealMat_;}
   const DistSparseMatrix<Complex>&   EnergyDensityComplexMat() const {return energyDensityComplexMat_;}
 
-  /// @brief Total Helmholtz free energy matrix (band energy part only).  
+  /// @brief Total Helmholtz free energy matrix (band energy part only).
   ///
   /// The Helmholtz free energy is computed by Tr[rho_f*H].
   ///
-  /// For more information see 
+  /// For more information see
   /// Alavi, A., Kohanoff, J., Parrinello, M., & Frenkel, D. (1994). Ab
   /// initio molecular dynamics with excited electrons. Physical review
-  /// letters, 73(19), 2599–2602. 
+  /// letters, 73(19), 2599–2602.
   const DistSparseMatrix<Real>&   FreeEnergyDensityRealMat() const {return freeEnergyDensityRealMat_;}
   const DistSparseMatrix<Complex>& FreeEnergyDensityComplexMat() const {return freeEnergyDensityComplexMat_;}
 

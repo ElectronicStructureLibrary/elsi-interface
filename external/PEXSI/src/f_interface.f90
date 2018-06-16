@@ -288,7 +288,6 @@ interface
       mu,&
       numElectronExact,&
       numElectronPEXSI,&
-      numElectronDrvMuPEXSI,&
       info)&
       bind(C, Name="PPEXSICalculateFermiOperatorReal3")
     use, intrinsic :: iso_c_binding
@@ -299,7 +298,6 @@ interface
     real(c_double),         intent(in), value :: mu
     real(c_double),         intent(in), value :: numElectronExact
     real(c_double),         intent(out)       :: numElectronPEXSI
-    real(c_double),         intent(out)       :: numElectronDrvMuPEXSI
     integer(c_int),         intent(out)       :: info
   end subroutine
 

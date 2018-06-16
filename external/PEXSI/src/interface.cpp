@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin
 
@@ -39,13 +39,13 @@ Enhancements, then you hereby grant the following license: a non-exclusive,
 royalty-free perpetual license to install, use, modify, prepare derivative
 works, incorporate into other computer software, distribute, and sublicense
 such enhancements or derivative works thereof, in binary and source code form.
- */
+*/
 /// @file interface.cpp
 /// @brief Interface subroutines of PPEXSI that can be called by both C and FORTRAN.
 ///
 /// This file will eventually merge with interface.cpp.
 /// @date Original:      2013-02-03
-/// @date Revision:      2014-01-01 
+/// @date Revision:      2014-01-01
 /// @date Revision:      2014-03-07  Second generation interface.
 #include "c_pexsi_interface.h"
 #include "ppexsi.hpp"
@@ -60,208 +60,20 @@ such enhancements or derivative works thereof, in binary and source code form.
 using namespace PEXSI;
 
 extern "C"
-void ReadDistSparseMatrixFormattedHeadInterface (
-    char*    filename,
-    int*     size,
-    int*     nnz,
-    int*     nnzLocal,
-    int*     numColLocal,
-    MPI_Comm comm )
-{
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
-  std::ifstream fin;
-  if( mpirank == 0 ){
-    fin.open(filename);
-    if( !fin.good() ){
-      ErrorHandling( "File cannot be openeded!" );
-    }
-    Int dummy;
-    fin >> *size >> dummy;
-    fin >> *nnz >> dummy;
-  }
-
-  MPI_Bcast( &(*size), 1, MPI_INT, 0, comm);
-  MPI_Bcast( &(*nnz),  1, MPI_INT, 0, comm);
-
-  IntNumVec  colptr(*size+1);
-  if( mpirank == 0 ){
-    Int* ptr = colptr.Data();
-    for( Int i = 0; i < *size+1; i++ )
-      fin >> *(ptr++);
-  }
-
-  MPI_Bcast(colptr.Data(), *size+1, MPI_INT, 0, comm);
-
-  // Compute the number of columns on each processor
-  IntNumVec numColLocalVec(mpisize);
-  Int numColFirst;
-  numColFirst = *size / mpisize;
-  SetValue( numColLocalVec, numColFirst );
-  numColLocalVec[mpisize-1] = *size - numColFirst * (mpisize-1);  
-  // Modify the last entry	
-
-  *numColLocal = numColLocalVec[mpirank];
-
-  *nnzLocal = colptr[mpirank * numColFirst + (*numColLocal)] - 
-    colptr[mpirank * numColFirst];
-
-  // Close the file
-  if( mpirank == 0 ){
-    fin.close();
-  }
-
-  return;
-}  
-// -----  end of function ReadDistSparseMatrixFormattedHeadInterface
-
-
-extern "C"
-void ReadDistSparseMatrixFormattedInterface(
-    char*     filename,
-    int       size,
-    int       nnz,
-    int       nnzLocal,
-    int       numColLocal,
-    int*      colptrLocal,
-    int*      rowindLocal,
-    double*   nzvalLocal,
-    MPI_Comm  comm )
-{
-  DistSparseMatrix<Real> A;
-  ReadDistSparseMatrixFormatted( filename, A, comm );
-  iA( size == A.size );
-  iA( nnz  == A.nnz  );
-  iA( nnzLocal == A.nnzLocal );
-  iA( numColLocal + 1 == A.colptrLocal.m() );
-
-  blas::Copy( numColLocal+1, A.colptrLocal.Data(), 1,
-      colptrLocal, 1 );
-
-  blas::Copy( nnzLocal, A.rowindLocal.Data(), 1,
-      rowindLocal, 1 );
-
-  blas::Copy( nnzLocal, A.nzvalLocal.Data(), 1,
-      nzvalLocal, 1 );
-
-  return;
-}  
-// -----  end of function ReadDistSparseMatrixFormattedInterface  
-
-
-extern "C"
-void ReadDistSparseMatrixHeadInterface (
-    char*    filename,
-    int*     size,
-    int*     nnz,
-    int*     nnzLocal,
-    int*     numColLocal,
-    MPI_Comm comm )
-{
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
-  std::ifstream fin;
-  if( mpirank == 0 ){
-    fin.open(filename);
-    if( !fin.good() ){
-      ErrorHandling( "File cannot be openeded!" );
-    }
-    fin.read((char*)size, sizeof(int));
-    fin.read((char*)nnz,  sizeof(int));
-  }
-
-  MPI_Bcast( &(*size), 1, MPI_INT, 0, comm);
-  MPI_Bcast( &(*nnz),  1, MPI_INT, 0, comm);
-
-  IntNumVec  colptr(*size+1);
-  if( mpirank == 0 ){
-    Int tmp;
-    fin.read((char*)&tmp, sizeof(int));  
-
-    if( tmp != (*size)+1 ){
-      ErrorHandling( "colptr is not of the right size." );
-    }
-
-    Int* ptr = colptr.Data();
-    fin.read((char*)ptr, (*size+1) * sizeof(int));  
-  }
-
-  MPI_Bcast(colptr.Data(), *size+1, MPI_INT, 0, comm);
-
-  // Compute the number of columns on each processor
-  IntNumVec numColLocalVec(mpisize);
-  Int numColFirst;
-  numColFirst = *size / mpisize;
-  SetValue( numColLocalVec, numColFirst );
-  numColLocalVec[mpisize-1] = *size - numColFirst * (mpisize-1);  
-  // Modify the last entry	
-
-  *numColLocal = numColLocalVec[mpirank];
-
-  *nnzLocal = colptr[mpirank * numColFirst + (*numColLocal)] - 
-    colptr[mpirank * numColFirst];
-
-  // Close the file
-  if( mpirank == 0 ){
-    fin.close();
-  }
-
-  return;
-}  
-// -----  end of function ReadDistSparseMatrixHeadInterface
-
-extern "C"
-void ParaReadDistSparseMatrixInterface(
-    char*     filename,
-    int       size,
-    int       nnz,
-    int       nnzLocal,
-    int       numColLocal,
-    int*      colptrLocal,
-    int*      rowindLocal,
-    double*   nzvalLocal,
-    MPI_Comm  comm )
-{
-  DistSparseMatrix<Real> A;
-  ParaReadDistSparseMatrix( filename, A, comm );
-  iA( size == A.size );
-  iA( nnz  == A.nnz  );
-  iA( nnzLocal == A.nnzLocal );
-  iA( numColLocal + 1 == A.colptrLocal.m() );
-
-  blas::Copy( numColLocal+1, A.colptrLocal.Data(), 1,
-      colptrLocal, 1 );
-
-  blas::Copy( nnzLocal, A.rowindLocal.Data(), 1,
-      rowindLocal, 1 );
-
-  blas::Copy( nnzLocal, A.nzvalLocal.Data(), 1,
-      nzvalLocal, 1 );
-
-  return;
-}  
-// -----  end of function ReadDistSparseMatrixFormattedInterface  
-
-
-// *********************************************************************
-// Second interface
-// *********************************************************************
-
-extern "C"
 void PPEXSISetDefaultOptions(
     PPEXSIOptions*   options ){
   options->spin                  = 2.0;
-  options->temperature           = 0.0019;   // 300K 
-  options->gap                   = 0.0;      // no gap 
-  options->deltaE                = 10.0; 
+  options->temperature           = 0.0019;   // 300K
+  options->gap                   = 0.0;      // no gap
+  options->deltaE                = 10.0;
   options->numPole               = 20;
   options->isInertiaCount        = 1;
   options->maxPEXSIIter          = 3;
-  options->muMin0                = -10.0; 
-  options->muMax0                = +10.0; 
+  options->muMin0                = -10.0;
+  options->muMax0                = +10.0;
   options->mu0                   =  0.0;  // For more control by the user
   options->muInertiaTolerance    = 0.05;
-  options->muInertiaExpansion    = 0.3;      
+  options->muInertiaExpansion    = 0.3;
   options->muPEXSISafeGuard      = 0.05;
   options->numElectronPEXSITolerance = 1.0E-10;
   options->matrixType            = 0;
@@ -276,7 +88,7 @@ void PPEXSISetDefaultOptions(
   options->method                = 2;
   options->verbosity             = 1;
   options->nPoints               = 2;
-}   // -----  end of function PPEXSISetDefaultOptions  ----- 
+}   // -----  end of function PPEXSISetDefaultOptions  -----
 
 
 extern "C"
@@ -284,10 +96,10 @@ PPEXSIPlan PPEXSIPlanInitialize(
     MPI_Comm      comm,
     int           numProcRow,
     int           numProcCol,
-    int           outputFileIndex, 
+    int           outputFileIndex,
     int*          info ){
 
-  Int mpirank, mpisize;
+  int mpirank, mpisize;
   MPI_Comm_rank( comm, &mpirank );
   MPI_Comm_size( comm, &mpisize );
 
@@ -305,25 +117,25 @@ PPEXSIPlan PPEXSIPlanInitialize(
   }
 
   return reinterpret_cast<PPEXSIPlan>(ptrData);
-}   // -----  end of function PPEXSIPlanInitialize  ----- 
+}   // -----  end of function PPEXSIPlanInitialize  -----
 
 
 extern "C"
 void PPEXSILoadRealHSMatrix(
     PPEXSIPlan    plan,
     PPEXSIOptions options,
-    int           nrows,                        
-    int           nnz,                          
-    int           nnzLocal,                     
-    int           numColLocal,                  
-    int*          colptrLocal,                  
-    int*          rowindLocal,                  
-    double*       HnzvalLocal,                  
-    int           isSIdentity,                  
-    double*       SnzvalLocal, 
+    int           nrows,
+    int           nnz,
+    int           nnzLocal,
+    int           numColLocal,
+    int*          colptrLocal,
+    int*          rowindLocal,
+    double*       HnzvalLocal,
+    int           isSIdentity,
+    double*       SnzvalLocal,
     int*          info ){
 
-  const GridType* gridPole = 
+  const GridType* gridPole =
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   *info = 0;
@@ -331,48 +143,46 @@ void PPEXSILoadRealHSMatrix(
   try{
     reinterpret_cast<PPEXSIData*>(plan)->
       LoadRealMatrix(
-          nrows,                        
-          nnz,                          
-          nnzLocal,                     
-          numColLocal,                  
-          colptrLocal,                  
-          rowindLocal,                  
-          HnzvalLocal,                  
-          isSIdentity,                  
+          nrows,
+          nnz,
+          nnzLocal,
+          numColLocal,
+          colptrLocal,
+          rowindLocal,
+          HnzvalLocal,
+          isSIdentity,
           SnzvalLocal,
           options.solver,
           options.verbosity );
   }
   catch( std::exception& e )
   {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
       << " caught exception with message: "
       << std::endl << e.what() << std::endl;
     *info = 1;
   }
 
   return;
-}   // -----  end of function PPEXSILoadRealHSMatrix  ----- 
-
-
+}   // -----  end of function PPEXSILoadRealHSMatrix  -----
 
 
 extern "C"
 void PPEXSILoadComplexHSMatrix(
     PPEXSIPlan    plan,
     PPEXSIOptions options,
-    int           nrows,                        
-    int           nnz,                          
-    int           nnzLocal,                     
-    int           numColLocal,                  
-    int*          colptrLocal,                  
-    int*          rowindLocal,                  
-    double*       HnzvalLocal,                  
-    int           isSIdentity,                  
-    double*       SnzvalLocal, 
+    int           nrows,
+    int           nnz,
+    int           nnzLocal,
+    int           numColLocal,
+    int*          colptrLocal,
+    int*          rowindLocal,
+    double*       HnzvalLocal,
+    int           isSIdentity,
+    double*       SnzvalLocal,
     int*          info ){
 
-  const GridType* gridPole = 
+  const GridType* gridPole =
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   *info = 0;
@@ -380,29 +190,28 @@ void PPEXSILoadComplexHSMatrix(
   try{
     reinterpret_cast<PPEXSIData*>(plan)->
       LoadComplexMatrix(
-          nrows,                        
-          nnz,                          
-          nnzLocal,                     
-          numColLocal,                  
-          colptrLocal,                  
-          rowindLocal,                  
-          reinterpret_cast<Complex*>(HnzvalLocal), 
-          isSIdentity,                  
+          nrows,
+          nnz,
+          nnzLocal,
+          numColLocal,
+          colptrLocal,
+          rowindLocal,
+          reinterpret_cast<Complex*>(HnzvalLocal),
+          isSIdentity,
           reinterpret_cast<Complex*>(SnzvalLocal),
           options.solver,
           options.verbosity );
   }
   catch( std::exception& e )
   {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
       << " caught exception with message: "
       << std::endl << e.what() << std::endl;
     *info = 1;
   }
 
   return;
-}   // -----  end of function PPEXSILoadComplexHSMatrix  ----- 
-
+}   // -----  end of function PPEXSILoadComplexHSMatrix  -----
 
 
 extern "C"
@@ -410,7 +219,7 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
     int*              info ) {
-  const GridType* gridPole = 
+  const GridType* gridPole =
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
 
@@ -433,6 +242,9 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
             case 2:
               colPerm = "MMD_AT_PLUS_A";
               break;
+            case 3:
+              colPerm = "NATURAL";
+              break;
             default:
               ErrorHandling("Unsupported ordering strategy.");
               break;
@@ -445,16 +257,25 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
           //Handle symPACK ordering options
           switch (options.ordering){
             case 0:
-              colPerm = "PARMETIS";
+              colPerm = "PTSCOTCH";
               break;
             case 1:
-              colPerm = "METIS";
+              colPerm = "SCOTCH";
               break;
             case 2:
               colPerm = "MMD";
               break;
             case 3:
+              colPerm = "NATURAL";
+              break;
+            case 4:
               colPerm = "AMD";
+              break;
+            case 5:
+              colPerm = "PARMETIS";
+              break;
+            case 6:
+              colPerm = "METIS";
               break;
             default:
               ErrorHandling("Unsupported ordering strategy.");
@@ -471,28 +292,30 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeRealSymmetricMatrix(
           options.solver,
+          options.symmetricStorage,
           colPerm,
           options.npSymbFact,
           options.verbosity );
   }
   catch( std::exception& e )
   {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
       << " caught exception with message: "
       << std::endl << e.what() << std::endl;
     *info = 1;
   }
 
   return ;
-}		// -----  end of function PPEXSISymbolicFactorizeRealSymmetricMatrix  ----- 
+}		// -----  end of function PPEXSISymbolicFactorizeRealSymmetricMatrix  -----
+
 
 extern "C"
 void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
-    double*           AnzvalLocal,                  
+    double*           AnzvalLocal,
     int*              info ) {
-  const GridType* gridPole = 
+  const GridType* gridPole =
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   *info = 0;
@@ -508,6 +331,9 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
         break;
       case 2:
         colPerm = "MMD_AT_PLUS_A";
+        break;
+      case 3:
+        colPerm = "NATURAL";
         break;
       default:
         ErrorHandling("Unsupported ordering strategy.");
@@ -540,15 +366,14 @@ void PPEXSISymbolicFactorizeRealUnsymmetricMatrix(
   }
   catch( std::exception& e )
   {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
       << " caught exception with message: "
       << std::endl << e.what() << std::endl;
     *info = 1;
   }
 
   return ;
-}		// -----  end of function PPEXSISymbolicFactorizeRealUnsymmetricMatrix  ----- 
-
+}		// -----  end of function PPEXSISymbolicFactorizeRealUnsymmetricMatrix  -----
 
 
 extern "C"
@@ -556,7 +381,7 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
     int*              info ) {
-  const GridType* gridPole = 
+  const GridType* gridPole =
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   *info = 0;
@@ -577,6 +402,9 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
             case 2:
               colPerm = "MMD_AT_PLUS_A";
               break;
+            case 3:
+              colPerm = "NATURAL";
+              break;
             default:
               ErrorHandling("Unsupported ordering strategy.");
               break;
@@ -589,16 +417,25 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
           //Handle symPACK ordering options
           switch (options.ordering){
             case 0:
-              colPerm = "PARMETIS";
+              colPerm = "PTSCOTCH";
               break;
             case 1:
-              colPerm = "METIS";
+              colPerm = "SCOTCH";
               break;
             case 2:
               colPerm = "MMD";
               break;
             case 3:
+              colPerm = "NATURAL";
+              break;
+            case 4:
               colPerm = "AMD";
+              break;
+            case 5:
+              colPerm = "PARMETIS";
+              break;
+            case 6:
+              colPerm = "METIS";
               break;
             default:
               ErrorHandling("Unsupported ordering strategy.");
@@ -616,28 +453,30 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
     reinterpret_cast<PPEXSIData*>(plan)->
       SymbolicFactorizeComplexSymmetricMatrix(
           options.solver,
+          options.symmetricStorage,
           colPerm,
           options.npSymbFact,
           options.verbosity );
   }
   catch( std::exception& e )
   {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
       << " caught exception with message: "
       << std::endl << e.what() << std::endl;
     *info = 1;
   }
 
   return ;
-}		// -----  end of function PPEXSISymbolicFactorizeRealSymmetricMatrix  ----- 
+}		// -----  end of function PPEXSISymbolicFactorizeRealSymmetricMatrix  -----
+
 
 extern "C"
 void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
-    double*           AnzvalLocal,                  
+    double*           AnzvalLocal,
     int*              info ) {
-  const GridType* gridPole = 
+  const GridType* gridPole =
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   *info = 0;
@@ -653,6 +492,9 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
         break;
       case 2:
         colPerm = "MMD_AT_PLUS_A";
+        break;
+      case 3:
+        colPerm = "NATURAL";
         break;
       default:
         ErrorHandling("Unsupported ordering strategy.");
@@ -683,15 +525,14 @@ void PPEXSISymbolicFactorizeComplexUnsymmetricMatrix(
   }
   catch( std::exception& e )
   {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
       << " caught exception with message: "
       << std::endl << e.what() << std::endl;
     *info = 1;
   }
 
   return ;
-}		// -----  end of function PPEXSISymbolicFactorizeRealUnsymmetricMatrix  ----- 
-
+}		// -----  end of function PPEXSISymbolicFactorizeRealUnsymmetricMatrix  -----
 
 
 extern "C"
@@ -705,7 +546,7 @@ void PPEXSIInertiaCountRealMatrix(
     double*           inertiaList,
     int*              info ) {
 
-  const GridType* gridPole = 
+  const GridType* gridPole =
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   *info = 0;
@@ -730,14 +571,14 @@ void PPEXSIInertiaCountRealMatrix(
   }
   catch( std::exception& e )
   {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
       << " caught exception with message: "
       << std::endl << e.what() << std::endl;
     *info = 1;
   }
 
   return ;
-}		// -----  end of function PPEXSIInertiaCountRealMatrix  ----- 
+}		// -----  end of function PPEXSIInertiaCountRealMatrix  -----
 
 
 extern "C"
@@ -751,7 +592,7 @@ void PPEXSIInertiaCountComplexMatrix(
     double*           inertiaList,
     int*              info ) {
 
-  const GridType* gridPole = 
+  const GridType* gridPole =
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   *info = 0;
@@ -776,55 +617,15 @@ void PPEXSIInertiaCountComplexMatrix(
   }
   catch( std::exception& e )
   {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
       << " caught exception with message: "
       << std::endl << e.what() << std::endl;
     *info = 1;
   }
 
   return ;
-}		// -----  end of function PPEXSIInertiaCountComplexMatrix  ----- 
+}		// -----  end of function PPEXSIInertiaCountComplexMatrix  -----
 
-
-
-extern "C"
-void PPEXSICalculateFermiOperatorReal(
-    PPEXSIPlan        plan,
-    PPEXSIOptions     options,
-    double            mu,
-    double            numElectronExact,
-    double*           numElectronPEXSI,
-    double*           numElectronDrvMuPEXSI,
-    int*              info )
-{
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-
-  try{
-    reinterpret_cast<PPEXSIData*>(plan)->CalculateFermiOperatorReal(
-        options.numPole,
-        options.temperature,
-        options.gap,
-        options.deltaE,
-        mu,
-        numElectronExact,
-        options.numElectronPEXSITolerance,
-          options.solver,
-        options.verbosity,
-        *numElectronPEXSI,
-        *numElectronDrvMuPEXSI );
-  }
-  catch( std::exception& e )
-  {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-
-  return ;
-}		// -----  end of function PPEXSICalculateFermiOperatorReal  ----- 
 
 extern "C"
 void PPEXSICalculateFermiOperatorReal3(
@@ -833,7 +634,6 @@ void PPEXSICalculateFermiOperatorReal3(
     double            mu,
     double            numElectronExact,
     double*           numElectronPEXSI,
-    double*           numElectronDrvMuPEXSI,
     int*              info )
 {
   *info = 0;
@@ -865,7 +665,8 @@ void PPEXSICalculateFermiOperatorReal3(
   }
 
   return ;
-}               // -----  end of function PPEXSICalculateFermiOperatorReal3  -----
+}		// -----  end of function PPEXSICalculateFermiOperatorReal3  -----
+
 
 extern "C"
 void PPEXSICalculateFermiOperatorComplex(
@@ -878,7 +679,7 @@ void PPEXSICalculateFermiOperatorComplex(
     int*              info )
 {
   *info = 0;
-  const GridType* gridPole = 
+  const GridType* gridPole =
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   try{
@@ -900,14 +701,15 @@ void PPEXSICalculateFermiOperatorComplex(
   }
   catch( std::exception& e )
   {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
       << " caught exception with message: "
       << std::endl << e.what() << std::endl;
     *info = 1;
   }
 
   return ;
-}		// -----  end of function PPEXSICalculateFermiOperatorComplex   ----- 
+}		// -----  end of function PPEXSICalculateFermiOperatorComplex   -----
+
 
 extern "C"
 void PPEXSICalculateEDMCorrectionReal(
@@ -916,26 +718,28 @@ void PPEXSICalculateEDMCorrectionReal(
     int*              info )
 {
   *info = 0;
-  const GridType* gridPole = 
+  const GridType* gridPole =
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionReal(
         options.numPole,
+        options.solver,
         options.verbosity,
         options.nPoints,
         options.spin);
   }
   catch( std::exception& e )
   {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
       << " caught exception with message: "
       << std::endl << e.what() << std::endl;
     *info = 1;
   }
 
   return ;
-}		// -----  end of function PPEXSICalculateEDMCorrectionReal  ----- 
+}		// -----  end of function PPEXSICalculateEDMCorrectionReal  -----
+
 
 extern "C"
 void PPEXSICalculateEDMCorrectionComplex(
@@ -944,527 +748,36 @@ void PPEXSICalculateEDMCorrectionComplex(
     int*              info )
 {
   *info = 0;
-  const GridType* gridPole = 
+  const GridType* gridPole =
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   try{
     reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionComplex(
         options.numPole,
+        options.solver,
         options.verbosity,
         options.nPoints,
         options.spin);
   }
   catch( std::exception& e )
   {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
       << " caught exception with message: "
       << std::endl << e.what() << std::endl;
     *info = 1;
   }
 
   return ;
-}		// -----  end of function PPEXSICalculateEDMCorrectionComplex  ----- 
-
-extern "C"
-void PPEXSIInterpolateDMReal(
-    PPEXSIPlan        plan,
-    PPEXSIOptions*    options,
-    double            numElectronExact,
-    double            numElectronPEXSI,
-    double *          NeVec,
-    double *          muPEXSI,
-    int*              info )
-{
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-
-  try{
-    reinterpret_cast<PPEXSIData*>(plan)->InterpolateDMReal(
-        numElectronExact,
-	numElectronPEXSI,
-	options->numElectronPEXSITolerance,
-	options->nPoints,
-	NeVec,
-	options->muMin0,
-	options->muMax0,
-	*muPEXSI, 
-	options->verbosity);
-
-  }
-  catch( std::exception& e )
-  {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-
-  return ;
-}		// -----  end of function PEXSIInterpolateDMReal  ----- 
+}		// -----  end of function PPEXSICalculateEDMCorrectionComplex  -----
 
 
 extern "C"
-void PPEXSIInterpolateDMComplex(
-    PPEXSIPlan        plan,
-    PPEXSIOptions*    options,
-    double            numElectronExact,
-    double            numElectronPEXSI,
-    double *          NeVec,
-    double *          muPEXSI,
-    int*              info )
-{
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-
-  try{
-    reinterpret_cast<PPEXSIData*>(plan)->InterpolateDMComplex(
-        numElectronExact,
-	numElectronPEXSI,
-	options->numElectronPEXSITolerance,
-	options->nPoints,
-	NeVec,
-	options->muMin0,
-	options->muMax0,
-	*muPEXSI, 
-	options->verbosity);
-
-  }
-  catch( std::exception& e )
-  {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-
-  return ;
-}		// -----  end of function PEXSIInterpolateDMComplex  ----- 
-
-
-
-extern "C"
-void PPEXSISelInvRealSymmetricMatrix (
-    PPEXSIPlan        plan,
-    PPEXSIOptions     options,
-    double*           AnzvalLocal,                  
-    double*           AinvnzvalLocal,
-    int*              info )
-{
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-
-  try{
-    reinterpret_cast<PPEXSIData*>(plan)->SelInvRealSymmetricMatrix(
-          options.solver,
-        AnzvalLocal,
-        options.verbosity,
-        AinvnzvalLocal );
-  }
-  catch( std::exception& e )
-  {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-
-  return ;
-}		// -----  end of function PPEXSISelInvRealSymmetricMatrix  ----- 
-
-extern "C"
-void PPEXSISelInvRealUnsymmetricMatrix (
-    PPEXSIPlan        plan,
-    PPEXSIOptions     options,
-    double*           AnzvalLocal,                  
-    double*           AinvnzvalLocal,
-    int*              info )
-{
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-
-  try{
-    reinterpret_cast<PPEXSIData*>(plan)->SelInvRealUnsymmetricMatrix(
-          options.solver,
-        AnzvalLocal,
-        options.verbosity,
-        AinvnzvalLocal );
-  }
-  catch( std::exception& e )
-  {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-
-  return ;
-}		// -----  end of function PPEXSISelInvRealUnsymmetricMatrix  ----- 
-
-extern "C"
-void PPEXSISelInvComplexSymmetricMatrix (
-    PPEXSIPlan        plan,
-    PPEXSIOptions     options,
-    double*           AnzvalLocal,                  
-    double*           AinvnzvalLocal,
-    int*              info )
-{
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-
-  try{
-    reinterpret_cast<PPEXSIData*>(plan)->SelInvComplexSymmetricMatrix(
-          options.solver,
-        AnzvalLocal,
-        options.verbosity,
-        AinvnzvalLocal );
-  }
-  catch( std::exception& e )
-  {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-
-  return ;
-}		// -----  end of function PPEXSISelInvComplexSymmetricMatrix  ----- 
-
-extern "C"
-void PPEXSISelInvComplexUnsymmetricMatrix (
-    PPEXSIPlan        plan,
-    PPEXSIOptions     options,
-    double*           AnzvalLocal,                  
-    double*           AinvnzvalLocal,
-    int*              info )
-{
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-
-  try{
-    reinterpret_cast<PPEXSIData*>(plan)->SelInvComplexUnsymmetricMatrix(
-          options.solver,
-        AnzvalLocal,
-        options.verbosity,
-        AinvnzvalLocal );
-  }
-  catch( std::exception& e )
-  {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-
-  return ;
-}		// -----  end of function PPEXSISelInvComplexUnsymmetricMatrix  ----- 
-
-
-extern "C"
-void PPEXSIDFTDriver(
-    /* Input parameters */
-    PPEXSIPlan        plan,
-    PPEXSIOptions     options,
-    double            numElectronExact,
-    /* Output parameters */
-    double*           muPEXSI,                   
-    double*           numElectronPEXSI,         
-    double*           muMinInertia,              
-    double*           muMaxInertia,             
-    int*              numTotalInertiaIter,   
-    int*              numTotalPEXSIIter,   
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-
-  try{
-    reinterpret_cast<PPEXSIData*>(plan)->DFTDriver(
-        numElectronExact,
-        options.temperature,
-        options.gap,
-        options.deltaE,
-        options.numPole,
-        options.isInertiaCount,
-        options.maxPEXSIIter,
-        options.muMin0,
-        options.muMax0,
-        options.mu0,
-        options.muInertiaTolerance,
-        options.muInertiaExpansion,
-        options.muPEXSISafeGuard,
-        options.numElectronPEXSITolerance,
-        options.matrixType,
-        options.isSymbolicFactorize,
-        options.solver,
-        options.ordering,
-        options.npSymbFact,
-        options.verbosity,
-        *muPEXSI,
-        *numElectronPEXSI,
-        *muMinInertia,
-        *muMaxInertia,
-        *numTotalInertiaIter,
-        *numTotalPEXSIIter );
-  }
-  catch( std::exception& e )
-  {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIDFTDriver  ----- 
-
-extern "C"
-void PPEXSIDFTDriver2_Deprecate(
-    /* Input parameters */
-    PPEXSIPlan        plan,
-    PPEXSIOptions     options,
-    double            numElectronExact,
-    /* Output parameters */
-    double*           muPEXSI,                   
-    double*           numElectronPEXSI,         
-    double*           muMinInertia,              
-    double*           muMaxInertia,             
-    int*              numTotalInertiaIter,   
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-
-  try{
-    reinterpret_cast<PPEXSIData*>(plan)->DFTDriver2_Deprecate(
-        numElectronExact,
-        options.temperature,
-        options.gap,
-        options.deltaE,
-        options.numPole,
-        options.isInertiaCount,
-        options.muMin0,
-        options.muMax0,
-        options.mu0,
-        options.muInertiaTolerance,
-        options.muInertiaExpansion,
-        options.numElectronPEXSITolerance,
-        options.matrixType,
-        options.isSymbolicFactorize,
-        options.solver,
-        options.ordering,
-        options.npSymbFact,
-        options.verbosity,
-        *muPEXSI,
-        *numElectronPEXSI,
-        *muMinInertia,
-        *muMaxInertia,
-        *numTotalInertiaIter );
-  }
-  catch( std::exception& e )
-  {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIDFTDriver2_Deprecate  ----- 
-
-extern "C"
-void PPEXSIDFTDriver2(
-    /* Input parameters */
-    PPEXSIPlan        plan,
-    PPEXSIOptions*    options,        // options is input and output
-    double            numElectronExact,
-    int               method,
-    int               nPoints,
-    /* Output parameters */
-    double*           muPEXSI,                   
-    double*           numElectronPEXSI,         
-    int*              numTotalInertiaIter,   
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-  reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-
-  try{
-    reinterpret_cast<PPEXSIData*>(plan)->DFTDriver2(
-        numElectronExact,
-        options->temperature,
-        options->gap,
-        options->deltaE,
-        options->numPole,
-        options->muInertiaTolerance,
-        options->numElectronPEXSITolerance,
-        options->matrixType,
-        options->isSymbolicFactorize,
-        options->solver,
-        options->ordering,
-        options->npSymbFact,
-        options->verbosity,
-        *muPEXSI,
-        *numElectronPEXSI,
-        options->muMin0,
-        options->muMax0,
-        *numTotalInertiaIter,
-        method,
-        nPoints,
-        options->spin);
-  }
-  catch( std::exception& e )
-  {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIDFTDriver2  ----- 
-
-
-extern "C"
-void PPEXSIRetrieveRealDFTMatrix2(
-    PPEXSIPlan        plan,
-    double*      DMnzvalLocal,
-    double*     EDMnzvalLocal,
-    double*     FDMnzvalLocal,
-    double*     totalEnergyH,
-    double*     totalEnergyS,
-    double*     totalFreeEnergy,
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
-
-  try{
-    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
-
-    blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
-        DMnzvalLocal, 1 );
-#if 0
-    blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
-        EDMnzvalLocal, 1 );
-
-    blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
-        FDMnzvalLocal, 1 );
-#endif
-    *totalEnergyH = ptrData->TotalEnergyH();
-
-    *totalEnergyS = ptrData->TotalEnergyS();
-
-    *totalFreeEnergy = ptrData->TotalFreeEnergy();
-  }
-  catch( std::exception& e ) {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIRetrieveRealDFTMatrix2  ----- 
-
-
-extern "C"
-void PPEXSIRetrieveRealDFTMatrix(
-    PPEXSIPlan        plan,
-    double*      DMnzvalLocal,
-    double*     EDMnzvalLocal,
-    double*     FDMnzvalLocal,
-    double*     totalEnergyH,
-    double*     totalEnergyS,
-    double*     totalFreeEnergy,
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
-
-  try{
-    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
-
-    blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
-        DMnzvalLocal, 1 );
-
-    blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
-        EDMnzvalLocal, 1 );
-
-    blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
-        FDMnzvalLocal, 1 );
-
-    *totalEnergyH = ptrData->TotalEnergyH();
-
-    *totalEnergyS = ptrData->TotalEnergyS();
-
-    *totalFreeEnergy = ptrData->TotalFreeEnergy();
-  }
-  catch( std::exception& e ) {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIRetrieveRealDFTMatrix  ----- 
-
-
-extern "C"
-void PPEXSIRetrieveComplexDFTMatrix(
-    PPEXSIPlan        plan,
-    double*      DMnzvalLocal,
-    double*     EDMnzvalLocal,
-    double*     FDMnzvalLocal,
-    double*     totalEnergyH,
-    double*     totalEnergyS,
-    double*     totalFreeEnergy,
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
-
-  try{
-    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
-
-    blas::Copy( 2*nnzLocal, 
-        reinterpret_cast<double*>(ptrData->RhoComplexMat().nzvalLocal.Data()), 1,
-        DMnzvalLocal, 1 );
-
-    blas::Copy( 2*nnzLocal, 
-        reinterpret_cast<double*>(ptrData->EnergyDensityComplexMat().nzvalLocal.Data()), 1,
-        EDMnzvalLocal, 1 );
-
-    blas::Copy( 2*nnzLocal, 
-        reinterpret_cast<double*>(ptrData->FreeEnergyDensityComplexMat().nzvalLocal.Data()), 1,
-        FDMnzvalLocal, 1 );
-
-    *totalEnergyH = ptrData->TotalEnergyH();
-
-    *totalEnergyS = ptrData->TotalEnergyS();
-
-    *totalFreeEnergy = ptrData->TotalFreeEnergy();
-  }
-  catch( std::exception& e ) {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIRetrieveComplexDFTMatrix  ----- 
-
-extern "C"
-void PPEXSIPlanFinalize( 
+void PPEXSIPlanFinalize(
     PPEXSIPlan    plan,
     int*          info ){
 
   *info = 0;
-  const GridType* gridPole = 
+  const GridType* gridPole =
     reinterpret_cast<PPEXSIData*>(plan)->GridPole();
 
   try{
@@ -1472,97 +785,137 @@ void PPEXSIPlanFinalize(
   }
   catch( std::exception& e )
   {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
       << " caught exception with message: "
       << std::endl << e.what() << std::endl;
     *info = 1;
   }
   return;
-}   // -----  end of function PPEXSIPlanFinalize  ----- 
-
-extern "C"
-void PPEXSIGetPoleDM( 
-    double*       zshift,
-    double*       zweight,
-    int           Npole,
-    double        temp,
-    double        gap,
-    double        deltaE,
-    double        mu ){
-
-  CpxNumVec zshiftVec(Npole), zweightVec(Npole);
-
-  GetPoleDensity( zshiftVec.Data(), zweightVec.Data(),
-      Npole, temp, gap, deltaE, mu );
-
-  for( Int i = 0; i < Npole; i++ ){
-    zshift[2*i]    = zshiftVec[i].real();
-    zshift[2*i+1]  = zshiftVec[i].imag();
-    zweight[2*i]   = zweightVec[i].real();
-    zweight[2*i+1] = zweightVec[i].imag();
-  }
-
-  return;
-}   // -----  end of function PPEXSIGetPoleDM  ----- 
+}   // -----  end of function PPEXSIPlanFinalize  -----
 
 
 extern "C"
-void PPEXSIGetPoleEDM( 
-    double*       zshift,
-    double*       zweight,
-    int           Npole,
-    double        temp,
-    double        gap,
-    double        deltaE,
-    double        mu ){
+void PPEXSIRetrieveRealDM(
+    PPEXSIPlan  plan,
+    double*     DMnzvalLocal,
+    double*     totalEnergyH,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole =
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
 
-  CpxNumVec zshiftVec(Npole), zweightVec(Npole);
+  try{
+    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
 
-  GetPoleForce( zshiftVec.Data(), zweightVec.Data(),
-      Npole, temp, gap, deltaE, mu );
-
-  for( Int i = 0; i < Npole; i++ ){
-    zshift[2*i]    = zshiftVec[i].real();
-    zshift[2*i+1]  = zshiftVec[i].imag();
-    zweight[2*i]   = zweightVec[i].real();
-    zweight[2*i+1] = zweightVec[i].imag();
+    blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
+        DMnzvalLocal, 1 );
+    *totalEnergyH = ptrData->TotalEnergyH();
   }
-
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
   return;
-}   // -----  end of function PPEXSIGetPoleEDM  ----- 
+}   // -----  end of function PPEXSIRetrieveRealDM  -----
 
 
 extern "C"
-void PPEXSIGetPoleFDM( 
-    double*       zshift,
-    double*       zweight,
-    int           Npole,
-    double        temp,
-    double        gap,
-    double        deltaE,
-    double        mu ){
+void PPEXSIRetrieveRealEDM(
+    PPEXSIPlan  plan,
+    double*     EDMnzvalLocal,
+    double*     totalEnergyS,
+    int*        info ){
+  *info = 0;
+  const GridType* gridPole =
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
 
-  CpxNumVec zshiftVec(Npole), zweightVec(Npole);
+  try{
+    Int nnzLocal = ptrData->EnergyDensityRealMat().nnzLocal;
 
-  GetPoleHelmholtz( zshiftVec.Data(), zweightVec.Data(),
-      Npole, temp, gap, deltaE, mu );
+    blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
+        EDMnzvalLocal, 1 );
 
-  for( Int i = 0; i < Npole; i++ ){
-    zshift[2*i]    = zshiftVec[i].real();
-    zshift[2*i+1]  = zshiftVec[i].imag();
-    zweight[2*i]   = zweightVec[i].real();
-    zweight[2*i+1] = zweightVec[i].imag();
+    *totalEnergyS = ptrData->TotalEnergyS();
   }
-
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
   return;
-}   // -----  end of function PPEXSIGetPoleEDM  ----- 
+}   // -----  end of function PPEXSIRetrieveRealEDM   -----
 
 
-// ********************************************************************* 
+extern "C"
+void PPEXSIRetrieveComplexDM(
+    PPEXSIPlan        plan,
+    double*      DMnzvalLocal,
+    double*     totalEnergyH,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole =
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
+
+    blas::Copy( 2*nnzLocal,
+        reinterpret_cast<double*>(ptrData->RhoComplexMat().nzvalLocal.Data()), 1,
+        DMnzvalLocal, 1 );
+
+    *totalEnergyH = ptrData->TotalEnergyH();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveComplexDM  -----
+
+
+extern "C"
+void PPEXSIRetrieveComplexEDM(
+    PPEXSIPlan        plan,
+    double*     EDMnzvalLocal,
+    double*     totalEnergyS,
+    int*              info ){
+  *info = 0;
+  const GridType* gridPole =
+    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
+  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
+
+  try{
+    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
+
+    blas::Copy( 2*nnzLocal,
+        reinterpret_cast<double*>(ptrData->EnergyDensityComplexMat().nzvalLocal.Data()), 1,
+        EDMnzvalLocal, 1 );
+
+    *totalEnergyS = ptrData->TotalEnergyS();
+  }
+  catch( std::exception& e ) {
+    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank
+      << " caught exception with message: "
+      << std::endl << e.what() << std::endl;
+    *info = 1;
+  }
+  return;
+}   // -----  end of function PPEXSIRetrieveComplexEDM -----
+
+
+// *********************************************************************
 // FORTRAN interface
-// 
-// NOTE: 
-// 
+//
+// NOTE:
+//
 // 1. Most of the interface routines do not explicitly depend on the MPI
 // communicators, and therefore can be called directly through the
 // ISO_C_BINDING feature as in f_interface.f90.
@@ -1578,108 +931,11 @@ void PPEXSIGetPoleFDM(
 // *********************************************************************
 
 /// @brief Internal subroutine to convert FORTRAN communicator to C
-extern "C" 
+extern "C"
 MPI_Comm f2c_comm(MPI_Fint* Fcomm)
 {
   return MPI_Comm_f2c((*Fcomm));
-}  // -----  end of function f2c_comm ----- 
-
-
-/// @brief FORTRAN interface for @ref ReadDistSparseMatrixFormattedHeadInterface.
-extern "C"
-void f_read_distsparsematrix_formatted_head (
-    char*    filename,
-    int*     size,
-    int*     nnz,
-    int*     nnzLocal,
-    int*     numColLocal,
-    MPI_Fint* Fcomm )
-{
-  ReadDistSparseMatrixFormattedHeadInterface(
-      filename,
-      size,
-      nnz,
-      nnzLocal,
-      numColLocal,
-      f2c_comm( Fcomm ) );
-
-  return;
-}  // -----  end of function f_read_distsparsematrix_formatted_head  
-
-
-/// @brief FORTRAN interface for @ref ReadDistSparseMatrixFormattedInterface.
-extern "C"
-void f_read_distsparsematrix_formatted (
-    char*    filename,
-    int      size,
-    int      nnz,
-    int      nnzLocal,
-    int      numColLocal,
-    int*     colptrLocal,
-    int*     rowindLocal,
-    double*  nzvalLocal,
-    MPI_Fint* Fcomm )
-{
-  ReadDistSparseMatrixFormattedInterface(
-      filename,
-      size,
-      nnz,
-      nnzLocal,
-      numColLocal,
-      colptrLocal,
-      rowindLocal,
-      nzvalLocal,
-      f2c_comm( Fcomm ) );
-  return;
-} // -----  end of function f_read_distsparsematrix_formatted  ----- 
-
-/// @brief FORTRAN interface for @ref ReadDistSparseMatrixHeadInterface.
-extern "C"
-void f_read_distsparsematrix_head (
-    char*    filename,
-    int*     size,
-    int*     nnz,
-    int*     nnzLocal,
-    int*     numColLocal,
-    MPI_Fint* Fcomm )
-{
-  ReadDistSparseMatrixHeadInterface(
-      filename,
-      size,
-      nnz,
-      nnzLocal,
-      numColLocal,
-      f2c_comm( Fcomm ) );
-
-  return;
-}  // -----  end of function f_read_distsparsematrix_head  
-
-
-/// @brief FORTRAN interface for @ref ParaReadDistSparseMatrixInterface.
-extern "C"
-void f_para_read_distsparsematrix (
-    char*    filename,
-    int      size,
-    int      nnz,
-    int      nnzLocal,
-    int      numColLocal,
-    int*     colptrLocal,
-    int*     rowindLocal,
-    double*  nzvalLocal,
-    MPI_Fint* Fcomm )
-{
-  ParaReadDistSparseMatrixInterface(
-      filename,
-      size,
-      nnz,
-      nnzLocal,
-      numColLocal,
-      colptrLocal,
-      rowindLocal,
-      nzvalLocal,
-      f2c_comm( Fcomm ) );
-  return;
-} // -----  end of function f_para_read_distsparsematrix  ----- 
+}  // -----  end of function f2c_comm -----
 
 
 /// @brief FORTRAN interface for @ref PPEXSIPlanInitialize
@@ -1688,7 +944,7 @@ PPEXSIPlan f_ppexsi_plan_initialize (
     MPI_Fint*     Fcomm,
     int           numProcRow,
     int           numProcCol,
-    int           outputFileIndex, 
+    int           outputFileIndex,
     int*          info ){
   return PPEXSIPlanInitialize(
       f2c_comm( Fcomm ),
@@ -1696,244 +952,4 @@ PPEXSIPlan f_ppexsi_plan_initialize (
       numProcCol,
       outputFileIndex,
       info );
-}		// -----  end of function f_ppexsi_plan_initialize  ----- 
-
-extern "C"
-void PPEXSIRetrieveComplexDMEDM(
-    PPEXSIPlan  plan,
-    double*     DMnzvalLocal,
-    double*     EDMnzvalLocal,
-    int*        nnz,
-    int*        info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
-
-  try{
-    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
-
-    blas::Copy( 2*nnzLocal, 
-        reinterpret_cast<double*>(ptrData->RhoComplexMat().nzvalLocal.Data()), 1,
-        DMnzvalLocal, 1 );
-
-    blas::Copy( 2*nnzLocal, 
-        reinterpret_cast<double*>(ptrData->EnergyDensityComplexMat().nzvalLocal.Data()), 1,
-        EDMnzvalLocal, 1 );
-
-    *nnz = nnzLocal;
-  }
-  catch( std::exception& e ) {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIRetrieveComplexDMEDM   ----- 
-
-
-extern "C"
-void PPEXSIRetrieveRealDMEDM(
-    PPEXSIPlan  plan,
-    double*     DMnzvalLocal,
-    double*     EDMnzvalLocal,
-    int*        nnz,
-    int*        info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
-
-  try{
-
-    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
-
-    blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
-        DMnzvalLocal, 1 );
-
-    blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
-        EDMnzvalLocal, 1 );
-
-    *nnz = nnzLocal;
-  }
-  catch( std::exception& e ) {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIRetrieveRealDMEDM   ----- 
-
-extern "C"
-void PPEXSIRetrieveRealDM(
-    PPEXSIPlan  plan,
-    double*     DMnzvalLocal,
-    double*     totalEnergyH,
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
-
-  try{
-    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
-
-    blas::Copy( nnzLocal, ptrData->RhoRealMat().nzvalLocal.Data(), 1,
-        DMnzvalLocal, 1 );
-    *totalEnergyH = ptrData->TotalEnergyH();
-  }
-  catch( std::exception& e ) {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIRetrieveRealDM  ----- 
-
-extern "C"
-void PPEXSIRetrieveRealEDM(
-    PPEXSIPlan  plan,
-    double*     EDMnzvalLocal,
-    double*     totalEnergyS,
-    int*        info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
-
-  try{
-    Int nnzLocal = ptrData->EnergyDensityRealMat().nnzLocal;
-
-    blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
-        EDMnzvalLocal, 1 );
-
-    *totalEnergyS = ptrData->TotalEnergyS();
-  }
-  catch( std::exception& e ) {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIRetrieveRealEDM   ----- 
-
-extern "C"
-void PPEXSIRetrieveRealFDM(
-    PPEXSIPlan        plan,
-    double*     FDMnzvalLocal,
-    double*     totalFreeEnergy,
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
-
-  try{
-    Int nnzLocal = ptrData->RhoRealMat().nnzLocal;
-
-    blas::Copy( nnzLocal, ptrData->FreeEnergyDensityRealMat().nzvalLocal.Data(), 1,
-        FDMnzvalLocal, 1 );
-
-    *totalFreeEnergy = ptrData->TotalFreeEnergy();
-  }
-  catch( std::exception& e ) {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIRetrieveRealFDM   ----- 
-
-extern "C"
-void PPEXSIRetrieveComplexDM(
-    PPEXSIPlan        plan,
-    double*      DMnzvalLocal,
-    double*     totalEnergyH,
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
-
-  try{
-    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
-
-    blas::Copy( 2*nnzLocal, 
-        reinterpret_cast<double*>(ptrData->RhoComplexMat().nzvalLocal.Data()), 1,
-        DMnzvalLocal, 1 );
-
-    *totalEnergyH = ptrData->TotalEnergyH();
-  }
-  catch( std::exception& e ) {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIRetrieveComplexDM  ----- 
-
-extern "C"
-void PPEXSIRetrieveComplexEDM(
-    PPEXSIPlan        plan,
-    double*     EDMnzvalLocal,
-    double*     totalEnergyS,
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
-
-  try{
-    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
-
-    blas::Copy( 2*nnzLocal, 
-        reinterpret_cast<double*>(ptrData->EnergyDensityComplexMat().nzvalLocal.Data()), 1,
-        EDMnzvalLocal, 1 );
-
-    *totalEnergyS = ptrData->TotalEnergyS();
-  }
-  catch( std::exception& e ) {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIRetrieveComplexEDM ----- 
-
-extern "C"
-void PPEXSIRetrieveComplexFDM(
-    PPEXSIPlan        plan,
-    double*     FDMnzvalLocal,
-    double*     totalFreeEnergy,
-    int*              info ){
-  *info = 0;
-  const GridType* gridPole = 
-    reinterpret_cast<PPEXSIData*>(plan)->GridPole();
-  PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
-
-  try{
-    Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
-
-    blas::Copy( 2*nnzLocal, 
-        reinterpret_cast<double*>(ptrData->FreeEnergyDensityComplexMat().nzvalLocal.Data()), 1,
-        FDMnzvalLocal, 1 );
-
-    *totalFreeEnergy = ptrData->TotalFreeEnergy();
-  }
-  catch( std::exception& e ) {
-    statusOFS << std::endl << "ERROR!!! Proc " << gridPole->mpirank 
-      << " caught exception with message: "
-      << std::endl << e.what() << std::endl;
-    *info = 1;
-  }
-  return;
-}   // -----  end of function PPEXSIRetrieveComplexFDM  ----- 
-
-
+}		// -----  end of function f_ppexsi_plan_initialize  -----

@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin
 
@@ -66,13 +66,13 @@ namespace mpi{
 // *********************************************************************
 
 void
-  Gatherv ( 
-      std::vector<Int>& localVec, 
+  Gatherv (
+      std::vector<Int>& localVec,
       std::vector<Int>& allVec,
       Int root,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -91,29 +91,29 @@ void
       allVec.clear();
       allVec.resize( totalSize );
 
-      MPI_Gatherv( &localVec[0], localSize, MPI_INT, &allVec[0], 
+      MPI_Gatherv( &localVec[0], localSize, MPI_INT, &allVec[0],
           &localSizeVec[0], &localSizeDispls[0], MPI_INT, root, comm	);
     }
     else{
-      MPI_Gatherv( &localVec[0], localSize, MPI_INT, NULL, 
+      MPI_Gatherv( &localVec[0], localSize, MPI_INT, NULL,
           NULL, NULL, MPI_INT, root, comm	);
     }
 
     return ;
-  }		// -----  end of function Gatherv  ----- 
+  }		// -----  end of function Gatherv  -----
 
 
 
 void
-  Gatherv ( 
-      std::vector<Int>& localVec, 
+  Gatherv (
+      std::vector<Int>& localVec,
       std::vector<Int>& allVec,
       std::vector<Int>& sizes,
       std::vector<Int>& displs,
       Int root,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -134,28 +134,28 @@ void
       allVec.clear();
       allVec.resize( totalSize);
 
-      MPI_Gatherv( &localVec[0], localSize, MPI_INT, &allVec[0], 
+      MPI_Gatherv( &localVec[0], localSize, MPI_INT, &allVec[0],
           &localSizeVec[0], &localSizeDispls[0], MPI_INT, root, comm	);
     }
     else{
       MPI_Gather( &localSize, 1, MPI_INT, NULL, 1, MPI_INT,root, comm );
-      MPI_Gatherv( &localVec[0], localSize, MPI_INT, NULL, 
+      MPI_Gatherv( &localVec[0], localSize, MPI_INT, NULL,
           NULL, NULL, MPI_INT, root, comm	);
     }
 
     return ;
-  }		// -----  end of function Gatherv  ----- 
+  }		// -----  end of function Gatherv  -----
 
 
 
 
 void
-  Allgatherv ( 
-      std::vector<Int>& localVec, 
+  Allgatherv (
+      std::vector<Int>& localVec,
       std::vector<Int>& allVec,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -172,19 +172,19 @@ void
     allVec.clear();
     allVec.resize( totalSize );
 
-    MPI_Allgatherv( &localVec[0], localSize, MPI_INT, &allVec[0], 
+    MPI_Allgatherv( &localVec[0], localSize, MPI_INT, &allVec[0],
         &localSizeVec[0], &localSizeDispls[0], MPI_INT, comm	);
 
 
     return ;
-  }		// -----  end of function Allgatherv  ----- 
+  }		// -----  end of function Allgatherv  -----
 
 
 // *********************************************************************
 // Send / Recv
 // *********************************************************************
-void 
-  Send( std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
+void
+  Send( std::stringstream& sstm, Int dest, Int tagSize, Int tagContent,
       MPI_Comm comm ){
     std::vector<char> sstr;
     sstr.resize( Size( sstm ) );
@@ -192,12 +192,12 @@ void
     sstm.read( &sstr[0], sizeStm );
     MPI_Send( &sizeStm, 1, MPI_INT,  dest, tagSize, comm );
     MPI_Send( (void*)&sstr[0], sizeStm, MPI_BYTE, dest, tagContent, comm );
-    return; 
-  } // -----  end of function Send ----- 
+    return;
+  } // -----  end of function Send -----
 
 
 void
-  Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
+  Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
       MPI_Comm comm, MPI_Status& statSize, MPI_Status& statContent )
   {
     std::vector<char> sstr;
@@ -208,10 +208,10 @@ void
     sstm.write( &sstr[0], sizeStm );
 
     return ;
-  }		// -----  end of function Recv  ----- 
+  }		// -----  end of function Recv  -----
 
 void
-  Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
+  Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
       MPI_Comm comm )
   {
     std::vector<char> str;
@@ -223,7 +223,7 @@ void
     sstm.write( &str[0], sizeStm );
 
     return ;
-  }		// -----  end of function Recv  ----- 
+  }		// -----  end of function Recv  -----
 
 
 // *********************************************************************
@@ -237,7 +237,7 @@ void
     MPI_Wait( &req, MPI_STATUS_IGNORE );
 
     return ;
-  } 		// -----  end of method Wait  ----- 
+  } 		// -----  end of method Wait  -----
 
 void
   Waitall ( std::vector<MPI_Request>& reqs, std::vector<MPI_Status>& stats )
@@ -250,7 +250,7 @@ void
     }
 
     return ;
-  }		// -----  end of function Waitall  ----- 
+  }		// -----  end of function Waitall  -----
 
 void
   Waitall ( std::vector<MPI_Request>& reqs )
@@ -260,7 +260,7 @@ void
     }
 
     return ;
-  }		// -----  end of function Waitall  ----- 
+  }		// -----  end of function Waitall  -----
 
 
 // *********************************************************************
@@ -274,7 +274,7 @@ void
     MPI_Reduce( sendbuf,  recvbuf, count, MPI_DOUBLE, op, root, comm );
 
     return ;
-  }		// -----  end of function Reduce  ----- 
+  }		// -----  end of function Reduce  -----
 
 void
   Reduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm )
@@ -282,7 +282,7 @@ void
     MPI_Reduce( (Real*)sendbuf,  (Real*)recvbuf, 2 * count, MPI_DOUBLE, op, root, comm );
 
     return ;
-  }		// -----  end of function Reduce  ----- 
+  }		// -----  end of function Reduce  -----
 
 
 
@@ -293,7 +293,7 @@ void
     MPI_Ireduce( sendbuf,  recvbuf, count, MPI_DOUBLE, op, root, comm,&request );
 
     return ;
-  }		// -----  end of function Reduce  ----- 
+  }		// -----  end of function Reduce  -----
 
 void
   Ireduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm , MPI_Request & request)
@@ -301,9 +301,19 @@ void
     MPI_Ireduce( (Real*)sendbuf,  (Real*)recvbuf, 2 * count, MPI_DOUBLE, op, root, comm ,&request);
 
     return ;
-  }		// -----  end of function Reduce  ----- 
+  }		// -----  end of function Reduce  -----
 #endif
 
+
+
+void
+  Allreduce ( LongInt* sendbuf, LongInt* recvbuf, int count, MPI_Op op, MPI_Comm comm )
+  {
+    MPI_Allreduce( sendbuf,  recvbuf, count, MPI_LONG_INT,
+        op, comm );
+
+    return ;
+  }		// -----  end of function Allreduce  -----
 
 
 
@@ -311,31 +321,31 @@ void
 void
   Allreduce ( Int* sendbuf, Int* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
   {
-    MPI_Allreduce( sendbuf,  recvbuf, count, MPI_INT, 
+    MPI_Allreduce( sendbuf,  recvbuf, count, MPI_INT,
         op, comm );
 
     return ;
-  }		// -----  end of function Allreduce  ----- 
+  }		// -----  end of function Allreduce  -----
 
 
 void
   Allreduce ( Real* sendbuf, Real* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
   {
-    MPI_Allreduce( sendbuf,  recvbuf, count, MPI_DOUBLE, 
+    MPI_Allreduce( sendbuf,  recvbuf, count, MPI_DOUBLE,
         op, comm );
 
     return ;
-  }		// -----  end of function Allreduce  ----- 
+  }		// -----  end of function Allreduce  -----
 
 
 void
   Allreduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, MPI_Comm comm )
   {
-    MPI_Allreduce( (Real*)sendbuf, (Real*) recvbuf, 2*count, MPI_DOUBLE, 
+    MPI_Allreduce( (Real*)sendbuf, (Real*) recvbuf, 2*count, MPI_DOUBLE,
         op, comm );
 
     return ;
-  }		// -----  end of function Allreduce  ----- 
+  }		// -----  end of function Allreduce  -----
 
 
 // *********************************************************************
@@ -343,35 +353,35 @@ void
 // *********************************************************************
 
 void
-  Alltoallv ( Int *bufSend, Int *sizeSend, Int *displsSend, 
-      Int *bufRecv, Int *sizeRecv, 
+  Alltoallv ( Int *bufSend, Int *sizeSend, Int *displsSend,
+      Int *bufRecv, Int *sizeRecv,
       Int *displsRecv, MPI_Comm comm )
   {
     MPI_Alltoallv( bufSend, sizeSend, displsSend, MPI_INT,
-        bufRecv, sizeRecv, displsRecv, MPI_INT, comm );	
+        bufRecv, sizeRecv, displsRecv, MPI_INT, comm );
     return ;
-  }		// -----  end of function Alltoallv  ----- 
+  }		// -----  end of function Alltoallv  -----
 
 
 void
-  Alltoallv ( Real *bufSend, Int *sizeSend, Int *displsSend, 
-      Real *bufRecv, Int *sizeRecv, 
+  Alltoallv ( Real *bufSend, Int *sizeSend, Int *displsSend,
+      Real *bufRecv, Int *sizeRecv,
       Int *displsRecv, MPI_Comm comm )
   {
     MPI_Alltoallv( bufSend, sizeSend, displsSend, MPI_DOUBLE,
-        bufRecv, sizeRecv, displsRecv, MPI_DOUBLE, comm );	
+        bufRecv, sizeRecv, displsRecv, MPI_DOUBLE, comm );
     return ;
-  }		// -----  end of function Alltoallv  ----- 
+  }		// -----  end of function Alltoallv  -----
 
 void
-  Alltoallv ( Complex *bufSend, Int *sizeSend, Int *displsSend, 
-      Complex *bufRecv, Int *sizeRecv, 
+  Alltoallv ( Complex *bufSend, Int *sizeSend, Int *displsSend,
+      Complex *bufRecv, Int *sizeRecv,
       Int *displsRecv, MPI_Comm comm )
   {
-    Int mpisize; 
+    int mpisize;
     MPI_Comm_size( comm, &mpisize );
     std::vector<Int> dblSizeSend( mpisize );
-    std::vector<Int> dblDisplsSend( mpisize ); 
+    std::vector<Int> dblDisplsSend( mpisize );
     std::vector<Int> dblSizeRecv( mpisize );
     std::vector<Int> dblDisplsRecv( mpisize );
 
@@ -382,12 +392,12 @@ void
       dblDisplsRecv[ip] = 2 * displsRecv[ip];
     }
 
-    MPI_Alltoallv( 
-        (Real*)bufSend, &dblSizeSend[0], &dblDisplsSend[0], MPI_DOUBLE, 
-        (Real*)bufRecv, &dblSizeRecv[0], &dblDisplsRecv[0], MPI_DOUBLE, comm );	
+    MPI_Alltoallv(
+        (Real*)bufSend, &dblSizeSend[0], &dblDisplsSend[0], MPI_DOUBLE,
+        (Real*)bufRecv, &dblSizeRecv[0], &dblDisplsRecv[0], MPI_DOUBLE, comm );
 
     return ;
-  }		// -----  end of function Alltoallv  ----- 
+  }		// -----  end of function Alltoallv  -----
 
 
 } // namespace mpi

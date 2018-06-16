@@ -351,7 +351,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
       if(ph%pexsi_my_point == i-1) then
          call f_ppexsi_calculate_fermi_operator_real3(ph%pexsi_plan,&
-                 ph%pexsi_options,ph%mu,ph%n_electrons,ph%pexsi_ne,ne_drv,ierr)
+                 ph%pexsi_options,ph%mu,ph%n_electrons,ph%pexsi_ne,ierr)
       endif
    enddo
 

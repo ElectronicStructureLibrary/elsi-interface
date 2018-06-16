@@ -109,8 +109,8 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   std::ifstream fin;
 
@@ -274,8 +274,8 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<R
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   Int err = 0;
 
@@ -406,8 +406,8 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Re
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   MPI_Datatype type;
   int lens[3];
@@ -561,8 +561,8 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   std::ifstream fin;
 
@@ -714,8 +714,8 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   MPI_Datatype type;
   int lens[3];
@@ -870,8 +870,8 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<C
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   Int err = 0;
 
@@ -1004,8 +1004,8 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 {
   // Get the processor information within the current communicator
   MPI_Barrier( comm );
-  Int mpirank;  MPI_Comm_rank(comm, &mpirank);
-  Int mpisize;  MPI_Comm_size(comm, &mpisize);
+  int mpirank;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize;  MPI_Comm_size(comm, &mpisize);
   MPI_Status mpistat;
   std::ifstream fin;
 
@@ -1169,7 +1169,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 
 template<typename T> inline void GetDiagonal ( const DistSparseMatrix<T>& A, NumVec<T>& diag )
 {
-  Int mpirank, mpisize;
+  int mpirank, mpisize;
   MPI_Comm_rank( A.comm, &mpirank );
   MPI_Comm_size( A.comm, &mpisize );
 
@@ -1219,10 +1219,10 @@ template<typename T> inline void GetDiagonal ( const DistSparseMatrix<T>& A, Num
 template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatrix<T> & sparseB ){
 
 
-  Int mpirank;
+  int mpirank;
   MPI_Comm_rank(sparseA.comm,&mpirank);
 
-  Int mpisize;
+  int mpisize;
   MPI_Comm_size(sparseA.comm,&mpisize);
 
   Int numRowLocalFirst = sparseA.size / mpisize;
@@ -1492,6 +1492,92 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
 
 
 
+  template<typename T>
+  inline std::string ToMatlabScalar( std::complex<T> val){
+    std::stringstream s;
+    s.precision(std::numeric_limits< std::complex<T> >::max_digits10);
+    s.precision(15);
+    s<<"complex("<<std::scientific<<std::real(val)<<","<<std::imag(val)<<")";
+    return s.str();
+  }
+
+  template<typename T>
+  inline std::string ToMatlabScalar( T val){
+    std::stringstream s;
+    s.precision(std::numeric_limits< T >::max_digits10);
+    s<<std::scientific<<val;
+    return s.str();
+  }
+
+
+
+template<typename T>
+void WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & pspmat, MPI_Comm comm){
+
+  MPI_Barrier( comm );
+  int mpirank=0;  MPI_Comm_rank(comm, &mpirank);
+  int mpisize=0;  MPI_Comm_size(comm, &mpisize);
+  std::string fname (filename);
+  std::stringstream sstm;
+  sstm<<fname<<"_"<<mpirank<<".m";
+  std::ofstream ofile(sstm.str().c_str());
+
+    if( !ofile.good() ){
+      ErrorHandling( "File cannot be opened!" );
+    }
+
+    Int baseval = 1;
+
+    Int numColFirst = pspmat.size / mpisize;
+    Int firstCol    = mpirank * numColFirst;
+    Int numColLocal = pspmat.colptrLocal.m() - baseval;
+
+    Int firstLocCol = firstCol;
+    Int LocalVertexCount = numColLocal;
+
+    //I
+    ofile<<"AinvExp = sparse([";
+    for(Int locCol = 0 ; locCol< LocalVertexCount; locCol++){
+      Int col = locCol + firstLocCol;
+      Int colbeg = pspmat.colptrLocal[locCol]-baseval; //now 0 based
+      Int colend = pspmat.colptrLocal[locCol+1]-baseval; // now 0 based 
+
+      for(Int pos = colbeg; pos<colend; pos++){
+        Int row = pspmat.rowindLocal[pos];
+        ofile<<row<<" ";
+      }
+    }
+    ofile<<"],";//<<std::endl;
+
+    //J
+    ofile<<"[";
+    for(Int locCol = 0 ; locCol< LocalVertexCount; locCol++){
+      Int col = locCol + firstLocCol;
+      Int colbeg = pspmat.colptrLocal[locCol]-baseval; //now 0 based
+      Int colend = pspmat.colptrLocal[locCol+1]-baseval; // now 0 based 
+
+      for(Int pos = colbeg; pos<colend; pos++){
+        ofile<<col+1<<" ";
+      }
+    }
+    ofile<<"],";//<<std::endl;
+
+    //V
+    ofile<<"[";
+    ofile.precision(std::numeric_limits< T >::max_digits10);
+    for(Int locCol = 0 ; locCol< LocalVertexCount; locCol++){
+      Int col = locCol + firstLocCol;
+      Int colbeg = pspmat.colptrLocal[locCol]-baseval; //now 0 based
+      Int colend = pspmat.colptrLocal[locCol+1]-baseval; // now 0 based 
+
+      for(Int pos = colbeg; pos<colend; pos++){
+        T val = pspmat.nzvalLocal[pos];
+        ofile<<std::scientific<<ToMatlabScalar(val)<<" ";
+      }
+    }
+    ofile<<"]);"<<std::endl;
+
+}
 
 }
 #endif //_PEXSI_UTILITY_IMPL_HPP_
