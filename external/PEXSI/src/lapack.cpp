@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Jack Poulson and Lin Lin
 
@@ -107,7 +107,7 @@ extern "C" {
     ( const Int* m, const Int* n,
       dcomplex* A, const Int* lda, Int* p, Int* info );
 
-  // For reducing well-conditioned Hermitian generalized EVP to Hermitian 
+  // For reducing well-conditioned Hermitian generalized EVP to Hermitian
   // standard form
   void LAPACK(ssygst)
     ( const Int* itype, const char* uplo, const Int* n,
@@ -125,22 +125,22 @@ extern "C" {
       const dcomplex* B, const Int* ldb, Int* info );
 
   // For solving the standard eigenvalue problem using the divide and
-  // conquer algorithm 
+  // conquer algorithm
   //
   // TODO all versions
   void LAPACK(dsyevd)
-    ( const char *jobz, const char *uplo, const Int *n, 
-      double *A, const Int *lda, double *W, double *work, 
+    ( const char *jobz, const char *uplo, const Int *n,
+      double *A, const Int *lda, double *W, double *work,
       const int *lwork, Int *iwork, const int *liwork, int *info );
 
 
   // For solving the generalized eigenvalue problem using the divide and
-  // conquer algorithm 
+  // conquer algorithm
   //
   // TODO all versions
   void LAPACK(dsygvd)
-    ( const int* itype, const char *jobz, const char *uplo, const Int *n, 
-      double *A, const Int *lda, double *B, const Int *ldb, double *W, double *work, 
+    ( const int* itype, const char *jobz, const char *uplo, const Int *n,
+      double *A, const Int *lda, double *B, const Int *ldb, double *W, double *work,
       const int *lwork, Int *iwork, const int *liwork, int *info );
 
 
@@ -228,29 +228,29 @@ extern "C" {
   void LAPACK(sgelss)
     ( const Int *m, const Int *n, const Int *nrhs, float *A, const Int *lda,
       float *B, const Int *ldb, float *S, const float *rcond, Int *rank,
-      float *work, const Int *lwork, Int *info );	
+      float *work, const Int *lwork, Int *info );
   void LAPACK(dgelss)
     ( const Int *m, const Int *n, const Int *nrhs, double *A, const Int *lda,
       double *B, const Int *ldb, double *S, const double *rcond, Int *rank,
-      double *work, const Int *lwork, Int *info );	
+      double *work, const Int *lwork, Int *info );
   void LAPACK(cgelss)
     ( const Int *m, const Int *n, const Int *nrhs, scomplex *A, const Int *lda,
       scomplex *B, const Int *ldb, float *S, const float *rcond, Int *rank,
-      scomplex *work, const Int *lwork, float *rwork, Int *info );	
+      scomplex *work, const Int *lwork, float *rwork, Int *info );
   void LAPACK(zgelss)
     ( const Int *m, const Int *n, const Int *nrhs, dcomplex *A, const Int *lda,
       dcomplex *B, const Int *ldb, double *S, const double *rcond, Int *rank,
-      dcomplex *work, const Int *lwork, double *rwork, Int *info );	
+      dcomplex *work, const Int *lwork, double *rwork, Int *info );
 
   // Copy
 
   void LAPACK(dlacpy)
-    ( const char* uplo, const Int* m, const Int* n, 
-      const double* A, const Int *lda, 
+    ( const char* uplo, const Int* m, const Int* n,
+      const double* A, const Int *lda,
       double* B, const Int *ldb );
   void LAPACK(zlacpy)
-    ( const char* uplo, const Int* m, const Int* n, 
-      const dcomplex* A, const Int *lda, 
+    ( const char* uplo, const Int* m, const Int* n,
+      const dcomplex* A, const Int *lda,
       dcomplex* B, const Int *ldb );
 
   // Triangular solve : Trsm
@@ -394,7 +394,7 @@ void Getrf( Int m, Int n, dcomplex* A, Int lda, Int* p )
 }
 
 //
-// Reduced a well-conditioned Hermitian generalized definite EVP to 
+// Reduced a well-conditioned Hermitian generalized definite EVP to
 // standard form
 //
 
@@ -491,21 +491,21 @@ void Syevd
 // *********************************************************************
 
 void Sygvd
-( int itype, char jobz, char uplo, Int n, double* A, Int lda, 
+( int itype, char jobz, char uplo, Int n, double* A, Int lda,
   double* B, Int ldb, double* eigs ){
   Int lwork = -1, info;
   Int liwork = -1;
   std::vector<double> work(1);
   std::vector<int>    iwork(1);
 
-  LAPACK(dsygvd)( &itype, &jobz, &uplo, &n, A, &lda, B, &ldb, 
+  LAPACK(dsygvd)( &itype, &jobz, &uplo, &n, A, &lda, B, &ldb,
       eigs, &work[0], &lwork, &iwork[0], &liwork, &info );
   lwork = (Int)work[0];
   work.resize(lwork);
   liwork = iwork[0];
   iwork.resize(liwork);
 
-  LAPACK(dsygvd)( &itype, &jobz, &uplo, &n, A, &lda, B, &ldb, 
+  LAPACK(dsygvd)( &itype, &jobz, &uplo, &n, A, &lda, B, &ldb,
       eigs, &work[0], &lwork, &iwork[0], &liwork, &info );
 
   if( info != 0 )
@@ -614,7 +614,7 @@ void BidiagQRAlg
 }
 
 void BidiagQRAlg
-( char uplo, Int n, Int numColsVTrans, Int numRowsU, 
+( char uplo, Int n, Int numColsVTrans, Int numRowsU,
   double* d, double* e, double* VTrans, Int ldVTrans, double* U, Int ldU )
 {
   if( n==0 )
@@ -644,7 +644,7 @@ void BidiagQRAlg
 }
 
 void BidiagQRAlg
-( char uplo, Int n, Int numColsVAdj, Int numRowsU, 
+( char uplo, Int n, Int numColsVAdj, Int numRowsU,
   float* d, float* e, scomplex* VAdj, Int ldVAdj, scomplex* U, Int ldU )
 {
   if( n==0 )
@@ -674,7 +674,7 @@ void BidiagQRAlg
 }
 
 void BidiagQRAlg
-( char uplo, Int n, Int numColsVAdj, Int numRowsU, 
+( char uplo, Int n, Int numColsVAdj, Int numRowsU,
   double* d, double* e, dcomplex* VAdj, Int ldVAdj, dcomplex* U, Int ldU )
 {
   if( n==0 )
@@ -708,7 +708,7 @@ void BidiagQRAlg
 // *********************************************************************
 
 void DivideAndConquerSVD
-( Int m, Int n, float* A, Int lda, 
+( Int m, Int n, float* A, Int lda,
   float* s, float* U, Int ldu, float* VTrans, Int ldvt )
 {
   if( m==0 || n==0 )
@@ -744,7 +744,7 @@ void DivideAndConquerSVD
 }
 
 void DivideAndConquerSVD
-( Int m, Int n, double* A, Int lda, 
+( Int m, Int n, double* A, Int lda,
   double* s, double* U, Int ldu, double* VTrans, Int ldvt )
 {
   if( m==0 || n==0 )
@@ -780,7 +780,7 @@ void DivideAndConquerSVD
 }
 
 void DivideAndConquerSVD
-( Int m, Int n, scomplex* A, Int lda, 
+( Int m, Int n, scomplex* A, Int lda,
   float* s, scomplex* U, Int ldu, scomplex* VAdj, Int ldva )
 {
   if( m==0 || n==0 )
@@ -819,7 +819,7 @@ void DivideAndConquerSVD
 }
 
 void DivideAndConquerSVD
-( Int m, Int n, dcomplex* A, Int lda, 
+( Int m, Int n, dcomplex* A, Int lda,
   double* s, dcomplex* U, Int ldu, dcomplex* VAdj, Int ldva )
 {
   if( m==0 || n==0 )
@@ -862,7 +862,7 @@ void DivideAndConquerSVD
 //
 
 void QRSVD
-( Int m, Int n, float* A, Int lda, 
+( Int m, Int n, float* A, Int lda,
   float* s, float* U, Int ldu, float* VTrans, Int ldvt )
 {
   if( m==0 || n==0 )
@@ -875,13 +875,13 @@ void QRSVD
   float dummyWork;
 
   LAPACK(sgesvd)
-    ( &jobu, &jobvt, &m, &n, A, &lda, s, U, &ldu, VTrans, &ldvt, 
+    ( &jobu, &jobvt, &m, &n, A, &lda, s, U, &ldu, VTrans, &ldvt,
       &dummyWork, &lwork, &info );
 
   lwork = dummyWork;
   std::vector<float> work(lwork);
   LAPACK(sgesvd)
-    ( &jobu, &jobvt, &m, &n, A, &lda, s, U, &ldu, VTrans, &ldvt, 
+    ( &jobu, &jobvt, &m, &n, A, &lda, s, U, &ldu, VTrans, &ldvt,
       &work[0], &lwork, &info );
   if( info < 0 )
   {
@@ -896,7 +896,7 @@ void QRSVD
 }
 
 void QRSVD
-( Int m, Int n, double* A, Int lda, 
+( Int m, Int n, double* A, Int lda,
   double* s, double* U, Int ldu, double* VTrans, Int ldvt )
 {
   if( m==0 || n==0 )
@@ -909,13 +909,13 @@ void QRSVD
   double dummyWork;
 
   LAPACK(dgesvd)
-    ( &jobu, &jobvt, &m, &n, A, &lda, s, U, &ldu, VTrans, &ldvt, 
+    ( &jobu, &jobvt, &m, &n, A, &lda, s, U, &ldu, VTrans, &ldvt,
       &dummyWork, &lwork, &info );
 
   lwork = dummyWork;
   std::vector<double> work(lwork);
   LAPACK(dgesvd)
-    ( &jobu, &jobvt, &m, &n, A, &lda, s, U, &ldu, VTrans, &ldvt, 
+    ( &jobu, &jobvt, &m, &n, A, &lda, s, U, &ldu, VTrans, &ldvt,
       &work[0], &lwork, &info );
   if( info < 0 )
   {
@@ -930,7 +930,7 @@ void QRSVD
 }
 
 void QRSVD
-( Int m, Int n, scomplex* A, Int lda, 
+( Int m, Int n, scomplex* A, Int lda,
   float* s, scomplex* U, Int ldu, scomplex* VAdj, Int ldva )
 {
   if( m==0 || n==0 )
@@ -945,13 +945,13 @@ void QRSVD
 
   scomplex dummyWork;
   LAPACK(cgesvd)
-    ( &jobu, &jobva, &m, &n, A, &lda, s, U, &ldu, VAdj, &ldva, 
+    ( &jobu, &jobva, &m, &n, A, &lda, s, U, &ldu, VAdj, &ldva,
       &dummyWork, &lwork, &rwork[0], &info );
 
   lwork = dummyWork.real();
   std::vector<scomplex> work(lwork);
   LAPACK(cgesvd)
-    ( &jobu, &jobva, &m, &n, A, &lda, s, U, &ldu, VAdj, &ldva, 
+    ( &jobu, &jobva, &m, &n, A, &lda, s, U, &ldu, VAdj, &ldva,
       &work[0], &lwork, &rwork[0], &info );
   if( info < 0 )
   {
@@ -966,7 +966,7 @@ void QRSVD
 }
 
 void QRSVD
-( Int m, Int n, dcomplex* A, Int lda, 
+( Int m, Int n, dcomplex* A, Int lda,
   double* s, dcomplex* U, Int ldu, dcomplex* VAdj, Int ldva )
 {
   if( m==0 || n==0 )
@@ -981,13 +981,13 @@ void QRSVD
   std::vector<double> rwork(5*k);
 
   LAPACK(zgesvd)
-    ( &jobu, &jobva, &m, &n, A, &lda, s, U, &ldu, VAdj, &ldva, 
+    ( &jobu, &jobva, &m, &n, A, &lda, s, U, &ldu, VAdj, &ldva,
       &dummyWork, &lwork, &rwork[0], &info );
 
   lwork = dummyWork.real();
   std::vector<dcomplex> work(lwork);
   LAPACK(zgesvd)
-    ( &jobu, &jobva, &m, &n, A, &lda, s, U, &ldu, VAdj, &ldva, 
+    ( &jobu, &jobva, &m, &n, A, &lda, s, U, &ldu, VAdj, &ldva,
       &work[0], &lwork, &rwork[0], &info );
   if( info < 0 )
   {
@@ -1017,13 +1017,13 @@ void SingularValues( Int m, Int n, float* A, Int lda, float* s )
   float dummyWork;
 
   LAPACK(sgesvd)
-    ( &jobu, &jobvt, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim, 
+    ( &jobu, &jobvt, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim,
       &dummyWork, &lwork, &info );
 
   lwork = dummyWork;
   std::vector<float> work(lwork);
   LAPACK(sgesvd)
-    ( &jobu, &jobvt, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim, 
+    ( &jobu, &jobvt, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim,
       &work[0], &lwork, &info );
   if( info < 0 )
   {
@@ -1049,13 +1049,13 @@ void SingularValues( Int m, Int n, double* A, Int lda, double* s )
   double dummyWork;
 
   LAPACK(dgesvd)
-    ( &jobu, &jobvt, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim, 
+    ( &jobu, &jobvt, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim,
       &dummyWork, &lwork, &info );
 
   lwork = dummyWork;
   std::vector<double> work(lwork);
   LAPACK(dgesvd)
-    ( &jobu, &jobvt, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim, 
+    ( &jobu, &jobvt, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim,
       &work[0], &lwork, &info );
   if( info < 0 )
   {
@@ -1083,13 +1083,13 @@ void SingularValues( Int m, Int n, scomplex* A, Int lda, float* s )
   std::vector<float> rwork(5*k);
 
   LAPACK(cgesvd)
-    ( &jobu, &jobva, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim, 
+    ( &jobu, &jobva, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim,
       &dummyWork, &lwork, &rwork[0], &info );
 
   lwork = dummyWork.real();
   std::vector<scomplex> work(lwork);
   LAPACK(cgesvd)
-    ( &jobu, &jobva, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim, 
+    ( &jobu, &jobva, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim,
       &work[0], &lwork, &rwork[0], &info );
   if( info < 0 )
   {
@@ -1117,13 +1117,13 @@ void SingularValues( Int m, Int n, dcomplex* A, Int lda, double* s )
   std::vector<double> rwork(5*k);
 
   LAPACK(zgesvd)
-    ( &jobu, &jobva, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim, 
+    ( &jobu, &jobva, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim,
       &dummyWork, &lwork, &rwork[0], &info );
 
   lwork = dummyWork.real();
   std::vector<dcomplex> work(lwork);
   LAPACK(zgesvd)
-    ( &jobu, &jobva, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim, 
+    ( &jobu, &jobva, &m, &n, A, &lda, s, 0, &fakeLDim, 0, &fakeLDim,
       &work[0], &lwork, &rwork[0], &info );
   if( info < 0 )
   {
@@ -1330,7 +1330,7 @@ Getri ( Int n, double* A, Int lda, const Int* ipiv )
 
 
   return ;
-}		// -----  end of function Getri  ----- 
+}		// -----  end of function Getri  -----
 
 
 void
@@ -1361,7 +1361,7 @@ Getri ( Int n, dcomplex* A, Int lda, const Int* ipiv )
 
 
   return ;
-}		// -----  end of function Getri  ----- 
+}		// -----  end of function Getri  -----
 
 
 

@@ -1,7 +1,7 @@
 /// @file pzsymbfact.c
 /// @brief Symbolic factorization routine using complex arithmetic.
 ///
-/// 
+///
 /// @date 2012-11-01 modified by Lin Lin.
 /// @date 2016-02-24 Compatible with SuperLU_DIST_v4.3
 #include <math.h>
@@ -9,6 +9,10 @@
 #define  PRNTlevel 0
 #ifndef MIN
 #define MIN(a,b) (((a)<(b))?(a):(b))
+#endif
+
+#ifndef Add_
+#define lsame_ lsame
 #endif
 
 /// @brief pzsymbfact performs symbolic factorization that can be
@@ -19,23 +23,23 @@
 /// information.
 void
 #ifdef SLU_MAJOR_VERSION
-#if SLU_MAJOR_VERSION < 5 
-pzsymbfact(superlu_options_t *options, SuperMatrix *A, 
+#if SLU_MAJOR_VERSION < 5
+pzsymbfact(superlu_options_t *options, SuperMatrix *A,
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-    LUstruct_t *LUstruct, SuperLUStat_t *stat, 
+    LUstruct_t *LUstruct, SuperLUStat_t *stat,
     int *numProcSymbFact, int *info, double *totalMemory,
     double *maxMemory)
 #else
-pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
+pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-    LUstruct_t *LUstruct, SuperLUStat_t *stat, 
+    LUstruct_t *LUstruct, SuperLUStat_t *stat,
     int *numProcSymbFact, int *info, double *totalMemory,
     double *maxMemory)
 #endif
 #else
-pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
+pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
-    LUstruct_t *LUstruct, SuperLUStat_t *stat, 
+    LUstruct_t *LUstruct, SuperLUStat_t *stat,
     int *numProcSymbFact, int *info, double *totalMemory,
     double *maxMemory)
 #endif
@@ -54,7 +58,7 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
      supernodes in L.
      (usub, xusub) contains the compressed subscript of
      nonzero segments in U.
-     If options->Fact != SamePattern_SameRowPerm, they are 
+     If options->Fact != SamePattern_SameRowPerm, they are
      computed by SYMBFACT routine, and then used by PDDISTRIBUTE
      routine. They will be freed after PDDISTRIBUTE routine.
      If options->Fact == SamePattern_SameRowPerm, these
@@ -171,7 +175,7 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 #endif
 
   /* Not factored & ask for equilibration */
-  if ( Equil && Fact != SamePattern_SameRowPerm ) { 
+  if ( Equil && Fact != SamePattern_SameRowPerm ) {
     /* Allocate storage if not done so before. */
     switch ( ScalePermstruct->DiagScale ) {
       case NOEQUIL:
@@ -182,12 +186,12 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
         ScalePermstruct->R = R;
         ScalePermstruct->C = C;
         break;
-      case ROW: 
+      case ROW:
         if ( !(C = (double *) doubleMalloc_dist(n)) )
           ABORT("Malloc fails for C[].");
         ScalePermstruct->C = C;
         break;
-      case COL: 
+      case COL:
         if ( !(R = (double *) doubleMalloc_dist(m)) )
           ABORT("Malloc fails for R[].");
         ScalePermstruct->R = R;
@@ -317,7 +321,7 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
         if ( options->RowPerm == MY_PERMR ) { /* Use user's perm_r. */
           /* Permute the global matrix GA for symbfact() */
           for (i = 0; i < colptr[n]; ++i) {
-            irow = rowind[i]; 
+            irow = rowind[i];
             rowind[i] = perm_r[irow];
           }
         } else { /* options->RowPerm == LargeDiag */
@@ -473,7 +477,7 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
     t = SuperLU_timer_();
     /*
      * Get column permutation vector perm_c[], according to permc_spec:
-     *   permc_spec = NATURAL:  natural ordering 
+     *   permc_spec = NATURAL:  natural ordering
      *   permc_spec = MMD_AT_PLUS_A: minimum degree on structure of A'+A
      *   permc_spec = MMD_ATA:  minimum degree on structure of A'*A
      *   permc_spec = METIS_AT_PLUS_A: METIS on structure of A'+A
@@ -483,7 +487,7 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
     permc_spec = options->ColPerm;
 
 
-    if ( parSymbFact == YES || permc_spec == PARMETIS ) {	
+    if ( parSymbFact == YES || permc_spec == PARMETIS ) {
       nprocs_num = grid->nprow * grid->npcol;
       // Default value
       noDomains = (int) ( pow(2, ((int) LOG2( nprocs_num ))));
@@ -506,7 +510,7 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
         if ( permc_spec == NATURAL ) {
           for (j = 0; j < n; ++j) perm_c[j] = j;
         }
-        if ( !(sizes = intMalloc_dist(2 * noDomains)) ) 
+        if ( !(sizes = intMalloc_dist(2 * noDomains)) )
           ABORT("SUPERLU_MALLOC fails for sizes.");
         if ( !(fstVtxSep = intMalloc_dist(2 * noDomains)) )
           ABORT("SUPERLU_MALLOC fails for fstVtxSep.");
@@ -560,7 +564,7 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
       if ( parSymbFact == NO ) {
         int_t *GACcolbeg, *GACcolend, *GACrowind;
 
-        sp_colorder(options, &GA, perm_c, etree, &GAC); 
+        sp_colorder(options, &GA, perm_c, etree, &GAC);
 
         /* Form Pc*A*Pc' to preserve the diagonal of the matrix GAC. */
         GACstore = (NCPformat *) GAC.Store;
@@ -576,7 +580,7 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 
         /* Perform a symbolic factorization on Pc*Pr*A*Pc' and set up
            the nonzero data structures for L & U. */
-#if ( PRNTlevel>=1 ) 
+#if ( PRNTlevel>=1 )
         if ( !iam )
           printf(".. symbfact(): relax " IFMT ", maxsuper " IFMT ", fill " IFMT "\n",
               sp_ienv_dist(2), sp_ienv_dist(3), sp_ienv_dist(6));
@@ -587,7 +591,7 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
           ABORT("Malloc fails for Glu_freeable.");
 
         /* Every process does this. */
-        iinfo = symbfact(options, iam, &GAC, perm_c, etree, 
+        iinfo = symbfact(options, iam, &GAC, perm_c, etree,
             Glu_persist, Glu_freeable);
 
         stat->utime[SYMBFAC] = SuperLU_timer_() - t;
@@ -598,11 +602,11 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
             printf("\tNo of supers %ld\n", (long long) Glu_persist->supno[n-1]+1);
             printf("\tSize of G(L) %ld\n", (long long) Glu_freeable->xlsub[n]);
             printf("\tSize of G(U) %ld\n", (long long) Glu_freeable->xusub[n]);
-            printf("\tint %d, short %d, float %d, double %d\n", 
+            printf("\tint %d, short %d, float %d, double %d\n",
                 (int) sizeof(int_t), (int) sizeof(short),
                 (int) sizeof(float), (int) sizeof(double));
             printf("\tSYMBfact (MB):\tL\\U %.2f\ttotal %.2f\texpansions " IFMT "\n",
-                symb_mem_usage.for_lu*1e-6, 
+                symb_mem_usage.for_lu*1e-6,
                 symb_mem_usage.total*1e-6,
                 symb_mem_usage.expansions);
           }
@@ -622,9 +626,9 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
         if( !iam ) fprintf(stderr,"Before symbfact_dist.");
 #endif
         flinfo = symbfact_dist(nprocs_num, noDomains, A, perm_c, perm_r,
-            sizes, fstVtxSep, &Pslu_freeable, 
+            sizes, fstVtxSep, &Pslu_freeable,
             &(grid->comm), &symb_comm,
-            &symb_mem_usage); 
+            &symb_mem_usage);
 #if ( PRNTlevel >= 1 )
         if( !iam ) fprintf(stderr,"After symbfact_dist.");
 #endif
@@ -649,13 +653,13 @@ pzsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
     if (sizes) SUPERLU_FREE (sizes);
     if (fstVtxSep) SUPERLU_FREE (fstVtxSep);
     if (symb_comm != MPI_COMM_NULL)
-      MPI_Comm_free (&symb_comm); 
+      MPI_Comm_free (&symb_comm);
 
     if (parSymbFact == NO || Fact == SamePattern_SameRowPerm) {
       /* Apply column permutation to the original distributed A */
       for (j = 0; j < nnz_loc; ++j) colind[j] = perm_c[colind[j]];
 
-      /* Distribute Pc*Pr*diag(R)*A*diag(C)*Pc' into L and U storage. 
+      /* Distribute Pc*Pr*diag(R)*A*diag(C)*Pc' into L and U storage.
 NOTE: the row permutation Pc*Pr is applied internally in the
 distribution routine. */
       t = SuperLU_timer_();
@@ -669,7 +673,7 @@ distribution routine. */
         SUPERLU_FREE(Glu_freeable);
       }
     } else {
-      /* Distribute Pc*Pr*diag(R)*A*diag(C)*Pc' into L and U storage. 
+      /* Distribute Pc*Pr*diag(R)*A*diag(C)*Pc' into L and U storage.
 NOTE: the row permutation Pc*Pr is applied internally in the
 distribution routine. */
       /* Apply column permutation to the original distributed A */
@@ -755,7 +759,7 @@ distribution routine. */
               for_lu * 1e-6, total * 1e-6);
           printf("** Total highmark (MB):\n"
               "    Sum-of-all : %8.2f | Avg : %8.2f  | Max : %8.2f\n",
-              avg * 1e-6,  
+              avg * 1e-6,
               avg / grid->nprow / grid->npcol * 1e-6,
               max * 1e-6);
           printf("**************************************************\n");
@@ -777,10 +781,10 @@ distribution routine. */
         SUPERLU_FREE(R);
         SUPERLU_FREE(C);
         break;
-      case ROW: 
+      case ROW:
         SUPERLU_FREE(C);
         break;
-      case COL: 
+      case COL:
         SUPERLU_FREE(R);
         break;
     }

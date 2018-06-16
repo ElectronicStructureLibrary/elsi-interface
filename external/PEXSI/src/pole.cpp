@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin
 
@@ -69,7 +69,7 @@ Complex fd(Complex z, double beta, double mu){
   return val;
 }
 
-// Derivative of the Fermi-Dirac distribution with respect to mu 
+// Derivative of the Fermi-Dirac distribution with respect to mu
 // (therefore there is no minus sign)
 // fdDrvMu(z) = beta * 2.0 * exp(beta*z)/(1+exp(beta*z))^2
 Complex fdDrvMu(Complex z, double beta, double mu){
@@ -87,7 +87,7 @@ Complex fdDrvMu(Complex z, double beta, double mu){
   return val;
 }
 
-// Derivative of the Fermi-Dirac distribution with respect to T (1/beta) 
+// Derivative of the Fermi-Dirac distribution with respect to T (1/beta)
 // fdDrvT(z) = beta^2 * 2.0 * exp(beta*z) * z /(1+exp(beta*z))^2
 Complex fdDrvT(Complex z, double beta, double mu){
   Complex val, ez;
@@ -106,7 +106,7 @@ Complex fdDrvT(Complex z, double beta, double mu){
 
 
 
-// Energy function egy(z) = (z+mu) * fd(z) 
+// Energy function egy(z) = (z+mu) * fd(z)
 Complex egy(Complex z, double beta, double mu){
   Complex val, ez;
   /* LL: VERY IMPORTANT TO AVOID OVERFLOW/UNDERFLOW! */
@@ -142,7 +142,7 @@ Complex hmz(Complex z, double beta, double mu){
   with complement.
 
   Input parameters:
-  L             
+  L
 
   Output parameters
   K, Kp
@@ -161,11 +161,11 @@ Complex hmz(Complex z, double beta, double mu){
   Functions," Dover, 1965.  Same method as in ELLIPKE, only
   interchanging 1 and 1-m to find KP.
 
-  When m=exp(-2*pi*L) is extremely small, use O(m) approximations.  
+  When m=exp(-2*pi*L) is extremely small, use O(m) approximations.
 
   Originally written by Toby Driscoll in 1999.
 
-  Rewritten in C++ by 
+  Rewritten in C++ by
   Lin Lin
   Computer Research Division, Lawrence Berkeley National Lab
   Last modified:  10-24-2012
@@ -173,7 +173,7 @@ Complex hmz(Complex z, double beta, double mu){
 void ellipkkp(double* K, double* Kp, double *pL){
   double pi, m, a0, b0, s0, a1, b1, c1, w1;
   double mm, eps = 1e-15;
-  int i1; 
+  int i1;
   double L = (*pL);
 
   pi = atan(1.0)*4.0;
@@ -233,7 +233,7 @@ void ellipkkp(double* K, double* Kp, double *pL){
   ELLIPJC Calculates Jacobi elliptic functions for complex argument.
 
   Input parameters:
-  u, L             
+  u, L
 
   Output parameters
   sn, cn, dn
@@ -253,23 +253,23 @@ void ellipkkp(double* K, double* Kp, double *pL){
   The algorithm is the descending Landen transformation,
   described in L. Howell's PhD thesis from MIT. Additional
   formulas from Gradshteyn & Ryzhik, 5th ed., and Abramowitz
-  & Stegun.  
+  & Stegun.
 
 NOTE:  When calling this function outside *flag = 0
  *flag = 1 is only for recursive use.
 
  Originally written by Toby Driscoll in 1999.
 
- Rewritten in C++ by 
+ Rewritten in C++ by
  Lin Lin
  Computer Research Division, Lawrence Berkeley National Lab
  Last modified:  10-24-2012
  *********************************************************************/
 void ellipjc(Complex* psn, Complex* pcn,
-    Complex* pdn, Complex* pu, 
+    Complex* pdn, Complex* pu,
     double *pL, int *flag) {
 
-  double K, Kp; 
+  double K, Kp;
   double L = (*pL);
   double m;
   double pi = std::atan(1.0)*4.0;
@@ -310,7 +310,7 @@ void ellipjc(Complex* psn, Complex* pcn,
 
     *pcn = cosu + m/4.0 * (-sinu * cosu + u) * sinu;
 
-    *pdn = 1.0 +  m/4.0 * (cosu * cosu - sinu * sinu - 1.0); 
+    *pdn = 1.0 +  m/4.0 * (cosu * cosu - sinu * sinu - 1.0);
 
   }
   /* Case 2 : m is big, call recursive formula */
@@ -328,7 +328,7 @@ void ellipjc(Complex* psn, Complex* pcn,
     denom = 1.0 + kappa * sn1 * sn1;
 
     *psn = (1.0+kappa) * sn1 / denom;
-    *pcn = cn1 * dn1 / denom; 
+    *pcn = cn1 * dn1 / denom;
     *pdn = (1.0-kappa*sn1*sn1) / denom;
   }
 
@@ -353,7 +353,7 @@ void ellipjc(Complex* psn, Complex* pcn,
 /// same analytic structure with the Fermi-Dirac distribution with
 /// chemical potential mu and inverse temperature beta.
 ///
-/// NOTE: All units (temperature, gap, deltaE) should be the same.  
+/// NOTE: All units (temperature, gap, deltaE) should be the same.
 ///	Without specification they should all be Hartree (au).
 ///
 ///
@@ -361,15 +361,15 @@ void ellipjc(Complex* psn, Complex* pcn,
 ///   Pseudocode (MATLAB notation) using pole expansion to reconstruct the
 ///   electron density.  NOTE: mu is included in zshift.
 
-///   Rho = zeros(N, 1);  
+///   Rho = zeros(N, 1);
 ///   for l = 1 : Npoles
 ///     Rho = Rho + diag(imag( zweight(l) * inv(H - zshift(l)*eye(N))));
-///   end 
+///   end
 ///
 /// Reference:
 ///
 ///   L. Lin, J. Lu, L. Ying and W. E, Pole-based approximation of the
-///   Fermi-Dirac function, Chin. Ann. Math.  30B, 729, 2009 
+///   Fermi-Dirac function, Chin. Ann. Math.  30B, 729, 2009
 ///
 /// @param[in] func  input function to be expanded by pole expansion
 /// @param[out] zshift Complex shift of poles.
@@ -394,7 +394,7 @@ int GetPoleFunc(Complex (*func)(Complex, double, double),
   if( (*Npole) % 2 != 0 ){
     fprintf(stderr, "Npole has to be an even number!\n");
     return 1;
-  } 
+  }
 
   Npolehalf   = (*Npole) / 2;
   M           = *deltaE;
@@ -415,11 +415,11 @@ int GetPoleFunc(Complex (*func)(Complex, double, double),
     /* General formula for zshift and zweight
      *
      zshift(j)  = zsqrt(j) + mu;
-     zweight(j) = 2*K*sqrt(m2*M2)/(kr*pi*Npolehalf) / 
-     zsqrt(j) * dzdt(j) * func(zsqrt(j)); 
+     zweight(j) = 2*K*sqrt(m2*M2)/(kr*pi*Npolehalf) /
+     zsqrt(j) * dzdt(j) * func(zsqrt(j));
      */
 
-    dzdt = cn * dn / ((1.0/kr-sn) * (1.0/kr-sn));   
+    dzdt = cn * dn / ((1.0/kr-sn) * (1.0/kr-sn));
 
     coef = 2.0 * K * sqrt(m2*M2) / (kr*pi*Npolehalf);
 
@@ -450,10 +450,10 @@ int GetPoleFunc(Complex (*func)(Complex, double, double),
 ///
 /// Generate the poles and weights for any function f that shares the
 /// same analytic structure with the Fermi-Dirac distribution with
-/// chemical potential mu and inverse temperature beta. 
+/// chemical potential mu and inverse temperature beta.
 ///
 /// The shift is given at chemical potential mu, while the weight is
-/// given at mu+dmu. 
+/// given at mu+dmu.
 ///
 /// @note
 ///
@@ -461,7 +461,7 @@ int GetPoleFunc(Complex (*func)(Complex, double, double),
 /// recomputing the pole expansion.  dmu should be <b>on the order of
 /// \f$k_BT\f$</b> in order to be accurate.
 ///
-/// - All units (temperature, gap, deltaE) should be the same.  
+/// - All units (temperature, gap, deltaE) should be the same.
 ///	Without specification they should all be Hartree (au).
 ///
 /// @param[in] func  input function to be expanded by pole expansion
@@ -474,10 +474,10 @@ int GetPoleFunc(Complex (*func)(Complex, double, double),
 /// @param[in] deltaE Spectrum width defined to be max(EV)-min(EV). EV
 /// is the eigenvalue set of Hamiltonian.
 /// @param[in] mu Chemical potential.
-/// @param[in] dmu Update of chemical potential. 
+/// @param[in] dmu Update of chemical potential.
 int GetPoleUpdateFunc(Complex (*func)(Complex, double, double),
     Complex* zshift, Complex* zweight, int* Npole,
-    double* temp, double* gap, double* deltaE, double* mu, 
+    double* temp, double* gap, double* deltaE, double* mu,
     double* dmu){
   double beta;
   double M, mshift, m2, M2, kr, L, K, Kp, coef;
@@ -489,7 +489,7 @@ int GetPoleUpdateFunc(Complex (*func)(Complex, double, double),
   if( (*Npole) % 2 != 0 ){
     fprintf(stderr, "Npole has to be an even number!\n");
     return 1;
-  } 
+  }
 
   Npolehalf   = (*Npole) / 2;
   M           = *deltaE;
@@ -510,11 +510,11 @@ int GetPoleUpdateFunc(Complex (*func)(Complex, double, double),
     /* General formula for zshift and zweight
      *
      zshift(j)  = zsqrt(j) + mu;
-     zweight(j) = 2*K*sqrt(m2*M2)/(kr*pi*Npolehalf) / 
-     zsqrt(j) * dzdt(j) * func(zsqrt(j)); 
+     zweight(j) = 2*K*sqrt(m2*M2)/(kr*pi*Npolehalf) /
+     zsqrt(j) * dzdt(j) * func(zsqrt(j));
      */
 
-    dzdt = cn * dn / ((1.0/kr-sn) * (1.0/kr-sn));   
+    dzdt = cn * dn / ((1.0/kr-sn) * (1.0/kr-sn));
 
     coef = 2.0 * K * sqrt(m2*M2) / (kr*pi*Npolehalf);
 
@@ -548,21 +548,21 @@ int GetPoleUpdateFunc(Complex (*func)(Complex, double, double),
 
 // Wrapper function
 
-int GetPoleDensity(Complex* zshift, Complex* zweight, 
+int GetPoleDensity(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu){
   return GetPoleFunc(&fd, zshift,  zweight,
       &Npole, &temp, &gap, &deltaE, &mu);
 }
 
-int GetPoleDensityDrvMu(Complex* zshift, Complex* zweight, 
+int GetPoleDensityDrvMu(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu){
   return GetPoleFunc(&fdDrvMu, zshift,  zweight,
       &Npole, &temp, &gap, &deltaE, &mu);
 }
 
-int GetPoleDensityDrvT(Complex* zshift, Complex* zweight, 
+int GetPoleDensityDrvT(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu){
   return GetPoleFunc(&fdDrvT, zshift,  zweight,
@@ -570,14 +570,14 @@ int GetPoleDensityDrvT(Complex* zshift, Complex* zweight,
 }
 
 
-int GetPoleHelmholtz(Complex* zshift, Complex* zweight, 
+int GetPoleHelmholtz(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu){
   return GetPoleFunc(&hmz, zshift,  zweight,
       &Npole, &temp, &gap, &deltaE, &mu);
 }
 
-int GetPoleForce(Complex* zshift, Complex* zweight, 
+int GetPoleForce(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu){
   return GetPoleFunc(&egy, zshift,  zweight,
@@ -585,21 +585,21 @@ int GetPoleForce(Complex* zshift, Complex* zweight,
 }
 
 // Wrapper for updating formula for the pole weights
-int GetPoleDensityUpdate(Complex* zshift, Complex* zweight, 
+int GetPoleDensityUpdate(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu, double dmu){
   return GetPoleUpdateFunc(&fd, zshift,  zweight,
       &Npole, &temp, &gap, &deltaE, &mu, &dmu);
 }
 
-int GetPoleHelmholtzUpdate(Complex* zshift, Complex* zweight, 
+int GetPoleHelmholtzUpdate(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu, double dmu){
   return GetPoleUpdateFunc(&hmz, zshift,  zweight,
       &Npole, &temp, &gap, &deltaE, &mu, &dmu);
 }
 
-int GetPoleForceUpdate(Complex* zshift, Complex* zweight, 
+int GetPoleForceUpdate(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu, double dmu){
   return GetPoleUpdateFunc(&egy, zshift,  zweight,
