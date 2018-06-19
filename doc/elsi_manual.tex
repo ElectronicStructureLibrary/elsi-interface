@@ -463,6 +463,23 @@ $ \textcolor{blue}{ctest}
 
 Note that the tests may not run if launching MPI jobs is prohibited on the user's working platform.\\
 
+\subsection{Installation and usage by third parties}
+
+In order to install ELSI at the location specified by \verb+CMAKE_INSTALL_PREFIX+, issue the build command with the \verb+install+ target. For example, when using the Makefile generator, issue
+\begin{verbatim}
+make install
+\end{verbatim}
+When using the Ninja generator, that would be \verb+ninja install+. If you are unsure about the CMake generator used, issue \verb+cmake --build install+ and the correct generator is chosen. Among the files copied to the installation destinations is a CMake configuration file called \texttt{elsiConfig.cmake}. That file includes all the information about how the ELSI library and its dependencies should be included in an external project. Only two lines are required to find and link to ELSI:
+\begin{verbatim}
+find_package(elsi REQUIRED)
+target_link_libraries(my_project PRIVATE elsi::elsi)
+\end{verbatim}
+If your project requires a minimum version of ELSI, you may pass this information to \verb+find_package+:
+\begin{verbatim}
+find_package(elsi 2.1 REQUIRED)
+\end{verbatim}
+In that case, if the installed ELSI version is older than what was requested, CMake stops with an appropriate error message. For other options of \verb+find_package+, run \verb+cmake --help find_package+ or see the online documentation.
+
 \subsection{List of All Configure Options}
 \label{subsec:config_keywords}
 The options accepted by the ELSI CMake build system are listed here in alphabetical order.  Some additional explanations are made below the table.\\
