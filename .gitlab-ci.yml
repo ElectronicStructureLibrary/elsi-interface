@@ -3,13 +3,13 @@ gnu:
   script:
     - module purge
     - module load gcc-7.1
-    - module load cmake-3.11.3
+    - module load cmake-3.11.4
     - module load openmpi-3.0.0
     - cat ./toolchains/gnu.cmake
-    - rm -rf build
-    - mkdir build
+    - rm -rf build /home/wy29/ci_tmp
+    - mkdir build /home/wy29/ci_tmp
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/gnu.cmake -DCMAKE_INSTALL_PREFIX=./ ..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/gnu.cmake -DCMAKE_INSTALL_PREFIX=/home/wy29/ci_tmp ..
     - make -j8
     - ctest --output-on-failure
     - make install
@@ -19,13 +19,13 @@ intel:
   script:
     - module purge
     - module load gcc-7.1
-    - module load cmake-3.11.3
+    - module load cmake-3.11.4
     - module load intel-2018
     - cat ./toolchains/intel.cmake
-    - rm -rf build
-    - mkdir build
+    - rm -rf build /home/wy29/ci_tmp
+    - mkdir build /home/wy29/ci_tmp
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=./ ..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=/home/wy29/ci_tmp ..
     - make -j8
     - ctest --output-on-failure
     - make install
@@ -35,13 +35,13 @@ intel-debug:
   script:
     - module purge
     - module load gcc-7.1
-    - module load cmake-3.11.3
+    - module load cmake-3.11.4
     - module load intel-2018
     - cat ./toolchains/intel_debug.cmake
-    - rm -rf build
-    - mkdir build
+    - rm -rf build /home/wy29/ci_tmp
+    - mkdir build /home/wy29/ci_tmp
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.cmake -DCMAKE_INSTALL_PREFIX=./ ..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.cmake -DCMAKE_INSTALL_PREFIX=/home/wy29/ci_tmp ..
     - make -j8
     - ctest --output-on-failure
     - make install
@@ -51,13 +51,13 @@ intel-shared:
   script:
     - module purge
     - module load gcc-7.1
-    - module load cmake-3.11.3
+    - module load cmake-3.11.4
     - module load intel-2018
     - cat ./toolchains/intel.cmake
-    - rm -rf build
-    - mkdir build
+    - rm -rf build /home/wy29/ci_tmp
+    - mkdir build /home/wy29/ci_tmp
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=./ -DBUILD_SHARED_LIBS=ON ..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=/home/wy29/ci_tmp -DBUILD_SHARED_LIBS=ON ..
     - make -j8
     - ctest --output-on-failure
     - make install
