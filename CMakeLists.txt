@@ -31,6 +31,13 @@ ENDIF()
 IF(NOT DEFINED CMAKE_INSTALL_BINDIR)
   SET(CMAKE_INSTALL_BINDIR "bin" CACHE PATH "Location to install binary files")
 ENDIF()
+if ("${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" STREQUAL
+    "${PROJECT_BINARY_DIR}/lib" OR
+    "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}" STREQUAL
+    "${PROJECT_BINARY_DIR}/include")
+  message(FATAL_ERROR
+    "Installation directory cannot be the same as build directory")
+endif()
 MESSAGE(STATUS "ELSI will be installed to: ${CMAKE_INSTALL_PREFIX}")
 
 ### Options ###
