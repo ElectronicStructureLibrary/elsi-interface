@@ -2,7 +2,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0 FATAL_ERROR)
 
 ### Project ###
-PROJECT(elsi VERSION 2.0.1 LANGUAGES NONE)
+PROJECT(elsi VERSION 2.0.2 LANGUAGES NONE)
 SET(elsi_URL "http://elsi-interchange.org")
 SET(elsi_EMAIL "elsi-team@duke.edu")
 SET(elsi_LICENSE "BSD 3")
@@ -31,13 +31,10 @@ ENDIF()
 IF(NOT DEFINED CMAKE_INSTALL_BINDIR)
   SET(CMAKE_INSTALL_BINDIR "bin" CACHE PATH "Location to install binary files")
 ENDIF()
-if ("${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" STREQUAL
-    "${PROJECT_BINARY_DIR}/lib" OR
-    "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}" STREQUAL
-    "${PROJECT_BINARY_DIR}/include")
-  message(FATAL_ERROR
-    "Installation directory cannot be the same as build directory")
-endif()
+IF("${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" STREQUAL "${PROJECT_BINARY_DIR}/lib" OR
+  "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}" STREQUAL "${PROJECT_BINARY_DIR}/include")
+  MESSAGE(FATAL_ERROR "${MAGENTA}Installation directory cannot be the same as build directory${COLORRESET}")
+ENDIF()
 MESSAGE(STATUS "ELSI will be installed to: ${CMAKE_INSTALL_PREFIX}")
 
 ### Options ###

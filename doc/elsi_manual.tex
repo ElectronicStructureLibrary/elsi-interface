@@ -21,7 +21,7 @@
 
 \begin{document}
 % Title
-\title{\includegraphics[scale=0.07]{elsi_logo.png}\\ \textcolor{white}{nothing}\\ \textbf{ELSI Interface\\ Development Version\\ \textcolor{white}{nothing} \\ User's Guide}}
+\title{\includegraphics[scale=0.07]{elsi_logo.png}\\ \textcolor{white}{nothing}\\ \textbf{ELSI Interface\\ May 2018 (v2.0.2)\\ \textcolor{white}{nothing} \\ User's Guide}}
 \author{The ELSI Team\\ \textcolor{white}{nothing}\\ \url{http://elsi-interchange.org}}
 \maketitle
 
@@ -259,9 +259,9 @@ ELSI is a National Science Foundation Software Infrastructure for Sustained Inno
 \chapter{Installation of ELSI}
 \section{Overview}
 \label{sec:install}
-The ELSI package contains the ELSI Interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.0.0).  We highly encourage all users to request access to our GitLab server (\textcolor{blue}{http://git.elsi-interchange.org/elsi-devel}), where we regularly update ELSI between releases while preserving stability.\\
+The ELSI package contains the ELSI Interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.0.0).  We highly encourage all users to request access to our \href{http://git.elsi-interchange.org/elsi-devel}{GitLab server}GitLab server, where we regularly update ELSI between releases while preserving stability.\\
 
-Starting from the May 2018 release, the installation of ELSI makes use of the CMake software.\\
+Starting from the May 2018 release, the installation of ELSI makes use of the \href{http://cmake.org}{CMake} software.\\
 
 \section{Prerequisites}
 \label{sec:prereq}
@@ -319,9 +319,31 @@ $ \textcolor{blue}{make [-j np]}
 $ \textcolor{blue}{make install}
 \end{Verbatim}
 
-whenever CMake is invoked, one of the command line arguments must point to the path where the top level CMakeLists.txt file exists, hence the ``..'' in the above example.\\
+Whenever CMake is invoked, one of the command line arguments must point to the path where the top level CMakeLists.txt file exists, hence the ``..'' in the above example.\\
 
-An option can be defined by adding\\
+By default, CMake generates standard UNIX makefiles including specific rules to build the project with GNU make.  Other build systems may be chosen with the ``-G'' (G for generator) option of CMake.  We recommend \href{http://ninja-build.org}{Ninja} in particular, which is a small build system with a focus on speed.  A version of Ninja with Fortran support is freely available \href{http://github.com/Kitware/ninja}{here}.\\
+
+To build ELSI with Ninja:\\
+
+\begin{Verbatim}[commandchars=\\\{\}]
+$ \textcolor{blue}{ls}
+
+  CMakeLists.txt  external/  src/  test/  ...
+
+$ \textcolor{blue}{mkdir build}
+$ \textcolor{blue}{cd build}
+$ \textcolor{blue}{cmake -G Ninja [options] ..}
+
+  ...
+  ...
+  -- Generating done
+  -- Build files have been written to: /current/dir
+
+$ \textcolor{blue}{ninja [-j np]}
+$ \textcolor{blue}{ninja install}
+\end{Verbatim}
+
+With CMake, an option can be defined by adding\\
 
 \begin{verbatim}
 -DKeyword=Value
@@ -340,7 +362,7 @@ For example,\\
 -DLIBS="library1 library2 library3"
 \end{verbatim}
 
-Available options are introduced in the next sections.\\
+Available options for building ELSI with CMake are introduced in the next sections.  Other options of CMake itself are available in its online documentation.\\
 
 \section{Configuration}
 \label{sec:config}
@@ -445,40 +467,35 @@ Building ELSI test programs may be enabled by:\\
 
 In either case, linear algebra libraries, BLAS, LAPACK, BLACS, and ScaLAPACK, should be valid in the \textcolor{blue}{LIB\_PATHS} and \textcolor{blue}{LIBS} keywords.\\
 
-If test programs are enabled, the installation of ELSI may be verified by\\
+If test programs are enabled, the compilation of ELSI may be verified by\\
 
 \begin{Verbatim}[commandchars=\\\{\}]
-$ ...
-$ \textcolor{blue}{make [-j np]}
-$ \textcolor{blue}{make test}
-\end{Verbatim}
-
-or\\
-
-\begin{Verbatim}[commandchars=\\\{\}]
-$ ...
-$ \textcolor{blue}{make [-j np]}
 $ \textcolor{blue}{ctest}
 \end{Verbatim}
 
 Note that the tests may not run if launching MPI jobs is prohibited on the user's working platform.\\
 
-\subsection{Installation and usage by third parties}
+In order to install ELSI at the location specified by \textcolor{blue}{CMAKE\_INSTALL\_PREFIX}, issue\\
 
-In order to install ELSI at the location specified by \verb+CMAKE_INSTALL_PREFIX+, issue the build command with the \verb+install+ target. For example, when using the Makefile generator, issue
-\begin{verbatim}
-make install
-\end{verbatim}
-When using the Ninja generator, that would be \verb+ninja install+. If you are unsure about the CMake generator used, issue \verb+cmake --build install+ and the correct generator is chosen. Among the files copied to the installation destinations is a CMake configuration file called \texttt{elsiConfig.cmake}. That file includes all the information about how the ELSI library and its dependencies should be included in an external project. Only two lines are required to find and link to ELSI:
-\begin{verbatim}
-find_package(elsi REQUIRED)
-target_link_libraries(my_project PRIVATE elsi::elsi)
-\end{verbatim}
-If your project requires a minimum version of ELSI, you may pass this information to \verb+find_package+:
-\begin{verbatim}
-find_package(elsi 2.1 REQUIRED)
-\end{verbatim}
-In that case, if the installed ELSI version is older than what was requested, CMake stops with an appropriate error message. For other options of \verb+find_package+, run \verb+cmake --help find_package+ or see the online documentation.
+\begin{Verbatim}[commandchars=\\\{\}]
+$ \textcolor{blue}{make install}
+\end{Verbatim}
+
+or\\
+
+\begin{Verbatim}[commandchars=\\\{\}]
+$ \textcolor{blue}{ninja install}
+\end{Verbatim}
+
+depending on the generator option ``-G'' specified when invoking CMake.  Alternatively, the command\\
+
+\begin{Verbatim}[commandchars=\\\{\}]
+$ \textcolor{blue}{cmake --build install}
+\end{Verbatim}
+
+lets CMake pick up the correct generator to use.\\
+
+Among the files copied to the installation destinations is a CMake configuration file called \texttt{elsiConfig.cmake}.  This file includes all the information about how the ELSI library and its dependencies should be included in an external CMake project.  Please refer to \ref{sec:import} for information regarding linking a third-party package against ELSI.\\
 
 \subsection{List of All Configure Options}
 \label{subsec:config_keywords}
@@ -536,7 +553,7 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 \hline
 \end{tabular}
 
-\bigskip
+\newpage
 \textbf{Remarks}\\
 
 \textbf{1)} \textcolor{blue}{ADD\_UNDERSCORE}:  In the PEXSI and SuperLU\_DIST code redistributed through ELSI, there are calls to functions of the linear algebra libraries, e.g. ``dgemm''.  If \textcolor{blue}{ADD\_UNDERSCORE} is ``ON'', the code will call ``dgemm\_'' instead of ``dgemm''.  Turn this keyword on if routines are suffixed with ``\_'' in external linear algebra libraries.  Turn it off if routines are not suffixed with ``\_''.\\
@@ -557,11 +574,28 @@ It is sometimes convenient to edit the settings in a ``toolchain'' file that can
 
 Example ``toolchains'' are provided in the ``./toolchains'' directory of the ELSI package, which the user may use as templates to create new ones.\\
 
-\section{Importing ELSI into KS-DFT Codes}
+\section{Importing ELSI into Third-Party Code Projects}
 \label{sec:import}
-\subsection{Linking a KS-DFT Code against ELSI}
-\label{subsec:import_link}
-By default, ELSI places its library and include files in the \texttt{lib} and \texttt{include} subfolders, respectively, of the build directory.  An example set of compiler flags to link a generic KS-DFT code against ELSI are:\\
+\subsection{Linking against ELSI:  CMake}
+\label{subsec:import_cmake}
+A CMake configuration file called \texttt{elsiConfig.cmake} should be generated after ELSI is successfully installed (see \ref{subsec:config_targets}).  This file contains all the information about how the ELSI library and its dependencies should be included in an external project.  For a project using CMake, only two lines are required to find and link to ELSI:\\
+
+\begin{verbatim}
+find_package(elsi REQUIRED)
+target_link_libraries(my_project PRIVATE elsi::elsi)
+\end{verbatim}
+
+If a minimum version of ELSI is required, this information may be passed to \textcolor{blue}{find\_package} by:\\
+
+\begin{verbatim}
+find_package(elsi 2.0 REQUIRED)
+\end{verbatim}
+
+If the installed ELSI version is older than the requested minimum version, CMake stops with an appropriate error message.  Other options of \textcolor{blue}{find\_package} are available in the documentation of CMake.\\
+
+\subsection{Linking against ELSI:  Makefile}
+\label{subsec:import_makefile}
+For a project using makefiles, an example set of compiler flags to link against ELSI would be:\\
 
 \begin{verbatim}
 ELSI_INCLUDE = -I/PATH/TO/BUILD/ELSI/include
@@ -573,9 +607,9 @@ ELSI_LIB     = -L/PATH/TO/BUILD/ELSI/lib -lelsi \
 
 Enabling/disabling PEXSI and SLEPc-SIPs or linking ELSI against preinstalled solver libraries will require the user modify these flags accordingly.\\
 
-\subsection{Importing ELSI into a KS-DFT Code}
+\subsection{Using ELSI in a KS-DFT Code}
 \label{subsec:import_use}
-ELSI may be used in the KS-DFT code by importing the appropriate header file.  For codes written in Fortran, this is done by using the ELSI module\\
+ELSI may be used in a KS-DFT code by importing the appropriate header file.  For codes written in Fortran, this is done by using the ELSI module\\
 
 \begin{verbatim}
 USE ELSI
