@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2011,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -50,7 +50,7 @@
 /**                # Version 4.0  : from : 09 jan 2004     **/
 /**                                 to     09 jan 2004     **/
 /**                # Version 6.0  : from : 23 fev 2011     **/
-/**                                 to     27 aug 2016     **/
+/**                                 to     09 nov 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -77,7 +77,7 @@ typedef GainLink BgraphBipartGgLink;
 
 #else /* SCOTCH_TABLE_GAIN */
 
-typedef FiboHeap BgraphBipartGgTabl;
+typedef FiboTree BgraphBipartGgTabl;
 typedef FiboNode BgraphBipartGgLink;
 
 #endif /* SCOTCH_TABLE_GAIN */
@@ -146,12 +146,12 @@ int                         bgraphBipartGg      (Bgraph * restrict const, const 
 
 /*+ Service routines. +*/
 
-#define bgraphBipartGgTablInit(t)   (fiboHeapInit ((t), bgraphBipartGgCmpFunc))
-#define bgraphBipartGgTablFree(t)   fiboHeapFree (t)
-#define bgraphBipartGgTablExit(t)   fiboHeapExit (t)
-#define bgraphBipartGgTablAdd(t,v)  fiboHeapAdd ((t), &(v)->gainlink)
-#define bgraphBipartGgTablDel(t,v)  fiboHeapDel ((t), &(v)->gainlink)
-#define bgraphBipartGgTablFrst(t)   fiboHeapMin ((t))
+#define bgraphBipartGgTablInit(t)   (fiboTreeInit ((t), bgraphBipartGgCmpFunc))
+#define bgraphBipartGgTablFree(t)   fiboTreeFree (t)
+#define bgraphBipartGgTablExit(t)   fiboTreeExit (t)
+#define bgraphBipartGgTablAdd(t,v)  fiboTreeAdd ((t), &(v)->gainlink)
+#define bgraphBipartGgTablDel(t,v)  fiboTreeDel ((t), &(v)->gainlink)
+#define bgraphBipartGgTablFrst(t)   fiboTreeMin ((t))
 #define bgraphBipartGgIsFree(v)     ((v)->gainlink.linkdat.nextptr == BGRAPHBIPARTGGSTATEFREE)
 #define bgraphBipartGgIsTabl(v)     ((v)->gainlink.linkdat.nextptr >= BGRAPHBIPARTGGSTATELINK)
 #define bgraphBipartGgIsUsed(v)     ((v)->gainlink.linkdat.nextptr == BGRAPHBIPARTGGSTATEUSED)

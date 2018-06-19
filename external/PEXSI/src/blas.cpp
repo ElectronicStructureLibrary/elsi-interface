@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Jack Poulson and Lin Lin
 
@@ -493,9 +493,9 @@ double Dot( Int n, const double* x, Int incx, const double* y, Int incy )
 { return BLAS(ddot)( &n, x, &incx, y, &incy ); }
 
 scomplex Dot( Int n, const scomplex* x, Int incx, const scomplex* y, Int incy )
-{ 
+{
   scomplex alpha = 0;
-  for( Int i=0; i<n; ++i ) 
+  for( Int i=0; i<n; ++i )
     alpha += conj(x[i*incx])*y[i*incy];
   return alpha;
 }
@@ -503,7 +503,7 @@ scomplex Dot( Int n, const scomplex* x, Int incx, const scomplex* y, Int incy )
 dcomplex Dot( Int n, const dcomplex* x, Int incx, const dcomplex* y, Int incy )
 {
   dcomplex alpha = 0;
-  for( Int i=0; i<n; ++i ) 
+  for( Int i=0; i<n; ++i )
     alpha += conj(x[i*incx])*y[i*incy];
   return alpha;
 }
@@ -515,17 +515,17 @@ double Dotc( Int n, const double* x, Int incx, const double* y, Int incy )
 { return BLAS(ddot)( &n, x, &incx, y, &incy ); }
 
 scomplex Dotc( Int n, const scomplex* x, Int incx, const scomplex* y, Int incy )
-{ 
+{
   scomplex alpha = 0;
-  for( Int i=0; i<n; ++i ) 
+  for( Int i=0; i<n; ++i )
     alpha += conj(x[i*incx])*y[i*incy];
   return alpha;
 }
 
 dcomplex Dotc( Int n, const dcomplex* x, Int incx, const dcomplex* y, Int incy )
-{ 
+{
   dcomplex alpha = 0;
-  for( Int i=0; i<n; ++i ) 
+  for( Int i=0; i<n; ++i )
     alpha += conj(x[i*incx])*y[i*incy];
   return alpha;
 }
@@ -539,7 +539,7 @@ double Dotu( Int n, const double* x, Int incx, const double* y, Int incy )
 scomplex Dotu( Int n, const scomplex* x, Int incx, const scomplex* y, Int incy )
 {
   scomplex alpha = 0;
-  for( Int i=0; i<n; ++i ) 
+  for( Int i=0; i<n; ++i )
     alpha += x[i*incx]*y[i*incy];
   return alpha;
 }
@@ -547,7 +547,7 @@ scomplex Dotu( Int n, const scomplex* x, Int incx, const scomplex* y, Int incy )
 dcomplex Dotu( Int n, const dcomplex* x, Int incx, const dcomplex* y, Int incy )
 {
   dcomplex alpha = 0;
-  for( Int i=0; i<n; ++i ) 
+  for( Int i=0; i<n; ++i )
     alpha += x[i*incx]*y[i*incy];
   return alpha;
 }
@@ -724,9 +724,9 @@ void Syr2
   scomplex alpha, const scomplex* x, Int incx, const scomplex* y, Int incy,
   scomplex* A, Int lda )
 {
-  // csyr2 doesn't exist, so we route through csyr2k. However, csyr2k expects 
-  // contiguous access of 'x', so we treat x and y as a row vectors where 
-  // their leading dimensions are 'incx' and 'incy'. Thus we must perform 
+  // csyr2 doesn't exist, so we route through csyr2k. However, csyr2k expects
+  // contiguous access of 'x', so we treat x and y as a row vectors where
+  // their leading dimensions are 'incx' and 'incy'. Thus we must perform
   // A += x' y + y' x
   const char trans = 'T';
   const Int k = 1;
@@ -740,9 +740,9 @@ void Syr2
   dcomplex alpha, const dcomplex* x, Int incx, const dcomplex* y, Int incy,
   dcomplex* A, Int lda )
 {
-  // zsyr2 doesn't exist, so we route through zsyr2k. However, zsyr2k expects 
-  // contiguous access of 'x', so we treat x and y as a row vectors where 
-  // their leading dimensions are 'incx' and 'incy'. Thus we must perform 
+  // zsyr2 doesn't exist, so we route through zsyr2k. However, zsyr2k expects
+  // contiguous access of 'x', so we treat x and y as a row vectors where
+  // their leading dimensions are 'incx' and 'incy'. Thus we must perform
   // A += x' y + y' x
   const char trans = 'T';
   const Int k = 1;
@@ -795,7 +795,7 @@ void Trsv
 // Level 3 BLAS                                                               //
 //----------------------------------------------------------------------------//
 void Gemm
-( char transA, char transB, Int m, Int n, Int k, 
+( char transA, char transB, Int m, Int n, Int k,
   float alpha, const float* A, Int lda, const float* B, Int ldb,
   float beta,        float* C, Int ldc )
 {
@@ -807,7 +807,7 @@ void Gemm
 
 void Gemm
 ( char transA, char transB,
-  Int m, Int n, Int k, 
+  Int m, Int n, Int k,
   double alpha, const double* A, Int lda, const double* B, Int ldb,
   double beta,        double* C, Int ldc )
 {
@@ -818,7 +818,7 @@ void Gemm
 }
 
 void Gemm
-( char transA, char transB, Int m, Int n, Int k, 
+( char transA, char transB, Int m, Int n, Int k,
   scomplex alpha, const scomplex* A, Int lda, const scomplex* B, Int ldb,
   scomplex beta,        scomplex* C, Int ldc )
 {
@@ -827,7 +827,7 @@ void Gemm
 }
 
 void Gemm
-( char transA, char transB, Int m, Int n, Int k, 
+( char transA, char transB, Int m, Int n, Int k,
   dcomplex alpha, const dcomplex* A, Int lda, const dcomplex* B, Int ldb,
   dcomplex beta,        dcomplex* C, Int ldc )
 {
@@ -1039,7 +1039,7 @@ void Trmm
 ( char side, char uplo, char trans, char unit, Int m, Int n,
   float alpha, const float* A, Int lda, float* B, Int ldb )
 {
-  const char fixedTrans = ( trans == 'C' ? 'T' : trans );    
+  const char fixedTrans = ( trans == 'C' ? 'T' : trans );
   BLAS(strmm)( &side, &uplo, &fixedTrans, &unit, &m, &n,
       &alpha, A, &lda, B, &ldb );
 }
@@ -1048,7 +1048,7 @@ void Trmm
 ( char side, char uplo, char trans, char unit, Int m, Int n,
   double alpha, const double* A, Int lda, double* B, Int ldb )
 {
-  const char fixedTrans = ( trans == 'C' ? 'T' : trans );    
+  const char fixedTrans = ( trans == 'C' ? 'T' : trans );
   BLAS(dtrmm)( &side, &uplo, &fixedTrans, &unit, &m, &n,
       &alpha, A, &lda, B, &ldb );
 }
@@ -1076,7 +1076,7 @@ void Trsm
   const char fixedTrans = ( trans == 'C' ? 'T' : trans );
   BLAS(strsm)( &side, &uplo, &fixedTrans, &unit, &m, &n,
       &alpha, A, &lda, B, &ldb );
-} 
+}
 
 void Trsm
 ( char side, char uplo, char trans, char unit, Int m, Int n,
@@ -1085,7 +1085,7 @@ void Trsm
   const char fixedTrans = ( trans == 'C' ? 'T' : trans );
   BLAS(dtrsm)( &side, &uplo, &fixedTrans, &unit, &m, &n,
       &alpha, A, &lda, B, &ldb );
-} 
+}
 
 void Trsm
 ( char side, char uplo, char trans, char unit, Int m, Int n,
@@ -1093,7 +1093,7 @@ void Trsm
 {
   BLAS(ctrsm)( &side, &uplo, &trans, &unit, &m, &n,
       &alpha, A, &lda, B, &ldb );
-} 
+}
 
 void Trsm
 ( char side, char uplo, char trans, char unit, Int m, Int n,
@@ -1101,7 +1101,7 @@ void Trsm
 {
   BLAS(ztrsm)( &side, &uplo, &trans, &unit, &m, &n,
       &alpha, A, &lda, B, &ldb );
-} 
+}
 
 } // namespace blas
 } // namespace PEXSI

@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2010,2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -44,7 +44,7 @@
 /**                # Version 5.1  : from : 30 jun 2010     **/
 /**                                 to     30 jun 2010     **/
 /**                # Version 6.0  : from : 13 sep 2012     **/
-/**                                 to     14 feb 2018     **/
+/**                                 to     13 sep 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -70,7 +70,7 @@
 **
 */
 
-int
+void
 METISNAMEU(METIS_EdgeND) (
 const SCOTCH_Num * const    n,
 const SCOTCH_Num * const    xadj,
@@ -80,14 +80,14 @@ const SCOTCH_Num * const    options,
 SCOTCH_Num * const          perm,
 SCOTCH_Num * const          iperm)
 {
-  return (METISNAMEU(METIS_NodeWND) (n, xadj, adjncy, NULL, numflag, options, perm, iperm));
+  METISNAMEU(METIS_NodeWND) (n, xadj, adjncy, NULL, numflag, options, perm, iperm);
 }
 
 /*
 **
 */
 
-int
+void
 METISNAMEU(METIS_NodeND) (
 const SCOTCH_Num * const    n,
 const SCOTCH_Num * const    xadj,
@@ -97,14 +97,14 @@ const SCOTCH_Num * const    options,
 SCOTCH_Num * const          perm,
 SCOTCH_Num * const          iperm)
 {
-  return (METISNAMEU(METIS_NodeWND) (n, xadj, adjncy, NULL, numflag, options, perm, iperm));
+  METISNAMEU(METIS_NodeWND) (n, xadj, adjncy, NULL, numflag, options, perm, iperm);
 }
 
 /*
 **
 */
 
-int
+void
 METISNAMEU(METIS_NodeWND) (
 const SCOTCH_Num * const    n,
 const SCOTCH_Num * const    xadj,
@@ -118,9 +118,6 @@ SCOTCH_Num * const          iperm)
   SCOTCH_Graph        grafdat;                    /* Scotch graph object to interface with libScotch    */
   SCOTCH_Ordering     ordedat;                    /* Scotch ordering object to interface with libScotch */
   SCOTCH_Strat        stradat;
-  int                 o;
-
-  o = METIS_ERROR;                                /* Assume an error */
 
   SCOTCH_graphInit (&grafdat);
 
@@ -134,14 +131,11 @@ SCOTCH_Num * const          iperm)
     {
       if (SCOTCH_graphOrderInit (&grafdat, &ordedat, iperm, perm, /* MeTiS and Scotch have opposite definitions for (inverse) permutations */
                                  NULL, NULL, NULL) == 0) {
-        if (SCOTCH_graphOrderCompute (&grafdat, &ordedat, &stradat) == 0)
-          o = METIS_OK;
+        SCOTCH_graphOrderCompute (&grafdat, &ordedat, &stradat);
         SCOTCH_graphOrderExit    (&grafdat, &ordedat);
       }
     }
     SCOTCH_stratExit (&stradat);
   }
   SCOTCH_graphExit (&grafdat);
-
-  return (o);
 }

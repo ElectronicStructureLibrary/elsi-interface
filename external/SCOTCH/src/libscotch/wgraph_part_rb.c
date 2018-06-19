@@ -1,4 +1,4 @@
-/* Copyright 2010,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2010 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -41,7 +41,7 @@
 /**                sive bipartitioning approach.           **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 16 mar 2010     **/
-/**                                 to     12 aug 2014     **/
+/**                                 to     31 may 2010     **/
 /**                                                        **/
 /**   NOTES      : # This code derives from the code of    **/
 /**                  kgraph_map_rb_part.c for the vertex   **/
@@ -67,7 +67,6 @@
 #include "vgraph_separate_zr.h"
 #include "wgraph.h"
 #include "wgraph_part_rb.h"
-#include "scotch.h"
 
 /*
 **  The static variables.
@@ -165,7 +164,7 @@ const int                         domnnum)        /* Index of domain onto which 
   indgrafptr = orggrafptr;                        /* Assume we will work on the original graph */
   if (orgparttax != NULL) {                       /* If not the case, build induced subgraph   */
     indgrafptr = &indgrafdat;
-    if (graphInducePart (orggrafptr, orgparttax, indvertnbr, indpartval, &indgrafdat) != 0) {
+    if (graphInducePart (orggrafptr, orgparttax, indvertnbr, indpartval, &indgrafdat, NULL) != 0) {
       errorPrint ("wgraphPartRb2: cannot induce graph");
       return     (1);
     }
@@ -234,10 +233,10 @@ const int                         domnnum)        /* Index of domain onto which 
     }
   }
 
-  memFree (actgrafdat.frontab);                   /* Frontier array of bipartitioning graph is no longer necessary      */
+  memFree (actgrafdat.frontab);                   /* Frontier array of bipartitioning graph is no longer necessary */
   memFree (actgrafdat.parttax + actgrafdat.s.baseval); /* Frontier array of bipartitioning graph is no longer necessary */
-  if (indgrafptr == &indgrafdat)                  /* If an induced subgraph had been created                            */
-    graphExit (indgrafptr);                       /* Free it                                                            */
+  if (indgrafptr == &indgrafdat)                  /* If an induced subgraph had been created   */
+    graphExit (indgrafptr);                       /* Free it                                   */
 
   return (o);
 }
@@ -280,10 +279,9 @@ const WgraphPartRbParam * restrict const  paraptr)
   datadat.mappdat.parttax = grafptr->parttax;     /* Re-use part array */
   datadat.mappdat.domnmax = grafptr->partnbr + 1;
   datadat.mappdat.domnnbr = 1;
-
-  SCOTCH_archCmplt ((SCOTCH_Arch *) &archdat, grafptr->partnbr); /* Create a complete graph architecture */
   datadat.mappdat.archptr = &archdat;
-
+  datadat.mappdat.archptr->class = archClass ("cmplt"); /* Create a complete graph architecture */
+  ((ArchCmplt *) (void *) (&datadat.mappdat.archptr->data))->numnbr = grafptr->partnbr;
   archDomFrst (datadat.mappdat.archptr, &datadat.mappdat.domnorg); /* Get first domain of architecture */
   if ((datadat.mappdat.domntab = (ArchDom *) memAlloc ((grafptr->partnbr + 2) * sizeof (ArchDom))) == NULL) {
     errorPrint ("wgraphPartRb: out of memory (2)");

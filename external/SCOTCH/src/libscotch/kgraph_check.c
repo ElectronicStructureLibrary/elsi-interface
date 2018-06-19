@@ -1,4 +1,4 @@
-/* Copyright 2010,2011,2013,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -42,7 +42,7 @@
 /**   DATES      : # Version 5.1  : from : 13 jul 2010     **/
 /**                                 to     13 jul 2010     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     14 sep 2014     **/
+/**                                 to     03 mar 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -80,15 +80,11 @@ const Kgraph * restrict const grafptr)
   int * restrict      flagtax;                    /* Frontier flag array       */
   Gnum                vertnum;                    /* Number of current vertex  */
   Gnum                fronnum;                    /* Number of frontier vertex */
-  Gnum                vfixnbr;                    /* Number of fixed vertices  */
   Gnum * restrict     comploadtab;
   Gnum                commload;
   Gnum                edloval;
   Anum                domnnum;
-  int                 o;
 
-  const Gnum                      baseval = grafptr->s.baseval;
-  const Gnum                      vertnnd = grafptr->s.vertnnd;
   const Gnum * restrict const     verttax = grafptr->s.verttax;
   const Gnum * restrict const     vendtax = grafptr->s.vendtax;
   const Gnum * restrict const     velotax = grafptr->s.velotax;
@@ -97,11 +93,9 @@ const Kgraph * restrict const grafptr)
   const Anum * restrict const     parttax = grafptr->m.parttax;
   const ArchDom * restrict const  domntab = grafptr->m.domntab;
   const Arch * const              archptr = grafptr->m.archptr;
-  const Anum * restrict const     pfixtax = grafptr->pfixtax;
-  const Gnum * restrict const     frontab = grafptr->frontab;
 
   if (&grafptr->s != grafptr->m.grafptr) {
-    errorPrint ("kgraphCheck: invalid mapping graph");
+    errorPrint ("kgraphCheck: graph mapping pointer");
     return     (1);
   }
 
@@ -120,45 +114,20 @@ const Kgraph * restrict const grafptr)
   }
   memSet (comploadtab, 0, grafptr->m.domnnbr * sizeof (Gnum));
   memSet (flagtax,    ~0, grafptr->s.vertnbr * sizeof (Gnum));
-  flagtax -= baseval;
+  flagtax -= grafptr->s.baseval;
 
-  o = 1;                                          /* Assume failure when checking */
-  for (vertnum = baseval, vfixnbr = 0;
-       vertnum < vertnnd; vertnum ++) {
-    Anum                partval;
-
-    partval = parttax[vertnum];
-    if ((partval < 0) ||
-        (partval >= grafptr->m.domnnbr)) {
+  for (vertnum = grafptr->s.baseval; vertnum < grafptr->s.vertnnd; vertnum ++) {
+    if ((parttax[vertnum] < 0) ||
+        (parttax[vertnum] >= grafptr->m.domnnbr)) {
       errorPrint ("kgraphCheck: invalid part array");
-      goto fail;
+      return     (1);
     }
-    if (pfixtax != NULL) {
-      Anum                pfixval;
-
-      pfixval = pfixtax[vertnum];
-      if (pfixval != ~0) {
-        if (pfixval < 0) {
-          errorPrint ("kgraphCheck: invalid fixed part value");
-          goto fail;
-        }
-        if (pfixval != archDomNum (archptr, &grafptr->m.domntab[partval])) {
-          errorPrint ("kgraphCheck: part index does not match fixed array");
-          goto fail;
-        }
-        vfixnbr ++;
-      }
-    }
-  }
-  if (vfixnbr != grafptr->vfixnbr) {
-    errorPrint ("kgraphCheck: invalid number of fixed vertices");
-    goto fail;
   }
 
   if ((grafptr->fronnbr < 0) ||
       (grafptr->fronnbr > grafptr->s.vertnbr)) {
     errorPrint ("kgraphCheck: invalid number of frontier vertices");
-    goto fail;
+    return     (1);
   }
   for (fronnum = 0; fronnum < grafptr->fronnbr; fronnum ++) {
     Gnum                vertnum;
@@ -166,14 +135,14 @@ const Kgraph * restrict const grafptr)
     Anum                partval;
     Anum                flagval;
 
-    vertnum = frontab[fronnum];
-    if ((vertnum < baseval) || (vertnum >= vertnnd)) {
+    vertnum = grafptr->frontab[fronnum];
+    if ((vertnum < grafptr->s.baseval) || (vertnum >= grafptr->s.vertnnd)) {
       errorPrint ("kgraphCheck: invalid vertex index in frontier array");
-      goto fail;
+      return     (1);
     }
     if (flagtax[vertnum] != ~0) {
       errorPrint ("kgraphCheck: duplicate vertex in frontier array");
-      goto fail;
+      return     (1);
     }
     flagtax[vertnum] = 0;
     partval = parttax[vertnum];
@@ -184,13 +153,13 @@ const Kgraph * restrict const grafptr)
 
     if (flagval == 0) {
       errorPrint ("kgraphCheck: invalid vertex in frontier array");
-      goto fail;
+      return     (1);
     }
   }
 
   commload = 0;
   edloval  = 1;                                   /* Assume edges are not weighted */
-  for (vertnum = baseval; vertnum < vertnnd; vertnum ++) {
+  for (vertnum = grafptr->s.baseval; vertnum < grafptr->s.vertnnd; vertnum ++) {
     Anum                partval;                  /* Part of current vertex                         */
     Anum                tdomnum;                  /* Terminal domain number of current vertex       */
     Anum                tdfinum;                  /* Terminal domain number of current fixed vertex */
@@ -203,8 +172,8 @@ const Kgraph * restrict const grafptr)
 
     if ((tdfinum != -1) &&                        /* If it is a fixed vertex */
         (tdfinum != tdomnum)) {
-      errorPrint ("kgraphCheck: invalid fixed vertex part");
-      goto fail;
+      errorPrint ("kgraphCheck: fixed vertex part is invalid");
+      return     (1);
     }
 
     comploadtab[partval] += (velotax == NULL) ? 1 : velotax[vertnum];
@@ -225,7 +194,7 @@ const Kgraph * restrict const grafptr)
 
     if ((commcut != 0) && (flagtax[vertnum] != 0)) { /* If vertex should be in frontier array */
       errorPrint ("kgraphCheck: vertex should be in frontier array");
-      goto fail;
+      return     (1);
     }
 
     commload += commcut;
@@ -233,20 +202,17 @@ const Kgraph * restrict const grafptr)
   commload /= 2;
   if (commload != grafptr->commload) {
     errorPrint ("kgraphCheck: invalid communication load");
-    goto fail;
+    return     (1);
   }
 
   for (domnnum = 0; domnnum < grafptr->m.domnnbr; domnnum ++) {
     if (comploadtab[domnnum] != (grafptr->comploadavg[domnnum] + grafptr->comploaddlt[domnnum])) {
       errorPrint ("kgraphCheck: invalid computation load");
-      goto fail;
+      return     (1);
     }
   }
 
-  o = 0;                                          /* Everything turned well */
-
-fail :
   memFree (comploadtab);                          /* Free group leader */
 
-  return (o);
+  return (0);
 }

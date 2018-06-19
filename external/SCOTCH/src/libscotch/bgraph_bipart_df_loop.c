@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2011-2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2011,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -51,7 +51,7 @@
 /**                # Version 5.1  : from : 29 oct 2007     **/
 /**                                 to     27 mar 2011     **/
 /**                # Version 6.0  : from : 07 nov 2011     **/
-/**                                 to   : 08 aug 2014     **/
+/**                                 to     20 nov 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -90,8 +90,7 @@ BgraphBipartDfThread * restrict thrdptr)          /* Thread-dependent data */
   Gnum                  veexval1;                 /* Negative external gain to part 1 */
   Gnum                  veexsum;
   Gnum                  veexsum1;                 /* Sum of negative external gains   */
-  Gnum                  veloval;
-  float                 velfval;
+  float                 veloval;
   INT                   passnum;
   Anum                  distval;
 
@@ -126,7 +125,7 @@ BgraphBipartDfThread * restrict thrdptr)          /* Thread-dependent data */
   else {
     ielstax -= vertbas;                           /* Base access to local part of edge load sum array */
 
-    distval  = grafptr->domndist;
+    distval  = grafptr->domdist;
     veexval  =                                    /* Assume no external gains */
     veexval1 = 0;
     veexsum  =
@@ -202,7 +201,7 @@ BgraphBipartDfThread * restrict thrdptr)          /* Thread-dependent data */
   }
 #endif /* BGRAPHBIPARTDFLOOPTHREAD */
 
-  velfval = 1.0F;                                 /* Assume no vertex loads     */
+  veloval = 1.0F;                                 /* Assume no vertex loads     */
   for (passnum = loopptr->passnbr; passnum > 0; passnum --) { /* For all passes */
     Gnum                vertnum;
     Gnum                vancnnt;
@@ -261,18 +260,18 @@ BgraphBipartDfThread * restrict thrdptr)          /* Thread-dependent data */
         diffval += vancval;                       /* Add anchor contribution if anchor vertex */
 
         if (velotax != NULL)
-          velfval = (float) velotax[vertnum];
+          veloval = (float) velotax[vertnum];
         if (diffval >= 0.0F) {
-          diffval -= velfval;
+          diffval -= veloval;
           if (diffval <= 0.0F)
             diffval = +BGRAPHBIPARTDFEPSILON;
         }
         else {
-          diffval += velfval;
+          diffval += veloval;
           if (diffval >= 0.0F)
             diffval = -BGRAPHBIPARTDFEPSILON;
         }
-        if (isnan (diffval)) {                    /* If overflow occured (because of avalanche process) */
+        if (isnan (diffval)) {                    /* If overflow occured (because of avalanche process)                        */
 #ifdef SCOTCH_DEBUG_BGRAPH2
           errorPrintW (STRINGIFY (BGRAPHBIPARTDFLOOPNAME) ": overflow");
 #endif /* SCOTCH_DEBUG_BGRAPH2 */
@@ -320,7 +319,7 @@ abort : ;
     parttax[vertnum] = (difotax[vertnum] <= 0.0F) ? 0 : 1;
 
 #ifdef BGRAPHBIPARTDFLOOPTHREAD
-  threadBarrier (thrdptr);
+    threadBarrier (thrdptr);
 #endif /* BGRAPHBIPARTDFLOOPTHREAD */
 
   veloval = 1;

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -63,7 +63,7 @@
 /**                # Version 5.1  : from : 08 jan 2008     **/
 /**                                 to     18 mar 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     08 aug 2014     **/
+/**                                 to     07 nov 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -99,9 +99,8 @@ typedef struct Bgraph_ {
   Gnum                      commgainextn0;        /*+ External gain if all swapped from part 0           +*/
   Gnum                      commgainextn;         /*+ External gain if all swapped                       +*/
   double                    bbalval;              /*+ Bipartitioning imbalance ratio (strategy variable) +*/
-  Anum                      domndist;             /*+ Distance between subdomains                        +*/
-  Gnum                      domnwght[2];          /*+ Weights of the two subdomains                      +*/
-  Gnum                      vfixload[2];          /*+ Vertex load biases of the two subdomains           +*/
+  Anum                      domdist;              /*+ Distance between subdomains                        +*/
+  Gnum                      domwght[2];           /*+ Weights of the two subdomains                      +*/
   INT                       levlnum;              /*+ Coarsening level                                   +*/
 } Bgraph;
 
@@ -124,8 +123,15 @@ typedef struct BgraphStore_ {
 #define static
 #endif
 
-int                         bgraphInit          (Bgraph * restrict const, const Graph * restrict const, const Arch * restrict const, const ArchDom * restrict const, const Gnum * restrict const);
-void                        bgraphInit2         (Bgraph * restrict const, const Anum, const Anum, const Anum, const Gnum, const Gnum);
+#ifdef MAPPING_H
+int                         bgraphInit          (Bgraph * const, const Graph * const, const Graph * const, const Mapping * const, const Graph * const, const Gnum * const, const Gnum * const, const Gnum, const Gnum *, const Gnum *, const Mapping * const, const ArchDom[]);
+#endif /* MAPPING_H */
+void                        bgraphInit2         (Bgraph * const, const Anum, const Anum, const Anum, const Anum, const Anum);
+#ifdef MAPPING_H
+int                         bgraphInit3         (Bgraph * const, const Graph * const, const Arch * const, const Mapping * const, const ArchDom[]);
+int                         bgraphInit4         (Bgraph * const, const Arch * const, const Mapping * const, const Gnum, const Gnum *, const Mapping * const, const ArchDom[]);
+int                         bgraphInit5         (Bgraph * const, const Graph * const, const Arch * const, const Gnum * const, const Gnum * const, const Gnum * const, const ArchDom[]);
+#endif /* MAPPING_H */
 void                        bgraphExit          (Bgraph * restrict const);
 void                        bgraphSwal          (Bgraph * restrict const);
 void                        bgraphZero          (Bgraph * restrict const);

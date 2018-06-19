@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010,2013 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2010 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,8 +43,6 @@
 /**                                 to     18 may 2004     **/
 /**                # Version 5.1  : from : 11 aug 2010     **/
 /**                                 to     11 aug 2010     **/
-/**                # Version 6.0  : from : 10 oct 2013     **/
-/**                                 to     10 oct 2013     **/
 /**                                                        **/
 /************************************************************/
 
@@ -106,6 +104,5 @@ Vgraph * restrict const             grafptr)      /*+ Separation graph +*/
     }
   }
 
-  fclose (fileptr);
   return (0);
 }

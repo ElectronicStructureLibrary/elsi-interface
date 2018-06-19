@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -44,8 +44,6 @@
 /**                                 to     01 oct 1998     **/
 /**                # Version 4.0  : from : 29 nov 2003     **/
 /**                                 to     29 nov 2003     **/
-/**                # Version 6.0  : from : 14 mar 2016     **/
-/**                                 to     14 mar 2016     **/
 /**                                                        **/
 /**   NOTES      : # This file contains pieces of code     **/
 /**                  extracted from release 3.1 of         **/
@@ -59,25 +57,25 @@
 
 /*+ Job to process. +*/
 
-typedef struct ArchDecoBuildJob_ {
-  struct ArchDecoBuildJob_ *  joblink;            /*+ Link to job pool                        +*/
-  ArchDomNum                  domnum;             /*+ Mapping domain to which vertices belong +*/
-  Graph                       grafdat;            /*+ Job graph data                          +*/
-} ArchDecoBuildJob;
+typedef struct ArchBuildJob_ {
+  struct ArchBuildJob_ *    joblink;              /*+ Link to job pool                        +*/
+  ArchDomNum                domnum;               /*+ Mapping domain to which vertices belong +*/
+  Graph                     grafdat;              /*+ Job graph data                          +*/
+} ArchBuildJob;
 
 /*+ Vertex distance information. +*/
 
-typedef struct ArchDecoBuildDistElem_ {
+typedef struct ArchBuildDistElem_ {
   int                       queued;               /*+ Flag set if vertex queued  +*/
   Anum                      distval;              /*+ Distance to initial vertex +*/
-} ArchDecoBuildDistElem;
+} ArchBuildDistElem;
 
 /*+ Queue element. +*/
 
-typedef struct ArchDecoBuildQueuElem_ {
+typedef struct ArchBuildQueuElem_ {
   Gnum                      vertnum;              /*+ Vertex number in source graph +*/
   Anum                      distval;              /*+ Distance reached              +*/
-} ArchDecoBuildQueuElem;
+} ArchBuildQueuElem;
 
 /*
 **  The function prototypes.
@@ -87,8 +85,8 @@ typedef struct ArchDecoBuildQueuElem_ {
 #define static
 #endif
 
-static void                 archDecoBuildJobExit (ArchDecoBuildJob *);
+static void                 archBuildJobExit    (ArchBuildJob *);
 
-int                         archDecoBuild       (Arch * const, const Graph * const, const VertList * const, const Strat * const);
+int                         archBuild           (Arch * const, const Graph * const, const VertList * const, const Strat * const);
 
 #undef static

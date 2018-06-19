@@ -1,4 +1,4 @@
-/* Copyright 2007,2010,2013 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2010 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -46,8 +46,6 @@
 /**                                 to   : 22 apr 2008     **/
 /**                # Version 5.1  : from : 11 aug 2010     **/
 /**                                 to   : 11 aug 2010     **/
-/**                # Version 6.0  : from : 18 sep 2013     **/
-/**                                 to   : 18 sep 2013     **/
 /**                                                        **/
 /************************************************************/
 
@@ -85,35 +83,7 @@ FILE * const                stream)
   }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
-  vlblgsttax = NULL;                              /* Assume ghost label array is free         */
-  if ((grafptr->vlblloctax != NULL) ||            /* If graph has vertex labels or            */
-      (grafptr->edgeloctax == NULL) ||            /* If no global index edge array present or */
-      (grafptr->procvrttab[grafptr->procglbnbr] != grafptr->procdsptab[grafptr->procglbnbr])) { /* If graph may have holes in its numbering */
-    if (dgraphGhst (grafptr) != 0) {              /* Compute ghost edge array */
-      errorPrint ("dgraphSave: cannot compute ghost edge array");
-      return     (1);
-    }
-    if ((vlblgsttax = (Gnum *) memAlloc (grafptr->vertgstnbr * sizeof (Gnum))) == NULL) {
-      errorPrint ("dgraphSave: out of memory");
-      return     (1);
-    }
-
-    if (grafptr->vlblloctax != NULL)
-      memCpy (vlblgsttax, grafptr->vlblloctax + grafptr->baseval, grafptr->vertlocnbr * sizeof (Gnum));
-    else {
-      for (vertlocnum = 0; vertlocnum < grafptr->vertlocnbr; vertlocnum ++) /* vlblgsttax is not based yet at this time */
-        vlblgsttax[vertlocnum] = grafptr->procvrttab[grafptr->proclocnum] + vertlocnum;
-    }
-
-    if (dgraphHaloSync (grafptr, (byte *) vlblgsttax, GNUM_MPI) != 0) { /* vlblgsttax is not based yet at this time */
-      errorPrint ("dgraphSave: cannot halo labels");
-      memFree    (vlblgsttax);
-      return     (1);
-    }
-    vlblgsttax -= grafptr->baseval;
-  }
-
-  propstr[0] = (vlblgsttax != NULL) ? '1' : '0';  /* Set property string */
+  propstr[0] = (grafptr->vlblloctax != NULL) ? '1' : '0'; /* Set property string */
   propstr[1] = (grafptr->edloloctax != NULL) ? '1' : '0';
   propstr[2] = (grafptr->veloloctax != NULL) ? '1' : '0';
   propstr[3] = '\0';
@@ -131,11 +101,39 @@ FILE * const                stream)
     return     (1);
   }
 
+  vlblgsttax = NULL;                              /* Ghost label array free yet               */
+  if ((grafptr->vlblloctax != NULL) ||            /* If graph has vertex labels or            */
+      (grafptr->edgeloctax == NULL) ||            /* If no global index edge array present or */
+      (grafptr->procvrttab[grafptr->procglbnbr] != grafptr->procdsptab[grafptr->procglbnbr])) { /* If graph may have holes in its numbering */
+    if (dgraphGhst (grafptr) != 0) {              /* Compute ghost edge array */
+      errorPrint ("dgraphSave: cannot compute ghost edge array");
+      return     (1);
+    }
+    if ((vlblgsttax = (Gnum *) memAlloc (grafptr->vertgstnbr * sizeof (Gnum))) == NULL) {
+      errorPrint ("dgraphSave: out of memory");
+      return     (1);
+    }
+
+    if (grafptr->vlblloctax != NULL)
+      memCpy (vlblgsttax, grafptr->vlblloctax + grafptr->baseval, grafptr->vertlocnbr * sizeof (Gnum));
+    else {
+      for (vertlocnum = 0; vertlocnum < grafptr->vertlocnbr; vertlocnum ++) /* vlblgsttax is not based yet at this time */
+        vlblgsttax[vertlocnum] = (Gnum) grafptr->procvrttab[grafptr->proclocnum] + vertlocnum;
+    }
+
+    if (dgraphHaloSync (grafptr, (byte *) vlblgsttax, GNUM_MPI) != 0) { /* vlblgsttax is not based yet at this time */
+      errorPrint ("dgraphSave: cannot halo labels");
+      memFree    (vlblgsttax);
+      return     (1);
+    }
+    vlblgsttax -= grafptr->baseval;
+  }
+
   o = 0;
   for (vertlocnum = grafptr->baseval; (vertlocnum < grafptr->vertlocnnd) && (o == 0); vertlocnum ++) {
     Gnum                edgelocnum;
 
-    if (vlblgsttax != NULL)                       /* Write vertex label if necessary */
+    if (grafptr->vlblloctax != NULL)              /* Write vertex label if necessary */
       o  = (fprintf (stream, GNUMSTRING "\t", (Gnum) vlblgsttax[vertlocnum]) == EOF);
     if (grafptr->veloloctax != NULL)              /* Write vertex load if necessary */
       o |= (fprintf (stream, GNUMSTRING "\t", (Gnum) grafptr->veloloctax[vertlocnum]) == EOF);

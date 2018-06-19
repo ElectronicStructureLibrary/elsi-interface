@@ -94,7 +94,6 @@ const VgraphSeparateBdParam * const paraptr)      /*+ Method parameters +*/
   Gnum                        bndedgetmp;
   Gnum                        bnddegrmax;
   Gnum                        fronnum;
-
   const Gnum * restrict const orgverttax = orggrafptr->s.verttax; /* Fast accesses */
   const Gnum * restrict const orgvendtax = orggrafptr->s.vendtax;
   const Gnum * restrict const orgvelotax = orggrafptr->s.velotax;
@@ -177,6 +176,7 @@ const VgraphSeparateBdParam * const paraptr)      /*+ Method parameters +*/
 
       orgvertend = orgedgetax[orgedgenum];
       if (orgdisttax[orgvertend] == ~0) {         /* If vertex not visited yet */
+
 #ifdef SCOTCH_DEBUG_VGRAPH2
         if (orggrafptr->parttax[orgvertend] > 1) {
           errorPrint ("vgraphSeparateBd: internal error (5)");

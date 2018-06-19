@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010,2011,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -45,8 +45,6 @@
 /**                                 to     13 jan 2004     **/
 /**                # Version 5.1  : from : 27 mar 2010     **/
 /**                                 to     13 feb 2011     **/
-/**                # Version 6.0  : from : 16 apr 2015     **/
-/**                                 to     16 apr 2015     **/
 /**                                                        **/
 /************************************************************/
 
@@ -284,36 +282,6 @@ int * const                 revaptr),           \
   *revaptr = SCOTCH_archMesh3 (archptr, *dimxval, *dimyval, *dimzval);
 }
 
-/*
-**
-*/
-
-FORTRAN (                                       \
-SCOTCHFARCHMESHX, scotchfarchmeshx, (           \
-SCOTCH_Arch * const         archptr,            \
-const SCOTCH_Num * const    dimnnbr,            \
-const SCOTCH_Num * const    dimntab,            \
-int * const                 revaptr),           \
-(archptr, dimnnbr, dimntab, revaptr))
-{
-  *revaptr = SCOTCH_archMeshX (archptr, *dimnnbr, dimntab);
-}
-
-/*
-**
-*/
-
-FORTRAN (                                       \
-SCOTCHFARCHSUB, scotchfarchsub, (               \
-SCOTCH_Arch * const         subarchptr,         \
-SCOTCH_Arch * const         orgarchptr,         \
-const SCOTCH_Num * const    vnumnbr,            \
-const SCOTCH_Num * const    vnumtab,            \
-int * const                 revaptr),           \
-(subarchptr, orgarchptr, vnumnbr, vnumtab, revaptr))
-{
-  *revaptr = SCOTCH_archSub (subarchptr, orgarchptr, vnumnbr, vnumtab);
-}
 
 /*
 **
@@ -360,21 +328,6 @@ int * const                 revaptr),           \
 (archptr, dimxval, dimyval, dimzval, revaptr))
 {
   *revaptr = SCOTCH_archTorus3 (archptr, *dimxval, *dimyval, *dimzval);
-}
-
-/*
-**
-*/
-
-FORTRAN (                                       \
-SCOTCHFARCHTORUSX, scotchfarchtorusx, (         \
-SCOTCH_Arch * const         archptr,            \
-const SCOTCH_Num * const    dimnnbr,            \
-const SCOTCH_Num * const    dimntab,            \
-int * const                 revaptr),           \
-(archptr, dimnnbr, dimntab, revaptr))
-{
-  *revaptr = SCOTCH_archTorusX (archptr, *dimnnbr, dimntab);
 }
 
 /*

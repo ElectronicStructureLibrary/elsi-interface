@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2012-2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -50,7 +50,7 @@
 /**                # Version 5.1  : from : 30 oct 2007     **/
 /**                                 to     14 aug 2010     **/
 /**                # Version 6.0  : from : 08 jan 2012     **/
-/**                                 to     15 nov 2014     **/
+/**                                 to     14 nov 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -95,7 +95,7 @@ SCOTCH_Num * const          cblkptr,              /*+ Pointer to number of colum
 SCOTCH_Num * const          rangtab,              /*+ Column block range array           +*/
 SCOTCH_Num * const          treetab)              /*+ Separator tree array               +*/
 {
-  const Graph *       srcgrafptr;
+  Graph *             srcgrafptr;
   LibOrder *          libordeptr;
 
 #ifdef SCOTCH_DEBUG_LIBRARY1
@@ -142,7 +142,7 @@ const SCOTCH_Graph * const        grafptr,        /*+ Graph to order   +*/
 SCOTCH_Ordering * restrict const  ordeptr,        /*+ Ordering to load +*/
 FILE * restrict const             stream)         /*+ Output stream    +*/
 {
-  const Graph *       srcgrafptr;
+  Graph *             srcgrafptr;
   LibOrder *          libordeptr;
 
   srcgrafptr = (Graph *) grafptr;
@@ -187,7 +187,7 @@ const SCOTCH_Graph * const    grafptr,            /*+ Graph to order   +*/
 const SCOTCH_Ordering * const ordeptr,            /*+ Ordering to save +*/
 FILE * const                  stream)             /*+ Output stream    +*/
 {
-  return (orderSaveMap (&((LibOrder *) ordeptr)->o, ((Graph *) grafptr)->vlbltax + ((Graph *) grafptr)->baseval, stream));
+  return (orderSaveMap (&((LibOrder *) ordeptr)->o, ((Graph *) grafptr)->vlbltax, stream));
 }
 
 /*+ This routine saves to the given stream
@@ -204,7 +204,7 @@ const SCOTCH_Graph * const    grafptr,            /*+ Graph to order   +*/
 const SCOTCH_Ordering * const ordeptr,            /*+ Ordering to save +*/
 FILE * const                  stream)             /*+ Output stream    +*/
 {
-  return (orderSaveTree (&((LibOrder *) ordeptr)->o, ((Graph *) grafptr)->vlbltax + ((Graph *) grafptr)->baseval, stream));
+  return (orderSaveTree (&((LibOrder *) ordeptr)->o, ((Graph *) grafptr)->vlbltax, stream));
 }
 
 /*+ This routine computes an ordering
@@ -241,16 +241,23 @@ const SCOTCH_Num            listnbr,              /*+ Number of vertices in list
 const SCOTCH_Num * const    listtab,              /*+ List of vertex indices to order +*/
 SCOTCH_Strat * const        stratptr)             /*+ Ordering strategy               +*/
 {
-  const Graph * restrict  srcgrafptr;
-  LibOrder *              libordeptr;             /* Pointer to ordering             */
-  Hgraph                  halgrafdat;             /* Halo source graph structure     */
-  Hgraph                  halgraftmp;             /* Halo source graph structure     */
-  Hgraph *                halgrafptr;             /* Pointer to halo graph structure */
-  const Strat *           ordstratptr;            /* Pointer to ordering strategy    */
-  OrderCblk *             cblkptr;
+  Graph * restrict    srcgrafptr;
+  LibOrder *          libordeptr;                 /* Pointer to ordering             */
+  Hgraph              halgrafdat;                 /* Halo source graph structure     */
+  Hgraph              halgraftmp;                 /* Halo source graph structure     */
+  Hgraph *            halgrafptr;                 /* Pointer to halo graph structure */
+  const Strat *       ordstratptr;                /* Pointer to ordering strategy    */
+  OrderCblk *         cblkptr;
 
   srcgrafptr = (Graph *) grafptr;
   libordeptr = (LibOrder *) ordeptr;              /* Get ordering */
+
+#ifdef SCOTCH_DEBUG_GRAPH2
+  if (graphCheck (srcgrafptr) != 0) {
+    errorPrint ("SCOTCH_graphOrderComputeList: invalid input graph");
+    return     (1);
+  }
+#endif /* SCOTCH_DEBUG_GRAPH2 */
 
 #ifdef SCOTCH_DEBUG_LIBRARY1
   if ((listnbr < 0) || (listnbr > srcgrafptr->vertnbr)) {
@@ -258,16 +265,12 @@ SCOTCH_Strat * const        stratptr)             /*+ Ordering strategy         
     return     (1);
   }
 #endif /* SCOTCH_DEBUG_LIBRARY1 */
-#ifdef SCOTCH_DEBUG_LIBRARY2
-  if (graphCheck (srcgrafptr) != 0) {
-    errorPrint ("SCOTCH_graphOrderComputeList: invalid input graph");
-    return     (1);
-  }
-#endif /* SCOTCH_DEBUG_LIBRARY2 */
-
   if (listnbr == 0) {                             /* If empty list, return identity peremutation */
-    intAscn (libordeptr->o.peritab, srcgrafptr->vertnbr, srcgrafptr->baseval);
-    return  (0);
+    Gnum                vertnum;
+
+    for (vertnum = 0; vertnum < srcgrafptr->vertnbr; vertnum ++)
+      libordeptr->o.peritab[vertnum] = vertnum + srcgrafptr->baseval;
+    return (0);
   }
 
   if (*((Strat **) stratptr) == NULL)             /* Set default ordering strategy if necessary */

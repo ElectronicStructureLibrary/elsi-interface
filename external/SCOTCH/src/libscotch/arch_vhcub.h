@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2011,2014,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -47,16 +47,13 @@
 /**                # Version 5.1  : from : 21 jan 2008     **/
 /**                                 to     21 jan 2008     **/
 /**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     28 mar 2015     **/
+/**                                 to     14 fev 2011     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The type and structure definitions.
 */
-
-#ifndef ARCH_VHCUB_H_STRUCT
-#define ARCH_VHCUB_H_STRUCT
 
 /*+ The variable-sized hypercube bipartitioning definitions. +*/
 
@@ -69,15 +66,9 @@ typedef struct ArchVhcubDom_ {
   Anum                      termnum;              /*+ Terminal number +*/
 } ArchVhcubDom;
 
-#endif /* ARCH_VHCUB_H_STRUCT */
-
 /*
 **  The function prototypes.
 */
-
-#ifndef ARCH_NOPROTO
-#ifndef ARCH_VHCUB_H_PROTO
-#define ARCH_VHCUB_H_PROTO
 
 #ifndef ARCH_VHCUB
 #define static
@@ -86,11 +77,6 @@ typedef struct ArchVhcubDom_ {
 #define archVhcubArchLoad           NULL
 #define archVhcubArchSave           NULL
 #define archVhcubArchFree           NULL
-
-#define archVhcubMatchInit          NULL
-#define archVhcubMatchExit          NULL
-#define archVhcubMatchMate          NULL
-
 ArchDomNum                  archVhcubDomNum     (const ArchVhcub * const, const ArchVhcubDom * const);
 int                         archVhcubDomTerm    (const ArchVhcub * const, ArchVhcubDom * restrict const, const ArchDomNum);
 Anum                        archVhcubDomSize    (const ArchVhcub * const, const ArchVhcubDom * const);
@@ -106,6 +92,3 @@ int                         archVhcubDomMpiType (const ArchVhcub * const, MPI_Da
 #endif /* SCOTCH_PTSCOTCH */
 
 #undef static
-
-#endif /* ARCH_VHCUB_H_PROTO */
-#endif /* ARCH_NOPROTO       */

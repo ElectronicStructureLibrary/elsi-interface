@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin
 
@@ -177,8 +177,8 @@ Int SeparateWriteAscii(std::string name, std::ostringstream& os)
 // *********************************************************************
 
 void
-LinearInterpolation ( 
-    const std::vector<Real>& x, 
+LinearInterpolation (
+    const std::vector<Real>& x,
     const std::vector<Real>& y,
     const std::vector<Real>& xx,
     std::vector<Real>& yy )
@@ -187,7 +187,7 @@ LinearInterpolation (
   Int numXX = xx.size();
 
   for( Int i = 1; i < numX; i++ ){
-    if( x[i] <= x[i-1] ){ 
+    if( x[i] <= x[i-1] ){
       //statusOFS<<"x["<<i<<"] = "<<x[i]<<std::endl;
       //statusOFS<<"x["<<i-1<<"] = "<<x[i-1]<<std::endl;
       //statusOFS<<"x"<<x<<std::endl;
@@ -217,14 +217,14 @@ LinearInterpolation (
       vi = std::lower_bound( x.begin(), x.end(), xx[i] );
       ix = vi - x.begin();
 
-      yy[i] = y[ix-1] + (y[ix] - y[ix-1]) / (x[ix] - x[ix-1]) 
+      yy[i] = y[ix-1] + (y[ix] - y[ix-1]) / (x[ix] - x[ix-1])
         * (xx[i] - x[ix-1]);
     }
   } // for (i)
 
 
   return ;
-}		// -----  end of function LinearInterpolation  ----- 
+}		// -----  end of function LinearInterpolation  -----
 
 
 

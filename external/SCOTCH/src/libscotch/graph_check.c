@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2011,2012,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2011,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -57,7 +57,7 @@
 /**                # Version 5.0  : from : 13 dec 2006     **/
 /**                                 to     02 oct 2007     **/
 /**                # Version 6.0  : from : 27 jun 2011     **/
-/**                                 to     03 aug 2016     **/
+/**                                 to     14 feb 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -88,53 +88,42 @@ int
 graphCheck (
 const Graph * const         grafptr)
 {
-  Gnum                vertnum;                    /* Number of current vertex       */
-  Gnum                velosum;                    /* Sum of vertex loads            */
-  Gnum                velstab;                    /* Vertex load sum array (if any) */
-  Gnum                edlosum;                    /* Sum of edge loads              */
-  Gnum                edgenbr;                    /* Number of edges (arcs)         */
-  Gnum                edgenum;                    /* Number of current edge         */
-  Gnum                degrmax;                    /* Maximum degree                 */
+  Gnum                vertnum;                    /* Number of current vertex  */
+  Gnum                velosum;                    /* Sum of vertex loads       */
+  Gnum                edlosum;                    /* Sum of edge loads         */
+  Gnum                edgenbr;                    /* Number of edges (arcs)    */
+  Gnum                edgenum;                    /* Number of current edge    */
+  Gnum                degrmax;                    /* Maximum degree            */
 
-  const Gnum                  baseval = grafptr->baseval; /* Fast accesses */
-  const Gnum * restrict const verttax = grafptr->verttax;
-  const Gnum * restrict const vendtax = grafptr->vendtax;
-  const Gnum * restrict const velotax = grafptr->velotax;
-  const Gnum * restrict const edgetax = grafptr->edgetax;
-  const Gnum * restrict const edlotax = grafptr->edlotax;
-
-  if (grafptr->vertnbr != (grafptr->vertnnd - baseval)) {
+  if (grafptr->vertnbr != (grafptr->vertnnd - grafptr->baseval)) {
     errorPrint ("graphCheck: invalid vertex numbers");
     return     (1);
   }
 
   degrmax =
   edgenbr = 0;
-  velosum = (velotax == NULL) ? grafptr->vertnbr : 0;
-  edlosum = (edlotax == NULL) ? grafptr->edgenbr : 0;
-  for (vertnum = baseval; vertnum < grafptr->vertnnd; vertnum ++) {
-    Gnum                degrval;
-
-    if ((verttax[vertnum] < baseval) ||
-        (vendtax[vertnum] < verttax[vertnum])) {
+  velosum = (grafptr->velotax == NULL) ? grafptr->vertnbr : 0;
+  edlosum = (grafptr->edlotax == NULL) ? grafptr->edgenbr : 0;
+  for (vertnum = grafptr->baseval; vertnum < grafptr->vertnnd; vertnum ++) {
+    if ((grafptr->verttax[vertnum] < grafptr->baseval)          ||
+        (grafptr->vendtax[vertnum] < grafptr->verttax[vertnum])) {
       errorPrint ("graphCheck: invalid vertex arrays");
       return     (1);
     }
 
-    degrval = vendtax[vertnum] - verttax[vertnum];
-    if (degrval > degrmax)
-      degrmax = degrval;
-    edgenbr += degrval;
+    if ((grafptr->vendtax[vertnum] - grafptr->verttax[vertnum]) > degrmax)
+      degrmax = grafptr->vendtax[vertnum] - grafptr->verttax[vertnum];
 
-    for (edgenum = verttax[vertnum]; edgenum < vendtax[vertnum]; edgenum ++) {
+    edgenbr += grafptr->vendtax[vertnum] - grafptr->verttax[vertnum];
+    for (edgenum = grafptr->verttax[vertnum]; edgenum < grafptr->vendtax[vertnum]; edgenum ++) {
       Gnum                vertend;                /* Number of end vertex      */
       Gnum                edgeend;                /* Number of end vertex edge */
 
-      vertend = edgetax[edgenum];
-      if (edlotax != NULL) {
+      vertend = grafptr->edgetax[edgenum];
+      if (grafptr->edlotax != NULL) {
         Gnum                edlotmp;
 
-        edlotmp = edlosum + edlotax[edgenum];
+        edlotmp = edlosum + grafptr->edlotax[edgenum];
         if (edlotmp < edlosum) {                  /* If overflow */
           errorPrint ("graphCheck: edge load sum overflow");
           return     (1);
@@ -142,7 +131,7 @@ const Graph * const         grafptr)
         edlosum = edlotmp;
       }
 
-      if ((vertend < baseval) || (vertend >= grafptr->vertnnd)) { /* If invalid edge end */
+      if ((vertend < grafptr->baseval) || (vertend >= grafptr->vertnnd)) { /* If invalid edge end */
         errorPrint ("graphCheck: invalid edge array");
         return     (1);
       }
@@ -150,30 +139,30 @@ const Graph * const         grafptr)
         errorPrint ("graphCheck: loops not allowed");
         return     (1);
       }
-      for (edgeend = verttax[vertend];   /* Search for matching arc */
-           (edgeend < vendtax[vertend]) && (edgetax[edgeend] != vertnum);
+      for (edgeend = grafptr->verttax[vertend];   /* Search for matching arc */
+           (edgeend < grafptr->vendtax[vertend]) && (grafptr->edgetax[edgeend] != vertnum);
            edgeend ++) ;
-      if ((edgeend >= vendtax[vertend]) ||
-          ((edlotax != NULL) && (edlotax[edgenum] != edlotax[edgeend]))) {
+      if ((edgeend >= grafptr->vendtax[vertend]) ||
+          ((grafptr->edlotax != NULL) && (grafptr->edlotax[edgenum] != grafptr->edlotax[edgeend]))) {
         errorPrint ("graphCheck: arc data do not match");
         return     (1);
       }
       for (edgeend ++;                            /* Search for duplicate arcs */
-           (edgeend < vendtax[vertend]) && (edgetax[edgeend] != vertnum);
+           (edgeend < grafptr->vendtax[vertend]) && (grafptr->edgetax[edgeend] != vertnum);
            edgeend ++) ;
-      if (edgeend < vendtax[vertend]) {
+      if (edgeend < grafptr->vendtax[vertend]) {
         errorPrint ("graphCheck: duplicate arc");
         return     (1);
       }
     }
-    if (velotax != NULL) {
+    if (grafptr->velotax != NULL) {
       Gnum                velotmp;
 
-      if (velotax[vertnum] < 0) {                 /* If non positive loads */
+      if (grafptr->velotax[vertnum] < 0) {        /* If non positive loads */
         errorPrint ("graphCheck: invalid vertex load array");
         return     (1);
       }
-      velotmp = velosum + velotax[vertnum];
+      velotmp = velosum + grafptr->velotax[vertnum];
       if (velotmp < velosum) {                    /* If overflow */
         errorPrint ("graphCheck: vertex load sum overflow");
         return     (1);

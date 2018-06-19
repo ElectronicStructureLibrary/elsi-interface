@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin and Mathias Jacquelin
 
@@ -55,18 +55,18 @@ such enhancements or derivative works thereof, in binary and source code form.
 extern "C"{ void
 #ifdef SLU_MAJOR_VERSION
 #if SLU_MAJOR_VERSION < 5
-pdsymbfact(superlu_options_t *options, SuperMatrix *A, 
+pdsymbfact(superlu_options_t *options, SuperMatrix *A,
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
     LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
     int *info, double *totalMemory, double *maxMemory );
 #else
-pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
+pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
     LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
     int *info, double *totalMemory, double *maxMemory );
 #endif
 #else
-pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A, 
+pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
     LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
     int *info, double *totalMemory, double *maxMemory );
@@ -112,25 +112,7 @@ RealGridData & RealGridData::operator = (const RealGridData & g)
 }
 
 void RealGridData::GridInit( MPI_Comm comm, Int nprow, Int npcol ){
-#ifdef SWAP_ROWS_COLS
-  int * usermap = new int[nprow*npcol];
-  for(int mpirank = 0;mpirank<nprow*npcol;mpirank++){
-    int myrow = mpirank % npcol;
-    int mycol = mpirank / npcol;
-    usermap[myrow*npcol+mycol] = mpirank;
-  }
-  superlu_gridmap(
-      comm, nprow, npcol,
-      usermap, /* usermap(i,j) holds the process
-                  number to be placed in {i,j} of
-                  the process grid.  */
-      npcol, &info_->grid);
-  delete [] usermap;
-#else
   superlu_gridinit(comm, nprow, npcol, &info_->grid);
-#endif
-
-
 }
 
 void RealGridData::GridExit(  ){
@@ -144,33 +126,33 @@ namespace PEXSI{
 class RealSuperLUData_internal{
   friend class RealSuperLUData;
 protected:
-  /// @brief SuperLU matrix. 
-  SuperMatrix         A;                        
+  /// @brief SuperLU matrix.
+  SuperMatrix         A;
 
-  /// @brief SuperLU options. 
+  /// @brief SuperLU options.
   ///
   /// Note
   /// ----
   ///
-  /// It is important to have 
+  /// It is important to have
   ///
   /// options.RowPerm           = NOROWPERM;
-  /// 
+  ///
   /// to make sure that symmetric permutation is used.
   ///
 #ifdef SLU_MAJOR_VERSION
 #if SLU_MAJOR_VERSION < 5
-  superlu_options_t   options;                  
+  superlu_options_t   options;
 #else
-  superlu_dist_options_t   options;                  
+  superlu_dist_options_t   options;
 #endif
 #else
-  superlu_dist_options_t   options;                  
+  superlu_dist_options_t   options;
 #endif
 
   /// @brief Saves the permutation vectors.  Only perm_c (permutation of
   /// column as well as rows due to the symmetric permutation) will be used.
-  ScalePermstruct_t   ScalePermstruct;          
+  ScalePermstruct_t   ScalePermstruct;
 
   /// @brief SuperLU grid structure.
   gridinfo_t*         grid;
@@ -231,10 +213,10 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
   options.IterRefine        = NOREFINE;
   options.ParSymbFact       = NO;
   if(opt.Equil == "YES"){
-    options.Equil             = YES; 
+    options.Equil             = YES;
   }
   else{
-    options.Equil             = NO; 
+    options.Equil             = NO;
   }
 
   options.ReplaceTinyPivot  = YES;
@@ -245,15 +227,18 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
   // Necessary to invoke static scheduling of SuperLU
   options.lookahead_etree   = YES;
   options.SymPattern        = YES;
+//#ifdef _PRINT_STATS_
+//  options.PrintStat         = YES;
+//#endif
 
   if(opt.Symmetric == 1){
     options.RowPerm         = NOROWPERM;
-    options.Equil             = NO; 
+    options.Equil             = NO;
   }
 
   if ( opt.ColPerm == "NATURAL" ){
     options.ColPerm = NATURAL;
-  } 
+  }
   else if( opt.ColPerm == "MMD_AT_PLUS_A" ){
     options.ColPerm = MMD_AT_PLUS_A;
   }
@@ -278,7 +263,7 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
 RealSuperLUData_internal::~RealSuperLUData_internal(){
   if( isLUstructAllocated ){
     Destroy_LU(A.ncol, grid, &LUstruct);
-    LUstructFree(&LUstruct); 
+    LUstructFree(&LUstruct);
   }
   if( isScalePermstructAllocated ){
     ScalePermstructFree(&ScalePermstruct);
@@ -330,7 +315,7 @@ RealSuperLUData_internal::DestroyAOnly	(  )
   isSuperMatrixAllocated = false;
 
   return ;
-} 		// -----  end of method RealSuperLUData_internal::DestroyAOnly  ----- 
+} 		// -----  end of method RealSuperLUData_internal::DestroyAOnly  -----
 
 
 RealSuperLUData::RealSuperLUData( const SuperLUGrid<Real>& g, const SuperLUOptions& opt ){
@@ -388,16 +373,16 @@ RealSuperLUData & RealSuperLUData::operator = (const RealSuperLUData & g)
 
 
 
-Int RealSuperLUData::m (  ) const	
+Int RealSuperLUData::m (  ) const
 {
   return ptrData->A.nrow;
-} 		// -----  end of method RealSuperLUData::m  ----- 
+} 		// -----  end of method RealSuperLUData::m  -----
 
 
-Int RealSuperLUData::n (  ) const	
+Int RealSuperLUData::n (  ) const
 {
   return ptrData->A.ncol;
-} 		// -----  end of method RealSuperLUData::n  ----- 
+} 		// -----  end of method RealSuperLUData::n  -----
 
 void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA , const SuperLUOptions & options)
 {
@@ -406,8 +391,8 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
   }
   gridinfo_t* grid = ptrData->grid;
 
-  Int mpirank = grid->iam;
-  Int mpisize = grid->nprow * grid->npcol;
+  int mpirank = grid->iam;
+  int mpisize = grid->nprow * grid->npcol;
 
   int_t *colindLocal, *rowptrLocal;
   double *nzvalLocal;
@@ -416,12 +401,11 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
   Int firstRow = mpirank * numRowLocalFirst;
   Int numRowLocal = -1;
   Int nnzLocal = -1;
-
-  if(options.Transpose == 1  || options.Symmetric == 1 ){
+  if(options.Transpose == 1 || options.Symmetric == 1 ){
     numRowLocal = sparseA.colptrLocal.m() - 1;
     nnzLocal = sparseA.nnzLocal;
 
-    colindLocal = (int_t*)intMalloc_dist(sparseA.nnzLocal); 
+    colindLocal = (int_t*)intMalloc_dist(sparseA.nnzLocal);
     nzvalLocal  = (double*)doubleMalloc_dist(sparseA.nnzLocal);
     rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
 
@@ -431,7 +415,6 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
         colindLocal );
     std::copy( sparseA.nzvalLocal.Data(), sparseA.nzvalLocal.Data() + sparseA.nzvalLocal.m(),
         nzvalLocal );
-
   }
   else{
     DistSparseMatrix<Real> sparseB;
@@ -440,7 +423,7 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
     numRowLocal = sparseB.colptrLocal.m() - 1;
     nnzLocal = sparseB.nnzLocal;
 
-    colindLocal = (int_t*)intMalloc_dist(sparseB.nnzLocal); 
+    colindLocal = (int_t*)intMalloc_dist(sparseB.nnzLocal);
     nzvalLocal  = (double*)doubleMalloc_dist(sparseB.nnzLocal);
     rowptrLocal = (int_t*)intMalloc_dist(numRowLocal+1);
 
@@ -453,7 +436,6 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
   }
 
 
-
   // Important to adjust from FORTRAN convention (1 based) to C convention (0 based) indices
   for(Int i = 0; i < sparseA.rowindLocal.m(); i++){
     colindLocal[i]--;
@@ -464,7 +446,7 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
   }
 
   // Construct the distributed matrix according to the SuperLU_DIST format
-  dCreate_CompRowLoc_Matrix_dist(&ptrData->A, sparseA.size, sparseA.size, sparseA.nnzLocal, 
+  dCreate_CompRowLoc_Matrix_dist(&ptrData->A, sparseA.size, sparseA.size, sparseA.nnzLocal,
       numRowLocal, firstRow,
       nzvalLocal, colindLocal, rowptrLocal,
       SLU_NR_loc, SLU_D, SLU_GE);
@@ -474,14 +456,14 @@ void RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>
 
   return;
 
-} 		// -----  end of method RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc ----- 
+} 		// -----  end of method RealSuperLUData::DistSparseMatrixToSuperMatrixNRloc -----
 
 void
 RealSuperLUData::DestroyAOnly	(  )
 {
   ptrData->DestroyAOnly();
   return ;
-} 		// -----  end of method RealSuperLUData::DestroyAOnly  ----- 
+} 		// -----  end of method RealSuperLUData::DestroyAOnly  -----
 
 void
 RealSuperLUData::SymbolicFactorize	(  )
@@ -510,7 +492,7 @@ RealSuperLUData::SymbolicFactorize	(  )
 
   double totalMemory = 0.0, maxMemory = 0.0;
 
-  pdsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid, 
+  pdsymbfact(&ptrData->options, &A, &ptrData->ScalePermstruct, ptrData->grid,
       &ptrData->LUstruct, &ptrData->stat, &ptrData->numProcSymbFact, &ptrData->info,
       &totalMemory, &maxMemory);
   PStatFree(&ptrData->stat);
@@ -521,7 +503,7 @@ RealSuperLUData::SymbolicFactorize	(  )
 
 #if ( _DEBUGlevel_ >= 0 )
   statusOFS << "Memory cost of symbolic factorization (MB): " << std::endl;
-  statusOFS << "Total: " << totalMemory << ", Average: " << 
+  statusOFS << "Total: " << totalMemory << ", Average: " <<
     totalMemory / ( ptrData->grid->nprow * ptrData->grid->npcol )
     << ", Max: " << maxMemory << std::endl << std::endl;
 #endif
@@ -529,24 +511,24 @@ RealSuperLUData::SymbolicFactorize	(  )
 
 
   ptrData->isScalePermstructAllocated = true;
-  ptrData->isLUstructAllocated        = true; 
+  ptrData->isLUstructAllocated        = true;
 
 
   return ;
-} 		// -----  end of method RealSuperLUData::SymbolicFactorize  ----- 
+} 		// -----  end of method RealSuperLUData::SymbolicFactorize  -----
 
 void
 RealSuperLUData::Distribute	(  )
 {
   if( ptrData->isScalePermstructAllocated == false ){
     ErrorHandling( "ScalePermstruct has not been allocated by SymbolicFactorize." );
-  }	
+  }
   if( ptrData->isLUstructAllocated == false ){
     ErrorHandling( "LUstruct has not been allocated by SymbolicFactorize." );
-  }	
+  }
   if( ptrData->isSuperMatrixAllocated == false ){
     ErrorHandling( "SuperMatrix has not been allocated." );
-  }	
+  }
 
   Int* perm_c = ptrData->ScalePermstruct.perm_c;
   NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
@@ -555,15 +537,15 @@ RealSuperLUData::Distribute	(  )
   // Apply column permutation to the original distributed A
   for(Int j = 0; j < nnzLocal; j++)
     colind[j] = perm_c[colind[j]];
-  // Distribute Pc*Pr*diag(R)*A*diag(C)*Pc' into L and U storage.  
+  // Distribute Pc*Pr*diag(R)*A*diag(C)*Pc' into L and U storage.
   // NOTE: the row permutation Pc*Pr is applied internally in the
-  // distribution routine. 
-  float dist_mem_use = pddistribute(SamePattern_SameRowPerm, ptrData->A.nrow, 
+  // distribution routine.
+  float dist_mem_use = pddistribute(SamePattern_SameRowPerm, ptrData->A.nrow,
       &ptrData->A, &ptrData->ScalePermstruct, NULL, &ptrData->LUstruct, ptrData->grid);
 
 
   return ;
-} 		// -----  end of method RealSuperLUData::Distribute  ----- 
+} 		// -----  end of method RealSuperLUData::Distribute  -----
 
 void
 RealSuperLUData::NumericalFactorize	(  )
@@ -576,15 +558,21 @@ RealSuperLUData::NumericalFactorize	(  )
   double anorm = pdlangs( norm, &ptrData->A, ptrData->grid );
 
   PStatInit(&ptrData->stat);
-  pdgstrf(&ptrData->options, ptrData->A.nrow, ptrData->A.ncol, 
-      anorm, &ptrData->LUstruct, ptrData->grid, &ptrData->stat, &ptrData->info); 
+  pdgstrf(&ptrData->options, ptrData->A.nrow, ptrData->A.ncol,
+      anorm, &ptrData->LUstruct, ptrData->grid, &ptrData->stat, &ptrData->info);
 
 #ifdef _PRINT_STATS_
-  statusOFS<<"******************SUPERLU STATISTICS****************"<<std::endl;  
-  statusOFS<<"Number of tiny pivots: "<<ptrData->stat.TinyPivots<<std::endl;  
-  statusOFS<<"Number of look aheads: "<<ptrData->stat.num_look_aheads<<std::endl;  
-  statusOFS<<"Number of FLOPS during factorization: "<<ptrData->stat.ops[FACT]<<std::endl;  
-  statusOFS<<"****************************************************"<<std::endl;  
+  statusOFS<<"******************SUPERLU STATISTICS****************"<<std::endl;
+  statusOFS<<"Number of tiny pivots: "<<ptrData->stat.TinyPivots<<std::endl;
+  statusOFS<<"Number of look aheads: "<<ptrData->stat.num_look_aheads<<std::endl;
+
+  float flopcnt = 0;
+  MPI_Allreduce(&ptrData->stat.ops[FACT], &flopcnt, 1, MPI_FLOAT, MPI_SUM, ptrData->grid->comm);
+  statusOFS<<"Number of FLOPS for factorization: "<<flopcnt<<std::endl;
+  if(!ptrData->grid->iam){
+    std::cout<<"Total FLOPs for factorization is "<<flopcnt<<std::endl;
+  }
+  statusOFS<<"****************************************************"<<std::endl;
 #endif
 
 
@@ -605,7 +593,7 @@ RealSuperLUData::NumericalFactorize	(  )
 
 
   return ;
-} 		// -----  end of method RealSuperLUData::NumericalFactorize  ----- 
+} 		// -----  end of method RealSuperLUData::NumericalFactorize  -----
 
 void
 RealSuperLUData::ConvertNRlocToNC	( RealSuperLUData * aptrData )
@@ -620,14 +608,14 @@ RealSuperLUData::ConvertNRlocToNC	( RealSuperLUData * aptrData )
 
   // TODO real arithmetic
   const Int NEED_VALUE = 1;
-  pdCompRow_loc_to_CompCol_global(NEED_VALUE, &ptrData->A, ptrData->grid, 
+  pdCompRow_loc_to_CompCol_global(NEED_VALUE, &ptrData->A, ptrData->grid,
       &aptrData->ptrData->A);
 
   ptrData->isSuperMatrixAllocated = true;
 
 
   return ;
-} 		// -----  end of method RealSuperLUData::ConvertNRlocToNC  ----- 
+} 		// -----  end of method RealSuperLUData::ConvertNRlocToNC  -----
 
 void
 RealSuperLUData::MultiplyGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& bGlobal )
@@ -643,12 +631,12 @@ RealSuperLUData::MultiplyGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>
       << "The matrix is of type " << ptrData->A.Stype << std::endl
       << "Consider using ConvertNRlocToNC subroutine" << std::endl;
     ErrorHandling( msg.str().c_str() );
-  }	
-  dFillRHS_dist(trans, nrhs, (double*)xGlobal.Data(), m, 
+  }
+  dFillRHS_dist(trans, nrhs, (double*)xGlobal.Data(), m,
       &ptrData->A, (double*) bGlobal.Data(), m);
 
   return ;
-} 		// -----  end of method RealSuperLUData::MultiplyGlobalMultiVector  ----- 
+} 		// -----  end of method RealSuperLUData::MultiplyGlobalMultiVector  -----
 
 
 void
@@ -660,7 +648,7 @@ RealSuperLUData::DistributeGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat<Rea
     msg << "DistributeGlobalMultiVector requires SLU_NR_loc matrix with type " << SLU_NR_loc << std::endl
       << "The matrix is of type " << ptrData->A.Stype << std::endl;
     ErrorHandling( msg.str().c_str() );
-  }	
+  }
 
   NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
 
@@ -677,7 +665,7 @@ RealSuperLUData::DistributeGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat<Rea
 
 
   return ;
-} 		// -----  end of method RealSuperLUData::DistributeGlobalMultiVector  ----- 
+} 		// -----  end of method RealSuperLUData::DistributeGlobalMultiVector  -----
 
 
 void RealSuperLUData::GatherDistributedMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& xLocal )
@@ -688,7 +676,7 @@ void RealSuperLUData::GatherDistributedMultiVector	( NumMat<Real>& xGlobal, NumM
     msg << "GatherDistributedMultiVector requires SLU_NR_loc matrix with type " << SLU_NR_loc << std::endl
       << "The matrix is of type " << ptrData->A.Stype << std::endl;
     ErrorHandling( msg.str().c_str() );
-  }	
+  }
 
   NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
 
@@ -713,7 +701,7 @@ void RealSuperLUData::GatherDistributedMultiVector	( NumMat<Real>& xGlobal, NumM
 
 
   return ;
-} 		// -----  end of method RealSuperLUData::GatherDistributedMultiVector  ----- 
+} 		// -----  end of method RealSuperLUData::GatherDistributedMultiVector  -----
 
 
 void
@@ -729,11 +717,11 @@ RealSuperLUData::SolveDistMultiVector	( NumMat<Real>& bLocal, DblNumVec& berr )
   // TODO Real arithmetic
 
   PStatInit(&ptrData->stat);
-  pdgssvx(&ptrData->options, &ptrData->A, &ptrData->ScalePermstruct, 
+  pdgssvx(&ptrData->options, &ptrData->A, &ptrData->ScalePermstruct,
       (double*)bLocal.Data(), numRowLocal, nrhs, ptrData->grid,
-      &ptrData->LUstruct, &ptrData->SOLVEstruct, berr.Data(), 
+      &ptrData->LUstruct, &ptrData->SOLVEstruct, berr.Data(),
       &ptrData->stat, &ptrData->info);
-  PStatFree(&ptrData->stat); 
+  PStatFree(&ptrData->stat);
 
   if ( ptrData->options.SolveInitialized ) {
     dSolveFinalize(&ptrData->options, &ptrData->SOLVEstruct);
@@ -750,7 +738,7 @@ RealSuperLUData::SolveDistMultiVector	( NumMat<Real>& bLocal, DblNumVec& berr )
 
 
   return ;
-} 		// -----  end of method RealSuperLUData::SolveDistMultiVector  ----- 
+} 		// -----  end of method RealSuperLUData::SolveDistMultiVector  -----
 
 
 void
@@ -760,13 +748,13 @@ RealSuperLUData::CheckErrorDistMultiVector	( NumMat<Real>& xLocal, NumMat<Real>&
   NRformat_loc *Astore = (NRformat_loc *) ptrData->A.Store;
   Int numRowLocal = Astore->m_loc;
 
-  pdinf_norm_error(ptrData->grid->iam, numRowLocal, nrhs, 
-      (double*)xLocal.Data(), numRowLocal, 
+  pdinf_norm_error(ptrData->grid->iam, numRowLocal, nrhs,
+      (double*)xLocal.Data(), numRowLocal,
       (double*)xTrueLocal.Data(), numRowLocal, ptrData->grid);
 
 
   return ;
-} 		// -----  end of method RealSuperLUData::CheckErrorDistMultiVector  ----- 
+} 		// -----  end of method RealSuperLUData::CheckErrorDistMultiVector  -----
 
 
 void
@@ -777,7 +765,7 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
   const SuperNodeType* super = PMloc.SuperNode();
   Int numSuper = PMloc.NumSuper();
 
-  // L part   
+  // L part
 #if ( _DEBUGlevel_ >= 1 )
   statusOFS << std::endl << "LUstructToPMatrix::L part" << std::endl;
 #endif
@@ -795,7 +783,7 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
     Int cntval = 0;                             // Count for the nonzero values
     Int cntidx = 0;                             // Count for the nonzero block indexes
     const Int* index = Llu->Lrowind_bc_ptr[jb];
-    if( index ){ 
+    if( index ){
       // Not an empty column, start a new column then.
       std::vector<LBlock<Real> >& Lcol = PMloc.L(jb);
       Lcol.resize( index[cnt++] );
@@ -835,7 +823,7 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
         LB.blockIdx    = blockIdx;
 
         PMloc.ColBlockIdx(jb).push_back(LB.blockIdx);
-        Int LBi = LB.blockIdx / grid->numProcRow; 
+        Int LBi = LB.blockIdx / grid->numProcRow;
         PMloc.RowBlockIdx( LBi ).push_back( bnum );
 
 
@@ -850,14 +838,14 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
         //sort the row indices (so as to speedup the index lookup
         std::sort(rowsPerm.Data(),rowsPerm.Data()+rowsPerm.m(),cmp);
 
-        for(Int i = 0; i<LB.rows.m(); ++i){ 
+        for(Int i = 0; i<LB.rows.m(); ++i){
           rowsSorted[i] = LB.rows[rowsPerm[i]];
         }
 
         LB.rows = rowsSorted;
 
-        LB.nzval.Resize( LB.numRow, LB.numCol );   
-        SetValue( LB.nzval, ZERO<Real>() ); 
+        LB.nzval.Resize( LB.numRow, LB.numCol );
+        SetValue( LB.nzval, ZERO<Real>() );
         cnt += LB.numRow;
 
         //sort the nzval
@@ -871,12 +859,12 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
 
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS 
+        statusOFS
           << "L part: bnum = " << bnum << ", numBlock = " << Lcol.size()
           << ", blockIdx = " << LB.blockIdx
-          << ", numRow = " << LB.numRow 
+          << ", numRow = " << LB.numRow
           << ", numCol = " << LB.numCol << std::endl;
-#endif 
+#endif
 
       } // for(iblk)
 
@@ -890,6 +878,8 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
     }  // if(index)
   } // for(jb)
 
+        if(PMloc.Options()!=nullptr){
+          if (PMloc.Options()->symmetricStorage!=1){
   // U part
 #if ( _DEBUGlevel_ >= 1 )
   statusOFS << std::endl << "LUstructToPMatrix::U part" << std::endl;
@@ -901,11 +891,11 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
     Int cnt = 0;                                // Count for the index in LUstruct
     Int cntval = 0;                             // Count for the nonzero values
     Int cntidx = 0;                             // Count for the nonzero block indexes
-    const Int*    index = Llu->Ufstnz_br_ptr[ib]; 
+    const Int*    index = Llu->Ufstnz_br_ptr[ib];
     const Real* pval  = reinterpret_cast<const Real*>(Llu->Unzval_br_ptr[ib]);
-    if( index ){ 
+    if( index ){
       // Not an empty row
-      // Compute the number of nonzero columns 
+      // Compute the number of nonzero columns
       std::vector<UBlock<Real> >& Urow = PMloc.U(ib);
       Urow.resize( index[cnt++] );
       cnt = BR_HEADER;
@@ -920,13 +910,13 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
 
 
         PMloc.RowBlockIdx(ib).push_back(UB.blockIdx);
-        Int LBj = UB.blockIdx / grid->numProcCol; 
+        Int LBj = UB.blockIdx / grid->numProcCol;
         PMloc.ColBlockIdx( LBj ).push_back( bnum );
 
 
         UB.numRow = super->superPtr[bnum+1] - super->superPtr[bnum];
         cnt += UB_DESCRIPTOR;
-        for( Int j = FirstBlockCol( UB.blockIdx, super ); 
+        for( Int j = FirstBlockCol( UB.blockIdx, super );
             j < FirstBlockCol( UB.blockIdx+1, super ); j++ ){
           Int firstRow = index[cnt++];
           if( firstRow != FirstBlockCol( bnum+1, super ) )
@@ -941,7 +931,7 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
         SetValue( UB.nzval, ZERO<Real>() );
 
         Int cntcol = 0;
-        for( Int j = 0; 
+        for( Int j = 0;
             j < super->superPtr[UB.blockIdx+1] - super->superPtr[UB.blockIdx]; j++ ){
           Int firstRow = index[cnt++];
           if( firstRow != FirstBlockCol( bnum+1, super ) ){
@@ -955,12 +945,12 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
         } // for( j )
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS 
+        statusOFS
           << "U part: bnum = " << bnum << ", numBlock = " << Urow.size()
           << ", blockIdx = " << UB.blockIdx
-          << ", numRow = " << UB.numRow 
+          << ", numRow = " << UB.numRow
           << ", numCol = " << UB.numCol << std::endl;
-#endif 
+#endif
 
       } // for (jblk)
 
@@ -969,6 +959,8 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
     } // if( index )
 
   } // for(ib)
+          }
+        }
 
   for( Int ib = 0; ib < PMloc.NumLocalBlockRow(); ib++ ){
     std::vector<Int> & rowBlockIdx = PMloc.RowBlockIdx(ib);
@@ -982,7 +974,7 @@ RealSuperLUData::LUstructToPMatrix	( PMatrix<Real>& PMloc )
 
 
   return ;
-} 		// -----  end of method RealSuperLUData::LUstructToPMatrix  ----- 
+} 		// -----  end of method RealSuperLUData::LUstructToPMatrix  -----
 
 
 
@@ -1036,7 +1028,7 @@ RealSuperLUData::SymbolicToSuperNode	( SuperNodeType& super )
 
 
   return ;
-} 		// -----  end of method RealSuperLUData::SymbolicToSuperNode  ----- 
+} 		// -----  end of method RealSuperLUData::SymbolicToSuperNode  -----
 
 
 }

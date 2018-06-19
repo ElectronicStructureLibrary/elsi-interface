@@ -1,4 +1,4 @@
-/* Copyright 2010,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -159,12 +159,7 @@ const KgraphMapBdParam * const      paraptr)      /*+ Method parameters +*/
 
   if (kgraphMapSt (&bndgrafdat, paraptr->stratbnd) != 0) { /* Partition band graph */
     errorPrint  ("kgraphMapBd: cannot partition band graph");
-    kgraphExit  (&bndgrafdat);
-    return      (1);
-  }
-  if (bndgrafdat.m.domnnbr != orggrafptr->m.domnnbr) {
-    errorPrint  ("kgraphMapBd: change in band graph number of parts not supported");
-    kgraphExit  (&bndgrafdat);
+    kgraphExit (&bndgrafdat);
     return      (1);
   }
 

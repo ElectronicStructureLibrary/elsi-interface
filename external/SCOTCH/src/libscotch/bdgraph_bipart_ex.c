@@ -1,4 +1,4 @@
-/* Copyright 2010,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,7 +43,7 @@
 /**   DATES      : # Version 5.1  : from : 16 jul 2010     **/
 /**                                 to   : 15 apr 2011     **/
 /**                # Version 6.0  : from : 11 sep 2011     **/
-/**                                 to   : 31 aug 2014     **/
+/**                                 to   : 11 sep 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -107,8 +107,8 @@ const BdgraphBipartExParam * restrict const paraptr) /*+ Method parameters +*/
   size_t                sortsiz;
   Gnum                  reduloctab[5];
   Gnum                  reduglbtab[5];
-  Gnum                  domndist;
   Gnum                  partval;
+  Gnum                  domdist;
 
   const Gnum * restrict const vertloctax = grafptr->s.vertloctax; /* Fast accesses */
   const Gnum * restrict const vendloctax = grafptr->s.vendloctax;
@@ -177,7 +177,7 @@ const BdgraphBipartExParam * restrict const paraptr) /*+ Method parameters +*/
     return (1);
   }
 
-  domndist = (Gnum) grafptr->domndist;
+  domdist = (Gnum) grafptr->domdist;
 
   edgegsttax = grafptr->s.edgegsttax;
   edlolocval = 1;                                 /* Assume no edge loads */
@@ -209,7 +209,7 @@ const BdgraphBipartExParam * restrict const paraptr) /*+ Method parameters +*/
       partdlt   = partval ^ partend;              /* Inverse of partdlt, because "partval" is the opposite */
       commgain += (2 * partdlt - 1) * edlolocval; /* Since partdlt has reversed meaning, reverse gain too  */
     }
-    commgain *= domndist;                         /* Adjust internal gains with respect to external gains */
+    commgain *= domdist;                          /* Adjust internal gains with respect to external gains */
     if (veexloctax != NULL)
       commgain += (2 * partval - 1) * veexloctax[vertlocnum]; /* Partval has reversed meaning */
 
@@ -478,7 +478,7 @@ loop_exit : ;
   reduloctab[0] = grafptr->fronlocnbr;
   reduloctab[1] = grafptr->complocload0;
   reduloctab[2] = grafptr->complocsize0;
-  reduloctab[3] = commlocgain * domndist;         /* Send internal gain */
+  reduloctab[3] = commlocgain * domdist;          /* Send internal gain */
   reduloctab[4] = commlocgainextn * 2;            /* Send external gain */
   if (MPI_Allreduce (reduloctab, reduglbtab, 5, GNUM_MPI, MPI_SUM, grafptr->s.proccomm) != MPI_SUCCESS) {
     errorPrint ("bdgraphBipartEx: communication error (5)");

@@ -1,4 +1,4 @@
-/* Copyright 2010,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2010 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -40,7 +40,7 @@
 /**                the libSCOTCH library.                  **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 28 may 2010     **/
-/**                                 to     20 sep 2014     **/
+/**                                 to     17 oct 2010     **/
 /**                                                        **/
 /************************************************************/
 
@@ -92,8 +92,6 @@ SCOTCH_Num * const          parttab)              /*+ Partition array       +*/
     errorPrint ("SCOTCH_graphPartOvl: not a graph partitioning with overlap strategy");
     return     (1);
   }
-
-  intRandInit ();                                 /* Check that random number generator is initialized */
 
   wgraphInit (&grafdat, (Graph *) grafptr, partnbr); /* Initialize graph from given graph    */
   grafdat.parttax = ((Gnum *) parttab) - grafdat.s.baseval; /* Directly use given part array */

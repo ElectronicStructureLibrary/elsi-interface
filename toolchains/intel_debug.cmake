@@ -15,6 +15,6 @@ SET(USE_EXTERNAL_ELPA ON CACHE BOOL "Use external ELPA")
 SET(USE_EXTERNAL_OMM ON CACHE BOOL "Use external libOMM")
 SET(USE_EXTERNAL_SUPERLU ON CACHE BOOL "Use external SuperLU_DIST")
 
-SET(LIB_PATHS "$ENV{MKLROOT}/lib/intel64 /home/wy29/opt/elpa-2017.11.001/lib /home/wy29/opt/omm/build/lib /home/wy29/opt/SuperLU_DIST_5.3.0/lib /home/wy29/opt/scotch_6.0.5a/lib" CACHE STRING "External library paths")
-SET(INC_PATHS "/home/wy29/opt/elpa-2017.11.001/include /home/wy29/opt/omm/build/include /home/wy29/opt/SuperLU_DIST_5.3.0/SRC /home/wy29/opt/scotch_6.0.5a/include" CACHE STRING "External library include paths")
+SET(LIB_PATHS "$ENV{MKLROOT}/lib/intel64 /home/wy29/opt/elpa-2017.11.001/lib /home/wy29/opt/omm/build/lib /home/wy29/opt/SuperLU_DIST_5.3.0/lib /home/wy29/opt/scotch_6.0.0/lib" CACHE STRING "External library paths")
+SET(INC_PATHS "/home/wy29/opt/elpa-2017.11.001/include /home/wy29/opt/omm/build/include /home/wy29/opt/SuperLU_DIST_5.3.0/SRC /home/wy29/opt/scotch_6.0.0/include" CACHE STRING "External library include paths")
 SET(LIBS "OMM MatrixSwitch elpa superlu_dist ptscotchparmetis ptscotch ptscotcherr scotchmetis scotch scotcherr mkl_scalapack_lp64 mkl_blacs_intelmpi_lp64 mkl_intel_lp64 mkl_sequential mkl_core" CACHE STRING "External libraries")

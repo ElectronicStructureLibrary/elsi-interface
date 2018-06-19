@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2011,2013-2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -65,7 +65,7 @@
 /**                # Version 5.1  : from : 11 dec 2007     **/
 /**                                 to     11 aug 2010     **/
 /**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     01 may 2015     **/
+/**                                 to     14 fev 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -77,19 +77,15 @@
 
 /*+ Architecture flags. +*/
 
-#define ARCHNONE                    0x0000        /*+ No options set                              +*/
-#define ARCHPART                    0x0001        /*+ Architecture without external gains         +*/
-#define ARCHVAR                     0x0002        /*+ Variable-sized architecture                 +*/
-#define ARCHFREE                    0x0004        /*+ Architecture contents must be freed on exit +*/
-
-#define ARCHBITSUSED                0x0007        /* Significant bits for plain arch routines               */
-#define ARCHBITSNOTUSED             0x0008        /* Value above which bits not used by plain arch routines */
+#define ARCHNONE                    0x0000        /*+ No options set                      +*/
+#define ARCHPART                    0x0001        /*+ Architecture without external gains +*/
+#define ARCHVAR                     0x0002        /*+ Variable-sized architecture         +*/
 
 /*
 **  The type and structure definitions.
 */
 
-typedef INT Anum;                                 /*+ Generic integer for architectures +*/
+typedef INT Anum;                                 /*+ Generic integer +*/
 
 #define ANUMMAX                     INTVALMAX
 #define ANUMSTRING                  INTSTRING
@@ -101,123 +97,79 @@ typedef Anum ArchDomNum;                          /*+ Domain number +*/
 
 #define ARCHDOMNOTTERM              ((ArchDomNum) ~0) /*+ Not-terminal number +*/
 
-/*+ The architecture multinode element,
-    used for architecture coarsening.
-    It is equivalent to the
-    GraphCoarsenMulti structure.        +*/
-
-typedef struct ArchCoarsenMulti_ {
-  Anum                      vertnum[2];           /*+ Numbers of the collapsed vertices of a multinode +*/
-} ArchCoarsenMulti;
-
-/*+ The sub-includes for structure size computations. +*/
-
-#define ARCH_NOPROTO 
-#include "arch_cmplt.h"
-#include "arch_cmpltw.h"
-#include "arch_deco.h"
-#include "arch_deco2.h"
-#include "arch_dist.h"
-#include "arch_hcub.h"
-#include "arch_tleaf.h"
-#include "arch_mesh.h"
-#include "arch_sub.h"
-#include "arch_torus.h"
-#include "arch_vcmplt.h"
-#include "arch_vhcub.h"
-#undef ARCH_NOPROTO
-
 /*+ The architecture class type. +*/
 
 typedef struct ArchClass_ {
-  char *                    archname;             /*+ Architecture name                   +*/
-  int                       flagval;              /*+ Architecture flags of the class     +*/
-  int                    (* archLoad)  ();        /*+ Architecture loading function       +*/
-  int                    (* archSave)  ();        /*+ Architecture saving function        +*/
-  int                    (* archFree)  ();        /*+ Architecture freeing function       +*/
-  int                    (* matchInit) ();        /*+ Architecture matching init function +*/
-  void                   (* matchExit) ();        /*+ Architecture matching exit function +*/
-  int                    (* matchMate) ();        /*+ Architecture matching function      +*/
-  ArchDomNum             (* domNum)    ();        /*+ Domain labeling function            +*/
-  int                    (* domTerm)   ();        /*+ Terminal domain building function   +*/
-  Anum                   (* domSize)   ();        /*+ Domain size function                +*/
-  Anum                   (* domWght)   ();        /*+ Domain weight function              +*/
-  Anum                   (* domDist)   ();        /*+ Distance computation function       +*/
-  int                    (* domFrst)   ();        /*+ Compute biggest domain              +*/
-  int                    (* domLoad)   ();        /*+ Domain loading routine              +*/
-  int                    (* domSave)   ();        /*+ Domain saving routine               +*/
-  int                    (* domBipart) ();        /*+ Domain bipartitioning routine       +*/
-  int                    (* domIncl)   ();        /*+ Domain inclusion routine            +*/
+  char *                    archname;             /*+ Architecture name                 +*/
+  int                       flagval;              /*+ Architecture flags                +*/
+  int                    (* archLoad)   ();       /*+ Architecture loading function     +*/
+  int                    (* archSave)   ();       /*+ Architecture saving function      +*/
+  int                    (* archFree)   ();       /*+ Architecture freeing function     +*/
+  ArchDomNum             (* domNum)     ();       /*+ Domain labeling function          +*/
+  int                    (* domTerm)    ();       /*+ Terminal domain building function +*/
+  Anum                   (* domSize)    ();       /*+ Domain size function              +*/
+  Anum                   (* domWght)    ();       /*+ Domain weight function            +*/
+  Anum                   (* domDist)    ();       /*+ Distance computation function     +*/
+  int                    (* domFrst)    ();       /*+ Compute biggest domain            +*/
+  int                    (* domLoad)    ();       /*+ Domain loading routine            +*/
+  int                    (* domSave)    ();       /*+ Domain saving routine             +*/
+  int                    (* domBipart)  ();       /*+ Domain bipartitioning routine     +*/
+  int                    (* domIncl)    ();       /*+ Domain inclusion routine          +*/
 #ifdef SCOTCH_PTSCOTCH
-  int                    (* domMpiType) ();       /*+ Domain MPI type building routine    +*/
+  int                    (* domMpiType) ();       /*+ Domain MPI type building routine  +*/
 #endif /* SCOTCH_PTSCOTCH */
-  int                       domsizeof;            /*+ Size in bytes of domain data        +*/
+  int                       domsizeof;            /*+ Size in bytes of domain data      +*/
 } ArchClass;
-
-/*+ The architecture union type. +*/
-
-typedef union {                                   /*+ Architecture data                           +*/
-  ArchCmplt                 cmplt;                /*+ Complete graph architecture                 +*/
-  ArchCmpltw                cmpltw;               /*+ Weighted complete graph architecture        +*/
-  ArchDeco                  deco;                 /*+ Type-1 decomposition-described architecture +*/
-  ArchDeco2                 deco2;                /*+ Type-2 decomposition-described architecture +*/
-  ArchDist                  dist;                 /*+ Distance multiplicator pseudo-architecture  +*/
-  ArchHcub                  hcub;                 /*+ Hypercube architecture                      +*/
-  ArchMeshX                 meshx;                /*+ xD-mesh architecture (includes 2D and 3D)   +*/
-  ArchSub                   sub;                  /*+ Sub-architecture meta-architecture          +*/
-  ArchTleaf                 tleaf;                /*+ Tree-leaf architecture                      +*/
-  ArchVcmplt                vcmplt;               /*+ Variable-sized complete graph architecture  +*/
-  ArchVhcub                 vhcub;                /*+ Variable-sized hypercube architecture       +*/
-} ArchDummy;
 
 /*+ The architecture type. +*/
 
+typedef Anum ArchDummy[12];                       /*+ Size of the dummy space that can hold any architecture +*/
+
 typedef struct Arch_ {
-  const ArchClass *         class;                /*+ Pointer to architecture class         +*/
-  int                       flagval;              /*+ (Possibly updated) architecture flags +*/
-  ArchDummy                 data;                 /*+ Architecture data                     +*/
+  const ArchClass *         class;                /*+ Pointer to architecture class              +*/
+  int                       flagval;              /*+ Architecture flags                         +*/
+  union {                                         /*+ Architecture data                          +*/
+    ArchDummy               dummy;                /*+ Dummy data for external size setting       +*/
+#if 0
+    ArchDeco                deco;                 /*+ Decomposition-described architecture       +*/
+    ArchDist                dist;                 /*+ Distance multiplicator pseudo-architecture +*/
+    ArchMesh2               mesh2;                /*+ 2D-mesh architecture                       +*/
+    ArchMesh3               mesh3;                /*+ 3D-mesh architecture                       +*/
+    ArchTorus2              torus2;               /*+ 2D-torus architecture                      +*/
+    ArchTorus3              torus3;               /*+ 3D-torus architecture                      +*/
+    ArchHcub                hcub;                 /*+ Hypercube architecture                     +*/
+    ArchCmpltw              cmpltw;               /*+ Weighted complete graph architecture       +*/
+    ArchCmplt               cmplt;                /*+ Complete graph architecture                +*/
+    ArchLeaf                leaf;                 /*+ Tree-leaf architecture                     +*/
+    ArchVcmplt              vcmplt;               /*+ Variable-sized complete graph architecture +*/
+    ArchVhcub               vhcub;                /*+ Variable-sized hypercube architecture      +*/
+#endif
+  } data;
 } Arch;
-
-/*+ The architecture domain union type. +*/
-
-typedef union {                                   /*+ The domain data                           +*/
-  ArchCmpltDom              cmplt;                /*+ Complete graph domain                     +*/
-  ArchCmpltwDom             cmpltw;               /*+ Weighted complete graph domain            +*/
-  ArchDecoDom               deco;                 /*+ Type-1 decomposition-described domain     +*/
-  ArchDeco2Dom              deco2;                /*+ Type-2 decomposition-described domain     +*/
-/*+ ArchDistDom             dist;                  *+ Distance multiplicator domain is ArchDom  +*/
-  ArchHcubDom               hcub;                 /*+ Hypercube domain                          +*/
-  ArchMeshXDom              meshx;                /*+ xD-mesh domain                            +*/
-  ArchSubDom                sub;                  /*+ Sub-architecture meta-architecture        +*/
-  ArchTleafDom              tleaf;                /*+ Tree-leaf domain                          +*/
-  ArchVcmpltDom             vcmplt;               /*+ Variable-sized complete graph domain      +*/
-  ArchVhcubDom              vhcub;                /*+ Variable-sized hypercube domain           +*/
-} ArchDomDummy;
 
 /*+ The domain structure type. +*/
 
+typedef Anum ArchDomDummy[6];                     /*+ Size of the dummy space that can hold any domain +*/
+
 typedef struct ArchDom_ {
-  ArchDomDummy              data;                 /*+ The domain data +*/
+  union {                                         /*+ The domain data                            +*/
+    ArchDomDummy            dummy;                /*+ Dummy data for external space setting      +*/
+#if 0
+    ArchDomDeco             deco;                 /*+ Decomposition-descripted domain type       +*/
+    ArchDomDist             dist;                 /*+ Distance multiplicator pseudo-architecture +*/
+    ArchDomMesh2            mesh2;                /*+ 2D-mesh domain type                        +*/
+    ArchDomMesh3            mesh3;                /*+ 3D-mesh domain type                        +*/
+    ArchDomTorus2           torus2;               /*+ 2D-torus domain type                       +*/
+    ArchDomTorus3           torus3;               /*+ 3D-torus domain type                       +*/
+    ArchDomHcub             hcub;                 /*+ Hypercube domain type                      +*/
+    ArchDomCmplt            cmplt;                /*+ Complete graph domain type                 +*/
+    ArchDomCmpltw           cmpltw;               /*+ Weighted complete graph domain type        +*/
+    ArchDomLeaf             leaf;                 /*+ Tree-leaf domain type                      +*/
+    ArchDomVcmplt           vcmplt;               /*+ Variable-sized complete graph domain type  +*/
+    ArchDomVhcub            vhcub;                /*+ Variable-sized hypercube domain type       +*/
+#endif
+  } data;
 } ArchDom;
-
-/*+ The architecture match union type. +*/
-
-typedef union {                                   /*+ Architecture data                           +*/
-  ArchCmpltMatch            cmplt;                /*+ Complete graph architecture                 +*/
-/*  ArchMatchCmpltw         cmpltw;                *+ Weighted complete graph architecture        +*/
-  ArchDecoMatch             deco;                 /*+ Type-1 decomposition-described architecture +*/
-/*  ArchMatchDist           dist;                  *+ Distance multiplicator pseudo-architecture  +*/
-  ArchHcubMatch             hcub;                 /*+ Hypercube architecture                      +*/
-  ArchMeshXMatch            meshx;                /*+ xD-mesh architecture                        +*/
-  ArchSubMatch              sub;                  /*+ Sub-architecture meta-architecture          +*/
-  ArchTleafMatch            tleaf;                /*+ Tree-leaf architecture                      +*/
-} ArchMatchDummy;
-
-/*+ The architecture type. +*/
-
-typedef struct ArchMatch_ {
-  ArchMatchDummy            data;                 /*+ Architecture matching data +*/
-} ArchMatch;
 
 /*
 **  The function prototypes.
@@ -234,7 +186,6 @@ int                         archLoad            (Arch * restrict const, FILE * c
 int                         archSave            (const Arch * const, FILE * const);
 char *                      archName            (const Arch * const);
 const ArchClass *           archClass           (const char * const);
-const ArchClass *           archClass2          (const char * const, const int);
 
 ArchDomNum                  archDomNum          (const Arch * const, const ArchDom * const);
 int                         archDomTerm         (const Arch * const, ArchDom * const, const ArchDomNum);
@@ -260,7 +211,6 @@ int                         archDomMpiType      (const Arch * const, MPI_Datatyp
 #define archName(a)                 (((a)->class == NULL) ? "" : (a)->class->archname)
 #define archPart(a)                 ((((a)->flagval) & ARCHPART) != 0)
 #define archVar(a)                  ((((a)->flagval) & ARCHVAR) != 0)
-#define archArch(a)                 ((Arch *) ((char *) (a) - ((char *) (&(((Arch *) (NULL))->data)) - (char *) (NULL))))
 
 #if ((! defined SCOTCH_DEBUG_ARCH2) || (defined ARCH))
 #define archDomNum2(arch,dom)       (((ArchDomNum (*) (const void * const, const void * const)) (arch)->class->domNum) ((const void * const) &(arch)->data, (const void * const) &(dom)->data))
@@ -288,10 +238,7 @@ int                         archDomMpiType      (const Arch * const, MPI_Datatyp
                                       arch##n##ArchLoad,   \
                                       arch##n##ArchSave,   \
                                       arch##n##ArchFree,   \
-                                      arch##n##MatchInit,  \
-                                      arch##n##MatchExit,  \
-                                      arch##n##MatchMate,  \
-                                      arch##n##ArchLoad,   \
+                                      arch##n##DomNum,     \
                                       arch##n##DomTerm,    \
                                       arch##n##DomSize,    \
                                       arch##n##DomWght,    \
@@ -308,9 +255,6 @@ int                         archDomMpiType      (const Arch * const, MPI_Datatyp
                                       arch##n##ArchLoad,  \
                                       arch##n##ArchSave,  \
                                       arch##n##ArchFree,  \
-                                      arch##n##MatchInit, \
-                                      arch##n##MatchExit, \
-                                      arch##n##MatchMate, \
                                       arch##n##DomNum,    \
                                       arch##n##DomTerm,   \
                                       arch##n##DomSize,   \
@@ -325,5 +269,3 @@ int                         archDomMpiType      (const Arch * const, MPI_Datatyp
 #endif /* SCOTCH_PTSCOTCH */
 
 #define ARCHCLASSBLOCKNULL          { NULL, ARCHNONE }
-
-#define ARCH_H_END

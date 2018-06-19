@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -64,7 +64,7 @@
 /**                # Version 5.1  : from : 21 jan 2008     **/
 /**                                 to     11 aug 2010     **/
 /**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     26 aug 2014     **/
+/**                                 to     14 fev 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -113,17 +113,8 @@ const ArchVcmplt * const    archptr,
 ArchVcmpltDom * const       domptr,
 const ArchDomNum            domnum)
 {
-  Anum                termnum;
-  Anum                termlvl;
-
-  if (domnum != ARCHDOMNOTTERM) {                 /* If valid label     */
-    if (domnum == 0)                              /* Not a legal domain */
-      return (2);
-
+  if (domnum != ARCHDOMNOTTERM) {                 /* If valid label */
     domptr->termnum = domnum;                     /* Set the domain */
-    for (termnum = domnum, termlvl = 0; termnum > 1; termnum >>= 1, termlvl ++) ; /* Compute level */
-    domptr->termlvl = termlvl;                    /* Set level */
-
     return (0);
   }
 
@@ -168,8 +159,7 @@ archVcmpltDomFrst (
 const ArchVcmplt * const        archptr,
 ArchVcmpltDom * restrict const  domptr)
 {
-  domptr->termlvl = 0;                            /* First terminal number */
-  domptr->termnum = 1;
+  domptr->termnum = 1;                            /* First terminal number */
 
   return (0);
 }
@@ -188,16 +178,10 @@ const ArchVcmplt * const        archptr,
 ArchVcmpltDom * restrict const  domptr,
 FILE * const                    stream)
 {
-  Anum                termnum;
-  Anum                termlvl;
-
   if (intLoad (stream, &domptr->termnum) != 1) {
     errorPrint ("archVcmpltDomLoad: bad input");
     return     (1);
   }
-
-  for (termnum = domptr->termnum, termlvl = 0; termnum > 1; termnum >>= 1, termlvl ++) ; /* Compute level */
-  domptr->termlvl = termlvl;
 
   return (0);
 }
@@ -238,8 +222,6 @@ const ArchVcmpltDom * const     domptr,
 ArchVcmpltDom * restrict const  dom0ptr,
 ArchVcmpltDom * restrict const  dom1ptr)
 {
-  dom0ptr->termlvl =                              /* Bipartition the domain */
-  dom1ptr->termlvl = domptr->termlvl + 1;
   dom0ptr->termnum = domptr->termnum << 1;
   dom1ptr->termnum = dom0ptr->termnum + 1;
 
@@ -260,8 +242,11 @@ const ArchVcmplt * const    archptr,
 const ArchVcmpltDom * const dom0ptr,
 const ArchVcmpltDom * const dom1ptr)
 {
-  if ((dom1ptr->termlvl >= dom0ptr->termlvl) &&
-      ((dom1ptr->termnum >> (dom1ptr->termlvl - dom0ptr->termlvl)) == dom0ptr->termnum))
+  Anum          dom0termnum;
+  Anum          dom1termnum;
+
+  for (dom1termnum = dom1ptr->termnum, dom0termnum = dom0ptr->termnum; dom1termnum != 0; dom1termnum >>= 1)
+    if (dom1termnum == dom0termnum)
       return (1);
 
   return (0);
@@ -280,7 +265,7 @@ archVcmpltDomMpiType (
 const ArchVcmplt * const      archptr,
 MPI_Datatype * const          typeptr)
 {
-  MPI_Type_contiguous (2, ANUM_MPI, typeptr);
+  *typeptr = ANUM_MPI;
 
   return (0);
 }

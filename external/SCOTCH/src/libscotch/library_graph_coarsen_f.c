@@ -1,4 +1,4 @@
-/* Copyright 2011,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -41,8 +41,6 @@
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 07 aug 2011     **/
 /**                                 to     07 aug 2011     **/
-/**                # Version 6.0  : from : 28 feb 2015     **/
-/**                                 to     15 aug 2015     **/
 /**                                                        **/
 /************************************************************/
 
@@ -70,47 +68,12 @@
 FORTRAN (                                   \
 SCOTCHFGRAPHCOARSEN, scotchfgraphcoarsen, ( \
 SCOTCH_Graph * const        finegrafptr,    \
-const SCOTCH_Num * const    coarvertptr,    \
-const double * const        coarptr,        \
-const SCOTCH_Num * const    flagptr,        \
 SCOTCH_Graph * const        coargrafptr,    \
 SCOTCH_Num * const          coarmulttab,    \
+SCOTCH_Num * const          coarnbrptr,     \
+double * const              coarratptr,     \
 int * const                 revaptr),       \
-(finegrafptr, coarvertptr, coarptr, flagptr, coargrafptr, coarmulttab, revaptr))
+(finegrafptr, coargrafptr, coarmulttab, coarnbrptr, coarratptr, revaptr))
 {
-  *revaptr = SCOTCH_graphCoarsen (finegrafptr, *coarvertptr, *coarptr, *flagptr, coargrafptr, coarmulttab);
-}
-
-/*
-**
-*/
-
-FORTRAN (                                             \
-SCOTCHFGRAPHCOARSENMATCH, scotchfgraphcoarsenmatch, ( \
-SCOTCH_Graph * const        finegrafptr,              \
-SCOTCH_Num * const          coarvertptr,              \
-const double * const        coarptr,                  \
-const SCOTCH_Num * const    flagptr,                  \
-SCOTCH_Num * const          finematetab,              \
-int * const                 revaptr),                 \
-(finegrafptr, coarvertptr, coarptr, flagptr, finematetab, revaptr))
-{
-  *revaptr = SCOTCH_graphCoarsenMatch (finegrafptr, coarvertptr, *coarptr, *flagptr, finematetab);
-}
-
-/*
-**
-*/
-
-FORTRAN (                                             \
-SCOTCHFGRAPHCOARSENBUILD, scotchfgraphcoarsenbuild, ( \
-SCOTCH_Graph * const        finegrafptr,              \
-SCOTCH_Num * const          coarvertptr,              \
-SCOTCH_Num * const          finematetab,              \
-SCOTCH_Graph * const        coargrafptr,              \
-SCOTCH_Num * const          coarmulttab,              \
-int * const                 revaptr),                 \
-(finegrafptr, coarvertptr, finematetab, coargrafptr, coarmulttab, revaptr))
-{
-  *revaptr = SCOTCH_graphCoarsenBuild (finegrafptr, *coarvertptr, finematetab, coargrafptr, coarmulttab);
+  *revaptr = SCOTCH_graphCoarsen (finegrafptr, coargrafptr, coarmulttab, *coarnbrptr, *coarratptr);
 }

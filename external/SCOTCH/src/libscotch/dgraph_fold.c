@@ -1,4 +1,4 @@
-/* Copyright 2007-2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -42,8 +42,6 @@
 /**                                 to   : 27 jun 2008     **/
 /**                # Version 5.1  : from : 12 nov 2008     **/
 /**                                 to   : 04 jan 2011     **/
-/**                # Version 6.0  : from : 28 sep 2014     **/
-/**                                 to   : 28 sep 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -81,9 +79,9 @@ dgraphFold (
 const Dgraph * restrict const orggrafptr,
 const int                     partval,            /* 0 for first half, 1 for second half */
 Dgraph * restrict const       fldgrafptr,
-const void * restrict const   orgdataptr,         /* Un-based array of data which must be folded, e.g. coarmulttab */
-void ** restrict const        flddataptr,         /* Un-based array of data which must be folded, e.g. coarmulttab */
-MPI_Datatype                  datatype)
+const void * restrict const   vertinfoptrin,      /* Based array of informations which must be kept, like coarmulttax */
+void ** restrict const        vertinfoptrout,     /* Based array of informations which must be kept, like coarmulttax */
+MPI_Datatype                  vertinfotype)
 {
   int               fldprocnbr;
   int               fldprocnum;                   /* Index of local process in folded communicator   */
@@ -104,7 +102,7 @@ MPI_Datatype                  datatype)
     return     (1);
   }
 
-  o = dgraphFold2 (orggrafptr, partval, fldgrafptr, fldproccomm, orgdataptr, flddataptr, datatype);
+  o = dgraphFold2 (orggrafptr, partval, fldgrafptr, fldproccomm, vertinfoptrin, vertinfoptrout, vertinfotype);
   fldgrafptr->prockeyval = fldproccol;            /* Key of folded communicator is always zero if no duplication occurs */
 
   return (o);
@@ -116,9 +114,9 @@ const Dgraph * restrict const orggrafptr,
 const int                     partval,            /* 0 for first half, 1 for second half */
 Dgraph * restrict const       fldgrafptr,
 MPI_Comm                      fldproccomm,
-const void * restrict const   orgdataptr,         /* Un-based array of data which must be kept, e.g. coarmulttab */
-void ** restrict const        flddataptr,         /* Un-based array of data which must be kept, e.g. coarmulttab */
-MPI_Datatype                  datatype)
+const void * restrict const   vertinfoptrin,      /* Based array of informations which must be kept, like coarmulttax */
+void ** restrict const        vertinfoptrout,     /* Based array of informations which must be kept, like coarmulttax */
+MPI_Datatype                  vertinfotype)
 {
   int                           fldcommtypval;    /* Type of communication for this process                 */
   DgraphFoldCommData * restrict fldcommdattab;    /* Array of two communication data                        */
@@ -141,7 +139,7 @@ MPI_Datatype                  datatype)
   int                           commnbr;
   int                           requnbr;
   MPI_Request * restrict        requtab;
-  int                           infosiz;          /* Size of one information                                */
+  int                           vertinfosize;     /* Size of one information                                */
 
 #ifdef SCOTCH_DEBUG_DGRAPH2
   if (orggrafptr->vendloctax != (orggrafptr->vertloctax + 1)) {
@@ -159,8 +157,8 @@ MPI_Datatype                  datatype)
     fldproclocnum = orggrafptr->proclocnum;
 
   fldcommtypval = ((fldproclocnum >= 0) && (fldproclocnum < fldprocglbnbr)) ? DGRAPHFOLDCOMMRECV : DGRAPHFOLDCOMMSEND;
-  if (orgdataptr != NULL)
-    MPI_Type_size (datatype, &infosiz);
+  if (vertinfoptrin != NULL)
+    MPI_Type_size (vertinfotype, &vertinfosize);
 
   cheklocval    = 0;
   fldcommdattab = NULL;
@@ -241,11 +239,13 @@ MPI_Datatype                  datatype)
         cheklocval = 1;
       }
       else {
-        if (orgdataptr != NULL) {
-          if ((*flddataptr = (byte *) memAlloc (fldvertlocnbr * infosiz)) == NULL) {
+        if (vertinfoptrin != NULL) {
+          if ((*vertinfoptrout = (byte *) memAlloc (fldvertlocnbr * vertinfosize)) == NULL) {
             errorPrint ("dgraphFold2: out of memory (4)");
             cheklocval = 1;
           }
+          else
+            *((byte **) vertinfoptrout) -= (vertinfosize * orggrafptr->baseval);
         }
         fldgrafptr->edgeloctax -= orggrafptr->baseval; /* Do not care about the validity of edloloctax at this stage */
       }
@@ -360,8 +360,8 @@ MPI_Datatype                  datatype)
         errorPrint ("dgraphFold2: communication error (7)");
         cheklocval = 1;
       }
-      else if ((orgdataptr != NULL)  &&
-               (MPI_Isend ((byte *) orgdataptr + ((fldvertidxtab[i] - orggrafptr->baseval) * infosiz), fldcommdattab[i].vertnbr, datatype, procsndnum,
+      else if ((vertinfoptrin != NULL)  &&
+               (MPI_Isend ((byte *) vertinfoptrin + (fldvertidxtab[i] * vertinfosize), fldcommdattab[i].vertnbr, vertinfotype, procsndnum,
                            TAGFOLD + TAGDATALOCTAB, orggrafptr->proccomm, &requtab[requnbr ++]) != MPI_SUCCESS)) {
         errorPrint ("dgraphFold2: communication error (8)");
         cheklocval = 1;
@@ -464,8 +464,8 @@ MPI_Datatype                  datatype)
           errorPrint ("dgraphFold2: communication error (14)");
           cheklocval = 1;
         }
-        else if ((orgdataptr != NULL) &&
-                 (MPI_Irecv ((byte *) (*flddataptr) + ((fldvertidxtab[i] - orggrafptr->baseval) * infosiz), vertrcvnbr, datatype, procrcvnum,
+        else if ((vertinfoptrin != NULL) &&
+                 (MPI_Irecv ((byte *) (*vertinfoptrout) + (fldvertidxtab[i] * vertinfosize), vertrcvnbr, vertinfotype, procrcvnum,
                              TAGFOLD + TAGDATALOCTAB, orggrafptr->proccomm, &requtab[requnbr ++]) != MPI_SUCCESS)) {
           errorPrint ("dgraphFold2: communication error (15)");
           cheklocval = 1;
@@ -576,8 +576,9 @@ MPI_Datatype                  datatype)
             orggrafptr->vertloctax + orggrafptr->baseval, orgvertlocnbr * sizeof (Gnum)); /* Last value is not copied */
     fldgrafptr->vertloctax[fldvertlocnbr + orggrafptr->baseval] = fldgrafptr->edgelocnbr + orggrafptr->baseval;
 
-    if (orgdataptr != NULL)                       /* If additional data present */
-      memCpy ((byte *) (*flddataptr), (byte *) orgdataptr, orgvertlocnbr * infosiz); /* Copy local part */
+    if (vertinfoptrin != NULL)                    /* If vertinfo exists */
+      memCpy ((byte *) (*vertinfoptrout) + (orggrafptr->baseval * vertinfosize), /* Copy local part */
+              (byte *) vertinfoptrin + (orggrafptr->baseval * vertinfosize), orgvertlocnbr * vertinfosize);
 
     for (i = 0; i < commnbr; i ++) {
       int               j;

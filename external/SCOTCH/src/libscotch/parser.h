@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -49,8 +49,6 @@
 /**                                 to     11 jun 2004     **/
 /**                # Version 5.1  : from : 20 feb 2008     **/
 /**                                 to     20 feb 2008     **/
-/**                # Version 6.0  : from : 30 sep 2014     **/
-/**                                 to     30 sep 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -77,16 +75,14 @@ typedef enum StratNodeType_ {
 
 /*+ Method and graph parameter types. +*/
 
-typedef int StratParamType;                       /*+ Same type as enum +*/
-
-#define STRATPARAMCASE              0             /*+ Character; TRICK: FIRST +*/
-#define STRATPARAMDOUBLE            1             /*+ Double floating-point   +*/
-#define STRATPARAMINT               2             /*+ Integer                 +*/
-#define STRATPARAMLOG               3             /*+ Logical value           +*/
-#define STRATPARAMSTRAT             4             /*+ Strategy                +*/
-#define STRATPARAMSTRING            5             /*+ String of characters    +*/
-
-#define STRATPARAMDEPRECATED        8             /*+ Indicates deprecated parameter; can be merged with the above +*/
+typedef enum StratParamType_ {
+  STRATPARAMCASE = 0,                             /*+ Character; TRICK: FIRST +*/
+  STRATPARAMDOUBLE,                               /*+ Double floating-point   +*/
+  STRATPARAMINT,                                  /*+ Integer                 +*/
+  STRATPARAMLOG,                                  /*+ Logical value           +*/
+  STRATPARAMSTRAT,                                /*+ Strategy                +*/
+  STRATPARAMSTRING                                /*+ String of characters    +*/
+} StratParamType;
 
 /*+ Test types, ordered by ascending priority,
     for proper writing of parentheses. Initial

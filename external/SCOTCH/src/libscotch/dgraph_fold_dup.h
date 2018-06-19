@@ -1,4 +1,4 @@
-/* Copyright 2007,2010,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2010 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,8 +43,6 @@
 /**                                 to     13 aug 2006     **/
 /**                # Version 5.1  : from : 04 nov 2010     **/
 /**                                 to     04 nov 2010     **/
-/**                # Version 6.0  : from : 28 sep 2014     **/
-/**                                 to   : 28 sep 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -59,9 +57,9 @@ typedef struct DgraphFoldDupData_ {
   Dgraph *                  fldgrafptr;           /*+ Pointer to folded graph                       +*/
   MPI_Comm                  fldproccomm;          /*+ Communicator to be used in folded graph       +*/
   int                       partval;              /*+ Part of processes to which to fold            +*/
-  void *                    orgdataptr;           /*+ Data associated to vertices, e.g. coarmulttab +*/
-  void *                    flddataptr;           /*+ Data associated to vertices, e.g. coarmulttab +*/
-  MPI_Datatype              datatype;             /*+ MPI type of associated information            +*/
+  void *                    vertinfoptrin;        /*+ info associated to vertices, like coarmulttax +*/
+  void *                    vertinfoptrout;       /*+ info associated to vertices, like coarmulttax +*/
+  MPI_Datatype              vertinfotype;         /*+ MPI type of previous informations             +*/
 } DgraphFoldDupData;
 
 /*

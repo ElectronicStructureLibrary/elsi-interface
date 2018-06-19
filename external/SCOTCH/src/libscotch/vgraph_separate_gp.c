@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2012,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -47,7 +47,7 @@
 /**                # Version 5.1  : from : 09 nov 2008     **/
 /**                                 to     09 nov 2008     **/
 /**                # Version 6.0  : from : 10 feb 2011     **/
-/**                                 to     15 aug 2016     **/
+/**                                 to     10 feb 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -97,7 +97,7 @@ const VgraphSeparateGpParam * const paraptr)      /*+ Method parameters +*/
   GraphPart * restrict const  parttax = grafptr->parttax;
   Gnum * restrict const       frontab = grafptr->frontab;
 
-  if (grafptr->compsize[0] != grafptr->s.vertnbr) /* If not all vertices already in part 0 */
+  if (grafptr->compload[0] != grafptr->s.velosum) /* If not all vertices already in part 0 */
     vgraphZero (grafptr);                         /* Move all graph vertices to part 0     */
 
   if (memAllocGroup ((void **) (void *)

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -47,8 +47,6 @@
 /**                                 to     01 nov 2001     **/
 /**                # Version 4.0  : from : 23 dec 2001     **/
 /**                                 to   : 23 dec 2001     **/
-/**                # Version 6.0  : from : 07 jan 2014     **/
-/**                                 to     07 jan 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -101,23 +99,6 @@ SCOTCH_Strat * const        stratptr)
 {
   if (*((Strat **) stratptr) != NULL)             /* If strategy is not null */
     stratExit (*((Strat **) stratptr));           /* Free strategy structure */
-}
-
-/* This routine frees the contents of a
-** strategy structure and cleans it for
-** future use.
-** It returns:
-** - VOID  : in all cases.
-*/
-
-void
-SCOTCH_stratFree (
-SCOTCH_Strat * const        stratptr)
-{
-  if (*((Strat **) stratptr) != NULL) {           /* If strategy is not null        */
-    stratExit (*((Strat **) stratptr));           /* Free strategy structure        */
-    *((Strat **) stratptr) = NULL;                /* Initialize pointer to strategy */
-  }
 }
 
 /* This routine outputs the contents of the

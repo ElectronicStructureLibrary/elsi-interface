@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2011-2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2011,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -50,7 +50,7 @@
 /**                # Version 5.1  : from : 30 oct 2007     **/
 /**                                 to   : 01 jul 2008     **/
 /**                # Version 6.0  : from : 09 mar 2011     **/
-/**                                 to     01 may 2014     **/
+/**                                 to     27 nov 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -116,7 +116,7 @@ static union {
 static union {
   VgraphSeparateMlParam     param;
   StratNodeMethodData       padding;
-} vgraphseparatedefaultml = { { 100, 0.8L, GRAPHCOARHEM, &stratdummy, &stratdummy } };
+} vgraphseparatedefaultml = { { 100, 0.8L, &stratdummy, &stratdummy } };
 
 static StratMethodTab       vgraphseparatestmethtab[] = { /* Graph separation methods array */
                               { VGRAPHSEPASTMETHBD, "b",  vgraphSeparateBd, &vgraphseparatedefaultbd },
@@ -178,10 +178,6 @@ static StratParamTab        vgraphseparatestparatab[] = { /* Graph separation me
                                 (byte *) &vgraphseparatedefaultml.param,
                                 (byte *) &vgraphseparatedefaultml.param.stratlow,
                                 (void *) &vgraphseparateststratab },
-                              { VGRAPHSEPASTMETHML,  STRATPARAMCASE,   "type",
-                                (byte *) &vgraphseparatedefaultml.param,
-                                (byte *) &vgraphseparatedefaultml.param.coartype,
-                                (void *) "hs" },
                               { VGRAPHSEPASTMETHML,  STRATPARAMINT,    "vert",
                                 (byte *) &vgraphseparatedefaultml.param,
                                 (byte *) &vgraphseparatedefaultml.param.coarnbr,
@@ -239,7 +235,6 @@ const Strat * restrict const  strat)              /*+ Separation strategy +*/
 {
   StratTest           val;
   VgraphStore         savetab[2];                 /* Results of the two strategies */
-  Gnum                compload2;                  /* Saved separator load          */
   int                 o;
 
 #ifdef SCOTCH_DEBUG_VGRAPH2
@@ -311,9 +306,8 @@ const Strat * restrict const  strat)              /*+ Separation strategy +*/
       if (vgraphSeparateSt (grafptr, strat->data.select.strat[1]) != 0) /* If second strategy didn't work */
         vgraphStoreUpdt (grafptr, &savetab[1]);   /* Restore initial bipartition as its result            */
 
-      compload2 = grafptr->s.velosum - savetab[0].compload[0] - savetab[0].compload[1]; /* Compute saved separator load */
-      if ( (compload2 <  grafptr->compload[2]) || /* If first strategy is better */
-          ((compload2 == grafptr->compload[2]) &&
+      if ( (savetab[0].fronnbr <  grafptr->fronnbr) || /* If first strategy is better */
+          ((savetab[0].fronnbr == grafptr->fronnbr) &&
            (abs (savetab[0].comploaddlt) < abs (grafptr->comploaddlt))))
         vgraphStoreUpdt (grafptr, &savetab[0]);   /* Restore its result */
 

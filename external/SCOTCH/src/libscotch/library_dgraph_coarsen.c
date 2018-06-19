@@ -1,4 +1,4 @@
-/* Copyright 2011,2012,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2011,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -42,7 +42,7 @@
 /**   DATES      : # Version 5.1  : from : 07 aug 2011     **/
 /**                                 to     07 aug 2011     **/
 /**                # Version 6.0  : from : 11 sep 2012     **/
-/**                                 to     28 sep 2014     **/
+/**                                 to     29 nov 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -78,8 +78,7 @@
 *** It returns:
 *** - 0  : if the graph has been coarsened.
 *** - 1  : if the graph could not be coarsened.
-*** - 2  : if folded graph not present
-*** - 3  : on error.
+*** - 2  : on error.
 +*/
 
 int
@@ -99,29 +98,13 @@ SCOTCH_Num * restrict const     multloctab)       /* Pointer to multinode array 
                     ((Dgraph * restrict const) finegrafptr)->proccomm, &o);
   if ((o != MPI_IDENT) && (o != MPI_CONGRUENT)) {
     errorPrint ("SCOTCH_dgraphCoarsen: communicators are not congruent");
-    return     (3);
+    return     (1);
   }
 #endif /* SCOTCH_DEBUG_LIBRARY1 */
 
   intRandInit ();                                 /* Check that random number generator is initialized */
 
-  multlocptr = (DgraphCoarsenMulti * restrict) multloctab; /* User-provided multinode array */
-  switch (dgraphCoarsen ((Dgraph * restrict const) finegrafptr, (Dgraph * restrict const) coargrafptr,
-                         &multlocptr, 5, coarnbr, coarrat, (int) flagval)) {
-    case 1 :
-      return (1);
-    case 2 :
-      return (3);
-  }
-
-  if (multlocptr != (DgraphCoarsenMulti * restrict) multloctab) { /* If folding occurred */
-    if (multlocptr == NULL)
-      return (2);
-
-    memCpy (multloctab, multlocptr,               /* Update array with folded multinode data */
-            ((Dgraph * restrict const) coargrafptr)->vertlocnbr * sizeof (DgraphCoarsenMulti));
-    memFree (multlocptr);                         /* Free allocated folded multinode array */
-  }
-
-  return (0);
+  multlocptr = (DgraphCoarsenMulti * restrict) multloctab; /* User provides multinode array */
+  return (dgraphCoarsen ((Dgraph * restrict const) finegrafptr, (Dgraph * restrict const) coargrafptr,
+                         &multlocptr, 5, coarnbr, (int) flagval, 0, 0, coarrat)); /* Do not do any folding else multinode array can be destroyed */
 }

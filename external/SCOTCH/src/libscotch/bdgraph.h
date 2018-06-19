@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2010,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,7 +43,7 @@
 /**   DATES      : # Version 5.1  : from : 10 sep 2007     **/
 /**                                 to   : 14 apr 2011     **/
 /**                # Version 6.0  : from : 11 sep 2011     **/
-/**                                 to   : 31 aug 2014     **/
+/**                                 to   : 11 sep 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -80,8 +80,8 @@ typedef struct Bdgraph_ {
   Gnum                      commglbloadextn0;     /*+ Global communication load if all moved to part 0   +*/
   Gnum                      commglbgainextn0;     /*+ Global external gain if all swapped from part 0    +*/
   double                    bbalglbval;           /*+ Bipartitioning imbalance ratio (strategy variable) +*/
-  Anum                      domndist;             /*+ Distance between subdomains                        +*/
-  Anum                      domnwght[2];          /*+ Weights for each subdomain                         +*/
+  Anum                      domdist;              /*+ Distance between subdomains                        +*/
+  Anum                      domwght[2];           /*+ Weights for each subdomain                         +*/
   INT                       levlnum;              /*+ Graph coarsening level                             +*/
 } Bdgraph;
 

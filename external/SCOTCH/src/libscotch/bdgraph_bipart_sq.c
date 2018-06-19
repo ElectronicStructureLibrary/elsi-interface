@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2010,2011,2013,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -46,8 +46,6 @@
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 27 dec 2007     **/
 /**                                 to     14 apr 2011     **/
-/**                # Version 6.0  : from : 27 dec 2007     **/
-/**                                 to     31 aug 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -174,7 +172,7 @@ const BdgraphBipartSqParam * const  paraptr)      /*+ Method parameters +*/
     reduloctab[4] = 1;
   }
   else {                                          /* Fill local array with local bipartition data */
-    reduloctab[0] = ((cgrfdat.fronnbr != 0) || ((cgrfdat.compsize0 != 0) && ((cgrfdat.s.vertnbr - cgrfdat.compsize0) != 0)))
+    reduloctab[0] = ((cgrfdat.fronnbr != 0) || ((cgrfdat.compload0 != 0) && ((cgrfdat.s.velosum - cgrfdat.compload0) != 0)))
                     ? cgrfdat.commload
                     : GNUMMAX; /* Partitions with empty bipartitions unwanted if they are completely unbalanced */
     reduloctab[1] = cgrfdat.compload0dlt;
@@ -260,7 +258,7 @@ const BdgraphBipartSqParam * const  paraptr)      /*+ Method parameters +*/
 
     partval  = dgrfptr->partgsttax[vertlocnum];
     partval1 = partval & 1;
-    complocsize1 += partval1;                     /* Superscalar update */
+    complocsize1 += partval1;                     /* Superscalar update   */
     if (dgrfptr->s.veloloctax != NULL) {
       Gnum              veloval;
 
@@ -279,9 +277,13 @@ const BdgraphBipartSqParam * const  paraptr)      /*+ Method parameters +*/
     if (commcut != 0)
       dgrfptr->fronloctab[fronlocnbr ++] = vertlocnum;
   }
-  dgrfptr->fronlocnbr   = fronlocnbr;
-  dgrfptr->complocsize0 = dgrfptr->s.vertlocnbr - complocsize1;
-  dgrfptr->complocload0 = (dgrfptr->s.veloloctax != NULL) ? (dgrfptr->s.velolocsum - complocload1) : dgrfptr->complocsize0;
+  dgrfptr->complocsize0   = dgrfptr->s.vertlocnbr - complocsize1;
+  dgrfptr->fronlocnbr     = fronlocnbr;
+  if (dgrfptr->s.veloloctax != NULL) 
+    dgrfptr->complocload0 = dgrfptr->s.velolocsum - complocload1;
+  
+  else 
+    dgrfptr->complocload0 = dgrfptr->complocsize0;
   
   bgraphExit (&cgrfdat);
 

@@ -1,4 +1,4 @@
-/* Copyright 2007-2009,2012,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2009,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -44,7 +44,7 @@
 /**                # Version 5.1  : from : 11 nov 2008     **/
 /**                                 to   : 26 may 2009     **/
 /**                # Version 6.0  : from : 18 sep 2012     **/
-/**                                 to   : 28 sep 2014     **/
+/**                                 to   : 14 nov 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -52,12 +52,10 @@
 ** The defines.
 */
 
-/*+ Graph option flags. Their values must be equal
-    to those defined in library.h and library_f.h  +*/
+/*+ Graph option flags. +*/
 
-#define DGRAPHCOARSENNONE           0x0000        /* No options set                 */
-#define DGRAPHCOARSENFOLD           0x0100        /* Do folding without duplication */
-#define DGRAPHCOARSENFOLDDUP        0x0300        /* Do folding with duplication    */
+#define DGRAPHCOARSENNONE           0x0000        /* No options set */
+
 #define DGRAPHCOARSENNOMERGE        0x4000        /* Do not merge isolated vertices */
 
 /*
@@ -147,6 +145,6 @@ static int                  dgraphCoarsenInit   (DgraphCoarsenData * restrict co
 static void                 dgraphCoarsenExit   (DgraphCoarsenData * restrict const);
 static int                  dgraphCoarsenBuild  (DgraphCoarsenData * restrict const);
 
-int                         dgraphCoarsen       (Dgraph * restrict const, Dgraph * restrict const, DgraphCoarsenMulti * restrict * const, const Gnum, const Gnum, const double, const int);
+int                         dgraphCoarsen       (Dgraph * restrict const, Dgraph * restrict const, DgraphCoarsenMulti * restrict * const, const Gnum, const Gnum, const int, const int, const Gnum, const double);
 
 #undef static

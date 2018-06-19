@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin
 
@@ -71,6 +71,7 @@ std::deque<int > comm_stat;
 // Error handling
 // *********************************************************************
 void ErrorHandling( const char * msg ){
+  abort();
 #ifdef _COREDUMPER_
   int mpirank, mpisize;
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
@@ -78,11 +79,11 @@ void ErrorHandling( const char * msg ){
   char filename[100];
   sprintf(filename, "core_%d_%d", mpirank, mpisize);
 
-  if( WriteCoreDump(filename) ==0 ) {   
+  if( WriteCoreDump(filename) ==0 ) {
     statusOFS << "success: WriteCoreDump to " << filename << std::endl;
-  } else {  
+  } else {
     statusOFS << "failed:  WriteCoreDump to " << filename << std::endl;
-  }     
+  }
 #endif // #ifdef _COREDUMPER_
   throw std::runtime_error( msg );
 }

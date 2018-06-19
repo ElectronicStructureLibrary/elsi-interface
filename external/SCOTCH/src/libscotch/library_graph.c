@@ -49,8 +49,6 @@
 /**                                 to     03 apr 2008     **/
 /**                # Version 5.1  : from : 17 nov 2010     **/
 /**                                 to     17 nov 2010     **/
-/**                # Version 6.0  : from : 04 dec 2012     **/
-/**                                 to     04 dec 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -232,7 +230,7 @@ const SCOTCH_Num * const    edlotab)              /* Edge load array            
   srcgrafptr->vertnbr = vertnbr;
   srcgrafptr->vertnnd = vertnbr + baseval;
   srcgrafptr->verttax = (Gnum *) verttab - baseval;
-  srcgrafptr->vendtax = ((vendtab == NULL) || (vendtab == verttab)) ? srcgrafptr->verttax + 1 : (Gnum *) vendtab - baseval;
+  srcgrafptr->vendtax = ((vendtab == NULL) || (vendtab == verttab) || (vendtab == verttab + 1)) ? srcgrafptr->verttax + 1 : (Gnum *) vendtab - baseval;
   srcgrafptr->velotax = ((velotab == NULL) || (velotab == verttab)) ? NULL : (Gnum *) velotab - baseval;
   srcgrafptr->vnumtax = NULL;
   srcgrafptr->vlbltax = ((vlbltab == NULL) || (vlbltab == verttab)) ? NULL : (Gnum *) vlbltab - baseval;
@@ -279,6 +277,26 @@ const SCOTCH_Num * const    edlotab)              /* Edge load array            
     srcgrafptr->edlosum = edlosum;
   }
   srcgrafptr->degrmax = degrmax;
+
+#ifdef DEAD_CODE                                  /* Vertex labels only for graph output */
+  if (srcgrafptr->vlbltax != NULL) {              /* If vertex labels provided           */
+    Gnum                vlblmax;                  /* Maximum label value                 */
+
+    for (vlblmax = 0, vertnum = srcgrafptr->baseval; vertnum < srcgrafptr->vertnnd; vertnum ++) {
+      if (srcgrafptr->vlbltax[vertnum] < 0) {
+        errorPrint ("SCOTCH_graphBuild: negative labels not allowed");
+        return     (1);
+      }
+      if (srcgrafptr->vlbltax[vertnum] > vlblmax) /* Get maximum label */
+        vlblmax = srcgrafptr->vlbltax[vertnum];
+    }
+    if (graphLoad2 (srcgrafptr->baseval, srcgrafptr->vertnnd, srcgrafptr->verttax, /* Rename edge ends */
+                    srcgrafptr->vendtax, srcgrafptr->edgetax, vlblmax, srcgrafptr->vlbltax) != 0) {
+        errorPrint ("SCOTCH_graphBuild: cannot relabel vertices");
+        return     (1);
+    }
+  }
+#endif
 
   return (0);
 }

@@ -1,4 +1,4 @@
-/* Copyright 2008,2010,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2008,2010 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -42,8 +42,6 @@
 /**                                 to   : 15 may 2008     **/
 /**                # Version 5.1  : from : 27 jun 2010     **/
 /**                                 to     27 jun 2010     **/
-/**                # Version 6.0  : from : 27 apr 2015     **/
-/**                                 to     27 apr 2015     **/
 /**                                                        **/
 /************************************************************/
 
@@ -177,9 +175,9 @@ const int                   typeval)              /*+ (Un)compression algorithm 
   int                 filetab[2];
   FILE *              readptr;
   FileCompressData *  dataptr;
-#ifdef COMMON_PTHREAD_FILE
+#ifdef COMMON_PTHREAD
   pthread_t           thrdval;
-#endif /* COMMON_PTHREAD_FILE */
+#endif /* COMMON_PTHREAD */
 
   if (typeval <= FILECOMPRESSTYPENONE)            /* If uncompressed stream, return original stream pointer */
     return (stream);
@@ -207,7 +205,7 @@ const int                   typeval)              /*+ (Un)compression algorithm 
   dataptr->innerfd     = filetab[1];
   dataptr->outerstream = stream;
 
-#ifdef COMMON_PTHREAD_FILE
+#ifdef COMMON_PTHREAD
   if (pthread_create (&thrdval, NULL, (void * (*) (void *)) fileUncompress2, (void *) dataptr) != 0) { /* If could not create thread */
     errorPrint ("fileUncompress: cannot create thread");
     memFree (dataptr);
@@ -216,7 +214,7 @@ const int                   typeval)              /*+ (Un)compression algorithm 
     return  (NULL);
   }
   pthread_detach (thrdval);                       /* Detach thread so that it will end up gracefully by itself */
-#else /* COMMON_PTHREAD_FILE */
+#else /* COMMON_PTHREAD */
   switch (fork ()) {
     case -1 :                                     /* Error */
       errorPrint ("fileUncompress: cannot create child process");
@@ -231,7 +229,7 @@ const int                   typeval)              /*+ (Un)compression algorithm 
     default :                                     /* We are the father process */
       close (filetab[1]);                         /* Close the writer pipe end */
   }
-#endif /* COMMON_PTHREAD_FILE */
+#endif /* COMMON_PTHREAD */
 
   return (readptr);
 }

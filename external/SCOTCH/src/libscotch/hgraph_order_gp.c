@@ -104,8 +104,8 @@ const HgraphOrderGpParam * restrict const paraptr)
   const Gnum * restrict const     edgetax = grafptr->s.edgetax;
 
   if (memAllocGroup ((void **) (void *)
-                     &queudat.qtab, (size_t) (grafptr->vnohnbr * sizeof (Gnum)),
-                     &vexxtax,      (size_t) (grafptr->vnohnbr * sizeof (HgraphOrderGpVertex)), NULL) == NULL) {
+        &queudat.qtab, (size_t) (grafptr->vnohnbr * sizeof (Gnum)),
+        &vexxtax,      (size_t) (grafptr->vnohnbr * sizeof (HgraphOrderGpVertex)), NULL) == NULL) {
     errorPrint ("hgraphOrderGp: out of memory");
     return     (1);
   }

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2012,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -47,7 +47,7 @@
 /**                # Version 5.1  : from : 22 nov 2008     **/
 /**                                 to   : 27 jun 2010     **/
 /**                # Version 6.0  : from : 11 jun 2012     **/
-/**                                 to   : 27 apr 2015     **/
+/**                                 to   : 10 oct 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -263,13 +263,13 @@ void *            blokptr)
 #define COMMON_MEMORY_OVHD          COMMON_MEMORY_SKEW
 #endif /* COMMON_MEMORY_SKEW */
 
-static intptr_t             memorysiz = 0;        /*+ Number of allocated bytes        +*/
-static intptr_t             memorymax = 0;        /*+ Maximum amount of allocated data +*/
+static intptr_t         memorysiz = 0;            /*+ Number of allocated bytes        +*/
+static intptr_t         memorymax = 0;            /*+ Maximum amount of allocated data +*/
 
-#ifdef COMMON_PTHREAD_MEMORY
-static int                  muteflag = 1;         /*+ Flag for mutex initialization +*/
-static pthread_mutex_t      mutelocdat;           /*+ Local mutex for updates       +*/
-#endif /* COMMON_PTHREAD_MEMORY */
+#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
+static int              muteflag = 1;             /*+ Flag for mutex initialization +*/
+static pthread_mutex_t  mutelocdat;               /*+ Local mutex for updates       +*/
+#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
 
 /* This routine allocates and records
 ** a memory block.
@@ -284,13 +284,13 @@ size_t                      newsiz)
 {
   byte *              newptr;
 
-#ifdef COMMON_PTHREAD_MEMORY
-  if (muteflag != 0) {                            /* Unsafe code with respect to race conditions but should work as first allocs are sequential; portable TSL needed */
+#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
+  if (muteflag != 0) {                            /* Unsafe code with respect to race conditions but should work as first allocs are sequential */
     muteflag = 0;
     pthread_mutex_init (&mutelocdat, NULL);       /* Initialize local mutex */
   }
   pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
+#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
 
   if ((newptr = malloc (newsiz + COMMON_MEMORY_OVHD)) != NULL) { /* Non-zero size will guarantee non-NULL pointers */
     memorysiz += (intptr_t) newsiz;
@@ -305,9 +305,9 @@ size_t                      newsiz)
     newptr += COMMON_MEMORY_SKEW;                 /* Skew pointer while enforcing alignment */
   }
 
-#ifdef COMMON_PTHREAD_MEMORY
+#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
   pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
+#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
 
   return ((void *) newptr);                       /* Return skewed pointer or NULL */
 }
@@ -331,9 +331,9 @@ size_t                      newsiz)
   tmpptr = ((byte *) oldptr) - COMMON_MEMORY_SKEW;
   oldsiz = *((size_t *) tmpptr);
 
-#ifdef COMMON_PTHREAD_MEMORY
+#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
   pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
+#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
 
 #ifdef COMMON_MEMORY_CHECK
     memCheckDelist (tmpptr);
@@ -353,9 +353,9 @@ size_t                      newsiz)
     newptr += COMMON_MEMORY_SKEW;                 /* Skew pointer while enforcing alignment */
   }
 
-#ifdef COMMON_PTHREAD_MEMORY
+#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
   pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
+#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
 
   return ((void *) newptr);                       /* Return skewed pointer or NULL */
 }
@@ -376,9 +376,9 @@ void *                      oldptr)
   tmpptr = ((byte *) oldptr) - COMMON_MEMORY_SKEW;
   oldsiz = *((size_t *) tmpptr);
 
-#ifdef COMMON_PTHREAD_MEMORY
+#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
   pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
+#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
 
 #ifdef COMMON_MEMORY_CHECK
     memCheckDelist (tmpptr);
@@ -387,9 +387,9 @@ void *                      oldptr)
   free (tmpptr);
   memorysiz -= oldsiz;
 
-#ifdef COMMON_PTHREAD_MEMORY
+#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
   pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
+#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
 }
 
 /* This routine returns the memory
@@ -404,15 +404,15 @@ memCur ()
 {
   intptr_t            memotmp;
 
-#ifdef COMMON_PTHREAD_MEMORY
+#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
   pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
+#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
 
   memotmp = memorysiz;
 
-#ifdef COMMON_PTHREAD_MEMORY
+#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
   pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
+#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
 
   return ((IDX) memotmp);
 }
@@ -429,15 +429,15 @@ memMax ()
 {
   intptr_t            memotmp;
 
-#ifdef COMMON_PTHREAD_MEMORY
+#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
   pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
+#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
 
   memotmp = memorymax;
 
-#ifdef COMMON_PTHREAD_MEMORY
+#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
   pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
+#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
 
   return ((IDX) memotmp);
 }

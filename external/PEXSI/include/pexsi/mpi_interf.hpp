@@ -77,7 +77,7 @@ template<typename T>
       Int root,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -128,7 +128,7 @@ template<typename T>
       Int root,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -186,7 +186,7 @@ template <typename T>
       std::vector<T>& allVec,
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -222,7 +222,7 @@ template <typename T>
       Int root, 
       MPI_Comm          comm )
   {
-    Int mpirank, mpisize;
+    int mpirank, mpisize;
     MPI_Comm_rank( comm, &mpirank );
     MPI_Comm_size( comm, &mpisize );
 
@@ -296,6 +296,9 @@ void
 void
   Ireduce ( Complex* sendbuf, Complex* recvbuf, Int count, MPI_Op op, Int root, MPI_Comm comm, MPI_Request & request );
 #endif
+
+void
+  Allreduce ( LongInt* sendbuf, LongInt* recvbuf, int count, MPI_Op op, MPI_Comm comm );
 
 void
   Allreduce ( Int* sendbuf, Int* recvbuf, Int count, MPI_Op op, MPI_Comm comm );

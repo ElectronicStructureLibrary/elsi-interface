@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2012,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -42,7 +42,7 @@
 /**   DATES      : # Version 4.0  : from : 21 nov 2005     **/
 /**                                 to     23 nov 2005     **/
 /**                # Version 6.0  : from : 08 oct 2012     **/
-/**                                 to     03 oct 2014     **/
+/**                                 to     08 oct 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -67,20 +67,8 @@
 **
 */
 
-FORTRAN (                               \
-SCOTCHFRANDOMPROC, scotchfrandomproc, ( \
-const int * const           procnum),   \
-(procnum))
-{
-  SCOTCH_randomProc (*procnum);
-}
-
-/*
-**
-*/
-
-FORTRAN (                                   \
-SCOTCHFRANDOMRESET, scotchfrandomreset, (), \
+FORTRAN (                                       \
+SCOTCHFRANDOMRESET, scotchfrandomreset, (),     \
 ())
 {
   SCOTCH_randomReset ();

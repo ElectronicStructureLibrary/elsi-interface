@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010,2012,2014,2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -49,7 +49,7 @@
 /**                # Version 5.1  : from : 24 oct 2010     **/
 /**                                 to     24 oct 2010     **/
 /**                # Version 6.0  : from : 17 oct 2012     **/
-/**                                 to     14 jan 2018     **/
+/**                                 to     17 oct 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -110,6 +110,7 @@ const HgraphOrderNdParam * restrict const paraptr)
   }
   memSet (vspgrafdat.parttax, 0, vspgrafdat.s.vertnbr * sizeof (GraphPart)); /* Set all vertices to part 0 */
   vspgrafdat.parttax    -= vspgrafdat.s.baseval;
+  vspgrafdat.fronnbr     = 0;
   vspgrafdat.compload[0] = vspgrafdat.s.velosum;
   vspgrafdat.compload[1] = 0;
   vspgrafdat.compload[2] = 0;
@@ -199,7 +200,7 @@ const HgraphOrderNdParam * restrict const paraptr)
     cblkptr->cblktab[2].cblknbr = 0;
     cblkptr->cblktab[2].cblktab = NULL;
 
-    if (graphInduceList (&grafptr->s, vsplisttab[2].vnumnbr, vsplisttab[2].vnumtab, &indgrafdat.s) != 0) { /* Perform non-halo induction for separator, as it will get highest numbers */
+    if (graphInduceList (&grafptr->s, &vsplisttab[2], &indgrafdat.s, NULL) != 0) { /* Perform non-halo induction for separator, as it will get highest numbers */
       errorPrint ("hgraphOrderNd: cannot build induced subgraph (1)");
       memFree    (vspgrafdat.frontab);            /* Free remaining space */
       return     (1);

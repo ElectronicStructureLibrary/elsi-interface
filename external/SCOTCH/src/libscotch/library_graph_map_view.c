@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2011,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -52,7 +52,7 @@
 /**                # Version 5.1  : from : 27 jul 2008     **/
 /**                                 to     11 aug 2010     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     01 mar 2015     **/
+/**                                 to     03 mar 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -150,6 +150,11 @@ FILE * const                  stream)             /*+ Output stream             
   const Gnum * restrict const edgetax = ((Graph *) libgrafptr)->edgetax;
   const Gnum * restrict const edlotax = ((Graph *) libgrafptr)->edlotax;
 
+  if (vmlotab != NULL)
+    vmlotax = (Gnum *) vmlotab - grafptr->baseval;
+  else
+    vmlotax = NULL;
+
 #ifdef SCOTCH_DEBUG_LIBRARY1
   if (sizeof (SCOTCH_Mapping) < sizeof (LibMapping)) {
     errorPrint ("SCOTCH_graphMapView: internal error");
@@ -162,14 +167,10 @@ FILE * const                  stream)             /*+ Output stream             
 
 #ifdef SCOTCH_DEBUG_LIBRARY1
   if ((Graph *) libgrafptr != grafptr) {
-    errorPrint ("SCOTCH_graphMapView: input graph must be the same as mapping graph");
+    errorPrint ("SCOTCH_graphMapView: the graph given in input must be the same than the one in the mapping");
     return     (1);
   }
 #endif /* SCOTCH_DEBUG_LIBRARY1 */
-
-  if ((grafptr->vertnbr == 0) ||                  /* Return if nothing to do */
-      (grafptr->edgenbr == 0))
-    return (0);
 
   if (libmapoptr != NULL) {
     lmaoptr = (LibMapping *) libmapoptr;
@@ -180,10 +181,9 @@ FILE * const                  stream)             /*+ Output stream             
     parotax = NULL;
   }
 
-  if (vmlotab != NULL)
-    vmlotax = (Gnum *) vmlotab - grafptr->baseval;
-  else
-    vmlotax = NULL;
+  if ((grafptr->vertnbr == 0) ||                  /* Return if nothing to do */
+      (grafptr->edgenbr == 0))
+    return (0);
 
 #ifdef SCOTCH_DEBUG_LIBRARY1
   if (lmapptr->parttab == NULL) {
@@ -340,7 +340,7 @@ FILE * const                  stream)             /*+ Output stream             
              (Gnum) nghbsum);
   }
 
-  memSet (commdist, 0, 256 * sizeof (Gnum));      /* Initialize the data */
+  memset (commdist, 0, 256 * sizeof (Gnum));      /* Initialize the data */
   commload  =
   commdilat =
   commexpan = 0;

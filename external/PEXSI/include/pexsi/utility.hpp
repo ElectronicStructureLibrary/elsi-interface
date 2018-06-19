@@ -514,8 +514,6 @@ inline Int deserialize(T& val, std::istream& is, const std::vector<Int>& mask)
   return 0;
 }
 
-
-
 //bool
 inline Int serialize(const bool& val, std::ostream& os, const std::vector<Int>& mask)
 {
@@ -1321,7 +1319,7 @@ Int inline serialize(const symPACK::DistSparseMatrixGraph & val, std::ostream& o
 {
   serialize( val.size,        os, mask );
   serialize( val.nnz,         os, mask );
-  serialize( val.bIsExpanded, os, mask );
+  serialize( val.IsExpanded(), os, mask );
   serialize( val.mpirank,     os, mask );
   serialize( val.mpisize,     os, mask );
   serialize( val.baseval,     os, mask );
@@ -1338,7 +1336,7 @@ Int inline deserialize(symPACK::DistSparseMatrixGraph& val, std::istream& is, co
 {
   deserialize( val.size,        is, mask );
   deserialize( val.nnz,         is, mask );
-  deserialize( val.bIsExpanded, is, mask );
+  deserialize( val.expanded, is, mask );
   deserialize( val.mpirank,     is, mask );
   deserialize( val.mpisize,     is, mask );
   deserialize( val.baseval,     is, mask );
@@ -1376,52 +1374,51 @@ Int inline deserialize(symPACK::DistSparseMatrix<T>& val, std::istream& is, cons
 template<class T>
 void inline Convert(const DistSparseMatrix<T>& A, symPACK::DistSparseMatrix<T> & B)
 {
-  const MPI_Comm & comm = A.comm; 
-  int mpisize,mpirank;
-  MPI_Comm_size(comm,&mpisize);
-  MPI_Comm_rank(comm,&mpirank);
+    const MPI_Comm & comm = A.comm; 
+    int mpisize,mpirank;
+    MPI_Comm_size(comm,&mpisize);
+    MPI_Comm_rank(comm,&mpirank);
 
-  B.comm = comm;
-  B.size = A.size;
-  B.nnz = A.nnz;
+    B.comm = comm;
+    B.size = A.size;
+    B.nnz = A.nnz;
 
-  //Initialize the graph
-  symPACK::DistSparseMatrixGraph & BGraph = B.GetLocalGraph();
-  //Int colPerProc = A.size / mpisize;
-  //BGraph.vertexDist.resize(mpisize+1,colPerProc);
-  //BGraph.vertexDist[0] = 1;
-  //std::partial_sum(BGraph.vertexDist.begin(),BGraph.vertexDist.end(),BGraph.vertexDist.begin());
-  //BGraph.vertexDist.back() = A.size+1;
-  BGraph.size = B.size;       
-  BGraph.nnz = B.nnz;
-  BGraph.SetComm(B.comm);
-  BGraph.bIsExpanded = true;
-  BGraph.baseval = 1;
-  BGraph.keepDiag = 1;
-  BGraph.sorted = 1;
-  BGraph.colptr.resize(BGraph.LocalVertexCount()+1); 
-  symPACK::bassert(A.colptrLocal.m()== BGraph.colptr.size());
-  std::copy(A.colptrLocal.Data(),A.colptrLocal.Data()+BGraph.LocalVertexCount()+1,BGraph.colptr.data());
+    //Initialize the graph
+    symPACK::DistSparseMatrixGraph & BGraph = B.GetLocalGraph();
+    //Int colPerProc = A.size / mpisize;
+    //BGraph.vertexDist.resize(mpisize+1,colPerProc);
+    //BGraph.vertexDist[0] = 1;
+    //std::partial_sum(BGraph.vertexDist.begin(),BGraph.vertexDist.end(),BGraph.vertexDist.begin());
+    //BGraph.vertexDist.back() = A.size+1;
+    BGraph.size = B.size;       
+    BGraph.nnz = B.nnz;
+    BGraph.SetComm(B.comm);
+    BGraph.SetExpanded(true);
+    BGraph.baseval = 1;
+    BGraph.keepDiag = 1;
+    BGraph.sorted = 1;
+    BGraph.colptr.resize(BGraph.LocalVertexCount()+1); 
+    assert(A.colptrLocal.m()== BGraph.colptr.size());
+    std::copy(A.colptrLocal.Data(),A.colptrLocal.Data()+BGraph.LocalVertexCount()+1,BGraph.colptr.data());
 
-  //Copy nzval
-  BGraph.rowind.resize(A.nnzLocal);
-  std::copy(A.rowindLocal.Data(),A.rowindLocal.Data()+A.nnzLocal,BGraph.rowind.data());
+    //Copy nzval
+    BGraph.rowind.resize(A.nnzLocal);
+    std::copy(A.rowindLocal.Data(),A.rowindLocal.Data()+A.nnzLocal,BGraph.rowind.data());
 
-  B.nzvalLocal.resize(A.nzvalLocal.m());
-  std::copy(A.nzvalLocal.Data(),A.nzvalLocal.Data()+A.nzvalLocal.m(),B.nzvalLocal.data());
+    B.nzvalLocal.resize(A.nzvalLocal.m());
+    std::copy(A.nzvalLocal.Data(),A.nzvalLocal.Data()+A.nzvalLocal.m(),B.nzvalLocal.data());
 }
 
 
 template<class T>
 void inline Convert(symPACK::DistSparseMatrix<T>& B, DistSparseMatrix<T> & A)
 {
-
         MPI_Comm & comm = B.comm; 
         int mpisize,mpirank;
         MPI_Comm_size(comm,&mpisize);
         MPI_Comm_rank(comm,&mpirank);
-        bool wasExpanded = B.GetLocalGraph().bIsExpanded;
-        if(!wasExpanded){
+        bool wasExpanded = B.GetLocalGraph().IsExpanded();
+        if(!wasExpanded && B.nnz>0){
           B.ExpandSymmetric();
           B.SortGraph();
           B.GetLocalGraph().SetBaseval(1);
@@ -1430,21 +1427,21 @@ void inline Convert(symPACK::DistSparseMatrix<T>& B, DistSparseMatrix<T> & A)
         //TODO do we have to redistribute when vertexDist is not balanced ?
         Int colPerProc = B.size / mpisize;
         if(mpirank==mpisize-1){ colPerProc = B.size - mpirank*colPerProc;}
-        symPACK::bassert(B.GetLocalGraph().LocalVertexCount() == colPerProc);
+        assert(B.GetLocalGraph().LocalVertexCount() == colPerProc);
 
         A.comm = B.comm;
         A.size = B.size;
         A.nnz = B.nnz;
         A.colptrLocal.Resize(B.GetLocalGraph().colptr.size());
-        std::copy(B.GetLocalGraph().colptr.begin(), B.GetLocalGraph().colptr.end(), &A.colptrLocal[0]);
+        std::copy(B.GetLocalGraph().colptr.begin(), B.GetLocalGraph().colptr.end(), A.colptrLocal.Data());
         A.rowindLocal.Resize(B.GetLocalGraph().rowind.size());
-        std::copy(B.GetLocalGraph().rowind.begin(), B.GetLocalGraph().rowind.end(), &A.rowindLocal[0]);
+        std::copy(B.GetLocalGraph().rowind.begin(), B.GetLocalGraph().rowind.end(), A.rowindLocal.Data());
         A.nnzLocal = B.GetLocalGraph().rowind.size();
 
         A.nzvalLocal.Resize(B.nzvalLocal.size());
         std::copy(B.nzvalLocal.begin(),B.nzvalLocal.end(),A.nzvalLocal.Data());
 
-        if(!wasExpanded){
+        if(!wasExpanded && B.nnz>0){
           B.ToLowerTriangular();
         }
 }
@@ -1659,6 +1656,14 @@ void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Complex>
 
 void ReadDistSparseMatrixFormatted( const char* filename, DistSparseMatrix<Complex>& pspmat, MPI_Comm comm );
 
+template<typename T>
+std::string ToMatlabScalar( T val);
+
+template<typename T>
+std::string ToMatlabScalar( std::complex<T> val);
+
+template<typename T>
+void WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & pspmat, MPI_Comm comm);
 
 template <class F1, class F2> 
 void
@@ -1867,7 +1872,6 @@ MonotoneRootFinding (
 
   return root;
 }		// -----  end of function MonotoneRootFinding  ----- 
-
 
 
 

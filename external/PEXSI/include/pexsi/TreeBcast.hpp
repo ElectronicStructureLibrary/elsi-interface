@@ -63,7 +63,7 @@ template< typename T>
         MPI_Group group1 = MPI_GROUP_NULL;
         MPI_Comm_group(comm_, &group1);
 
-        Int size;
+        int size;
         MPI_Comm_size(comm_,&size);
         vector<int> globRanks(size);
         vector<int> Lranks(size);
@@ -113,7 +113,9 @@ template< typename T>
 
     TreeBcast2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt,Int msgSize):TreeBcast2(){
       comm_ = pComm;
-      MPI_Comm_rank(comm_,&myRank_);
+      int tmprank;
+      MPI_Comm_rank(comm_,&tmprank);
+      myRank_ = tmprank;
       myRoot_ = -1; 
       msgSize_ = msgSize;
       numRecv_ = 0;
@@ -728,7 +730,7 @@ public:
       MPI_Group group1 = MPI_GROUP_NULL;
       MPI_Comm_group(comm_, &group1);
 
-      Int size;
+      int size;
       MPI_Comm_size(comm_,&size);
       vector<int> globRanks(size);
       vector<int> Lranks(size);
@@ -765,7 +767,9 @@ public:
 
   TreeBcast(const MPI_Comm & pComm, Int * ranks, Int rank_cnt,Int msgSize){
     comm_ = pComm;
-    MPI_Comm_rank(comm_,&myRank_);
+    int tmprank;
+    MPI_Comm_rank(comm_,&tmprank);
+    myRank_ = tmprank;
     myRoot_ = -1; 
     msgSize_ = msgSize;
 
@@ -2100,7 +2104,7 @@ public:
 
 inline TreeBcast * TreeBcast::Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize, double rseed){
   //get communicator size
-  Int nprocs = 0;
+  int nprocs = 0;
   MPI_Comm_size(pComm, &nprocs);
 
 
@@ -2137,7 +2141,7 @@ inline TreeBcast * TreeBcast::Create(const MPI_Comm & pComm, Int * ranks, Int ra
 template< typename T>
 inline TreeReduce<T> * TreeReduce<T>::Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize, double rseed){
   //get communicator size
-  Int nprocs = 0;
+  int nprocs = 0;
   MPI_Comm_size(pComm, &nprocs);
 
 #if defined(FTREE)
@@ -2153,13 +2157,13 @@ inline TreeReduce<T> * TreeReduce<T>::Create(const MPI_Comm & pComm, Int * ranks
 
   if(nprocs<=FTREE_LIMIT){
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-    statusOFS<<"FLAT TREE USED"<<endl;
+    statusOFS<<"FLAT TREE USED"<<std::endl;
 #endif
     return new FTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
   }
   else{
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
-    statusOFS<<"BINARY TREE USED"<<endl;
+    statusOFS<<"BINARY TREE USED"<<std::endl;
 #endif
     return new ModBTreeReduce<T>(pComm,ranks,rank_cnt,msgSize, rseed);
     //return new BTreeReduce<T>(pComm,ranks,rank_cnt,msgSize);
@@ -2171,7 +2175,7 @@ inline TreeReduce<T> * TreeReduce<T>::Create(const MPI_Comm & pComm, Int * ranks
 template< typename T>
 inline TreeBcast2<T> * TreeBcast2<T>::Create(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize, double rseed){
   //get communicator size
-  Int nprocs = 0;
+  int nprocs = 0;
   MPI_Comm_size(pComm, &nprocs);
 
 

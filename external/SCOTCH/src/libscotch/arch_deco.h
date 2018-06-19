@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2011,2014-2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -61,16 +61,13 @@
 /**                # Version 5.1  : from : 21 jan 2008     **/
 /**                                 to     27 sep 2008     **/
 /**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     11 mar 2016     **/
+/**                                 to     14 fev 2011     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines.
 */
-
-#ifndef ARCH_DECO_H_STRUCT
-#define ARCH_DECO_H_STRUCT
 
 /*+ Decomposition architecture flags. +*/
 
@@ -110,33 +107,18 @@ typedef struct ArchDecoDom_ {
   Anum                      num;                  /*+ Domain number in the decomposition +*/
 } ArchDecoDom;
 
-typedef struct ArchDecoMatch_ {
-  Anum                      num;                  /*+ Domain number in the decomposition +*/
-} ArchDecoMatch;
-
-#endif /* ARCH_DECO_H_STRUCT */
-
 /*
 **  The function prototypes.
 */
-
-#ifndef ARCH_NOPROTO
-#ifndef ARCH_DECO_H_PROTO
-#define ARCH_DECO_H_PROTO
 
 #ifndef ARCH_DECO
 #define static
 #endif
 
-int                         archDecoArchBuild2  (ArchDeco * const, const Anum, const Anum, const ArchDecoTermVert * const, const Anum  * const);
+int                         archDecoArchBuild   (ArchDeco * const, const Anum, const Anum, const ArchDecoTermVert * const, const Anum  * const);
 int                         archDecoArchLoad    (ArchDeco * const, FILE * restrict const);
 int                         archDecoArchSave    (const ArchDeco * const, FILE * restrict const);
 int                         archDecoArchFree    (ArchDeco * const);
-
-#define archDecoMatchInit           NULL
-#define archDecoMatchExit           NULL
-#define archDecoMatchMate           NULL
-
 Anum                        archDecoArchSize    (ArchDeco * const, const Anum);
 Anum                        archDecoArchDist    (ArchDeco * const, const Anum, const Anum);
 Anum                        archDecoArchDistE   (ArchDeco * const, const Anum, const Anum);
@@ -164,6 +146,3 @@ int                         archDecoDomMpiType  (const ArchDeco * const, MPI_Dat
 #define archDecoArchDist(d,i,j)     ((d)->domdisttab[((i) >= (j)) ? (((i) - 1) * ((i) - 2)) / 2 + (j) - 1 \
                                                                   : (((j) - 1) * ((j) - 2)) / 2 + (i) - 1])
 #define archDecoArchDistE(d,i,j)    (((i) == (j)) ? 0 : archDecoArchDist ((d), (i), (j)))
-
-#endif /* ARCH_DECO_H_PROTO */
-#endif /* ARCH_NOPROTO      */

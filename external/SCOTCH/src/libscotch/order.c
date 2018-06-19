@@ -89,7 +89,7 @@ Gnum * restrict const       peritab)
   ordeptr->peritab         = peritab;
 
   if (ordeptr->peritab == NULL) {                 /* Inverse permutation must be allocated */
-    ordeptr->flagval |= ORDERFREEPERI;            /* Flag it so it will be freed           */
+    ordeptr->flagval |= ORDERFREEPERI;          /* Flag it so it will be freed              */
     if ((ordeptr->peritab = (Gnum *) memAlloc (vnodnbr * sizeof (Gnum))) == NULL) {
       errorPrint ("orderInit: out of memory");
       return     (1);

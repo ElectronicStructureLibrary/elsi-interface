@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Edgar Solomonik and Mathias Jacquelin
 
@@ -79,8 +79,8 @@ public:
   double total_excl_time;
   int total_calls;
 
-public: 
-  function_timer(char const * name_, 
+public:
+  function_timer(char const * name_,
       double const start_time_,
       double const start_excl_time_){
     sprintf(name, "%s", name_);
@@ -95,12 +95,12 @@ public:
     calls = 0;
   }
 
-  void compute_totals(MPI_Comm comm){ 
-    MPI_Allreduce(&acc_time, &total_time, 1, 
+  void compute_totals(MPI_Comm comm){
+    MPI_Allreduce(&acc_time, &total_time, 1,
         MPI_DOUBLE, MPI_SUM, comm);
-    MPI_Allreduce(&acc_excl_time, &total_excl_time, 1, 
+    MPI_Allreduce(&acc_excl_time, &total_excl_time, 1,
         MPI_DOUBLE, MPI_SUM, comm);
-    MPI_Allreduce(&calls, &total_calls, 1, 
+    MPI_Allreduce(&calls, &total_calls, 1,
         MPI_INT, MPI_SUM, comm);
   }
 
@@ -108,8 +108,8 @@ public:
     return total_time > w.total_time;
   }
 
-  void print(FILE *         output, 
-      MPI_Comm const comm, 
+  void print(FILE *         output,
+      MPI_Comm const comm,
       int const      rank,
       int const      np){
     int i;
@@ -132,7 +132,7 @@ public:
           (int)(100.*(total_excl_time)/complete_time),
           ((int)(10000.*(total_excl_time)/complete_time))%100);
       free(space);
-    } 
+    }
   }
 };
 
@@ -146,7 +146,7 @@ CTF_timer::CTF_timer(const char * name){
 #ifdef PROFILE
   int i;
   if (function_timers.size() == 0) {
-    if (name[0] == 'M' && name[1] == 'P' && 
+    if (name[0] == 'M' && name[1] == 'P' &&
         name[2] == 'I' && name[3] == '_'){
       exited = 1;
       original = 0;
@@ -155,7 +155,7 @@ CTF_timer::CTF_timer(const char * name){
     original = 1;
     index = 0;
     excl_time = 0.0;
-    function_timers.push_back(function_timer(name, MPI_Wtime(), 0.0)); 
+    function_timers.push_back(function_timer(name, MPI_Wtime(), 0.0));
   } else {
     for (i=0; i<(int)function_timers.size(); i++){
       if (strcmp(function_timers[i].name, name) == 0){
@@ -168,7 +168,7 @@ CTF_timer::CTF_timer(const char * name){
     original = (index==0);
   }
   if (index == (int)function_timers.size()) {
-    function_timers.push_back(function_timer(name, MPI_Wtime(), excl_time)); 
+    function_timers.push_back(function_timer(name, MPI_Wtime(), excl_time));
   }
   timer_name = name;
   exited = 0;
@@ -189,8 +189,8 @@ void CTF_timer::stop(){
   if (!exited){
     double delta_time = MPI_Wtime() - function_timers[index].start_time;
     function_timers[index].acc_time += delta_time;
-    function_timers[index].acc_excl_time += delta_time - 
-      (excl_time- function_timers[index].start_excl_time); 
+    function_timers[index].acc_excl_time += delta_time -
+      (excl_time- function_timers[index].start_excl_time);
     excl_time = function_timers[index].start_excl_time + delta_time;
     function_timers[index].calls++;
     exit();
@@ -230,7 +230,7 @@ void CTF_timer::exit(){
           }
           sprintf(filename+strlen(filename), "%s.", main_argv[i]+off);
         }
-      } 
+      }
       sprintf(filename+strlen(filename), "-p%d.out", np);
 
       output =  stdout;//fopen(filename, "w");
@@ -249,9 +249,9 @@ void CTF_timer::exit(){
       }
       part[i] = '\0';
       sprintf(heading,"%s",part);
-      sprintf(part, "calls        sec       %%"); 
+      sprintf(part, "calls        sec       %%");
       strcat(heading,part);
-      sprintf(part, "       sec       %%\n"); 
+      sprintf(part, "       sec       %%\n");
       strcat(heading,part);
       fprintf(output, "%s", heading);
 

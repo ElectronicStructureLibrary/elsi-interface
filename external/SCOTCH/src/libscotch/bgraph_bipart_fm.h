@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2011,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -59,7 +59,7 @@
 /**                # Version 4.0  : from : 27 aug 2004     **/
 /**                                 to     27 aug 2004     **/
 /**                # Version 6.0  : from : 23 fev 2011     **/
-/**                                 to     27 aug 2016     **/
+/**                                 to     05 sep 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -104,7 +104,7 @@ typedef GainLink BgraphBipartFmLink;
 
 #else /* SCOTCH_TABLE_GAIN */
 
-typedef FiboHeap BgraphBipartFmTabl;
+typedef FiboTree BgraphBipartFmTabl;
 typedef FiboNode BgraphBipartFmLink;
 
 #endif /* SCOTCH_TABLE_GAIN */
@@ -195,11 +195,11 @@ int                         bgraphBipartFm      (Bgraph * restrict const, const 
 
 /*+ Service routines. +*/
 
-#define bgraphBipartFmTablInit(t)   (fiboHeapInit ((t), bgraphBipartFmCmpFunc))
-#define bgraphBipartFmTablFree(t)   fiboHeapFree (t)
-#define bgraphBipartFmTablExit(t)   fiboHeapExit (t)
-#define bgraphBipartFmTablAdd(t,v)  fiboHeapAdd ((t), &(v)->gainlink)
-#define bgraphBipartFmTablDel(t,v)  fiboHeapDel ((t), &(v)->gainlink)
+#define bgraphBipartFmTablInit(t)   (fiboTreeInit ((t), bgraphBipartFmCmpFunc))
+#define bgraphBipartFmTablFree(t)   fiboTreeFree (t)
+#define bgraphBipartFmTablExit(t)   fiboTreeExit (t)
+#define bgraphBipartFmTablAdd(t,v)  fiboTreeAdd ((t), &(v)->gainlink)
+#define bgraphBipartFmTablDel(t,v)  fiboTreeDel ((t), &(v)->gainlink)
 #define bgraphBipartFmIsFree(v)     ((v)->gainlink.linkdat.nextptr == BGRAPHBIPARTFMSTATEFREE)
 #define bgraphBipartFmIsTabl(v)     ((v)->gainlink.linkdat.nextptr >= BGRAPHBIPARTFMSTATELINK)
 #define bgraphBipartFmIsUsed(v)     ((v)->gainlink.linkdat.nextptr == BGRAPHBIPARTFMSTATEUSED)

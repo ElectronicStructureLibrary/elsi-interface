@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2010,2011,2014,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,7 +43,7 @@
 /**   DATES      : # Version 5.1  : from : 11 dec 2007     **/
 /**                                 to     04 nov 2010     **/
 /**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     26 mar 2015     **/
+/**                                 to     14 fev 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -51,16 +51,17 @@
 **  The type and structure definitions.
 */
 
-#ifndef ARCH_CMPLTW_H_STRUCT
-#define ARCH_CMPLTW_H_STRUCT
+/*+ The weighted target vertex. They are coded as Gnum
+    rather than as Anum because this array needs to be
+    sorted, by means of the intSort2asc1 routine.      +*/
 
-/*+ The weighted target vertex. Since Anum's
-    are INT's, they can be sorted, by means
-    of the intSort2asc1 routine.             +*/
+#ifndef GRAPH_H
+#define Gnum                        Anum          /* Prevent data type to be undefined */
+#endif /* GRAPH_H */
 
 typedef struct ArchCmpltwLoad_ {
-  Anum                      veloval;              /*+ Vertex load  +*/
-  Anum                      vertnum;              /*+ Vertex index +*/
+  Gnum                      veloval;              /*+ Vertex load  +*/
+  Gnum                      vertnum;              /*+ Vertex index +*/
 } ArchCmpltwLoad;
 
 /*+ The weighted complete graph definitions. +*/
@@ -79,31 +80,18 @@ typedef struct ArchCmpltwDom_ {
   Anum                      veloval;              /*+ Weight of subdomain   +*/
 } ArchCmpltwDom;
 
-#define archCmpltwMatch             archCmpltMatch
-
-#endif /* ARCH_CMPLTW_H_STRUCT */
-
 /*
 **  The function prototypes.
 */
-
-#ifndef ARCH_NOPROTO
-#ifndef ARCH_CMPLTW_H_PROTO
-#define ARCH_CMPLTW_H_PROTO
 
 #ifndef ARCH_CMPLTW
 #define static
 #endif
 
-int                         archCmpltwArchBuild (ArchCmpltw * restrict const archptr, const Anum, const Anum * restrict const);
+int                         archCmpltwArchBuild (ArchCmpltw * restrict const archptr, const Gnum, const Gnum * restrict const);
 int                         archCmpltwArchLoad  (ArchCmpltw * restrict const, FILE * restrict const);
 int                         archCmpltwArchSave  (const ArchCmpltw * const, FILE * restrict const);
 int                         archCmpltwArchFree  (ArchCmpltw * restrict const);
-
-#define archCmpltwMatchInit         archCmpltMatchInit
-#define archCmpltwMatchExit         archCmpltMatchExit
-#define archCmpltwMatchMate         archCmpltMatchMate
-
 ArchDomNum                  archCmpltwDomNum    (const ArchCmpltw * const, const ArchCmpltwDom * const);
 int                         archCmpltwDomTerm   (const ArchCmpltw * const, ArchCmpltwDom * restrict const, const ArchDomNum);
 Anum                        archCmpltwDomSize   (const ArchCmpltw * const, const ArchCmpltwDom * const);
@@ -119,6 +107,3 @@ int                         archCmpltwDomMpiType (const ArchCmpltw * const, MPI_
 #endif /* SCOTCH_PTSCOTCH */
 
 #undef static
-
-#endif /* ARCH_CMPLTW_H_PROTO */
-#endif /* ARCH_NOPROTO        */

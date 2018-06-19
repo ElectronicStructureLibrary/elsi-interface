@@ -1,4 +1,4 @@
-/* Copyright 2007-2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2011 ENSEIRB, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -43,7 +43,7 @@
 /**   DATES      : # Version 5.1  : from : 10 sep 2007     **/
 /**                                 to   : 15 apr 2011     **/
 /**                # Version 6.0  : from : 11 sep 2011     **/
-/**                                 to   : 28 sep 2014     **/
+/**                                 to   : 11 sep 2011     **/
 /**                                                        **/
 /************************************************************/
 
@@ -96,7 +96,7 @@ static union {
 static union {
   BdgraphBipartMlParam      param;
   StratNodeMethodData       padding;
-} bdgraphbipartstdefaultml = { { 5, 1000, 2, 10000, 0.8L, &stratdummy, &stratdummy, &stratdummy} };
+} bdgraphbipartstdefaultml = { { 5, 1000, 100, 0, 0.8L, &stratdummy, &stratdummy, &stratdummy} };
 
 static union {
   BdgraphBipartSqParam      param;
@@ -169,14 +169,6 @@ static StratParamTab        bdgraphbipartstparatab[] = { /* Method parameter lis
                                 (byte *) &bdgraphbipartstdefaultml.param,
                                 (byte *) &bdgraphbipartstdefaultml.param.coarnbr,
                                 NULL },
-                              { BDGRAPHBIPARTSTMETHML,  STRATPARAMINT,    "dvert",
-                                (byte *) &bdgraphbipartstdefaultml.param,
-                                (byte *) &bdgraphbipartstdefaultml.param.foldmax,
-                                NULL },
-                              { BDGRAPHBIPARTSTMETHML,  STRATPARAMCASE,   "fold",
-                                (byte *) &bdgraphbipartstdefaultml.param,
-                                (byte *) &bdgraphbipartstdefaultml.param.foldval,
-                                (void *) "nfd" },
                               { BDGRAPHBIPARTSTMETHML,  STRATPARAMDOUBLE, "rat",
                                 (byte *) &bdgraphbipartstdefaultml.param,
                                 (byte *) &bdgraphbipartstdefaultml.param.coarrat,

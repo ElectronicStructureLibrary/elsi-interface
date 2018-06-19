@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010-2012,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010-2012 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -50,7 +50,7 @@
 /**                # Version 5.1  : from : 28 sep 2008     **/
 /**                                 to     31 aug 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     12 nov 2014     **/
+/**                                 to     17 oct 2012     **/
 /**                                                        **/
 /************************************************************/
 
@@ -86,74 +86,92 @@ kgraphInit (
 Kgraph * restrict const         actgrafptr,       /*+ Active graph                         +*/
 const Graph * restrict const    srcgrafptr,       /*+ Source graph                         +*/
 const Arch * restrict const     archptr,          /*+ Target architecture                  +*/
-const ArchDom * restrict const  domnptr,          /*+ Target architecture initial domain   +*/
-const Gnum                      vfixnbr,          /*+ Number of fixed vertices in array    +*/
-const Anum * restrict const     pfixtax,          /*+ Fixed vertex part array              +*/
-const Anum * restrict const     parotax,          /*+ Pointer to old part array            +*/
+const ArchDom * restrict const  archdomptr,       /*+ Target architecture initial domain   +*/
+Anum * restrict const           parttax,          /*+ Partition array                      +*/
+Anum * restrict const           parotax,          /*+ Old partition array                  +*/
 const Gnum                      crloval,          /*+ Coefficient load for regular edges   +*/
 const Gnum                      cmloval,          /*+ Coefficient load for migration edges +*/
-const Gnum * restrict const     vmlotax)          /*+ Vertex migration cost array          +*/
+const Gnum *                    vmlotax,          /*+ Vertex migration cost array          +*/
+Anum *                          pfixtax)          /*+ Fixed partition array                +*/
 {
-  ArchDom                   domndat;              /* First, largest domain */
-  const ArchDom * restrict  domntmp;
+  ArchDom                   domfrst;              /* First, largest domain */
+  const ArchDom * restrict  domfrstptr;
+  Gnum                      domfrstload;          /* Load of first domain  */
+  Gnum                      vfixnbr;
+  Anum                      termnum;
 
+  if (srcgrafptr != &actgrafptr->s) {             /* If graph not self-provided, clone source graph */
+    actgrafptr->s          = *srcgrafptr;
+    actgrafptr->s.flagval &= (GRAPHBITSUSED & ~GRAPHFREETABS); /* Remove extended graph class flags and do not allow freeing */
+  }
+  if (archptr != &actgrafptr->a)                  /* If architecture not self-provided, clone architecture */
+    actgrafptr->a = *archptr;
+  actgrafptr->pfixtax = pfixtax;
+
+  archDomFrst (archptr, &domfrst);                /* Get first, largest domain          */
+  domfrstptr = (archdomptr == NULL) ? &domfrst : archdomptr; /* Use it if none provided */
+
+  mapInit (&actgrafptr->m, &actgrafptr->s, &actgrafptr->a, domfrstptr, parttax, 0);
+  if (parotax != NULL) {
+    mapInit (&actgrafptr->r.m, &actgrafptr->s, &actgrafptr->a, domfrstptr, parotax, 1);
+
+    if (vmlotax != NULL)
+      actgrafptr->r.vmlotax = vmlotax;
+    else {
+      Gnum *              vmlotab;
+      Gnum                vertnum;
+
+      if ((vmlotab = memAlloc (actgrafptr->s.vertnbr * sizeof (Gnum))) == NULL) {
+        errorPrint ("kgraphInit: out of memory (1)");
+        return     (1);
+      }
+      actgrafptr->s.flagval |= KGRAPHFREEVMLO;
+      for (vertnum = 0; vertnum < actgrafptr->s.vertnbr; vertnum ++)
+        vmlotab[vertnum] = 1;
+
+      actgrafptr->r.vmlotax = vmlotab - actgrafptr->s.baseval;
+    }
+  }
+  else {
+    memSet (&actgrafptr->r.m, 0, sizeof (Mapping));
+    actgrafptr->r.vmlotax = NULL;
+  }
 #ifdef SCOTCH_DEBUG_KGRAPH2
-  if ((crloval < 1) || (cmloval < 0)) {
+  if ((crloval < 1) || (cmloval < 1)) {
     errorPrint ("kgraphInit: invalid parameters");
     return     (1);
   }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
-
-  archDomFrst (archptr, &domndat);                /* Get first, largest domain */
-
-  if (srcgrafptr != &actgrafptr->s) {             /* If graph not already in place                                           */ 
-    actgrafptr->s          = *srcgrafptr;         /* Clone source graph                                                      */
-    actgrafptr->s.flagval &= (GRAPHBITSUSED & ~GRAPHFREETABS); /* Remove extended graph class flags and do not allow freeing */
-  }
-  if (archptr != &actgrafptr->a)                  /* If architecture not already in place */ 
-    actgrafptr->a = *archptr;                     /* Clone it                             */
-
-  mapInit (&actgrafptr->m, &actgrafptr->s, &actgrafptr->a,
-           ((domnptr == NULL) ? &domndat : domnptr)); /* Use largest domain if none provided */
-
-  mapInit (&actgrafptr->r.m, &actgrafptr->s, &actgrafptr->a,
-           ((domnptr == NULL) ? &domndat : domnptr));
-  if (parotax != NULL) {                          /* If old part array provided */
-    if ((mapAlloc (&actgrafptr->r.m)          != 0) ||
-        (mapBuild (&actgrafptr->r.m, parotax) != 0)) {
-      errorPrint ("kgraphInit: cannot initialize remapping");
-      return (1);
-    }
-  }
   actgrafptr->r.crloval = crloval;
   actgrafptr->r.cmloval = cmloval;
-  actgrafptr->r.vmlotax = vmlotax;                /* Set vertex migration load array or NULL */
 
-  actgrafptr->vfixnbr   = vfixnbr;
-  actgrafptr->pfixtax   = pfixtax;
+  vfixnbr = 0;                                    /* Assume there are no fixed vertices              */
+  if (pfixtax != NULL) {                          /* If we have fixed vertices, compute their number */
+    Gnum                vertnum;
 
-  if (mapAlloc (&actgrafptr->m) != 0) {
-    errorPrint ("kgraphInit: cannot initialize mapping");
+    for (vertnum = srcgrafptr->baseval; vertnum < srcgrafptr->vertnnd; vertnum ++)
+      if (actgrafptr->pfixtax[vertnum] != -1)
+        vfixnbr ++;
+  }
+  actgrafptr->vfixnbr = vfixnbr;
+  
+  if (memAllocGroup ((void **) (void *)           /* Allocation and initialization of imbalance arrays */
+                     &actgrafptr->frontab,     (size_t) (actgrafptr->s.vertnbr * sizeof (Gnum)),
+                     &actgrafptr->comploadavg, (size_t) (actgrafptr->m.domnmax * sizeof (Gnum)), /* TRICK: can send both compload arrays in one piece */
+                     &actgrafptr->comploaddlt, (size_t) (actgrafptr->m.domnmax * sizeof (Gnum)), NULL) == NULL) {
+    errorPrint ("kgraphInit: out of memory (2)");
     return     (1);
   }
 
-  if (((actgrafptr->frontab = memAlloc (actgrafptr->s.vertnbr * sizeof (Gnum))) == NULL) || /* Allocation and initialization of imbalance arrays */
-      (memAllocGroup ((void **) (void *)
-                      &actgrafptr->comploadavg, (size_t) (actgrafptr->m.domnmax * sizeof (Gnum)), /* TRICK: can send both compload arrays in one piece */
-                      &actgrafptr->comploaddlt, (size_t) (actgrafptr->m.domnmax * sizeof (Gnum)), NULL) == NULL)) {
-    errorPrint ("kgraphInit: out of memory");
-    if (actgrafptr->frontab != NULL)
-      memFree (actgrafptr->frontab);
-    return (1);
-  }
+  actgrafptr->s.flagval |= KGRAPHFREECOMP | KGRAPHFREEFRON | KGRAPHFREERMAP | KGRAPHFRCOGROUP; /* comploadavg and comploaddlt are always grouped */
 
-  actgrafptr->s.flagval |= KGRAPHFREECOMP | KGRAPHFREEFRON; /* comploadavg and comploaddlt are always grouped */
+  domfrstload = archDomWght (archptr, &domfrst);  /* Get load of whole architecture */
 
   actgrafptr->comploadavg[0] = actgrafptr->s.velosum;
   actgrafptr->comploaddlt[0] = 0;
 
   actgrafptr->fronnbr     = 0;                    /* No frontier yet */
-  actgrafptr->comploadrat = (double) srcgrafptr->velosum / (double) archDomWght (archptr, &domndat); /* Always balance with respect to whole original graph */
+  actgrafptr->comploadrat = (double) srcgrafptr->velosum / (double) domfrstload; /* Always balance with respect to original graph */
   actgrafptr->commload    = 0;
   actgrafptr->levlnum     = 0;
   actgrafptr->kbalval     = 1;                    /* No information on imbalance yet */
@@ -173,29 +191,39 @@ kgraphExit (
 Kgraph * restrict const     grafptr)
 {
   mapExit (&grafptr->m);
-  mapExit (&grafptr->r.m);
-
-  if (((grafptr->s.flagval & KGRAPHFREEVMLO) != 0) && /* If vmlotax must be freed */ 
-      (grafptr->r.vmlotax != NULL))               /* And if it exists             */
-    memFree (grafptr->r.vmlotax + grafptr->s.baseval); /* Free it                 */
-
-  if (((grafptr->s.flagval & KGRAPHFREEPFIX) != 0) && /* If pfixtax must be freed */
-      (grafptr->pfixtax != NULL))                 /* And if it exists             */
-    memFree (grafptr->pfixtax + grafptr->s.baseval); /* Free it                   */
-
-  if (((grafptr->s.flagval & KGRAPHFREEFRON) != 0) && /* If frontab must be freed */
-      (grafptr->frontab != NULL))                 /* And if it exists             */
-    memFree (grafptr->frontab);                   /* Free it                      */
-
-  if (((grafptr->s.flagval & KGRAPHFREECOMP) != 0) && /* If comptabs must be freed */
-      (grafptr->comploadavg != NULL))             /* And if it exists              */
-    memFree (grafptr->comploadavg);               /* Free it                       */
-
+  if ((grafptr->r.m.parttax != NULL) &&
+      ((grafptr->s.flagval & KGRAPHFREERMAP) != 0))
+    mapExit (&grafptr->r.m);
+  kgraphFree (grafptr);                           /* Free kgraph data */
   graphExit (&grafptr->s);
 
 #ifdef SCOTCH_DEBUG_KGRAPH2
   memSet (grafptr, ~0, sizeof (Kgraph));          /* Purge kgraph fields */
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
+}
+
+/* This routine frees the graph data and
+** updates the mapping data accordingly.
+** It returns:
+** - VOID  : in all cases.
+*/
+
+void
+kgraphFree (
+Kgraph * restrict const     grafptr)
+{
+  if (((grafptr->s.flagval & KGRAPHFREEFRON) != 0) && /* If frontab must be freed */
+      (grafptr->frontab != NULL))                 /* And if it exists             */
+    memFree (grafptr->frontab);                   /* Free it                      */
+
+  if (((grafptr->s.flagval & KGRAPHFREECOMP) != 0) && /* If comptabs must be freed */
+      (grafptr->comploadavg != NULL) &&           /* And if it exists              */
+      ((grafptr->s.flagval & KGRAPHFRCOGROUP) == 0)) /* And not grouped            */
+    memFree (grafptr->comploadavg);               /* Free it                       */
+
+  if (((grafptr->s.flagval & KGRAPHFREEVMLO) != 0) && /* If vmlotax must be freed */ 
+      (grafptr->r.vmlotax != NULL))               /* And if it exists             */
+    memFree (grafptr->r.vmlotax + grafptr->s.baseval); /* Free it                 */
 }
 
 /* This routine moves all of the graph
@@ -268,7 +296,7 @@ Kgraph * restrict const     grafptr)
 
 #ifdef SCOTCH_DEBUG_KGRAPH2
     if ((partval < 0) || (partval >= domnnbr)) {
-      errorPrint ("kgraphCost: invalid part number (1)");
+      errorPrint ("kgraphCost: invalid parameters (1)");
       return;
     }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
@@ -287,7 +315,7 @@ Kgraph * restrict const     grafptr)
       partend = parttax[vertend];
 #ifdef SCOTCH_DEBUG_KGRAPH2
       if ((partend < 0) || (partend >= domnnbr)) {
-        errorPrint ("kgraphCost: invalid part number (2)");
+        errorPrint ("kgraphCost: invalid parameters (2)");
         return;
       }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
@@ -325,7 +353,7 @@ Kgraph * restrict const     grafptr)
           grafptr->comploadavg[domnnum] = veloval;
 #ifdef SCOTCH_DEBUG_KGRAPH2
           if (compload[domnnum] != 0) {
-            errorPrint ("kgraphCost: invalid load difference");
+            errorPrint ("kgraphCost: invalid comploaddlt");
             return;
           }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
@@ -370,7 +398,10 @@ Kgraph * restrict const     grafptr)
 
     partval = parttax[vertnum];
     for (edgenum = verttax[vertnum]; edgenum < vendtax[vertnum]; edgenum ++) {
-      if (parttax[edgetax[edgenum]] != partval) { /* If neighbor does not belong to the same part */
+      Anum                partend;
+
+      partend = parttax[edgetax[edgenum]];
+      if (partend != partval) {                   /* If neighbor belongs to another part */
         frontab[fronnbr ++] = vertnum;
         break;
       }
