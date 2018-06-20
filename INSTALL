@@ -112,9 +112,9 @@ C) CONFIGURATION
    external, better optimized solver libraries.  Relevant options for this
    purpose are:
 
-     -DEXTERNAL_ELPA=ON
-     -DEXTERNAL_OMM=ON
-     -DEXTERNAL_SUPERLU=ON
+     -DUSE_EXTERNAL_ELPA=ON
+     -DUSE_EXTERNAL_OMM=ON
+     -DUSE_EXTERNAL_SUPERLU=ON
 
    The external libraries and the corresponding include paths should be set
    via the following three keywords:
