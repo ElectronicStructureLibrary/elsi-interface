@@ -1,8 +1,7 @@
 ### Generate version info ###
 ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
   COMMAND perl ${PROJECT_SOURCE_DIR}/src/elsi_version_writer.pl ${PROJECT_VERSION} > ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
-  VERBATIM
-)
+  VERBATIM)
 
 ### Source files ###
 LIST(APPEND elsi_src
@@ -123,4 +122,3 @@ TARGET_INCLUDE_DIRECTORIES(elsi INTERFACE
   $<BUILD_INTERFACE:${CMAKE_Fortran_MODULE_DIRECTORY}>)
 EXPORT(EXPORT elsiConfig NAMESPACE elsi::
   FILE ${PROJECT_BINARY_DIR}/elsiConfig.cmake)
-

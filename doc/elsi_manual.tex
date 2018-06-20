@@ -259,7 +259,7 @@ ELSI is a National Science Foundation Software Infrastructure for Sustained Inno
 \chapter{Installation of ELSI}
 \section{Overview}
 \label{sec:install}
-The ELSI package contains the ELSI Interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.0.0).  We highly encourage all users to request access to our \href{http://git.elsi-interchange.org/elsi-devel}{GitLab server}GitLab server, where we regularly update ELSI between releases while preserving stability.\\
+The ELSI package contains the ELSI Interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.0.1).  We highly encourage all users to request access to our \href{http://git.elsi-interchange.org/elsi-devel}{GitLab server}GitLab server, where we regularly update ELSI between releases while preserving stability.\\
 
 Starting from the May 2018 release, the installation of ELSI makes use of the \href{http://cmake.org}{CMake} software.\\
 
@@ -470,8 +470,22 @@ In either case, linear algebra libraries, BLAS, LAPACK, BLACS, and ScaLAPACK, sh
 If test programs are enabled, the compilation of ELSI may be verified by\\
 
 \begin{Verbatim}[commandchars=\\\{\}]
+$ \textcolor{blue}{make test}
+\end{Verbatim}
+
+or\\
+
+\begin{Verbatim}[commandchars=\\\{\}]
+$ \textcolor{blue}{ninja test}
+\end{Verbatim}
+
+depending on the generator option ``-G'' used when invoking CMake.  Alternatively, issue\\
+
+\begin{Verbatim}[commandchars=\\\{\}]
 $ \textcolor{blue}{ctest}
 \end{Verbatim}
+
+to invoke the CTest program which performs all tests automatically.\\
 
 Note that the tests may not run if launching MPI jobs is prohibited on the user's working platform.\\
 
@@ -487,13 +501,7 @@ or\\
 $ \textcolor{blue}{ninja install}
 \end{Verbatim}
 
-depending on the generator option ``-G'' specified when invoking CMake.  Alternatively, the command\\
-
-\begin{Verbatim}[commandchars=\\\{\}]
-$ \textcolor{blue}{cmake --build install}
-\end{Verbatim}
-
-lets CMake pick up the correct generator to use.\\
+depending on the CMake generator option ``-G'' used.\\
 
 Among the files copied to the installation destinations is a CMake configuration file called \texttt{elsiConfig.cmake}.  This file includes all the information about how the ELSI library and its dependencies should be included in an external CMake project.  Please refer to \ref{sec:import} for information regarding linking a third-party package against ELSI.\\
 
@@ -2153,6 +2161,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 \bigskip
 \noindent\rule{18cm}{0.4pt}
 
-The source code of ELPA 2016.11.001 (LGPL3), libOMM (BSD2), PEXSI 1.0.0 (BSD3), SuperLU\_DIST 5.3.0 (BSD3), and PT-SCOTCH 6.0.0 (CeCILL-C) are redistributed through this version of ELSI.  Individual license of each library can be found in the corresponding subfolder.\\
+The source code of ELPA 2016.11.001 (LGPL3), libOMM (BSD2), PEXSI 1.0.1 (BSD3), SuperLU\_DIST 5.3.0 (BSD3), and PT-SCOTCH 6.0.0 (CeCILL-C) are redistributed through this version of ELSI.  Individual license of each library can be found in the corresponding subfolder.\\
 
 \end{document}
