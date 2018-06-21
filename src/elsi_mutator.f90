@@ -38,6 +38,7 @@ module ELSI_MUTATOR
    public :: elsi_set_sing_stop
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
+   public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
    public :: elsi_set_elpa_gpu_kernels
    public :: elsi_set_omm_flavor
@@ -282,6 +283,24 @@ subroutine elsi_set_elpa_solver(eh,elpa_solver)
    endif
 
    eh%ph%elpa_solver = elpa_solver
+
+end subroutine
+
+!>
+!! This routine sets the number of single precision steps with ELPA.
+!!
+subroutine elsi_set_elpa_n_single(eh,n_single)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh
+   integer(kind=i4),  intent(in)    :: n_single
+
+   character(len=40), parameter :: caller = "elsi_set_elpa_n_single"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%ph%elpa_n_single = n_single
 
 end subroutine
 

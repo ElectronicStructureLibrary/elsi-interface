@@ -552,6 +552,22 @@ subroutine elsi_set_elpa_solver_c_wrapper(handle_c,elpa_solver)&
 
 end subroutine
 
+subroutine elsi_set_elpa_n_single_c_wrapper(handle_c,n_single)&
+   bind(C,name="c_elsi_set_elpa_n_single")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: n_single
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_elpa_n_single(handle_f,n_single)
+
+end subroutine
+
 subroutine elsi_set_elpa_gpu_c_wrapper(handle_c,use_gpu)&
    bind(C,name="c_elsi_set_elpa_gpu")
 
