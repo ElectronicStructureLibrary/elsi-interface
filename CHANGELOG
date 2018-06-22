@@ -5,7 +5,7 @@
    PEXSI:
    * Updated redistributed PEXSI source code to version 1.0.1, which fixes
      the complex-valued Fermi operator expansion routine.
-   * Downgraged redistributed (PT-)SCOTCH source code to version 6.0.0, as
+   * Downgraded redistributed (PT-)SCOTCH source code to version 6.0.0, as
      the 6.0.5a version seems to be incompatible with PEXSI.
 
 ============================
