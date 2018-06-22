@@ -88,6 +88,16 @@ subroutine elsi_init_elpa(ph,bh)
          write(info_str,"(2X,A)") "No ELPA GPU acceleration available"
          call elsi_say(bh,info_str)
       endif
+
+      if(ph%elpa_n_single > 0) then
+         write(info_str,"(2X,A)") "No single precision ELPA available"
+         call elsi_say(bh,info_str)
+      endif
+
+      if(ph%elpa_autotune) then
+         write(info_str,"(2X,A)") "No ELPA auto-tuning available"
+         call elsi_say(bh,info_str)
+      endif
    endif
 
 end subroutine

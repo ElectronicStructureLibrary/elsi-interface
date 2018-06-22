@@ -3,8 +3,9 @@
 ==================
 
    ELPA:
-   * For externally linked ELPA, added an option to perform single
-     precision calculations.
+   * For externally linked ELPA, added options to perform single precision
+     calculations and to automatically tune the internal runtime parameters
+     of the solver.
 
 ============================
    ELSI May 2018 (v2.0.2)

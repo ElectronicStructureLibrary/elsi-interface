@@ -600,6 +600,22 @@ subroutine elsi_set_elpa_gpu_kernels_c_wrapper(handle_c,use_gpu_kernels)&
 
 end subroutine
 
+subroutine elsi_set_elpa_autotune_c_wrapper(handle_c,use_autotune)&
+   bind(C,name="c_elsi_set_elpa_autotune")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: use_autotune
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_elpa_autotune(handle_f,use_autotune)
+
+end subroutine
+
 subroutine elsi_set_omm_flavor_c_wrapper(handle_c,omm_flavor)&
    bind(C,name="c_elsi_set_omm_flavor")
 

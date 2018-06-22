@@ -122,6 +122,7 @@ module ELSI_DATATYPE
       integer(kind=i4)                :: elpa_comm_col
       logical                         :: elpa_gpu
       logical                         :: elpa_gpu_kernels
+      logical                         :: elpa_autotune
       logical                         :: elpa_output
       logical                         :: elpa_started = .false.
       class(elpa_t),          pointer :: elpa_main

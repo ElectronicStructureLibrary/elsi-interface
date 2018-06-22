@@ -49,6 +49,7 @@ module ELSI
    public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
    public :: elsi_set_elpa_gpu_kernels
+   public :: elsi_set_elpa_autotune
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
