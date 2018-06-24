@@ -68,11 +68,10 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
    real(kind=r8),               intent(in)    :: t0
    character(len=*),            intent(in)    :: caller
 
+   integer(kind=i4)            :: solver_use
    real(kind=r8)               :: t1
    real(kind=r8)               :: t_total
    character(len=STR_LEN)      :: solver_tag
-   character(len=STR_LEN)      :: elsi_tag
-   character(len=STR_LEN)      :: user_tag
    character(len=DATETIME_LEN) :: dt_record
 
    if(bh%print_json > 0) then
@@ -91,6 +90,8 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       call elsi_get_time(t1)
       call fjson_get_datetime_rfc3339(dt_record)
 
+      solver_use = 1
+
       select case(ph%solver)
       case(ELPA_SOLVER)
          if(ph%parallel_mode == SINGLE_PROC) then
@@ -103,22 +104,24 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
             solver_tag = "ELPA"
          else
             solver_tag = "LIBOMM"
+            solver_use = 2
          endif
       case(PEXSI_SOLVER)
          solver_tag = "PEXSI"
+         solver_use = 3
       case(SIPS_SOLVER)
          if(ph%n_calls <= ph%sips_n_elpa) then
             solver_tag = "ELPA"
          else
             solver_tag = "SIPS"
+            solver_use = 5
          endif
       case(DMP_SOLVER)
          solver_tag = "DMP"
+         solver_use = 6
       end select
 
-      t_total  = t1-t0
-      elsi_tag = adjustr(trim(solver_tag))
-      user_tag = adjustr(trim(bh%user_tag))
+      t_total = t1-t0
 
       call fjson_start_object(jh)
 
@@ -134,21 +137,16 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       else
          call fjson_write_name_value(jh,"data_type","COMPLEX")
       endif
-      call fjson_write_name_value(jh,"elsi_tag",elsi_tag)
-      call fjson_write_name_value(jh,"user_tag",user_tag)
+      call fjson_write_name_value(jh,"elsi_tag",trim(solver_tag))
+      call fjson_write_name_value(jh,"user_tag",trim(bh%user_tag))
       call fjson_write_name_value(jh,"start_datetime",dt0)
       call fjson_write_name_value(jh,"record_datetime",dt_record)
       call fjson_write_name_value(jh,"total_time",t_total)
 
       call elsi_print_handle_summary(ph,bh,jh)
+      call fjson_write_name_value(jh,"solver_used",trim(solver_tag))
 
-      if(ph%matrix_format == BLACS_DENSE) then
-         call elsi_print_den_settings(bh,jh)
-      else
-         call elsi_print_csc_settings(bh,jh)
-      endif
-
-      select case(ph%solver)
+      select case(solver_use)
       case(DMP_SOLVER)
          call elsi_print_dmp_settings(ph,jh)
       case(ELPA_SOLVER)
@@ -160,6 +158,12 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       case(SIPS_SOLVER)
          call elsi_print_sips_settings(ph,jh)
       end select
+
+      if(ph%matrix_format == BLACS_DENSE) then
+         call elsi_print_den_settings(bh,jh)
+      else
+         call elsi_print_csc_settings(bh,jh)
+      endif
 
       call fjson_finish_object(jh)
    endif
@@ -208,15 +212,15 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
    endif
    call fjson_write_name_value(jh,"n_procs",bh%n_procs)
    if(ph%solver == ELPA_SOLVER) then
-      call fjson_write_name_value(jh,"solver","ELPA")
+      call fjson_write_name_value(jh,"solver_chosen","ELPA")
    elseif(ph%solver == OMM_SOLVER) then
-      call fjson_write_name_value(jh,"solver","libOMM")
+      call fjson_write_name_value(jh,"solver_chosen","libOMM")
    elseif(ph%solver == PEXSI_SOLVER) then
-      call fjson_write_name_value(jh,"solver","PEXSI")
+      call fjson_write_name_value(jh,"solver_chosen","PEXSI")
    elseif(ph%solver == SIPS_SOLVER) then
-      call fjson_write_name_value(jh,"solver","SLEPc_SIPs")
+      call fjson_write_name_value(jh,"solver_chosen","SLEPc_SIPs")
    elseif(ph%solver == DMP_SOLVER) then
-      call fjson_write_name_value(jh,"solver","DMP")
+      call fjson_write_name_value(jh,"solver_chosen","DMP")
    endif
 
 end subroutine
@@ -232,7 +236,7 @@ subroutine elsi_print_versioning(uuid,jh)
    type(fjson_handle),      intent(inout) :: jh
 
    logical            :: MODIFIED
-   character(len=10)  :: DATESTAMP
+   character(len=10)  :: VERSION
    character(len=40)  :: COMMIT
    character(len=8)   :: COMMIT_ABBREV
    character(len=40)  :: COMMIT_MSG
@@ -241,20 +245,17 @@ subroutine elsi_print_versioning(uuid,jh)
 
    character(len=40), parameter :: caller = "elsi_print_versioning"
 
-   call elsi_version_info(DATESTAMP,COMMIT,COMMIT_ABBREV,MODIFIED,COMMIT_MSG,&
+   call elsi_version_info(VERSION,COMMIT,COMMIT_ABBREV,MODIFIED,COMMIT_MSG,&
            HOSTNAME,DATETIME)
 
    call fjson_write_name_value(jh,"data_source","ELSI")
-   call fjson_write_name_value(jh,"date_stamp",trim(adjustl(DATESTAMP)))
-   call fjson_write_name_value(jh,"git_commit",trim(adjustl(COMMIT)))
+   call fjson_write_name_value(jh,"code_version",trim(VERSION))
+   call fjson_write_name_value(jh,"git_commit",trim(COMMIT))
    call fjson_write_name_value(jh,"git_commit_modified",MODIFIED)
-   call fjson_write_name_value(jh,"git_message_abbrev",&
-           trim(adjustl(COMMIT_MSG)))
-   call fjson_write_name_value(jh,"compiled_on_hostname",&
-           trim(adjustl(HOSTNAME)))
-   call fjson_write_name_value(jh,"compiled_at_datetime",&
-           trim(adjustl(DATETIME)))
-   call fjson_write_name_value(jh,"uuid",trim(adjustl(uuid)))
+   call fjson_write_name_value(jh,"git_message_abbrev",trim(COMMIT_MSG))
+   call fjson_write_name_value(jh,"compiled_on_hostname",trim(HOSTNAME))
+   call fjson_write_name_value(jh,"compiled_at_datetime",trim(DATETIME))
+   call fjson_write_name_value(jh,"uuid",trim(uuid))
 
 end subroutine
 
@@ -295,8 +296,10 @@ subroutine elsi_print_elpa_settings(ph,jh)
    call fjson_start_name_object(jh,"solver_settings")
    call fjson_write_name_value(jh,"elpa_solver",ph%elpa_solver)
    call fjson_write_name_value(jh,"elpa_n_states",ph%n_states)
+   call fjson_write_name_value(jh,"elpa_n_single",ph%elpa_n_single)
    call fjson_write_name_value(jh,"elpa_gpu",ph%elpa_gpu)
    call fjson_write_name_value(jh,"elpa_gpu_kernels",ph%elpa_gpu_kernels)
+   call fjson_write_name_value(jh,"elpa_autotune",ph%elpa_autotune)
    call fjson_finish_object(jh)
 
 end subroutine

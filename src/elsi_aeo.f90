@@ -1532,30 +1532,32 @@ subroutine elsi_elpa_autotuning(ph,bh,real_cmplx)
 
    character(len=40), parameter :: caller = "elsi_elpa_autotuning"
 
-   if(ph%n_calls == ph%elpa_n_single) then
-      call elpa_autotune_deallocate(ph%elpa_tune)
-   endif
-
-   if(ph%n_calls == 1 .or. ph%n_calls == ph%elpa_n_single) then
-      if(real_cmplx == "complex") then
-         ph%elpa_tune => ph%elpa_main%autotune_setup(ELPA_AUTOTUNE_FAST,&
-                             ELPA_AUTOTUNE_DOMAIN_COMPLEX,ierr)
-      elseif(real_cmplx == "real") then
-         ph%elpa_tune => ph%elpa_main%autotune_setup(ELPA_AUTOTUNE_FAST,&
-                             ELPA_AUTOTUNE_DOMAIN_REAL,ierr)
-      endif
-
-      if(ierr /= 0) then
-         call elsi_stop(bh,"ELPA auto-tuning failed.",caller)
-      endif
-   endif
-
-   if(associated(ph%elpa_tune)) then
-      if(.not. ph%elpa_main%autotune_step(ph%elpa_tune)) then
-         call ph%elpa_main%autotune_set_best(ph%elpa_tune)
+   if(ph%elpa_autotune) then
+      if(ph%n_calls == ph%elpa_n_single) then
          call elpa_autotune_deallocate(ph%elpa_tune)
+      endif
 
-         nullify(ph%elpa_tune)
+      if(ph%n_calls == 1 .or. ph%n_calls == ph%elpa_n_single) then
+         if(real_cmplx == "complex") then
+            ph%elpa_tune => ph%elpa_main%autotune_setup(ELPA_AUTOTUNE_FAST,&
+                               ELPA_AUTOTUNE_DOMAIN_COMPLEX,ierr)
+         elseif(real_cmplx == "real") then
+            ph%elpa_tune => ph%elpa_main%autotune_setup(ELPA_AUTOTUNE_FAST,&
+                               ELPA_AUTOTUNE_DOMAIN_REAL,ierr)
+         endif
+
+         if(ierr /= 0) then
+            call elsi_stop(bh,"ELPA auto-tuning failed.",caller)
+         endif
+      endif
+
+      if(associated(ph%elpa_tune)) then
+         if(.not. ph%elpa_main%autotune_step(ph%elpa_tune)) then
+            call ph%elpa_main%autotune_set_best(ph%elpa_tune)
+            call elpa_autotune_deallocate(ph%elpa_tune)
+
+            nullify(ph%elpa_tune)
+         endif
       endif
    endif
 

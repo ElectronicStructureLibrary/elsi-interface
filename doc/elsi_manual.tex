@@ -21,7 +21,7 @@
 
 \begin{document}
 % Title
-\title{\includegraphics[scale=0.07]{elsi_logo.png}\\ \textcolor{white}{nothing}\\ \textbf{ELSI Interface\\ May 2018 (v2.0.2)\\ \textcolor{white}{nothing} \\ User's Guide}}
+\title{\includegraphics[scale=0.07]{elsi_logo.png}\\ \textcolor{white}{nothing}\\ \textbf{ELSI Interface\\ Development Version\\ \textcolor{white}{nothing} \\ User's Guide}}
 \author{The ELSI Team\\ \textcolor{white}{nothing}\\ \url{http://elsi-interchange.org}}
 \maketitle
 
@@ -101,11 +101,9 @@ ELSI unifies the community effort in overcoming the cubic-wall problem of KS-DFT
 
 The current version of ELSI supports ELPA \cite{elpa_auckenthaler_2011,elpa_marek_2014}, libOMM \cite{libomm_corsetti_2014}, PEXSI \cite{pexsi_lin_2009,pexsi_lin_2013}, and SLEPc-SIPs \cite{slepc_hernandez_2005,sips_keceli_2016} solvers.  Codes currently integrated with ELSI include DFTB+ \cite{dftb+_aradi_2007}, DGDFT \cite{dgdft_hu_2015}, FHI-aims \cite{aims_blum_2009}, NWChem \cite{nwchem_valiev_2010} via Global Arrays, and SIESTA \cite{siesta_soler_2002}.\\
 
-\subsection{Design Tenets of ELSI}
-\label{subsec:elsi_design}
-\textbf{Versatility}:  ELSI supports real-valued and complex-valued density matrix, eigenvalue, and eigenvector calculations.  A unified software interface designed for rapid integration into a variety of KS-DFT codes is provided.  Fortran and C/C++ interfaces are provided.\\
+\textbf{Versatility}:  ELSI supports real-valued and complex-valued density matrix, eigenvalue, and eigenvector calculations.  A unified software interface designed for rapid integration into a variety of electronic structure codes is provided.  Fortran and C/C++ interfaces are provided.\\
 
-\textbf{Flexibility}:  ELSI supports both dense and sparse matrices as input/output.  Supported matrix distribution layouts include 2D block-cyclic distribution, 1D block-cyclic distribution, and 1D block distribution.  In situations where the input/output matrix format requested by the calling KS-DFT code and the format used internally by the requested solver are different, conversion and redistribution of matrices will be performed automatically.\\
+\textbf{Flexibility}:  ELSI supports both dense and sparse matrices as input/output.  Supported matrix distribution layouts include 2D block-cyclic distribution, 1D block-cyclic distribution, and 1D block distribution.  In situations where the input/output matrix format used by the electronic structure code and the format used internally by the requested solver are different, conversion and redistribution of matrices will be performed automatically.\\
 
 \textbf{Scalability}:  The solver libraries collected in ELSI are highly scalable.  For instance, ELPA can scale to a hundred thousand CPU cores given a sufficiently large problem to solve, and PEXSI, with its efficient two-level parallelism, easily scales to tens of thousands of CPU cores.\\
 
@@ -250,6 +248,14 @@ The shift-and-invert spectral transformation method, implemented in the SLEPc li
 If the shift can be chosen to be close to the target eigenvalue, \ref{eq:sips_eval} makes the magnitude of the transformed eigenvalues large, accelerating the convergence of the iterative Krylov-Schur eigensolver used in SLEPc.\\
 
 On top of the basic shift-and-invert, the shift-and-invert parallel spectral transformation (SIPs) method \cite{sips_keceli_2016} partitions the eigenspectrum of a given eigenproblem into $N_\text{slice}$ slices.  Accordingly, the processes involved in the calculation are split into $N_\text{slice}$ groups, each of which solves one slice independently.  Within the slices, carefully selected shifts are applied to the original problem.  With this layer of parallelism across slices, the SLEPc-SIPs solver has the potential to exhibit enhanced scalability over direct diagonalization methods, especially when the load balance across slices can be guaranteed.  Indeed, this has been reported to happen with very sparse Hamiltonian and overlap matrices out of density-functional tight-binding (DFTB) calculations \cite{sips_keceli_2016}.\\
+
+\section{Citing ELSI}
+\label{sec:cite}
+Key concepts of ELSI and the first version of its implementation are described in the following paper:\\
+
+V. W-z. Yu, F. Corsetti, A. Garc\'{i}a, W. P. Huhn, M. Jacquelin, W. Jia, B. Lange, L. Lin, J. Lu, W. Mi, A. Seifitokaldani, \'{A}. V\'{a}zquez-Mayagoitia, C. Yang, H. Yang, and V. Blum, ELSI: A Unified Software Interface for Kohn-Sham Electronic Structure Solvers, Computer Physics Communications, 222, 267-285 (2018).\\
+
+In addition, an incomplete list of publications describing the solvers supported in ELSI may be found in the bibliography of this document.  Please consider citing these articles when publishing results obtained with ELSI.\\
 
 \section{Acknowledgments}
 \label{sec:thanks}
@@ -615,9 +621,9 @@ ELSI_LIB     = -L/PATH/TO/BUILD/ELSI/lib -lelsi \
 
 Enabling/disabling PEXSI and SLEPc-SIPs or linking ELSI against preinstalled solver libraries will require the user modify these flags accordingly.\\
 
-\subsection{Using ELSI in a KS-DFT Code}
+\subsection{Using ELSI}
 \label{subsec:import_use}
-ELSI may be used in a KS-DFT code by importing the appropriate header file.  For codes written in Fortran, this is done by using the ELSI module\\
+ELSI may be used in an electronic structure code by importing the appropriate header file.  For codes written in Fortran, this is done by using the ELSI module\\
 
 \begin{verbatim}
 USE ELSI
@@ -629,7 +635,7 @@ For codes written in C, the ELSI wrapper may be imported by including the header
 #include <elsi.h>
 \end{verbatim}
 
-These import statements give the KS-DFT code access to the ELSI interface.  In the next chapter, we will describe the API for the ELSI interface.
+These import statements give the electronic structure code access to the ELSI interface.  In the next chapter, we will describe the API for the ELSI interface.
 
 % Chapter3
 \chapter{The ELSI API}
@@ -679,7 +685,7 @@ The ELSI interface must be initialized via the \textcolor{blue}{elsi\_init} subr
 
 \textbf{2)} \textcolor{blue}{n\_state}:  If ELPA is the chosen solver, this parameter specifies the number of eigenstates to solve by the eigensolver.  If libOMM is the chosen solver, \textcolor{blue}{n\_state} must be exactly the number of occupied states, as libOMM cannot handle fractional occupation numbers\cite{libomm_corsetti_2014}.  PEXSI does not make use of this parameter and a dummy value may be passed.\\
 
-\textbf{3)} \textcolor{blue}{parallel\_mode}:  The two allowed values of \textcolor{blue}{parallel\_mode}, 0 (\textcolor{blue}{SINGLE\_PROC}) and 1 (\textcolor{blue}{MULTI\_PROC}), allow for three parallelization strategies commonly employed by KS-DFT codes.  See below.\\
+\textbf{3)} \textcolor{blue}{parallel\_mode}:  The two allowed values of \textcolor{blue}{parallel\_mode}, 0 (\textcolor{blue}{SINGLE\_PROC}) and 1 (\textcolor{blue}{MULTI\_PROC}), allow for three parallelization strategies commonly employed by electronic structure codes.  See below.\\
 
 \textbf{3a)} \textcolor{blue}{SINGLE\_PROC}:  Solves the KS eigenproblem following a LAPACK-like fashion.  This option may only be selected when ELPA is chosen as the solver.  This allows the following parallelization strategy:\\
 
@@ -695,6 +701,8 @@ MPI task 1 handles \textbf{\textit{k}}-points  5,  6,  7,  8 sequentially;\\
 MPI task 2 handles \textbf{\textit{k}}-points  9, 10, 11, 12 sequentially;\\
 MPI task 3 handles \textbf{\textit{k}}-points 13, 14, 15, 16 sequentially.\\
 
+\noindent\rule{18cm}{0.4pt}
+
 \textbf{Pseudocode 1}:\\
 
 \begin{algorithm}[H]
@@ -708,7 +716,6 @@ MPI task 3 handles \textbf{\textit{k}}-points 13, 14, 15, 16 sequentially.\\
 }
 \end{algorithm}
 
-\bigskip
 \noindent\rule{18cm}{0.4pt}
 
 \bigskip
@@ -725,6 +732,9 @@ MPI tasks  0,  1,  2,  3 cooperatively handle \textbf{\textit{k}}-point 1;\\
 MPI tasks  4,  5,  6,  7 cooperatively handle \textbf{\textit{k}}-point 2;\\
 MPI tasks  8,  9, 10, 11 cooperatively handle \textbf{\textit{k}}-point 3;\\
 MPI tasks 12, 13, 14, 15 cooperatively handle \textbf{\textit{k}}-point 4.\\
+
+\newpage
+\noindent\rule{18cm}{0.4pt}
 
 \textbf{Pseudocode 2}:\\
 
@@ -743,6 +753,8 @@ MPI tasks 12, 13, 14, 15 cooperatively handle \textbf{\textit{k}}-point 4.\\
 ...\\
 \textcolor{blue}{elsi\_dm\_complex}(elsi\_h, my\_ham, my\_ovlp, my\_dm, global\_energy)\\
 \end{algorithm}
+
+\noindent\rule{18cm}{0.4pt}
 
 \bigskip
 Please note that when there is more than one \textbf{\textit{k}}-point, a global MPI communicator must be provided for inter-\textbf{\textit{k}}-point communications.  See \ref{subsec:setup_kpt} for \textcolor{blue}{elsi\_set\_kpoint}, \textcolor{blue}{elsi\_set\_spin}, and \textcolor{blue}{elsi\_set\_mpi\_global}, which are used to set up a calculation with two spin channels and/or multiple \textbf{\textit{k}}-points.
@@ -865,13 +877,13 @@ n (\boldsymbol{r}) \approx \sum_{n=1}^{N_\text{kpt}} w_n
 
 \noindent Here, $w_n$ is the weight of the n$^\text{th}$ \textbf{\textit{k}}-point; $N_\text{kpt}$ is the number of \textbf{\textit{k}}-points.  The weights of all \textbf{\textit{k}}-points add up to 1.  Obviously, a denser grid of \textbf{\textit{k}}-points leads to a higher accuracy with higher computational cost.  The Hamilton and overlap matrices for multiple \textbf{\textit{k}}-points are block-diagonal, such that each block on the diagonal corresponds to an eigenproblem of one \textbf{\textit{k}}-point.  These eigenproblems can be solved separately.\\
 
-The handling of spin-polarized case and periodic case in ELSI are more or less equivalent.  The problems, either from two spin channels, or from multiple \textbf{\textit{k}}-points, are treated as equivalent ``unit tasks''.  If the chosen solver is an eigensolver (ELPA or SLEPc-SIPs), all the unit tasks are solved independently, returning separate eigensolutions to the KS-DFT code.  The KS-DFT code can then assemble the pieces of the solutions and construct the electron density.  When computing density matrices, the unit tasks are coupled together by the normalization condition of the number of electrons:\\
+The handling of spin-polarized case and periodic case in ELSI are more or less equivalent.  The problems, either from two spin channels, or from multiple \textbf{\textit{k}}-points, are treated as equivalent ``unit tasks''.  If the chosen solver is an eigensolver (ELPA or SLEPc-SIPs), all the unit tasks are solved independently, returning separate eigensolutions to the electronic structure code.  The electronic structure code can then assemble the pieces of the solutions and construct the electron density.  When computing density matrices, the unit tasks are coupled together by the normalization condition of the number of electrons:\\
 \begin{equation}
 \label{eq:normalization}
 N_\text{electron} = \sum_{n=1}^{N_\text{kpt}} \sum_{m=1}^{N_\text{spin}} \sum_{l=1}^{N_\text{basis}} w_n f_{lmn} ,
 \end{equation}
 
-\noindent where $N_\text{kpt}$, $N_\text{spin}$, and $N_\text{basis}$ are the number of \textbf{\textit{k}}-points, the number of spin channels, and the number of basis functions, respectively.  $w_n$ is again the weight of the n$^\text{th}$ \textbf{\textit{k}}-point.  $f_{lmn}$ is the occupation number of the l$^\text{th}$ state in the m$^\text{th}$ spin channel and the n$^\text{th}$ \textbf{\textit{k}}-point.  To determine the occupation numbers, the eigenvalues at each unit task need to be collected across all the tasks.  With the correct occupation numbers, density matrices can be computed by \ref{eq:density_matrix} and returned to the KS-DFT code.\\
+\noindent where $N_\text{kpt}$, $N_\text{spin}$, and $N_\text{basis}$ are the number of \textbf{\textit{k}}-points, the number of spin channels, and the number of basis functions, respectively.  $w_n$ is again the weight of the n$^\text{th}$ \textbf{\textit{k}}-point.  $f_{lmn}$ is the occupation number of the l$^\text{th}$ state in the m$^\text{th}$ spin channel and the n$^\text{th}$ \textbf{\textit{k}}-point.  To determine the occupation numbers, the eigenvalues at each unit task need to be collected across all the tasks.  With the correct occupation numbers, density matrices can be computed by \ref{eq:density_matrix}.\\
 
 If the PEXSI solver is chosen, the pole expansion in \ref{eq:pole} is performed for all the unit tasks in parallel, with the same trial chemical potential $\mu$.  The resulting number of electrons needs to be determined in order to refine the chemical potential.  The chemical potential yielding the correct number of electrons is used to construct the density matrices on the unit tasks.\\
 
@@ -1194,7 +1206,7 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \hline
 \end{tabular}
 
-\bigskip
+\newpage
 \textbf{Remarks}\\
 
 \textbf{1)} If the input overlap matrix is an identity matrix, all settings related to the singularity (ill-conditioning) check take no effect.\\
@@ -1207,26 +1219,35 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \label{subsec:setter_elpa}
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_solver}(handle, elpa\_solver)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_n\_single}(handle, n\_single)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_gpu}(handle, use\_gpu)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_gpu\_kernels}(handle, use\_gpu\_kernels)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_autotune}(handle, use\_autotune)]
 \end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
 \hline
-\textcolor{blue}{elpa\_solver}      & integer & 2 & 1:  ELPA 1-stage solver.  2:  ELPA 2-stage solver.  The 2-stage solver is usually faster and more scalable.\\
+\textcolor{blue}{elpa\_solver}      & integer & 2 & 1:  ELPA 1-stage solver.  2:  ELPA 2-stage solver.  The latter is usually faster and more scalable.\\
 \hline
-\textcolor{blue}{use\_gpu}          & integer & 0 & If not 0, try to enable GPU-acceleration in ELPA.  See remark 1.\\
+\textcolor{blue}{n\_single}         & integer & 0 & Number of SCF steps using single precision ELPA to solve standard eigenproblems.  See remark 1.\\
 \hline
-\textcolor{blue}{use\_gpu\_kernels} & integer & 0 & If not 0, try to enable GPU-acceleration and GPU kernels in ELPA.  See remark 1.\\
+\textcolor{blue}{use\_gpu}          & integer & 0 & If not 0, try to enable GPU-acceleration in ELPA.  See remark 2.\\
+\hline
+\textcolor{blue}{use\_gpu\_kernels} & integer & 0 & If not 0, try to enable GPU-acceleration and GPU kernels in ELPA.  See remark 2.\\
+\textcolor{blue}{use\_autotune}     & integer & 1 & If not 0, try to enable auto-tuning of runtime parameters in ELPA.  See remark 3.\\
 \hline
 \end{tabular}
 
 \bigskip
 \textbf{Remarks}\\
 
-\textbf{1)} \textcolor{blue}{use\_gpu} and \textcolor{blue}{use\_gpu\_kernels}:  If GPU-acceleration is available in an externally compiled ELPA library, it may be enabled by setting \textcolor{blue}{use\_gpu} to a non-zero value.  \textcolor{blue}{use\_gpu} has no effect if GPU-acceleration is not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with GPU support.  Note that by setting \textcolor{blue}{use\_gpu}, the GPU kernels for eigenvector back-transformation will not be used.  To enable the GPU kernels, \textcolor{blue}{use\_gpu\_kernels} should be set to a non-zero value.  Again, this takes no effect if the GPU kernels are not available.\\
+\textbf{1)} \textcolor{blue}{n\_single}:  If single precision arithmetic is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{n\_single} to a positive integer, then the standard eigenprolems in the first \textcolor{blue}{n\_single} SCF steps will be solved with single precision.  The transformations between generalized eigenproblem and the standard form are always performed with double precision.  Although this keyword accelerates the solution of standard eigenproblems, the overall SCF convergence may be slower, depending on the physical system and the SCF settings used in the electronic structure code.  This keyword is ignored if single precision calculations are not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with single precision support.\\
+
+\textbf{2)} \textcolor{blue}{use\_gpu} and \textcolor{blue}{use\_gpu\_kernels}:  If GPU-acceleration is available in an externally compiled ELPA library, it may be enabled by setting \textcolor{blue}{use\_gpu} to a non-zero integer.  Note that by setting \textcolor{blue}{use\_gpu}, the GPU kernels for eigenvector back-transformation will not be used.  To enable the GPU kernels, \textcolor{blue}{use\_gpu\_kernels} should be set to a non-zero value.  These two keywords are ignored if GPU-acceleration is not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with GPU support.\\
+
+\textbf{3)} \textcolor{blue}{use\_autotune}:  If auto-tuning of runtime parameters is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{use\_autotune} to a nonzero integer.  This keyword is ignored if auto-tuning is not available, which is the case if the internal version of ELPA is used.\\
 
 \subsection{Customizing the libOMM Solver}
 \label{subsec:setter_omm}
@@ -1242,7 +1263,7 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \hline
 \textcolor{blue}{omm\_flavor}  & integer     & 0          & Method to perform OMM minimization.  See remark 1.\\
 \hline
-\textcolor{blue}{omm\_n\_elpa} & integer     & 6          & Number of ELPA steps before libOMM.  See remark 2.\\
+\textcolor{blue}{omm\_n\_elpa} & integer     & 6          & Number of SCF steps using ELPA.  See remark 2.\\
 \hline
 \textcolor{blue}{omm\_tol}     & real double & $10^{-12}$ & Convergence tolerance of orbital minimization.  See remark 3.\\
 \hline
@@ -1326,10 +1347,8 @@ when using the \textcolor{blue}{PEXSI\_CSC} matrix format with the ELPA, libOMM,
 
 \textbf{7)} The chemical potential determination in PEXSI relies on inertia counting to narrow down the chemical potential searching interval in the first few SCF steps.  The \textcolor{blue}{pexsi\_inertia\_tol} parameter controls the stopping criterion of the inertia counting procedure.  With a small interval obtained from the inertia counting step, PEXSI then selects a number of points in this interval to perform Fermi operator calculations, based on which a final chemical potential will be determined.  The trick of this algorithm is that the chemical potential interval of the current SCF step can be used as a descent guess in the next SCF step.  Therefore, the mechanism to choose input values for \textcolor{blue}{pexsi\_mu\_min} and \textcolor{blue}{pexsi\_mu\_max} is two-fold.  For the first SCF iteration, they should be set to safe values that guarantee the true chemical potential lies in this interval.  Then, for the n$^\text{th}$ SCF step, \textcolor{blue}{pexsi\_mu\_min} should be set to ($mu_\text{min}^\text{n-1} + \Delta V_\text{min}$), \textcolor{blue}{pexsi\_mu\_max} should be set to ($mu_\text{max}^\text{n-1} + \Delta V_\text{max}$).  Here, $mu_\text{min}^\text{n-1}$ and $mu_\text{max}^\text{n-1}$ are the lower bound and the upper bound of the chemical potential that are determined by PEXSI in the (n-1)$^\text{th}$ SCF step.  They can be retrieved by calling \textcolor{blue}{elsi\_get\_pexsi\_mu\_min} and \textcolor{blue}{elsi\_get\_pexsi\_mu\_max}, respectively (see \ref{subsec:getter_pexsi}.  Suppose the effective potential (Hartree potential, exchange-correlation potential, and external potential) is stored in an array $V$, whose dimension is the number of grid points.  From one SCF iteration to the next, $\Delta V$ denotes the potential change, and $\Delta V_\text{min}$ and $\Delta V_\text{max}$ are the minimum and maximum values in the array $\Delta V$, respectively.  The whole process is summarized in the following pseudo-code.\\
 
-\newpage
-
-\noindent\rule{18cm}{0.4pt}
 \bigskip
+\noindent\rule{18cm}{0.4pt}
 
 \begin{algorithm}[H]
 mu\_min = -10.0\\
@@ -1359,7 +1378,6 @@ $\Delta$V$_\text{max}$ = 0.0\\
 }
 \end{algorithm}
 
-\bigskip
 \noindent\rule{18cm}{0.4pt}
 
 \subsection{Customizing the SLEPc-SIPs Solver}
@@ -1378,7 +1396,7 @@ $\Delta$V$_\text{max}$ = 0.0\\
 \hline
 \textcolor{blue}{upper}    & real double & 2.0  & Upper bound of eigenspectrum.  See remark 1.\\
 \hline
-\textcolor{blue}{n\_elpa}  & integer     & 0    & Number of ELPA steps before SLEPc-SIPs.  See remark 2.\\
+\textcolor{blue}{n\_elpa}  & integer     & 0    & Number of SCF steps using ELPA.  See remark 2.\\
 \hline
 \textcolor{blue}{n\_slice} & integer     & 1    & Number of slices.  See remark 3.\\
 \hline
@@ -1477,7 +1495,6 @@ Next, we present the API for parallel matrix I/O.\\
 \label{subsec:rw_init}
 An \texttt{elsi\_rw\_handle} must be initialized via the \textcolor{blue}{elsi\_init\_rw} subroutine before any other matrix I/O subroutine may be called.  This \texttt{elsi\_rw\_handle} is subsequently passed to all other matrix I/O subroutine calls.\\
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_init\_rw}(handle, task, parallel\_mode, n\_basis, n\_electron)]
 \end{labeling}
@@ -1522,7 +1539,7 @@ The MPI communicator which encloses the MPI tasks to perform the matrix I/O oper
 \hline
 \end{tabular}
 
-\bigskip
+\newpage
 When reading or writing a dense matrix, BLACS parameters are passed into ELSI via the \textcolor{blue}{elsi\_set\_rw\_blacs} subroutine.\\
 
 \begin{labeling}{\hspace{6cm}}
@@ -1614,7 +1631,7 @@ The following two subroutines write a dense matrix to file.  Before writing a de
 \hline
 \end{tabular}
 
-\bigskip
+\newpage
 The following two subroutines write a sparse matrix to file.  Before writing a sparse matrix, MPI and CSC matrix format should be set up properly using \textcolor{blue}{elsi\_set\_rw\_mpi} and \textcolor{blue}{elsi\_set\_rw\_csc}.\\
 
 \begin{labeling}{\hspace{6cm}}
@@ -1698,6 +1715,7 @@ The following subroutines read a dense or sparse matrix from file.  While writin
 
 The following three subroutines read a dense matrix from file.  Before reading a dense matrix, MPI and BLACS should be set up properly using \textcolor{blue}{elsi\_set\_rw\_mpi} and \textcolor{blue}{elsi\_set\_rw\_blacs}.  \textcolor{blue}{elsi\_read\_mat\_dim} is used to read the dimension of a matrix, including the number of electrons in the physical system (for testing purpose), the global size of the matrix, and the local size of the matrix.  Memory needs to be allocated according to the return values of \textcolor{blue}{local\_row} and \textcolor{blue}{local\_col}.  Then \textcolor{blue}{elsi\_read\_mat\_real} or \textcolor{blue}{elsi\_read\_mat\_complex} may be called to read a real or complex matrix, respectively.\\
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_read\_mat\_dim}(handle, filename, n\_electron, n\_basis, local\_row, local\_col)]
 \end{labeling}
@@ -1781,7 +1799,7 @@ The following three subroutines read a sparse matrix from file.  Before reading 
 \hline
 \end{tabular}
 
-\newpage
+\bigskip
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_read\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
 \end{labeling}
@@ -1802,7 +1820,7 @@ The following three subroutines read a sparse matrix from file.  Before reading 
 \hline
 \end{tabular}
 
-\bigskip
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_read\_mat\_complex\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
 \end{labeling}
@@ -1842,12 +1860,11 @@ An array of eight user-defined integers can be optionally set up via \textcolor{
 
 \section{Demonstration Pseudo-Code}
 \label{sec:example}
-The typical workflow of ELSI within a KS-DFT code is demonstrated by the following pseudo-code.  The ELSI interface routines and the operations to be performed by a KS-DFT code are marked with blue and red, respectively.\\
+The typical workflow of ELSI within an electronic structure code is demonstrated by the following pseudo-code.\\
 
 \subsection{2D Block-Cyclic Distributed Dense Matrix + ELSI Eigensolver Interface}
 \label{subsec:example_ev_blacs}
 \noindent\rule{18cm}{0.4pt}
-\bigskip
 
 \begin{algorithm}[H]
 \textcolor{red}{SCF initialize}\\
@@ -1869,13 +1886,11 @@ The typical workflow of ELSI within a KS-DFT code is demonstrated by the followi
 \textcolor{blue}{elsi\_finalize}(elsi\_h)\\
 \end{algorithm}
 
-\bigskip
 \noindent\rule{18cm}{0.4pt}
 
 \subsection{1D Block Distributed CSC Sparse Matrix + ELSI Eigensolver Interface}
 \label{subsec:example_ev_csc}
 \noindent\rule{18cm}{0.4pt}
-\bigskip
 
 \begin{algorithm}[H]
 \textcolor{red}{SCF initialization}\\
@@ -1898,7 +1913,6 @@ The typical workflow of ELSI within a KS-DFT code is demonstrated by the followi
 \textcolor{blue}{elsi\_finalize}(elsi\_h)\\
 \end{algorithm}
 
-\bigskip
 \noindent\rule{18cm}{0.4pt}
 
 \bigskip
@@ -1909,7 +1923,6 @@ The typical workflow of ELSI within a KS-DFT code is demonstrated by the followi
 \subsection{1D Block-Cyclic Distributed CSC Sparse Matrix + ELSI Eigensolver Interface}
 \label{subsec:example_ev_csc2}
 \noindent\rule{18cm}{0.4pt}
-\bigskip
 
 \begin{algorithm}[H]
 \textcolor{red}{SCF initialization}\\
@@ -1933,7 +1946,6 @@ The typical workflow of ELSI within a KS-DFT code is demonstrated by the followi
 \textcolor{blue}{elsi\_finalize}(elsi\_h)\\
 \end{algorithm}
 
-\bigskip
 \noindent\rule{18cm}{0.4pt}
 
 \bigskip
@@ -1941,10 +1953,10 @@ The typical workflow of ELSI within a KS-DFT code is demonstrated by the followi
 
 \textbf{1)} The calculated eigenvectors are returned in the BLACS\_DENSE format, which is required to be properly set up.\\
 
+\newpage
 \subsection{2D Block-Cyclic Distributed Dense Matrix + ELSI Density Matrix Interface}
 \label{subsec:example_dm_blacs}
 \noindent\rule{18cm}{0.4pt}
-\bigskip
 
 \begin{algorithm}[H]
 \textcolor{red}{SCF initialization}\\
@@ -1967,13 +1979,11 @@ The typical workflow of ELSI within a KS-DFT code is demonstrated by the followi
 \textcolor{blue}{elsi\_finalize}(elsi\_h)\\
 \end{algorithm}
 
-\bigskip
 \noindent\rule{18cm}{0.4pt}
 
 \subsection{1D Block Distributed CSC Sparse Matrix + ELSI Density Matrix Interface}
 \label{subsec:example_dm_csc}
 \noindent\rule{18cm}{0.4pt}
-\bigskip
 
 \begin{algorithm}[H]
 \textcolor{red}{SCF initialization}\\
@@ -1996,7 +2006,6 @@ The typical workflow of ELSI within a KS-DFT code is demonstrated by the followi
 \textcolor{blue}{elsi\_finalize}(elsi\_h)\\
 \end{algorithm}
 
-\bigskip
 \noindent\rule{18cm}{0.4pt}
 
 \bigskip
@@ -2008,7 +2017,6 @@ The typical workflow of ELSI within a KS-DFT code is demonstrated by the followi
 \subsection{1D Block-Cyclic Distributed CSC Sparse Matrix + ELSI Density Matrix Interface}
 \label{subsec:example_dm_csc2}
 \noindent\rule{18cm}{0.4pt}
-\bigskip
 
 \begin{algorithm}[H]
 \textcolor{red}{SCF initialization}\\
@@ -2032,7 +2040,6 @@ The typical workflow of ELSI within a KS-DFT code is demonstrated by the followi
 \textcolor{blue}{elsi\_finalize}(elsi\_h)\\
 \end{algorithm}
 
-\bigskip
 \noindent\rule{18cm}{0.4pt}
 
 \bigskip
@@ -2043,7 +2050,6 @@ The typical workflow of ELSI within a KS-DFT code is demonstrated by the followi
 \subsection{Multiple \textbf{\textit{k}}-points Calculations}
 \label{subsec:example_kpt}
 \noindent\rule{18cm}{0.4pt}
-\bigskip
 
 \begin{algorithm}[H]
 \textcolor{red}{SCF initialization}\\
@@ -2069,21 +2075,20 @@ The typical workflow of ELSI within a KS-DFT code is demonstrated by the followi
 \textcolor{blue}{elsi\_finalize}(elsi\_h)\\
 \end{algorithm}
 
-\bigskip
 \noindent\rule{18cm}{0.4pt}
 
-\newpage
+\bigskip
 \textbf{Remarks}\\
 
 \textbf{1)} When there are multiple \textbf{\textit{k}}-points, other than setting up the \textbf{\textit{k}}-points and a global MPI communicator, there is no change in the way ELSI solver interfaces are called.\\
 
-\textbf{2)} The KS-DFT code needs to assemble the real-space density from the density matrices returned for the \textbf{\textit{k}}-points.  The returned band structure energy, however, is already summed over all \textbf{\textit{k}}-points with respect to the weight of each \textbf{\textit{k}}-point.  Refer to \ref{subsec:setup_kpt} for more information.\\
+\textbf{2)} The electronic structure code needs to assemble the real-space density from the density matrices returned for the \textbf{\textit{k}}-points.  The returned band structure energy, however, is already summed over all \textbf{\textit{k}}-points with respect to the weight of each \textbf{\textit{k}}-point.  Refer to \ref{subsec:setup_kpt} for more information.\\
 
 \textbf{3)} Calculations with two spin channels can be set up similarly.\\
 
 \section{C/C++ Interface}
 \label{sec:c}
-ELSI is written in Fortran, but many KS-DFT codes use C/C++.  ELSI provides a C interface around the core Fortran ELSI code, which can be called from a C or C++ program.  Each C wrapper function corresponds to a Fortran subroutine, where we have prefixed the original Fortran subroutine name with \textcolor{blue}{c\_} for clarity and consistency.  Argument lists are identical to the associated native Fortran subroutine.  For the complete definition of the C interface, the user is encouraged to look at the \texttt{elsi.h} header file directly.\\
+ELSI is written in Fortran.  A C interface around the core Fortran code is provided, which can be called from a C or C++ program.  Each C wrapper function corresponds to a Fortran subroutine, where we have prefixed the original Fortran subroutine name with \textcolor{blue}{c\_} for clarity and consistency.  Argument lists are identical to the associated native Fortran subroutine.  For the complete definition of the C interface, the user is encouraged to look at the \texttt{elsi.h} header file directly.\\
 
 % Reference
 \begin{thebibliography}{9}
@@ -2138,7 +2143,6 @@ J.M. Soler et al., The SIESTA method for ab initio order-N materials simulation,
 
 \end{thebibliography}
 
-\newpage
 \chapter*{License and Copyright}
 ELSI Interface software is licensed under the 3-clause BSD license:\\
 \bigskip

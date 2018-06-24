@@ -128,11 +128,17 @@ void c_elsi_set_uplo(elsi_handle handle_c,
 void c_elsi_set_elpa_solver(elsi_handle handle_c,
                             int elpa_solver);
 
+void c_elsi_set_elpa_n_single(elsi_handle handle_c,
+                              int n_single);
+
 void c_elsi_set_elpa_gpu(elsi_handle handle_c,
                          int use_gpu);
 
 void c_elsi_set_elpa_gpu_kernels(elsi_handle handle_c,
                                  int use_gpu_kernels);
+
+void c_elsi_set_elpa_autotune(elsi_handle handle_c,
+                              int use_autotune);
 
 void c_elsi_set_omm_flavor(elsi_handle handle_c,
                            int omm_flavor);

@@ -38,8 +38,10 @@ module ELSI_MUTATOR
    public :: elsi_set_sing_stop
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
+   public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
    public :: elsi_set_elpa_gpu_kernels
+   public :: elsi_set_elpa_autotune
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
@@ -286,6 +288,24 @@ subroutine elsi_set_elpa_solver(eh,elpa_solver)
 end subroutine
 
 !>
+!! This routine sets the number of single precision steps with ELPA.
+!!
+subroutine elsi_set_elpa_n_single(eh,n_single)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh
+   integer(kind=i4),  intent(in)    :: n_single
+
+   character(len=40), parameter :: caller = "elsi_set_elpa_n_single"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%ph%elpa_n_single = n_single
+
+end subroutine
+
+!>
 !! This routine sets whether GPU acceleration (not including GPU kernels for
 !! back-transforming eigenvectors) should be enabled in ELPA. No effect if no
 !! GPU acceleration available.
@@ -331,6 +351,29 @@ subroutine elsi_set_elpa_gpu_kernels(eh,use_gpu_kernels)
       call elsi_set_elpa_gpu(eh,1)
 
       eh%ph%elpa_gpu_kernels = .true.
+   endif
+
+end subroutine
+
+!>
+!! This routine sets whether auto-tuning should be enabled in ELPA. No effect if
+!! no auto-tuning available.
+!!
+subroutine elsi_set_elpa_autotune(eh,use_autotune)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh           !< Handle
+   integer(kind=i4),  intent(in)    :: use_autotune !< Use auto-tuning?
+
+   character(len=40), parameter :: caller = "elsi_set_elpa_autotune"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(use_autotune == 0) then
+      eh%ph%elpa_autotune = .false.
+   else
+      eh%ph%elpa_autotune = .true.
    endif
 
 end subroutine
