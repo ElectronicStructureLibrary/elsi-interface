@@ -101,8 +101,6 @@ ELSI unifies the community effort in overcoming the cubic-wall problem of KS-DFT
 
 The current version of ELSI supports ELPA \cite{elpa_auckenthaler_2011,elpa_marek_2014}, libOMM \cite{libomm_corsetti_2014}, PEXSI \cite{pexsi_lin_2009,pexsi_lin_2013}, and SLEPc-SIPs \cite{slepc_hernandez_2005,sips_keceli_2016} solvers.  Codes currently integrated with ELSI include DFTB+ \cite{dftb+_aradi_2007}, DGDFT \cite{dgdft_hu_2015}, FHI-aims \cite{aims_blum_2009}, NWChem \cite{nwchem_valiev_2010} via Global Arrays, and SIESTA \cite{siesta_soler_2002}.\\
 
-\subsection{Design Tenets of ELSI}
-\label{subsec:elsi_design}
 \textbf{Versatility}:  ELSI supports real-valued and complex-valued density matrix, eigenvalue, and eigenvector calculations.  A unified software interface designed for rapid integration into a variety of electronic structure codes is provided.  Fortran and C/C++ interfaces are provided.\\
 
 \textbf{Flexibility}:  ELSI supports both dense and sparse matrices as input/output.  Supported matrix distribution layouts include 2D block-cyclic distribution, 1D block-cyclic distribution, and 1D block distribution.  In situations where the input/output matrix format used by the electronic structure code and the format used internally by the requested solver are different, conversion and redistribution of matrices will be performed automatically.\\
@@ -250,6 +248,14 @@ The shift-and-invert spectral transformation method, implemented in the SLEPc li
 If the shift can be chosen to be close to the target eigenvalue, \ref{eq:sips_eval} makes the magnitude of the transformed eigenvalues large, accelerating the convergence of the iterative Krylov-Schur eigensolver used in SLEPc.\\
 
 On top of the basic shift-and-invert, the shift-and-invert parallel spectral transformation (SIPs) method \cite{sips_keceli_2016} partitions the eigenspectrum of a given eigenproblem into $N_\text{slice}$ slices.  Accordingly, the processes involved in the calculation are split into $N_\text{slice}$ groups, each of which solves one slice independently.  Within the slices, carefully selected shifts are applied to the original problem.  With this layer of parallelism across slices, the SLEPc-SIPs solver has the potential to exhibit enhanced scalability over direct diagonalization methods, especially when the load balance across slices can be guaranteed.  Indeed, this has been reported to happen with very sparse Hamiltonian and overlap matrices out of density-functional tight-binding (DFTB) calculations \cite{sips_keceli_2016}.\\
+
+\section{Citing ELSI}
+\label{sec:cite}
+Key concepts of ELSI and the first version of its implementation are described in the following paper:\\
+
+V. W-z. Yu, F. Corsetti, A. Garc\'{i}a, W. P. Huhn, M. Jacquelin, W. Jia, B. Lange, L. Lin, J. Lu, W. Mi, A. Seifitokaldani, \'{A}. V\'{a}zquez-Mayagoitia, C. Yang, H. Yang, and V. Blum, ELSI: A Unified Software Interface for Kohn-Sham Electronic Structure Solvers, Computer Physics Communications, 222, 267-285 (2018).\\
+
+In addition, an incomplete list of publications describing the solvers supported in ELSI may be found in the bibliography of this document.  Please consider citing these articles when publishing results obtained with ELSI.\\
 
 \section{Acknowledgments}
 \label{sec:thanks}
@@ -1216,6 +1222,7 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_n\_single}(handle, n\_single)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_gpu}(handle, use\_gpu)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_gpu\_kernels}(handle, use\_gpu\_kernels)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_autotune}(handle, use\_autotune)]
 \end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
@@ -1229,15 +1236,18 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \textcolor{blue}{use\_gpu}          & integer & 0 & If not 0, try to enable GPU-acceleration in ELPA.  See remark 2.\\
 \hline
 \textcolor{blue}{use\_gpu\_kernels} & integer & 0 & If not 0, try to enable GPU-acceleration and GPU kernels in ELPA.  See remark 2.\\
+\textcolor{blue}{use\_autotune}     & integer & 1 & If not 0, try to enable auto-tuning of runtime parameters in ELPA.  See remark 3.\\
 \hline
 \end{tabular}
 
 \bigskip
 \textbf{Remarks}\\
 
-\textbf{1)} \textcolor{blue}{n\_single}:  If single precision arithmetic is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{n\_single} to a positive integer, then the standard eigenprolems in the first \textcolor{blue}{n\_single} SCF steps will be solved with single precision.  The transformations between generalized eigenproblem and the standard form are always performed with double precision.  Although this keyword accelerates the solution of standard eigenproblems, the overall SCF convergence may be slower, depending on the physical system and the SCF settings used in the electronic structure code.\\
+\textbf{1)} \textcolor{blue}{n\_single}:  If single precision arithmetic is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{n\_single} to a positive integer, then the standard eigenprolems in the first \textcolor{blue}{n\_single} SCF steps will be solved with single precision.  The transformations between generalized eigenproblem and the standard form are always performed with double precision.  Although this keyword accelerates the solution of standard eigenproblems, the overall SCF convergence may be slower, depending on the physical system and the SCF settings used in the electronic structure code.  This keyword is ignored if single precision calculations are not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with single precision support.\\
 
-\textbf{2)} \textcolor{blue}{use\_gpu} and \textcolor{blue}{use\_gpu\_kernels}:  If GPU-acceleration is available in an externally compiled ELPA library, it may be enabled by setting \textcolor{blue}{use\_gpu} to a non-zero value.  \textcolor{blue}{use\_gpu} has no effect if GPU-acceleration is not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with GPU support.  Note that by setting \textcolor{blue}{use\_gpu}, the GPU kernels for eigenvector back-transformation will not be used.  To enable the GPU kernels, \textcolor{blue}{use\_gpu\_kernels} should be set to a non-zero value.  Again, this takes no effect if the GPU kernels are not available.\\
+\textbf{2)} \textcolor{blue}{use\_gpu} and \textcolor{blue}{use\_gpu\_kernels}:  If GPU-acceleration is available in an externally compiled ELPA library, it may be enabled by setting \textcolor{blue}{use\_gpu} to a non-zero integer.  Note that by setting \textcolor{blue}{use\_gpu}, the GPU kernels for eigenvector back-transformation will not be used.  To enable the GPU kernels, \textcolor{blue}{use\_gpu\_kernels} should be set to a non-zero value.  These two keywords are ignored if GPU-acceleration is not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with GPU support.\\
+
+\textbf{3)} \textcolor{blue}{use\_autotune}:  If auto-tuning of runtime parameters is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{use\_autotune} to a nonzero integer.  This keyword is ignored if auto-tuning is not available, which is the case if the internal version of ELPA is used.\\
 
 \subsection{Customizing the libOMM Solver}
 \label{subsec:setter_omm}
@@ -1337,7 +1347,7 @@ when using the \textcolor{blue}{PEXSI\_CSC} matrix format with the ELPA, libOMM,
 
 \textbf{7)} The chemical potential determination in PEXSI relies on inertia counting to narrow down the chemical potential searching interval in the first few SCF steps.  The \textcolor{blue}{pexsi\_inertia\_tol} parameter controls the stopping criterion of the inertia counting procedure.  With a small interval obtained from the inertia counting step, PEXSI then selects a number of points in this interval to perform Fermi operator calculations, based on which a final chemical potential will be determined.  The trick of this algorithm is that the chemical potential interval of the current SCF step can be used as a descent guess in the next SCF step.  Therefore, the mechanism to choose input values for \textcolor{blue}{pexsi\_mu\_min} and \textcolor{blue}{pexsi\_mu\_max} is two-fold.  For the first SCF iteration, they should be set to safe values that guarantee the true chemical potential lies in this interval.  Then, for the n$^\text{th}$ SCF step, \textcolor{blue}{pexsi\_mu\_min} should be set to ($mu_\text{min}^\text{n-1} + \Delta V_\text{min}$), \textcolor{blue}{pexsi\_mu\_max} should be set to ($mu_\text{max}^\text{n-1} + \Delta V_\text{max}$).  Here, $mu_\text{min}^\text{n-1}$ and $mu_\text{max}^\text{n-1}$ are the lower bound and the upper bound of the chemical potential that are determined by PEXSI in the (n-1)$^\text{th}$ SCF step.  They can be retrieved by calling \textcolor{blue}{elsi\_get\_pexsi\_mu\_min} and \textcolor{blue}{elsi\_get\_pexsi\_mu\_max}, respectively (see \ref{subsec:getter_pexsi}.  Suppose the effective potential (Hartree potential, exchange-correlation potential, and external potential) is stored in an array $V$, whose dimension is the number of grid points.  From one SCF iteration to the next, $\Delta V$ denotes the potential change, and $\Delta V_\text{min}$ and $\Delta V_\text{max}$ are the minimum and maximum values in the array $\Delta V$, respectively.  The whole process is summarized in the following pseudo-code.\\
 
-\newpage
+\bigskip
 \noindent\rule{18cm}{0.4pt}
 
 \begin{algorithm}[H]
@@ -1485,7 +1495,6 @@ Next, we present the API for parallel matrix I/O.\\
 \label{subsec:rw_init}
 An \texttt{elsi\_rw\_handle} must be initialized via the \textcolor{blue}{elsi\_init\_rw} subroutine before any other matrix I/O subroutine may be called.  This \texttt{elsi\_rw\_handle} is subsequently passed to all other matrix I/O subroutine calls.\\
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_init\_rw}(handle, task, parallel\_mode, n\_basis, n\_electron)]
 \end{labeling}
@@ -1530,7 +1539,7 @@ The MPI communicator which encloses the MPI tasks to perform the matrix I/O oper
 \hline
 \end{tabular}
 
-\bigskip
+\newpage
 When reading or writing a dense matrix, BLACS parameters are passed into ELSI via the \textcolor{blue}{elsi\_set\_rw\_blacs} subroutine.\\
 
 \begin{labeling}{\hspace{6cm}}
@@ -1622,7 +1631,7 @@ The following two subroutines write a dense matrix to file.  Before writing a de
 \hline
 \end{tabular}
 
-\bigskip
+\newpage
 The following two subroutines write a sparse matrix to file.  Before writing a sparse matrix, MPI and CSC matrix format should be set up properly using \textcolor{blue}{elsi\_set\_rw\_mpi} and \textcolor{blue}{elsi\_set\_rw\_csc}.\\
 
 \begin{labeling}{\hspace{6cm}}
@@ -1706,6 +1715,7 @@ The following subroutines read a dense or sparse matrix from file.  While writin
 
 The following three subroutines read a dense matrix from file.  Before reading a dense matrix, MPI and BLACS should be set up properly using \textcolor{blue}{elsi\_set\_rw\_mpi} and \textcolor{blue}{elsi\_set\_rw\_blacs}.  \textcolor{blue}{elsi\_read\_mat\_dim} is used to read the dimension of a matrix, including the number of electrons in the physical system (for testing purpose), the global size of the matrix, and the local size of the matrix.  Memory needs to be allocated according to the return values of \textcolor{blue}{local\_row} and \textcolor{blue}{local\_col}.  Then \textcolor{blue}{elsi\_read\_mat\_real} or \textcolor{blue}{elsi\_read\_mat\_complex} may be called to read a real or complex matrix, respectively.\\
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_read\_mat\_dim}(handle, filename, n\_electron, n\_basis, local\_row, local\_col)]
 \end{labeling}
@@ -1789,7 +1799,7 @@ The following three subroutines read a sparse matrix from file.  Before reading 
 \hline
 \end{tabular}
 
-\newpage
+\bigskip
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_read\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
 \end{labeling}
@@ -1810,7 +1820,7 @@ The following three subroutines read a sparse matrix from file.  Before reading 
 \hline
 \end{tabular}
 
-\bigskip
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_read\_mat\_complex\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
 \end{labeling}
