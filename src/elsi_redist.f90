@@ -177,14 +177,18 @@ subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-   bh%nnz_l_sp  = nnz(ph%pexsi_my_pcol+1)
-   bh%nnz_l_sp1 = bh%nnz_l_sp
+   if(ph%pexsi_my_prow == 0) then
+      bh%nnz_l_sp = nnz(ph%pexsi_my_pcol+1)
+   else
+      bh%nnz_l_sp = 0
+   endif
 
    call MPI_Allreduce(bh%nnz_l_sp,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-   bh%nnz_g = bh%nnz_g/(bh%n_procs/ph%pexsi_np_per_pole)
+   bh%nnz_l_sp  = nnz(ph%pexsi_my_pcol+1)
+   bh%nnz_l_sp1 = bh%nnz_l_sp
 
    call elsi_deallocate(bh,dest,"dest")
    call elsi_deallocate(bh,nnz,"nnz")
@@ -251,14 +255,18 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-   bh%nnz_l_sp  = nnz(ph%pexsi_my_pcol+1)
-   bh%nnz_l_sp1 = bh%nnz_l_sp
+   if(ph%pexsi_my_prow == 0) then
+      bh%nnz_l_sp = nnz(ph%pexsi_my_pcol+1)
+   else
+      bh%nnz_l_sp = 0
+   endif
 
    call MPI_Allreduce(bh%nnz_l_sp,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-   bh%nnz_g = bh%nnz_g/(bh%n_procs/ph%pexsi_np_per_pole)
+   bh%nnz_l_sp  = nnz(ph%pexsi_my_pcol+1)
+   bh%nnz_l_sp1 = bh%nnz_l_sp
 
    call elsi_deallocate(bh,dest,"dest")
    call elsi_deallocate(bh,nnz,"nnz")
