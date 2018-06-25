@@ -4431,7 +4431,7 @@ subroutine elsi_siesta_to_sips_hs_dim(ph,bh,col_ptr2)
       call elsi_get_gid(bh%myid,bh%n_procs,bh%blk_sp2,i_col,g_col)
 
       i_proc = (g_col-1)/(ph%n_basis/bh%n_procs)
-      i_proc = min(i_proc,bh%n_procs)
+      i_proc = min(i_proc,bh%n_procs-1)
 
       dest(i_proc+1) = dest(i_proc+1)+col_ptr2(i_col+1)-col_ptr2(i_col)
    enddo
