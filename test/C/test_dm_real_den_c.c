@@ -77,7 +77,7 @@ void test_dm_real_den_c(MPI_Comm comm,
    }
    if (solver == 3) {
        e_ref = e_pexsi;
-       e_tol = 0.0001;
+       e_tol = 0.001;
    }
 
    tmp = (int) round(sqrt((double) n_proc));
