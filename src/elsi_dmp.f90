@@ -368,7 +368,7 @@ subroutine elsi_solve_dmp_real(ph,bh,row_map,col_map,ham,ovlp,ham_copy,&
       call elsi_trace_mat_mat(bh,ovlp_copy,dm,dmp_ne)
       dmp_ne = ph%spin_degen*dmp_ne
 
-      write(info_str,"(2X,A,I10,A)") &
+      write(info_str,"(2X,A,I10,A)")&
          "Density matrix purification converged in",i_iter," iterations"
       call elsi_say(bh,info_str)
       write(info_str,"(2X,A,F10.3)") "| Number of electrons :",dmp_ne

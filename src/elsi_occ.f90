@@ -240,7 +240,7 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
                   H_even = 1.0_r8
                   H_odd  = 2.0_r8*arg
 
-                  occ_nums(i_state,i_spin,i_kpt) = &
+                  occ_nums(i_state,i_spin,i_kpt) =&
                      occ_nums(i_state,i_spin,i_kpt)+A*H_odd*weight*spin_degen
                endif
 
@@ -250,7 +250,7 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
                      H_even = 2.0_r8*arg*H_odd-2.0_r8*i_mp*H_even
                      H_odd  = 2.0_r8*arg*H_even-2.0_r8*(i_mp+1)*H_odd
 
-                     occ_nums(i_state,i_spin,i_kpt) = &
+                     occ_nums(i_state,i_spin,i_kpt) =&
                         occ_nums(i_state,i_spin,i_kpt)+A*H_odd*weight*spin_degen
                   enddo
                endif
@@ -384,12 +384,12 @@ subroutine elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
       mu_out = mu_right
 
       ! ...with adjusted occupation numbers
-      write(info_str,"(2X,A)") &
+      write(info_str,"(2X,A)")&
          "Chemical potential cannot reach the required accuracy."
       call elsi_say(bh,info_str)
       write(info_str,"(2X,A,E10.2,A)") "| Residual error :",diff_right
       call elsi_say(bh,info_str)
-      write(info_str,"(2X,A)") &
+      write(info_str,"(2X,A)")&
          "The error will be removed from the highest occupied states."
       call elsi_say(bh,info_str)
 
@@ -604,7 +604,7 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
-               if(evals(i_state,i_spin,i_kpt) > mu-delta .and. &
+               if(evals(i_state,i_spin,i_kpt) > mu-delta .and.&
                   evals(i_state,i_spin,i_kpt) < mu+delta) then
                   arg = evals(i_state,i_spin,i_kpt)-mu
                   ts  = ts+k_weights(i_kpt)*(((arg**2)-const)**2)

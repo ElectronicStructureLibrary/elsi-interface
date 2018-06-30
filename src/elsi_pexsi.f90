@@ -252,7 +252,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_allocate(bh,ne_lower,n_shift,"ne_lower",caller)
       call elsi_allocate(bh,ne_upper,n_shift,"ne_upper",caller)
 
-      do while(n_iner_steps < 10 .and. &
+      do while(n_iner_steps < 10 .and.&
                mu_range > ph%pexsi_options%muInertiaTolerance)
          n_iner_steps = n_iner_steps+1
          shift_width  = mu_range/(n_shift-1)
@@ -297,12 +297,12 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          aux_max = n_shift
 
          do i = 2,n_shift-1
-            if(ne_upper(i) < ph%n_electrons .and. &
+            if(ne_upper(i) < ph%n_electrons .and.&
                ne_upper(i+1) >= ph%n_electrons) then
                aux_min = i
             endif
 
-            if(ne_lower(i) > ph%n_electrons .and. &
+            if(ne_lower(i) > ph%n_electrons .and.&
                ne_lower(i-1) <= ph%n_electrons) then
                aux_max = i
             endif
@@ -408,7 +408,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    aux_max   = ph%pexsi_options%nPoints+1
 
    do i = 1,ph%pexsi_options%nPoints
-      if(ne_vec(i) < &
+      if(ne_vec(i) <&
          ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMin0 = shifts(i)
          aux_min                 = i
@@ -416,7 +416,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    enddo
 
    do i = ph%pexsi_options%nPoints,1,-1
-      if(ne_vec(i) > &
+      if(ne_vec(i) >&
          ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMax0 = shifts(i)
          aux_max                 = i
@@ -447,7 +447,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       endif
 
       do i = aux_min,aux_max
-         if(abs(ne_vec(i)-ph%n_electrons) < &
+         if(abs(ne_vec(i)-ph%n_electrons) <&
             ph%pexsi_options%numElectronPEXSITolerance) then
             ph%mu     = shifts(i)
             converged = .true.
@@ -509,6 +509,8 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    endif
 
    call MPI_Bcast(ph%ebs,1,mpi_real8,0,bh%comm,ierr)
+
+   call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
    call elsi_get_time(t1)
 
@@ -583,7 +585,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    enddo
 
    do i = 1,ph%pexsi_options%nPoints
-      if(ne_vec(i) < &
+      if(ne_vec(i) <&
          ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMin0 = shifts(i)
          aux_min                 = i
@@ -591,7 +593,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    enddo
 
    do i = ph%pexsi_options%nPoints,1,-1
-      if(ne_vec(i) > &
+      if(ne_vec(i) >&
          ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMax0 = shifts(i)
          aux_max                 = i
@@ -622,7 +624,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
       endif
 
       do i = aux_min,aux_max
-         if(abs(ne_vec(i)-ph%n_electrons) < &
+         if(abs(ne_vec(i)-ph%n_electrons) <&
             ph%pexsi_options%numElectronPEXSITolerance) then
             ph%mu     = shifts(i)
             converged = .true.
@@ -778,7 +780,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_allocate(bh,ne_lower,n_shift,"ne_lower",caller)
       call elsi_allocate(bh,ne_upper,n_shift,"ne_upper",caller)
 
-      do while(n_iner_steps < 10 .and. &
+      do while(n_iner_steps < 10 .and.&
                mu_range > ph%pexsi_options%muInertiaTolerance)
          n_iner_steps = n_iner_steps+1
          shift_width  = mu_range/(n_shift-1)
@@ -823,12 +825,12 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          aux_max = n_shift
 
          do i = 2,n_shift-1
-            if(ne_upper(i) < ph%n_electrons .and. &
+            if(ne_upper(i) < ph%n_electrons .and.&
                ne_upper(i+1) >= ph%n_electrons) then
                aux_min = i
             endif
 
-            if(ne_lower(i) > ph%n_electrons .and. &
+            if(ne_lower(i) > ph%n_electrons .and.&
                ne_lower(i-1) <= ph%n_electrons) then
                aux_max = i
             endif
@@ -934,7 +936,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    aux_max   = ph%pexsi_options%nPoints+1
 
    do i = 1,ph%pexsi_options%nPoints
-      if(ne_vec(i) < &
+      if(ne_vec(i) <&
          ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMin0 = shifts(i)
          aux_min                 = i
@@ -942,7 +944,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    enddo
 
    do i = ph%pexsi_options%nPoints,1,-1
-      if(ne_vec(i) > &
+      if(ne_vec(i) >&
          ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMax0 = shifts(i)
          aux_max                 = i
@@ -973,7 +975,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       endif
 
       do i = aux_min,aux_max
-         if(abs(ne_vec(i)-ph%n_electrons) < &
+         if(abs(ne_vec(i)-ph%n_electrons) <&
             ph%pexsi_options%numElectronPEXSITolerance) then
             ph%mu     = shifts(i)
             converged = .true.
@@ -1112,7 +1114,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    enddo
 
    do i = 1,ph%pexsi_options%nPoints
-      if(ne_vec(i) < &
+      if(ne_vec(i) <&
          ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMin0 = shifts(i)
          aux_min                 = i
@@ -1120,7 +1122,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    enddo
 
    do i = ph%pexsi_options%nPoints,1,-1
-      if(ne_vec(i) > &
+      if(ne_vec(i) >&
          ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMax0 = shifts(i)
          aux_max                 = i
@@ -1151,7 +1153,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
       endif
 
       do i = aux_min,aux_max
-         if(abs(ne_vec(i)-ph%n_electrons) < &
+         if(abs(ne_vec(i)-ph%n_electrons) <&
             ph%pexsi_options%numElectronPEXSITolerance) then
             ph%mu     = shifts(i)
             converged = .true.

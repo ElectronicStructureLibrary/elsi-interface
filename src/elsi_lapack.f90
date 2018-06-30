@@ -230,7 +230,7 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
       call elsi_stop(bh,"ELPA tridiagonal solver failed.",caller)
    endif
 
-   evec(1:ph%n_good,1:ph%n_states_solve) = &
+   evec(1:ph%n_good,1:ph%n_states_solve) =&
       tmp_real(1:ph%n_good,1:ph%n_states_solve)
 
    call dormtr('L','U','N',ph%n_good,ph%n_states_solve,ham,ph%n_basis,tau_real,&
@@ -344,7 +344,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
 
       write(info_str,"(2X,A)") "Overlap matrix is singular"
       call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A,E10.2)") &
+      write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
 
@@ -366,7 +366,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
 
       write(info_str,"(2X,A)") "Overlap matrix is not singular"
       call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A,E10.2)") &
+      write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
    endif ! Singular overlap?
@@ -585,7 +585,7 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
       call elsi_stop(bh,"ELPA tridiagonal solver failed.",caller)
    endif
 
-   evec(1:ph%n_good,1:ph%n_states_solve) = &
+   evec(1:ph%n_good,1:ph%n_states_solve) =&
       tmp_real(1:ph%n_good,1:ph%n_states_solve)
 
    call zunmtr('L','U','N',ph%n_good,ph%n_states_solve,ham,ph%n_basis,&
@@ -703,7 +703,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
 
       write(info_str,"(2X,A)") "Overlap matrix is singular"
       call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A,E10.2)") &
+      write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
 
@@ -725,7 +725,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
 
       write(info_str,"(2X,A)") "Overlap matrix is not singular"
       call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A,E10.2)") &
+      write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
    endif ! Singular overlap?
