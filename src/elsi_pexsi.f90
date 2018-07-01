@@ -9,7 +9,7 @@
 !!
 module ELSI_PEXSI
 
-   use ELSI_CONSTANTS,     only: UNSET
+   use ELSI_CONSTANTS,     only: UNSET,PEXSI_CSC
    use ELSI_DATATYPE,      only: elsi_param_t,elsi_basic_t
    use ELSI_IO,            only: elsi_say,elsi_get_time
    use ELSI_MALLOC,        only: elsi_allocate,elsi_deallocate
@@ -112,6 +112,11 @@ subroutine elsi_init_pexsi(ph,bh)
       ! PEXSI MPI communicators
       call MPI_Comm_split(bh%comm,ph%pexsi_my_prow,ph%pexsi_my_pcol,&
               ph%pexsi_comm_intra_pole,ierr)
+
+      call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
+
+      call MPI_Comm_split(bh%comm,ph%pexsi_my_pcol,ph%pexsi_my_prow,&
+              ph%pexsi_comm_inter_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
 
@@ -491,7 +496,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_deallocate(bh,send_buf,"send_buf")
    endif
 
-   if(ph%pexsi_my_prow == 0) then
+   if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
       dm = tmp_real
    endif
 
@@ -663,7 +668,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
       call elsi_deallocate(bh,send_buf,"send_buf")
    endif
 
-   if(ph%pexsi_my_prow == 0) then
+   if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
       edm = tmp_real
    endif
 
@@ -1019,7 +1024,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_deallocate(bh,send_buf_cmplx,"send_buf_cmplx")
    endif
 
-   if(ph%pexsi_my_prow == 0) then
+   if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
       dm = tmp_cmplx
    endif
 
@@ -1192,7 +1197,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
       call elsi_deallocate(bh,send_buf_cmplx,"send_buf_cmplx")
    endif
 
-   if(ph%pexsi_my_prow == 0) then
+   if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
       edm = tmp_cmplx
    endif
 
@@ -1247,6 +1252,7 @@ subroutine elsi_cleanup_pexsi(ph)
    if(ph%pexsi_started) then
       call f_ppexsi_plan_finalize(ph%pexsi_plan,ierr)
       call MPI_Comm_free(ph%pexsi_comm_intra_pole,ierr)
+      call MPI_Comm_free(ph%pexsi_comm_inter_pole,ierr)
       call MPI_Comm_free(ph%pexsi_comm_inter_point,ierr)
    endif
 
