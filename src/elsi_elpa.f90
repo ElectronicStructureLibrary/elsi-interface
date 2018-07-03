@@ -78,6 +78,9 @@ subroutine elsi_init_elpa(ph,bh)
 
    if(.not. ph%elpa_started) then
       call MPI_Comm_split(bh%comm,bh%my_pcol,bh%my_prow,ph%elpa_comm_row,ierr)
+
+      call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
+
       call MPI_Comm_split(bh%comm,bh%my_prow,bh%my_pcol,ph%elpa_comm_col,ierr)
 
       call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
@@ -506,7 +509,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
 
       write(info_str,"(2X,A)") "Overlap matrix is singular"
       call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A,E10.2)") &
+      write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
 
@@ -531,7 +534,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
 
       write(info_str,"(2X,A)") "Overlap matrix is not singular"
       call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A,E10.2)") &
+      write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
    endif ! Singular overlap?
@@ -990,7 +993,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
 
       write(info_str,"(2X,A)") "Overlap matrix is singular"
       call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A,E10.2)") &
+      write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
 
@@ -1015,7 +1018,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
 
       write(info_str,"(2X,A)") "Overlap matrix is not singular"
       call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A,E10.2)") &
+      write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
    endif ! Singular overlap?

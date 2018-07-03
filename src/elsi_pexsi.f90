@@ -9,7 +9,7 @@
 !!
 module ELSI_PEXSI
 
-   use ELSI_CONSTANTS,     only: UNSET
+   use ELSI_CONSTANTS,     only: UNSET,PEXSI_CSC
    use ELSI_DATATYPE,      only: elsi_param_t,elsi_basic_t
    use ELSI_IO,            only: elsi_say,elsi_get_time
    use ELSI_MALLOC,        only: elsi_allocate,elsi_deallocate
@@ -112,6 +112,11 @@ subroutine elsi_init_pexsi(ph,bh)
       ! PEXSI MPI communicators
       call MPI_Comm_split(bh%comm,ph%pexsi_my_prow,ph%pexsi_my_pcol,&
               ph%pexsi_comm_intra_pole,ierr)
+
+      call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
+
+      call MPI_Comm_split(bh%comm,ph%pexsi_my_pcol,ph%pexsi_my_prow,&
+              ph%pexsi_comm_inter_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
 
@@ -252,7 +257,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_allocate(bh,ne_lower,n_shift,"ne_lower",caller)
       call elsi_allocate(bh,ne_upper,n_shift,"ne_upper",caller)
 
-      do while(n_iner_steps < 10 .and. &
+      do while(n_iner_steps < 10 .and.&
                mu_range > ph%pexsi_options%muInertiaTolerance)
          n_iner_steps = n_iner_steps+1
          shift_width  = mu_range/(n_shift-1)
@@ -297,12 +302,12 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          aux_max = n_shift
 
          do i = 2,n_shift-1
-            if(ne_upper(i) < ph%n_electrons .and. &
+            if(ne_upper(i) < ph%n_electrons .and.&
                ne_upper(i+1) >= ph%n_electrons) then
                aux_min = i
             endif
 
-            if(ne_lower(i) > ph%n_electrons .and. &
+            if(ne_lower(i) > ph%n_electrons .and.&
                ne_lower(i-1) <= ph%n_electrons) then
                aux_max = i
             endif
@@ -408,7 +413,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    aux_max   = ph%pexsi_options%nPoints+1
 
    do i = 1,ph%pexsi_options%nPoints
-      if(ne_vec(i) < &
+      if(ne_vec(i) <&
          ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMin0 = shifts(i)
          aux_min                 = i
@@ -416,7 +421,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    enddo
 
    do i = ph%pexsi_options%nPoints,1,-1
-      if(ne_vec(i) > &
+      if(ne_vec(i) >&
          ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMax0 = shifts(i)
          aux_max                 = i
@@ -447,7 +452,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       endif
 
       do i = aux_min,aux_max
-         if(abs(ne_vec(i)-ph%n_electrons) < &
+         if(abs(ne_vec(i)-ph%n_electrons) <&
             ph%pexsi_options%numElectronPEXSITolerance) then
             ph%mu     = shifts(i)
             converged = .true.
@@ -491,7 +496,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_deallocate(bh,send_buf,"send_buf")
    endif
 
-   if(ph%pexsi_my_prow == 0) then
+   if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
       dm = tmp_real
    endif
 
@@ -509,6 +514,8 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    endif
 
    call MPI_Bcast(ph%ebs,1,mpi_real8,0,bh%comm,ierr)
+
+   call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
    call elsi_get_time(t1)
 
@@ -583,7 +590,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    enddo
 
    do i = 1,ph%pexsi_options%nPoints
-      if(ne_vec(i) < &
+      if(ne_vec(i) <&
          ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMin0 = shifts(i)
          aux_min                 = i
@@ -591,7 +598,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    enddo
 
    do i = ph%pexsi_options%nPoints,1,-1
-      if(ne_vec(i) > &
+      if(ne_vec(i) >&
          ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMax0 = shifts(i)
          aux_max                 = i
@@ -622,7 +629,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
       endif
 
       do i = aux_min,aux_max
-         if(abs(ne_vec(i)-ph%n_electrons) < &
+         if(abs(ne_vec(i)-ph%n_electrons) <&
             ph%pexsi_options%numElectronPEXSITolerance) then
             ph%mu     = shifts(i)
             converged = .true.
@@ -661,7 +668,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
       call elsi_deallocate(bh,send_buf,"send_buf")
    endif
 
-   if(ph%pexsi_my_prow == 0) then
+   if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
       edm = tmp_real
    endif
 
@@ -778,7 +785,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_allocate(bh,ne_lower,n_shift,"ne_lower",caller)
       call elsi_allocate(bh,ne_upper,n_shift,"ne_upper",caller)
 
-      do while(n_iner_steps < 10 .and. &
+      do while(n_iner_steps < 10 .and.&
                mu_range > ph%pexsi_options%muInertiaTolerance)
          n_iner_steps = n_iner_steps+1
          shift_width  = mu_range/(n_shift-1)
@@ -823,12 +830,12 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          aux_max = n_shift
 
          do i = 2,n_shift-1
-            if(ne_upper(i) < ph%n_electrons .and. &
+            if(ne_upper(i) < ph%n_electrons .and.&
                ne_upper(i+1) >= ph%n_electrons) then
                aux_min = i
             endif
 
-            if(ne_lower(i) > ph%n_electrons .and. &
+            if(ne_lower(i) > ph%n_electrons .and.&
                ne_lower(i-1) <= ph%n_electrons) then
                aux_max = i
             endif
@@ -934,7 +941,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    aux_max   = ph%pexsi_options%nPoints+1
 
    do i = 1,ph%pexsi_options%nPoints
-      if(ne_vec(i) < &
+      if(ne_vec(i) <&
          ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMin0 = shifts(i)
          aux_min                 = i
@@ -942,7 +949,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    enddo
 
    do i = ph%pexsi_options%nPoints,1,-1
-      if(ne_vec(i) > &
+      if(ne_vec(i) >&
          ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMax0 = shifts(i)
          aux_max                 = i
@@ -973,7 +980,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       endif
 
       do i = aux_min,aux_max
-         if(abs(ne_vec(i)-ph%n_electrons) < &
+         if(abs(ne_vec(i)-ph%n_electrons) <&
             ph%pexsi_options%numElectronPEXSITolerance) then
             ph%mu     = shifts(i)
             converged = .true.
@@ -1017,7 +1024,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_deallocate(bh,send_buf_cmplx,"send_buf_cmplx")
    endif
 
-   if(ph%pexsi_my_prow == 0) then
+   if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
       dm = tmp_cmplx
    endif
 
@@ -1112,7 +1119,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    enddo
 
    do i = 1,ph%pexsi_options%nPoints
-      if(ne_vec(i) < &
+      if(ne_vec(i) <&
          ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMin0 = shifts(i)
          aux_min                 = i
@@ -1120,7 +1127,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    enddo
 
    do i = ph%pexsi_options%nPoints,1,-1
-      if(ne_vec(i) > &
+      if(ne_vec(i) >&
          ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMax0 = shifts(i)
          aux_max                 = i
@@ -1151,7 +1158,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
       endif
 
       do i = aux_min,aux_max
-         if(abs(ne_vec(i)-ph%n_electrons) < &
+         if(abs(ne_vec(i)-ph%n_electrons) <&
             ph%pexsi_options%numElectronPEXSITolerance) then
             ph%mu     = shifts(i)
             converged = .true.
@@ -1190,7 +1197,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
       call elsi_deallocate(bh,send_buf_cmplx,"send_buf_cmplx")
    endif
 
-   if(ph%pexsi_my_prow == 0) then
+   if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
       edm = tmp_cmplx
    endif
 
@@ -1245,6 +1252,7 @@ subroutine elsi_cleanup_pexsi(ph)
    if(ph%pexsi_started) then
       call f_ppexsi_plan_finalize(ph%pexsi_plan,ierr)
       call MPI_Comm_free(ph%pexsi_comm_intra_pole,ierr)
+      call MPI_Comm_free(ph%pexsi_comm_inter_pole,ierr)
       call MPI_Comm_free(ph%pexsi_comm_inter_point,ierr)
    endif
 

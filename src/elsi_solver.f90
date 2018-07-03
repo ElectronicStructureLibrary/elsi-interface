@@ -1059,7 +1059,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
                call elsi_allocate(eh%bh,eh%omm_c_real,eh%ph%omm_n_lrow,&
                        eh%bh%n_lcol,"omm_c_real",caller)
             endif
-            eh%omm_c_real(1:eh%ph%omm_n_lrow,:) = &
+            eh%omm_c_real(1:eh%ph%omm_n_lrow,:) =&
                eh%dm_real_den(1:eh%ph%omm_n_lrow,:)
 
             if(allocated(eh%evec_real)) then
@@ -1555,7 +1555,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
                call elsi_allocate(eh%bh,eh%omm_c_cmplx,eh%ph%omm_n_lrow,&
                        eh%bh%n_lcol,"omm_c_cmplx",caller)
             endif
-            eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:) = &
+            eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:) =&
                eh%dm_cmplx_den(1:eh%ph%omm_n_lrow,:)
 
             if(allocated(eh%evec_cmplx)) then

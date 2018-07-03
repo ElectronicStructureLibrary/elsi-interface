@@ -122,7 +122,7 @@ program test_dm_kpt_spin_cmplx_den
       elseif(solver == 3) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + PEXSI"
          e_ref = e_pexsi
-         e_tol = 1.0e-4_r8
+         e_tol = 1.0e-3_r8
       endif
       write(*,*)
    endif

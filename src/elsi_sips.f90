@@ -191,7 +191,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
             endif
          endif
 
-         if(inertias(ph%sips_n_slices+1) < &
+         if(inertias(ph%sips_n_slices+1) <&
             ph%n_states+ph%sips_first_ev-1) then
             eval(ph%n_states) = eval(ph%n_states)+ph%sips_buffer
             inertia_ok        = .false.
