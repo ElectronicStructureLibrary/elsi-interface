@@ -6,6 +6,7 @@
    * For externally linked ELPA, added options to perform single precision
      calculations and to automatically tune the internal runtime parameters
      of the solver.
+   * Interface for externally linked ELPA compatible with ELPA 2018.05.
 
 ============================
    ELSI May 2018 (v2.0.2)
@@ -60,7 +61,7 @@
    * Updated redistributed ELPA source code to version 2016.11.001.
    * Added AVX512 kernel.
    * Made the two-stage solver default for all matrix sizes.
-   * Updated the interface for externally linked ELPA the AEO version
+   * Updated the interface for externally linked ELPA to the AEO version
      (ELPA release 2017.05 or later).  GPU acceleration and GPU kernels
      may be enabled through the ELSI interface for externally linked ELPA.
 
