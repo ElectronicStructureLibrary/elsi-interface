@@ -152,7 +152,7 @@ CONTAINS
         CALL EPSSetPurify(eps,PETSC_FALSE,ierr)
         CHKERRQ(ierr)
 
-        CALL PCFactorSetMatSolverPackage(pc,MATSOLVERMUMPS,ierr)
+        CALL PCFactorSetMatSolverType(pc,MATSOLVERMUMPS,ierr)
         CHKERRQ(ierr)
 
         ! Add MUMPS options (currently no better way of setting this):
@@ -163,7 +163,7 @@ CONTAINS
 
         ! Increase workspace with a percentage (50, 100 or more)
         CALL PetscOptionsInsertString(PETSC_NULL_OPTIONS,&
-                 "-mat_mumps_icntl_14 50",ierr)
+                 "-mat_mumps_icntl_14 100",ierr)
         CHKERRQ(ierr)
 
         ! Detect null pivots (a shift is equal to an eigenvalue)
