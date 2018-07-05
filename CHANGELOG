@@ -7,6 +7,9 @@
      calculations and to automatically tune the internal runtime parameters
      of the solver.
 
+   SLEPc-SIPs:
+   * Updated interface to support PETSc 3.9.3 and SLEPc 3.9.2.
+
 ============================
    ELSI May 2018 (v2.0.2)
 ============================
