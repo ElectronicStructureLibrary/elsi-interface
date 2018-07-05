@@ -27,15 +27,7 @@
 !
 MODULE M_SIPS
 
-#ifdef PETSC_3_7
-#include <slepc/finclude/slepcepsdef.h>
-#define PETSC_NULL_MAT PETSC_NULL_OBJECT
-#define PETSC_NULL_OPTIONS PETSC_NULL_OBJECT
-#define PETSC_NULL_VEC PETSC_NULL_OBJECT
-#define PETSC_NULL_SCALAR PETSC_NULL_REAL
-#else
 #include <slepc/finclude/slepc.h>
-#endif
 
 USE slepceps
 
@@ -160,7 +152,7 @@ CONTAINS
         CALL EPSSetPurify(eps,PETSC_FALSE,ierr)
         CHKERRQ(ierr)
 
-        CALL PCFactorSetMatSolverPackage(pc,MATSOLVERMUMPS,ierr)
+        CALL PCFactorSetMatSolverType(pc,MATSOLVERMUMPS,ierr)
         CHKERRQ(ierr)
 
         ! Add MUMPS options (currently no better way of setting this):
@@ -171,7 +163,7 @@ CONTAINS
 
         ! Increase workspace with a percentage (50, 100 or more)
         CALL PetscOptionsInsertString(PETSC_NULL_OPTIONS,&
-                 "-mat_mumps_icntl_14 50",ierr)
+                 "-mat_mumps_icntl_14 100",ierr)
         CHKERRQ(ierr)
 
         ! Detect null pivots (a shift is equal to an eigenvalue)
@@ -200,7 +192,6 @@ CONTAINS
 
         MPI_Comm, SAVE :: matcomm
         PetscInt, SAVE :: counter = 0
-        PetscBool      :: globalupdate = PETSC_FALSE
 
         counter = counter+1
 
@@ -221,7 +212,7 @@ CONTAINS
         END IF
 
         CALL EPSKrylovSchurUpdateSubcommMats(eps,0.0_dp,1.0_dp,submatA,1.0_dp,&
-                 0.0_dp,PETSC_NULL_MAT,SAME_NONZERO_PATTERN,globalupdate,ierr)
+                 0.0_dp,PETSC_NULL_MAT,SAME_NONZERO_PATTERN,PETSC_FALSE,ierr)
         CHKERRQ(ierr)
 
     END SUBROUTINE
@@ -517,10 +508,6 @@ CONTAINS
         PetscInt :: nshift
 
         CALL sips_set_slices(nsub,subs)
-
-        ! For safety
-        CALL EPSKrylovSchurSetDetectZeros(eps,PETSC_TRUE,ierr)
-        CHKERRQ(ierr)
 
         CALL EPSSetUp(eps,ierr)
         CHKERRQ(ierr)

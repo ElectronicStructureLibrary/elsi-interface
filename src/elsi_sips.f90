@@ -181,6 +181,10 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
                if(inertias(i+1) > ph%sips_first_ev-1) then
                   eval(1) = slices(i)
 
+                  if(i > 1) then
+                     inertia_ok = .false.
+                  endif
+
                   exit
                endif
             enddo
@@ -199,6 +203,10 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
             do i = ph%sips_n_slices+1,2,-1
                if(inertias(i-1) < ph%n_states+ph%sips_first_ev-1) then
                   eval(ph%n_states) = slices(i)
+
+                  if(i < ph%sips_n_slices+1) then
+                     inertia_ok = .false.
+                  endif
 
                   exit
                endif

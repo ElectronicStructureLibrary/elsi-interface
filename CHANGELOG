@@ -8,6 +8,9 @@
      of the solver.
    * Interface for externally linked ELPA compatible with ELPA 2018.05.
 
+   SLEPc-SIPs:
+   * Updated interface to support PETSc 3.9.3 and SLEPc 3.9.2.
+
 ============================
    ELSI May 2018 (v2.0.2)
 ============================
