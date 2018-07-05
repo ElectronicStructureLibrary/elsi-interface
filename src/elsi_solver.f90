@@ -317,14 +317,14 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
          call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,&
                  eh%ham_real_den,eh%ovlp_real_den,eval,evec)
       else ! ELPA is done
+         call elsi_init_sips(eh%ph,eh%bh)
+
          if(allocated(eh%ham_real_den)) then
             call elsi_deallocate(eh%bh,eh%ham_real_den,"ham_real_den")
          endif
          if(allocated(eh%ovlp_real_den)) then
             call elsi_deallocate(eh%bh,eh%ovlp_real_den,"ovlp_real_den")
          endif
-
-         call elsi_init_sips(eh%ph,eh%bh)
 
          if(.not. allocated(eh%evec_real)) then
             call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,&
@@ -1209,6 +1209,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
 
          call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
       else ! ELPA is done
+         call elsi_init_sips(eh%ph,eh%bh)
+
          if(allocated(eh%ham_real_den)) then
             call elsi_deallocate(eh%bh,eh%ham_real_den,"ham_real_den")
          endif
@@ -1229,8 +1231,6 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
             call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,&
                     eh%ph%n_states,"evec_real",caller)
          endif
-
-         call elsi_init_sips(eh%ph,eh%bh)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
