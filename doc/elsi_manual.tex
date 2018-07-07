@@ -289,8 +289,8 @@ Building the PEXSI solver (highly recommended) requires:\\
 Building the SLEPc-SIPs solver requires:\\
 
 \begin{Verbatim}[commandchars=\\\{\}]
-\textcolor{blue}{SLEPc}  [version 3.8.3 only]
-\textcolor{blue}{PETSc}  [version 3.8.4 only, with SuperLU_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled]
+\textcolor{blue}{SLEPc}  [version 3.9.2 only]
+\textcolor{blue}{PETSc}  [version 3.9.3 only, with SuperLU_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled]
 \end{Verbatim}
 
 Linear algebra libraries should be provided for ELSI to link against:\\
@@ -441,7 +441,7 @@ if using redistributed SuperLU\_DIST with PT-SCOTCH, or\\
 -DLIBS="superlu_dist;your_choice_of_matrix_reordering_library"
 \end{verbatim}
 
-if using an externally compiled SuperLU\_DIST.  SuperLU\_DIST 5.3.0, which has been extensively tested with ELSI, is recommended.  Older/newer versions may or may not work properly with this version of ELSI.\\
+if using an externally compiled SuperLU\_DIST.  SuperLU\_DIST 5.3.0 has been tested with this version of ELSI.  Older/newer versions may or may not be compatible.\\
 
 SLEPc-SIPs may be activated by specifying:\\
 
@@ -455,7 +455,7 @@ SLEPc-SIPs may be activated by specifying:\\
 metis;ptesmumps;ptscotchparmetis;ptscotch;ptscotcherr;esmumps;scotchmetis;scotch;scotcherr"
 \end{verbatim}
 
-SLEPc 3.8.3 and PETSc 3.8.4, which have been extensively tested with ELSI, are recommended.  Older/newer versions may or may not work properly with this version of ELSI.  The PETSc library must be compiled with MPI support, and (at least) with external packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.  The SuperLU\_DIST library redistributed through ELSI must be turned off by setting \textcolor{blue}{USE\_EXTERNAL\_SUPERLU} to ``ON'', as SuperLU\_DIST is already present in the PETSc installation.\\
+SLEPc 3.9.2 and PETSc 3.9.3 have been tested with this version of ELSI.  Older/newer versions may or may not be compatible.  The PETSc library must be compiled with MPI support, and (at least) with external packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.  The SuperLU\_DIST library redistributed through ELSI must be turned off by setting \textcolor{blue}{USE\_EXTERNAL\_SUPERLU} to ``ON'', as SuperLU\_DIST is already present in the PETSc installation.\\
 
 \subsection{Build Targets}
 \label{subsec:config_targets}
