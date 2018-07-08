@@ -17,8 +17,8 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    include "mpif.h"
 
    integer(kind=i4), intent(in) :: mpi_comm
-   character(*),     intent(in) :: h_file
-   character(*),     intent(in) :: s_file
+   character(len=*), intent(in) :: h_file
+   character(len=*), intent(in) :: s_file
 
    integer(kind=i4) :: n_proc
    integer(kind=i4) :: nprow

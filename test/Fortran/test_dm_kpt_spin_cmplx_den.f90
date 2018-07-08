@@ -17,10 +17,10 @@ program test_dm_kpt_spin_cmplx_den
 
    include "mpif.h"
 
-   character(128) :: arg1 ! solver
-   character(128) :: arg2 ! H file
-   character(128) :: arg3 ! S file
-   character(128) :: arg4 ! make check?
+   character(len=128) :: arg1 ! solver
+   character(len=128) :: arg2 ! H file
+   character(len=128) :: arg3 ! S file
+   character(len=128) :: arg4 ! make check?
 
    integer(kind=i4) :: n_proc
    integer(kind=i4) :: nprow
@@ -64,7 +64,7 @@ program test_dm_kpt_spin_cmplx_den
 
    real(kind=r8), parameter :: k_weights(2) = 0.5_r8
 
-   ! Reference values from calculations on November 20, 2017.
+   ! Reference values
    real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
    real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
    real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8

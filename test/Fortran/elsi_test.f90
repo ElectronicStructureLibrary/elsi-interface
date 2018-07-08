@@ -15,12 +15,12 @@ program elsi_test
 
    include "mpif.h"
 
-   character(128) :: arg1 ! ev or dm
-   character(128) :: arg2 ! dense or sparse
-   character(128) :: arg3 ! real or cmplx
-   character(128) :: arg4 ! solver
-   character(128) :: arg5 ! H file
-   character(128) :: arg6 ! S file
+   character(len=128) :: arg1 ! ev or dm
+   character(len=128) :: arg2 ! dense or sparse
+   character(len=128) :: arg3 ! real or cmplx
+   character(len=128) :: arg4 ! solver
+   character(len=128) :: arg5 ! H file
+   character(len=128) :: arg6 ! S file
 
    integer(kind=i4) :: solver
    integer(kind=i4) :: myid

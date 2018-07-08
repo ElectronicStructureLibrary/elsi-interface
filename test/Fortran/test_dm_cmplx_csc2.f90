@@ -18,8 +18,8 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
 
    integer(kind=i4), intent(in) :: mpi_comm
    integer(kind=i4), intent(in) :: solver
-   character(*),     intent(in) :: h_file
-   character(*),     intent(in) :: s_file
+   character(len=*), intent(in) :: h_file
+   character(len=*), intent(in) :: s_file
 
    integer(kind=i4) :: n_proc
    integer(kind=i4) :: myid
@@ -50,7 +50,7 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
    type(elsi_handle)    :: e_h
    type(elsi_rw_handle) :: rw_h
 
-   ! Reference values from calculations on November 20, 2017.
+   ! Reference values
    real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
    real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
    real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
