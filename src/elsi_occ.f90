@@ -121,7 +121,8 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_weights,&
 
    ! Enlarge the interval towards both sides if solution not found
    n_steps = 0
-   do while(diff_ne_lower*diff_ne_upper > 0)
+
+   do while(diff_ne_lower*diff_ne_upper > 0.0_r8)
       n_steps = n_steps+1
 
       if(n_steps > ph%mu_max_steps) then
@@ -165,7 +166,7 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
    real(kind=r8),      intent(out) :: diff_ne_out
 
    real(kind=r8)    :: spin_degen
-   real(kind=r8)    :: invert_width ! 1/mu_width
+   real(kind=r8)    :: invert_width
    real(kind=r8)    :: delta
    real(kind=r8)    :: max_exp ! Maximum possible exponent
    real(kind=r8)    :: arg
@@ -246,9 +247,10 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
 
                if(ph%mu_mp_order > 1) then ! higher order
                   do i_mp = 2,ph%mu_mp_order
-                     A      = -1.0_r8/real(4*i_mp,kind=r8)*A
-                     H_even = 2.0_r8*arg*H_odd-2.0_r8*i_mp*H_even
-                     H_odd  = 2.0_r8*arg*H_even-2.0_r8*(i_mp+1)*H_odd
+                     A      = -0.25_r8/real(i_mp,kind=r8)*A
+                     H_even = 2.0_r8*arg*H_odd-2.0_r8*real(i_mp,kind=r8)*H_even
+                     H_odd  = 2.0_r8*arg*H_even-2.0_r8*real(i_mp+1,kind=r8)*&
+                                 H_odd
 
                      occ_nums(i_state,i_spin,i_kpt) =&
                         occ_nums(i_state,i_spin,i_kpt)+A*H_odd*weight*spin_degen
@@ -275,7 +277,7 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
                else
                   occ_nums(i_state,i_spin,i_kpt) = spin_degen*&
                      (0.25_r8/delta**3)*&
-                     (evals(i_state,i_spin,i_kpt)-mu_in+2*delta)*&
+                     (evals(i_state,i_spin,i_kpt)-mu_in+2.0_r8*delta)*&
                      (evals(i_state,i_spin,i_kpt)-mu_in-delta)**2
                endif
 
@@ -366,9 +368,9 @@ subroutine elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
       if(abs(diff_mid) < ph%mu_tol) then
          mu_out   = mu_mid
          found_mu = .true.
-      elseif(diff_mid < 0) then
+      elseif(diff_mid < 0.0_r8) then
          mu_left = mu_mid
-      elseif(diff_mid > 0) then
+      elseif(diff_mid > 0.0_r8) then
          mu_right = mu_mid
       endif
    enddo
@@ -516,7 +518,7 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
    real(kind=r8),      intent(out) :: ts                             !< Entropy
 
    real(kind=r8)    :: spin_degen
-   real(kind=r8)    :: invert_width ! 1/mu_width
+   real(kind=r8)    :: invert_width
    real(kind=r8)    :: delta
    real(kind=r8)    :: const
    real(kind=r8)    :: pre
@@ -549,7 +551,7 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
 
    select case(ph%mu_scheme)
    case(GAUSSIAN)
-      pre = spin_degen*0.25_r8*ph%mu_width*INVERT_SQRT_PI
+      pre = 0.5_r8*spin_degen*ph%mu_width*INVERT_SQRT_PI
 
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
@@ -561,21 +563,22 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
          enddo
       enddo
    case(FERMI)
-      pre = spin_degen*0.5_r8*ph%mu_width
+      pre = -spin_degen*ph%mu_width
 
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
                arg = occ_nums(i_state,i_spin,i_kpt)/spin_degen
 
-               if(1-arg > ts_thr .and. arg > ts_thr) then
-                  ts = ts+(arg*log(arg)+(1-arg)*log(1-arg))*k_weights(i_kpt)
+               if(1.0_r8-arg > ts_thr .and. arg > ts_thr) then
+                  ts = ts+(arg*log(arg)+(1.0_r8-arg)*log(1.0_r8-arg))*&
+                          k_weights(i_kpt)
                endif
             enddo
          enddo
       enddo
    case(METHFESSEL_PAXTON)
-      pre = spin_degen*0.25_r8*ph%mu_width
+      pre = 0.5_r8*spin_degen*ph%mu_width
 
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
@@ -588,17 +591,18 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
                ts     = ts+INVERT_SQRT_PI*weight*k_weights(i_kpt)
 
                do i_mp = 1,ph%mu_mp_order
-                  A      = -1.0_r8/real(4*i_mp,kind=i4)*A
-                  H_even = 2.0_r8*arg*H_odd-2.0_r8*i_mp*H_even
-                  H_odd  = 2.0_r8*arg*H_even-2.0_r8*(i_mp+1)*H_odd
+                  A      = -0.25_r8/real(i_mp,kind=r8)*A
+                  H_even = 2.0_r8*arg*H_odd-2.0_r8*real(i_mp,kind=r8)*H_even
+                  H_odd  = 2.0_r8*arg*H_even-2.0_r8*real(i_mp+1,kind=r8)*H_odd
                   ts     = ts+A*H_even*weight*k_weights(i_kpt)
                enddo
             enddo
          enddo
       enddo
+
    case(CUBIC)
-      delta = 0.75_r8*SQRT_PI*ph%mu_width
-      pre   = spin_degen*0.5_r8*ph%mu_width*0.1875_r8/(delta**4)
+      delta = 0.75_r8*ph%mu_width*SQRT_PI
+      pre   = 0.1875_r8*spin_degen*ph%mu_width/(delta**4)
       const = delta**2
 
       do i_kpt = 1,n_kpt
@@ -613,7 +617,7 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
          enddo
       enddo
    case(COLD)
-      pre = spin_degen*INVERT_SQRT_PI*sqrt(0.5_r8)*ph%mu_width
+      pre = sqrt(0.5_r8)*spin_degen*ph%mu_width*INVERT_SQRT_PI
 
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
@@ -626,7 +630,7 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
       enddo
    end select
 
-   ts = -(pre*ts)
+   ts = pre*ts
 
 end subroutine
 
