@@ -204,6 +204,7 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
    if(ph%parallel_mode == MULTI_PROC) then
       sparsity = 1.0_r8-(1.0_r8*bh%nnz_g/ph%n_basis/ph%n_basis)
       call fjson_write_name_value(jh,"sparsity",sparsity)
+      call fjson_write_name_value(jh,"nnz_g",bh%nnz_g)
    endif
    if(ph%parallel_mode == MULTI_PROC) then
       call fjson_write_name_value(jh,"parallel_mode","MULTI_PROC")
@@ -211,6 +212,7 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
       call fjson_write_name_value(jh,"parallel_mode","SINGLE_PROC")
    endif
    call fjson_write_name_value(jh,"n_procs",bh%n_procs)
+   call fjson_write_name_value(jh,"n_procs_all",bh%n_procs_all)
    if(ph%solver == ELPA_SOLVER) then
       call fjson_write_name_value(jh,"solver_chosen","ELPA")
    elseif(ph%solver == OMM_SOLVER) then
@@ -518,7 +520,7 @@ subroutine elsi_final_print(ph,bh)
    endif
    call elsi_say(bh,info_str)
 
-   write(info_str,"(2X,A,I22)") "|   Number of MPI tasks       :",bh%n_procs
+   write(info_str,"(2X,A,I22)") "|   Number of MPI tasks       :",bh%n_procs_all
    call elsi_say(bh,info_str)
 
    if(ph%solver == ELPA_SOLVER) then

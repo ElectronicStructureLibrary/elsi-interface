@@ -325,7 +325,6 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
          if(allocated(eh%ovlp_real_den)) then
             call elsi_deallocate(eh%bh,eh%ovlp_real_den,"ovlp_real_den")
          endif
-
          if(.not. allocated(eh%evec_real)) then
             call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,&
                     eh%ph%n_states,"evec_real",caller)
@@ -488,16 +487,15 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
               eh%occ,dm,ham)
       call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
    case(OMM_SOLVER)
-      if(eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-         call elsi_init_elpa(eh%ph,eh%bh)
+      call elsi_init_elpa(eh%ph,eh%bh)
 
+      if(eh%ph%n_calls <= eh%ph%omm_n_elpa) then
          if(eh%ph%n_calls == 1 .and. eh%ph%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
                     eh%bh%n_lcol,"ovlp_real_copy",caller)
             eh%ovlp_real_copy = ovlp
          endif
-
          if(.not. allocated(eh%eval)) then
             call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
          endif
@@ -524,17 +522,16 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
             ovlp = eh%ovlp_real_copy
             call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
          endif
+         if(.not. allocated(eh%omm_c_real)) then
+            call elsi_allocate(eh%bh,eh%omm_c_real,eh%ph%omm_n_lrow,&
+                    eh%bh%n_lcol,"omm_c_real",caller)
+         endif
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
          if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
-            ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real,1,1,&
                     eh%bh%desc,0.0_r8,dm,1,1,eh%bh%desc)
 
-            if(.not. allocated(eh%omm_c_real)) then
-               call elsi_allocate(eh%bh,eh%omm_c_real,eh%ph%omm_n_lrow,&
-                       eh%bh%n_lcol,"omm_c_real",caller)
-            endif
             eh%omm_c_real(1:eh%ph%omm_n_lrow,:) = dm(1:eh%ph%omm_n_lrow,:)
 
             if(allocated(eh%evec_real)) then
@@ -607,7 +604,6 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
                     eh%bh%n_lcol,"ovlp_real_copy",caller)
             eh%ovlp_real_copy = ovlp
          endif
-
          if(.not. allocated(eh%occ)) then
             call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
                     eh%ph%n_kpts,"occ",caller)
@@ -752,16 +748,15 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
               eh%evec_cmplx,eh%occ,dm,ham)
       call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
    case(OMM_SOLVER)
-      if(eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-         call elsi_init_elpa(eh%ph,eh%bh)
+      call elsi_init_elpa(eh%ph,eh%bh)
 
+      if(eh%ph%n_calls <= eh%ph%omm_n_elpa) then
          if(eh%ph%n_calls == 1 .and. eh%ph%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
                     eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
             eh%ovlp_cmplx_copy = ovlp
          endif
-
          if(.not. allocated(eh%eval)) then
             call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
          endif
@@ -788,18 +783,17 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
             ovlp = eh%ovlp_cmplx_copy
             call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
          endif
+         if(.not. allocated(eh%omm_c_cmplx)) then
+            call elsi_allocate(eh%bh,eh%omm_c_cmplx,eh%ph%omm_n_lrow,&
+                    eh%bh%n_lcol,"omm_c_cmplx",caller)
+         endif
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
          if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
-            ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pztranc(eh%ph%n_basis,eh%ph%n_basis,(1.0_r8,0.0_r8),&
                     eh%evec_cmplx,1,1,eh%bh%desc,(0.0_r8,0.0_r8),dm,1,1,&
                     eh%bh%desc)
 
-            if(.not. allocated(eh%omm_c_cmplx)) then
-               call elsi_allocate(eh%bh,eh%omm_c_cmplx,eh%ph%omm_n_lrow,&
-                       eh%bh%n_lcol,"omm_c_cmplx",caller)
-            endif
             eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:) = dm(1:eh%ph%omm_n_lrow,:)
 
             if(allocated(eh%evec_cmplx)) then
@@ -991,16 +985,15 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      if(eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-         call elsi_init_elpa(eh%ph,eh%bh)
+      call elsi_init_elpa(eh%ph,eh%bh)
 
+      if(eh%ph%n_calls <= eh%ph%omm_n_elpa) then
          if(eh%ph%n_calls == 1 .and. eh%ph%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
                     eh%bh%n_lcol,"ovlp_real_copy",caller)
             eh%ovlp_real_copy = eh%ovlp_real_den
          endif
-
          if(.not. allocated(eh%eval)) then
             call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
          endif
@@ -1043,22 +1036,20 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
             eh%ovlp_real_den = eh%ovlp_real_copy
             call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
          endif
-
          if(.not. allocated(eh%dm_real_den)) then
             call elsi_allocate(eh%bh,eh%dm_real_den,eh%bh%n_lrow,eh%bh%n_lcol,&
                     "dm_real_den",caller)
          endif
+         if(.not. allocated(eh%omm_c_real)) then
+            call elsi_allocate(eh%bh,eh%omm_c_real,eh%ph%omm_n_lrow,&
+                    eh%bh%n_lcol,"omm_c_real",caller)
+         endif
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
          if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
-            ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real,1,1,&
                     eh%bh%desc,0.0_r8,eh%dm_real_den,1,1,eh%bh%desc)
 
-            if(.not. allocated(eh%omm_c_real)) then
-               call elsi_allocate(eh%bh,eh%omm_c_real,eh%ph%omm_n_lrow,&
-                       eh%bh%n_lcol,"omm_c_real",caller)
-            endif
             eh%omm_c_real(1:eh%ph%omm_n_lrow,:) =&
                eh%dm_real_den(1:eh%ph%omm_n_lrow,:)
 
@@ -1486,16 +1477,15 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      if(eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-         call elsi_init_elpa(eh%ph,eh%bh)
+      call elsi_init_elpa(eh%ph,eh%bh)
 
+      if(eh%ph%n_calls <= eh%ph%omm_n_elpa) then
          if(eh%ph%n_calls == 1 .and. eh%ph%omm_flavor == 0) then
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
                     eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
             eh%ovlp_cmplx_copy = eh%ovlp_cmplx_den
          endif
-
          if(.not. allocated(eh%eval)) then
             call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
          endif
@@ -1538,23 +1528,21 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
             eh%ovlp_cmplx_den = eh%ovlp_cmplx_copy
             call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
          endif
-
          if(.not. allocated(eh%dm_cmplx_den)) then
             call elsi_allocate(eh%bh,eh%dm_cmplx_den,eh%bh%n_lrow,eh%bh%n_lcol,&
                     "dm_cmplx_den",caller)
          endif
+         if(.not. allocated(eh%omm_c_cmplx)) then
+            call elsi_allocate(eh%bh,eh%omm_c_cmplx,eh%ph%omm_n_lrow,&
+                    eh%bh%n_lcol,"omm_c_cmplx",caller)
+         endif
 
          ! Initialize coefficient matrix with ELPA eigenvectors if possible
          if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
-            ! libOMM coefficient matrix is the transpose of ELPA eigenvectors
             call pztranc(eh%ph%n_basis,eh%ph%n_basis,(1.0_r8,0.0_r8),&
                     eh%evec_cmplx,1,1,eh%bh%desc,(0.0_r8,0.0_r8),&
                     eh%dm_cmplx_den,1,1,eh%bh%desc)
 
-            if(.not. allocated(eh%omm_c_cmplx)) then
-               call elsi_allocate(eh%bh,eh%omm_c_cmplx,eh%ph%omm_n_lrow,&
-                       eh%bh%n_lcol,"omm_c_cmplx",caller)
-            endif
             eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:) =&
                eh%dm_cmplx_den(1:eh%ph%omm_n_lrow,:)
 

@@ -42,6 +42,7 @@ program test_dm_kpt_spin_cmplx_den
    integer(kind=i4) :: l_rows
    integer(kind=i4) :: l_cols
    integer(kind=i4) :: solver
+   integer(kind=i4) :: header(8)
 
    real(kind=r8) :: n_electrons
    real(kind=r8) :: e_test = 0.0_r8
@@ -141,7 +142,7 @@ program test_dm_kpt_spin_cmplx_den
 
    call MPI_Comm_split(mpi_comm,my_group,myid_in_group,mpi_comm_group,mpierr)
 
-   wirte(*,"(2X,A,I4,A,I2,A,I2)") "| Task",myid," solving spin channel",&
+   write(*,"(2X,A,I4,A,I2,A,I2)") "| Task",myid," solving spin channel",&
       my_spin," and k-point",my_kpt
 
    ! Set up square-like processor grid within each group
@@ -164,6 +165,7 @@ program test_dm_kpt_spin_cmplx_den
    call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
 
    call elsi_read_mat_dim(rw_h,arg2,n_electrons,matrix_size,l_rows,l_cols)
+   call elsi_get_rw_header(rw_h,header)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
