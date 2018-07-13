@@ -73,8 +73,6 @@ subroutine elsi_init_omm(ph,bh)
 
 end subroutine
 
-!      call m_allocate(eh%c_omm,ph%omm_n_states,ph%n_basis,"pddbc")
-
 !>
 !! This routine interfaces to libOMM.
 !!
@@ -375,6 +373,7 @@ subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
 
    edm = ph%spin_degen*edm
 
+   call m_deallocate(c_omm)
    call m_deallocate(edm_omm)
 
    call elsi_get_time(t1)
