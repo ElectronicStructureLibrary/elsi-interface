@@ -1285,7 +1285,6 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_pexsi\_n\_mu}(handle, pexsi\_n\_mu)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_pexsi\_np\_per\_pole}(handle, pexsi\_np\_per\_pole)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_pexsi\_np\_symbo}(handle, pexsi\_np\_symbo)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_pexsi\_ordering}(handle, pexsi\_ordering\_method)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_pexsi\_temp}(handle, pexsi\_temp)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_pexsi\_gap}(handle, pexsi\_gap)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_pexsi\_delta\_e}(handle, pexsi\_delta\_e)]
@@ -1305,8 +1304,6 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \textcolor{blue}{pexsi\_np\_per\_pole}    & integer     & -     & Number of MPI tasks assigned to each mu point.  See remark 2.\\
 \hline
 \textcolor{blue}{pexsi\_np\_symbo}        & integer     & 1     & Number of MPI tasks for symbolic factorization.  See remark 3.\\
-\hline
-\textcolor{blue}{pexsi\_ordering}         & integer     & 0     & Matrix reordering method.  See remark 3.\\
 \hline
 \textcolor{blue}{pexsi\_temp}             & real double & 0.002 & Temperature.  See remark 4.\\
 \hline
@@ -1337,7 +1334,7 @@ Note that when using the \textcolor{blue}{PEXSI\_CSC} matrix format together wit
 
 when using the \textcolor{blue}{PEXSI\_CSC} matrix format with the ELPA, libOMM, or SLEPc-SIPs solver, input and output matrices should be distributed across all the MPI tasks in a 1D block distribution.  Again, the block size of the distribution must be floor(\textcolor{blue}{$\text{N}\_\text{basis}$}/\textcolor{blue}{$\text{N}\_\text{procs}$}).\\
 
-\textbf{3)} \textcolor{blue}{pexsi\_np\_symbo}:  The number of MPI tasks used for symbolic factorization cannot be too large.  Otherwise, the symbolic factorization may fail.  The default number of MPI tasks for symbolic factorization is set to 1 for safety.  It is worth testing and increasing this number.  The default matrix reordering method in PEXSI is set to parallel ordering (0).  This may also fail in rare cases, where the sequential ordering (1) is worth trying.\\
+\textbf{3)} \textcolor{blue}{pexsi\_np\_symbo}:  Unless there is a memory bottleneck, using 1 MPI task for matrix reordering and symbolic factorization is favorable.  When running in serial, the matrix reordering in PT-SCOTCH or ParMETIS introduces a minimal number of ``fill-ins'' to the factorized matrices.  Using more MPI tasks introduces more fill-ins.  As the matrix reordering and symbolic factorization are performed only once per SCF cycle (with a fixed overlap matrix), using 1 MPI task should not affect the overall timing too much.  On the other hand, more fill-ins lead to slower numerical factorization in every SCF step.  In addition, the number of MPI tasks used for matrix reordering and symbolic factorization cannot be too large.  Otherwise, the symbolic factorization may fail.  Therefore, the default number of MPI tasks for symbolic factorization is 1.  It is worth testing and increasing this number for large-scale calculations.\\
 
 \textbf{4)} \textcolor{blue}{pexsi\_temp}:  This value corresponds to the $1/k_\text{B} T$ term (not $T$) in the Fermi-Dirac distribution function.\\
 

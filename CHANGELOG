@@ -8,6 +8,11 @@
      of the solver.
    * Interface for externally linked ELPA compatible with ELPA 2018.05.
 
+   PEXSI:
+   * Updated redistributed PEXSI source code to version 1.0.2, which
+     returns the complex-valued density matrix and energy density matrix
+     instead of their transpose.
+
    SLEPc-SIPs:
    * Updated interface to support PETSc 3.9.3 and SLEPc 3.9.2.
 
