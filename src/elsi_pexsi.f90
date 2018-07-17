@@ -727,7 +727,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    real(kind=r8),    allocatable :: send_buf(:)
    complex(kind=r8), allocatable :: send_buf_cmplx(:)
 
-   complex(kind=r8), external :: zdotu
+   complex(kind=r8), external :: zdotc
 
    character(len=40), parameter :: caller = "elsi_solve_pexsi_cmplx"
 
@@ -1033,7 +1033,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    ! Compute energy = Tr(H*DM)
    if(ph%pexsi_my_prow == 0) then
-      local_cmplx  = zdotu(bh%nnz_l_sp1,ham,1,dm,1)
+      local_cmplx  = zdotc(bh%nnz_l_sp1,ham,1,dm,1)
       local_energy = real(local_cmplx,kind=r8)
 
       call MPI_Reduce(local_energy,ph%ebs,1,mpi_real8,mpi_sum,0,&

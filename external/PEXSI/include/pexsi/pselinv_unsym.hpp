@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Lin Lin and Mathias Jacquelin
 
@@ -52,7 +52,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include  "pexsi/environment.hpp"
 #include	"pexsi/NumVec.hpp"
-#include	"pexsi/NumMat.hpp" 
+#include	"pexsi/NumMat.hpp"
 #include  "pexsi/sparse_matrix.hpp"
 
 #include  "pexsi/superlu_dist_interf.hpp"
@@ -123,64 +123,21 @@ template<typename T>
 /// @class PMatrixUnsym
 ///
 /// @brief PMatrixUnsym contains the main data structure and the
-/// computational routine for the parallel selected inversion.  
-/// 
-/// **NOTE** The following is a bit obsolete.
+/// computational routine for the parallel selected inversion.
 ///
-/// Procedure for Selected Inversion 
-/// --------------------------------
+/// **NOTE**
 ///
-/// After factorizing a SuperLUMatrix luMat (See SuperLUMatrix for
-/// information on how to perform factorization), perform the following
-/// steps for parallel selected inversion.
-/// 
-/// - Conversion from SuperLU_DIST.
-///   
-///   Symbolic information
-///
-///       SuperNodeType super; 
-///       PMatrix PMloc;
-///       luMat.SymbolicToSuperNode( super );  
-///   
-///   Numerical information, both L and U.
-///
-///       luMat.LUstructToPMatrix( PMloc ); 
-///
-/// - Preparation.
-///
-///   Construct the communication pattern for SelInv.
-///
-///       PMloc.ConstructCommunicationPattern(); 
-///       or PMloc.ConstructCommunicationPattern_P2p(); 
-///       or PMloc.ConstructCommunicationPattern_Collectives(); 
-///   
-///   Numerical preparation so that SelInv only involves Gemm.
-///
-///       PMloc.PreSelInv();  
-///
-/// - Selected inversion.
-///
-///       PMloc.SelInv();
-///       or PMloc.SelInv_P2p();
-///       or PMloc.SelInv_Collectives();
-///
-/// - Postprocessing.
-///
-///   Get the information in DistSparseMatrix format 
-///
-///       DistSparseMatrix<Scalar> Ainv;
-///       PMloc.PMatrixToDistSparseMatrix( Ainv );  
-///
-/// Note
-/// ----
-///
-/// - All major operations of PMatrix, including the selected inversion
-/// are defined directly as the member function of PMatrix.
-///
-/// - In the current version of PMatrix, square grid is assumed.  This
-/// assumption is only used when sending the information to
-/// cross-diagonal blocks, i.e. from L(isup, ksup) to U(ksup, isup).
-/// This assumption can be relaxed later.
+///  For general non-symmetric matrices, the selected elements are
+///  :math:`\{B_{i,j}\vert A_{j,i}\ne 0\}`.  This means that the matrix
+///  elements computed corresponding to the sparsity pattern of
+///  :math:`A^T` (for more detailed explanation of the mathematical
+///  reason, please see the paper :ref:`PC2018 <citeNonSymPSelInv>`
+///  in the PEXSI documentation).  However, storing the matrix elements
+///  :math:`\{A^{-1}_{i,j}\vert A_{j,i}\ne 0\}` is practically
+///  cumbersome, especially in the context of distributed computing.
+///  Hence we choose to store the selected elements for :math:`A^{-T}`,
+///  i.e. :math:`\{A^{-T}_{i,j}\vert A_{i,j}\ne 0\}`.  These are the
+///  values obtained from the non-symmetric version of PSelInv.
 
 
 template<typename T>
@@ -188,21 +145,22 @@ template<typename T>
 
   protected:
     virtual void PMatrixToDistSparseMatrix_( const NumVec<Int> & AcolptrLocal, const NumVec<Int> & ArowindLocal, const Int Asize, const LongInt Annz, const Int AnnzLocal, DistSparseMatrix<T>& B );
+    // NOTE: By default the returned matrix should store the transpose of the inverse matrix.
 
   std::vector<std::vector<Int> > isSendToCD_;
-  std::vector<std::vector<Int> > isRecvFromCD_; 
+  std::vector<std::vector<Int> > isRecvFromCD_;
 
-  std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastLStructTree_; 
+  std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastLStructTree_;
 
-  std::vector<std::vector< std::shared_ptr<TreeBcast_v2<char> > > > bcastUDataTrees_; 
-  std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastUDataTree_; 
-  std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastUStructTree_; 
+  std::vector<std::vector< std::shared_ptr<TreeBcast_v2<char> > > > bcastUDataTrees_;
+  std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastUDataTree_;
+  std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastUStructTree_;
 
-  std::vector<std::shared_ptr<TreeReduce_v2<T> > > redUTree2_; 
+  std::vector<std::shared_ptr<TreeReduce_v2<T> > > redUTree2_;
 
-  std::vector<TreeReduce<T> *> redLTree_; 
-  std::vector<TreeReduce<T> *> redDTree_; 
-  std::vector<TreeReduce<T> *> redUTree_; 
+  std::vector<TreeReduce<T> *> redLTree_;
+  std::vector<TreeReduce<T> *> redDTree_;
+  std::vector<TreeReduce<T> *> redUTree_;
 
 
 
@@ -326,7 +284,7 @@ template<typename T>
 
   public:
     // *********************************************************************
-    // Public member functions 
+    // Public member functions
     // *********************************************************************
 
     PMatrixUnsym():PMatrix<T>() {}
@@ -348,7 +306,7 @@ template<typename T>
 
     /// @brief Lrow returns the vector of nonzero L blocks for the local
     /// block row iLocal.
-    std::vector<LBlock<T> >& Lrow( Int iLocal ) { return Lrow_[iLocal]; } 	
+    std::vector<LBlock<T> >& Lrow( Int iLocal ) { return Lrow_[iLocal]; }
 
     /// @brief Ucol returns the vector of nonzero U blocks for the local
     /// block col jLocal.
@@ -418,7 +376,7 @@ template<typename T>
     /// L(isup, ksup)^T) to the Schur complements Ainv(isup, jsup).  At
     /// the same time the blocks in the processor column of ksup sends the
     /// nonzero blocks (only nonzero row indices) to the Schur complement
-    /// Ainv(isup, jsup).  Then 
+    /// Ainv(isup, jsup).  Then
     ///
     /// sum_{jsup} Ainv(isup, jsup) U^{T}(ksup, jsup)
     ///
@@ -453,7 +411,7 @@ template<typename T>
     /// double indexing of the supernodes and can scale to matrices of
     /// large size.
     ///
-    /// - isSendToBelow:  
+    /// - isSendToBelow:
     ///
     ///   Dimension: numSuper x numProcRow
     ///
@@ -464,7 +422,7 @@ template<typename T>
     ///
     ///   Dimension: numSuper
     ///
-    ///   Role     : 
+    ///   Role     :
     ///
     ///     * At supernode ksup, if isRecvFromAbove(ksup) == true,
     ///       receive blocks from the processor owning the block row of ksup
@@ -485,10 +443,10 @@ template<typename T>
     ///   ksup} to the processor column jp.
     ///
     /// - isRecvFromLeft:
-    ///   
+    ///
     ///   Dimension: numSuper
     ///
-    ///   Role     : 
+    ///   Role     :
     ///
     ///     * At supernode ksup, if isRecvFromLeft(ksup) == true, receive
     ///     blocks from the processor owning the block column of ksup
@@ -514,7 +472,7 @@ template<typename T>
     ///   Role     : At supernode ksup, if isRecvFromCrossDiagonal(ksup) ==
     ///   true, receive from the cross-diagonal processor.  <b> NOTE </b>:
     ///   This requires a square processor grid.
-    ///   
+    ///
     ///
     virtual void SelInv( );
 

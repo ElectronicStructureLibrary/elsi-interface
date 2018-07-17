@@ -400,7 +400,7 @@ public:
   void CalculateNegativeInertiaReal(
       const std::vector<Real>&       shiftVec,
       std::vector<Real>&             inertiaVec,
-    Int               solver,
+      Int                            solver,
       Int                            verbosity );
 
   /// @brief Compute the negative inertia (the number of eigenvalues
@@ -434,7 +434,7 @@ public:
   void CalculateNegativeInertiaComplex(
       const std::vector<Real>&       shiftVec,
       std::vector<Real>&             inertiaVec,
-    Int               solver,
+      Int                            solver,
       Int                            verbosity );
 
 
@@ -472,7 +472,7 @@ public:
       Real  mu,
       Real  numElectronExact,
       Real  numElectronTolerance,
-      Int               solver,
+      Int   solver,
       Int   verbosity,
       Real& numElectron,
       Real& numElectronDrvMu );
@@ -518,13 +518,40 @@ public:
 #endif
 
   /// @brief Compute the Fermi operator for a given chemical
-  /// potential for complex Hermitian matrices.
+  /// potential for Hermitian Hamiltonian and overlap matrices.
   ///
   /// This routine also computes the single particle density matrix,
   /// the Helmholtz free energy density matrix, and the energy density
   /// matrix (for computing the Pulay force) simultaneously.   These
   /// matrices can be called later via member functions DensityMatrix,
   /// FreeEnergyDensityMatrix, EnergyDensityMatrix.
+  ///
+  /// NOTE: One should pay some special attention to the treatment of
+  /// the Hermitian case.
+  ///
+  /// 1. Since the pole locations and weights appear in conjugate pairs
+  /// (z_l,w_l) and (conj(z_l),conj(w_l)), we do not compute the
+  /// conjugate pairs explicitly. In the real symmetric case, after
+  /// computing the density matrix rhoMat, we only need to take its
+  /// imaginary component Im(rhoMat) to obtain the correct density
+  /// matrix. In the Hermitian case, this is replaced by
+  ///   rhoMat <- 1/(2i) (rhoMat - rhoMat^*)
+  ///   where rhoMat^* is the Hermitian transpose.
+  ///
+  /// 2. The Hermitian case calls the non-symmetric version of PSelInv.
+  /// This returns the transpose of rhoMat.  Since rhoMat is Hermitian,
+  /// we can store the correct rhoMat by applying a conjugation
+  /// operation due to the following relation.
+  ///
+  /// rhoMat = rhoMat^* = conj(rhoMat^T)
+  ///
+  /// 3. Combining 1) and 2) above, the correct density matrix can be
+  /// obtained by
+  ///
+  ///   rhoMat <- i/2 (conj(rhoMat) - rhoMat^T)
+  ///
+  /// The same post processing strategy should be applied to other
+  /// quantities such as the energy density matrix.
   ///
   /// @param[in] numPole Number of poles for the pole expansion
   ///	@param[in] temperature  Temperature

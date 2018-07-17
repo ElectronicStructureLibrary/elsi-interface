@@ -597,11 +597,11 @@ subroutine elsi_trace_mat_mat_cmplx(bh,mat1,mat2,trace)
    complex(kind=r8) :: l_trace ! Local result
    integer(kind=i4) :: ierr
 
-   complex(kind=r8), external :: zdotu
+   complex(kind=r8), external :: zdotc
 
    character(len=40), parameter :: caller = "elsi_trace_mat_mat_cmplx"
 
-   l_trace = zdotu(bh%n_lrow*bh%n_lcol,mat1,1,mat2,1)
+   l_trace = zdotc(bh%n_lrow*bh%n_lcol,mat1,1,mat2,1)
 
    call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,bh%comm,ierr)
 
