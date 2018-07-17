@@ -10,12 +10,15 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANTS,     only: STR_LEN,UUID_LEN
-   use ELSI_PRECISION,     only: r8,i4
-   use ELPA,               only: elpa_t,elpa_autotune_t
-   use F_PPEXSI_INTERFACE, only: f_ppexsi_options
-   use FORTJSON,           only: fjson_handle
-   use MATRIXSWITCH,       only: matrix
+   use ELSI_CONSTANTS,                only: STR_LEN,UUID_LEN
+   use ELSI_PRECISION,                only: r8,i4
+   use DISTRIBUTEDSPARSEMATRIXMODULE, only: DistributedSparseMatrix_t
+   use ELPA,                          only: elpa_t,elpa_autotune_t
+   use F_PPEXSI_INTERFACE,            only: f_ppexsi_options
+   use FORTJSON,                      only: fjson_handle
+   use ITERATIVESOLVERSMODULE,        only: IterativeSolverParameters_t
+   use MATRIXSWITCH,                  only: matrix
+   use PERMUTATIONMODULE,             only: Permutation_t
 
    implicit none
 
@@ -84,11 +87,11 @@ module ELSI_DATATYPE
 
       ! Overlap
       logical          :: ovlp_is_unit
-      logical          :: ovlp_is_sing ! Is overlap singular?
-      logical          :: check_sing   ! Check overlap singularity?
-      real(kind=r8)    :: sing_tol     ! Overlap singularity tolerance
-      logical          :: stop_sing    ! Always stop if overlap is singular?
-      integer(kind=i4) :: n_good       ! Number of nonsingular basis functions
+      logical          :: ovlp_is_sing
+      logical          :: check_sing
+      real(kind=r8)    :: sing_tol
+      logical          :: stop_sing ! Always stop if overlap is singular?
+      integer(kind=i4) :: n_good    ! Number of nonsingular basis functions
 
       ! Physics
       real(kind=r8)    :: n_electrons
@@ -130,9 +133,9 @@ module ELSI_DATATYPE
 
       ! libOMM
       integer(kind=i4) :: omm_n_lrow
-      integer(kind=i4) :: omm_n_states ! Number of states used in libOMM
-      integer(kind=i4) :: omm_n_elpa   ! Number of ELPA steps
-      integer(kind=i4) :: omm_flavor   ! 0 (basic) or 2 (Cholesky)
+      integer(kind=i4) :: omm_n_states
+      integer(kind=i4) :: omm_n_elpa
+      integer(kind=i4) :: omm_flavor
       integer(kind=i4) :: omm_desc(9)
       real(kind=r8)    :: omm_tol
       logical          :: omm_output
@@ -155,7 +158,7 @@ module ELSI_DATATYPE
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options)   :: pexsi_options
 
-      ! SIPS
+      ! SLEPc-SIPs
       integer(kind=i4) :: sips_n_elpa
       integer(kind=i4) :: sips_np_per_slice
       integer(kind=i4) :: sips_n_slices
@@ -167,15 +170,19 @@ module ELSI_DATATYPE
       logical          :: sips_do_inertia
       logical          :: sips_started = .false.
 
-      ! DMP
-      integer(kind=i4) :: dmp_n_states
-      integer(kind=i4) :: dmp_method    ! 0 (TRS) or 1 (canonical)
-      integer(kind=i4) :: dmp_max_power ! Maximum number of power iterations
-      integer(kind=i4) :: dmp_max_iter  ! Maximum number of purification steps
-      real(kind=r8)    :: dmp_ev_ham_max
-      real(kind=r8)    :: dmp_ev_ham_min
-      real(kind=r8)    :: dmp_tol
-      logical          :: dmp_started = .false.
+      ! NTPoly
+      integer(kind=i4)                  :: nt_n_group
+      integer(kind=i4)                  :: nt_method
+      integer(kind=i4)                  :: nt_max_iter
+      real(kind=r8)                     :: nt_tol
+      real(kind=r8)                     :: nt_filter
+      logical                           :: nt_output
+      logical                           :: nt_started = .false.
+      type(DistributedSparseMatrix_t)   :: nt_ham
+      type(DistributedSparseMatrix_t)   :: nt_ovlp
+      type(DistributedSparseMatrix_t)   :: nt_dm
+      type(IterativeSolverParameters_t) :: nt_options
+      type(Permutation_t)               :: nt_perm
 
    end type
 
@@ -219,8 +226,6 @@ module ELSI_DATATYPE
       real(kind=r8),    allocatable :: omm_c_real(:,:)
       complex(kind=r8), allocatable :: omm_c_cmplx(:,:)
       real(kind=r8),    allocatable :: pexsi_ne_vec(:)
-      real(kind=r8),    allocatable :: dmp_vec1(:)
-      real(kind=r8),    allocatable :: dmp_vec2(:)
 
       logical :: handle_init = .false.
 
@@ -230,7 +235,7 @@ module ELSI_DATATYPE
 
       type(elsi_basic_t) :: bh
 
-      integer(kind=i4) :: rw_task ! 0 (READ_FILE) or 1 (WRITE_FILE)
+      integer(kind=i4) :: rw_task
       integer(kind=i4) :: parallel_mode
       integer(kind=i4) :: matrix_format
       real(kind=r8)    :: n_electrons

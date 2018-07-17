@@ -648,19 +648,19 @@ subroutine elsi_set_omm_n_elpa_c_wrapper(handle_c,n_elpa)&
 
 end subroutine
 
-subroutine elsi_set_omm_tol_c_wrapper(handle_c,min_tol)&
+subroutine elsi_set_omm_tol_c_wrapper(handle_c,omm_tol)&
    bind(C,name="c_elsi_set_omm_tol")
 
    implicit none
 
    type(c_ptr),         value, intent(in) :: handle_c
-   real(kind=c_double), value, intent(in) :: min_tol
+   real(kind=c_double), value, intent(in) :: omm_tol
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_omm_tol(handle_f,min_tol)
+   call elsi_set_omm_tol(handle_f,omm_tol)
 
 end subroutine
 
@@ -953,51 +953,67 @@ subroutine elsi_set_sips_interval_c_wrapper(handle_c,lower,upper)&
 
 end subroutine
 
-subroutine elsi_set_dmp_method_c_wrapper(handle_c,dmp_method)&
-   bind(C,name="c_elsi_set_dmp_method")
+subroutine elsi_set_ntpoly_method_c_wrapper(handle_c,nt_method)&
+   bind(C,name="c_elsi_set_ntpoly_method")
 
    implicit none
 
    type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: dmp_method
+   integer(kind=c_int), value, intent(in) :: nt_method
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_dmp_method(handle_f,dmp_method)
+   call elsi_set_ntpoly_method(handle_f,nt_method)
 
 end subroutine
 
-subroutine elsi_set_dmp_max_step_c_wrapper(handle_c,max_step)&
-   bind(C,name="c_elsi_set_dmp_max_step")
+subroutine elsi_set_ntpoly_tol_c_wrapper(handle_c,nt_tol)&
+   bind(C,name="c_elsi_set_ntpoly_tol")
 
    implicit none
 
    type(c_ptr),         value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: max_step
+   real(kind=c_double), value, intent(in) :: nt_tol
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_dmp_max_step(handle_f,max_step)
+   call elsi_set_ntpoly_tol(handle_f,nt_tol)
 
 end subroutine
 
-subroutine elsi_set_dmp_tol_c_wrapper(handle_c,dmp_tol)&
-   bind(C,name="c_elsi_set_dmp_tol")
+subroutine elsi_set_ntpoly_filter_c_wrapper(handle_c,filter)&
+   bind(C,name="c_elsi_set_ntpoly_filter")
 
    implicit none
 
    type(c_ptr),         value, intent(in) :: handle_c
-   real(kind=c_double), value, intent(in) :: dmp_tol
+   real(kind=c_double), value, intent(in) :: filter
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_dmp_tol(handle_f,dmp_tol)
+   call elsi_set_ntpoly_filter(handle_f,filter)
+
+end subroutine
+
+subroutine elsi_set_ntpoly_max_iter_c_wrapper(handle_c,max_iter)&
+   bind(C,name="c_elsi_set_ntpoly_max_iter")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: max_iter
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_ntpoly_max_iter(handle_f,max_iter)
 
 end subroutine
 

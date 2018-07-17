@@ -15,6 +15,12 @@ module ELSI_REDIST
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_check_mpi,mpi_sum,mpi_real8,mpi_complex16,&
                              mpi_integer4,mpi_comm_self
+   use ELSI_NTPOLY,    only: Triplet_t,TripletList_t,DistributedSparseMatrix_t,&
+                             ConstructEmptyDistributedSparseMatrix,&
+                             FillFromTripletList,GetTripletList,&
+                             FilterDistributedSparseMatrix,&
+                             ConstructTripletList,AppendToTripletList,&
+                             DestructTripletList
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SORT,      only: elsi_heapsort
    use ELSI_UTILS,     only: elsi_get_nnz,elsi_get_gid,elsi_get_lid
@@ -23,12 +29,14 @@ module ELSI_REDIST
 
    private
 
+   public :: elsi_blacs_to_ntpoly_hs
    public :: elsi_blacs_to_pexsi_hs_dim
    public :: elsi_blacs_to_pexsi_hs
    public :: elsi_blacs_to_siesta_dm
    public :: elsi_blacs_to_sips_dm
    public :: elsi_blacs_to_sips_hs_dim
    public :: elsi_blacs_to_sips_hs
+   public :: elsi_ntpoly_to_blacs_dm
    public :: elsi_pexsi_to_blacs_dm
    public :: elsi_pexsi_to_siesta_dm
    public :: elsi_siesta_to_blacs_hs
@@ -40,6 +48,10 @@ module ELSI_REDIST
    public :: elsi_sips_to_blacs_ev
    public :: elsi_sips_to_blacs_hs
    public :: elsi_sips_to_siesta_dm
+
+   interface elsi_blacs_to_ntpoly_hs
+      module procedure elsi_blacs_to_ntpoly_hs_real
+   end interface
 
    interface elsi_blacs_to_pexsi_hs_dim
       module procedure elsi_blacs_to_pexsi_hs_dim_real
@@ -69,6 +81,10 @@ module ELSI_REDIST
    interface elsi_blacs_to_sips_hs
       module procedure elsi_blacs_to_sips_hs_real
       module procedure elsi_blacs_to_sips_hs_cmplx
+   end interface
+
+   interface elsi_ntpoly_to_blacs_dm
+      module procedure elsi_ntpoly_to_blacs_dm_real
    end interface
 
    interface elsi_pexsi_to_blacs_dm
@@ -4451,6 +4467,248 @@ subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
            col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
 
    ph%n_calls = n_calls_save
+
+end subroutine
+
+!>
+!! This routine constructs Halmitonian and overlep matrices in NTPoly format
+!! from matrices stored in 2D block-cyclic dense format.
+!!
+subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
+
+   implicit none
+
+   type(elsi_param_t),              intent(in)    :: ph
+   type(elsi_basic_t),              intent(in)    :: bh
+   real(kind=r8),                   intent(in)    :: ham_den(bh%n_lrow,bh%n_lcol)
+   real(kind=r8),                   intent(in)    :: ovlp_den(bh%n_lrow,bh%n_lcol)
+   type(DistributedSparseMatrix_t), intent(inout) :: ham_nt
+   type(DistributedSparseMatrix_t), intent(inout) :: ovlp_nt
+
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   integer(kind=i4) :: g_row
+   integer(kind=i4) :: g_col
+
+   type(TripletList_t) :: ham_list
+   type(TripletList_t) :: ovlp_list
+   type(Triplet_t)     :: coo
+
+   character(len=40), parameter :: caller = "elsi_blacs_to_ntpoly_hs_real"
+
+   if(ph%n_calls == 1) then
+      if(.not. ph%ovlp_is_unit) then
+         call ConstructEmptyDistributedSparseMatrix(ovlp_nt,ph%n_basis)
+         call ConstructTripletList(ovlp_list)
+      endif
+
+      call ConstructEmptyDistributedSparseMatrix(ham_nt,ph%n_basis)
+   endif
+
+   call ConstructTripletList(ham_list)
+
+   if(.not. ph%ovlp_is_unit) then
+      do i_col = 1,bh%n_lcol
+         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
+
+         do i_row = 1,bh%n_lrow
+            if(abs(ovlp_den(i_row,i_col)) > bh%def0) then
+               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
+
+               coo%point_value  = ham_den(i_row,i_col)
+               coo%index_column = g_col
+               coo%index_row    = g_row
+
+               call AppendToTripletList(ham_list,coo)
+
+               if(ph%n_calls == 1) then
+                  coo%point_value = ovlp_den(i_row,i_col)
+
+                  call AppendToTripletList(ovlp_list,coo)
+               endif
+            endif
+         enddo
+      enddo
+   else
+      do i_col = 1,bh%n_lcol
+         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
+
+         do i_row = 1,bh%n_lrow
+            if(abs(ham_den(i_row,i_col)) > bh%def0) then
+               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
+
+               coo%point_value  = ham_den(i_row,i_col)
+               coo%index_column = g_col
+               coo%index_row    = g_row
+
+               call AppendToTripletList(ham_list,coo)
+            endif
+         enddo
+      enddo
+   endif
+
+   if(ph%n_calls == 1) then
+      call FillFromTripletList(ovlp_nt,ovlp_list)
+      call DestructTripletList(ovlp_list)
+   endif
+
+   call FillFromTripletList(ham_nt,ham_list)
+   call DestructTripletList(ham_list)
+
+end subroutine
+
+!>
+!! This routine converts density matrix computed by NTPoly to 2D block-cyclic
+!! dense format.
+!!
+subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
+
+   implicit none
+
+   type(elsi_basic_t),              intent(in)    :: bh
+   type(DistributedSparseMatrix_t), intent(inout) :: dm_nt
+   real(kind=r8),                   intent(out)   :: dm_den(bh%n_lrow,bh%n_lcol)
+
+   integer(kind=i4)   :: ierr
+   integer(kind=i4)   :: i_col
+   integer(kind=i4)   :: i_val
+   integer(kind=i4)   :: i_proc
+   integer(kind=i4)   :: l_col ! Local column id in 1D block distribution
+   integer(kind=i4)   :: l_row ! Local row id in 1D block distribution
+   integer(kind=i4)   :: nnz_l_nt
+   integer(kind=i4)   :: nnz_l_aux
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
+
+   ! See documentation of MPI_Alltoallv
+   real(kind=r8),    allocatable :: val_send(:)
+   integer(kind=i4), allocatable :: row_send(:)
+   integer(kind=i4), allocatable :: col_send(:)
+   integer(kind=i4), allocatable :: send_count(:)
+   integer(kind=i4), allocatable :: send_displ(:)
+   real(kind=r8),    allocatable :: val_recv(:)
+   integer(kind=i4), allocatable :: row_recv(:)
+   integer(kind=i4), allocatable :: col_recv(:)
+   integer(kind=i4), allocatable :: recv_count(:)
+   integer(kind=i4), allocatable :: recv_displ(:)
+   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
+
+   type(TripletList_t) :: dm_list
+   type(Triplet_t)     :: coo
+
+   character(len=40), parameter :: caller = "elsi_ntpoly_to_blacs_dm_real"
+
+   call elsi_get_time(t0)
+
+   call FilterDistributedSparseMatrix(dm_nt,bh%def0)
+   call GetTripletList(dm_nt,dm_list)
+
+   nnz_l_nt = dm_list%CurrentSize
+
+   call elsi_allocate(bh,val_send,nnz_l_nt,"val_send",caller)
+   call elsi_allocate(bh,row_send,nnz_l_nt,"row_send",caller)
+   call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
+   call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
+   call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
+
+   i_col = 0
+
+   do i_val = 1,nnz_l_nt
+      ! Compute global id
+      row_send(i_val) = dm_list%data(i_val)%index_row
+      col_send(i_val) = dm_list%data(i_val)%index_column
+      val_send(i_val) = dm_list%data(i_val)%point_value
+
+      ! Compute destination
+      dest(i_val) = mod((col_send(i_val)-1)/bh%blk_sp2,bh%n_procs)
+
+      ! Set send_count
+      send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+   enddo
+
+   call DestructTripletList(dm_list)
+
+   ! Sort
+   call elsi_heapsort(bh%nnz_l_sp1,dest,val_send,row_send,col_send)
+
+   call elsi_deallocate(bh,dest,"dest")
+   call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
+   call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
+   call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
+
+   ! Set recv_count
+   call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
+           bh%comm,ierr)
+
+   call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
+
+   ! Set local number of nonzero
+   nnz_l_aux = sum(recv_count,1)
+
+   ! Set send_displ and recv_displ
+   do i_proc = 2,bh%n_procs
+      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+   enddo
+
+   ! Redistribute packed data
+   ! Value
+   call elsi_allocate(bh,val_recv,nnz_l_aux,"val_recv",caller)
+
+   call MPI_Alltoallv(val_send,send_count,send_displ,mpi_real8,val_recv,&
+           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+
+   call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
+
+   call elsi_deallocate(bh,val_send,"val_send")
+
+   ! Row id
+   call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
+
+   call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
+           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+
+   call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
+
+   call elsi_deallocate(bh,row_send,"row_send")
+
+   ! Column id
+   call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
+
+   call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
+           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+
+   call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
+
+   call elsi_deallocate(bh,col_send,"col_send")
+   call elsi_deallocate(bh,send_count,"send_count")
+   call elsi_deallocate(bh,recv_count,"recv_count")
+   call elsi_deallocate(bh,send_displ,"send_displ")
+   call elsi_deallocate(bh,recv_displ,"recv_displ")
+
+   dm_den = 0.0_r8
+
+   ! Unpack density matrix
+   do i_val = 1,nnz_l_aux
+      ! Compute local 2d id
+      call elsi_get_lid(bh%n_prow,bh%blk,row_recv(i_val),l_row)
+      call elsi_get_lid(bh%n_pcol,bh%blk,col_recv(i_val),l_col)
+
+      ! Put value to correct position
+      dm_den(l_row,l_col) = val_recv(i_val)
+   enddo
+
+   call elsi_deallocate(bh,val_recv,"val_recv")
+   call elsi_deallocate(bh,row_recv,"row_recv")
+   call elsi_deallocate(bh,col_recv,"col_recv")
+
+   call elsi_get_time(t1)
+
+   write(info_str,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,info_str)
+   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,info_str)
 
 end subroutine
 

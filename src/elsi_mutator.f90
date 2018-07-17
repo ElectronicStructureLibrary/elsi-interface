@@ -10,7 +10,7 @@
 module ELSI_MUTATOR
 
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
-                             DMP_SOLVER,PEXSI_CSC,SIESTA_CSC
+                             NTPOLY_SOLVER,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE,  only: elsi_handle
    use ELSI_ELPA,      only: elsi_compute_edm_elpa
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
@@ -28,7 +28,6 @@ module ELSI_MUTATOR
 
    private
 
-   ! Mutator
    public :: elsi_set_output
    public :: elsi_set_write_unit
    public :: elsi_set_unit_ovlp
@@ -63,9 +62,10 @@ module ELSI_MUTATOR
    public :: elsi_set_sips_inertia_tol
    public :: elsi_set_sips_interval
    public :: elsi_set_sips_first_ev
-   public :: elsi_set_dmp_method
-   public :: elsi_set_dmp_max_step
-   public :: elsi_set_dmp_tol
+   public :: elsi_set_ntpoly_method
+   public :: elsi_set_ntpoly_tol
+   public :: elsi_set_ntpoly_filter
+   public :: elsi_set_ntpoly_max_iter
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
@@ -106,21 +106,25 @@ subroutine elsi_set_output(eh,out_level)
       eh%ph%omm_output              = .false.
       eh%ph%pexsi_options%verbosity = 1
       eh%ph%elpa_output             = .false.
+      eh%ph%nt_output               = .false.
    elseif(out_level == 1) then
       eh%bh%print_info              = 1
       eh%ph%omm_output              = .false.
       eh%ph%pexsi_options%verbosity = 1
       eh%ph%elpa_output             = .false.
+      eh%ph%nt_output               = .false.
    elseif(out_level == 2) then
       eh%bh%print_info              = 2
       eh%ph%omm_output              = .true.
       eh%ph%pexsi_options%verbosity = 2
       eh%ph%elpa_output             = .true.
+      eh%ph%nt_output               = .true.
    else
       eh%bh%print_info              = 3
       eh%ph%omm_output              = .true.
       eh%ph%pexsi_options%verbosity = 2
       eh%ph%elpa_output             = .true.
+      eh%ph%nt_output               = .true.
    endif
 
 end subroutine
@@ -805,56 +809,74 @@ subroutine elsi_set_sips_first_ev(eh,first_ev)
 end subroutine
 
 !>
-!! This routine sets the density matrix purification method.
+!! This routine sets the density matrix purification method in NTPoly.
 !!
-subroutine elsi_set_dmp_method(eh,dmp_method)
+subroutine elsi_set_ntpoly_method(eh,nt_method)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: eh         !< Handle
-   integer(kind=i4),  intent(in)    :: dmp_method !< Purification method
+   type(elsi_handle), intent(inout) :: eh        !< Handle
+   integer(kind=i4),  intent(in)    :: nt_method !< Purification method
 
-   character(len=40), parameter :: caller = "elsi_set_dmp_method"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   eh%ph%dmp_method = dmp_method
-
-end subroutine
-
-!>
-!! This routine sets the maximum number of density matrix purification steps.
-!!
-subroutine elsi_set_dmp_max_step(eh,max_step)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh       !< Handle
-   integer(kind=i4),  intent(in)    :: max_step !< Maximum number of steps
-
-   character(len=40), parameter :: caller = "elsi_set_dmp_max_step"
+   character(len=40), parameter :: caller = "elsi_set_ntpoly_method"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   eh%ph%dmp_max_iter = max_step
+   eh%ph%nt_method = nt_method
 
 end subroutine
 
 !>
 !! This routine sets the tolerance of the density matrix purification.
 !!
-subroutine elsi_set_dmp_tol(eh,dmp_tol)
+subroutine elsi_set_ntpoly_tol(eh,nt_tol)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: eh      !< Handle
-   real(kind=r8),     intent(in)    :: dmp_tol !< Tolerance
+   type(elsi_handle), intent(inout) :: eh     !< Handle
+   real(kind=r8),     intent(in)    :: nt_tol !< Tolerance
 
-   character(len=40), parameter :: caller = "elsi_set_dmp_tol"
+   character(len=40), parameter :: caller = "elsi_set_ntpoly_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   eh%ph%dmp_tol = dmp_tol
+   eh%ph%nt_tol = nt_tol
+
+end subroutine
+
+!>
+!! This routine sets the threshold to filter intermediate results in NTPoly.
+!!
+subroutine elsi_set_ntpoly_filter(eh,filter)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh     !< Handle
+   real(kind=r8),     intent(in)    :: filter !< Filter
+
+   character(len=40), parameter :: caller = "elsi_set_ntpoly_filter"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%ph%nt_filter = filter
+
+end subroutine
+
+!>
+!! This routine sets the maximum number of density matrix purification steps.
+!!
+subroutine elsi_set_ntpoly_max_iter(eh,max_iter)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh       !< Handle
+   integer(kind=i4),  intent(in)    :: max_iter !< Maximum number of iterations
+
+   character(len=40), parameter :: caller = "elsi_set_ntpoly_max_iter"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%ph%nt_max_iter = max_iter
 
 end subroutine
 

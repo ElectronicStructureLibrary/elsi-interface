@@ -80,7 +80,7 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
          write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + ELPA"
          e_ref = e_elpa
       elseif(solver == 5) then
-         write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + SIPS"
+         write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + SLEPc-SIPs"
          e_ref = e_sips
          e_tol = 1.0e-6_r8
       endif

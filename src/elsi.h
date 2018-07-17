@@ -147,7 +147,7 @@ void c_elsi_set_omm_n_elpa(elsi_handle handle_c,
                            int n_elpa);
 
 void c_elsi_set_omm_tol(elsi_handle handle_c,
-                        double min_tol);
+                        double omm_tol);
 
 void c_elsi_set_pexsi_n_mu(elsi_handle handle_c,
                            int n_mu);
@@ -204,14 +204,17 @@ void c_elsi_set_sips_interval(elsi_handle handle_c,
                               double lower,
                               double upper);
 
-void c_elsi_set_dmp_method(elsi_handle handle_c,
-                           int dmp_method);
+void c_elsi_set_ntpoly_method(elsi_handle handle_c,
+                              int nt_method);
 
-void c_elsi_set_dmp_max_step(elsi_handle handle_c,
-                             int max_step);
+void c_elsi_set_ntpoly_tol(elsi_handle handle_c,
+                           double nt_tol);
 
-void c_elsi_set_dmp_tol(elsi_handle handle_c,
-                        double dmp_tol);
+void c_elsi_set_ntpoly_filter(elsi_handle handle_c,
+                              double filter);
+
+void c_elsi_set_ntpoly_max_iter(elsi_handle handle_c,
+                                int max_iter);
 
 void c_elsi_set_mu_broaden_scheme(elsi_handle handle_c,
                                   int broaden_scheme);

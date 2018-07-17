@@ -55,11 +55,11 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    type(elsi_rw_handle) :: rw_h
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
-   real(kind=r8), parameter :: e_sips  = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_dmp   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_elpa   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_omm    = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_pexsi  = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_sips   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_ntpoly = -2622.88214509311_r8
 
    call MPI_Comm_size(mpi_comm,n_proc,mpierr)
    call MPI_Comm_rank(mpi_comm,myid,mpierr)
@@ -81,11 +81,11 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
          e_ref = e_pexsi
          e_tol = 1.0e-3_r8
       elseif(solver == 5) then
-         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + SIPS"
+         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + SLEPc-SIPs"
          e_ref = e_sips
       elseif(solver == 6) then
-         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + DMP"
-         e_ref = e_dmp
+         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + NTPoly"
+         e_ref = e_ntpoly
       endif
       write(*,*)
    endif

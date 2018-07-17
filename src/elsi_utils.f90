@@ -13,7 +13,7 @@ module ELSI_UTILS
                              N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,&
                              BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,AUTO,ELPA_SOLVER,&
                              OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,&
-                             DMP_SOLVER
+                             NTPOLY_SOLVER
    use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
@@ -140,14 +140,13 @@ subroutine elsi_reset_param(ph)
    ph%sips_inertia_tol       = 1.0e-3_r8
    ph%sips_do_inertia        = .true.
    ph%sips_started           = .false.
-   ph%dmp_n_states           = UNSET
-   ph%dmp_method             = 0
-   ph%dmp_max_power          = 50
-   ph%dmp_max_iter           = 500
-   ph%dmp_ev_ham_max         = 0.0_r8
-   ph%dmp_ev_ham_min         = 0.0_r8
-   ph%dmp_tol                = 1.0e-10_r8
-   ph%dmp_started            = .false.
+   ph%nt_n_group             = 1
+   ph%nt_method              = 1
+   ph%nt_max_iter            = 1000
+   ph%nt_tol                 = 1.0e-8_r8
+   ph%nt_filter              = 1.0e-15_r8
+   ph%nt_output              = .false.
+   ph%nt_started             = .false.
 
 end subroutine
 
@@ -349,19 +348,19 @@ subroutine elsi_check(ph,bh,caller)
          call elsi_stop(bh,"Calculations with multiple k-points not yet"//&
                  " supported with SLEPc-SIPs.",caller)
       endif
-   case(DMP_SOLVER)
+   case(NTPOLY_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(bh,"DMP requires MULTI_PROC parallel mode.",caller)
+         call elsi_stop(bh,"NTPoly requires MULTI_PROC parallel mode.",caller)
       endif
 
       if(ph%n_spins > 1) then
          call elsi_stop(bh,"Calculations with two spin channels not yet"//&
-                 " supported with DMP.",caller)
+                 " supported with NTPoly.",caller)
       endif
 
       if(ph%n_kpts > 1) then
          call elsi_stop(bh,"Calculations with multiple k-points not yet"//&
-                 " supported with DMP.",caller)
+                 " supported with NTPoly.",caller)
       endif
    end select
 

@@ -10,13 +10,13 @@ LIST(APPEND elsi_src
   elsi_c2f.f90
   elsi_constants.f90
   elsi_datatype.f90
-  elsi_dmp.f90
   elsi_interface.f90
   elsi_io.f90
   elsi_lapack.f90
   elsi_malloc.f90
   elsi_mpi.f90
   elsi_mutator.f90
+  elsi_ntpoly.f90
   elsi_occ.f90
   elsi_omm.f90
   elsi_pexsi.f90
@@ -56,13 +56,16 @@ ENDIF()
 IF(NOT USE_EXTERNAL_OMM)
   ADD_DEPENDENCIES(elsi OMM)
 ENDIF()
-ADD_DEPENDENCIES(elsi fortjson)
 IF(ENABLE_PEXSI)
   ADD_DEPENDENCIES(elsi pexsi)
 ENDIF()
 IF(ENABLE_SIPS)
   ADD_DEPENDENCIES(elsi sips)
 ENDIF()
+IF(NOT USE_EXTERNAL_NTPOLY)
+  ADD_DEPENDENCIES(elsi NTPoly)
+ENDIF()
+ADD_DEPENDENCIES(elsi fortjson)
 
 IF(NOT USE_EXTERNAL_OMM)
   TARGET_LINK_LIBRARIES(elsi PRIVATE OMM MatrixSwitch)
@@ -86,6 +89,9 @@ IF(ENABLE_PEXSI)
       scotch
       scotcherr)
   ENDIF()
+ENDIF()
+IF(NOT USE_EXTERNAL_NTPOLY)
+  TARGET_LINK_LIBRARIES(elsi PRIVATE NTPoly)
 ENDIF()
 
 TARGET_LINK_LIBRARIES(elsi PRIVATE ${LIBS})
