@@ -10,15 +10,14 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANTS,                only: STR_LEN,UUID_LEN
-   use ELSI_PRECISION,                only: r8,i4
-   use DISTRIBUTEDSPARSEMATRIXMODULE, only: DistributedSparseMatrix_t
-   use ELPA,                          only: elpa_t,elpa_autotune_t
-   use F_PPEXSI_INTERFACE,            only: f_ppexsi_options
-   use FORTJSON,                      only: fjson_handle
-   use ITERATIVESOLVERSMODULE,        only: IterativeSolverParameters_t
-   use MATRIXSWITCH,                  only: matrix
-   use PERMUTATIONMODULE,             only: Permutation_t
+   use ELSI_CONSTANTS,     only: STR_LEN,UUID_LEN
+   use ELSI_PRECISION,     only: r8,i4
+   use ELPA,               only: elpa_t,elpa_autotune_t
+   use F_PPEXSI_INTERFACE, only: f_ppexsi_options
+   use FORTJSON,           only: fjson_handle
+   use MATRIXSWITCH,       only: matrix
+   use NTPOLY,             only: Permutation_t,DistributedSparseMatrix_t,&
+                                 IterativeSolverParameters_t
 
    implicit none
 

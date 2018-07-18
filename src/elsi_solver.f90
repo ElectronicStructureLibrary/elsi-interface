@@ -677,7 +677,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       call elsi_init_ntpoly(eh%ph,eh%bh)
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%ph%nt_ham,&
               eh%ph%nt_ovlp)
-      call elsi_solve_ntpoly(eh%ph,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
+      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
       call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
       call elsi_get_energy(eh%ph,eh%bh,energy,NTPOLY_SOLVER)
    case default
@@ -1277,7 +1277,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      call elsi_solve_ntpoly(eh%ph,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
+      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)

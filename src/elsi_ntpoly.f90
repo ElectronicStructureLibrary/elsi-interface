@@ -9,28 +9,21 @@
 !!
 module ELSI_NTPOLY
 
-   use ELSI_CONSTANTS,                only: UNSET,NTPOLY_TRS2,NTPOLY_TRS4,&
-                                            NTPOLY_HPCP
-   use ELSI_DATATYPE,                 only: elsi_param_t,elsi_basic_t
-   use ELSI_IO,                       only: elsi_say,elsi_get_time
-   use ELSI_MALLOC,                   only: elsi_allocate,elsi_deallocate
-   use ELSI_PRECISION,                only: r8,i4
-   use DENSITYMATRIXSOLVERSMODULE,    only: TRS2,TRS4,HPCP
-   use DISTRIBUTEDSPARSEMATRIXMODULE, only: DistributedSparseMatrix_t,&
-                                            ConstructEmptyDistributedSparseMatrix,&
-                                            CopyDistributedSparseMatrix,&
-                                            FillFromTripletList,GetTripletList,&
-                                            FilterDistributedSparseMatrix,&
-                                            DestructDistributedSparseMatrix
-   use ITERATIVESOLVERSMODULE,        only: IterativeSolverParameters_t
-   use PERMUTATIONMODULE,             only: ConstructRandomPermutation,&
-                                            DestructPermutation
-   use PROCESSGRIDMODULE,             only: ConstructProcessGrid
-   use SQUAREROOTSOLVERSMODULE,       only: InverseSquareRoot
-   use TRIPLETLISTMODULE,             only: TripletList_t,ConstructTripletList,&
-                                            AppendToTripletList,&
-                                            DestructTripletList
-   use TRIPLETMODULE,                 only: Triplet_t
+   use ELSI_CONSTANTS, only: UNSET,NTPOLY_TRS2,NTPOLY_TRS4,NTPOLY_HPCP
+   use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
+   use ELSI_IO,        only: elsi_say,elsi_get_time
+   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
+   use ELSI_PRECISION, only: r8,i4
+   use NTPOLY,         only: TRS2,TRS4,HPCP,ScaleDistributedSparseMatrix,&
+                             DistributedSparseMatrix_t,FillFromTripletList,&
+                             ConstructEmptyDistributedSparseMatrix,&
+                             FilterDistributedSparseMatrix,&
+                             CopyDistributedSparseMatrix,GetTripletList,&
+                             DestructDistributedSparseMatrix,InverseSquareRoot,&
+                             IterativeSolverParameters_t,DestructPermutation,&
+                             ConstructRandomPermutation,ConstructProcessGrid,&
+                             Triplet_t,TripletList_t,ConstructTripletList,&
+                             AppendToTripletList,DestructTripletList
 
    implicit none
 
@@ -95,22 +88,28 @@ end subroutine
 !>
 !! This routine interfaces to NTPoly.
 !!
-subroutine elsi_solve_ntpoly_real(ph,ham,ovlp,dm)
+subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
 
    implicit none
 
    type(elsi_param_t),              intent(inout) :: ph
+   type(elsi_basic_t),              intent(in)    :: bh
    type(DistributedSparseMatrix_t), intent(in)    :: ham
    type(DistributedSparseMatrix_t), intent(inout) :: ovlp
    type(DistributedSparseMatrix_t), intent(inout) :: dm
 
-   integer(kind=i4) :: ne
+   integer(kind=i4)   :: ne
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
 
    type(DistributedSparseMatrix_t) :: ovlp_isq
 
    character(len=40), parameter :: caller = "elsi_solve_ntpoly_real"
 
    if(ph%n_calls == 1) then
+      call elsi_get_time(t0)
+
       call ConstructRandomPermutation(ph%nt_perm,ovlp%logical_matrix_dimension)
 
       ph%nt_options = IterativeSolverParameters_t(ph%nt_tol,ph%nt_filter,&
@@ -119,7 +118,16 @@ subroutine elsi_solve_ntpoly_real(ph,ham,ovlp,dm)
       call InverseSquareRoot(ovlp,ovlp_isq,ph%nt_options)
       call CopyDistributedSparseMatrix(ovlp_isq,ovlp)
       call DestructDistributedSparseMatrix(ovlp_isq)
+
+      call elsi_get_time(t1)
+
+      write(info_str,"(2X,A)") "Finished overlap matrix inversion"
+      call elsi_say(bh,info_str)
+      write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+      call elsi_say(bh,info_str)
    endif
+
+   call elsi_get_time(t0)
 
    call ConstructEmptyDistributedSparseMatrix(dm,ph%n_basis)
 
@@ -133,6 +141,15 @@ subroutine elsi_solve_ntpoly_real(ph,ham,ovlp,dm)
    case(NTPOLY_HPCP)
       call HPCP(ham,ovlp,ne,dm,ph%ebs,ph%mu,ph%nt_options)
    end select
+
+   call ScaleDistributedSparseMatrix(dm,ph%spin_degen)
+
+   call elsi_get_time(t1)
+
+   write(info_str,"(2X,A)") "Finished density matrix purification"
+   call elsi_say(bh,info_str)
+   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,info_str)
 
 end subroutine
 

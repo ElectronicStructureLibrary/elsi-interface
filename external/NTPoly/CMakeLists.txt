@@ -14,6 +14,7 @@ LIST(APPEND ntpoly_src
   src/GemmTasksModule.f90
   src/GeometryOptimizationModule.f90
   src/HermiteSolversModule.f90
+  src/Interface.f90
   src/InverseSolversModule.f90
   src/IterativeSolversModule.f90
   src/LinearSolversModule.f90
