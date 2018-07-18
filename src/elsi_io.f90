@@ -365,7 +365,7 @@ subroutine elsi_print_pexsi_settings(ph,jh)
 end subroutine
 
 !>
-!! This routine prints out settings for SIPS.
+!! This routine prints out settings for SLEPc-SIPs.
 !!
 subroutine elsi_print_sips_settings(ph,jh)
 

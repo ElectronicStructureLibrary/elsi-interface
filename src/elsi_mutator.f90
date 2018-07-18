@@ -665,7 +665,7 @@ subroutine elsi_set_pexsi_inertia_tol(eh,inertia_tol)
 end subroutine
 
 !>
-!! This routine sets the number of ELPA steps when using SIPS.
+!! This routine sets the number of ELPA steps when using SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_n_elpa(eh,n_elpa)
 
@@ -683,7 +683,7 @@ subroutine elsi_set_sips_n_elpa(eh,n_elpa)
 end subroutine
 
 !>
-!! This routine sets the number of slices in SIPS.
+!! This routine sets the number of slices in SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_n_slice(eh,n_slice)
 
@@ -707,7 +707,7 @@ subroutine elsi_set_sips_n_slice(eh,n_slice)
 end subroutine
 
 !>
-!! This routine sets the type of slices to be used in SIPS.
+!! This routine sets the type of slices to be used in SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_slice_type(eh,slice_type)
 
@@ -729,7 +729,8 @@ subroutine elsi_set_sips_slice_type(eh,slice_type)
 end subroutine
 
 !>
-!! This routine sets a small buffer to expand the eigenvalue interval in SIPS.
+!! This routine sets a small buffer to expand the eigenvalue interval in
+!! SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_buffer(eh,buffer)
 
@@ -747,7 +748,7 @@ subroutine elsi_set_sips_buffer(eh,buffer)
 end subroutine
 
 !>
-!! This routine sets the tolerance to stop inertia counting in SIPS.
+!! This routine sets the tolerance to stop inertia counting in SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_inertia_tol(eh,inertia_tol)
 
@@ -765,7 +766,7 @@ subroutine elsi_set_sips_inertia_tol(eh,inertia_tol)
 end subroutine
 
 !>
-!! This routine sets the global interval to be solved by SIPS.
+!! This routine sets the global interval to be solved by SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_interval(eh,lower,upper)
 
@@ -1173,12 +1174,12 @@ subroutine elsi_get_edm_real(eh,edm)
    solver_save = eh%ph%solver
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-      solver_save      = OMM_SOLVER
+      solver_save  = OMM_SOLVER
       eh%ph%solver = ELPA_SOLVER
    endif
 
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
-      solver_save      = SIPS_SOLVER
+      solver_save  = SIPS_SOLVER
       eh%ph%solver = ELPA_SOLVER
    endif
 
@@ -1238,12 +1239,12 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
    solver_save = eh%ph%solver
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-      solver_save      = OMM_SOLVER
+      solver_save  = OMM_SOLVER
       eh%ph%solver = ELPA_SOLVER
    endif
 
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
-      solver_save      = SIPS_SOLVER
+      solver_save  = SIPS_SOLVER
       eh%ph%solver = ELPA_SOLVER
    endif
 
@@ -1343,7 +1344,7 @@ subroutine elsi_get_edm_complex(eh,edm)
    solver_save = eh%ph%solver
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-      solver_save      = OMM_SOLVER
+      solver_save  = OMM_SOLVER
       eh%ph%solver = ELPA_SOLVER
    endif
 
@@ -1399,7 +1400,7 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
    solver_save = eh%ph%solver
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-      solver_save      = OMM_SOLVER
+      solver_save  = OMM_SOLVER
       eh%ph%solver = ELPA_SOLVER
    endif
 

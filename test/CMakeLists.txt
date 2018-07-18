@@ -136,19 +136,24 @@ IF(ENABLE_PEXSI)
   test_fortran(24 d 2 c 3 ${h_cmplx} ${s_cmplx})
 ENDIF()
 
-### Parallel Fortran tests: ev + SIPS ###
+### Parallel Fortran tests: ev + SLEPc-SIPs ###
 IF(ENABLE_SIPS)
   test_fortran(25 e 0 r 5 ${h_real} ${s_real})
   test_fortran(26 e 1 r 5 ${h_real} ${s_real})
   test_fortran(27 e 2 r 5 ${h_real} ${s_real})
 ENDIF()
 
-### Parallel Fortran tests: dm + SIPS ###
+### Parallel Fortran tests: dm + SLEPc-SIPs ###
 IF(ENABLE_SIPS)
   test_fortran(28 d 0 r 5 ${h_real} ${s_real})
   test_fortran(29 d 1 r 5 ${h_real} ${s_real})
   test_fortran(30 d 2 r 5 ${h_real} ${s_real})
 ENDIF()
+
+### Parallel Fortran tests: dm + NTPoly ###
+test_fortran(31 d 0 r 6 ${h_real} ${s_real})
+test_fortran(32 d 1 r 6 ${h_real} ${s_real})
+test_fortran(33 d 2 r 6 ${h_real} ${s_real})
 
 ### Serial Fortran tests: ev + ELPA (LAPACK) ###
 ADD_TEST(test_serial_01

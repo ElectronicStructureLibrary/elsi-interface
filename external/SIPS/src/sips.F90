@@ -611,7 +611,7 @@ CONTAINS
             subs(1:nsub+1) = get_subs_from_cluster_ids(buf,subbuf,nsub,&
                                  ids(1:nsub),nev,evals)
         CASE DEFAULT
-            STOP "SIPS: Unknown slicing method."
+            STOP "SLEPc-SIPs: Unknown slicing method."
         END SELECT
 
     END SUBROUTINE

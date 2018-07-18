@@ -47,7 +47,7 @@ module ELSI_SIPS
 contains
 
 !>
-!! This routine initializes SIPS.
+!! This routine initializes SLEPc-SIPs.
 !!
 subroutine elsi_init_sips(ph,bh)
 
@@ -85,7 +85,7 @@ subroutine elsi_init_sips(ph,bh)
 end subroutine
 
 !>
-!! This routine interfaces to SIPS.
+!! This routine interfaces to SLEPc-SIPs.
 !!
 subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
@@ -347,7 +347,7 @@ subroutine elsi_compute_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
 end subroutine
 
 !>
-!! This routine cleans up SIPS.
+!! This routine cleans up SLEPc-SIPs.
 !!
 subroutine elsi_cleanup_sips(ph)
 

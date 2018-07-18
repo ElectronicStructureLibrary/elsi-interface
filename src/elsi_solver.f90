@@ -26,13 +26,16 @@ module ELSI_SOLVER
                              elsi_blacs_to_pexsi_hs_dim,elsi_blacs_to_pexsi_hs,&
                              elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,&
                              elsi_blacs_to_sips_hs_dim,elsi_blacs_to_sips_hs,&
-                             elsi_ntpoly_to_blacs_dm,elsi_pexsi_to_blacs_dm,&
+                             elsi_ntpoly_to_blacs_dm,elsi_ntpoly_to_siesta_dm,&
+                             elsi_ntpoly_to_sips_dm,elsi_pexsi_to_blacs_dm,&
                              elsi_pexsi_to_siesta_dm,elsi_siesta_to_blacs_hs,&
+                             elsi_siesta_to_ntpoly_hs,&
                              elsi_siesta_to_pexsi_hs_dim,&
                              elsi_siesta_to_pexsi_hs,&
                              elsi_siesta_to_sips_hs_dim,elsi_siesta_to_sips_hs,&
                              elsi_sips_to_blacs_dm,elsi_sips_to_blacs_ev,&
-                             elsi_sips_to_blacs_hs,elsi_sips_to_siesta_dm
+                             elsi_sips_to_blacs_hs,elsi_sips_to_ntpoly_hs,&
+                             elsi_sips_to_siesta_dm
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_OMM,       only: elsi_init_omm,elsi_solve_omm
    use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_pexsi
@@ -1261,15 +1264,15 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          end select
       endif
    case(NTPOLY_SOLVER)
-      call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
-
       call elsi_init_ntpoly(eh%ph,eh%bh)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
-!         call elsi_sips_to_ntpoly_hs()
+         call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 ham,ovlp,eh%ph%nt_ham,eh%ph%nt_ovlp)
       case(SIESTA_CSC)
-!         call elsi_siesta_to_ntpoly_hs()
+         call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,eh%row_ind_sp2,&
+                 eh%col_ptr_sp2,ham,ovlp,eh%ph%nt_ham,eh%ph%nt_ovlp)
       case default
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
@@ -1278,9 +1281,11 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
-!         call elsi_ntpoly_to_sips_dm()
+         call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%ph%nt_dm,dm)
       case(SIESTA_CSC)
-!         call elsi_ntpoly_to_siesta_dm()
+         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                 eh%ph%nt_dm,dm)
       case default
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select

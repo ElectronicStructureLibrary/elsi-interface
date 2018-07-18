@@ -117,7 +117,6 @@ subroutine elsi_solve_ntpoly_real(ph,ham,ovlp,dm)
                          ph%nt_max_iter,ph%nt_output,ph%nt_perm)
 
       call InverseSquareRoot(ovlp,ovlp_isq,ph%nt_options)
-
       call CopyDistributedSparseMatrix(ovlp_isq,ovlp)
       call DestructDistributedSparseMatrix(ovlp_isq)
    endif
