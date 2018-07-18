@@ -23,7 +23,7 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
 
    integer(kind=i4) :: n_proc
    integer(kind=i4) :: myid
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: n_states
    integer(kind=i4) :: matrix_size
@@ -33,19 +33,22 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: header(8) = 0
 
    real(kind=r8) :: n_electrons
+   real(kind=r8) :: n_test
+   real(kind=r8) :: tmp
    real(kind=r8) :: e_test = 0.0_r8
    real(kind=r8) :: e_ref  = 0.0_r8
-   real(kind=r8) :: e_tol  = 0.0_r8
+   real(kind=r8) :: tol    = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
    complex(kind=r8), allocatable :: ham(:)
-   complex(kind=r8), allocatable :: ham_save(:)
    complex(kind=r8), allocatable :: ovlp(:)
    complex(kind=r8), allocatable :: dm(:)
    complex(kind=r8), allocatable :: edm(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
+
+   complex(kind=r8), external :: zdotc
 
    type(elsi_handle)    :: e_h
    type(elsi_rw_handle) :: rw_h
@@ -55,11 +58,11 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
    real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
    real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
 
-   call MPI_Comm_size(mpi_comm,n_proc,mpierr)
-   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+   call MPI_Comm_size(mpi_comm,n_proc,ierr)
+   call MPI_Comm_rank(mpi_comm,myid,ierr)
 
    if(myid == 0) then
-      e_tol = 1.0e-8_r8
+      tol = 1.0e-8_r8
       write(*,"(2X,A)") "################################"
       write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
       write(*,"(2X,A)") "################################"
@@ -73,7 +76,7 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
       elseif(solver == 3) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + PEXSI"
          e_ref = e_pexsi
-         e_tol = 1.0e-3_r8
+         tol   = 1.0e-3_r8
       endif
       write(*,*)
    endif
@@ -91,14 +94,13 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
       blk = 0
 
       write(*,"(2X,A)") "Internal error"
-      call MPI_Abort(mpi_comm,0,mpierr)
+      call MPI_Abort(mpi_comm,0,ierr)
       stop
    else
       blk = matrix_size/n_proc
    endif
 
    allocate(ham(nnz_l))
-   allocate(ham_save(nnz_l))
    allocate(ovlp(nnz_l))
    allocate(dm(nnz_l))
    allocate(edm(nnz_l))
@@ -111,8 +113,6 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
    call elsi_read_mat_complex_sparse(rw_h,s_file,row_ind,col_ptr,ovlp)
 
    call elsi_finalize_rw(rw_h)
-
-   ham_save = ham
 
    t2 = MPI_Wtime()
 
@@ -152,8 +152,6 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
       write(*,*)
    endif
 
-   ham = ham_save
-
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
@@ -166,6 +164,11 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
       call elsi_get_edm_complex_sparse(e_h,edm)
    endif
 
+   ! Compute electron count
+   tmp = real(zdotc(nnz_l,ovlp,1,dm,1),kind=r8)
+
+   call MPI_Reduce(tmp,n_test,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
+
    if(myid == 0) then
       write(*,"(2X,A)") "Finished SCF #2"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
@@ -173,7 +176,7 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
       write(*,"(2X,A)") "Finished test program"
       write(*,*)
       if(header(8) == 1111) then
-         if(abs(e_test-e_ref) < e_tol) then
+         if(abs(e_test-e_ref) < tol .and. abs(n_test-n_electrons) < tol) then
             write(*,"(2X,A)") "Passed."
          else
             write(*,"(2X,A)") "Failed."
@@ -186,7 +189,6 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
    call elsi_finalize(e_h)
 
    deallocate(ham)
-   deallocate(ham_save)
    deallocate(ovlp)
    deallocate(dm)
    deallocate(edm)

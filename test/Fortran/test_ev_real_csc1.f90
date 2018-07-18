@@ -27,7 +27,7 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: myid
    integer(kind=i4) :: myprow
    integer(kind=i4) :: mypcol
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: n_states
@@ -45,12 +45,11 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: weight(1)
    real(kind=r8) :: e_test = 0.0_r8
    real(kind=r8) :: e_ref  = 0.0_r8
-   real(kind=r8) :: e_tol  = 0.0_r8
+   real(kind=r8) :: tol    = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
    real(kind=r8),    allocatable :: ham(:)
-   real(kind=r8),    allocatable :: ham_save(:)
    real(kind=r8),    allocatable :: ovlp(:)
    real(kind=r8),    allocatable :: evec(:,:)
    real(kind=r8),    allocatable :: eval(:)
@@ -67,11 +66,11 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
 
    integer(kind=i4), external :: numroc
 
-   call MPI_Comm_size(mpi_comm,n_proc,mpierr)
-   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+   call MPI_Comm_size(mpi_comm,n_proc,ierr)
+   call MPI_Comm_rank(mpi_comm,myid,ierr)
 
    if(myid == 0) then
-      e_tol = 1.0e-8_r8
+      tol = 1.0e-8_r8
       write(*,"(2X,A)") "################################"
       write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
       write(*,"(2X,A)") "################################"
@@ -82,7 +81,7 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
       elseif(solver == 5) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + SLEPc-SIPs"
          e_ref = e_sips
-         e_tol = 1.0e-6_r8
+         tol   = 1.0e-6_r8
       endif
       write(*,*)
    endif
@@ -113,7 +112,6 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
    l_cols = numroc(matrix_size,blk,mypcol,0,npcol)
 
    allocate(ham(nnz_l))
-   allocate(ham_save(nnz_l))
    allocate(ovlp(nnz_l))
    allocate(row_ind(nnz_l))
    allocate(col_ptr(n_l_cols+1))
@@ -127,8 +125,6 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
    call elsi_read_mat_real_sparse(rw_h,s_file,row_ind,col_ptr,ovlp)
 
    call elsi_finalize_rw(rw_h)
-
-   ham_save = ham
 
    t2 = MPI_Wtime()
 
@@ -166,8 +162,6 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
       write(*,*)
    endif
 
-   ham = ham_save
-
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
@@ -190,7 +184,7 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
       write(*,"(2X,A)") "Finished test program"
       write(*,*)
       if(header(8) == 1111) then
-         if(abs(e_test-e_ref) < e_tol) then
+         if(abs(e_test-e_ref) < tol) then
             write(*,"(2X,A)") "Passed."
          else
             write(*,"(2X,A)") "Failed."
@@ -203,7 +197,6 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
    call elsi_finalize(e_h)
 
    deallocate(ham)
-   deallocate(ham_save)
    deallocate(ovlp)
    deallocate(evec)
    deallocate(eval)

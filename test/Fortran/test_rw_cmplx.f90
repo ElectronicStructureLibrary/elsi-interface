@@ -24,7 +24,7 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
    integer(kind=i4) :: nprow
    integer(kind=i4) :: npcol
    integer(kind=i4) :: myid
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: matrix_size
@@ -56,8 +56,8 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
 
    real(kind=r8), parameter :: tol = 1.0e-20_r8
 
-   call MPI_Comm_size(mpi_comm,n_proc,mpierr)
-   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+   call MPI_Comm_size(mpi_comm,n_proc,ierr)
+   call MPI_Comm_rank(mpi_comm,myid,ierr)
 
    if(myid == 0) then
       write(*,'("  ################################")')

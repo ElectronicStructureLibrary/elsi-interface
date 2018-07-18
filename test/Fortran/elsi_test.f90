@@ -24,10 +24,10 @@ program elsi_test
 
    integer(kind=i4) :: solver
    integer(kind=i4) :: myid
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
 
-   call MPI_Init(mpierr)
-   call MPI_Comm_rank(MPI_COMM_WORLD,myid,mpierr)
+   call MPI_Init(ierr)
+   call MPI_Comm_rank(MPI_COMM_WORLD,myid,ierr)
 
    ! Read command line arguments
    if(command_argument_count() == 6) then
@@ -111,7 +111,7 @@ program elsi_test
       call test_die()
    end select
 
-   call MPI_Finalize(mpierr)
+   call MPI_Finalize(ierr)
 
 contains
 
@@ -138,7 +138,7 @@ subroutine test_die()
       write(*,"(A)") "  ##  Arg #6: S matrix file             ##"
       write(*,"(A)") "  ##                                    ##"
       write(*,"(A)") "  ########################################"
-      call MPI_Abort(MPI_COMM_WORLD,0,mpierr)
+      call MPI_Abort(MPI_COMM_WORLD,0,ierr)
       stop
    endif
 
