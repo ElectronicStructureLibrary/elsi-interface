@@ -18,7 +18,6 @@ module ELSI_REDIST
    use ELSI_NTPOLY,    only: Triplet_t,TripletList_t,DistributedSparseMatrix_t,&
                              ConstructEmptyDistributedSparseMatrix,&
                              FillFromTripletList,GetTripletList,&
-                             FilterDistributedSparseMatrix,&
                              ConstructTripletList,AppendToTripletList,&
                              DestructTripletList
    use ELSI_PRECISION, only: r8,i4,i8
@@ -4648,7 +4647,6 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
 
    call elsi_get_time(t0)
 
-   call FilterDistributedSparseMatrix(dm_nt,bh%def0)
    call GetTripletList(dm_nt,dm_list)
 
    nnz_l_nt = dm_list%CurrentSize
@@ -4888,7 +4886,6 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
 
    call elsi_get_time(t0)
 
-   call FilterDistributedSparseMatrix(dm_nt,bh%def0)
    call GetTripletList(dm_nt,dm_list)
 
    nnz_l_nt = dm_list%CurrentSize
@@ -5066,7 +5063,6 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_csc)
 
    call elsi_get_time(t0)
 
-   call FilterDistributedSparseMatrix(dm_nt,bh%def0)
    call GetTripletList(dm_nt,dm_list)
 
    nnz_l_nt = dm_list%CurrentSize

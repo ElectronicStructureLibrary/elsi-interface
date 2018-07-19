@@ -34,10 +34,8 @@ module ELSI_NTPOLY
    public :: elsi_solve_ntpoly
    public :: DistributedSparseMatrix_t
    public :: ConstructEmptyDistributedSparseMatrix
-   public :: CopyDistributedSparseMatrix
    public :: FillFromTripletList
    public :: GetTripletList
-   public :: FilterDistributedSparseMatrix
    public :: TripletList_t
    public :: ConstructTripletList
    public :: AppendToTripletList
@@ -143,6 +141,10 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
    end select
 
    call ScaleDistributedSparseMatrix(dm,ph%spin_degen)
+
+   if(ph%nt_filter < bh%def0) then
+      call FilterDistributedSparseMatrix(dm,bh%def0)
+   endif
 
    call elsi_get_time(t1)
 
