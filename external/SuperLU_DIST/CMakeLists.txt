@@ -119,6 +119,7 @@ TARGET_LINK_LIBRARIES(superlu_dist PRIVATE
 
 TARGET_INCLUDE_DIRECTORIES(superlu_dist PRIVATE
   src
+  ${INC_PATHS}
   ${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotch
   ${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotchmetis
   ${PROJECT_BINARY_DIR}/generated)

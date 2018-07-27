@@ -9,9 +9,11 @@ MACRO(cpp_scotch arg1)
 ENDMACRO()
 
 MACRO(inc_scotch arg1)
-  TARGET_INCLUDE_DIRECTORIES(${arg1} PRIVATE src/libscotch)
-  TARGET_INCLUDE_DIRECTORIES(${arg1} PRIVATE src/libscotchmetis)
-  TARGET_INCLUDE_DIRECTORIES(${arg1} PRIVATE ${PROJECT_BINARY_DIR}/generated)
+  TARGET_INCLUDE_DIRECTORIES(${arg1} PRIVATE
+    src/libscotch
+    src/libscotchmetis
+    ${PROJECT_BINARY_DIR}/generated
+    ${INC_PATHS})
 ENDMACRO()
 
 SET(SCOTCH_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/SCOTCH/src")
