@@ -16,8 +16,8 @@ LIST(APPEND ftest_src
 
 MACRO(add_test_target arg1)
   ADD_DEPENDENCIES(${arg1} elsi)
+
   TARGET_LINK_LIBRARIES(${arg1} PRIVATE elsi)
-  TARGET_INCLUDE_DIRECTORIES(${arg1} PRIVATE ${PROJECT_SOURCE_DIR}/src)
   IF(NOT USE_EXTERNAL_OMM)
     TARGET_LINK_LIBRARIES(${arg1} PRIVATE OMM MatrixSwitch)
   ENDIF()
@@ -42,6 +42,10 @@ MACRO(add_test_target arg1)
     ENDIF()
   ENDIF()
   TARGET_LINK_LIBRARIES(${arg1} PRIVATE ${LIBS})
+
+  TARGET_INCLUDE_DIRECTORIES(${arg1} PRIVATE
+    ${INC_PATHS}
+    ${PROJECT_SOURCE_DIR}/src)
 ENDMACRO()
 
 ADD_EXECUTABLE(elsi_test ${ftest_src})
