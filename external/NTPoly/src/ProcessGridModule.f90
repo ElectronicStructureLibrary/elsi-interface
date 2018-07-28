@@ -6,9 +6,6 @@ MODULE ProcessGridModule
       & WriteHeader, WriteListElement
   USE MPI
   USE ISO_C_BINDING, ONLY : c_int, c_bool
-#ifdef _OPENMP
-  USE omp_lib, ONLY : omp_get_num_threads
-#endif
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -126,23 +123,7 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        row_block_multiplier = 1*num_process_slices
     END IF
 
-    !! The rule right now seems to be to have at least half as many blocks as
-    !! threads.
-#if defined NOBLOCK
     block_multiplier = 1
-#elif defined _OPENMP
-    !$omp PARALLEL
-    num_threads = omp_get_num_threads()
-    !$omp end PARALLEL
-    block_multiplier = num_threads/&
-         & (column_block_multiplier+row_block_multiplier)
-    IF (block_multiplier .EQ. 0) THEN
-       block_multiplier = 1
-    END IF
-#else
-    block_multiplier = 1
-#endif
-
     number_of_blocks_columns = column_block_multiplier*block_multiplier
     number_of_blocks_rows = row_block_multiplier*block_multiplier
 
