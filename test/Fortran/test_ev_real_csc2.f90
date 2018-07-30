@@ -197,6 +197,10 @@ subroutine test_ev_real_csc2(mpi_comm,solver,h_file,s_file)
       write(*,"(2X,A)") "Finished test program"
       write(*,*)
       if(header(8) == 1111) then
+         write(*,"(2X,A)") "Band energy"
+         write(*,"(2X,A,F15.8)") "| This test :",e_test
+         write(*,"(2X,A,F15.8)") "| Reference :",e_ref
+         write(*,*)
          if(abs(e_test-e_ref) < tol) then
             write(*,"(2X,A)") "Passed."
          else

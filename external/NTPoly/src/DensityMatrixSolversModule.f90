@@ -157,14 +157,15 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & threshold_in=solver_parameters%threshold, &
             & memory_pool_in=pool1)
 
-       !! Subtract from X_k
-       CALL CopyDistributedSparseMatrix(X_k,TempMat)
-       CALL IncrementDistributedSparseMatrix(X_k2,TempMat,REAL(-1.0,NTREAL))
-
-       !! Add To X_k
-       CALL CopyDistributedSparseMatrix(X_k,X_k2)
-       CALL IncrementDistributedSparseMatrix(TempMat,X_k, &
-            & sigma_array(outer_counter))
+       !! Update X_k
+       IF (sigma_array(outer_counter) .GT. REAL(0.0,NTREAL)) THEN
+          CALL ScaleDistributedSparseMatrix(X_k,REAL(2.0,NTREAL))
+          CALL IncrementDistributedSparseMatrix(X_k2,X_k, &
+               & alpha_in=REAL(-1.0,NTREAL), &
+               & threshold_in=solver_parameters%threshold)
+       ELSE
+          CALL CopyDistributedSparseMatrix(X_k2,X_k)
+       END IF
 
        !! Energy value based convergence
        energy_value2 = energy_value
@@ -379,6 +380,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        !! Compute Traces
        trace_fx = DotDistributedSparseMatrix(X_k2,Fx_right)
        trace_gx = DotDistributedSparseMatrix(X_k2,Gx_right)
+
+       !! Avoid Overflow
+       IF (ABS(trace_gx) .LT. 1.0d-14) THEN
+          EXIT
+       END IF
 
        !! Compute Sigma
        sigma_array(outer_counter) = (nel*0.5-trace_fx)/trace_gx
