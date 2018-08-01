@@ -5,8 +5,8 @@ SET(CMAKE_C_COMPILER "cc" CACHE STRING "MPI C compiler")
 SET(CMAKE_CXX_COMPILER "CC" CACHE STRING "MPI C++ compiler")
 
 SET(CMAKE_Fortran_FLAGS "-fast -no-ipo" CACHE STRING "Fortran flags")
-SET(CMAKE_C_FLAGS "-fast -no-ipo -std=c99" CACHE STRING "C flags")
-SET(CMAKE_CXX_FLAGS "-fast -no-ipo -std=c++11" CACHE STRING "C++ flags")
+SET(CMAKE_C_FLAGS "-fast -no-ipo" CACHE STRING "C flags")
+SET(CMAKE_CXX_FLAGS "-fast -no-ipo" CACHE STRING "C++ flags")
 
 SET(ELPA2_KERNEL "AVX2" CACHE STRING "Use ELPA AVX2 kernel")
 SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")

@@ -5,8 +5,8 @@ SET(CMAKE_C_COMPILER "mpicc" CACHE STRING "MPI C compiler")
 SET(CMAKE_CXX_COMPILER "mpicxx" CACHE STRING "MPI C++ compiler")
 
 SET(CMAKE_Fortran_FLAGS "-O3 -mavx" CACHE STRING "Fortran flags")
-SET(CMAKE_C_FLAGS "-O3 -mavx -std=c99" CACHE STRING "C flags")
-SET(CMAKE_CXX_FLAGS "-O3 -mavx -std=c++11" CACHE STRING "C++ flags")
+SET(CMAKE_C_FLAGS "-O3 -mavx" CACHE STRING "C flags")
+SET(CMAKE_CXX_FLAGS "-O3 -mavx" CACHE STRING "C++ flags")
 
 SET(ENABLE_TESTS ON CACHE BOOL "Enable Fortran tests")
 SET(ENABLE_C_TESTS ON CACHE BOOL "Enable C tests")

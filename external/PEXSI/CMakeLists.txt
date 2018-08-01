@@ -52,6 +52,8 @@ IF(NOT USE_EXTERNAL_SUPERLU)
     ${PROJECT_BINARY_DIR}/generated)
 ENDIF()
 
+target_compile_features(pexsi PRIVATE c_std_99 cxx_std_11)
+
 INSTALL(TARGETS pexsi
   EXPORT elsiConfig
   DESTINATION ${CMAKE_INSTALL_LIBDIR})

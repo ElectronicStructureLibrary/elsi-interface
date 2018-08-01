@@ -100,6 +100,8 @@ IF(ADD_UNDERSCORE)
   TARGET_COMPILE_DEFINITIONS(superlu_dist PRIVATE Add_)
 ENDIF()
 
+target_compile_features(superlu_dist PRIVATE c_std_99)
+
 ADD_DEPENDENCIES(superlu_dist
   ptscotchparmetis
   ptscotch

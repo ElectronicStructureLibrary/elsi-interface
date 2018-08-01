@@ -476,6 +476,13 @@ TARGET_COMPILE_DEFINITIONS(scotchmetis PRIVATE SCOTCHLIB=ptscotch)
 TARGET_COMPILE_DEFINITIONS(ptscotchparmetis PRIVATE SCOTCH_PTSCOTCH)
 TARGET_COMPILE_DEFINITIONS(ptscotchparmetis PRIVATE SCOTCHLIB=ptscotch)
 
+target_compile_features(scotch PRIVATE c_std_99)
+target_compile_features(scotcherr PRIVATE c_std_99)
+target_compile_features(scotchmetis PRIVATE c_std_99)
+target_compile_features(ptscotch PRIVATE c_std_99)
+target_compile_features(ptscotcherr PRIVATE c_std_99)
+target_compile_features(ptscotchparmetis PRIVATE c_std_99)
+
 inc_scotch(scotch)
 inc_scotch(scotcherr)
 inc_scotch(scotchmetis)
