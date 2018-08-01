@@ -348,6 +348,7 @@ $ \textcolor{blue}{cmake -G Ninja [options] ..}
 $ \textcolor{blue}{ninja [-j np]}
 $ \textcolor{blue}{ninja install}
 \end{Verbatim}
+Without the \verb+-j+ flag, Ninja runs on the number of available threads plus two by default (10 on a machine with 8 threads). Thus, \verb+-j+ is typically not necessary. \\
 
 With CMake, an option can be defined by adding\\
 
