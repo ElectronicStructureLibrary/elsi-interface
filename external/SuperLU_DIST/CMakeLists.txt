@@ -100,7 +100,9 @@ IF(ADD_UNDERSCORE)
   TARGET_COMPILE_DEFINITIONS(superlu_dist PRIVATE Add_)
 ENDIF()
 
-target_compile_features(superlu_dist PRIVATE c_std_99)
+if (NOT CMAKE_VERSION VERSION_LESS 3.8.2)
+  target_compile_features(superlu_dist PRIVATE c_std_99)
+endif()
 
 ADD_DEPENDENCIES(superlu_dist
   ptscotchparmetis

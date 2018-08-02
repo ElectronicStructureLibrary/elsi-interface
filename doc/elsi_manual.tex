@@ -394,6 +394,8 @@ In addition, it is highly recommended to specify the compiler flags, in particul
 -DCMAKE_CXX_FLAGS=YOUR_MPI_C++_COMPILE_FLAGS
 \end{verbatim}
 
+Note: with CMake versions older than 3.8.2, flags such as \verb+-std=c99+ and \texttt{-std=c++11} (or equivalents depending on the compilers) must be given in order to ensure compliance with the C99 and C++11 standards. Newer versions of CMake take care of this automatically.
+
 \subsection{Solvers}
 \label{subsec:config_solvers}
 The ELPA, libOMM, and PEXSI solver libraries, as well as the SuperLU\_DIST and PT-SCOTCH libraries (both required by PEXSI), are redistributed with the current ELSI package.\\

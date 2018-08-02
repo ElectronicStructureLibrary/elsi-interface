@@ -78,7 +78,9 @@ TARGET_LINK_LIBRARIES(elpa PRIVATE ${LIBS})
 
 TARGET_INCLUDE_DIRECTORIES(elpa PRIVATE ${INC_PATHS})
 
-target_compile_features(elpa PRIVATE c_std_99)
+if (NOT CMAKE_VERSION VERSION_LESS 3.8.2)
+  target_compile_features(elpa PRIVATE c_std_99)
+endif()
 
 INSTALL(TARGETS elpa
   EXPORT elsiConfig
