@@ -265,7 +265,7 @@ ELSI is a National Science Foundation Software Infrastructure for Sustained Inno
 \chapter{Installation of ELSI}
 \section{Overview}
 \label{sec:install}
-The ELSI package contains the ELSI Interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.0.1).  We highly encourage all users to request access to our \href{http://git.elsi-interchange.org/elsi-devel}{GitLab server}GitLab server, where we regularly update ELSI between releases while preserving stability.\\
+The ELSI package contains the ELSI Interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.0.2).  We highly encourage all users to request access to our \href{http://git.elsi-interchange.org/elsi-devel}{GitLab server}GitLab server, where we regularly update ELSI between releases while preserving stability.\\
 
 Starting from the May 2018 release, the installation of ELSI makes use of the \href{http://cmake.org}{CMake} software.\\
 
@@ -325,9 +325,9 @@ $ \textcolor{blue}{make [-j np]}
 $ \textcolor{blue}{make install}
 \end{Verbatim}
 
-Whenever CMake is invoked, one of the command line arguments must point to the path where the top level CMakeLists.txt file exists, hence the ``..'' in the above example.\\
+Whenever CMake is invoked, one of the command line arguments must point to the path where the top level CMakeLists.txt file exists, hence the ``\verb+..+'' in the above example.\\
 
-By default, CMake generates standard UNIX makefiles including specific rules to build the project with GNU make.  Other build systems may be chosen with the ``-G'' (G for generator) option of CMake.  We recommend \href{http://ninja-build.org}{Ninja} in particular, which is a small build system with a focus on speed.  A version of Ninja with Fortran support is freely available \href{http://github.com/Kitware/ninja}{here}.\\
+By default, CMake generates standard UNIX makefiles including specific rules to build the project with GNU make.  Other build systems may be chosen with the ``\verb+-G+'' (G for generator) option of CMake.  We recommend \href{http://ninja-build.org}{Ninja} in particular, which is a small build system with a focus on speed.  A version of Ninja with Fortran support is freely available \href{http://github.com/Kitware/ninja}{here}.\\
 
 To build ELSI with Ninja:\\
 
@@ -345,10 +345,11 @@ $ \textcolor{blue}{cmake -G Ninja [options] ..}
   -- Generating done
   -- Build files have been written to: /current/dir
 
-$ \textcolor{blue}{ninja [-j np]}
+$ \textcolor{blue}{ninja}
 $ \textcolor{blue}{ninja install}
 \end{Verbatim}
-Without the \verb+-j+ flag, Ninja runs on the number of available threads plus two by default (10 on a machine with 8 threads). Thus, \verb+-j+ is typically not necessary. \\
+
+Ninja also accepts the \verb+-j+ flag.  Without this flag, Ninja runs on the number of available threads plus two by default (e.g., 10 on a machine with 8 threads).  Thus, \verb+-j+ is typically not necessary.\\
 
 With CMake, an option can be defined by adding\\
 
@@ -356,7 +357,7 @@ With CMake, an option can be defined by adding\\
 -DKeyword=Value
 \end{verbatim}
 
-to the command line when invoking CMake.  If ``Keyword'' is of type boolean, its ``Value'' may be ``ON'' or ``OFF''.  If ``Keyword'' is a list of libraries or include directories, its items should be separated with ``;'' (semicolon) or `` '' (space).\\
+to the command line when invoking CMake.  If ``\verb+Keyword+'' is of type boolean, its ``\verb+Value+'' may be ``ON'' or ``OFF''.  If ``\verb+Keyword+'' is a list of libraries or include directories, its items should be separated with ``;'' (semicolon) or `` '' (space).\\
 
 For example,\\
 
@@ -486,7 +487,7 @@ or\\
 $ \textcolor{blue}{ninja test}
 \end{Verbatim}
 
-depending on the generator option ``-G'' used when invoking CMake.  Alternatively, issue\\
+depending on the generator option ``\verb+-G+'' used when invoking CMake.  Alternatively, issue\\
 
 \begin{Verbatim}[commandchars=\\\{\}]
 $ \textcolor{blue}{ctest}
@@ -508,7 +509,7 @@ or\\
 $ \textcolor{blue}{ninja install}
 \end{Verbatim}
 
-depending on the CMake generator option ``-G'' used.\\
+depending on the CMake generator option ``\verb+-G+'' used.\\
 
 Among the files copied to the installation destinations is a CMake configuration file called \texttt{elsiConfig.cmake}.  This file includes all the information about how the ELSI library and its dependencies should be included in an external CMake project.  Please refer to \ref{sec:import} for information regarding linking a third-party package against ELSI.\\
 
@@ -575,7 +576,7 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 
 \textbf{2)} \textcolor{blue}{ELPA2\_KERNEL}:  There are a number of computational kernels available with the ELPA solver.  Choose from ``BGQ'' (IBM Blue Gene Q), ``AVX'' (Intel AVX), ``AVX2'' (Intel AVX2), and ``AVX512'' (Intel AVX512).  See \ref{subsec:config_solvers} for more information.\\
 
-\textbf{3)} \textcolor{blue}{SCOTCH\_LAST\_RESORT}:  The compilation of the PT-SCOTCH library is a multi-step process.  First, two auxiliary executables are compiled.  Then, header files of the library are generated by running the two compiled executables.  Finally, the main source files of the library are compiled with the generated header files included.  The header generation step may fail on platforms where directly running an executable is prohibited on a login/compile node.  Often this can be circumvented by requesting an interactive session to a compute node and performing the compilation there, or by submitting the whole compilation as a job to the queuing system.  However, this may still fail on platforms where an executable compiled with MPI must be launched by an MPI job launcher (aprun, mpirun, srun, etc).  If the standard compilation of PT-SCOTCH fails due to this reason, the user may set \textcolor{blue}{SCOTCH\_LAST\_RESORT} to the command that starts an MPI job with one MPI task, e.g. ``mpirun -n 1''.  This command will be used to launch the auxiliary executables to generate necessary header files for PT-SCOTCH.\\
+\textbf{3)} \textcolor{blue}{SCOTCH\_LAST\_RESORT}:  The compilation of the PT-SCOTCH library is a multi-step process.  First, two auxiliary executables are compiled.  Then, header files of the library are generated by running the two compiled executables.  Finally, the main source files of the library are compiled with the generated header files included.  The header generation step may fail on platforms where directly running an executable is prohibited on a login/compile node.  Often this can be circumvented by requesting an interactive session to a compute node and performing the compilation there, or by submitting the whole compilation as a job to the queuing system.  However, this may still fail on platforms where an executable compiled with MPI must be launched by an MPI job launcher (aprun, mpirun, srun, etc).  If the standard compilation of PT-SCOTCH fails due to this reason, the user may set \textcolor{blue}{SCOTCH\_LAST\_RESORT} to the command that starts an MPI job with one MPI task, e.g. ``\verb+mpirun -n 1+''.  This command will be used to launch the auxiliary executables to generate necessary header files for PT-SCOTCH.\\
 
 \textbf{4)} External libraries:  ELSI redistributes source code of ELPA, libOMM, PEXSI, SuperLU\_DIST, and PT-SCOTCH libraries, which by default will be built together with the ELSI interface.  Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries.  See \ref{subsec:config_solvers} for more information.\\
 
@@ -2163,6 +2164,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 \bigskip
 \noindent\rule{18cm}{0.4pt}
 
-The source code of ELPA 2016.11.001 (LGPL3), libOMM (BSD2), PEXSI 1.0.1 (BSD3), SuperLU\_DIST 5.3.0 (BSD3), and PT-SCOTCH 6.0.0 (CeCILL-C) are redistributed through this version of ELSI.  Individual license of each library can be found in the corresponding subfolder.\\
+The source code of ELPA 2016.11.001 (LGPL3), libOMM (BSD2), PEXSI 1.0.2 (BSD3), SuperLU\_DIST 5.3.0 (BSD3), and PT-SCOTCH 6.0.0 (CeCILL-C) are redistributed through this version of ELSI.  Individual license of each library can be found in the corresponding subfolder.\\
 
 \end{document}

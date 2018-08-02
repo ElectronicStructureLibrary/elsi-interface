@@ -9,10 +9,10 @@ gnu:
     - module load cmake-3.8.2
     - module load openmpi-3.0.0
     - cat ./toolchains/gnu.cmake
-    - rm -rf build $INSTALL_DIR
-    - mkdir build $INSTALL_DIR
+    - rm -rf build $INSTALL_DIR/gnu
+    - mkdir build $INSTALL_DIR/gnu
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/gnu.cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR ..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/gnu.cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/gnu ..
     - make -j8
     - ctest --output-on-failure
     - make install
@@ -27,10 +27,10 @@ intel:
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
     - cat ./toolchains/intel.cmake
-    - rm -rf build $INSTALL_DIR
-    - mkdir build $INSTALL_DIR
+    - rm -rf build $INSTALL_DIR/intel
+    - mkdir build $INSTALL_DIR/intel
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR ..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/intel ..
     - make -j8
     - ctest --output-on-failure
     - make install
@@ -45,10 +45,10 @@ intel-debug:
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
     - cat ./toolchains/intel_debug.cmake
-    - rm -rf build $INSTALL_DIR
-    - mkdir build $INSTALL_DIR
+    - rm -rf build $INSTALL_DIR/intel-debug
+    - mkdir build $INSTALL_DIR/intel-debug
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR ..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/intel-debug ..
     - make -j8
     - ctest --output-on-failure
     - make install
@@ -63,10 +63,10 @@ intel-shared:
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
     - cat ./toolchains/intel.cmake
-    - rm -rf build $INSTALL_DIR
-    - mkdir build $INSTALL_DIR
+    - rm -rf build $INSTALL_DIR/intel-shared
+    - mkdir build $INSTALL_DIR/intel-shared
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DBUILD_SHARED_LIBS=ON ..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/intel-shared -DBUILD_SHARED_LIBS=ON ..
     - make -j8
     - ctest --output-on-failure
     - make install
