@@ -142,7 +142,7 @@ subroutine elsi_reset_param(ph)
    ph%sips_started           = .false.
    ph%nt_n_group             = 1
    ph%nt_method              = 0
-   ph%nt_max_iter            = 1000
+   ph%nt_max_iter            = 100
    ph%nt_tol                 = 1.0e-8_r8
    ph%nt_filter              = 1.0e-15_r8
    ph%nt_output              = .false.

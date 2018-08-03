@@ -9,12 +9,12 @@
 !!
 module ELSI_NTPOLY
 
-   use ELSI_CONSTANTS, only: UNSET,NTPOLY_TRS2,NTPOLY_TRS4,NTPOLY_HPCP
+   use ELSI_CONSTANTS, only: UNSET,NTPOLY_PM,NTPOLY_TC2,NTPOLY_TRS4,NTPOLY_HPCP
    use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_IO,        only: elsi_say,elsi_get_time
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_PRECISION, only: r8,i4
-   use NTPOLY,         only: TRS2,TRS4,HPCP,ScaleDistributedSparseMatrix,&
+   use NTPOLY,         only: PM,TRS2,TRS4,HPCP,ScaleDistributedSparseMatrix,&
                              DistributedSparseMatrix_t,FillFromTripletList,&
                              ConstructEmptyDistributedSparseMatrix,&
                              FilterDistributedSparseMatrix,DestructProcessGrid,&
@@ -142,7 +142,9 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
    ne = int(ph%n_electrons,kind=i4)
 
    select case(ph%nt_method)
-   case(NTPOLY_TRS2)
+   case(NTPOLY_PM)
+      call PM(ham,ovlp,ne,dm,ph%ebs,ph%mu,ph%nt_options)
+   case(NTPOLY_TC2)
       call TRS2(ham,ovlp,ne,dm,ph%ebs,ph%mu,ph%nt_options)
    case(NTPOLY_TRS4)
       call TRS4(ham,ovlp,ne,dm,ph%ebs,ph%mu,ph%nt_options)
