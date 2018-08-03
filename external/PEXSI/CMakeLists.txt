@@ -52,9 +52,9 @@ IF(NOT USE_EXTERNAL_SUPERLU)
     ${PROJECT_BINARY_DIR}/generated)
 ENDIF()
 
-if (NOT CMAKE_VERSION VERSION_LESS 3.8.2)
-  target_compile_features(pexsi PRIVATE c_std_99 cxx_std_11)
-endif()
+IF(NOT CMAKE_VERSION VERSION_LESS 3.8.2)
+  TARGET_COMPILE_FEATURES(pexsi PRIVATE c_std_99 cxx_std_11)
+ENDIF()
 
 INSTALL(TARGETS pexsi
   EXPORT elsiConfig

@@ -2,6 +2,9 @@
    Not Released
 ==================
 
+   ELSI:
+   * Adopted literature definition of the electronic entropy.
+
    ELPA:
    * For externally linked ELPA, added options to perform single precision
      calculations and to automatically tune the internal runtime parameters

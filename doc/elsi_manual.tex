@@ -274,7 +274,7 @@ Starting from the May 2018 release, the installation of ELSI makes use of the \h
 To build ELSI, the minimum requirements are:\\
 
 \begin{Verbatim}[commandchars=\\\{\}]
-\textcolor{blue}{CMake}  [version 3.0 or newer]
+\textcolor{blue}{CMake}  [minimum version 3.0; newer version recommended]
 \textcolor{blue}{Fortran compiler}  [with Fortran 2003]
 \textcolor{blue}{C compiler}  [with C99]
 \textcolor{blue}{MPI}
@@ -394,7 +394,7 @@ In addition, it is highly recommended to specify the compiler flags, in particul
 -DCMAKE_CXX_FLAGS=YOUR_MPI_C++_COMPILE_FLAGS
 \end{verbatim}
 
-Note: with CMake versions older than 3.8.2, flags such as \verb+-std=c99+ and \texttt{-std=c++11} (or equivalents depending on the compilers) must be given in order to ensure compliance with the C99 and C++11 standards. Newer versions of CMake take care of this automatically.
+Note that with CMake versions older than 3.8.2, flags such as \verb+-std=c99+ and \verb@-std=c++11@ (or equivalents depending on the compilers) must be given in order to ensure compliance with the C99 and C++11 standards.  Newer versions of CMake take care of this automatically.\\
 
 \subsection{Solvers}
 \label{subsec:config_solvers}
