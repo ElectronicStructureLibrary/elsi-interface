@@ -119,13 +119,13 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
       ph%nt_options = IterativeSolverParameters_t(ph%nt_tol,ph%nt_filter,&
                          ph%nt_max_iter,ph%nt_output,ph%nt_perm)
 
-      ph%nt_options%converge_diff = min(ph%nt_filter,1.0e-8_r8)
+      ph%nt_options%converge_diff = min(ph%nt_tol,1.0e-8_r8)
 
       call InverseSquareRoot(ovlp,ovlp_isq,ph%nt_options)
       call CopyDistributedSparseMatrix(ovlp_isq,ovlp)
       call DestructDistributedSparseMatrix(ovlp_isq)
 
-      ph%nt_options%converge_diff = ph%nt_filter
+      ph%nt_options%converge_diff = ph%nt_tol
 
       call elsi_get_time(t1)
 
@@ -177,6 +177,7 @@ subroutine elsi_compute_edm_ntpoly_real(ph,bh,ham,edm)
    type(DistributedSparseMatrix_t), intent(inout) :: ham
    type(DistributedSparseMatrix_t), intent(inout) :: edm ! On entry: DM
 
+   real(kind=r8)      :: factor
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
    character(len=200) :: info_str
@@ -188,13 +189,16 @@ subroutine elsi_compute_edm_ntpoly_real(ph,bh,ham,edm)
 
    call elsi_get_time(t0)
 
+   factor = 1.0_r8/ph%spin_degen
+
    call ConstructEmptyDistributedSparseMatrix(tmp,ph%n_basis)
    call DistributedGemm(edm,ham,tmp,threshold_in=ph%nt_options%threshold,&
            memory_pool_in=pool1)
    call DistributedGemm(tmp,edm,ham,threshold_in=ph%nt_options%threshold,&
            memory_pool_in=pool1)
    call CopyDistributedSparseMatrix(ham,edm)
-   call ScaleDistributedSparseMatrix(edm,ph%spin_degen)
+   call ScaleDistributedSparseMatrix(edm,factor)
+   call DestructDistributedSparseMatrix(tmp)
 
    if(ph%nt_filter < bh%def0) then
       call FilterDistributedSparseMatrix(edm,bh%def0)
