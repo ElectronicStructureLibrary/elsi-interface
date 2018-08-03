@@ -15,9 +15,12 @@ module ELSI_MUTATOR
    use ELSI_ELPA,      only: elsi_compute_edm_elpa
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_REDIST,    only: elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,&
-                             elsi_pexsi_to_blacs_dm,elsi_pexsi_to_siesta_dm,&
-                             elsi_sips_to_blacs_dm,elsi_sips_to_siesta_dm
+                             elsi_ntpoly_to_blacs_dm,elsi_ntpoly_to_siesta_dm,&
+                             elsi_ntpoly_to_sips_dm,elsi_pexsi_to_blacs_dm,&
+                             elsi_pexsi_to_siesta_dm,elsi_sips_to_blacs_dm,&
+                             elsi_sips_to_siesta_dm
    use ELSI_MPI,       only: elsi_stop
+   use ELSI_NTPOLY,    only: elsi_compute_edm_ntpoly
    use ELSI_OMM,       only: elsi_compute_edm_omm
    use ELSI_PEXSI,     only: elsi_compute_edm_pexsi
    use ELSI_PRECISION, only: r8,i4
@@ -1204,6 +1207,9 @@ subroutine elsi_get_edm_real(eh,edm)
                  eh%occ,eh%dm_real_csc)
          call elsi_sips_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
                  eh%dm_real_csc,edm)
+      case(NTPOLY_SOLVER)
+         call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
+         call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,edm)
       case default
          call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
       end select
@@ -1308,6 +1314,17 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
                     eh%col_ptr_sp2,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         end select
+      case(NTPOLY_SOLVER)
+         call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
+
+         select case(eh%ph%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%ph%nt_dm,edm)
+         case(SIESTA_CSC)
+            call elsi_ntpoly_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                    eh%ph%nt_dm,edm)
          end select
       case default
          call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)

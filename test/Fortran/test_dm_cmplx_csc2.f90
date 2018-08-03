@@ -160,9 +160,7 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   if(solver == 1 .or. solver == 2 .or. solver == 3) then
-      call elsi_get_edm_complex_sparse(e_h,edm)
-   endif
+   call elsi_get_edm_complex_sparse(e_h,edm)
 
    ! Compute electron count
    tmp = real(zdotc(nnz_l,ovlp,1,dm,1),kind=r8)

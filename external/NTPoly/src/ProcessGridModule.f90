@@ -48,6 +48,7 @@ MODULE ProcessGridModule
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: ConstructProcessGrid
   PUBLIC :: IsRoot
+  PUBLIC :: DestructProcessGrid
   !! Accessors for grid information
   PUBLIC :: GetMySlice
   PUBLIC :: GetMyRow
@@ -83,7 +84,7 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        be_verbose = .FALSE.
     END IF
 
-    CALL MPI_COMM_DUP(world_comm_,global_comm, ierr)
+    CALL MPI_COMM_DUP(world_comm_, global_comm, ierr)
     !! Grid Dimensions
     num_process_rows = process_rows_
     num_process_columns = process_columns_
@@ -211,4 +212,37 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: return_val
     return_val = my_row
   END FUNCTION GetMyRow
+  !> Destruct the process grid.
+  SUBROUTINE DestructProcessGrid()
+
+    !! Local Data
+    INTEGER :: ierr
+    INTEGER :: row_counter, column_counter
+
+    DO row_counter=1,number_of_blocks_rows
+       DO column_counter=1,number_of_blocks_columns
+          CALL MPI_COMM_FREE(blocked_within_slice_comm(column_counter,row_counter), ierr)
+          CALL MPI_COMM_FREE(blocked_between_slice_comm(column_counter,row_counter), ierr)
+       END DO
+    END DO
+    DO column_counter=1,number_of_blocks_columns
+       CALL MPI_COMM_FREE(blocked_column_comm(column_counter), ierr)
+    END DO
+    DO row_counter=1,number_of_blocks_rows
+       CALL MPI_COMM_FREE(blocked_row_comm(row_counter), ierr)
+    END DO
+
+    DEALLOCATE(blocked_row_comm)
+    DEALLOCATE(blocked_column_comm)
+    DEALLOCATE(blocked_within_slice_comm)
+    DEALLOCATE(blocked_between_slice_comm)
+
+    CALL MPI_COMM_FREE(row_comm, ierr)
+    CALL MPI_COMM_FREE(column_comm, ierr)
+    CALL MPI_COMM_FREE(within_slice_comm, ierr)
+    CALL MPI_COMM_FREE(between_slice_comm, ierr)
+    CALL MPI_COMM_FREE(global_comm, ierr)
+
+  END SUBROUTINE DestructProcessGrid
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE ProcessGridModule

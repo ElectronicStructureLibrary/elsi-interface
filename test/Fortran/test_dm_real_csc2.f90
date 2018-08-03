@@ -169,9 +169,7 @@ subroutine test_dm_real_csc2(mpi_comm,solver,h_file,s_file)
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   if(solver == 1 .or. solver == 2 .or. solver == 3) then
-      call elsi_get_edm_real_sparse(e_h,edm)
-   endif
+   call elsi_get_edm_real_sparse(e_h,edm)
 
    ! Compute electron count
    tmp = ddot(nnz_l,ovlp,1,dm,1)

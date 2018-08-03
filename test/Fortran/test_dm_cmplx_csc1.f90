@@ -185,9 +185,7 @@ subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   if(solver == 1 .or. solver == 2 .or. solver == 3) then
-      call elsi_get_edm_complex_sparse(e_h,edm)
-   endif
+   call elsi_get_edm_complex_sparse(e_h,edm)
 
    ! Compute electron count
    if(task_id == 0) then

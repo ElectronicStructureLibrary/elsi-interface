@@ -17,13 +17,14 @@ module ELSI_NTPOLY
    use NTPOLY,         only: TRS2,TRS4,HPCP,ScaleDistributedSparseMatrix,&
                              DistributedSparseMatrix_t,FillFromTripletList,&
                              ConstructEmptyDistributedSparseMatrix,&
-                             FilterDistributedSparseMatrix,&
+                             FilterDistributedSparseMatrix,DestructProcessGrid,&
                              CopyDistributedSparseMatrix,GetTripletList,&
                              DestructDistributedSparseMatrix,InverseSquareRoot,&
                              IterativeSolverParameters_t,DestructPermutation,&
                              ConstructRandomPermutation,ConstructProcessGrid,&
                              Triplet_t,TripletList_t,ConstructTripletList,&
-                             AppendToTripletList,DestructTripletList
+                             AppendToTripletList,DestructTripletList,&
+                             DistributedMatrixMemoryPool_t,DistributedGemm
 
    implicit none
 
@@ -32,6 +33,7 @@ module ELSI_NTPOLY
    public :: elsi_init_ntpoly
    public :: elsi_cleanup_ntpoly
    public :: elsi_solve_ntpoly
+   public :: elsi_compute_edm_ntpoly
    public :: DistributedSparseMatrix_t
    public :: ConstructEmptyDistributedSparseMatrix
    public :: FillFromTripletList
@@ -44,6 +46,10 @@ module ELSI_NTPOLY
 
    interface elsi_solve_ntpoly
       module procedure elsi_solve_ntpoly_real
+   end interface
+
+   interface elsi_compute_edm_ntpoly
+      module procedure elsi_compute_edm_ntpoly_real
    end interface
 
 contains
@@ -113,9 +119,13 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
       ph%nt_options = IterativeSolverParameters_t(ph%nt_tol,ph%nt_filter,&
                          ph%nt_max_iter,ph%nt_output,ph%nt_perm)
 
+      ph%nt_options%converge_diff = min(ph%nt_filter,1.0e-8_r8)
+
       call InverseSquareRoot(ovlp,ovlp_isq,ph%nt_options)
       call CopyDistributedSparseMatrix(ovlp_isq,ovlp)
       call DestructDistributedSparseMatrix(ovlp_isq)
+
+      ph%nt_options%converge_diff = ph%nt_filter
 
       call elsi_get_time(t1)
 
@@ -156,6 +166,50 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
 end subroutine
 
 !>
+!! This routine computes the energy-weighted density matrix.
+!!
+subroutine elsi_compute_edm_ntpoly_real(ph,bh,ham,edm)
+
+   implicit none
+
+   type(elsi_param_t),              intent(in)    :: ph
+   type(elsi_basic_t),              intent(in)    :: bh
+   type(DistributedSparseMatrix_t), intent(inout) :: ham
+   type(DistributedSparseMatrix_t), intent(inout) :: edm ! On entry: DM
+
+   real(kind=r8)      :: t0
+   real(kind=r8)      :: t1
+   character(len=200) :: info_str
+
+   type(DistributedSparseMatrix_t)     :: tmp
+   type(DistributedMatrixMemoryPool_t) :: pool1
+
+   character(len=40), parameter :: caller = "elsi_compute_edm_ntpoly_real"
+
+   call elsi_get_time(t0)
+
+   call ConstructEmptyDistributedSparseMatrix(tmp,ph%n_basis)
+   call DistributedGemm(edm,ham,tmp,threshold_in=ph%nt_options%threshold,&
+           memory_pool_in=pool1)
+   call DistributedGemm(tmp,edm,ham,threshold_in=ph%nt_options%threshold,&
+           memory_pool_in=pool1)
+   call CopyDistributedSparseMatrix(ham,edm)
+   call ScaleDistributedSparseMatrix(edm,ph%spin_degen)
+
+   if(ph%nt_filter < bh%def0) then
+      call FilterDistributedSparseMatrix(edm,bh%def0)
+   endif
+
+   call elsi_get_time(t1)
+
+   write(info_str,"(2X,A)") "Finished energy density matrix calculation"
+   call elsi_say(bh,info_str)
+   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,info_str)
+
+end subroutine
+
+!>
 !! This routine cleans up NTPoly.
 !!
 subroutine elsi_cleanup_ntpoly(ph)
@@ -171,6 +225,7 @@ subroutine elsi_cleanup_ntpoly(ph)
       call DestructDistributedSparseMatrix(ph%nt_ovlp)
       call DestructDistributedSparseMatrix(ph%nt_dm)
       call DestructPermutation(ph%nt_perm)
+      call DestructProcessGrid()
    endif
 
    ph%nt_started = .false.

@@ -235,9 +235,7 @@ program test_dm_kpt_spin_cmplx_den
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   if(solver == 1 .or. solver == 2 .or. solver == 3) then
-      call elsi_get_edm_complex(e_h,edm)
-   endif
+   call elsi_get_edm_complex(e_h,edm)
 
    if(myid == 0) then
       write(*,"(2X,A)") "Finished SCF #2"
