@@ -66,6 +66,7 @@ module ELSI_MUTATOR
    public :: elsi_set_sips_interval
    public :: elsi_set_sips_first_ev
    public :: elsi_set_ntpoly_method
+   public :: elsi_set_ntpoly_isr
    public :: elsi_set_ntpoly_tol
    public :: elsi_set_ntpoly_filter
    public :: elsi_set_ntpoly_max_iter
@@ -287,7 +288,7 @@ subroutine elsi_set_elpa_solver(eh,elpa_solver)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(elpa_solver < 1 .or. elpa_solver > 2) then
-      call elsi_stop(eh%bh,"Invalid ELPA solver.",caller)
+      call elsi_stop(eh%bh,"Invalid choice.",caller)
    endif
 
    eh%ph%elpa_solver = elpa_solver
@@ -308,7 +309,11 @@ subroutine elsi_set_elpa_n_single(eh,n_single)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   eh%ph%elpa_n_single = n_single
+   if(n_single < 0) then
+      eh%ph%elpa_n_single = 0
+   else
+      eh%ph%elpa_n_single = n_single
+   endif
 
 end subroutine
 
@@ -400,7 +405,7 @@ subroutine elsi_set_omm_flavor(eh,omm_flavor)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(omm_flavor /= 0 .and. omm_flavor /= 2) then
-      call elsi_stop(eh%bh,"Invalid libOMM flavor.",caller)
+      call elsi_stop(eh%bh,"Invalid choice.",caller)
    endif
 
    eh%ph%omm_flavor = omm_flavor
@@ -421,7 +426,11 @@ subroutine elsi_set_omm_n_elpa(eh,n_elpa)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   eh%ph%omm_n_elpa = n_elpa
+   if(n_elpa < 0) then
+      eh%ph%omm_n_elpa = 0
+   else
+      eh%ph%omm_n_elpa = n_elpa
+   endif
 
 end subroutine
 
@@ -438,6 +447,10 @@ subroutine elsi_set_omm_tol(eh,min_tol)
    character(len=40), parameter :: caller = "elsi_set_omm_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(min_tol <= 0.0_r8) then
+      call elsi_stop(eh%bh,"Input value should be positive.",caller)
+   endif
 
    eh%ph%omm_tol = min_tol
 
@@ -458,7 +471,7 @@ subroutine elsi_set_pexsi_n_mu(eh,n_mu)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(n_mu < 1) then
-      call elsi_stop(eh%bh,"Invalid number of mu points.",caller)
+      call elsi_stop(eh%bh,"Input value should be at least 1.",caller)
    endif
 
    eh%ph%pexsi_options%nPoints = n_mu
@@ -480,7 +493,7 @@ subroutine elsi_set_pexsi_n_pole(eh,n_pole)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(n_pole < 1) then
-      call elsi_stop(eh%bh,"Invalid number of poles.",caller)
+      call elsi_stop(eh%bh,"Input value should be at least 1.",caller)
    endif
 
    eh%ph%pexsi_options%numPole = n_pole
@@ -501,6 +514,10 @@ subroutine elsi_set_pexsi_np_per_pole(eh,np_per_pole)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
+   if(np_per_pole < 1) then
+      call elsi_stop(eh%bh,"Input value should be at least 1.",caller)
+   endif
+
    eh%ph%pexsi_np_per_pole = np_per_pole
 
 end subroutine
@@ -520,8 +537,7 @@ subroutine elsi_set_pexsi_np_symbo(eh,np_symbo)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(np_symbo < 1) then
-      call elsi_stop(eh%bh,"Invalid number of MPI tasks for symbolic"//&
-              " factorization.",caller)
+      call elsi_stop(eh%bh,"Input value should be at least 1.",caller)
    endif
 
    eh%ph%pexsi_options%npSymbFact = np_symbo
@@ -560,6 +576,10 @@ subroutine elsi_set_pexsi_temp(eh,temp)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
+   if(temp <= 0.0_r8) then
+      call elsi_stop(eh%bh,"Input value should be positive.",caller)
+   endif
+
    eh%ph%pexsi_options%temperature = temp
 
 end subroutine
@@ -579,7 +599,7 @@ subroutine elsi_set_pexsi_gap(eh,gap)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(gap < 0.0_r8) then
-      call elsi_stop(eh%bh,"Gap cannot be negative.",caller)
+      call elsi_stop(eh%bh,"Input value should not be negative.",caller)
    endif
 
    eh%ph%pexsi_options%gap = gap
@@ -601,7 +621,7 @@ subroutine elsi_set_pexsi_delta_e(eh,delta_e)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(delta_e < 0.0_r8) then
-      call elsi_stop(eh%bh,"Invalid eigenspectrum width.",caller)
+      call elsi_stop(eh%bh,"Input value should not be negative.",caller)
    endif
 
    eh%ph%pexsi_options%deltaE = delta_e
@@ -659,8 +679,8 @@ subroutine elsi_set_pexsi_inertia_tol(eh,inertia_tol)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(inertia_tol < 0.0_r8) then
-      call elsi_stop(eh%bh,"Invalid inertia counting tolerance.",caller)
+   if(inertia_tol <= 0.0_r8) then
+      call elsi_stop(eh%bh,"Input value should be positive.",caller)
    endif
 
    eh%ph%pexsi_options%muInertiaTolerance = inertia_tol
@@ -681,7 +701,11 @@ subroutine elsi_set_sips_n_elpa(eh,n_elpa)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   eh%ph%sips_n_elpa = n_elpa
+   if(n_elpa < 0) then
+      eh%ph%sips_n_elpa = 0
+   else
+      eh%ph%sips_n_elpa = n_elpa
+   endif
 
 end subroutine
 
@@ -703,8 +727,8 @@ subroutine elsi_set_sips_n_slice(eh,n_slice)
       eh%ph%sips_n_slices     = n_slice
       eh%ph%sips_np_per_slice = eh%bh%n_procs/n_slice
    else
-      call elsi_stop(eh%bh,"Number of slices must be a divisor of total"//&
-              " number of MPI tasks.",caller)
+      call elsi_stop(eh%bh,"Input value should be a divisor of total number"//&
+              " of MPI tasks.",caller)
    endif
 
 end subroutine
@@ -724,7 +748,7 @@ subroutine elsi_set_sips_slice_type(eh,slice_type)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(slice_type /= 0 .and. slice_type /= 2 .and. slice_type /= 4) then
-      call elsi_stop(eh%bh,"Invalid slice type.",caller)
+      call elsi_stop(eh%bh,"Invalid choice.",caller)
    endif
 
    eh%ph%sips_slice_type = slice_type
@@ -746,6 +770,10 @@ subroutine elsi_set_sips_buffer(eh,buffer)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
+   if(buffer <= 0.0_r8) then
+      call elsi_stop(eh%bh,"Input value should be positive.",caller)
+   endif
+
    eh%ph%sips_buffer = buffer
 
 end subroutine
@@ -763,6 +791,10 @@ subroutine elsi_set_sips_inertia_tol(eh,inertia_tol)
    character(len=40), parameter :: caller = "elsi_set_sips_inertia_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(inertia_tol <= 0.0_r8) then
+      call elsi_stop(eh%bh,"Input value should be positive.",caller)
+   endif
 
    eh%ph%sips_inertia_tol = inertia_tol
 
@@ -782,6 +814,11 @@ subroutine elsi_set_sips_interval(eh,lower,upper)
    character(len=40), parameter :: caller = "elsi_set_sips_interval"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(lower > upper) then
+      call elsi_stop(eh%bh,"Lower bound should not be larger than upper"//&
+              " bound.",caller)
+   endif
 
    eh%ph%sips_interval(1) = lower
    eh%ph%sips_interval(2) = upper
@@ -826,7 +863,33 @@ subroutine elsi_set_ntpoly_method(eh,nt_method)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
+   if(nt_method < 0 .or. nt_method > 3) then
+      call elsi_stop(eh%bh,"Invalid choice.",caller)
+   endif
+
    eh%ph%nt_method = nt_method
+
+end subroutine
+
+!>
+!! This routine sets the inverse square root method in NTPoly.
+!!
+subroutine elsi_set_ntpoly_isr(eh,nt_isr)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh     !< Handle
+   integer(kind=i4),  intent(in)    :: nt_isr !< Inverse square root method
+
+   character(len=40), parameter :: caller = "elsi_set_ntpoly_isr"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(nt_isr /= 0 .and. nt_isr /= 3 .and. nt_isr /= 5) then
+      call elsi_stop(eh%bh,"Invalid choice.",caller)
+   endif
+
+   eh%ph%nt_isr = nt_isr
 
 end subroutine
 
@@ -843,6 +906,10 @@ subroutine elsi_set_ntpoly_tol(eh,nt_tol)
    character(len=40), parameter :: caller = "elsi_set_ntpoly_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(nt_tol <= 0.0_r8) then
+      call elsi_stop(eh%bh,"Input value should be positive.",caller)
+   endif
 
    eh%ph%nt_tol = nt_tol
 
@@ -880,6 +947,10 @@ subroutine elsi_set_ntpoly_max_iter(eh,max_iter)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
+   if(max_iter < 1) then
+      call elsi_stop(eh%bh,"Input value should be at least 1.",caller)
+   endif
+
    eh%ph%nt_max_iter = max_iter
 
 end subroutine
@@ -900,7 +971,7 @@ subroutine elsi_set_mu_broaden_scheme(eh,broaden_scheme)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(elpa_solver < 0 .or. elpa_solver > 4) then
-      call elsi_stop(eh%bh,"Invalid broadening scheme.",caller)
+      call elsi_stop(eh%bh,"Invalid choice.",caller)
    endif
 
    eh%ph%mu_scheme = broaden_scheme
@@ -922,8 +993,8 @@ subroutine elsi_set_mu_broaden_width(eh,broaden_width)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(broaden_width < 0.0_r8) then
-      call elsi_stop(eh%bh,"Invalid broadening width.",caller)
+   if(broaden_width <= 0.0_r8) then
+      call elsi_stop(eh%bh,"Input value should be positive.",caller)
    endif
 
    eh%ph%mu_width = broaden_width
@@ -946,7 +1017,7 @@ subroutine elsi_set_mu_tol(eh,mu_tol)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(mu_tol < 0.0_r8) then
-      call elsi_stop(eh%bh,"Invalid occupation number accuracy.",caller)
+      call elsi_stop(eh%bh,"Input value should not be negative.",caller)
    endif
 
    eh%ph%mu_tol = mu_tol
@@ -986,6 +1057,10 @@ subroutine elsi_set_mu_mp_order(eh,mp_order)
    character(len=40), parameter :: caller = "elsi_set_mu_mp_order"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(mp_order < 0) then
+      call elsi_stop(eh%bh,"Input value should be at least 0.",caller)
+   endif
 
    eh%ph%mu_mp_order = mp_order
 

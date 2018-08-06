@@ -172,6 +172,7 @@ module ELSI_DATATYPE
       ! NTPoly
       integer(kind=i4)                  :: nt_n_group
       integer(kind=i4)                  :: nt_method
+      integer(kind=i4)                  :: nt_isr ! Method to find S^(-1/2)
       integer(kind=i4)                  :: nt_max_iter
       real(kind=r8)                     :: nt_tol
       real(kind=r8)                     :: nt_filter

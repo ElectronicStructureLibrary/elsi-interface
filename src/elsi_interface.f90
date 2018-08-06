@@ -71,6 +71,7 @@ module ELSI
    public :: elsi_set_sips_interval
    public :: elsi_set_sips_first_ev
    public :: elsi_set_ntpoly_method
+   public :: elsi_set_ntpoly_isr
    public :: elsi_set_ntpoly_tol
    public :: elsi_set_ntpoly_filter
    public :: elsi_set_ntpoly_max_iter

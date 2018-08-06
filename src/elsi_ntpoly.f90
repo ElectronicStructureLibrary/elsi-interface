@@ -19,12 +19,13 @@ module ELSI_NTPOLY
                              ConstructEmptyDistributedSparseMatrix,&
                              FilterDistributedSparseMatrix,DestructProcessGrid,&
                              CopyDistributedSparseMatrix,GetTripletList,&
-                             DestructDistributedSparseMatrix,InverseSquareRoot,&
-                             IterativeSolverParameters_t,DestructPermutation,&
-                             ConstructRandomPermutation,ConstructProcessGrid,&
-                             Triplet_t,TripletList_t,ConstructTripletList,&
-                             AppendToTripletList,DestructTripletList,&
-                             DistributedMatrixMemoryPool_t,DistributedGemm
+                             DestructDistributedSparseMatrix,NewtonSchultzISR,&
+                             NewtonSchultzISR2,IterativeSolverParameters_t,&
+                             DestructPermutation,ConstructRandomPermutation,&
+                             ConstructProcessGrid,Triplet_t,TripletList_t,&
+                             ConstructTripletList,AppendToTripletList,&
+                             DestructTripletList,DistributedMatrixMemoryPool_t,&
+                             DistributedGemm
 
    implicit none
 
@@ -107,7 +108,7 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   type(DistributedSparseMatrix_t) :: ovlp_isq
+   type(DistributedSparseMatrix_t) :: ovlp_isr
 
    character(len=40), parameter :: caller = "elsi_solve_ntpoly_real"
 
@@ -121,15 +122,20 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
 
       ph%nt_options%converge_diff = min(ph%nt_tol,1.0e-8_r8)
 
-      call InverseSquareRoot(ovlp,ovlp_isq,ph%nt_options)
-      call CopyDistributedSparseMatrix(ovlp_isq,ovlp)
-      call DestructDistributedSparseMatrix(ovlp_isq)
+      if(ph%nt_isr == 0) then
+         call NewtonSchultzISR(ovlp,ovlp_isr,.true.,ph%nt_options)
+      else
+         call NewtonSchultzISR2(ovlp,ovlp_isr,ph%nt_isr,.true.,ph%nt_options)
+      endif
+
+      call CopyDistributedSparseMatrix(ovlp_isr,ovlp)
+      call DestructDistributedSparseMatrix(ovlp_isr)
 
       ph%nt_options%converge_diff = ph%nt_tol
 
       call elsi_get_time(t1)
 
-      write(info_str,"(2X,A)") "Finished overlap matrix inversion"
+      write(info_str,"(2X,A)") "Finished overlap matrix inverse square root"
       call elsi_say(bh,info_str)
       write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,info_str)

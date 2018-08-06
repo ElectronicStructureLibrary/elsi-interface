@@ -969,6 +969,22 @@ subroutine elsi_set_ntpoly_method_c_wrapper(handle_c,nt_method)&
 
 end subroutine
 
+subroutine elsi_set_ntpoly_isr_c_wrapper(handle_c,nt_isr)&
+   bind(C,name="c_elsi_set_ntpoly_isr")
+
+   implicit none
+
+   type(c_ptr),         value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: nt_isr
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_ntpoly_isr(handle_f,nt_isr)
+
+end subroutine
+
 subroutine elsi_set_ntpoly_tol_c_wrapper(handle_c,nt_tol)&
    bind(C,name="c_elsi_set_ntpoly_tol")
 

@@ -207,6 +207,9 @@ void c_elsi_set_sips_interval(elsi_handle handle_c,
 void c_elsi_set_ntpoly_method(elsi_handle handle_c,
                               int nt_method);
 
+void c_elsi_set_ntpoly_isr(elsi_handle handle_c,
+                           int nt_isr);
+
 void c_elsi_set_ntpoly_tol(elsi_handle handle_c,
                            double nt_tol);
 
