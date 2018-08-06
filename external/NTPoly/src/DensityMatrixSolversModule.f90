@@ -151,18 +151,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     norm_value = solver_parameters%converge_diff + 1.0_NTREAL
     energy_value = 0.0_NTREAL
     DO outer_counter = 1,solver_parameters%max_iterations
-       IF (solver_parameters%be_verbose .AND. outer_counter .GT. 1) THEN
-          CALL WriteListElement(key="Round", int_value_in=outer_counter-1)
-          CALL EnterSubLog
-          CALL WriteListElement(key="Convergence", float_value_in=norm_value)
-          CALL WriteListElement("Energy_Value", float_value_in=energy_value)
-          CALL ExitSubLog
-       END IF
-
-       IF (norm_value .LE. solver_parameters%converge_diff) THEN
-          EXIT
-       END IF
-
        !! Compute X_k2
        CALL DistributedGemm(X_k,X_k,X_k2, &
             & threshold_in=solver_parameters%threshold, &
@@ -207,11 +195,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        energy_value2 = energy_value
        energy_value = 2.0_NTREAL*DotDistributedSparseMatrix(X_k, WorkingHamiltonian)
        norm_value = ABS(energy_value - energy_value2)
+
+       IF (solver_parameters%be_verbose) THEN
+          CALL WriteListElement(key="Round", int_value_in=outer_counter)
+          CALL EnterSubLog
+          CALL WriteListElement(key="Convergence", float_value_in=norm_value)
+          CALL WriteListElement("Energy_Value", float_value_in=energy_value)
+          CALL ExitSubLog
+       END IF
+
+       IF (norm_value .LE. solver_parameters%converge_diff) THEN
+          EXIT
+       END IF
     END DO
     total_iterations = outer_counter-1
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
-       CALL WriteElement(key="Total_Iterations",int_value_in=total_iterations)
+       CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
        CALL PrintMatrixInformation(X_k)
     END IF
 
@@ -233,10 +233,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Cleanup
     CALL DestructDistributedSparseMatrix(WorkingHamiltonian)
-    CALL DestructDistributedSparseMatrix(Identity)
-    CALL DestructDistributedSparseMatrix(TempMat)
     CALL DestructDistributedSparseMatrix(X_k)
     CALL DestructDistributedSparseMatrix(X_k2)
+    CALL DestructDistributedSparseMatrix(X_k3)
+    CALL DestructDistributedSparseMatrix(TempMat)
+    CALL DestructDistributedSparseMatrix(Identity)
     CALL DestructDistributedMatrixMemoryPool(pool1)
 
     !! Compute The Chemical Potential
@@ -381,18 +382,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     norm_value = solver_parameters%converge_diff + 1.0_NTREAL
     energy_value = 0.0_NTREAL
     DO outer_counter = 1,solver_parameters%max_iterations
-       IF (solver_parameters%be_verbose .AND. outer_counter .GT. 1) THEN
-          CALL WriteListElement(key="Round", int_value_in=outer_counter-1)
-          CALL EnterSubLog
-          CALL WriteListElement(key="Convergence", float_value_in=norm_value)
-          CALL WriteListElement("Energy_Value", float_value_in=energy_value)
-          CALL ExitSubLog
-       END IF
-
-       IF (norm_value .LE. solver_parameters%converge_diff) THEN
-          EXIT
-       END IF
-
        !! Compute Sigma
        trace_value = Trace(X_k)
        IF (nel*0.5_NTREAL - trace_value .LT. 0.0_NTREAL) THEN
@@ -420,11 +409,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        energy_value2 = energy_value
        energy_value = 2.0_NTREAL*DotDistributedSparseMatrix(X_k, WorkingHamiltonian)
        norm_value = ABS(energy_value - energy_value2)
+
+       IF (solver_parameters%be_verbose) THEN
+          CALL WriteListElement(key="Round", int_value_in=outer_counter)
+          CALL EnterSubLog
+          CALL WriteListElement(key="Convergence", float_value_in=norm_value)
+          CALL WriteListElement("Energy_Value", float_value_in=energy_value)
+          CALL ExitSubLog
+       END IF
+
+       IF (norm_value .LE. solver_parameters%converge_diff) THEN
+          EXIT
+       END IF
     END DO
     total_iterations = outer_counter-1
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
-       CALL WriteElement(key="Total_Iterations",int_value_in=total_iterations)
+       CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
        CALL PrintMatrixInformation(X_k)
     END IF
 
@@ -446,10 +447,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Cleanup
     CALL DestructDistributedSparseMatrix(WorkingHamiltonian)
-    CALL DestructDistributedSparseMatrix(Identity)
-    CALL DestructDistributedSparseMatrix(TempMat)
     CALL DestructDistributedSparseMatrix(X_k)
     CALL DestructDistributedSparseMatrix(X_k2)
+    CALL DestructDistributedSparseMatrix(TempMat)
+    CALL DestructDistributedSparseMatrix(Identity)
     CALL DestructDistributedMatrixMemoryPool(pool1)
 
     !! Compute The Chemical Potential
@@ -600,18 +601,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     norm_value = solver_parameters%converge_diff + 1.0_NTREAL
     energy_value = 0.0_NTREAL
     DO outer_counter = 1,solver_parameters%max_iterations
-       IF (solver_parameters%be_verbose .AND. outer_counter .GT. 1) THEN
-          CALL WriteListElement(key="Round", int_value_in=outer_counter-1)
-          CALL EnterSubLog
-          CALL WriteListElement(key="Convergence", float_value_in=norm_value)
-          CALL WriteListElement("Energy_Value", float_value_in=energy_value)
-          CALL ExitSubLog
-       END IF
-
-       IF (norm_value .LE. solver_parameters%converge_diff) THEN
-          EXIT
-       END IF
-
        !! Compute X_k2
        CALL DistributedGemm(X_k, X_k, X_k2, &
             & threshold_in=solver_parameters%threshold, memory_pool_in=pool1)
@@ -661,10 +650,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        energy_value2 = energy_value
        energy_value = 2.0_NTREAL*DotDistributedSparseMatrix(X_k, WorkingHamiltonian)
        norm_value = ABS(energy_value - energy_value2)
+
+       IF (solver_parameters%be_verbose) THEN
+          CALL WriteListElement(key="Round", int_value_in=outer_counter)
+          CALL EnterSubLog
+          CALL WriteListElement(key="Convergence", float_value_in=norm_value)
+          CALL WriteListElement("Energy_Value", float_value_in=energy_value)
+          CALL ExitSubLog
+       END IF
+
+       IF (norm_value .LE. solver_parameters%converge_diff) THEN
+          EXIT
+       END IF
     END DO
     total_iterations = outer_counter-1
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
+       CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
        CALL PrintMatrixInformation(X_k)
     END IF
 
@@ -686,12 +688,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Cleanup
     CALL DestructDistributedSparseMatrix(WorkingHamiltonian)
-    CALL DestructDistributedSparseMatrix(Identity)
-    CALL DestructDistributedSparseMatrix(TempMat)
     CALL DestructDistributedSparseMatrix(X_k)
     CALL DestructDistributedSparseMatrix(X_k2)
     CALL DestructDistributedSparseMatrix(Fx_right)
     CALL DestructDistributedSparseMatrix(Gx_right)
+    CALL DestructDistributedSparseMatrix(TempMat)
+    CALL DestructDistributedSparseMatrix(Identity)
     CALL DestructDistributedMatrixMemoryPool(pool1)
 
     !! Compute The Chemical Potential
@@ -857,18 +859,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     norm_value2 = norm_value
     energy_value = 0.0_NTREAL
     DO outer_counter = 1,solver_parameters%max_iterations
-       IF (solver_parameters%be_verbose .AND. outer_counter .GT. 1) THEN
-          CALL WriteListElement(key="Round", int_value_in=outer_counter-1)
-          CALL EnterSubLog
-          CALL WriteListElement(key="Convergence", float_value_in=norm_value)
-          CALL WriteListElement("Energy_Value", float_value_in=energy_value)
-          CALL ExitSubLog
-       END IF
-
-       IF (norm_value .LE. solver_parameters%converge_diff) THEN
-          EXIT
-       END IF
-
        !! Compute the hole matrix DH
        CALL CopyDistributedSparseMatrix(D1,DH)
        CALL IncrementDistributedSparseMatrix(Identity,DH,alpha_in=-1.0_NTREAL)
@@ -901,10 +891,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        energy_value2 = energy_value
        energy_value = 2.0_NTREAL*DotDistributedSparseMatrix(D1, WorkingHamiltonian)
        norm_value = ABS(energy_value - energy_value2)
+
+       IF (solver_parameters%be_verbose) THEN
+          CALL WriteListElement(key="Round", int_value_in=outer_counter)
+          CALL EnterSubLog
+          CALL WriteListElement(key="Convergence", float_value_in=norm_value)
+          CALL WriteListElement("Energy_Value", float_value_in=energy_value)
+          CALL ExitSubLog
+       END IF
+
+       IF (norm_value .LE. solver_parameters%converge_diff) THEN
+          EXIT
+       END IF
     END DO
     total_iterations = outer_counter-1
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
+       CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
        CALL PrintMatrixInformation(D1)
     END IF
 
@@ -926,12 +929,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Cleanup
     CALL DestructDistributedSparseMatrix(WorkingHamiltonian)
-    CALL DestructDistributedSparseMatrix(Identity)
     CALL DestructDistributedSparseMatrix(TempMat)
     CALL DestructDistributedSparseMatrix(D1)
     CALL DestructDistributedSparseMatrix(DH)
     CALL DestructDistributedSparseMatrix(DDH)
     CALL DestructDistributedSparseMatrix(D2DH)
+    CALL DestructDistributedSparseMatrix(Identity)
     CALL DestructDistributedMatrixMemoryPool(pool1)
 
     !! Compute The Chemical Potential
@@ -1125,18 +1128,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     norm_value = solver_parameters%converge_diff + 1.0_NTREAL
     energy_value = 0.0_NTREAL
     DO outer_counter = 1,solver_parameters%max_iterations
-       IF (solver_parameters%be_verbose .AND. outer_counter .GT. 1) THEN
-          CALL WriteListElement(key="Round", int_value_in=outer_counter-1)
-          CALL EnterSubLog
-          CALL WriteListElement(key="Convergence", float_value_in=norm_value)
-          CALL WriteListElement("Energy_Value", float_value_in=energy_value)
-          CALL ExitSubLog
-       END IF
-
-       IF (norm_value .LE. solver_parameters%converge_diff) THEN
-          EXIT
-       END IF
-
        !! Compute the hole matrix DH
        CALL CopyDistributedSparseMatrix(D1,DH)
        CALL IncrementDistributedSparseMatrix(Identity,DH,alpha_in=-1.0_NTREAL)
@@ -1168,10 +1159,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        energy_value2 = energy_value
        energy_value = 2.0_NTREAL*DotDistributedSparseMatrix(D1, WorkingHamiltonian)
        norm_value = ABS(energy_value - energy_value2)
+
+       IF (solver_parameters%be_verbose) THEN
+          CALL WriteListElement(key="Round", int_value_in=outer_counter)
+          CALL EnterSubLog
+          CALL WriteListElement(key="Convergence", float_value_in=norm_value)
+          CALL WriteListElement("Energy_Value", float_value_in=energy_value)
+          CALL ExitSubLog
+       END IF
+
+       IF (norm_value .LE. solver_parameters%converge_diff) THEN
+          EXIT
+       END IF
     END DO
     total_iterations = outer_counter-1
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
+       CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
        CALL PrintMatrixInformation(D1)
     END IF
 
@@ -1193,12 +1197,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Cleanup
     CALL DestructDistributedSparseMatrix(WorkingHamiltonian)
-    CALL DestructDistributedSparseMatrix(Identity)
     CALL DestructDistributedSparseMatrix(TempMat)
     CALL DestructDistributedSparseMatrix(D1)
     CALL DestructDistributedSparseMatrix(DH)
     CALL DestructDistributedSparseMatrix(DDH)
     CALL DestructDistributedSparseMatrix(D2DH)
+    CALL DestructDistributedSparseMatrix(Identity)
     CALL DestructDistributedMatrixMemoryPool(pool1)
 
     !! Compute The Chemical Potential
