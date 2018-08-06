@@ -177,8 +177,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           a2 = 1.0_NTREAL+1.0_NTREAL/sigma_array(outer_counter)
           a3 = -1.0_NTREAL/sigma_array(outer_counter)
        ELSE
-          a1 = (1.0_NTREAL-2.0_NTREAL*sigma_array(outer_counter))/(1.0_NTREAL-sigma_array(outer_counter))
-          a2 = (1.0_NTREAL+sigma_array(outer_counter))/(1.0_NTREAL-sigma_array(outer_counter))
+          a1 = (1.0_NTREAL-2.0_NTREAL*sigma_array(outer_counter)) &
+               & / (1.0_NTREAL-sigma_array(outer_counter))
+          a2 = (1.0_NTREAL+sigma_array(outer_counter)) &
+               & / (1.0_NTREAL-sigma_array(outer_counter))
           a3 = -1.0_NTREAL/(1.0_NTREAL-sigma_array(outer_counter))
        END IF
 
@@ -251,10 +253,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           !! Compute polynomial function at the guess point.
           polynomial:DO inner_counter=1,total_iterations
              IF (sigma_array(inner_counter) .GT. 0.5_NTREAL) THEN
-                zero_value = ((1.0_NTREAL+sigma_array(inner_counter))*zero_value**2)-(zero_value**3)
+                zero_value = ((1.0_NTREAL+sigma_array(inner_counter))*zero_value**2) &
+                             & - (zero_value**3)
                 zero_value = zero_value/sigma_array(inner_counter)
              ELSE
-                zero_value = ((1.0_NTREAL-2.0_NTREAL*sigma_array(inner_counter))*zero_value)+((1.0_NTREAL+sigma_array(inner_counter))*zero_value**2)-(zero_value**3)
+                zero_value = ((1.0_NTREAL-2.0_NTREAL*sigma_array(inner_counter))*zero_value) &
+                             & + ((1.0_NTREAL+sigma_array(inner_counter))*zero_value**2) &
+                             & - (zero_value**3)
                 zero_value = zero_value/(1.0_NTREAL-sigma_array(inner_counter))
              END IF
           END DO polynomial
@@ -711,9 +716,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              ELSE IF (sigma_array(inner_counter) .LT. sigma_min) THEN
                 zero_value = zero_value*zero_value
              ELSE
-                tempfx = (zero_value*zero_value) * &
-                     (4.0_NTREAL*zero_value - 3.0_NTREAL*zero_value*zero_value)
-                tempgx = (zero_value*zero_value) * (1.0_NTREAL-zero_value)*(0.0_NTREAL-zero_value)
+                tempfx = (zero_value*zero_value) &
+                         & * (4.0_NTREAL*zero_value - 3.0_NTREAL*zero_value*zero_value)
+                tempgx = (zero_value*zero_value) * (1.0_NTREAL-zero_value) &
+                         & * (0.0_NTREAL-zero_value)
                 zero_value = tempfx + sigma_array(inner_counter)*tempgx
              END IF
           END DO polynomial
@@ -947,8 +953,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           zero_value = midpoint
           !! Compute polynomial function at the guess point.
           polynomial:DO inner_counter=1,total_iterations
-             zero_value = zero_value + 2.0_NTREAL*((zero_value**2)*(1.0_NTREAL-zero_value) - &
-                  & sigma_array(inner_counter)*zero_value*(1.0_NTREAL-zero_value))
+             zero_value = zero_value + 2.0_NTREAL*((zero_value**2)*(1.0_NTREAL-zero_value) &
+                  & - sigma_array(inner_counter)*zero_value*(1.0_NTREAL-zero_value))
           END DO polynomial
           !! Change bracketing.
           IF (zero_value .LT. 0.5_NTREAL) THEN
@@ -1108,10 +1114,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        d = (nel*0.5_NTREAL) - 2.0_NTREAL*one_third*(matrix_dimension - nel*0.5_NTREAL)
     END IF
 
-    mixing_interior = SQRT((2.0_NTREAL*c-2.0_NTREAL*b)**2 - 4.0_NTREAL*(a+b-2.0_NTREAL*c)*(b-d))
-    mixing_value = ((2.0_NTREAL*b - 2.0_NTREAL*c) + mixing_interior)/(2.0_NTREAL*(a+b - 2.0_NTREAL*c))
+    mixing_interior = SQRT((2.0_NTREAL*c-2.0_NTREAL*b)**2 &
+                      & - 4.0_NTREAL*(a+b-2.0_NTREAL*c)*(b-d))
+    mixing_value = ((2.0_NTREAL*b - 2.0_NTREAL*c) + mixing_interior) &
+                      & / (2.0_NTREAL*(a+b - 2.0_NTREAL*c))
     IF (.NOT. mixing_value .LE. 1.0_NTREAL .AND. mixing_value .GE. 0.0_NTREAL) THEN
-       mixing_value = ((2.0_NTREAL*b - 2.0_NTREAL*c) - mixing_interior)/(2.0_NTREAL*(a+b - 2.0_NTREAL*c))
+       mixing_value = ((2.0_NTREAL*b - 2.0_NTREAL*c) - mixing_interior) &
+                      & / (2.0_NTREAL*(a+b - 2.0_NTREAL*c))
     ENDIF
 
     CALL ScaleDistributedSparseMatrix(D1,mixing_value)
@@ -1215,8 +1224,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           zero_value = midpoint
           !! Compute polynomial function at the guess point.
           polynomial:DO inner_counter=1,total_iterations
-             zero_value = zero_value + 2.0_NTREAL*((zero_value*zero_value)*(1.0_NTREAL-zero_value) - &
-                  & sigma_array(inner_counter)*(zero_value*(1.0_NTREAL-zero_value)))
+             zero_value = zero_value + 2.0_NTREAL*((zero_value*zero_value)*(1.0_NTREAL-zero_value) &
+                          & - sigma_array(inner_counter)*(zero_value*(1.0_NTREAL-zero_value)))
           END DO polynomial
           !! Change bracketing.
           IF (zero_value .LT. 0.5_NTREAL) THEN
