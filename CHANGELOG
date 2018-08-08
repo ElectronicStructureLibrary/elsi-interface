@@ -5,11 +5,21 @@
    ELSI:
    * Adopted literature definition of the electronic entropy.
 
+   New Solvers:
+   * Added support for the density matrix purification methods implemented
+     in the NTPoly library.  Implementation of the same methods with dense
+     linear algebra has been removed.
+
    ELPA:
    * For externally linked ELPA, added options to perform single precision
      calculations and to automatically tune the internal runtime parameters
      of the solver.
    * Interface for externally linked ELPA compatible with ELPA 2018.05.
+
+   NTPoly:
+   * Added canonical purificaiton, trace correcting purification, 4th order
+     trace resetting purification, and generalized hole-particle canonical
+     purification methods.
 
    PEXSI:
    * Updated redistributed PEXSI source code to version 1.0.2, which
@@ -61,7 +71,7 @@
 
    New Solvers:
    * Added support for the SLEPc-SIPs solver (PETSc 3.8.4 and SLEPc 3.8.3
-     required)
+     required).
    * (Experimental) Implemented density matrix purification with dense
      linear algebra operations.
 

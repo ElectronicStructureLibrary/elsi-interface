@@ -99,7 +99,7 @@ From a viewpoint of computational complexity, with localized basis functions, al
 \label{sec:elsi}
 ELSI unifies the community effort in overcoming the cubic-wall problem of KS-DFT by bridging the divide between developers of electronic structure solvers and KS-DFT codes.  Via a unified interface, ELSI gives KS-DFT developers easy access to multiple solvers that solve or circumvent the Kohn-Sham eigenproblem efficiently.  Solvers are treated on equal footing within ELSI, giving solver developers a unified platform for implementation and benchmarking across codes and physical systems.  Solvers may be switched dynamically in an SCF cycle, allowing the KS-DFT developer to mix-and-match strengths of different solvers.  Solvers can work cooperatively with one another within ELSI, allowing for acceleration greater than either solver can achieve individually.  Most importantly, ELSI exists as a community for KS-DFT and solver developers to interact and work together to improve performance of solvers, with monthly web meetings to discuss progress on code development, yearly on-site ``connector meetings'', and planned webinars and workshops.\\
 
-The current version of ELSI supports ELPA \cite{elpa_auckenthaler_2011,elpa_marek_2014}, libOMM \cite{libomm_corsetti_2014}, PEXSI \cite{pexsi_lin_2009,pexsi_lin_2013}, and SLEPc-SIPs \cite{slepc_hernandez_2005,sips_keceli_2016} solvers.  Codes currently integrated with ELSI include DFTB+ \cite{dftb+_aradi_2007}, DGDFT \cite{dgdft_hu_2015}, FHI-aims \cite{aims_blum_2009}, NWChem \cite{nwchem_valiev_2010} via Global Arrays, and SIESTA \cite{siesta_soler_2002}.\\
+The current version of ELSI supports ELPA \cite{elpa_auckenthaler_2011,elpa_marek_2014}, libOMM \cite{libomm_corsetti_2014}, NTPoly \cite{ntpoly_dawson_2018}, PEXSI \cite{pexsi_lin_2009,pexsi_lin_2013}, and SLEPc-SIPs \cite{slepc_hernandez_2005,sips_keceli_2016} solvers.  Codes currently integrated with ELSI include DFTB+ \cite{dftb+_aradi_2007}, DGDFT \cite{dgdft_hu_2015}, FHI-aims \cite{aims_blum_2009}, and SIESTA \cite{siesta_soler_2002}.\\
 
 \textbf{Versatility}:  ELSI supports real-valued and complex-valued density matrix, eigenvalue, and eigenvector calculations.  A unified software interface designed for rapid integration into a variety of electronic structure codes is provided.  Fortran and C/C++ interfaces are provided.\\
 
@@ -111,7 +111,7 @@ The current version of ELSI supports ELPA \cite{elpa_auckenthaler_2011,elpa_mare
 
 \section{Kohn-Sham Solver Libraries Supported by ELSI}
 \label{sec:solvers}
-The current version of ELSI stably supports ELPA \cite{elpa_auckenthaler_2011,elpa_marek_2014}, libOMM \cite{libomm_corsetti_2014}, PEXSI \cite{pexsi_lin_2009,pexsi_lin_2013}, and SLEPc-SIPc solvers \cite{slepc_hernandez_2005,sips_keceli_2016}.  The table below summarizes the supported data type, input/output matrix format, and possible output quantities of the solvers in ELSI.\\
+Solvers supported in the current version of ELSI are:  ELPA \cite{elpa_auckenthaler_2011,elpa_marek_2014}, libOMM \cite{libomm_corsetti_2014}, NTPoly \cite{ntpoly_dawson_2018}, PEXSI \cite{pexsi_lin_2009,pexsi_lin_2013}, and SLEPc-SIPc \cite{slepc_hernandez_2005,sips_keceli_2016}.  The table below summarizes the supported data type, input/output matrix format, and possible output quantities of the solvers.\\
 
 \begin{tabular}[]{|p{20mm}|p{25mm}|p{25mm}|p{95mm}|}
 \hline
@@ -120,6 +120,8 @@ The current version of ELSI stably supports ELPA \cite{elpa_auckenthaler_2011,el
 \textcolor{blue}{ELPA}       & Real/complex & Dense/sparse & Eigenvalues, eigenvectors, density matrix, energy-weighted density matrix, chemical potential, electronic entropy\\
 \hline
 \textcolor{blue}{libOMM}     & Real/complex & Dense/sparse & Density matrix, energy-weighted density matrix\\
+\hline
+\textcolor{blue}{NTPoly}     & Real         & Dense/sparse & Density matrix, energy-weighted density matrix, chemical potential\\
 \hline
 \textcolor{blue}{PEXSI}      & Real/complex & Dense/sparse & Density matrix, energy-weighted density matrix, chemical potential\\
 \hline
@@ -130,7 +132,7 @@ The current version of ELSI stably supports ELPA \cite{elpa_auckenthaler_2011,el
 \bigskip
 What follows is a brief introduction of the solvers currently supported in ELSI.  For detailed technical descriptions of the solvers, the reader is referred to the original publications of the solvers, e.g., those in the reference list of this document.\\
 
-\subsection{ELPA:  Eigenvalue Solvers for Petaflop-Applications}
+\subsection{ELPA}
 \label{subsec:solvers_elpa}
 The explicit solution of a generalized or standard eigenproblem is a well-studied task.  The generalized eigenproblem in \ref{eq:generalized_evp_matrix} is first transformed to the standard form, e.g., by Cholesky decomposition of the overlap matrix $\boldsymbol{S}$:\\
 \begin{equation}
@@ -172,7 +174,7 @@ The massively parallel direct eigensolver ELPA \cite{elpa_auckenthaler_2011,elpa
 
 \noindent where $\boldsymbol{Q}_1$ and $\boldsymbol{Q}_2$ are transformation matrices used in the two-stage diagonalization; $\boldsymbol{B}$ is a banded matrix; and $\boldsymbol{T}$ is a tridiagonal matrix.  Compared to the one-stage diagonalization (\ref{eq:elpa1}), the two-stage approach introduces two additional steps.  Still, the two-stage approach has been shown to enable faster computation and better parallel scalability on present-day computers.  Specifically, the matrix-vector operations (BLAS level-2 routines) in \ref{eq:elpa1} can be mostly replaced by more efficient matrix-matrix operations (BLAS level-3 routines) in \ref{eq:elpa2}.  The computational workload associated with the back-transformation of the eigenvectors is greatly alleviated if only a small fraction of the eigenvectors representing the lowest eigenstates is required, and by architecture-specific linear-algebra ``kernels'' provided with the ELPA library.\\
 
-\subsection{libOMM:  Orbital Minimization Method}
+\subsection{libOMM}
 \label{subsec:solvers_omm}
 Instead of diagonalizing the $N_\text{basis} \times N_\text{basis}$ eigenproblem, the orbital minimization method (OMM) minimizes an unconstrained energy functional using a set of auxiliary Wannier functions.  At the minimum of the OMM energy functional, the Wannier functions can be used to construct the density matrix.  Specifically, $N_\text{W}$ non-orthogonal Wannier functions $\chi_k$ are employed to represent the occupied subspace of a system with $N_\text{electron}$ electrons:\\
 \begin{equation}
@@ -205,7 +207,7 @@ E_\text{BS} = \sum_{l=1}^{N_\text{basis}} f_l \epsilon_l ,
 
 Different from the originally proposed linear scaling OMM method, the OMM implementation in the libOMM library \cite{libomm_corsetti_2014} is a cubic scaling density matrix solver.  Theoretically, this implementation has a smaller prefactor than the direct diagonalization method.  In libOMM, the minimization of the OMM energy functional is carried out with the conjugate-gradient (CG) method, whose performance mainly depends on the convergence rate of the minimization.\\
 
-\subsection{PEXSI:  Pole Expansion and Selected Inversion}
+\subsection{PEXSI}
 \label{subsec:solvers_pexsi}
 The pole expansion and selected inversion (PEXSI) method \cite{pexsi_lin_2009,pexsi_lin_2013} expands the density matrix $\boldsymbol{P}$ in \ref{eq:density_matrix} using a pole expansion:\\
 \begin{equation}
@@ -219,7 +221,7 @@ In PEXSI, only selected elements of the object $(\boldsymbol{H} - (z_l + \mu) \b
 
 Designed in a multi-level parallelism structure, the PEXSI method is highly scalable, and can make efficient use of tens of thousands of processors on high performance computers.\\
 
-\subsection{SLEPc-SIPs:  Shift-and-Invert Parallel Spectral Transformation Eigensolver in SLEPc}
+\subsection{SLEPc-SIPs}
 \label{subsec:solvers_sips}
 The shift-and-invert spectral transformation method, implemented in the SLEPc library \cite{slepc_hernandez_2005}, transforms the eigenproblem \ref{eq:generalized_evp_matrix} by shifting the eigenspectrum:\\
 \begin{equation}
@@ -251,7 +253,7 @@ On top of the basic shift-and-invert, the shift-and-invert parallel spectral tra
 
 \section{Citing ELSI}
 \label{sec:cite}
-Key concepts of ELSI and the first version of its implementation are described in the following paper:\\
+Key concepts of ELSI and the first version of its implementation are described in the following paper \cite{elsi_yu_2018}:\\
 
 V. W-z. Yu, F. Corsetti, A. Garc\'{i}a, W. P. Huhn, M. Jacquelin, W. Jia, B. Lange, L. Lin, J. Lu, W. Mi, A. Seifitokaldani, \'{A}. V\'{a}zquez-Mayagoitia, C. Yang, H. Yang, and V. Blum, ELSI: A Unified Software Interface for Kohn-Sham Electronic Structure Solvers, Computer Physics Communications, 222, 267-285 (2018).\\
 
@@ -265,14 +267,13 @@ ELSI is a National Science Foundation Software Infrastructure for Sustained Inno
 \chapter{Installation of ELSI}
 \section{Overview}
 \label{sec:install}
-The ELSI package contains the ELSI Interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.0.2).  We highly encourage all users to request access to our \href{http://git.elsi-interchange.org/elsi-devel}{GitLab server}GitLab server, where we regularly update ELSI between releases while preserving stability.\\
+The ELSI package contains the ELSI Interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, NTPoly, and PEXSI (version 1.0.2).  We highly encourage all users to request access to our \href{http://git.elsi-interchange.org/elsi-devel}{GitLab server}GitLab server, where we regularly update ELSI between releases while preserving stability.\\
 
-Starting from the May 2018 release, the installation of ELSI makes use of the \href{http://cmake.org}{CMake} software.\\
+Starting from the May 2018 (version 2.0.0) release, the installation of ELSI makes use of the \href{http://cmake.org}{CMake} software.\\
 
 \section{Prerequisites}
 \label{sec:prereq}
-To build ELSI, the minimum requirements are:\\
-
+To build ELSI, the minimum requirements are:
 \begin{Verbatim}[commandchars=\\\{\}]
 \textcolor{blue}{CMake}  [minimum version 3.0; newer version recommended]
 \textcolor{blue}{Fortran compiler}  [with Fortran 2003]
@@ -280,33 +281,29 @@ To build ELSI, the minimum requirements are:\\
 \textcolor{blue}{MPI}
 \end{Verbatim}
 
-Building the PEXSI solver (highly recommended) requires:\\
-
+Building the PEXSI solver (highly recommended) requires:
 \begin{Verbatim}[commandchars=\\\{\}]
 \textcolor{blue}{C++ compiler}  [with C++ 11]
 \end{Verbatim}
 
-Building the SLEPc-SIPs solver requires:\\
-
+Additionally, building the SLEPc-SIPs solver requires:
 \begin{Verbatim}[commandchars=\\\{\}]
 \textcolor{blue}{SLEPc}  [version 3.9.2 only]
 \textcolor{blue}{PETSc}  [version 3.9.3 only, with SuperLU_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled]
 \end{Verbatim}
 
-Linear algebra libraries should be provided for ELSI to link against:\\
-
+Linear algebra libraries should be provided for ELSI to link against:
 \begin{Verbatim}[commandchars=\\\{\}]
 \textcolor{blue}{BLAS, LAPACK, BLACS, ScaLAPACK}
 \end{Verbatim}
 
-By default, the redistributed ELPA and libOMM libraries will be built.  If PEXSI is enabled during configuration, the redistributed PEXSI library and its dependencies, namely the SuperLU\_DIST and PT-SCOTCH libraries, will be built as well.  Optionally, the redistributed ELPA, libOMM, SuperLU\_DIST and PT-SCOTCH libraries may be substituted by user's optimized versions.  Please note that in the current version of ELSI, an external version of PEXSI is not officially supported.\\
+By default, the redistributed ELPA, libOMM, and NTPoly solvers will be built.  If PEXSI is enabled during configuration, the redistributed PEXSI library and its dependencies, namely the SuperLU\_DIST and PT-SCOTCH libraries, will be built as well.  Optionally, the redistributed ELPA, libOMM, SuperLU\_DIST and PT-SCOTCH libraries may be substituted by user's optimized versions.  Please note that in the current version of ELSI, an external version of PEXSI or NTPoly is not officially supported.\\
 
 \section{CMake Basics}
 \label{sec:cmake}
 This section covers some basics of using CMake.  Users who are familiar with CMake may safely skip this section.\\
 
-The typical workflow of using CMake to build ELSI looks like:\\
-
+The typical workflow of using CMake to build ELSI looks like:
 \begin{Verbatim}[commandchars=\\\{\}]
 $ \textcolor{blue}{ls}
 
@@ -325,12 +322,12 @@ $ \textcolor{blue}{make [-j np]}
 $ \textcolor{blue}{make install}
 \end{Verbatim}
 
+\bigskip
 Whenever CMake is invoked, one of the command line arguments must point to the path where the top level CMakeLists.txt file exists, hence the ``\verb+..+'' in the above example.\\
 
 By default, CMake generates standard UNIX makefiles including specific rules to build the project with GNU make.  Other build systems may be chosen with the ``\verb+-G+'' (G for generator) option of CMake.  We recommend \href{http://ninja-build.org}{Ninja} in particular, which is a small build system with a focus on speed.  A version of Ninja with Fortran support is freely available \href{http://github.com/Kitware/ninja}{here}.\\
 
-To build ELSI with Ninja:\\
-
+To build ELSI with Ninja:
 \begin{Verbatim}[commandchars=\\\{\}]
 $ \textcolor{blue}{ls}
 
@@ -349,18 +346,12 @@ $ \textcolor{blue}{ninja}
 $ \textcolor{blue}{ninja install}
 \end{Verbatim}
 
+\bigskip
 Ninja also accepts the \verb+-j+ flag.  Without this flag, Ninja runs on the number of available threads plus two by default (e.g., 10 on a machine with 8 threads).  Thus, \verb+-j+ is typically not necessary.\\
 
-With CMake, an option can be defined by adding\\
+An option may be defined by adding ``\verb+-DKeyword=Value+'' to the command line when invoking CMake.  If ``\verb+Keyword+'' is of type boolean, its ``\verb+Value+'' may be ``ON'' or ``OFF''.  If ``\verb+Keyword+'' is a list of libraries or include directories, its items should be separated with ``;'' (semicolon) or `` '' (space).\\
 
-\begin{verbatim}
--DKeyword=Value
-\end{verbatim}
-
-to the command line when invoking CMake.  If ``\verb+Keyword+'' is of type boolean, its ``\verb+Value+'' may be ``ON'' or ``OFF''.  If ``\verb+Keyword+'' is a list of libraries or include directories, its items should be separated with ``;'' (semicolon) or `` '' (space).\\
-
-For example,\\
-
+For example,
 \begin{verbatim}
 -DCMAKE_INSTALL_PREFIX=/path/to/install/elsi
 -DCMAKE_C_COMPILER=gcc
@@ -376,18 +367,16 @@ Available options for building ELSI with CMake are introduced in the next sectio
 \label{sec:config}
 \subsection{Compilers}
 \label{subsec:config_compilers}
-CMake automatically detects and sets compilers.  The choices made by CMake often work, but not necessarily guarantee the optimal performance.  In some cases, the compilers picked up by CMake may not be the ones desired by the user.  To build ELSI, it is mandatory that the user explicitly sets the identification of the compilers:\\
-
+CMake automatically detects compilers.  The choices made by CMake often work, but not necessarily lead to the optimal performance.  In some cases, the compilers picked up by CMake may not be the ones desired by the user.  To build ELSI, it is mandatory that the user explicitly sets the identification of the compilers:
 \begin{verbatim}
 -DCMAKE_Fortran_COMPILER=YOUR_MPI_FORTRAN_COMPILER
 -DCMAKE_C_COMPILER=YOUR_MPI_C_COMPILER
 -DCMAKE_CXX_COMPILER=YOUR_MPI_C++_COMPILER
 \end{verbatim}
 
-Please note that the C++ compiler is not needed if building ELSI without PEXSI.\\
+Please note that the C++ compiler is not needed when building ELSI without PEXSI.\\
 
-In addition, it is highly recommended to specify the compiler flags, in particular the optimization flags:\\
-
+In addition, it is highly recommended to specify the compiler flags, in particular the optimization flags:
 \begin{verbatim}
 -DCMAKE_Fortran_FLAGS=YOUR_FORTRAN_COMPILE_FLAGS
 -DCMAKE_C_FLAGS=YOUR_MPI_C_COMPILE_FLAGS
@@ -398,10 +387,9 @@ Note that with CMake versions older than 3.8.2, flags such as \verb+-std=c99+ an
 
 \subsection{Solvers}
 \label{subsec:config_solvers}
-The ELPA, libOMM, and PEXSI solver libraries, as well as the SuperLU\_DIST and PT-SCOTCH libraries (both required by PEXSI), are redistributed with the current ELSI package.\\
+The ELPA, libOMM, NTPoly, and PEXSI solver libraries, as well as the SuperLU\_DIST and PT-SCOTCH libraries (both required by PEXSI), are redistributed with the current ELSI package.\\
 
-The redistributed version of ELPA comes with a few ``kernels'' specifically written to take advantage of processor architecture (e.g. vectorization instruction set extensions).  A kernel may be chosen by the \textcolor{blue}{ELPA2\_KERNEL} keyword.  Available options are:\\
-
+The redistributed version of ELPA comes with a few ``kernels'' specifically written to take advantage of processor architecture (e.g. vectorization instruction set extensions).  A kernel may be chosen by the \textcolor{blue}{ELPA2\_KERNEL} keyword.  Available options are:
 \begin{verbatim}
 -DELPA2_KERNEL=BGQ
 -DELPA2_KERNEL=AVX
@@ -411,32 +399,28 @@ The redistributed version of ELPA comes with a few ``kernels'' specifically writ
 
 for the IBM Blue Gene Q, Intel AVX, Intel AVX2, and Intel AVX512 architectures, respectively.  In ELPA, these kernels are employed to accelerate the calculation of eigenvectors, which is often a computational bottleneck when calculating a large percentage of eigenvectors.  If this is the case in the user's application, it is highly recommended that the user selects the kernel most suited to their system architecture.\\
 
-Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries.  Relevant options for this purpose are:\\
-
+Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries.  Relevant options for this purpose are:
 \begin{verbatim}
 -DUSE_EXTERNAL_ELPA=ON
 -DUSE_EXTERNAL_OMM=ON
 -DUSE_EXTERNAL_SUPERLU=ON
 \end{verbatim}
 
-The external libraries and the include paths should be set via the following three keywords:\\
-
+The external libraries and the include paths should be set via the following three keywords:
 \begin{verbatim}
 -DLIB_PATHS=DIRECTORIES_CONTAINING_YOUR_EXTERNAL_LIBRARIES
 -DINC_PATHS=INCLUDE_DIRECTORIES_OF_YOUR_EXTERNAL_LIBRARIES
 -DLIBS=NAMES_OF_YOUR_EXTERNAL_LIBRARIES
 \end{verbatim}
 
-Each of the above keywords is a space-separated or semicolon-separated list.  If an external library depends on additional libraries, \textcolor{blue}{LIBS} should include all the relevant libraries.  For instance, \textcolor{blue}{LIBS} should include the ELPA library and CUDA libraries when using an external ELPA compiled with GPU (CUDA) support; \textcolor{blue}{LIBS} should include the SuperLU\_DIST library and the sparse matrix reordering library used to compile SuperLU\_DIST when using an external SuperLU\_DIST.  Please note that in the current version of ELSI, an external version of PEXSI is not officially supported.\\
+Each of the above keywords is a space-separated or semicolon-separated list.  If an external library depends on additional libraries, \textcolor{blue}{LIBS} should include all the relevant libraries.  For instance, \textcolor{blue}{LIBS} should include the ELPA library and CUDA libraries when using an external ELPA compiled with GPU (CUDA) support; \textcolor{blue}{LIBS} should include the SuperLU\_DIST library and the sparse matrix reordering library used to compile SuperLU\_DIST when using an external SuperLU\_DIST.  Please note that in the current version of ELSI, an external version of PEXSI or NTPoly is not officially supported.\\
 
-The PEXSI and SLEPc-SIPs solvers are not enabled by default.  PEXSI may be activated by specifying:\\
-
+The PEXSI and SLEPc-SIPs solvers are not enabled by default.  PEXSI may be activated by specifying:
 \begin{verbatim}
 -DENABLE_PEXSI=ON
 \end{verbatim}
 
-if using redistributed SuperLU\_DIST with PT-SCOTCH, or\\
-
+if using redistributed SuperLU\_DIST with PT-SCOTCH, or
 \begin{verbatim}
 -DENABLE_PEXSI=ON
 -DUSE_EXTERNAL_SUPERLU=ON
@@ -447,8 +431,7 @@ if using redistributed SuperLU\_DIST with PT-SCOTCH, or\\
 
 if using an externally compiled SuperLU\_DIST.  SuperLU\_DIST 5.3.0 has been tested with this version of ELSI.  Older/newer versions may or may not be compatible.\\
 
-SLEPc-SIPs may be activated by specifying:\\
-
+SLEPc-SIPs may be activated by specifying:
 \begin{verbatim}
 -DENABLE_SIPS=ON
 -DUSE_EXTERNAL_SUPERLU=ON
@@ -463,34 +446,29 @@ SLEPc 3.9.2 and PETSc 3.9.3 have been tested with this version of ELSI.  Older/n
 
 \subsection{Build Targets}
 \label{subsec:config_targets}
-By default, a static library (libelsi.a) will be created as the target of the compilation.  Building ELSI as a shared library may be enabled by:\\
-
+By default, a static library (libelsi.a) will be created as the target of the compilation.  Building ELSI as a shared library may be enabled by:
 \begin{verbatim}
 -DBUILD_SHARED_LIBS=ON
 \end{verbatim}
 
-Building ELSI test programs may be enabled by:\\
-
+Building ELSI test programs may be enabled by:
 \begin{verbatim}
 -DENABLE_TESTS=ON
 \end{verbatim}
 
 In either case, linear algebra libraries, BLAS, LAPACK, BLACS, and ScaLAPACK, should be valid in the \textcolor{blue}{LIB\_PATHS} and \textcolor{blue}{LIBS} keywords.\\
 
-If test programs are enabled, the compilation of ELSI may be verified by\\
-
+If test programs are turned on, the compilation of ELSI may be verified by
 \begin{Verbatim}[commandchars=\\\{\}]
 $ \textcolor{blue}{make test}
 \end{Verbatim}
 
-or\\
-
+or
 \begin{Verbatim}[commandchars=\\\{\}]
 $ \textcolor{blue}{ninja test}
 \end{Verbatim}
 
-depending on the generator option ``\verb+-G+'' used when invoking CMake.  Alternatively, issue\\
-
+depending on the generator option ``\verb+-G+'' used when invoking CMake.  Alternatively, issue
 \begin{Verbatim}[commandchars=\\\{\}]
 $ \textcolor{blue}{ctest}
 \end{Verbatim}
@@ -499,14 +477,12 @@ to invoke the CTest program which performs all tests automatically.\\
 
 Note that the tests may not run if launching MPI jobs is prohibited on the user's working platform.\\
 
-In order to install ELSI at the location specified by \textcolor{blue}{CMAKE\_INSTALL\_PREFIX}, issue\\
-
+In order to install ELSI at the location specified by \textcolor{blue}{CMAKE\_INSTALL\_PREFIX}, issue
 \begin{Verbatim}[commandchars=\\\{\}]
 $ \textcolor{blue}{make install}
 \end{Verbatim}
 
-or\\
-
+or
 \begin{Verbatim}[commandchars=\\\{\}]
 $ \textcolor{blue}{ninja install}
 \end{Verbatim}
@@ -571,21 +547,20 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 \hline
 \end{tabular}
 
-\newpage
+\bigskip
 \textbf{Remarks}\\
 
 \textbf{1)} \textcolor{blue}{ADD\_UNDERSCORE}:  In the PEXSI and SuperLU\_DIST code redistributed through ELSI, there are calls to functions of the linear algebra libraries, e.g. ``dgemm''.  If \textcolor{blue}{ADD\_UNDERSCORE} is ``ON'', the code will call ``dgemm\_'' instead of ``dgemm''.  Turn this keyword on if routines are suffixed with ``\_'' in external linear algebra libraries.  Turn it off if routines are not suffixed with ``\_''.\\
 
 \textbf{2)} \textcolor{blue}{ELPA2\_KERNEL}:  There are a number of computational kernels available with the ELPA solver.  Choose from ``BGQ'' (IBM Blue Gene Q), ``AVX'' (Intel AVX), ``AVX2'' (Intel AVX2), and ``AVX512'' (Intel AVX512).  See \ref{subsec:config_solvers} for more information.\\
 
-\textbf{3)} \textcolor{blue}{SCOTCH\_LAST\_RESORT}:  The compilation of the PT-SCOTCH library is a multi-step process.  First, two auxiliary executables are compiled.  Then, header files of the library are generated by running the two compiled executables.  Finally, the main source files of the library are compiled with the generated header files included.  The header generation step may fail on platforms where directly running an executable is prohibited on a login/compile node.  Often this can be circumvented by requesting an interactive session to a compute node and performing the compilation there, or by submitting the whole compilation as a job to the queuing system.  However, this may still fail on platforms where an executable compiled with MPI must be launched by an MPI job launcher (aprun, mpirun, srun, etc).  If the standard compilation of PT-SCOTCH fails due to this reason, the user may set \textcolor{blue}{SCOTCH\_LAST\_RESORT} to the command that starts an MPI job with one MPI task, e.g. ``\verb+mpirun -n 1+''.  This command will be used to launch the auxiliary executables to generate necessary header files for PT-SCOTCH.\\
+\textbf{3)} \textcolor{blue}{SCOTCH\_LAST\_RESORT}:  The compilation of the PT-SCOTCH library is a multi-step process.  First, two auxiliary executables are created.  Then, header files of the library are generated by running the two executables.  Finally, the main source files of the library are compiled with the generated header files included.  The header generation step may fail on platforms where directly running an executable is prohibited on a login/compile node.  Often this can be circumvented by requesting an interactive session to a compute node and performing the compilation there, or by submitting the whole compilation as a job to the queuing system.  However, this may still fail on platforms where an executable compiled with MPI must be launched by an MPI job launcher (aprun, mpirun, srun, etc).  If the standard compilation of PT-SCOTCH fails due to this reason, the user may set \textcolor{blue}{SCOTCH\_LAST\_RESORT} to the command that starts an MPI job with one MPI task, e.g. ``\verb+mpirun -n 1+''.  This command will be used to launch the auxiliary executables to generate necessary header files for PT-SCOTCH.\\
 
 \textbf{4)} External libraries:  ELSI redistributes source code of ELPA, libOMM, PEXSI, SuperLU\_DIST, and PT-SCOTCH libraries, which by default will be built together with the ELSI interface.  Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries.  See \ref{subsec:config_solvers} for more information.\\
 
 \subsection{``Toolchain'' Files}
 \label{subsec:config_toolchain}
-It is sometimes convenient to edit the settings in a ``toolchain'' file that can be read by CMake:\\
-
+It is sometimes convenient to edit the settings in a ``toolchain'' file that can be read by CMake:
 \begin{verbatim}
 -DCMAKE_TOOLCHAIN_FILE=YOUR_TOOLCHAIN_FILE
 \end{verbatim}
@@ -596,29 +571,27 @@ Example ``toolchains'' are provided in the ``./toolchains'' directory of the ELS
 \label{sec:import}
 \subsection{Linking against ELSI:  CMake}
 \label{subsec:import_cmake}
-A CMake configuration file called \texttt{elsiConfig.cmake} should be generated after ELSI is successfully installed (see \ref{subsec:config_targets}).  This file contains all the information about how the ELSI library and its dependencies should be included in an external project.  For a project using CMake, only two lines are required to find and link to ELSI:\\
-
+A CMake configuration file called \texttt{elsiConfig.cmake} should be generated after ELSI is successfully installed (see \ref{subsec:config_targets}).  This file contains all the information about how the ELSI library and its dependencies should be included in an external project.  For a project using CMake, only two lines are required to find and link to ELSI:
 \begin{verbatim}
 find_package(elsi REQUIRED)
 target_link_libraries(my_project PRIVATE elsi::elsi)
 \end{verbatim}
 
-If a minimum version of ELSI is required, this information may be passed to \textcolor{blue}{find\_package} by:\\
-
+If a minimum version of ELSI is required, this information may be passed to ``\verb+find_package+'' by:
 \begin{verbatim}
 find_package(elsi 2.0 REQUIRED)
 \end{verbatim}
 
-If the installed ELSI version is older than the requested minimum version, CMake stops with an appropriate error message.  Other options of \textcolor{blue}{find\_package} are available in the documentation of CMake.\\
+If the installed ELSI version is older than the requested minimum version, CMake stops with an appropriate error message.  Other options of ``\verb+find_package+'' are available in the documentation of CMake.\\
 
 \subsection{Linking against ELSI:  Makefile}
 \label{subsec:import_makefile}
-For a project using makefiles, an example set of compiler flags to link against ELSI would be:\\
-
+For a project using makefiles, an example set of compiler flags to link against ELSI would be:
 \begin{verbatim}
 ELSI_INCLUDE = -I/PATH/TO/BUILD/ELSI/include
 ELSI_LIB     = -L/PATH/TO/BUILD/ELSI/lib -lelsi \
-               -lfortjson -lOMM -lMatrixSwitch -lelpa -lpexsi -lsuperlu_dist \
+               -lfortjson -lOMM -lMatrixSwitch -lelpa \
+               -lNTPoly -lpexsi -lsuperlu_dist \
                -lptscotchparmetis -lptscotch -lptscotcherr \
                -lscotchmetis -lscotch -lscotcherr
 \end{verbatim}
@@ -627,14 +600,12 @@ Enabling/disabling PEXSI and SLEPc-SIPs or linking ELSI against preinstalled sol
 
 \subsection{Using ELSI}
 \label{subsec:import_use}
-ELSI may be used in an electronic structure code by importing the appropriate header file.  For codes written in Fortran, this is done by using the ELSI module\\
-
+ELSI may be used in an electronic structure code by importing the appropriate header file.  For codes written in Fortran, this is done by using the ELSI module
 \begin{verbatim}
 USE ELSI
 \end{verbatim}
 
-For codes written in C, the ELSI wrapper may be imported by including the header file\\
-
+For codes written in C, the ELSI wrapper may be imported by including the header file
 \begin{verbatim}
 #include <elsi.h>
 \end{verbatim}
@@ -668,7 +639,7 @@ The ELSI interface must be initialized via the \textcolor{blue}{elsi\_init} subr
 \hline
 \textcolor{blue}{handle}         & type(elsi\_handle) & out & Handle to ELSI.\\
 \hline
-\textcolor{blue}{solver}         & integer            & in  & Desired KS solver.  Accepted values are:  1 (ELPA), 2 (LIBOMM), 3 (PEXSI), and 5 (SLEPc-SIPs).\\
+\textcolor{blue}{solver}         & integer            & in  & Desired KS solver.  Accepted values are:  1 (ELPA), 2 (LIBOMM), 3 (PEXSI), 5 (SLEPc-SIPs), and 6 (NTPoly).\\
 \hline
 \textcolor{blue}{parallel\_mode} & integer            & in  & Parallelization mode.  See remark 3.  Accepted values are:  0 (SINGLE\_PROC) and 1 (MULTI\_PROC).\\
 \hline
@@ -687,7 +658,7 @@ The ELSI interface must be initialized via the \textcolor{blue}{elsi\_init} subr
 
 \textbf{1)} \textcolor{blue}{matrix\_format}:  \textcolor{blue}{BLACS\_DENSE}(0) refers a dense matrix format in a 2-dimensional block-cyclic distribution, i.e. the BLACS standard.  \textcolor{blue}{PEXSI\_CSC}(1) refers to a compressed sparse column (CSC) matrix format in a 1-dimensional block distribution.  \textcolor{blue}{SIESTA\_CSC}(2) refers to a compressed sparse column (CSC) matrix format in a 1-dimensional block-cyclic distribution.  As the Hamiltonian, overlap, and density matrices are symmetric (Hermitian), compressed sparse row (CSR) matrix format is effectively supported.\\
 
-\textbf{2)} \textcolor{blue}{n\_state}:  If ELPA is the chosen solver, this parameter specifies the number of eigenstates to solve by the eigensolver.  If libOMM is the chosen solver, \textcolor{blue}{n\_state} must be exactly the number of occupied states, as libOMM cannot handle fractional occupation numbers\cite{libomm_corsetti_2014}.  PEXSI does not make use of this parameter and a dummy value may be passed.\\
+\textbf{2)} \textcolor{blue}{n\_state}:  If ELPA or SLEPc-SIPs is the chosen solver, this parameter specifies the number of eigenstates to solve by the eigensolver.  If libOMM is the chosen solver, \textcolor{blue}{n\_state} must be exactly the number of occupied states, as libOMM cannot handle fractional occupation numbers\cite{libomm_corsetti_2014}.  PEXSI and NTPoly do not make use of this parameter, thus a dummy value may be passed.\\
 
 \textbf{3)} \textcolor{blue}{parallel\_mode}:  The two allowed values of \textcolor{blue}{parallel\_mode}, 0 (\textcolor{blue}{SINGLE\_PROC}) and 1 (\textcolor{blue}{MULTI\_PROC}), allow for three parallelization strategies commonly employed by electronic structure codes.  See below.\\
 
@@ -881,7 +852,7 @@ n (\boldsymbol{r}) \approx \sum_{n=1}^{N_\text{kpt}} w_n
 
 \noindent Here, $w_n$ is the weight of the n$^\text{th}$ \textbf{\textit{k}}-point; $N_\text{kpt}$ is the number of \textbf{\textit{k}}-points.  The weights of all \textbf{\textit{k}}-points add up to 1.  Obviously, a denser grid of \textbf{\textit{k}}-points leads to a higher accuracy with higher computational cost.  The Hamilton and overlap matrices for multiple \textbf{\textit{k}}-points are block-diagonal, such that each block on the diagonal corresponds to an eigenproblem of one \textbf{\textit{k}}-point.  These eigenproblems can be solved separately.\\
 
-The handling of spin-polarized case and periodic case in ELSI are more or less equivalent.  The problems, either from two spin channels, or from multiple \textbf{\textit{k}}-points, are treated as equivalent ``unit tasks''.  If the chosen solver is an eigensolver (ELPA or SLEPc-SIPs), all the unit tasks are solved independently, returning separate eigensolutions to the electronic structure code.  The electronic structure code can then assemble the pieces of the solutions and construct the electron density.  When computing density matrices, the unit tasks are coupled together by the normalization condition of the number of electrons:\\
+The handling of spin-polarized case and periodic case in ELSI are more or less equivalent.  The problems, either from two spin channels, or from multiple \textbf{\textit{k}}-points, are treated as equivalent ``unit tasks''.  If the chosen solver is an eigensolver (e.g. ELPA), all the unit tasks are solved independently, returning separate eigensolutions to the electronic structure code.  The electronic structure code can then assemble the pieces of the solutions and construct the electron density.  When computing density matrices, the unit tasks are coupled together by the normalization condition of the number of electrons:\\
 \begin{equation}
 \label{eq:normalization}
 N_\text{electron} = \sum_{n=1}^{N_\text{kpt}} \sum_{m=1}^{N_\text{spin}} \sum_{l=1}^{N_\text{basis}} w_n f_{lmn} ,
@@ -889,9 +860,9 @@ N_\text{electron} = \sum_{n=1}^{N_\text{kpt}} \sum_{m=1}^{N_\text{spin}} \sum_{l
 
 \noindent where $N_\text{kpt}$, $N_\text{spin}$, and $N_\text{basis}$ are the number of \textbf{\textit{k}}-points, the number of spin channels, and the number of basis functions, respectively.  $w_n$ is again the weight of the n$^\text{th}$ \textbf{\textit{k}}-point.  $f_{lmn}$ is the occupation number of the l$^\text{th}$ state in the m$^\text{th}$ spin channel and the n$^\text{th}$ \textbf{\textit{k}}-point.  To determine the occupation numbers, the eigenvalues at each unit task need to be collected across all the tasks.  With the correct occupation numbers, density matrices can be computed by \ref{eq:density_matrix}.\\
 
-If the PEXSI solver is chosen, the pole expansion in \ref{eq:pole} is performed for all the unit tasks in parallel, with the same trial chemical potential $\mu$.  The resulting number of electrons needs to be determined in order to refine the chemical potential.  The chemical potential yielding the correct number of electrons is used to construct the density matrices on the unit tasks.\\
+If the PEXSI solver is chosen, the pole expansion in \ref{eq:pole} is performed for all the unit tasks in parallel, with the same trial chemical potential $\mu$.  The resulting number of electrons needs to be determined in order to refine the chemical potential.  The chemical potential yielding the correct number of electrons is used to construct the density matrices on the unit tasks.  If the OMM solver is chosen, the orbital minimization in \ref{eq:omm_energy} is performed for all the unit tasks to obtain density matrices.  Again, OMM cannot handle systems with fractional occupation numbers.\\
 
-If the OMM solver is chosen, the orbital minimization in \ref{eq:omm_energy} is performed for all the unit tasks to obtain density matrices.  Again, OMM cannot handle systems with fractional occupation numbers.\\
+At present, the SLEPc-SIPs and NTPoly solvers are not compatible with spin-polarized and/or periodic calculations.\\
 
 To set up the ELSI interface for a calculation with more than one \textbf{\textit{k}}-point and/or more than one spin channel,  the \textcolor{blue}{elsi\_set\_kpoint} and/or \textcolor{blue}{elsi\_set\_spin} subroutines are called to pass the required information into ELSI.  The MPI communicator for each unit task is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi}.  In addition, a global MPI communicator for all tasks is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi\_global}.  Note that the current ELSI interface only supports the case where the eigenproblems for all the \textbf{\textit{k}}-points and spin channels are fully parallelized, i.e., there is no MPI task handling more than one \textbf{\textit{k}}-point and/or more than one spin channel.  Another limitation is that the two spin channels are always coupled by the normalization condition \ref{eq:normalization}, with a uniform chemical potential for the two channels.  The distribution of electrons among the two channels, and thus the net spin moment of the system, is solely determined by \ref{eq:normalization}.  Future work will enable calculations with a fixed, user-specified spin moment.\\
 
@@ -1223,35 +1194,36 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \label{subsec:setter_elpa}
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_solver}(handle, elpa\_solver)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_n\_single}(handle, n\_single)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_gpu}(handle, use\_gpu)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_gpu\_kernels}(handle, use\_gpu\_kernels)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_autotune}(handle, use\_autotune)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_n\_single}(handle, elpa\_n\_single)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_gpu}(handle, elpa\_gpu)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_gpu\_kernels}(handle, elpa\_gpu\_kernels)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_autotune}(handle, elpa\_autotune)]
 \end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
 \hline
-\textcolor{blue}{elpa\_solver}      & integer & 2 & 1:  ELPA 1-stage solver.  2:  ELPA 2-stage solver.  The latter is usually faster and more scalable.\\
+\textcolor{blue}{elpa\_solver}       & integer & 2 & 1:  ELPA 1-stage solver.  2:  ELPA 2-stage solver.  The latter is usually faster and more scalable.\\
 \hline
-\textcolor{blue}{n\_single}         & integer & 0 & Number of SCF steps using single precision ELPA to solve standard eigenproblems.  See remark 1.\\
+\textcolor{blue}{elpa\_n\_single}    & integer & 0 & Number of SCF steps using single precision ELPA to solve standard eigenproblems.  See remark 1.\\
 \hline
-\textcolor{blue}{use\_gpu}          & integer & 0 & If not 0, try to enable GPU-acceleration in ELPA.  See remark 2.\\
+\textcolor{blue}{elpa\_gpu}          & integer & 0 & If not 0, try to enable GPU-acceleration in ELPA.  See remark 2.\\
 \hline
-\textcolor{blue}{use\_gpu\_kernels} & integer & 0 & If not 0, try to enable GPU-acceleration and GPU kernels in ELPA.  See remark 2.\\
-\textcolor{blue}{use\_autotune}     & integer & 1 & If not 0, try to enable auto-tuning of runtime parameters in ELPA.  See remark 3.\\
+\textcolor{blue}{elpa\_gpu\_kernels} & integer & 0 & If not 0, try to enable GPU-acceleration and GPU kernels in ELPA.  See remark 2.\\
+\hline
+\textcolor{blue}{elpa\_autotune}     & integer & 1 & If not 0, try to enable auto-tuning of runtime parameters in ELPA.  See remark 3.\\
 \hline
 \end{tabular}
 
 \bigskip
 \textbf{Remarks}\\
 
-\textbf{1)} \textcolor{blue}{n\_single}:  If single precision arithmetic is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{n\_single} to a positive integer, then the standard eigenprolems in the first \textcolor{blue}{n\_single} SCF steps will be solved with single precision.  The transformations between generalized eigenproblem and the standard form are always performed with double precision.  Although this keyword accelerates the solution of standard eigenproblems, the overall SCF convergence may be slower, depending on the physical system and the SCF settings used in the electronic structure code.  This keyword is ignored if single precision calculations are not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with single precision support.\\
+\textbf{1)} \textcolor{blue}{elpa\_n\_single}:  If single precision arithmetic is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{elpa\_n\_single} to a positive integer, then the standard eigenprolems in the first \textcolor{blue}{elpa\_n\_single} SCF steps will be solved with single precision.  The transformations between generalized eigenproblem and the standard form are always performed with double precision.  Although this keyword accelerates the solution of standard eigenproblems, the overall SCF convergence may be slower, depending on the physical system and the SCF settings used in the electronic structure code.  This keyword is ignored if single precision calculations are not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with single precision support.\\
 
-\textbf{2)} \textcolor{blue}{use\_gpu} and \textcolor{blue}{use\_gpu\_kernels}:  If GPU-acceleration is available in an externally compiled ELPA library, it may be enabled by setting \textcolor{blue}{use\_gpu} to a non-zero integer.  Note that by setting \textcolor{blue}{use\_gpu}, the GPU kernels for eigenvector back-transformation will not be used.  To enable the GPU kernels, \textcolor{blue}{use\_gpu\_kernels} should be set to a non-zero value.  These two keywords are ignored if GPU-acceleration is not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with GPU support.\\
+\textbf{2)} \textcolor{blue}{elpa\_gpu} and \textcolor{blue}{elpa\_gpu\_kernels}:  If GPU-acceleration is available in an externally compiled ELPA library, it may be enabled by setting \textcolor{blue}{elpa\_gpu} to a non-zero integer.  Note that by setting \textcolor{blue}{elpa\_gpu}, the GPU kernels for eigenvector back-transformation will not be used.  To enable the GPU kernels, \textcolor{blue}{elpa\_gpu\_kernels} should be set to a non-zero value.  These two keywords are ignored if GPU-acceleration is not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with GPU support.\\
 
-\textbf{3)} \textcolor{blue}{use\_autotune}:  If auto-tuning of runtime parameters is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{use\_autotune} to a nonzero integer.  This keyword is ignored if auto-tuning is not available, which is the case if the internal version of ELPA is used.\\
+\textbf{3)} \textcolor{blue}{elpa\_autotune}:  If auto-tuning of runtime parameters is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{elpa\_autotune} to a nonzero integer.  This keyword is ignored if auto-tuning is not available, which is the case if the internal version of ELPA is used.\\
 
 \subsection{Customizing the libOMM Solver}
 \label{subsec:setter_omm}
@@ -1276,7 +1248,7 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \bigskip
 \textbf{Remarks}\\
 
-\textbf{1)} \textcolor{blue}{omm\_flavor}:  Allowed choices are 0 for basic minimization of a generalized eigenproblem and 2 for a Cholesky factorization of the overlap matrix transforming the generalized eigenproblem to the standard form.  Usually 2 (Cholesky) leads to a faster convergence of the OMM energy functional minimization, at the price of transforming the eigenproblem.  When using sufficiently many steps of ELPA to stabilize the SCF cycle, 0 (basic) is probably a better choice to finish the remaining SCF cycle.  See also remark 2 below.\\
+\textbf{1)} \textcolor{blue}{omm\_flavor}:  Allowed choices are 0 for a basic minimization of a generalized eigenproblem and 2 for a Cholesky factorization of the overlap matrix transforming the generalized eigenproblem to the standard form.  Usually 2 (Cholesky) leads to a faster convergence of the OMM energy functional minimization, at the price of transforming the eigenproblem.  When using sufficiently many steps of ELPA to stabilize the SCF cycle, 0 (basic) is probably a better choice to finish the remaining SCF cycle.  See also remark 2 below.\\
 
 \textbf{2)} \textcolor{blue}{omm\_n\_elpa}:  It has been demonstrated that OMM is optimal at later stages of an SCF cycle where the electronic structure is closer to its expected local minimum, requiring only one CG iteration to converge the minimization of the OMM energy functional.  Accordingly, it is recommended to use ELPA initially, then switching to libOMM after \textcolor{blue}{omm\_n\_elpa} SCF steps.\\
 
@@ -1384,33 +1356,60 @@ $\Delta$V$_\text{max}$ = 0.0\\
 \subsection{Customizing the SLEPc-SIPs Solver}
 \label{subsec:setter_sips}
 \begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_interval}(handle, lower, upper)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_n\_elpa}(handle, n\_elpa)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_n\_slice}(handle, n\_slice)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_interval}(handle, sips\_lower, sips\_upper)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_n\_elpa}(handle, sips\_n\_elpa)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_n\_slice}(handle, sips\_n\_slice)]
 \end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
 \hline
-\textcolor{blue}{lower}    & real double & -2.0 & Lower bound of eigenspectrum.  See remark 1.\\
+\textcolor{blue}{sips\_lower}    & real double & -2.0 & Lower bound of eigenspectrum.  See remark 1.\\
 \hline
-\textcolor{blue}{upper}    & real double & 2.0  & Upper bound of eigenspectrum.  See remark 1.\\
+\textcolor{blue}{sips\_upper}    & real double & 2.0  & Upper bound of eigenspectrum.  See remark 1.\\
 \hline
-\textcolor{blue}{n\_elpa}  & integer     & 0    & Number of SCF steps using ELPA.  See remark 2.\\
+\textcolor{blue}{sips\_n\_elpa}  & integer     & 0    & Number of SCF steps using ELPA.  See remark 2.\\
 \hline
-\textcolor{blue}{n\_slice} & integer     & 1    & Number of slices.  See remark 3.\\
+\textcolor{blue}{sips\_n\_slice} & integer     & 1    & Number of slices.  See remark 3.\\
 \hline
 \end{tabular}
 
 \bigskip
 \textbf{Remarks}\\
 
-\textbf{1)} \textcolor{blue}{lower} and \textcolor{blue}{upper}:  SLEPc-SIPs relies on some inertia counting steps to estimate the lower and upper bounds of the spectrum.  Only eigenvalues within this interval, and their associated eigenvectors, will be solved.  The inertia-counting-based eigenvalue searching starts from the interval determined by \textcolor{blue}{lower} and \textcolor{blue}{upper}.  Depending on the results of inertia counting, this interval may expand or shrink to make sure that the 1$^\text{st}$ to the \textcolor{blue}{n\_state}$^\text{th}$ eigenvalues are all within this interval.  If a good estimate of the lower and upper bounds of the eigenspectrum is available, it should be set by \textcolor{blue}{elsi\_set\_sips\_interval}.\\
+\textbf{1)} \textcolor{blue}{sips\_lower} and \textcolor{blue}{sips\_upper}:  SLEPc-SIPs relies on some inertia counting steps to estimate the lower and upper bounds of the spectrum.  Only eigenvalues within this interval, and their associated eigenvectors, will be solved.  The inertia-counting-based eigenvalue searching starts from the interval determined by \textcolor{blue}{sips\_lower} and \textcolor{blue}{sips\_upper}.  Depending on the results of inertia counting, this interval may expand or shrink to make sure that the 1$^\text{st}$ to the \textcolor{blue}{n\_state}$^\text{th}$ eigenvalues are all within this interval.  If a good estimate of the lower and upper bounds of the eigenspectrum is available, it should be set by \textcolor{blue}{elsi\_set\_sips\_interval}.\\
 
-\textbf{2)} \textcolor{blue}{n\_elpa}:  The performance of SLEPc-SIPs mainly depends on the load balance across slices.  Optimal performance is expected if the desired eigenvalues are evenly distributed across slices.  In an SCF calculation, eigenvalues obtained in the current SCF step can be used as an approximated distribution of eigenvalues in the next SCF step.  This approximation should become better as the SCF cycle approaches its convergence.  On the other hand, at the beginning of an SCF cycle, the load balance is only coarsely checked by inertia calculations.  Using the direct eigensolver ELPA in the first \textcolor{blue}{n\_elpa} SCF steps can circumvent the load imbalance of spectrum slicing in the initial SCF steps.\\
+\textbf{2)} \textcolor{blue}{sips\_n\_elpa}:  The performance of SLEPc-SIPs mainly depends on the load balance across slices.  Optimal performance is expected if the desired eigenvalues are evenly distributed across slices.  In an SCF calculation, eigenvalues obtained in the current SCF step can be used as an approximated distribution of eigenvalues in the next SCF step.  This approximation should become better as the SCF cycle approaches its convergence.  On the other hand, at the beginning of an SCF cycle, the load balance is only coarsely checked by inertia calculations.  Using the direct eigensolver ELPA in the first \textcolor{blue}{sips\_n\_elpa} SCF steps can circumvent the load imbalance of spectrum slicing in the initial SCF steps.\\
 
-\textbf{3)} \textcolor{blue}{n\_slice}:  SLEPc-SIPs partitions the eigenspectrum into slices and solves the slices in parallel.  The \textcolor{blue}{n\_slice} parameter controls the number of slices to use in SLEPc-SIPs.  The default value, 1, should always work, but by no means leads to the optimal performance of the solver.  There are some general rules to set this parameter.  Firstly, as a requirement of the SLEPc library, the total number of MPI tasks must by divisible by \textcolor{blue}{n\_slice}.  Secondly, setting \textcolor{blue}{n\_slice} to be equal to the number of computing nodes (not MPI tasks) usually yields better performance, as the communication between nodes is minimized in this case.  The optimal value of \textcolor{blue}{n\_slice} depends on the actual problem as well as the computing hardware.\\
+\textbf{3)} \textcolor{blue}{sips\_n\_slice}:  SLEPc-SIPs partitions the eigenspectrum into slices and solves the slices in parallel.  The \textcolor{blue}{sips\_n\_slice} parameter controls the number of slices to use in SLEPc-SIPs.  The default value, 1, should always work, but by no means leads to the optimal performance of the solver.  There are some general rules to set this parameter.  Firstly, as a requirement of the SLEPc library, the total number of MPI tasks must by divisible by \textcolor{blue}{sips\_n\_slice}.  Secondly, setting \textcolor{blue}{sips\_n\_slice} to be equal to the number of computing nodes (not MPI tasks) usually yields better performance, as the communication between nodes is minimized in this case.  The optimal value of \textcolor{blue}{sips\_n\_slice} depends on the actual problem as well as the computing hardware.\\
+
+\subsection{Customizing the NTPoly Solver}
+\label{subsec:setter_ntpoly}
+\begin{labeling}{\hspace{6cm}}
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_ntpoly\_method}(handle, ntpoly\_method)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_ntpoly\_filter}(handle, ntpoly\_filter)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_ntpoly\_tol}(handle, ntpoly\_tol)]
+\end{labeling}
+
+\begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\hline
+\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\hline
+\textcolor{blue}{ntpoly\_method} & integer     & 0          & Method to perform density matrix purification.  See remark 1.\\
+\hline
+\textcolor{blue}{ntpoly\_filter} & real double & $10^{-15}$ & When performing sparse matrix multiplications, values below this filter will be discarded.  See remark 2.\\
+\hline
+\textcolor{blue}{ntpoly\_tol}    & real double & $10^{-8}$  & Convergence tolerance of purification.  See remark 2.\\
+\hline
+\end{tabular}
+
+\bigskip
+\textbf{Remarks}\\
+
+\textbf{1)} \textcolor{blue}{ntpoly\_method}:  Allowed choices are 0 for the canonical purification, 1 for the trace correcting purification, 2 for the 4th order trace resetting purification, and 3 for the generalized hole-particle canonical purification.\\
+
+\textbf{2)} \textcolor{blue}{ntpoly\_filter} and \textcolor{blue}{ntpoly\_tol} control the accuracy and computational cost of the density matrix purification methods.  Small values of \textcolor{blue}{ntpoly\_filter} and \textcolor{blue}{ntpoly\_tol}, e.g. the default choices here, lead to highly accurate results that are comparable to the results obtained from diagonalization.  However, linear scaling can only be achieved with a relatively large \textcolor{blue}{ntpoly\_filter} such as $10^{-6}$.  Correspondingly, \textcolor{blue}{ntpoly\_tol} may be set to $10^{-3}$.\\
 
 \section{Getting Additional Results from ELSI}
 \label{sec:getter}
@@ -1456,7 +1455,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 \bigskip
 \textbf{Remarks}\\
 
-\textbf{1)} In ELSI, the chemical potential will only be available if one of the density matrix solver interfaces has been called, with either ELPA or PEXSI being the chosen solver.  The chemical potential can be retrieved by calling \textcolor{blue}{elsi\_get\_mu}.  The entropy will only be available if one of the density matrix solver interfaces has been called with ELPA being the chosen solver.  The user should avoid calling the subroutine when the chemical potential or the entropy is not ready.\\
+\textbf{1)} In ELSI, the chemical potential will only be available if one of the density matrix solver interfaces has been called, with ELPA, NTPoly, or PEXSI being the chosen solver.  The chemical potential can be retrieved by calling \textcolor{blue}{elsi\_get\_mu}.  The entropy will only be available if one of the density matrix solver interfaces has been called with ELPA being the chosen solver.  The user should avoid calling the subroutine when the chemical potential or the entropy is not ready.\\
 
 \textbf{2)} In general, the energy-weighted density matrix is only needed in a late stage of an SCF cycle to evaluate forces.  It is, therefore, not calculated when any of the density matrix solver interface is called.  When the energy-weighted density matrix is actually needed, it can be requested by calling the \textcolor{blue}{elsi\_get\_edm} subroutines.  Note that these subroutines all have the requirement that the corresponding \textcolor{blue}{elsi\_dm} subroutine must have been invoked.  For instance, \textcolor{blue}{elsi\_get\_edm\_real\_sparse} only makes sense if \textcolor{blue}{elsi\_dm\_real\_sparse} has been successfully executed.\\
 
@@ -1523,7 +1522,6 @@ An \texttt{elsi\_rw\_handle} must be initialized via the \textcolor{blue}{elsi\_
 
 \textbf{2)} \textcolor{blue}{n\_basis}:  This can be set to an arbitrary value if \textcolor{blue}{task} is 0 (\textcolor{blue}{READ\_MATRIX}).  Its value will be read from file when calling \textcolor{blue}{elsi\_read\_mat\_dim} or \textcolor{blue}{elsi\_read\_mat\_dim\_sparse}.\\
 
-\bigskip
 The MPI communicator which encloses the MPI tasks to perform the matrix I/O operation needs to be passed into ELSI via the \textcolor{blue}{elsi\_set\_rw\_mpi} subroutine.\\
 
 \begin{labeling}{\hspace{6cm}}
@@ -1540,7 +1538,7 @@ The MPI communicator which encloses the MPI tasks to perform the matrix I/O oper
 \hline
 \end{tabular}
 
-\newpage
+\bigskip
 When reading or writing a dense matrix, BLACS parameters are passed into ELSI via the \textcolor{blue}{elsi\_set\_rw\_blacs} subroutine.\\
 
 \begin{labeling}{\hspace{6cm}}
@@ -1632,7 +1630,7 @@ The following two subroutines write a dense matrix to file.  Before writing a de
 \hline
 \end{tabular}
 
-\newpage
+\bigskip
 The following two subroutines write a sparse matrix to file.  Before writing a sparse matrix, MPI and CSC matrix format should be set up properly using \textcolor{blue}{elsi\_set\_rw\_mpi} and \textcolor{blue}{elsi\_set\_rw\_csc}.\\
 
 \begin{labeling}{\hspace{6cm}}
@@ -1954,7 +1952,6 @@ The typical workflow of ELSI within an electronic structure code is demonstrated
 
 \textbf{1)} The calculated eigenvectors are returned in the BLACS\_DENSE format, which is required to be properly set up.\\
 
-\newpage
 \subsection{2D Block-Cyclic Distributed Dense Matrix + ELSI Density Matrix Interface}
 \label{subsec:example_dm_blacs}
 \noindent\rule{18cm}{0.4pt}
@@ -2014,7 +2011,6 @@ The typical workflow of ELSI within an electronic structure code is demonstrated
 
 \textbf{1)} Refer to the 7$^\text{th}$ remark in \ref{subsec:setter_pexsi} for the chemical potential determination algorithm in PEXSI.\\
 
-\newpage
 \subsection{1D Block-Cyclic Distributed CSC Sparse Matrix + ELSI Density Matrix Interface}
 \label{subsec:example_dm_csc2}
 \noindent\rule{18cm}{0.4pt}
@@ -2096,14 +2092,17 @@ ELSI is written in Fortran.  A C interface around the core Fortran code is provi
 \bibitem{ks_kohn_1965}
 W. Kohn and L.J. Sham, Self-consistent equations including exchange and correlation effects, Physical Review, 140, 1133-1138 (1965).
 
-\bibitem{libomm_corsetti_2014}
-F. Corsetti, The orbital minimization method for electronic structure calculations with finite-range atomic basis sets, Computer Physics Communications, 185, 873-883 (2014).
-
 \bibitem{elpa_auckenthaler_2011}
 T. Auckenthaler et al., Parallel solution of partial symmetric eigenvalue problems from electronic structure calculations, Parallel Computing, 37, 783-794 (2011).
 
 \bibitem{elpa_marek_2014}
 A. Marek et al., The ELPA library: Scalable parallel eigenvalue solutions for electronic structure theory and computational science, Journal of Physics: Condensed Matter, 26, 213201 (2014).
+
+\bibitem{libomm_corsetti_2014}
+F. Corsetti, The orbital minimization method for electronic structure calculations with finite-range atomic basis sets, Computer Physics Communications, 185, 873-883 (2014).
+
+\bibitem{ntpoly_dawson_2018}
+W. Dawson and T. Nakajima, Massively parallel sparse matrix function calculations with NTPoly, Computer Physics Communications, 225, 154 (2018).
 
 \bibitem{pexsi_lin_2009}
 L. Lin et al., Fast algorithm for extracting the diagonal of the inverse matrix with application to the electronic structure analysis of metallic systems, Communications in Mathematical Sciences, 7, 755-777 (2009).
@@ -2130,8 +2129,8 @@ W. Hu et al., DGDFT: A massively parallel method for large scale density functio
 \bibitem{aims_blum_2009}
 V. Blum et al., Ab initio molecular simulations with numeric atom-centered orbitals, Computer Physics Communications, 180, 2175-2196 (2009).
 
-\bibitem{nwchem_valiev_2010}
-M. Valiev et al., NWChem: A comprehensive and scalable open-source solution for large scale molecular simulations, Computer Physics Communications, 181, 1477-1489 (2010).
+%\bibitem{nwchem_valiev_2010}
+%M. Valiev et al., NWChem: A comprehensive and scalable open-source solution for large scale molecular simulations, Computer Physics Communications, 181, 1477-1489 (2010).
 
 \bibitem{siesta_soler_2002}
 J.M. Soler et al., The SIESTA method for ab initio order-N materials simulation, Journal of Physics: Condensed Matter, 14, 2745-2779 (2002).
@@ -2139,8 +2138,8 @@ J.M. Soler et al., The SIESTA method for ab initio order-N materials simulation,
 %\bibitem{bigdft_mohr_2015}
 %S. Mohr et al., Accurate and efficient linear scaling DFT calculations with universal applicability, Physical Chemistry Chemical Physics, 17, 31360-31370 (2015).
 
-%\bibitem{elsi_yu_2017}
-%V. Yu et al., ELSI: A unified software interface for Kohn-Sham electronic structure solvers, Computer Physics Communications, 222, 267-285 (2018).
+\bibitem{elsi_yu_2018}
+V. Yu et al., ELSI: A unified software interface for Kohn-Sham electronic structure solvers, Computer Physics Communications, 222, 267-285 (2018).
 
 \end{thebibliography}
 
@@ -2166,6 +2165,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 \bigskip
 \noindent\rule{18cm}{0.4pt}
 
-The source code of ELPA 2016.11.001 (LGPL3), libOMM (BSD2), PEXSI 1.0.2 (BSD3), SuperLU\_DIST 5.3.0 (BSD3), and PT-SCOTCH 6.0.0 (CeCILL-C) are redistributed through this version of ELSI.  Individual license of each library can be found in the corresponding subfolder.\\
+The source code of ELPA 2016.11.001 (LGPL3), libOMM (BSD2), NTPoly (MIT), PEXSI 1.0.2 (BSD3), PT-SCOTCH 6.0.0 (CeCILL-C), and SuperLU\_DIST 5.3.0 (BSD3) are redistributed through this version of ELSI.  Individual license of each library can be found in the corresponding subfolder.\\
 
 \end{document}
