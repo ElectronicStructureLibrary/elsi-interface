@@ -14,18 +14,19 @@ module ELSI_NTPOLY
    use ELSI_IO,        only: elsi_say,elsi_get_time
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_PRECISION, only: r8,i4
-   use NTPOLY,         only: PM,TRS2,TRS4,HPCP,ScaleDistributedSparseMatrix,&
+   use NTPOLY,         only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,&
                              DistributedSparseMatrix_t,FillFromTripletList,&
                              ConstructEmptyDistributedSparseMatrix,&
-                             FilterDistributedSparseMatrix,DestructProcessGrid,&
-                             CopyDistributedSparseMatrix,GetTripletList,&
-                             DestructDistributedSparseMatrix,NewtonSchultzISR,&
-                             NewtonSchultzISR2,IterativeSolverParameters_t,&
-                             DestructPermutation,ConstructRandomPermutation,&
-                             ConstructProcessGrid,Triplet_t,TripletList_t,&
-                             ConstructTripletList,AppendToTripletList,&
-                             DestructTripletList,DistributedMatrixMemoryPool_t,&
-                             DistributedGemm
+                             ScaleDistributedSparseMatrix,&
+                             CopyDistributedSparseMatrix,&
+                             FilterDistributedSparseMatrix,&
+                             GetTripletList,DestructDistributedSparseMatrix,&
+                             ConstructProcessGrid,DestructProcessGrid,&
+                             ConstructRandomPermutation,DestructPermutation,&
+                             NewtonSchultzISR,NewtonSchultzISR2,&
+                             IterativeSolverParameters_t,&
+                             Triplet_t,TripletList_t,ConstructTripletList,&
+                             AppendToTripletList,DestructTripletList
 
    implicit none
 
@@ -117,10 +118,9 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
 
       call ConstructRandomPermutation(ph%nt_perm,ovlp%logical_matrix_dimension)
 
+      ! TODO: May want a different set of parameters
       ph%nt_options = IterativeSolverParameters_t(ph%nt_tol,ph%nt_filter,&
                          ph%nt_max_iter,ph%nt_output,ph%nt_perm)
-
-      ph%nt_options%converge_diff = min(ph%nt_tol,1.0e-8_r8)
 
       if(ph%nt_isr == 0) then
          call NewtonSchultzISR(ovlp,ovlp_isr,.true.,ph%nt_options)
@@ -130,8 +130,6 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
 
       call CopyDistributedSparseMatrix(ovlp_isr,ovlp)
       call DestructDistributedSparseMatrix(ovlp_isr)
-
-      ph%nt_options%converge_diff = ph%nt_tol
 
       call elsi_get_time(t1)
 
@@ -190,8 +188,7 @@ subroutine elsi_compute_edm_ntpoly_real(ph,bh,ham,edm)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   type(DistributedSparseMatrix_t)     :: tmp
-   type(DistributedMatrixMemoryPool_t) :: pool1
+   type(DistributedSparseMatrix_t) :: tmp
 
    character(len=40), parameter :: caller = "elsi_compute_edm_ntpoly_real"
 
@@ -200,13 +197,10 @@ subroutine elsi_compute_edm_ntpoly_real(ph,bh,ham,edm)
    factor = 1.0_r8/ph%spin_degen
 
    call ConstructEmptyDistributedSparseMatrix(tmp,ph%n_basis)
-   call DistributedGemm(edm,ham,tmp,threshold_in=ph%nt_options%threshold,&
-           memory_pool_in=pool1)
-   call DistributedGemm(tmp,edm,ham,threshold_in=ph%nt_options%threshold,&
-           memory_pool_in=pool1)
-   call CopyDistributedSparseMatrix(ham,edm)
-   call ScaleDistributedSparseMatrix(edm,factor)
+   call CopyDistributedSparseMatrix(edm,tmp)
+   call EnergyDensityMatrix(ham,tmp,edm,ph%nt_options)
    call DestructDistributedSparseMatrix(tmp)
+   call ScaleDistributedSparseMatrix(edm,factor)
 
    if(ph%nt_filter < bh%def0) then
       call FilterDistributedSparseMatrix(edm,bh%def0)

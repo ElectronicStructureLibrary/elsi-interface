@@ -29,6 +29,7 @@ MODULE DensityMatrixSolversModule
   PUBLIC :: TRS4
   PUBLIC :: HPCP
   ! PUBLIC :: HPCPPlus
+  PUBLIC :: EnergyDensityMatrix
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the density matrix from a Hamiltonian using the PM method.
   !! Based on the PM algorithm presented in \cite palser1998canonical
@@ -1273,4 +1274,45 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     DEALLOCATE(sigma_array)
   END SUBROUTINE HPCPPlus
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> Compute the energy-weighted density matrix.
+  !! @param[in] Hamiltonian the matrix to compute the corresponding density from.
+  !! @param[in] Density the density matrix
+  !! @param[out] EnergyDensity the energy-weighted density matrix
+  SUBROUTINE EnergyDensityMatrix(Hamiltonian, Density, EnergyDensity, &
+       & solver_parameters_in)
+    !! Parameters
+    TYPE(DistributedSparseMatrix_t), INTENT(IN) :: Hamiltonian
+    TYPE(DistributedSparseMatrix_t), INTENT(IN) :: Density
+    TYPE(DistributedSparseMatrix_t), INTENT(INOUT) :: EnergyDensity
+    TYPE(IterativeSolverParameters_t), INTENT(IN), OPTIONAL :: &
+         & solver_parameters_in
+    !! Handling Optional Parameters
+    TYPE(IterativeSolverParameters_t) :: solver_parameters
+    !! Local Matrices
+    TYPE(DistributedSparseMatrix_t) :: TempMat
+    !! Temporary Variables
+    TYPE(DistributedMatrixMemoryPool_t) :: pool1
+
+    !! Optional Parameters
+    IF (PRESENT(solver_parameters_in)) THEN
+       solver_parameters = solver_parameters_in
+    ELSE
+       solver_parameters = IterativeSolverParameters_t()
+    END IF
+
+    !! Construct All The Necessary Matrices
+    CALL ConstructEmptyDistributedSparseMatrix(EnergyDensity, &
+         & Hamiltonian%actual_matrix_dimension)
+    CALL ConstructEmptyDistributedSparseMatrix(TempMat, &
+         & Hamiltonian%actual_matrix_dimension)
+
+    !! EDM = DM * H * DM
+    CALL DistributedGemm(Density,Hamiltonian,TempMat, &
+         & threshold_in=solver_parameters%threshold, memory_pool_in=pool1)
+    CALL DistributedGemm(TempMat,Density,EnergyDensity, &
+         & threshold_in=solver_parameters%threshold, memory_pool_in=pool1)
+
+    !! Cleanup
+    CALL DestructDistributedSparseMatrix(TempMat)
+  END SUBROUTINE EnergyDensityMatrix
 END MODULE DensityMatrixSolversModule
