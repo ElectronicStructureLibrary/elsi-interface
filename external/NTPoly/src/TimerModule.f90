@@ -4,8 +4,8 @@ MODULE TimerModule
   USE LoggingModule, ONLY : EnterSubLog, ExitSubLog, WriteElement, &
        & WriteHeader
   USE ProcessGridModule
-  USE MPI
   IMPLICIT NONE
+  INCLUDE "mpif.h"
   PRIVATE
   LOGICAL :: is_initialized = .FALSE.
   CHARACTER(len=20), DIMENSION(:), ALLOCATABLE :: timer_list

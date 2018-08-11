@@ -24,7 +24,6 @@ MODULE RootSolversModule
        & SetCoefficient
   USE SquareRootSolversModule, ONLY : SquareRoot, InverseSquareRoot
   USE TimerModule, ONLY : StartTimer, StopTimer
-  USE MPI
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

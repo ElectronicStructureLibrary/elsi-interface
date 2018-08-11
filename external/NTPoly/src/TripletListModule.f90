@@ -5,8 +5,8 @@ MODULE TripletListModule
   USE MatrixMarketModule, ONLY : MM_SYMMETRIC, MM_SKEW_SYMMETRIC
   USE TripletModule, ONLY : Triplet_t, CompareTriplets
   USE ISO_C_BINDING, ONLY : c_int
-  USE MPI
   IMPLICIT NONE
+  INCLUDE "mpif.h"
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> A data type for a list of triplets.
   !! As this is related to matrix multiplication, the referencing indices are

@@ -4,9 +4,9 @@ MODULE ProcessGridModule
   USE DataTypesModule, ONLY : MPITypeInfoInit
   USE LoggingModule, ONLY : ActivateLogger, EnterSubLog, ExitSubLog, &
        & WriteHeader, WriteListElement
-  USE MPI
   USE ISO_C_BINDING, ONLY : c_int, c_bool
   IMPLICIT NONE
+  INCLUDE "mpif.h"
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Describe the grid

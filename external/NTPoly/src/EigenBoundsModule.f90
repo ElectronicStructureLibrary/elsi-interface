@@ -17,8 +17,8 @@ MODULE EigenBoundsModule
   USE TripletListModule, ONLY : TripletList_t, AppendToTripletList, &
        & ConstructTripletList, DestructTripletList
   USE TripletModule, ONLY : Triplet_t
-  USE MPI
   IMPLICIT NONE
+  INCLUDE "mpif.h"
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: GershgorinBounds

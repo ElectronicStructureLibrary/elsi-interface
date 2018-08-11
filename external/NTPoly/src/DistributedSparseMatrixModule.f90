@@ -30,8 +30,8 @@ MODULE DistributedSparseMatrixModule
        & SymmetrizeTripletList, GetTripletAt, RedistributeTripletLists, &
        & ShiftTripletList
   USE iso_c_binding
-  USE MPI
   IMPLICIT NONE
+  INCLUDE "mpif.h"
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> A datatype for a distributed blocked CSR matrix.

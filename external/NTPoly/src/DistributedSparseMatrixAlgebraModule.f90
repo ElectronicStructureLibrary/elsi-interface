@@ -26,8 +26,8 @@ MODULE DistributedSparseMatrixAlgebraModule
   USE TimerModule, ONLY : StartTimer, StopTimer
   USE TripletListModule, ONLY : TripletList_t, DestructTripletList
   USE ISO_C_BINDING
-  USE MPI
   IMPLICIT NONE
+  INCLUDE "mpif.h"
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Basic Linear Algebra

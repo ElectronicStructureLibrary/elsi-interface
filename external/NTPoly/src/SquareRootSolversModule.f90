@@ -19,7 +19,6 @@ MODULE SquareRootSolversModule
        & WriteHeader, WriteListElement, WriteCitation
   USE ProcessGridModule
   USE TimerModule, ONLY : StartTimer, StopTimer
-  USE MPI
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

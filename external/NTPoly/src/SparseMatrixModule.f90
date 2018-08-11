@@ -8,7 +8,6 @@ MODULE SparseMatrixModule
        & ConstructTripletList, DestructTripletList, SetTripletAt, &
        & AppendToTripletList, SymmetrizeTripletList
   USE TripletModule, ONLY : Triplet_t
-  USE MPI
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

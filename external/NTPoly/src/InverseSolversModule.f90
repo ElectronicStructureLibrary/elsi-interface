@@ -18,7 +18,6 @@ MODULE InverseSolversModule
        & WriteElement, WriteListElement, WriteCitation
   USE ProcessGridModule
   USE TimerModule, ONLY : StartTimer, StopTimer
-  USE mpi
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

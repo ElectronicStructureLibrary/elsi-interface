@@ -3,9 +3,8 @@
 MODULE DataTypesModule
   USE ErrorModule, ONLY : CheckMPIError, Error_t
   USE ISO_C_BINDING
-  USE ISO_FORTRAN_ENV
-  USE MPI
   IMPLICIT NONE
+  INCLUDE "mpif.h"
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER, PARAMETER :: BITSPERDOUBLE = 8

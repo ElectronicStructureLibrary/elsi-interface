@@ -5,8 +5,8 @@ MODULE MatrixGatherModule
   USE SparseMatrixAlgebraModule, ONLY : IncrementSparseMatrix
   USE SparseMatrixModule, ONLY : SparseMatrix_t, ConstructEmptySparseMatrix, &
        & DestructSparseMatrix
-  USE MPI
   IMPLICIT NONE
+  INCLUDE "mpif.h"
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> A data structure to stores internal information about a gather call.

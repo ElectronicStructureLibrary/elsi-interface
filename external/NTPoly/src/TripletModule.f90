@@ -3,8 +3,8 @@
 MODULE TripletModule
   USE DataTypesModule, ONLY: NTREAL, MPINTREAL
   USE ISO_C_BINDING, ONLY : c_int
-  USE MPI
   IMPLICIT NONE
+  INCLUDE "mpif.h"
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> A data type for a triplet of integer, integer, double.

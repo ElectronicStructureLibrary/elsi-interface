@@ -16,7 +16,6 @@ MODULE ChebyshevSolversModule
        & EnterSubLog, ExitSubLog
   USE ProcessGridModule
   USE TimerModule, ONLY : StartTimer, StopTimer
-  USE MPI
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
