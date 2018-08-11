@@ -22,13 +22,13 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: N_PARALLEL_MODES = 2
 
    ! Method names
-   integer(kind=i4), parameter :: AUTO         = 0
-   integer(kind=i4), parameter :: ELPA_SOLVER  = 1
-   integer(kind=i4), parameter :: OMM_SOLVER   = 2
-   integer(kind=i4), parameter :: PEXSI_SOLVER = 3
-   integer(kind=i4), parameter :: CHESS_SOLVER = 4
-   integer(kind=i4), parameter :: SIPS_SOLVER  = 5
-   integer(kind=i4), parameter :: DMP_SOLVER   = 6
+   integer(kind=i4), parameter :: AUTO          = 0
+   integer(kind=i4), parameter :: ELPA_SOLVER   = 1
+   integer(kind=i4), parameter :: OMM_SOLVER    = 2
+   integer(kind=i4), parameter :: PEXSI_SOLVER  = 3
+   integer(kind=i4), parameter :: CHESS_SOLVER  = 4
+   integer(kind=i4), parameter :: SIPS_SOLVER   = 5
+   integer(kind=i4), parameter :: NTPOLY_SOLVER = 6
 
    ! Real or complex data
    integer(kind=i4), parameter :: REAL_DATA  = 0
@@ -56,8 +56,10 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: COLD              = 4
 
    ! Density matrix purification methods
-   integer(kind=i4), parameter :: TRACE_CORRECTING = 0
-   integer(kind=i4), parameter :: CANONICAL        = 1
+   integer(kind=i4), parameter :: NTPOLY_PM   = 0
+   integer(kind=i4), parameter :: NTPOLY_TC2  = 1
+   integer(kind=i4), parameter :: NTPOLY_TRS4 = 2
+   integer(kind=i4), parameter :: NTPOLY_HPCP = 3
 
    ! Matrix reading and writing
    integer(kind=i4), parameter :: HEADER_SIZE  = 16

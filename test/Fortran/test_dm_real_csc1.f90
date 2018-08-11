@@ -25,7 +25,7 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: myid
    integer(kind=i4) :: comm_in_task
    integer(kind=i4) :: comm_among_task
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    integer(kind=i4) :: n_states
    integer(kind=i4) :: matrix_size
    integer(kind=i4) :: nnz_g
@@ -37,35 +37,38 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: header(8) = 0
 
    real(kind=r8) :: n_electrons
+   real(kind=r8) :: n_test
+   real(kind=r8) :: tmp
    real(kind=r8) :: e_test = 0.0_r8
    real(kind=r8) :: e_ref  = 0.0_r8
-   real(kind=r8) :: e_tol  = 0.0_r8
+   real(kind=r8) :: tol    = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
    real(kind=r8),    allocatable :: ham(:)
-   real(kind=r8),    allocatable :: ham_save(:)
    real(kind=r8),    allocatable :: ovlp(:)
    real(kind=r8),    allocatable :: dm(:)
    real(kind=r8),    allocatable :: edm(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
+   real(kind=r8), external :: ddot
+
    type(elsi_handle)    :: e_h
    type(elsi_rw_handle) :: rw_h
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
-   real(kind=r8), parameter :: e_sips  = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_dmp   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_elpa   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_omm    = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_pexsi  = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_sips   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_ntpoly = -2622.88214509311_r8
 
-   call MPI_Comm_size(mpi_comm,n_proc,mpierr)
-   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+   call MPI_Comm_size(mpi_comm,n_proc,ierr)
+   call MPI_Comm_rank(mpi_comm,myid,ierr)
 
    if(myid == 0) then
-      e_tol = 1.0e-8_r8
+      tol = 1.0e-8_r8
       write(*,"(2X,A)") "################################"
       write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
       write(*,"(2X,A)") "################################"
@@ -79,13 +82,13 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
       elseif(solver == 3) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + PEXSI"
          e_ref = e_pexsi
-         e_tol = 1.0e-3_r8
+         tol   = 1.0e-3_r8
       elseif(solver == 5) then
-         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + SIPS"
+         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + SLEPc-SIPs"
          e_ref = e_sips
       elseif(solver == 6) then
-         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + DMP"
-         e_ref = e_dmp
+         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + NTPoly"
+         e_ref = e_ntpoly
       endif
       write(*,*)
    endif
@@ -98,8 +101,8 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
       id_in_task = myid
    endif
 
-   call MPI_Comm_split(mpi_comm,task_id,id_in_task,comm_in_task,mpierr)
-   call MPI_Comm_split(mpi_comm,id_in_task,task_id,comm_among_task,mpierr)
+   call MPI_Comm_split(mpi_comm,task_id,id_in_task,comm_in_task,ierr)
+   call MPI_Comm_split(mpi_comm,id_in_task,task_id,comm_among_task,ierr)
 
    if(task_id == 0) then
       ! Read H and S matrices
@@ -120,7 +123,7 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
          buffer(5) = n_l_cols
       endif
 
-      call MPI_Bcast(buffer,5,mpi_integer4,0,comm_among_task,mpierr)
+      call MPI_Bcast(buffer,5,mpi_integer4,0,comm_among_task,ierr)
 
       n_electrons = real(buffer(1),kind=r8)
       matrix_size = buffer(2)
@@ -130,7 +133,6 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    endif
 
    allocate(ham(nnz_l))
-   allocate(ham_save(nnz_l))
    allocate(ovlp(nnz_l))
    allocate(dm(nnz_l))
    allocate(edm(nnz_l))
@@ -144,8 +146,6 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
       call elsi_read_mat_real_sparse(rw_h,s_file,row_ind,col_ptr,ovlp)
 
       call elsi_finalize_rw(rw_h)
-
-      ham_save = ham
    endif
 
    t2 = MPI_Wtime()
@@ -186,10 +186,6 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
       write(*,*)
    endif
 
-   if(task_id == 0) then
-      ham = ham_save
-   endif
-
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
@@ -198,8 +194,13 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   if(solver == 1 .or. solver == 2 .or. solver == 3) then
-      call elsi_get_edm_real_sparse(e_h,edm)
+   call elsi_get_edm_real_sparse(e_h,edm)
+
+   ! Compute electron count
+   if(task_id == 0) then
+      tmp = ddot(nnz_l,ovlp,1,dm,1)
+
+      call MPI_Reduce(tmp,n_test,1,mpi_real8,mpi_sum,0,comm_in_task,ierr)
    endif
 
    if(myid == 0) then
@@ -209,7 +210,15 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
       write(*,"(2X,A)") "Finished test program"
       write(*,*)
       if(header(8) == 1111) then
-         if(abs(e_test-e_ref) < e_tol) then
+         write(*,"(2X,A)") "Band energy"
+         write(*,"(2X,A,F15.8)") "| This test :",e_test
+         write(*,"(2X,A,F15.8)") "| Reference :",e_ref
+         write(*,*)
+         write(*,"(2X,A)") "Electron count"
+         write(*,"(2X,A,F15.8)") "| This test :",n_test
+         write(*,"(2X,A,F15.8)") "| Reference :",n_electrons
+         write(*,*)
+         if(abs(e_test-e_ref) < tol .and. abs(n_test-n_electrons) < tol) then
             write(*,"(2X,A)") "Passed."
          else
             write(*,"(2X,A)") "Failed."
@@ -222,14 +231,13 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    call elsi_finalize(e_h)
 
    deallocate(ham)
-   deallocate(ham_save)
    deallocate(ovlp)
    deallocate(dm)
    deallocate(edm)
    deallocate(row_ind)
    deallocate(col_ptr)
 
-   call MPI_Comm_free(comm_in_task,mpierr)
-   call MPI_Comm_free(comm_among_task,mpierr)
+   call MPI_Comm_free(comm_in_task,ierr)
+   call MPI_Comm_free(comm_among_task,ierr)
 
 end subroutine

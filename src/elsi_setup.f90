@@ -9,11 +9,11 @@
 !!
 module ELSI_SETUP
 
-   use ELSI_CONSTANTS,     only: ELPA_SOLVER,OMM_SOLVER,SIPS_SOLVER,DMP_SOLVER,&
-                                 PEXSI_SOLVER,UNSET,SINGLE_PROC,MULTI_PROC,&
-                                 BLACS_DENSE,PEXSI_CSC,SIESTA_CSC
+   use ELSI_CONSTANTS,     only: UNSET,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
+                                 SIPS_SOLVER,NTPOLY_SOLVER,SINGLE_PROC,&
+                                 MULTI_PROC,BLACS_DENSE,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE,      only: elsi_handle,elsi_param_t,elsi_basic_t
-   use ELSI_DMP,           only: elsi_cleanup_dmp
+   use ELSI_NTPOLY,        only: elsi_cleanup_ntpoly
    use ELSI_ELPA,          only: elsi_cleanup_elpa
    use ELSI_IO,            only: elsi_say,elsi_final_print,fjson_close_file,&
                                  fjson_finish_array,fjson_reset_fj_handle
@@ -53,9 +53,9 @@ subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    implicit none
 
    type(elsi_handle), intent(out) :: eh            !< Handle
-   integer(kind=i4),  intent(in)  :: solver        !< AUTO,ELPA,LIBOMM,PEXSI,CHESS,SIPS,DMP
-   integer(kind=i4),  intent(in)  :: parallel_mode !< SINGLE_PROC,MULTI_PROC
-   integer(kind=i4),  intent(in)  :: matrix_format !< BLACS_DENSE,PEXSI_CSC,SIESTA_CSC
+   integer(kind=i4),  intent(in)  :: solver        !< Solver
+   integer(kind=i4),  intent(in)  :: parallel_mode !< Parallel mode
+   integer(kind=i4),  intent(in)  :: matrix_format !< Matrix format
    integer(kind=i4),  intent(in)  :: n_basis       !< Number of basis functions
    real(kind=r8),     intent(in)  :: n_electron    !< Number of electrons
    integer(kind=i4),  intent(in)  :: n_state       !< Number of states
@@ -72,7 +72,6 @@ subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    eh%ph%n_states       = n_state
    eh%ph%n_states_solve = n_state
    eh%ph%omm_n_states   = nint(n_electron/2.0_r8)
-   eh%ph%dmp_n_states   = nint(n_electron/2.0_r8)
    eh%ph%solver         = solver
    eh%ph%matrix_format  = matrix_format
    eh%ph%parallel_mode  = parallel_mode
@@ -338,8 +337,8 @@ subroutine elsi_cleanup(eh)
 
    character(len=40), parameter :: caller = "elsi_cleanup"
 
-   call elsi_cleanup_dmp(eh%ph)
    call elsi_cleanup_elpa(eh%ph)
+   call elsi_cleanup_ntpoly(eh%ph)
    call elsi_cleanup_omm(eh%ph)
    call elsi_cleanup_pexsi(eh%ph)
    call elsi_cleanup_sips(eh%ph)
@@ -435,12 +434,6 @@ subroutine elsi_cleanup(eh)
    endif
    if(allocated(eh%pexsi_ne_vec)) then
       call elsi_deallocate(eh%bh,eh%pexsi_ne_vec,"pexsi_ne_vec")
-   endif
-   if(allocated(eh%dmp_vec1)) then
-      call elsi_deallocate(eh%bh,eh%dmp_vec1,"dmp_vec1")
-   endif
-   if(allocated(eh%dmp_vec2)) then
-      call elsi_deallocate(eh%bh,eh%dmp_vec2,"dmp_vec2")
    endif
 
    if(eh%bh%json_init) then

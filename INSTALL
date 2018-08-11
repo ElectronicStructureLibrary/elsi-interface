@@ -106,11 +106,11 @@ C) CONFIGURATION
 
    2) Solvers
 
-   The ELPA, libOMM, and PEXSI solver libraries, and the SuperLU_DIST and
-   PT-SCOTCH libraries are redistributed through the current ELSI package.
-   Experienced users are encouraged to link the ELSI interface against
-   external, better optimized solver libraries.  Relevant options for this
-   purpose are:
+   The ELPA, libOMM, NTPoly, and PEXSI solver libraries, as well as the
+   SuperLU_DIST and PT-SCOTCH libraries are redistributed through this ELSI
+   package.  Experienced users are encouraged to link the ELSI interface
+   against external, better optimized solver libraries.  Relevant options
+   for this purpose are:
 
      -DUSE_EXTERNAL_ELPA=ON
      -DUSE_EXTERNAL_OMM=ON
@@ -123,11 +123,13 @@ C) CONFIGURATION
      -DINC_PATHS=[ALL_INCLUDE_DIRECTORIES_OF_YOUR_EXTERNAL_LIBRARIES]
      -DLIBS=[NAMES_OF_ALL_YOUR_EXTERNAL_LIBRARIES]
 
-   Please note that in the current version of ELSI, an external version of
-   PEXSI is not officially supported, and the internal version of PEXSI is
-   not enabled by default.  It may be enabled by specifying:
+   Please note that in the current version of ELSI, the PEXSI solver is not
+   enabled by default.  It may be switched on by specifying:
 
      -DENABLE_PEXSI=ON
+
+   At present, an external version of the PEXSI or NTPoly library is not
+   officially supported.
 
    3) Build targets
 
@@ -143,7 +145,7 @@ C) CONFIGURATION
    In either case, linear algebra libraries BLAS, LAPACK, BLACS, and
    ScaLAPACK must be valid through LIB_PATHS and LIBS.
 
-   If the test programs are enabled, the installation may be verified by
+   If the test programs are turned on, the installation may be verified by
 
    $ ...
    $ make [-j np]
@@ -161,7 +163,7 @@ C) CONFIGURATION
    4) "Toolchain" files
 
    It is sometimes convenient to edit the settings in a "toolchain" file
-   that can be read by CMake:
+   that can be read in by CMake:
 
      -DCMAKE_TOOLCHAIN_FILE=[YOUR_TOOLCHAIN_FILE]
 

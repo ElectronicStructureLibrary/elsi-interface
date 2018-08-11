@@ -6,31 +6,36 @@
 
 !>
 !! This module contains subroutines to solve an eigenproblem or to compute the
-!! density matrix, using one of the solvers ELPA, libOMM, PEXSI, SIPS, DMP.
+!! density matrix, using one of the solvers: ELPA, libOMM, PEXSI, SLEPc-SIPs,
+!! and NTPoly.
 !!
 module ELSI_SOLVER
 
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
-                             DMP_SOLVER,MULTI_PROC,SINGLE_PROC,PEXSI_CSC,&
+                             NTPOLY_SOLVER,MULTI_PROC,SINGLE_PROC,PEXSI_CSC,&
                              SIESTA_CSC,DATETIME_LEN
    use ELSI_DATATYPE,  only: elsi_handle,elsi_param_t,elsi_basic_t
-   use ELSI_DMP,       only: elsi_init_dmp,elsi_solve_dmp
+   use ELSI_NTPOLY,    only: elsi_init_ntpoly,elsi_solve_ntpoly
    use ELSI_ELPA,      only: elsi_init_elpa,elsi_compute_occ_elpa,&
                              elsi_compute_dm_elpa,elsi_solve_elpa
    use ELSI_IO,        only: elsi_add_log,elsi_get_time,&
                              fjson_get_datetime_rfc3339
    use ELSI_LAPACK,    only: elsi_solve_lapack
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
-   use ELSI_REDIST,    only: elsi_blacs_to_pexsi_hs_dim,elsi_blacs_to_pexsi_hs,&
+   use ELSI_REDIST,    only: elsi_blacs_to_ntpoly_hs,&
+                             elsi_blacs_to_pexsi_hs_dim,elsi_blacs_to_pexsi_hs,&
                              elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,&
                              elsi_blacs_to_sips_hs_dim,elsi_blacs_to_sips_hs,&
-                             elsi_pexsi_to_blacs_dm,elsi_pexsi_to_siesta_dm,&
-                             elsi_siesta_to_blacs_hs,&
+                             elsi_ntpoly_to_blacs_dm,elsi_ntpoly_to_siesta_dm,&
+                             elsi_ntpoly_to_sips_dm,elsi_pexsi_to_blacs_dm,&
+                             elsi_pexsi_to_siesta_dm,elsi_siesta_to_blacs_hs,&
+                             elsi_siesta_to_ntpoly_hs,&
                              elsi_siesta_to_pexsi_hs_dim,&
                              elsi_siesta_to_pexsi_hs,&
                              elsi_siesta_to_sips_hs_dim,elsi_siesta_to_sips_hs,&
                              elsi_sips_to_blacs_dm,elsi_sips_to_blacs_ev,&
-                             elsi_sips_to_blacs_hs,elsi_sips_to_siesta_dm
+                             elsi_sips_to_blacs_hs,elsi_sips_to_ntpoly_hs,&
+                             elsi_sips_to_siesta_dm
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_OMM,       only: elsi_init_omm,elsi_solve_omm
    use ELSI_PEXSI,     only: elsi_init_pexsi,elsi_solve_pexsi
@@ -43,7 +48,6 @@ module ELSI_SOLVER
 
    private
 
-   ! Solver
    public :: elsi_ev_real
    public :: elsi_ev_complex
    public :: elsi_ev_real_sparse
@@ -74,7 +78,7 @@ subroutine elsi_get_energy(ph,bh,energy,solver)
 
    energy = ph%ebs*ph%i_weight
 
-   if(solver == OMM_SOLVER .or. solver == DMP_SOLVER) then
+   if(solver == OMM_SOLVER) then
       energy = ph%spin_degen*energy
    endif
 
@@ -669,27 +673,13 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
                  eh%dm_real_csc,dm)
          call elsi_get_energy(eh%ph,eh%bh,energy,SIPS_SOLVER)
       endif
-   case(DMP_SOLVER)
-      ! Save Hamiltonian and overlap
-      if(eh%ph%n_calls==1) then
-         call elsi_allocate(eh%bh,eh%dmp_vec1,eh%bh%n_lrow,"dmp_vec1",caller)
-         call elsi_allocate(eh%bh,eh%dmp_vec2,eh%bh%n_lrow,"dmp_vec2",caller)
-         call elsi_allocate(eh%bh,eh%ham_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "ham_real_copy",caller)
-         call elsi_allocate(eh%bh,eh%ovlp_real_inv,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "ovlp_real_inv",caller)
-         call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "ovlp_real_copy",caller)
-         eh%ovlp_real_copy = ovlp
-      endif
-      eh%ham_real_copy = ham
-
-      call elsi_init_elpa(eh%ph,eh%bh)
-      call elsi_init_dmp(eh%ph)
-      call elsi_solve_dmp(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,&
-              eh%ham_real_copy,eh%ovlp_real_copy,eh%ovlp_real_inv,eh%dmp_vec1,&
-              eh%dmp_vec2,dm)
-      call elsi_get_energy(eh%ph,eh%bh,energy,DMP_SOLVER)
+   case(NTPOLY_SOLVER)
+      call elsi_init_ntpoly(eh%ph,eh%bh)
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%ph%nt_ham,&
+              eh%ph%nt_ovlp)
+      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
+      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
+      call elsi_get_energy(eh%ph,eh%bh,energy,NTPOLY_SOLVER)
    case default
       call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
    end select
@@ -1273,75 +1263,34 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
       endif
-   case(DMP_SOLVER)
-      ! Set up BLACS if not done by user
-      if(.not. eh%bh%blacs_ready) then
-         call elsi_init_blacs(eh)
-      endif
-
-      call elsi_init_elpa(eh%ph,eh%bh)
-      call elsi_init_dmp(eh%ph)
-
-      if(.not. allocated(eh%ham_real_den)) then
-         call elsi_allocate(eh%bh,eh%ham_real_den,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "ham_real_den",caller)
-      endif
-      if(.not. allocated(eh%ovlp_real_den)) then
-         if(.not. eh%ph%ovlp_is_unit) then
-            call elsi_allocate(eh%bh,eh%ovlp_real_den,eh%bh%n_lrow,&
-                    eh%bh%n_lcol,"ovlp_real_den",caller)
-         else
-            call elsi_allocate(eh%bh,eh%ovlp_real_den,1,1,"ovlp_real_den",&
-                    caller)
-         endif
-      endif
+   case(NTPOLY_SOLVER)
+      call elsi_init_ntpoly(eh%ph,eh%bh)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
-         call elsi_sips_to_blacs_hs(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 ham,ovlp,eh%ham_real_den,eh%ovlp_real_den)
+         call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 ham,ovlp,eh%ph%nt_ham,eh%ph%nt_ovlp)
       case(SIESTA_CSC)
-         call elsi_siesta_to_blacs_hs(eh%ph,eh%bh,eh%row_ind_sp2,&
-                 eh%col_ptr_sp2,ham,ovlp,eh%ham_real_den,eh%ovlp_real_den)
+         call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,eh%row_ind_sp2,&
+                 eh%col_ptr_sp2,ham,ovlp,eh%ph%nt_ham,eh%ph%nt_ovlp)
       case default
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      if(.not. allocated(eh%dm_real_den)) then
-         call elsi_allocate(eh%bh,eh%dm_real_den,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "dm_real_den",caller)
-      endif
-
-      ! Save Hamiltonian and overlap
-      if(eh%ph%n_calls==1) then
-         call elsi_allocate(eh%bh,eh%dmp_vec1,eh%bh%n_lrow,"dmp_vec1",caller)
-         call elsi_allocate(eh%bh,eh%dmp_vec2,eh%bh%n_lrow,"dmp_vec2",caller)
-         call elsi_allocate(eh%bh,eh%ham_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "ham_real_copy",caller)
-         call elsi_allocate(eh%bh,eh%ovlp_real_inv,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "ovlp_real_inv",caller)
-         call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
-                 "ovlp_real_copy",caller)
-         eh%ovlp_real_copy = eh%ovlp_real_den
-      endif
-      eh%ham_real_copy  = eh%ham_real_den
-
-      call elsi_solve_dmp(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%ham_real_den,&
-              eh%ovlp_real_den,eh%ham_real_copy,eh%ovlp_real_copy,&
-              eh%ovlp_real_inv,eh%dmp_vec1,eh%dmp_vec2,eh%dm_real_den)
+      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
-         call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 eh%dm_real_den,dm)
+         call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%ph%nt_dm,dm)
       case(SIESTA_CSC)
-         call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                 eh%dm_real_den,dm)
+         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                 eh%ph%nt_dm,dm)
       case default
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      call elsi_get_energy(eh%ph,eh%bh,energy,DMP_SOLVER)
+      call elsi_get_energy(eh%ph,eh%bh,energy,NTPOLY_SOLVER)
    case default
       call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
    end select

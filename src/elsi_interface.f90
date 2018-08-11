@@ -5,8 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides routines for solving the Kohn-Sham electronic structure
-!! using ELPA, libOMM, PEXSI, SIPS, DMP.
+!! This is the public interface module of ELSI.
 !!
 module ELSI
 
@@ -71,9 +70,11 @@ module ELSI
    public :: elsi_set_sips_inertia_tol
    public :: elsi_set_sips_interval
    public :: elsi_set_sips_first_ev
-   public :: elsi_set_dmp_method
-   public :: elsi_set_dmp_max_step
-   public :: elsi_set_dmp_tol
+   public :: elsi_set_ntpoly_method
+   public :: elsi_set_ntpoly_isr
+   public :: elsi_set_ntpoly_tol
+   public :: elsi_set_ntpoly_filter
+   public :: elsi_set_ntpoly_max_iter
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol

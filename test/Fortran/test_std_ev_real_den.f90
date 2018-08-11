@@ -28,7 +28,7 @@ program test_standard_ev_real
    integer(kind=i4) :: myprow
    integer(kind=i4) :: mypcol
    integer(kind=i4) :: mpi_comm
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: sc_desc(9)
@@ -54,10 +54,10 @@ program test_standard_ev_real
    type(elsi_handle) :: e_h
 
    ! Initialize MPI
-   call MPI_Init(mpierr)
+   call MPI_Init(ierr)
    mpi_comm = MPI_COMM_WORLD
-   call MPI_Comm_size(mpi_comm,n_proc,mpierr)
-   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+   call MPI_Comm_size(mpi_comm,n_proc,ierr)
+   call MPI_Comm_rank(mpi_comm,myid,ierr)
 
    ! Read command line arguments
    if(COMMAND_ARGUMENT_COUNT() == 3) then
@@ -83,9 +83,9 @@ program test_standard_ev_real
          write(*,"(2X,A)") "##  Arg#1: Size of test matrix.               ##"
          write(*,"(2X,A)") "##  Arg#2: Number of eigenvectors to compute. ##"
          write(*,"(2X,A)") "##  Arg#3: 1 = ELPA                           ##"
-         write(*,"(2X,A)") "##         5 = SIPS                           ##"
+         write(*,"(2X,A)") "##         5 = SLEPc-SIPs                     ##"
          write(*,"(2X,A)") "################################################"
-         call MPI_Abort(mpi_comm,0,mpierr)
+         call MPI_Abort(mpi_comm,0,ierr)
          stop
       endif
    endif
@@ -98,7 +98,7 @@ program test_standard_ev_real
       if(solver == 1) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_real + ELPA"
       elseif(solver == 5) then
-         write(*,"(2X,A)") "Now start testing  elsi_ev_real + SIPS"
+         write(*,"(2X,A)") "Now start testing  elsi_ev_real + SLEPc-SIPs"
       endif
       write(*,*)
    endif
@@ -189,6 +189,6 @@ program test_standard_ev_real
 
    call BLACS_Gridexit(blacs_ctxt)
    call BLACS_Exit(1)
-   call MPI_Finalize(mpierr)
+   call MPI_Finalize(ierr)
 
 end program

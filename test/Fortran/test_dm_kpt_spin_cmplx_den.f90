@@ -34,7 +34,7 @@ program test_dm_kpt_spin_cmplx_den
    integer(kind=i4) :: group_size
    integer(kind=i4) :: mpi_comm
    integer(kind=i4) :: mpi_comm_group
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: n_states
@@ -47,7 +47,7 @@ program test_dm_kpt_spin_cmplx_den
    real(kind=r8) :: n_electrons
    real(kind=r8) :: e_test = 0.0_r8
    real(kind=r8) :: e_ref  = 0.0_r8
-   real(kind=r8) :: e_tol  = 0.0_r8
+   real(kind=r8) :: tol    = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -71,10 +71,10 @@ program test_dm_kpt_spin_cmplx_den
    real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
 
    ! Initialize MPI
-   call MPI_Init(mpierr)
+   call MPI_Init(ierr)
    mpi_comm = MPI_COMM_WORLD
-   call MPI_Comm_size(mpi_comm,n_proc,mpierr)
-   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+   call MPI_Comm_size(mpi_comm,n_proc,ierr)
+   call MPI_Comm_rank(mpi_comm,myid,ierr)
 
    ! Read command line arguments
    if(COMMAND_ARGUMENT_COUNT() == 3) then
@@ -92,7 +92,7 @@ program test_dm_kpt_spin_cmplx_den
          write(*,"(2X,A)") "##  Arg#2: H matrix file                      ##"
          write(*,"(2X,A)") "##  Arg#3: S matrix file                      ##"
          write(*,"(2X,A)") "################################################"
-         call MPI_Abort(mpi_comm,0,mpierr)
+         call MPI_Abort(mpi_comm,0,ierr)
          stop
       endif
    endif
@@ -103,13 +103,13 @@ program test_dm_kpt_spin_cmplx_den
          write(*,"(2X,A)") "#########################################################"
          write(*,"(2X,A)") "##  Number of MPI tasks needs to be a multiple of 4!!  ##"
          write(*,"(2X,A)") "#########################################################"
-         call MPI_Abort(mpi_comm,0,mpierr)
+         call MPI_Abort(mpi_comm,0,ierr)
          stop
       endif
    endif
 
    if(myid == 0) then
-      e_tol = 1.0e-8_r8
+      tol = 1.0e-8_r8
       write(*,"(2X,A)") "################################"
       write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
       write(*,"(2X,A)") "################################"
@@ -123,7 +123,7 @@ program test_dm_kpt_spin_cmplx_den
       elseif(solver == 3) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + PEXSI"
          e_ref = e_pexsi
-         e_tol = 1.0e-3_r8
+         tol   = 1.0e-3_r8
       endif
       write(*,*)
    endif
@@ -140,7 +140,7 @@ program test_dm_kpt_spin_cmplx_den
    my_spin       = 1+my_group/n_spin
    my_kpt        = 1+mod(my_group,n_kpt)
 
-   call MPI_Comm_split(mpi_comm,my_group,myid_in_group,mpi_comm_group,mpierr)
+   call MPI_Comm_split(mpi_comm,my_group,myid_in_group,mpi_comm_group,ierr)
 
    write(*,"(2X,A,I4,A,I2,A,I2)") "| Task",myid," solving spin channel",&
       my_spin," and k-point",my_kpt
@@ -235,9 +235,7 @@ program test_dm_kpt_spin_cmplx_den
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   if(solver == 1 .or. solver == 2 .or. solver == 3) then
-      call elsi_get_edm_complex(e_h,edm)
-   endif
+   call elsi_get_edm_complex(e_h,edm)
 
    if(myid == 0) then
       write(*,"(2X,A)") "Finished SCF #2"
@@ -246,7 +244,7 @@ program test_dm_kpt_spin_cmplx_den
       write(*,"(2X,A)") "Finished test program"
       write(*,*)
       if(header(8) == 1111) then
-         if(abs(e_test-e_ref) < e_tol) then
+         if(abs(e_test-e_ref) < tol) then
             write(*,"(2X,A)") "Passed."
          else
             write(*,"(2X,A)") "Failed."
@@ -266,7 +264,7 @@ program test_dm_kpt_spin_cmplx_den
 
    call BLACS_Gridexit(blacs_ctxt)
    call BLACS_Exit(1)
-   call MPI_Comm_free(mpi_comm_group,mpierr)
-   call MPI_Finalize(mpierr)
+   call MPI_Comm_free(mpi_comm_group,ierr)
+   call MPI_Finalize(ierr)
 
 end program

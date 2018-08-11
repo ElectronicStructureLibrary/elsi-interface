@@ -25,7 +25,7 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: nprow
    integer(kind=i4) :: npcol
    integer(kind=i4) :: myid
-   integer(kind=i4) :: mpierr
+   integer(kind=i4) :: ierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: n_states
@@ -35,33 +35,38 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: header(8)
 
    real(kind=r8) :: n_electrons
+   real(kind=r8) :: n_test
+   real(kind=r8) :: tmp
    real(kind=r8) :: e_test = 0.0_r8
    real(kind=r8) :: e_ref  = 0.0_r8
-   real(kind=r8) :: e_tol  = 0.0_r8
+   real(kind=r8) :: tol    = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
    real(kind=r8), allocatable :: ham(:,:)
    real(kind=r8), allocatable :: ham_save(:,:)
    real(kind=r8), allocatable :: ovlp(:,:)
+   real(kind=r8), allocatable :: ovlp_save(:,:)
    real(kind=r8), allocatable :: dm(:,:)
    real(kind=r8), allocatable :: edm(:,:)
+
+   real(kind=r8), external :: ddot
 
    type(elsi_handle)    :: e_h
    type(elsi_rw_handle) :: rw_h
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
-   real(kind=r8), parameter :: e_sips  = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_dmp   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_elpa   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_omm    = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_pexsi  = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_sips   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_ntpoly = -2622.88214509311_r8
 
-   call MPI_Comm_size(mpi_comm,n_proc,mpierr)
-   call MPI_Comm_rank(mpi_comm,myid,mpierr)
+   call MPI_Comm_size(mpi_comm,n_proc,ierr)
+   call MPI_Comm_rank(mpi_comm,myid,ierr)
 
    if(myid == 0) then
-      e_tol = 1.0e-8_r8
+      tol = 1.0e-8_r8
       write(*,"(2X,A)") "################################"
       write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
       write(*,"(2X,A)") "################################"
@@ -75,13 +80,13 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
       elseif(solver == 3) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_real + PEXSI"
          e_ref = e_pexsi
-         e_tol = 1.0e-3_r8
+         tol   = 1.0e-3_r8
       elseif(solver == 5) then
-         write(*,"(2X,A)") "Now start testing  elsi_dm_real + SIPS"
+         write(*,"(2X,A)") "Now start testing  elsi_dm_real + SLEPc-SIPs"
          e_ref = e_sips
       elseif(solver == 6) then
-         write(*,"(2X,A)") "Now start testing  elsi_dm_real + DMP"
-         e_ref = e_dmp
+         write(*,"(2X,A)") "Now start testing  elsi_dm_real + NTPoly"
+         e_ref = e_ntpoly
       endif
       write(*,*)
    endif
@@ -110,6 +115,7 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
    allocate(ovlp(l_rows,l_cols))
+   allocate(ovlp_save(l_rows,l_cols))
    allocate(dm(l_rows,l_cols))
    allocate(edm(l_rows,l_cols))
 
@@ -120,7 +126,8 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
 
    call elsi_finalize_rw(rw_h)
 
-   ham_save = ham
+   ham_save  = ham
+   ovlp_save = ovlp
 
    t2 = MPI_Wtime()
 
@@ -170,9 +177,12 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   if(solver == 1 .or. solver == 2 .or. solver == 3) then
-      call elsi_get_edm_real(e_h,edm)
-   endif
+   call elsi_get_edm_real(e_h,edm)
+
+   ! Compute electron count
+   tmp = ddot(l_rows*l_cols,ovlp_save,1,dm,1)
+
+   call MPI_Reduce(tmp,n_test,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
 
    if(myid == 0) then
       write(*,"(2X,A)") "Finished SCF #2"
@@ -181,7 +191,15 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
       write(*,"(2X,A)") "Finished test program"
       write(*,*)
       if(header(8) == 1111) then
-         if(abs(e_test-e_ref) < e_tol) then
+         write(*,"(2X,A)") "Band energy"
+         write(*,"(2X,A,F15.8)") "| This test :",e_test
+         write(*,"(2X,A,F15.8)") "| Reference :",e_ref
+         write(*,*)
+         write(*,"(2X,A)") "Electron count"
+         write(*,"(2X,A,F15.8)") "| This test :",n_test
+         write(*,"(2X,A,F15.8)") "| Reference :",n_electrons
+         write(*,*)
+         if(abs(e_test-e_ref) < tol .and. abs(n_test-n_electrons) < tol) then
             write(*,"(2X,A)") "Passed."
          else
             write(*,"(2X,A)") "Failed."
@@ -196,6 +214,7 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
    deallocate(ham)
    deallocate(ham_save)
    deallocate(ovlp)
+   deallocate(ovlp_save)
    deallocate(dm)
    deallocate(edm)
 

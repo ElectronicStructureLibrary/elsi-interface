@@ -11,7 +11,7 @@ module ELSI_IO
 
    use ELSI_CONSTANTS, only: MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
                              SIESTA_CSC,UNSET,STR_LEN,UUID_LEN,ELPA_SOLVER,&
-                             PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,DMP_SOLVER,&
+                             PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,NTPOLY_SOLVER,&
                              DATETIME_LEN
    use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_PRECISION, only: r8,i4,i8
@@ -113,11 +113,11 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
          if(ph%n_calls <= ph%sips_n_elpa) then
             solver_tag = "ELPA"
          else
-            solver_tag = "SIPS"
+            solver_tag = "SLEPC_SIPS"
             solver_use = 5
          endif
-      case(DMP_SOLVER)
-         solver_tag = "DMP"
+      case(NTPOLY_SOLVER)
+         solver_tag = "NTPOLY"
          solver_use = 6
       end select
 
@@ -147,8 +147,8 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       call fjson_write_name_value(jh,"solver_used",trim(solver_tag))
 
       select case(solver_use)
-      case(DMP_SOLVER)
-         call elsi_print_dmp_settings(ph,jh)
+      case(NTPOLY_SOLVER)
+         call elsi_print_ntpoly_settings(ph,jh)
       case(ELPA_SOLVER)
          call elsi_print_elpa_settings(ph,jh)
       case(OMM_SOLVER)
@@ -215,14 +215,14 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
    call fjson_write_name_value(jh,"n_procs_all",bh%n_procs_all)
    if(ph%solver == ELPA_SOLVER) then
       call fjson_write_name_value(jh,"solver_chosen","ELPA")
+   elseif(ph%solver == NTPOLY_SOLVER) then
+      call fjson_write_name_value(jh,"solver_chosen","NTPOLY")
    elseif(ph%solver == OMM_SOLVER) then
       call fjson_write_name_value(jh,"solver_chosen","libOMM")
    elseif(ph%solver == PEXSI_SOLVER) then
       call fjson_write_name_value(jh,"solver_chosen","PEXSI")
    elseif(ph%solver == SIPS_SOLVER) then
       call fjson_write_name_value(jh,"solver_chosen","SLEPc_SIPs")
-   elseif(ph%solver == DMP_SOLVER) then
-      call fjson_write_name_value(jh,"solver_chosen","DMP")
    endif
 
 end subroutine
@@ -262,23 +262,22 @@ subroutine elsi_print_versioning(uuid,jh)
 end subroutine
 
 !>
-!! This routine prints out settings for DMP.
+!! This routine prints out settings for NTPoly.
 !!
-subroutine elsi_print_dmp_settings(ph,jh)
+subroutine elsi_print_ntpoly_settings(ph,jh)
 
    implicit none
 
    type(elsi_param_t), intent(in)    :: ph
    type(fjson_handle), intent(inout) :: jh
 
-   character(len=40), parameter :: caller = "elsi_print_dmp_settings"
+   character(len=40), parameter :: caller = "elsi_print_ntpoly_settings"
 
    call fjson_start_name_object(jh,"solver_settings")
-   call fjson_write_name_value(jh,"dmp_n_states",ph%dmp_n_states)
-   call fjson_write_name_value(jh,"dmp_method",ph%dmp_method)
-   call fjson_write_name_value(jh,"dmp_max_power",ph%dmp_max_power)
-   call fjson_write_name_value(jh,"dmp_max_iter",ph%dmp_max_iter)
-   call fjson_write_name_value(jh,"dmp_tol",ph%dmp_tol)
+   call fjson_write_name_value(jh,"nt_method",ph%nt_method)
+   call fjson_write_name_value(jh,"nt_tol",ph%nt_tol)
+   call fjson_write_name_value(jh,"nt_filter",ph%nt_filter)
+   call fjson_write_name_value(jh,"nt_max_iter",ph%nt_max_iter)
    call fjson_finish_object(jh)
 
 end subroutine
@@ -366,7 +365,7 @@ subroutine elsi_print_pexsi_settings(ph,jh)
 end subroutine
 
 !>
-!! This routine prints out settings for SIPS.
+!! This routine prints out settings for SLEPc-SIPs.
 !!
 subroutine elsi_print_sips_settings(ph,jh)
 
@@ -530,9 +529,10 @@ subroutine elsi_final_print(ph,bh)
    elseif(ph%solver == PEXSI_SOLVER) then
       write(info_str,"(2X,A,A22)") "|   Solver requested          :","PEXSI"
    elseif(ph%solver == SIPS_SOLVER) then
-      write(info_str,"(2X,A,A22)") "|   Solver requested          :","SIPs"
-   elseif(ph%solver == DMP_SOLVER) then
-      write(info_str,"(2X,A,A22)") "|   Solver requested          :","DMP"
+      write(info_str,"(2X,A,A22)") "|   Solver requested          :",&
+         "SLEPc-SIPs"
+   elseif(ph%solver == NTPOLY_SOLVER) then
+      write(info_str,"(2X,A,A22)") "|   Solver requested          :","NTPoly"
    endif
    call elsi_say(bh,info_str)
 
