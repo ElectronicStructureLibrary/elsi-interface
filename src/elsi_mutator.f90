@@ -885,7 +885,7 @@ subroutine elsi_set_ntpoly_isr(eh,nt_isr)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(nt_isr /= 0 .and. nt_isr /= 3 .and. nt_isr /= 5) then
+   if(nt_isr /= 2 .and. nt_isr /= 3 .and. nt_isr /= 5) then
       call elsi_stop(eh%bh,"Invalid choice.",caller)
    endif
 

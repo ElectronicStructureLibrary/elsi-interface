@@ -23,8 +23,7 @@ module ELSI_NTPOLY
                              GetTripletList,DestructDistributedSparseMatrix,&
                              ConstructProcessGrid,DestructProcessGrid,&
                              ConstructRandomPermutation,DestructPermutation,&
-                             NewtonSchultzISR,NewtonSchultzISR2,&
-                             IterativeSolverParameters_t,&
+                             InverseSquareRoot,IterativeSolverParameters_t,&
                              Triplet_t,TripletList_t,ConstructTripletList,&
                              AppendToTripletList,DestructTripletList
 
@@ -118,18 +117,17 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
 
       call ConstructRandomPermutation(ph%nt_perm,ovlp%logical_matrix_dimension)
 
-      ! TODO: May want a different set of parameters
       ph%nt_options = IterativeSolverParameters_t(ph%nt_tol,ph%nt_filter,&
                          ph%nt_max_iter,ph%nt_output,ph%nt_perm)
 
-      if(ph%nt_isr == 0) then
-         call NewtonSchultzISR(ovlp,ovlp_isr,.true.,ph%nt_options)
-      else
-         call NewtonSchultzISR2(ovlp,ovlp_isr,ph%nt_isr,.true.,ph%nt_options)
-      endif
+      ! Overlap seems more difficult to converge
+      ph%nt_options%threshold = max(0.01_r8*ph%nt_filter,1.0e-15_r8)
 
+      call InverseSquareRoot(ovlp,ovlp_isr,ph%nt_options,ph%nt_isr)
       call CopyDistributedSparseMatrix(ovlp_isr,ovlp)
       call DestructDistributedSparseMatrix(ovlp_isr)
+
+      ph%nt_options%threshold = ph%nt_filter
 
       call elsi_get_time(t1)
 

@@ -26,61 +26,114 @@ MODULE SquareRootSolversModule
   !! Solvers
   PUBLIC :: SquareRoot
   PUBLIC :: InverseSquareRoot
-  PUBLIC :: NewtonSchultzISR
-  PUBLIC :: NewtonSchultzISR2
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the square root of a matrix.
   !! @param[in] InputMat the matrix to compute.
   !! @param[out] OutputMat the resulting matrix.
   !! @param[in] solver_parameters_in parameters for the solver, optional.
-  SUBROUTINE SquareRoot(InputMat, OutputMat, solver_parameters_in)
+  !! @param[in] order_in polynomial order for calculation (default 5).
+  SUBROUTINE SquareRoot(InputMat, OutputMat, solver_parameters_in, order_in)
     TYPE(DistributedSparseMatrix_t), INTENT(in)  :: InputMat
     TYPE(DistributedSparseMatrix_t), INTENT(inout) :: OutputMat
     TYPE(IterativeSolverParameters_t),INTENT(in),OPTIONAL :: &
          & solver_parameters_in
+    INTEGER, INTENT(IN), OPTIONAL :: order_in
+    !! Local Variables
+    TYPE(IterativeSolverParameters_t) :: solver_parameters
+    INTEGER :: order
+
     IF (PRESENT(solver_parameters_in)) THEN
-       CALL NewtonSchultzISR(InputMat, OutputMat, .FALSE., &
-            & solver_parameters_in)
+       solver_parameters = solver_parameters_in
     ELSE
-       CALL NewtonSchultzISR(InputMat, OutputMat, .FALSE.)
+       solver_parameters = IterativeSolverParameters_t()
     END IF
+
+    IF (PRESENT(order_in)) THEN
+       CALL SquareRootSelector(InputMat, OutputMat, solver_parameters, .FALSE.,&
+            & order_in)
+    ELSE
+       CALL SquareRootSelector(InputMat, OutputMat, solver_parameters, .FALSE.)
+    END IF
+
   END SUBROUTINE SquareRoot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the inverse square root of a matrix.
   !! @param[in] InputMat the matrix to compute.
   !! @param[out] OutputMat the resulting matrix.
   !! @param[in] solver_parameters_in parameters for the solver, optional.
-  SUBROUTINE InverseSquareRoot(InputMat, OutputMat, solver_parameters_in)
+  !! @param[in] order_in polynomial order for calculation (default 5).
+  SUBROUTINE InverseSquareRoot(InputMat, OutputMat, solver_parameters_in, &
+       & order_in)
     TYPE(DistributedSparseMatrix_t), INTENT(in)  :: InputMat
     TYPE(DistributedSparseMatrix_t), INTENT(inout) :: OutputMat
     TYPE(IterativeSolverParameters_t),INTENT(in),OPTIONAL :: &
          & solver_parameters_in
+    INTEGER, INTENT(IN), OPTIONAL :: order_in
+    !! Local Variables
+    TYPE(IterativeSolverParameters_t) :: solver_parameters
+    INTEGER :: order
+
     IF (PRESENT(solver_parameters_in)) THEN
-       CALL NewtonSchultzISR(InputMat, OutputMat, .TRUE., &
-            & solver_parameters_in)
+       solver_parameters = solver_parameters_in
     ELSE
-       CALL NewtonSchultzISR(InputMat, OutputMat, .TRUE.)
+       solver_parameters = IterativeSolverParameters_t()
     END IF
+
+    IF (PRESENT(order_in)) THEN
+       CALL SquareRootSelector(InputMat, OutputMat, solver_parameters, .TRUE.,&
+            & order_in)
+    ELSE
+       CALL SquareRootSelector(InputMat, OutputMat, solver_parameters, .TRUE.)
+    END IF
+
   END SUBROUTINE InverseSquareRoot
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> This routine picks the appropriate solver method
+  !! @param[in] InputMat the matrix to compute.
+  !! @param[inout] OutputMat the matrix computed.
+  !! @param[in] solver_parameters parameters about how to solve.
+  !! @param[in] compute_inverse true if we are computing the inverse square root
+  !! @param[in] order_in the polynomial degree to use (optional, default=5)
+  SUBROUTINE SquareRootSelector(InputMat, OutputMat, solver_parameters, &
+       & compute_inverse, order_in)
+    TYPE(DistributedSparseMatrix_t), INTENT(in)  :: InputMat
+    TYPE(DistributedSparseMatrix_t), INTENT(inout) :: OutputMat
+    TYPE(IterativeSolverParameters_t),INTENT(in) :: solver_parameters
+    LOGICAL, INTENT(IN) :: compute_inverse
+    INTEGER, INTENT(IN), OPTIONAL :: order_in
+    !! Local Variables
+    INTEGER :: order
+
+    IF (PRESENT(order_in)) THEN
+       order = order_in
+    ELSE
+       order = 5
+    END IF
+
+    SELECT CASE(order)
+    CASE(2)
+       CALL NewtonSchultzISROrder2(InputMat, OutputMat, solver_parameters, &
+            & compute_inverse)
+    CASE DEFAULT
+       CALL NewtonSchultzISRTaylor(InputMat, OutputMat, solver_parameters, &
+            & order, compute_inverse)
+    END SELECT
+
+  END SUBROUTINE SquareRootSelector
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the square root or inverse square root of a matrix.
   !! Based on the Newton-Schultz algorithm presented in: \cite jansik2007linear
   !! @param[in] Mat1 Matrix 1.
-  !! @param[out] InverseSquareRootMat = Mat1^-1/2.
-  !! @param[in] solver_parameters_in parameters for the solver
-  SUBROUTINE NewtonSchultzISR(Mat1, OutMat, compute_inverse_in, &
-       & solver_parameters_in)
+  !! @param[out] OutMat = Mat1^-1/2 or Mat1^1/2.
+  !! @param[in] solver_parameters parameters for the solver
+  !! @param[in] compute_inverse whether to compute the inverse square root.
+  SUBROUTINE NewtonSchultzISROrder2(Mat1, OutMat, solver_parameters, &
+       & compute_inverse)
     !! Parameters
     TYPE(DistributedSparseMatrix_t), INTENT(in)  :: Mat1
     TYPE(DistributedSparseMatrix_t), INTENT(inout) :: OutMat
-    LOGICAL, INTENT(in), OPTIONAL :: compute_inverse_in
-    TYPE(IterativeSolverParameters_t), INTENT(in), OPTIONAL :: &
-         & solver_parameters_in
-    REAL(NTREAL), PARAMETER :: TWO = 2.0
-    REAL(NTREAL), PARAMETER :: NEGATIVE_ONE = -1.0
-    !! Handling Optional Parameters
-    TYPE(IterativeSolverParameters_t) :: solver_parameters
-    LOGICAL :: compute_inverse
+    TYPE(IterativeSolverParameters_t), INTENT(in) :: solver_parameters
+    LOGICAL, INTENT(in) :: compute_inverse
     !! Local Variables
     REAL(NTREAL) :: lambda
     TYPE(DistributedSparseMatrix_t) :: X_k,T_k,Temp,Identity
@@ -92,18 +145,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: outer_counter
     REAL(NTREAL) :: norm_value
     TYPE(DistributedMatrixMemoryPool_t) :: pool1
-
-    !! Optional Parameters
-    IF (PRESENT(solver_parameters_in)) THEN
-       solver_parameters = solver_parameters_in
-    ELSE
-       solver_parameters = IterativeSolverParameters_t()
-    END IF
-    IF (PRESENT(compute_inverse_in)) THEN
-       compute_inverse = compute_inverse_in
-    ELSE
-       compute_inverse = .FALSE.
-    END IF
 
     IF (solver_parameters%be_verbose) THEN
        CALL WriteHeader("Newton Schultz Inverse Square Root")
@@ -156,13 +197,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     outer_counter = 1
     norm_value = solver_parameters%converge_diff + 1.0d+0
     DO outer_counter = 1,solver_parameters%max_iterations
-       IF (solver_parameters%be_verbose .AND. outer_counter .GT. 1) THEN
-          CALL WriteListElement(key="Round", int_value_in=outer_counter-1)
-          CALL EnterSubLog
-          CALL WriteListElement(key="Convergence", float_value_in=norm_value)
-          CALL ExitSubLog
-       END IF
-
        !! Compute X_k
        CALL DistributedGemm(SquareRootMat,InverseSquareRootMat,X_k, &
             & threshold_in=solver_parameters%threshold, memory_pool_in=pool1)
@@ -195,6 +229,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & threshold_in=solver_parameters%threshold, memory_pool_in=pool1)
        CALL ScaleDistributedSparseMatrix(SquareRootMat,SQRT(lambda))
 
+       IF (solver_parameters%be_verbose) THEN
+          CALL WriteListElement(key="Round", int_value_in=outer_counter)
+          CALL EnterSubLog
+          CALL WriteElement(key="Convergence", float_value_in=norm_value)
+          CALL ExitSubLog
+       END IF
+
        IF (norm_value .LE. solver_parameters%converge_diff) THEN
           EXIT
        END IF
@@ -202,7 +243,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
        CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
-       CALL PrintMatrixInformation(InverseSquareRootMat)
     END IF
 
     IF (compute_inverse) THEN
@@ -230,26 +270,22 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL DestructDistributedSparseMatrix(InverseSquareRootMat)
     CALL DestructDistributedSparseMatrix(T_k)
     CALL DestructDistributedMatrixMemoryPool(pool1)
-  END SUBROUTINE NewtonSchultzISR
+  END SUBROUTINE NewtonSchultzISROrder2
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the square root or inverse square root of a matrix.
-  !! Based on the Newton-Schultz algorithm.
+  !! Based on the Newton-Schultz algorithm with higher order polynomials.
   !! @param[in] Mat1 Matrix 1.
-  !! @param[out] InverseSquareRootMat = Mat1^-1/2.
-  !! @param[in] solver_parameters_in parameters for the solver
-  SUBROUTINE NewtonSchultzISR2(Mat1, OutMat, taylor_order_in, &
-       & compute_inverse_in, solver_parameters_in)
+  !! @param[out] OutMat = Mat1^-1/2 or Mat1^1/2.
+  !! @param[in] solver_parameters parameters for the solver
+  !! @param[in] compute_inverse whether to compute the inverse square root.
+  SUBROUTINE NewtonSchultzISRTaylor(Mat1, OutMat, solver_parameters, &
+       & taylor_order, compute_inverse)
     !! Parameters
     TYPE(DistributedSparseMatrix_t), INTENT(in)  :: Mat1
     TYPE(DistributedSparseMatrix_t), INTENT(inout) :: OutMat
-    INTEGER, INTENT(in), OPTIONAL :: taylor_order_in
-    LOGICAL, INTENT(in), OPTIONAL :: compute_inverse_in
-    TYPE(IterativeSolverParameters_t), INTENT(in), OPTIONAL :: &
-         & solver_parameters_in
-    !! Handling Optional Parameters
-    TYPE(IterativeSolverParameters_t) :: solver_parameters
-    LOGICAL :: compute_inverse
-    INTEGER :: taylor_order
+    TYPE(IterativeSolverParameters_t), INTENT(in) :: solver_parameters
+    INTEGER, INTENT(in) :: taylor_order
+    LOGICAL, INTENT(in) :: compute_inverse
     !! Local Variables
     REAL(NTREAL) :: lambda
     REAL(NTREAL) :: aa,bb,cc,dd
@@ -264,29 +300,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL) :: norm_value
     TYPE(DistributedMatrixMemoryPool_t) :: pool1
 
-    !! Optional Parameters
-    IF (PRESENT(solver_parameters_in)) THEN
-       solver_parameters = solver_parameters_in
-    ELSE
-       solver_parameters = IterativeSolverParameters_t()
-    END IF
-    IF (PRESENT(compute_inverse_in)) THEN
-       compute_inverse = compute_inverse_in
-    ELSE
-       compute_inverse = .FALSE.
-    END IF
-    IF (PRESENT(taylor_order_in)) THEN
-       taylor_order = taylor_order_in
-    ELSE
-       taylor_order = 3
-    END IF
-    IF (taylor_order .NE. 3 .AND. taylor_order .NE. 5) THEN
-       taylor_order = 3
-    END IF
-
     IF (solver_parameters%be_verbose) THEN
        CALL WriteHeader("Newton Schultz Inverse Square Root")
        CALL EnterSubLog
+       CALL WriteCitation("jansik2007linear")
        CALL PrintIterativeSolverParameters(solver_parameters)
     END IF
 
@@ -409,7 +426,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        IF (solver_parameters%be_verbose) THEN
           CALL WriteListElement(key="Round",int_value_in=outer_counter)
           CALL EnterSubLog
-          CALL WriteListElement(key="Convergence",float_value_in=norm_value)
+          CALL WriteElement(key="Convergence",float_value_in=norm_value)
           CALL ExitSubLog
        END IF
 
@@ -420,7 +437,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
        CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
-       CALL PrintMatrixInformation(InverseSquareRootMat)
     END IF
 
     IF (compute_inverse) THEN
@@ -453,6 +469,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
     CALL DestructDistributedSparseMatrix(Identity)
     CALL DestructDistributedMatrixMemoryPool(pool1)
-  END SUBROUTINE NewtonSchultzISR2
+  END SUBROUTINE NewtonSchultzISRTaylor
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE SquareRootSolversModule
