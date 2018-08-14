@@ -210,13 +210,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
 
     !! Broadcast Parameters
-    CALL MPI_Bcast(matrix_rows,1,MPI_INT,RootID,global_comm,grid_error)
-    CALL MPI_Bcast(matrix_columns,1,MPI_INT,RootID,global_comm,grid_error)
-    CALL MPI_Bcast(total_values,1,MPI_INT,RootID,global_comm,grid_error)
-    CALL MPI_Bcast(header_length,1,MPI_INT,RootID,global_comm,grid_error)
-    CALL MPI_Bcast(sparsity_type,1,MPI_INT,RootID,global_comm,grid_error)
-    CALL MPI_Bcast(data_type,1,MPI_INT,RootID,global_comm,grid_error)
-    CALL MPI_Bcast(pattern_type,1,MPI_INT,RootID,global_comm,grid_error)
+    CALL MPI_Bcast(matrix_rows,1,MPI_INTEGER4,RootID,global_comm,grid_error)
+    CALL MPI_Bcast(matrix_columns,1,MPI_INTEGER4,RootID,global_comm,grid_error)
+    CALL MPI_Bcast(total_values,1,MPI_INTEGER4,RootID,global_comm,grid_error)
+    CALL MPI_Bcast(header_length,1,MPI_INTEGER4,RootID,global_comm,grid_error)
+    CALL MPI_Bcast(sparsity_type,1,MPI_INTEGER4,RootID,global_comm,grid_error)
+    CALL MPI_Bcast(data_type,1,MPI_INTEGER4,RootID,global_comm,grid_error)
+    CALL MPI_Bcast(pattern_type,1,MPI_INTEGER4,RootID,global_comm,grid_error)
 
     !! Build Local Storage
     CALL ConstructEmptyDistributedSparseMatrix(this,matrix_rows)
@@ -331,7 +331,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: mpi_status(MPI_STATUS_SIZE)
 
     CALL StartTimer("MPI Read Binary")
-    CALL MPI_Type_extent(MPI_INT,bytes_per_int,grid_error)
+    CALL MPI_Type_extent(MPI_INTEGER4,bytes_per_int,grid_error)
     CALL MPI_Type_extent(MPINTREAL,bytes_per_double,grid_error)
 
     CALL MPI_File_open(global_comm,file_name,MPI_MODE_RDONLY, &
@@ -341,16 +341,16 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (IsRoot()) THEN
        local_offset = 0
        CALL MPI_File_read_at(mpi_file_handler, local_offset, &
-            & matrix_information, 3, MPI_INT, mpi_status, grid_error)
+            & matrix_information, 3, MPI_INTEGER4, mpi_status, grid_error)
        matrix_rows = matrix_information(1)
        matrix_columns = matrix_information(2)
        total_values = matrix_information(3)
     END IF
 
     !! Broadcast Parameters
-    CALL MPI_Bcast(matrix_rows,1,MPI_INT,RootID,global_comm,grid_error)
-    CALL MPI_Bcast(matrix_columns,1,MPI_INT,RootID,global_comm,grid_error)
-    CALL MPI_Bcast(total_values,1,MPI_INT,RootID,global_comm,grid_error)
+    CALL MPI_Bcast(matrix_rows,1,MPI_INTEGER4,RootID,global_comm,grid_error)
+    CALL MPI_Bcast(matrix_columns,1,MPI_INTEGER4,RootID,global_comm,grid_error)
+    CALL MPI_Bcast(total_values,1,MPI_INTEGER4,RootID,global_comm,grid_error)
 
     !! Build Local Storage
     CALL ConstructEmptyDistributedSparseMatrix(this, matrix_rows)
@@ -417,8 +417,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & bytes_per_double*1)
     header_size = bytes_per_int*3
     ALLOCATE(local_values_buffer(slice_size))
-    CALL MPI_Allgather(SIZE(merged_local_data%values),1,MPI_INT,&
-         & local_values_buffer,1,MPI_INT,within_slice_comm,grid_error)
+    CALL MPI_Allgather(SIZE(merged_local_data%values),1,MPI_INTEGER4,&
+         & local_values_buffer,1,MPI_INTEGER4,within_slice_comm,grid_error)
     write_offset = 0
     write_offset = write_offset + header_size
     DO counter = 1,within_slice_rank
@@ -444,7 +444,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           header_buffer(2) = this%actual_matrix_dimension
           header_buffer(3) = SUM(local_values_buffer)
           CALL MPI_File_write_at(mpi_file_handler,zero_offset,header_buffer,3,&
-               & MPI_INT,mpi_status,grid_error)
+               & MPI_INTEGER4,mpi_status,grid_error)
        END IF
        !! Write The Rest
        CALL MPI_File_set_view(mpi_file_handler,write_offset,triplet_mpi_type,&
@@ -554,8 +554,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Figure out the offset sizes
     ALLOCATE(local_values_buffer(slice_size))
-    CALL MPI_Allgather(triplet_list_string_length,1,MPI_INT,&
-         & local_values_buffer,1,MPI_INT,within_slice_comm,grid_error)
+    CALL MPI_Allgather(triplet_list_string_length,1,MPI_INTEGER4,&
+         & local_values_buffer,1,MPI_INTEGER4,within_slice_comm,grid_error)
     write_offset = 0
     write_offset = write_offset + header_size
     DO counter = 1,within_slice_rank
@@ -835,14 +835,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ALLOCATE(column_start_list(slice_size))
     ALLOCATE(row_end_list(slice_size))
     ALLOCATE(column_end_list(slice_size))
-    CALL MPI_Allgather(start_row, 1, MPI_INT, row_start_list, 1, MPI_INT, &
-         & within_slice_comm, grid_error)
-    CALL MPI_Allgather(start_column, 1, MPI_INT, column_start_list, 1, MPI_INT,&
-         & within_slice_comm, grid_error)
-    CALL MPI_Allgather(end_row, 1, MPI_INT, row_end_list, 1, MPI_INT, &
-         & within_slice_comm, grid_error)
-    CALL MPI_Allgather(end_column, 1, MPI_INT, column_end_list, 1, MPI_INT,&
-         & within_slice_comm, grid_error)
+    CALL MPI_Allgather(start_row, 1, MPI_INTEGER4, row_start_list, 1, &
+         & MPI_INTEGER4, within_slice_comm, grid_error)
+    CALL MPI_Allgather(start_column, 1, MPI_INTEGER4, column_start_list, 1, &
+         & MPI_INTEGER4, within_slice_comm, grid_error)
+    CALL MPI_Allgather(end_row, 1, MPI_INTEGER4, row_end_list, 1, &
+         & MPI_INTEGER4, within_slice_comm, grid_error)
+    CALL MPI_Allgather(end_column, 1, MPI_INTEGER4, column_end_list, 1, &
+         & MPI_INTEGER4, within_slice_comm, grid_error)
 
     !! Count The Number of Elements To Send To Each Process
     ALLOCATE(send_per_proc(slice_size))
@@ -905,8 +905,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Build a receive buffer
     ALLOCATE(recv_per_proc(slice_size))
-    CALL MPI_Alltoall(send_per_proc, 1, MPI_INT, recv_per_proc, 1, MPI_INT, &
-         & within_slice_comm, grid_error)
+    CALL MPI_Alltoall(send_per_proc, 1, MPI_INTEGER4, recv_per_proc, 1, &
+         & MPI_INTEGER4, within_slice_comm, grid_error)
     ALLOCATE(recv_buffer_offsets(slice_size))
     recv_buffer_offsets(1) = 0
     DO counter = 2, slice_size
@@ -919,11 +919,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Send
     CALL MPI_Alltoallv(send_buffer_row, send_per_proc, send_buffer_offsets, &
-         & MPI_INT, recv_buffer_row, recv_per_proc, recv_buffer_offsets, &
-         & MPI_INT, within_slice_comm, grid_error)
+         & MPI_INTEGER4, recv_buffer_row, recv_per_proc, recv_buffer_offsets, &
+         & MPI_INTEGER4, within_slice_comm, grid_error)
     CALL MPI_Alltoallv(send_buffer_col, send_per_proc, send_buffer_offsets, &
-         & MPI_INT, recv_buffer_col, recv_per_proc, recv_buffer_offsets, &
-         & MPI_INT, within_slice_comm, grid_error)
+         & MPI_INTEGER4, recv_buffer_col, recv_per_proc, recv_buffer_offsets, &
+         & MPI_INTEGER4, within_slice_comm, grid_error)
     CALL MPI_Alltoallv(send_buffer_val, send_per_proc, send_buffer_offsets, &
          & MPINTREAL, recv_buffer_val, recv_per_proc, recv_buffer_offsets, &
          & MPINTREAL, within_slice_comm, grid_error)
@@ -1135,9 +1135,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL MergeLocalBlocks(this, merged_local_data)
 
     local_size = SIZE(merged_local_data%values)
-    CALL MPI_Allreduce(local_size,max_size,1,MPI_INT,MPI_MAX,&
+    CALL MPI_Allreduce(local_size,max_size,1,MPI_INTEGER4,MPI_MAX,&
          & within_slice_comm, grid_error)
-    CALL MPI_Allreduce(local_size,min_size,1,MPI_INT,MPI_MIN,&
+    CALL MPI_Allreduce(local_size,min_size,1,MPI_INTEGER4,MPI_MIN,&
          & within_slice_comm, grid_error)
 
     CALL DestructSparseMatrix(merged_local_data)

@@ -105,7 +105,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        return_mpi_triplet_type = mpi_triplet_type
     ELSE
        !! Otherwise make it
-       CALL MPI_Type_extent(MPI_INT,bytes_per_int,ierr)
+       CALL MPI_Type_extent(MPI_INTEGER4,bytes_per_int,ierr)
        CALL MPI_Type_extent(MPINTREAL,bytes_per_double,ierr)
        triplet_block_length(1) = 1
        triplet_block_length(2) = 1
@@ -113,8 +113,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        triplet_displacement(1) = 0
        triplet_displacement(2) = bytes_per_int + triplet_displacement(1)
        triplet_displacement(3) = bytes_per_int + triplet_displacement(2)
-       triplet_sub_types(1) = MPI_INT
-       triplet_sub_types(2) = MPI_INT
+       triplet_sub_types(1) = MPI_INTEGER4
+       triplet_sub_types(2) = MPI_INTEGER4
        triplet_sub_types(3) = MPINTREAL
 
        CALL MPI_Type_struct(3,triplet_block_length,triplet_displacement,&

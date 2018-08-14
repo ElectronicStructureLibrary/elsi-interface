@@ -73,8 +73,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Gather Information About Other Processes
     ALLOCATE(helper%values_per_process(helper%comm_size))
-    CALL MPI_IAllGather(SIZE(matrix%values),1,MPI_INT,&
-         & helper%values_per_process,1,MPI_INT,communicator, &
+    CALL MPI_IAllGather(SIZE(matrix%values),1,MPI_INTEGER4,&
+         & helper%values_per_process,1,MPI_INTEGER4,communicator, &
          & helper%size_request, grid_error)
   END SUBROUTINE GatherSizes
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -116,13 +116,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & gathered_matrix%values, helper%values_per_process, &
          & helper%displacement, MPINTREAL, communicator, &
          & helper%data_request, grid_error)
-    CALL MPI_IAllGatherv(matrix%inner_index,SIZE(matrix%values),MPI_INT, &
+    CALL MPI_IAllGatherv(matrix%inner_index,SIZE(matrix%values),MPI_INTEGER4, &
          & gathered_matrix%inner_index, helper%values_per_process, &
-         & helper%displacement, MPI_INT, communicator, &
+         & helper%displacement, MPI_INTEGER4, communicator, &
          & helper%inner_request, grid_error)
     CALL MPI_IAllGather(matrix%outer_index(2:), matrix%columns,&
-         & MPI_INT, gathered_matrix%outer_index(2:), &
-         & matrix%columns, MPI_INT, communicator, helper%outer_request, &
+         & MPI_INTEGER4, gathered_matrix%outer_index(2:), &
+         & matrix%columns, MPI_INTEGER4, communicator, helper%outer_request, &
          & grid_error)
   END SUBROUTINE GatherAndComposeData
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -186,13 +186,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL MPI_IAllGatherv(matrix%values,SIZE(matrix%values),MPINTREAL,&
          & helper%value_buffer, helper%values_per_process, helper%displacement,&
          & MPINTREAL, communicator, helper%data_request, grid_error)
-    CALL MPI_IAllGatherv(matrix%inner_index,SIZE(matrix%values),MPI_INT, &
+    CALL MPI_IAllGatherv(matrix%inner_index,SIZE(matrix%values),MPI_INTEGER4, &
          & helper%inner_index_buffer, helper%values_per_process, &
-         & helper%displacement, MPI_INT, communicator, helper%inner_request, &
-         & grid_error)
+         & helper%displacement, MPI_INTEGER4, communicator, &
+         & helper%inner_request, grid_error)
     CALL MPI_IAllGather(matrix%outer_index, matrix%columns+1,&
-         & MPI_INT, helper%outer_index_buffer, matrix%columns+1, MPI_INT, &
-         & communicator, helper%outer_request, grid_error)
+         & MPI_INTEGER4, helper%outer_index_buffer, matrix%columns+1, &
+         & MPI_INTEGER4, communicator, helper%outer_request, grid_error)
   END SUBROUTINE GatherAndSumData
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Finally routine to sum up the matrices.
