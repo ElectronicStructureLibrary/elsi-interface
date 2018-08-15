@@ -6,7 +6,7 @@ gnu:
   script:
     - module purge
     - module load gcc-7.1
-    - module load cmake-3.8.2
+    - module load cmake-3.0.2
     - module load openmpi-3.0.0
     - cat ./toolchains/gnu.cmake
     - rm -rf build $INSTALL_DIR/gnu
@@ -22,7 +22,7 @@ intel:
   script:
     - module purge
     - module load gcc-7.1
-    - module load cmake-3.8.2
+    - module load cmake-3.0.2
     - module load intel-compilers-18.0
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
@@ -40,7 +40,7 @@ intel-debug:
   script:
     - module purge
     - module load gcc-7.1
-    - module load cmake-3.8.2
+    - module load cmake-3.0.2
     - module load intel-compilers-18.0
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
@@ -58,7 +58,7 @@ intel-shared:
   script:
     - module purge
     - module load gcc-7.1
-    - module load cmake-3.8.2
+    - module load cmake-3.0.2
     - module load intel-compilers-18.0
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
