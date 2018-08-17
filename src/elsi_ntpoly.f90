@@ -13,6 +13,7 @@ module ELSI_NTPOLY
    use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_IO,        only: elsi_say,elsi_get_time
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI,       only: elsi_check_mpi,mpi_logical
    use ELSI_PRECISION, only: r8,i4
    use NTPOLY,         only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,&
                              DistributedSparseMatrix_t,FillFromTripletList,&
@@ -68,6 +69,7 @@ subroutine elsi_init_ntpoly(ph,bh)
    integer(kind=i4) :: n_prow
    integer(kind=i4) :: n_pcol
    integer(kind=i4) :: np_per_group
+   integer(kind=i4) :: ierr
 
    character(len=40), parameter :: caller = "elsi_init_ntpoly"
 
@@ -84,6 +86,10 @@ subroutine elsi_init_ntpoly(ph,bh)
       n_pcol = np_per_group/n_prow
 
       call ConstructProcessGrid(bh%comm,n_prow,n_pcol,ph%nt_n_group)
+
+      call MPI_Bcast(ph%nt_output,1,mpi_logical,0,bh%comm,ierr)
+
+      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
       ph%nt_started = .true.
    endif

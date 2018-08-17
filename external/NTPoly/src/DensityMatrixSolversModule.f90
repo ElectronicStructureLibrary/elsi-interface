@@ -216,6 +216,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
        CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
+       CALL PrintMatrixInformation(X_k)
     END IF
 
     IF (PRESENT(energy_value_out)) THEN
@@ -437,6 +438,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
        CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
+       CALL PrintMatrixInformation(X_k)
     END IF
 
     IF (PRESENT(energy_value_out)) THEN
@@ -680,6 +682,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
        CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
+       CALL PrintMatrixInformation(X_k)
     END IF
 
     IF (PRESENT(energy_value_out)) THEN
@@ -926,6 +929,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
        CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
+       CALL PrintMatrixInformation(D1)
     END IF
 
     IF (PRESENT(energy_value_out)) THEN
@@ -1203,6 +1207,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
        CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
+       CALL PrintMatrixInformation(D1)
     END IF
 
     IF (PRESENT(energy_value_out)) THEN
@@ -1308,5 +1313,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Cleanup
     CALL DestructDistributedSparseMatrix(TempMat)
+    CALL DestructDistributedMatrixMemoryPool(pool1)
   END SUBROUTINE EnergyDensityMatrix
 END MODULE DensityMatrixSolversModule

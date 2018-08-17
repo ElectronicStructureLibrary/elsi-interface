@@ -242,6 +242,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
        CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
+       CALL PrintMatrixInformation(InverseSquareRootMat)
     END IF
 
     IF (compute_inverse) THEN
@@ -436,6 +437,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
        CALL WriteElement(key="Total_Iterations",int_value_in=outer_counter)
+       CALL PrintMatrixInformation(InverseSquareRootMat)
     END IF
 
     IF (compute_inverse) THEN

@@ -563,6 +563,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & bubble_in=.TRUE.)
     CALL ConstructFromTripletList(matAB,sorted_pruned_list,mat_c_rows, &
          & mat_c_columns)
+    CALL DestructTripletList(unsorted_pruned_list)
     CALL DestructTripletList(sorted_pruned_list)
   END SUBROUTINE PruneList
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

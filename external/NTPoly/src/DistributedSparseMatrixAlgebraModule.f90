@@ -430,6 +430,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     DEALLOCATE(row_helper)
     DEALLOCATE(column_helper)
     DEALLOCATE(slice_helper)
+    DEALLOCATE(ATasks)
+    DEALLOCATE(BTasks)
+    DEALLOCATE(ABTasks)
 
     !! Deallocate Buffers From A
     DO row_counter=1,number_of_blocks_rows
