@@ -81,6 +81,8 @@ module ELSI_MUTATOR
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_initialized
+   public :: elsi_get_version
+   public :: elsi_get_datestamp
    public :: elsi_get_n_sing
    public :: elsi_get_mu
    public :: elsi_get_entropy
@@ -1173,6 +1175,50 @@ subroutine elsi_get_initialized(eh,handle_init)
    else
       handle_init = 0
    endif
+
+end subroutine
+
+!>
+!! This routine returns version number.
+!!
+subroutine elsi_get_version(version)
+
+   implicit none
+
+   character(len=8), intent(out) :: version !< Version number
+
+   logical           :: l1
+   character(len=8)  :: s2
+   character(len=8)  :: s3
+   character(len=40) :: s4
+   character(len=40) :: s5
+   character(len=20) :: s6
+
+   character(len=40), parameter :: caller = "elsi_get_version"
+
+   call elsi_version_info(version,s2,s3,l1,s4,s5,s6)
+
+end subroutine
+
+!>
+!! This routine returns date stamp.
+!!
+subroutine elsi_get_datestamp(datestamp)
+
+   implicit none
+
+   character(len=8), intent(out) :: datestamp !< Date stamp
+
+   logical           :: l1
+   character(len=8)  :: s1
+   character(len=8)  :: s3
+   character(len=40) :: s4
+   character(len=40) :: s5
+   character(len=20) :: s6
+
+   character(len=40), parameter :: caller = "elsi_get_version"
+
+   call elsi_version_info(s1,datestamp,s3,l1,s4,s5,s6)
 
 end subroutine
 

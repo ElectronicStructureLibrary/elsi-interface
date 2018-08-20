@@ -86,6 +86,8 @@ module ELSI
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_initialized
+   public :: elsi_get_version
+   public :: elsi_get_datestamp
    public :: elsi_get_n_sing
    public :: elsi_get_mu
    public :: elsi_get_entropy

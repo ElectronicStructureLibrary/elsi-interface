@@ -1,6 +1,6 @@
 ### Generate version info ###
 ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
-  COMMAND perl ${PROJECT_SOURCE_DIR}/src/elsi_version_writer.pl ${PROJECT_VERSION} > ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
+  COMMAND perl ${PROJECT_SOURCE_DIR}/src/elsi_version_writer.pl ${PROJECT_VERSION} ${elsi_DATESTAMP} > ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
   VERBATIM)
 
 ### Source files ###

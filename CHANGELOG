@@ -4,6 +4,7 @@
 
    ELSI:
    * Adopted literature definition of the electronic entropy.
+   * Added subroutines to query the version number and date stamp of ELSI.
 
    New Solvers:
    * Added support for the density matrix purification methods implemented
@@ -22,7 +23,7 @@
      purification methods.
 
    PEXSI:
-   * Updated redistributed PEXSI source code to version 1.0.2, which
+   * Updated redistributed PEXSI source code to version 1.0.3, which
      returns the complex-valued density matrix and energy density matrix
      instead of their transpose.
 
