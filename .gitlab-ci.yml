@@ -45,10 +45,10 @@ intel-debug:
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
     - cat ./toolchains/intel_debug.cmake
-    - rm -rf build $INSTALL_DIR/intel-debug
-    - mkdir build $INSTALL_DIR/intel-debug
+    - rm -rf build $INSTALL_DIR/intel_debug
+    - mkdir build $INSTALL_DIR/intel_debug
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/intel-debug ..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/intel_debug ..
     - make -j8
     - ctest --output-on-failure
     - make install
@@ -63,10 +63,10 @@ intel-shared:
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
     - cat ./toolchains/intel.cmake
-    - rm -rf build $INSTALL_DIR/intel-shared
-    - mkdir build $INSTALL_DIR/intel-shared
+    - rm -rf build $INSTALL_DIR/intel_shared
+    - mkdir build $INSTALL_DIR/intel_shared
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/intel-shared -DBUILD_SHARED_LIBS=ON ..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/intel_shared -DBUILD_SHARED_LIBS=ON ..
     - make -j8
     - ctest --output-on-failure
     - make install
