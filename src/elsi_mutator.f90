@@ -1181,13 +1181,18 @@ end subroutine
 !>
 !! This routine returns version number.
 !!
-subroutine elsi_get_version(version)
+subroutine elsi_get_version(major,minor,patch)
 
    implicit none
 
-   character(len=8), intent(out) :: version !< Version number
+   integer(kind=i4), intent(out) :: major !< Major version number
+   integer(kind=i4), intent(out) :: minor !< Minor version number
+   integer(kind=i4), intent(out) :: patch !< Patch level
 
+   integer(kind=i4)  :: i
+   integer(kind=i4)  :: j(2) ! Where are the dots
    logical           :: l1
+   character(len=8)  :: s1
    character(len=8)  :: s2
    character(len=8)  :: s3
    character(len=40) :: s4
@@ -1196,7 +1201,23 @@ subroutine elsi_get_version(version)
 
    character(len=40), parameter :: caller = "elsi_get_version"
 
-   call elsi_version_info(version,s2,s3,l1,s4,s5,s6)
+   call elsi_version_info(s1,s2,s3,l1,s4,s5,s6)
+
+   do i = 2,3
+      if(s1(i:i) == ".") then
+         j(1) = i
+      endif
+   enddo
+
+   do i = 4,6
+      if(s1(i:i) == ".") then
+         j(2) = i
+      endif
+   enddo
+
+   read(s1(1:j(1)-1),*) major
+   read(s1(j(1)+1:j(2)-1),*) minor
+   read(s1(j(2)+1:8),*) patch
 
 end subroutine
 
@@ -1207,18 +1228,21 @@ subroutine elsi_get_datestamp(datestamp)
 
    implicit none
 
-   character(len=8), intent(out) :: datestamp !< Date stamp
+   integer(kind=i4), intent(out) :: datestamp !< Date stamp
 
    logical           :: l1
    character(len=8)  :: s1
+   character(len=8)  :: s2
    character(len=8)  :: s3
    character(len=40) :: s4
    character(len=40) :: s5
    character(len=20) :: s6
 
-   character(len=40), parameter :: caller = "elsi_get_version"
+   character(len=40), parameter :: caller = "elsi_get_datestamp"
 
-   call elsi_version_info(s1,datestamp,s3,l1,s4,s5,s6)
+   call elsi_version_info(s1,s2,s3,l1,s4,s5,s6)
+
+   read(s2,*) datestamp
 
 end subroutine
 

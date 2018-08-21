@@ -1177,6 +1177,30 @@ subroutine elsi_get_initialized_c_wrapper(handle_c,handle_init)&
 
 end subroutine
 
+subroutine elsi_get_version_c_wrapper(major,minor,patch)&
+   bind(C,name="c_elsi_get_version")
+
+   implicit none
+
+   integer(kind=c_int), intent(out) :: major
+   integer(kind=c_int), intent(out) :: minor
+   integer(kind=c_int), intent(out) :: patch
+
+   call elsi_get_version(major,minor,patch)
+
+end subroutine
+
+subroutine elsi_get_datestamp_c_wrapper(datestamp)&
+   bind(C,name="c_elsi_get_datestamp")
+
+   implicit none
+
+   integer(kind=c_int), intent(out) :: datestamp
+
+   call elsi_get_datestamp(datestamp)
+
+end subroutine
+
 subroutine elsi_get_n_sing_c_wrapper(handle_c,n_sing)&
    bind(C,name="c_elsi_get_n_sing")
 

@@ -1421,7 +1421,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_initialized}(handle, handle\_init)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_version}(handle, version)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_version}(handle, major, minor, patch)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_datestamp}(handle, date\_stamp)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_n\_sing}(handle, n\_sing)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_mu}(handle, mu)]
@@ -1438,9 +1438,13 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \textcolor{blue}{handle\_init}         & integer                      & 0 if the ELSI handle has not been initialized; 1 if initialized.\\
 \hline
-\textcolor{blue}{version}              & string, length is 8          & Version number of ELSI.\\
+\textcolor{blue}{major}                & integer                      & Major version number.\\
 \hline
-\textcolor{blue}{date\_stamp}          & string, length is 8          & Date stamp of ELSI.\\
+\textcolor{blue}{minor}                & integer                      & Minor version number.\\
+\hline
+\textcolor{blue}{patch}                & integer                      & Patch level.\\
+\hline
+\textcolor{blue}{date\_stamp}          & integer                      & Date stamp of ELSI (yyyymmdd).\\
 \hline
 \textcolor{blue}{n\_sing}              & integer                      & Number of eigenvalues of the overlap matrix that are smaller than the singularity tolerance.  See \ref{subsec:setter_elsi}.\\
 \hline
