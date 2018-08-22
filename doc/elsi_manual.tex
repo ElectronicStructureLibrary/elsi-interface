@@ -1409,7 +1409,7 @@ $\Delta$V$_\text{max}$ = 0.0\\
 
 \textbf{1)} \textcolor{blue}{ntpoly\_method}:  Allowed choices are 0 for the canonical purification, 1 for the trace correcting purification, 2 for the 4th order trace resetting purification, and 3 for the generalized hole-particle canonical purification.\\
 
-\textbf{2)} \textcolor{blue}{ntpoly\_filter} and \textcolor{blue}{ntpoly\_tol} control the accuracy and computational cost of the density matrix purification methods.  Small values of \textcolor{blue}{ntpoly\_filter} and \textcolor{blue}{ntpoly\_tol}, e.g. the default choices here, lead to highly accurate results that are comparable to the results obtained from diagonalization.  However, linear scaling can only be achieved with a relatively large \textcolor{blue}{ntpoly\_filter} such as $10^{-6}$.  Correspondingly, \textcolor{blue}{ntpoly\_tol} may be set to $10^{-3}$.\\
+\textbf{2)} \textcolor{blue}{ntpoly\_filter} and \textcolor{blue}{ntpoly\_tol} control the accuracy and computational cost of the density matrix purification methods.  Tight choices of \textcolor{blue}{ntpoly\_filter} and \textcolor{blue}{ntpoly\_tol}, e.g. the default values here, lead to highly accurate results that are comparable to the results obtained from diagonalization.  However, linear scaling can only be achieved with a relatively large \textcolor{blue}{ntpoly\_filter} such as $10^{-6}$.  Correspondingly, \textcolor{blue}{ntpoly\_tol} may be set to $10^{-3}$.  Note that the purification may not converge if \textcolor{blue}{ntpoly\_filter} is too large relative to \textcolor{blue}{ntpoly\_tol}.  Setting \textcolor{blue}{ntpoly\_filter} to be $\le 10^{-3} \times $ \textcolor{blue}{ntpoly\_tol} is safe in most cases.\\
 
 \section{Getting Additional Results from ELSI}
 \label{sec:getter}
@@ -1724,7 +1724,6 @@ The following subroutines read a dense or sparse matrix from file.  While writin
 
 The following three subroutines read a dense matrix from file.  Before reading a dense matrix, MPI and BLACS should be set up properly using \textcolor{blue}{elsi\_set\_rw\_mpi} and \textcolor{blue}{elsi\_set\_rw\_blacs}.  \textcolor{blue}{elsi\_read\_mat\_dim} is used to read the dimension of a matrix, including the number of electrons in the physical system (for testing purpose), the global size of the matrix, and the local size of the matrix.  Memory needs to be allocated according to the return values of \textcolor{blue}{local\_row} and \textcolor{blue}{local\_col}.  Then \textcolor{blue}{elsi\_read\_mat\_real} or \textcolor{blue}{elsi\_read\_mat\_complex} may be called to read a real or complex matrix, respectively.\\
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_read\_mat\_dim}(handle, filename, n\_electron, n\_basis, local\_row, local\_col)]
 \end{labeling}
@@ -2120,9 +2119,6 @@ L. Lin et al., Fast algorithm for extracting the diagonal of the inverse matrix 
 \bibitem{pexsi_lin_2013}
 L. Lin et al., Accelerating atomic orbital-based electronic structure calculation via pole expansion and selected inversion, Journal of Physics: Condensed Matter, 25, 295501 (2013).
 
-%\bibitem{chess_mohr_2017}
-%S. Mohr et al., Efficient computation of sparse matrix functions for large-scale electronic structure calculations: The CheSS library, Journal of Chemical Theory and Computation, 13, 4684-4698 (2017).
-
 \bibitem{slepc_hernandez_2005}
 V. Hernandez et al., SLEPc: A scalable and flexible toolkit for the solution of eigenvalue problems,
 ACM Transactions on Mathematical Software, 31, 351-362 (2005).
@@ -2139,14 +2135,8 @@ W. Hu et al., DGDFT: A massively parallel method for large scale density functio
 \bibitem{aims_blum_2009}
 V. Blum et al., Ab initio molecular simulations with numeric atom-centered orbitals, Computer Physics Communications, 180, 2175-2196 (2009).
 
-%\bibitem{nwchem_valiev_2010}
-%M. Valiev et al., NWChem: A comprehensive and scalable open-source solution for large scale molecular simulations, Computer Physics Communications, 181, 1477-1489 (2010).
-
 \bibitem{siesta_soler_2002}
 J.M. Soler et al., The SIESTA method for ab initio order-N materials simulation, Journal of Physics: Condensed Matter, 14, 2745-2779 (2002).
-
-%\bibitem{bigdft_mohr_2015}
-%S. Mohr et al., Accurate and efficient linear scaling DFT calculations with universal applicability, Physical Chemistry Chemical Physics, 17, 31360-31370 (2015).
 
 \bibitem{elsi_yu_2018}
 V. Yu et al., ELSI: A unified software interface for Kohn-Sham electronic structure solvers, Computer Physics Communications, 222, 267-285 (2018).
