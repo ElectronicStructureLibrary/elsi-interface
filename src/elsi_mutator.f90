@@ -1361,8 +1361,8 @@ subroutine elsi_get_edm_real(eh,edm)
 
       eh%ph%edm_ready_real = .false.
    else
-      call elsi_stop(eh%bh,"Energy-weighted density matrix not ready to"//&
-              " compute.",caller)
+      call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
+              " computed before density matrix.",caller)
    endif
 
    eh%ph%solver = solver_save
@@ -1477,8 +1477,8 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
 
       eh%ph%edm_ready_real = .false.
    else
-      call elsi_stop(eh%bh,"Energy-weighted density matrix not ready to"//&
-              " compute.",caller)
+      call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
+              " computed before density matrix.",caller)
    endif
 
    eh%ph%solver = solver_save
@@ -1533,8 +1533,8 @@ subroutine elsi_get_edm_complex(eh,edm)
 
       eh%ph%edm_ready_cmplx = .false.
    else
-      call elsi_stop(eh%bh,"Energy-weighted density matrix not ready to"//&
-              " compute.",caller)
+      call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
+              " computed before density matrix.",caller)
    endif
 
    eh%ph%solver = solver_save
@@ -1619,8 +1619,8 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
 
       eh%ph%edm_ready_cmplx = .false.
    else
-      call elsi_stop(eh%bh,"Energy-weighted density matrix not ready to"//&
-              " compute.",caller)
+      call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
+              " computed before density matrix.",caller)
    endif
 
    eh%ph%solver = solver_save

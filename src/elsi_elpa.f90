@@ -42,7 +42,6 @@ module ELSI_ELPA
    public :: elsi_compute_dm_elpa
    public :: elsi_compute_edm_elpa
    public :: elsi_solve_elpa
-   public :: elsi_to_standard_evp_real
 
    interface elsi_compute_dm_elpa
       module procedure elsi_compute_dm_elpa_real
