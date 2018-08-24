@@ -441,7 +441,6 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
       endif
 
       call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,ham)
-
    endif
 
    call elsi_get_time(t1)
