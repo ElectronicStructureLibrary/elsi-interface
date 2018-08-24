@@ -115,7 +115,7 @@ Solvers supported in the current version of ELSI are:  ELPA \cite{elpa_auckentha
 
 \begin{tabular}[]{|p{20mm}|p{25mm}|p{25mm}|p{25mm}|p{70mm}|}
 \hline
-\multicolumn{1}{|c|}{\textbf{Solver}} & \multicolumn{1}{c|}{\textbf{Data type}} & \multicolumn{1}{c|}{\textbf{Matrix format}} & \multicolumn{1}{c|}{\textbf{Spin/k-point}} & \multicolumn{1}{c|}{\textbf{Output}}\\
+\multicolumn{1}{|c|}{\textbf{Solver}} & \multicolumn{1}{c|}{\textbf{Data type}} & \multicolumn{1}{c|}{\textbf{Matrix format}} & \multicolumn{1}{c|}{\textbf{Spin/\textit{k}-point}} & \multicolumn{1}{c|}{\textbf{Output}}\\
 \hline
 \textcolor{blue}{ELPA}       & real/complex & dense/sparse & yes/yes & eigenvalues, eigenvectors, density matrix, energy-weighted density matrix, chemical potential, electronic entropy\\
 \hline
@@ -958,7 +958,7 @@ When an ELSI instance is no longer needed, its associated handle should be clean
 
 \section{Solving Eigenvalues and Eigenvectors}
 \label{sec:ev}
-The following subroutines return all the eigenvalues and a subset of eigenvectors of the provided H and S matrices.  Only eigensolvers may be selected as the desired solver when using these subroutines.\\
+The following subroutines return all the eigenvalues and a subset of eigenvectors of the provided generalized eigenproblem defined by H and S matrices.  For standard eigenproblems, please see \textcolor{blue}{elsi\_set\_unit\_ovlp} in \ref{subsec:setter_elsi}.  Only ELPA and SLEPc-SIPs may be selected as the desired solver when using these subroutines.\\
 
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_ev\_real}(handle, ham, ovlp, eval, evec)]
@@ -1208,7 +1208,7 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \newpage
 \textbf{Remarks}\\
 
-\textbf{1)} If the input overlap matrix is an identity matrix, all settings related to the singularity (ill-conditioning) check take no effect.\\
+\textbf{1)} If the overlap matrix is set to be an identity matrix, all settings related to the singularity (ill-conditioning) check take no effect.  The \textcolor{blue}{ovlp} argument passed into \textcolor{blue}{elsi\_ev\_real}, \textcolor{blue}{elsi\_ev\_complex}, \textcolor{blue}{elsi\_ev\_real\_sparse}, \textcolor{blue}{elsi\_ev\_complex\_sparse}, \textcolor{blue}{elsi\_dm\_real}, \textcolor{blue}{elsi\_dm\_complex}, \textcolor{blue}{elsi\_dm\_real\_sparse}, and \textcolor{blue}{elsi\_dm\_complex\_sparse} will not be referenced.\\
 
 \textbf{2)} If the singularity check is not disabled, in the first iteration of each SCF cycle, possible singularity of the overlap matrix is checked by computing all its eigenvalues.  If there is any eigenvalue smaller than \textcolor{blue}{sing\_tol}, the matrix is considered to be singular.\\
 
