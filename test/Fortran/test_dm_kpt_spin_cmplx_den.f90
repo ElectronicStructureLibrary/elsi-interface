@@ -17,10 +17,9 @@ program test_dm_kpt_spin_cmplx_den
 
    include "mpif.h"
 
-   character(len=128) :: arg1 ! solver
-   character(len=128) :: arg2 ! H file
-   character(len=128) :: arg3 ! S file
-   character(len=128) :: arg4 ! make check?
+   character(len=100) :: arg1 ! solver
+   character(len=999) :: arg2 ! H file
+   character(len=999) :: arg3 ! S file
 
    integer(kind=i4) :: n_proc
    integer(kind=i4) :: nprow

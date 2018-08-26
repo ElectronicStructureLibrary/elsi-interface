@@ -15,9 +15,9 @@ program elsi_test_rw
 
    include "mpif.h"
 
-   character(len=128) :: arg1 ! real or cmplx
-   character(len=128) :: arg2 ! H file
-   character(len=128) :: arg3 ! S file
+   character(len=100) :: arg1 ! real or cmplx
+   character(len=999) :: arg2 ! H file
+   character(len=999) :: arg3 ! S file
 
    integer(kind=i4) :: myid
    integer(kind=i4) :: ierr

@@ -17,9 +17,9 @@ program test_standard_ev_real
 
    include "mpif.h"
 
-   character(len=128) :: arg1
-   character(len=128) :: arg2
-   character(len=128) :: arg3
+   character(len=100) :: arg1
+   character(len=100) :: arg2
+   character(len=100) :: arg3
 
    integer(kind=i4) :: n_proc
    integer(kind=i4) :: nprow
