@@ -4,6 +4,7 @@ variables:
 ### GNU compilers + OpenMPI + Netlib BLAS, LAPACK, ScaLAPACK ###
 gnu:
   script:
+    - module use /home/wy29/opt/modulefiles
     - module purge
     - module load gcc-7.1
     - module load cmake-3.0.2
