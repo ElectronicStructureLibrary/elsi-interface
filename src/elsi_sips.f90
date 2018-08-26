@@ -56,7 +56,7 @@ subroutine elsi_init_sips(ph,bh)
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
 
-   character(len=40), parameter :: caller = "elsi_init_sips"
+   character(len=*), parameter :: caller = "elsi_init_sips"
 
    if(ph%n_calls == ph%sips_n_elpa+1) then
       call sips_initialize()
@@ -112,7 +112,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    real(kind=r8),    allocatable :: slices(:)
    integer(kind=i4), allocatable :: inertias(:)
 
-   character(len=40), parameter :: caller = "elsi_solve_sips_real"
+   character(len=*), parameter :: caller = "elsi_solve_sips_real"
 
    ! Solve the eigenvalue problem
    write(info_str,"(2X,A)") "Starting SLEPc-SIPs eigensolver"
@@ -296,7 +296,7 @@ subroutine elsi_compute_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_compute_dm_sips_real"
+   character(len=*), parameter :: caller = "elsi_compute_dm_sips_real"
 
    call elsi_get_time(t0)
 
@@ -330,7 +330,7 @@ subroutine elsi_compute_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_compute_edm_sips_real"
+   character(len=*), parameter :: caller = "elsi_compute_edm_sips_real"
 
    call elsi_get_time(t0)
 
@@ -355,7 +355,7 @@ subroutine elsi_cleanup_sips(ph)
 
    type(elsi_param_t), intent(inout) :: ph
 
-   character(len=40), parameter :: caller = "elsi_cleanup_sips"
+   character(len=*), parameter :: caller = "elsi_cleanup_sips"
 
    if(ph%sips_started) then
       call sips_finalize()

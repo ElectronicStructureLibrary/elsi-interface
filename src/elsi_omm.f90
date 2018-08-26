@@ -57,7 +57,7 @@ subroutine elsi_init_omm(ph,bh)
 
    integer(kind=i4), external :: numroc
 
-   character(len=40), parameter :: caller = "elsi_init_omm"
+   character(len=*), parameter :: caller = "elsi_init_omm"
 
    if(.not. ph%omm_started) then
       call ms_scalapack_setup(bh%comm,bh%n_prow,'r',bh%blk,&
@@ -87,11 +87,6 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
    real(kind=r8),      intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
    real(kind=r8),      intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
 
-   type(matrix)       :: ham_omm
-   type(matrix)       :: ovlp_omm
-   type(matrix)       :: c_omm
-   type(matrix)       :: dm_omm
-   type(matrix)       :: t_omm
    logical            :: coeff_ready
    logical            :: new_ovlp
    logical            :: success
@@ -100,7 +95,13 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
    integer(kind=i4)   :: ierr
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_solve_omm_real"
+   type(matrix) :: ham_omm
+   type(matrix) :: ovlp_omm
+   type(matrix) :: c_omm
+   type(matrix) :: dm_omm
+   type(matrix) :: t_omm
+
+   character(len=*), parameter :: caller = "elsi_solve_omm_real"
 
    call m_register_pdbc(ham_omm,ham,bh%desc)
    call m_register_pdbc(ovlp_omm,ovlp,bh%desc)
@@ -195,16 +196,17 @@ subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
    real(kind=r8),      intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
    real(kind=r8),      intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
 
-   type(matrix)       :: ham_omm
-   type(matrix)       :: ovlp_omm
-   type(matrix)       :: c_omm
-   type(matrix)       :: edm_omm
-   type(matrix)       :: t_omm
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_compute_edm_omm_real"
+   type(matrix) :: ham_omm
+   type(matrix) :: ovlp_omm
+   type(matrix) :: c_omm
+   type(matrix) :: edm_omm
+   type(matrix) :: t_omm
+
+   character(len=*), parameter :: caller = "elsi_compute_edm_omm_real"
 
    call elsi_get_time(t0)
 
@@ -243,11 +245,6 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
    complex(kind=r8),   intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
    complex(kind=r8),   intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
 
-   type(matrix)       :: ham_omm
-   type(matrix)       :: ovlp_omm
-   type(matrix)       :: c_omm
-   type(matrix)       :: dm_omm
-   type(matrix)       :: t_omm
    logical            :: coeff_ready
    logical            :: new_ovlp
    logical            :: success
@@ -256,7 +253,13 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
    integer(kind=i4)   :: ierr
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_solve_omm_cmplx"
+   type(matrix) :: ham_omm
+   type(matrix) :: ovlp_omm
+   type(matrix) :: c_omm
+   type(matrix) :: dm_omm
+   type(matrix) :: t_omm
+
+   character(len=*), parameter :: caller = "elsi_solve_omm_cmplx"
 
    call m_register_pdbc(ham_omm,ham,bh%desc)
    call m_register_pdbc(ovlp_omm,ovlp,bh%desc)
@@ -351,16 +354,17 @@ subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
    complex(kind=r8),   intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
    complex(kind=r8),   intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
 
-   type(matrix)       :: ham_omm
-   type(matrix)       :: ovlp_omm
-   type(matrix)       :: c_omm
-   type(matrix)       :: edm_omm
-   type(matrix)       :: t_omm
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_compute_edm_omm_cmplx"
+   type(matrix) :: ham_omm
+   type(matrix) :: ovlp_omm
+   type(matrix) :: c_omm
+   type(matrix) :: edm_omm
+   type(matrix) :: t_omm
+
+   character(len=*), parameter :: caller = "elsi_compute_edm_omm_cmplx"
 
    call elsi_get_time(t0)
 
@@ -394,7 +398,7 @@ subroutine elsi_cleanup_omm(ph)
 
    type(elsi_param_t), intent(inout) :: ph
 
-   character(len=40), parameter :: caller = "elsi_cleanup_omm"
+   character(len=*), parameter :: caller = "elsi_cleanup_omm"
 
    ph%omm_started = .false.
 

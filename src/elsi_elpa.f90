@@ -73,7 +73,7 @@ subroutine elsi_init_elpa(ph,bh)
    integer(kind=i4)   :: ierr
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_init_elpa"
+   character(len=*), parameter :: caller = "elsi_init_elpa"
 
    if(.not. ph%elpa_started) then
       call MPI_Comm_split(bh%comm,bh%my_pcol,bh%my_prow,ph%elpa_comm_row,ierr)
@@ -130,7 +130,7 @@ subroutine elsi_compute_occ_elpa(ph,bh,eval,occ)
    real(kind=r8), allocatable :: tmp_real1(:)
    real(kind=r8), allocatable :: tmp_real2(:,:,:)
 
-   character(len=40), parameter :: caller = "elsi_compute_occ_elpa"
+   character(len=*), parameter :: caller = "elsi_compute_occ_elpa"
 
    ! Gather eigenvalues and occupation numbers
    call elsi_allocate(bh,eval_all,ph%n_states,ph%n_spins,ph%n_kpts,"eval_all",&
@@ -222,7 +222,7 @@ subroutine elsi_compute_dm_elpa_real(ph,bh,row_map,col_map,evec,occ,dm,work)
 
    real(kind=r8), allocatable :: factor(:)
 
-   character(len=40), parameter :: caller = "elsi_compute_dm_elpa_real"
+   character(len=*), parameter :: caller = "elsi_compute_dm_elpa_real"
 
    call elsi_get_time(t0)
 
@@ -294,7 +294,7 @@ subroutine elsi_compute_edm_elpa_real(ph,bh,row_map,col_map,eval,evec,occ,edm,&
 
    real(kind=r8), allocatable :: factor(:)
 
-   character(len=40), parameter :: caller = "elsi_compute_edm_elpa_real"
+   character(len=*), parameter :: caller = "elsi_compute_edm_elpa_real"
 
    call elsi_get_time(t0)
 
@@ -367,7 +367,7 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_to_standard_evp_real"
+   character(len=*), parameter :: caller = "elsi_to_standard_evp_real"
 
    if(ph%n_calls == 1) then
       if(ph%check_sing) then
@@ -478,7 +478,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
 
    real(kind=r8), allocatable :: copy_real(:,:)
 
-   character(len=40), parameter :: caller = "elsi_check_singularity_real"
+   character(len=*), parameter :: caller = "elsi_check_singularity_real"
 
    call elsi_get_time(t0)
 
@@ -567,7 +567,7 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
 
    real(kind=r8), allocatable :: tmp_real(:,:)
 
-   character(len=40), parameter :: caller = "elsi_to_original_ev_real"
+   character(len=*), parameter :: caller = "elsi_to_original_ev_real"
 
    call elsi_get_time(t0)
 
@@ -624,7 +624,7 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    logical            :: success
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_solve_elpa_real"
+   character(len=*), parameter :: caller = "elsi_solve_elpa_real"
 
    elpa_print_times = ph%elpa_output
 
@@ -705,7 +705,7 @@ subroutine elsi_compute_dm_elpa_cmplx(ph,bh,row_map,col_map,evec,occ,dm,work)
 
    real(kind=r8), allocatable :: factor(:)
 
-   character(len=40), parameter :: caller = "elsi_compute_dm_elpa_cmplx"
+   character(len=*), parameter :: caller = "elsi_compute_dm_elpa_cmplx"
 
    call elsi_get_time(t0)
 
@@ -777,7 +777,7 @@ subroutine elsi_compute_edm_elpa_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,&
 
    real(kind=r8), allocatable :: factor(:)
 
-   character(len=40), parameter :: caller = "elsi_compute_edm_elpa_cmplx"
+   character(len=*), parameter :: caller = "elsi_compute_edm_elpa_cmplx"
 
    call elsi_get_time(t0)
 
@@ -850,7 +850,7 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_to_standard_evp_cmplx"
+   character(len=*), parameter :: caller = "elsi_to_standard_evp_cmplx"
 
    if(ph%n_calls == 1) then
       if(ph%check_sing) then
@@ -962,7 +962,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
 
    complex(kind=r8), allocatable :: copy_cmplx(:,:)
 
-   character(len=40), parameter :: caller = "elsi_check_singularity_cmplx"
+   character(len=*), parameter :: caller = "elsi_check_singularity_cmplx"
 
    call elsi_get_time(t0)
 
@@ -1051,7 +1051,7 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
 
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
-   character(len=40), parameter :: caller = "elsi_to_original_ev_cmplx"
+   character(len=*), parameter :: caller = "elsi_to_original_ev_cmplx"
 
    call elsi_get_time(t0)
 
@@ -1109,7 +1109,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    logical            :: success
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_solve_elpa_cmplx"
+   character(len=*), parameter :: caller = "elsi_solve_elpa_cmplx"
 
    elpa_print_times = ph%elpa_output
 
@@ -1177,7 +1177,7 @@ subroutine elsi_cleanup_elpa(ph)
 
    integer(kind=i4) :: ierr
 
-   character(len=40), parameter :: caller = "elsi_cleanup_elpa"
+   character(len=*), parameter :: caller = "elsi_cleanup_elpa"
 
    if(ph%elpa_started) then
       call MPI_Comm_free(ph%elpa_comm_row,ierr)

@@ -174,7 +174,7 @@ subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
    integer(kind=i4), allocatable :: dest(:)
    integer(kind=i4), allocatable :: nnz(:)
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_pexsi_hs_dim_real"
+   character(len=*), parameter :: caller = "elsi_blacs_to_pexsi_hs_dim_real"
 
    call elsi_allocate(bh,dest,ph%pexsi_np_per_pole,"dest",caller)
    call elsi_allocate(bh,nnz,ph%pexsi_np_per_pole,"nnz",caller)
@@ -247,7 +247,7 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
    integer(kind=i4), allocatable :: dest(:)
    integer(kind=i4), allocatable :: nnz(:)
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_pexsi_hs_dim_cmplx"
+   character(len=*), parameter :: caller = "elsi_blacs_to_pexsi_hs_dim_cmplx"
 
    call elsi_allocate(bh,dest,ph%pexsi_np_per_pole,"dest",caller)
    call elsi_allocate(bh,nnz,ph%pexsi_np_per_pole,"nnz",caller)
@@ -351,7 +351,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    integer(kind=i4), allocatable :: dest(:) ! Destination of columns
    integer(kind=i8), allocatable :: global_id(:)
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_pexsi_hs_real"
+   character(len=*), parameter :: caller = "elsi_blacs_to_pexsi_hs_real"
 
    call elsi_get_time(t0)
 
@@ -677,7 +677,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    integer(kind=i4), allocatable :: dest(:) ! Destination of columns
    integer(kind=i8), allocatable :: global_id(:)
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_pexsi_hs_cmplx"
+   character(len=*), parameter :: caller = "elsi_blacs_to_pexsi_hs_cmplx"
 
    call elsi_get_time(t0)
 
@@ -996,7 +996,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character(len=40), parameter :: caller = "elsi_pexsi_to_blacs_dm_real"
+   character(len=*), parameter :: caller = "elsi_pexsi_to_blacs_dm_real"
 
    call elsi_get_time(t0)
 
@@ -1179,7 +1179,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character(len=40), parameter :: caller = "elsi_pexsi_to_blacs_dm_cmplx"
+   character(len=*), parameter :: caller = "elsi_pexsi_to_blacs_dm_cmplx"
 
    call elsi_get_time(t0)
 
@@ -1338,7 +1338,7 @@ subroutine elsi_blacs_to_sips_hs_dim_real(ph,bh,ham_den,ovlp_den)
    integer(kind=i4), allocatable :: dest(:)
    integer(kind=i4), allocatable :: nnz(:)
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_sips_hs_dim_real"
+   character(len=*), parameter :: caller = "elsi_blacs_to_sips_hs_dim_real"
 
    call elsi_allocate(bh,dest,bh%n_procs,"dest",caller)
    call elsi_allocate(bh,nnz,bh%n_procs,"nnz",caller)
@@ -1409,7 +1409,7 @@ subroutine elsi_blacs_to_sips_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
    integer(kind=i4), allocatable :: dest(:)
    integer(kind=i4), allocatable :: nnz(:)
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_sips_hs_dim_cmplx"
+   character(len=*), parameter :: caller = "elsi_blacs_to_sips_hs_dim_cmplx"
 
    call elsi_allocate(bh,dest,bh%n_procs,"dest",caller)
    call elsi_allocate(bh,nnz,bh%n_procs,"nnz",caller)
@@ -1501,7 +1501,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i8), allocatable :: global_id(:)
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_sips_hs_real"
+   character(len=*), parameter :: caller = "elsi_blacs_to_sips_hs_real"
 
    call elsi_get_time(t0)
 
@@ -1721,7 +1721,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i8), allocatable :: global_id(:)
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_sips_hs_cmplx"
+   character(len=*), parameter :: caller = "elsi_blacs_to_sips_hs_cmplx"
 
    call elsi_get_time(t0)
 
@@ -1944,7 +1944,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character(len=40), parameter :: caller = "elsi_sips_to_blacs_hs_real"
+   character(len=*), parameter :: caller = "elsi_sips_to_blacs_hs_real"
 
    call elsi_get_time(t0)
 
@@ -2146,7 +2146,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character(len=40), parameter :: caller = "elsi_sips_to_blacs_hs_cmplx"
+   character(len=*), parameter :: caller = "elsi_sips_to_blacs_hs_cmplx"
 
    call elsi_get_time(t0)
 
@@ -2344,7 +2344,7 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character(len=40), parameter :: caller = "elsi_sips_to_blacs_ev_real"
+   character(len=*), parameter :: caller = "elsi_sips_to_blacs_ev_real"
 
    call elsi_get_time(t0)
 
@@ -2511,7 +2511,7 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_sips_dm_real"
+   character(len=*), parameter :: caller = "elsi_blacs_to_sips_dm_real"
 
    call elsi_get_time(t0)
 
@@ -2667,7 +2667,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_sips_dm_cmplx"
+   character(len=*), parameter :: caller = "elsi_blacs_to_sips_dm_cmplx"
 
    call elsi_get_time(t0)
 
@@ -2828,7 +2828,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character(len=40), parameter :: caller = "elsi_siesta_to_blacs_hs_real"
+   character(len=*), parameter :: caller = "elsi_siesta_to_blacs_hs_real"
 
    call elsi_get_time(t0)
 
@@ -3031,7 +3031,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character(len=40), parameter :: caller = "elsi_siesta_to_blacs_hs_cmplx"
+   character(len=*), parameter :: caller = "elsi_siesta_to_blacs_hs_cmplx"
 
    call elsi_get_time(t0)
 
@@ -3228,7 +3228,7 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,row_ind,col_ptr,dm_den,dm_csc)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_siesta_dm_real"
+   character(len=*), parameter :: caller = "elsi_blacs_to_siesta_dm_real"
 
    call elsi_get_time(t0)
 
@@ -3388,7 +3388,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_den,dm_csc)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_siesta_dm_cmplx"
+   character(len=*), parameter :: caller = "elsi_blacs_to_siesta_dm_cmplx"
 
    call elsi_get_time(t0)
 
@@ -3528,7 +3528,7 @@ subroutine elsi_siesta_to_pexsi_hs_dim(ph,bh,col_ptr2)
    integer(kind=i4), allocatable :: dest(:)
    integer(kind=i4), allocatable :: nnz(:)
 
-   character(len=40), parameter :: caller = "elsi_siesta_to_pexsi_hs_dim"
+   character(len=*), parameter :: caller = "elsi_siesta_to_pexsi_hs_dim"
 
    call elsi_allocate(bh,dest,ph%pexsi_np_per_pole,"dest",caller)
    call elsi_allocate(bh,nnz,ph%pexsi_np_per_pole,"nnz",caller)
@@ -3598,7 +3598,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i8), allocatable :: global_id(:)
 
-   character(len=40), parameter :: caller = "elsi_siesta_to_pexsi_hs_real"
+   character(len=*), parameter :: caller = "elsi_siesta_to_pexsi_hs_real"
 
    call elsi_get_time(t0)
 
@@ -3788,7 +3788,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i8), allocatable :: global_id(:)
 
-   character(len=40), parameter :: caller = "elsi_siesta_to_pexsi_hs_cmplx"
+   character(len=*), parameter :: caller = "elsi_siesta_to_pexsi_hs_cmplx"
 
    call elsi_get_time(t0)
 
@@ -3977,7 +3977,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character(len=40), parameter :: caller = "elsi_pexsi_to_siesta_dm_real"
+   character(len=*), parameter :: caller = "elsi_pexsi_to_siesta_dm_real"
 
    call elsi_get_time(t0)
 
@@ -4140,7 +4140,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
 
-   character(len=40), parameter :: caller = "elsi_pexsi_to_siesta_dm_cmplx"
+   character(len=*), parameter :: caller = "elsi_pexsi_to_siesta_dm_cmplx"
 
    call elsi_get_time(t0)
 
@@ -4275,7 +4275,7 @@ subroutine elsi_sips_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    real(kind=r8),      intent(in)    :: dm_csc(bh%nnz_l_sp)
    real(kind=r8),      intent(out)   :: dm_den(bh%n_lrow,bh%n_lcol)
 
-   character(len=40), parameter :: caller = "elsi_sips_to_blacs_dm_real"
+   character(len=*), parameter :: caller = "elsi_sips_to_blacs_dm_real"
 
    ph%pexsi_my_prow     = 0
    ph%pexsi_my_pcol     = bh%myid
@@ -4300,7 +4300,7 @@ subroutine elsi_sips_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    complex(kind=r8),   intent(in)    :: dm_csc(bh%nnz_l_sp)
    complex(kind=r8),   intent(out)   :: dm_den(bh%n_lrow,bh%n_lcol)
 
-   character(len=40), parameter :: caller = "elsi_sips_to_blacs_dm_cmplx"
+   character(len=*), parameter :: caller = "elsi_sips_to_blacs_dm_cmplx"
 
    ph%pexsi_my_prow     = 0
    ph%pexsi_my_pcol     = bh%myid
@@ -4328,7 +4328,7 @@ subroutine elsi_sips_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    integer(kind=i4),   intent(in)    :: col_ptr2(bh%n_lcol_sp2+1)
    real(kind=r8),      intent(out)   :: dm_csc2(bh%nnz_l_sp2)
 
-   character(len=40), parameter :: caller = "elsi_sips_to_siesta_dm_real"
+   character(len=*), parameter :: caller = "elsi_sips_to_siesta_dm_real"
 
    ph%pexsi_my_prow     = 0
    ph%pexsi_np_per_pole = bh%n_procs
@@ -4356,7 +4356,7 @@ subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    integer(kind=i4),   intent(in)    :: col_ptr2(bh%n_lcol_sp2+1)
    complex(kind=r8),   intent(out)   :: dm_csc2(bh%nnz_l_sp2)
 
-   character(len=40), parameter :: caller = "elsi_sips_to_siesta_dm_cmplx"
+   character(len=*), parameter :: caller = "elsi_sips_to_siesta_dm_cmplx"
 
    ph%pexsi_my_prow     = 0
    ph%pexsi_np_per_pole = bh%n_procs
@@ -4386,7 +4386,7 @@ subroutine elsi_siesta_to_sips_hs_dim(ph,bh,col_ptr2)
    integer(kind=i4), allocatable :: dest(:)
    integer(kind=i4), allocatable :: nnz(:)
 
-   character(len=40), parameter :: caller = "elsi_siesta_to_sips_hs_dim"
+   character(len=*), parameter :: caller = "elsi_siesta_to_sips_hs_dim"
 
    call elsi_allocate(bh,dest,bh%n_procs,"dest",caller)
    call elsi_allocate(bh,nnz,bh%n_procs,"nnz",caller)
@@ -4433,7 +4433,7 @@ subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    integer(kind=i4) :: n_calls_save
 
-   character(len=40), parameter :: caller = "elsi_siesta_to_sips_hs_real"
+   character(len=*), parameter :: caller = "elsi_siesta_to_sips_hs_real"
 
    ph%pexsi_my_prow     = 0
    ph%pexsi_np_per_pole = bh%n_procs
@@ -4472,7 +4472,7 @@ subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    integer(kind=i4) :: n_calls_save
 
-   character(len=40), parameter :: caller = "elsi_siesta_to_sips_hs_cmplx"
+   character(len=*), parameter :: caller = "elsi_siesta_to_sips_hs_cmplx"
 
    ph%pexsi_my_prow     = 0
    ph%pexsi_np_per_pole = bh%n_procs
@@ -4517,7 +4517,7 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    type(TripletList_t) :: ovlp_list
    type(Triplet_t)     :: coo
 
-   character(len=40), parameter :: caller = "elsi_blacs_to_ntpoly_hs_real"
+   character(len=*), parameter :: caller = "elsi_blacs_to_ntpoly_hs_real"
 
    call elsi_get_time(t0)
 
@@ -4643,7 +4643,7 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
    type(TripletList_t) :: dm_list
    type(Triplet_t)     :: coo
 
-   character(len=40), parameter :: caller = "elsi_ntpoly_to_blacs_dm_real"
+   character(len=*), parameter :: caller = "elsi_ntpoly_to_blacs_dm_real"
 
    call elsi_get_time(t0)
 
@@ -4787,7 +4787,7 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    type(TripletList_t) :: ovlp_list
    type(Triplet_t)     :: coo
 
-   character(len=40), parameter :: caller = "elsi_sips_to_ntpoly_hs_real"
+   character(len=*), parameter :: caller = "elsi_sips_to_ntpoly_hs_real"
 
    call elsi_get_time(t0)
 
@@ -4882,7 +4882,7 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    type(TripletList_t) :: dm_list
    type(Triplet_t)     :: coo
 
-   character(len=40), parameter :: caller = "elsi_ntpoly_to_sips_dm_real"
+   character(len=*), parameter :: caller = "elsi_ntpoly_to_sips_dm_real"
 
    call elsi_get_time(t0)
 
@@ -5010,7 +5010,7 @@ subroutine elsi_siesta_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,&
    type(DistributedSparseMatrix_t), intent(inout) :: ham_nt
    type(DistributedSparseMatrix_t), intent(inout) :: ovlp_nt
 
-   character(len=40), parameter :: caller = "elsi_siesta_to_ntpoly_hs_real"
+   character(len=*), parameter :: caller = "elsi_siesta_to_ntpoly_hs_real"
 
    call elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
            ham_nt,ovlp_nt)
@@ -5059,7 +5059,7 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_csc)
    type(TripletList_t) :: dm_list
    type(Triplet_t)     :: coo
 
-   character(len=40), parameter :: caller = "elsi_ntpoly_to_siesta_dm_real"
+   character(len=*), parameter :: caller = "elsi_ntpoly_to_siesta_dm_real"
 
    call elsi_get_time(t0)
 

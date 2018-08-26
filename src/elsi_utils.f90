@@ -66,7 +66,7 @@ subroutine elsi_reset_param(ph)
 
    type(elsi_param_t), intent(out) :: ph
 
-   character(len=40), parameter :: caller = "elsi_reset_handle"
+   character(len=*), parameter :: caller = "elsi_reset_handle"
 
    ph%solver                 = UNSET
    ph%matrix_format          = UNSET
@@ -160,7 +160,7 @@ subroutine elsi_reset_basic(bh)
 
    type(elsi_basic_t), intent(out) :: bh
 
-   character(len=40), parameter :: caller = "elsi_reset_basic"
+   character(len=*), parameter :: caller = "elsi_reset_basic"
 
    bh%print_info       = 0
    bh%print_unit       = 6
@@ -398,7 +398,7 @@ subroutine elsi_get_gid(myid,n_procs,blk,lid,gid)
    integer(kind=i4), intent(in)  :: lid
    integer(kind=i4), intent(out) :: gid
 
-   character(len=40), parameter :: caller = "elsi_get_gid"
+   character(len=*), parameter :: caller = "elsi_get_gid"
 
    gid = lid+myid*blk+((lid-1)/blk)*blk*(n_procs-1)
 
@@ -417,7 +417,7 @@ subroutine elsi_get_lid(n_procs,blk,gid,lid)
    integer(kind=i4), intent(in)  :: gid
    integer(kind=i4), intent(out) :: lid
 
-   character(len=40), parameter :: caller = "elsi_get_lid"
+   character(len=*), parameter :: caller = "elsi_get_lid"
 
    lid = (gid-1)/(n_procs*blk)*blk+mod((gid-1),blk)+1
 
@@ -439,7 +439,7 @@ subroutine elsi_get_nnz_real(def0,mat,n_row,n_col,nnz)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
 
-   character(len=40), parameter :: caller = "elsi_get_nnz_real"
+   character(len=*), parameter :: caller = "elsi_get_nnz_real"
 
    nnz = 0
 
@@ -469,7 +469,7 @@ subroutine elsi_get_nnz_cmplx(def0,mat,n_row,n_col,nnz)
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
 
-   character(len=40), parameter :: caller = "elsi_get_nnz_cmplx"
+   character(len=*), parameter :: caller = "elsi_get_nnz_cmplx"
 
    nnz = 0
 
@@ -502,7 +502,7 @@ subroutine elsi_trace_mat_real(ph,bh,row_map,col_map,mat,trace)
    integer(kind=i4) :: ierr
    real(kind=r8)    :: l_trace ! Local result
 
-   character(len=40), parameter :: caller = "elsi_trace_mat_real"
+   character(len=*), parameter :: caller = "elsi_trace_mat_real"
 
    l_trace = 0.0_r8
 
@@ -537,7 +537,7 @@ subroutine elsi_trace_mat_cmplx(ph,bh,row_map,col_map,mat,trace)
    integer(kind=i4) :: ierr
    complex(kind=r8) :: l_trace ! Local result
 
-   character(len=40), parameter :: caller = "elsi_trace_mat_cmplx"
+   character(len=*), parameter :: caller = "elsi_trace_mat_cmplx"
 
    l_trace = 0.0_r8
 
@@ -571,7 +571,7 @@ subroutine elsi_trace_mat_mat_real(bh,mat1,mat2,trace)
 
    real(kind=r8), external :: ddot
 
-   character(len=40), parameter :: caller = "elsi_trace_mat_mat_real"
+   character(len=*), parameter :: caller = "elsi_trace_mat_mat_real"
 
    l_trace = ddot(bh%n_lrow*bh%n_lcol,mat1,1,mat2,1)
 
@@ -599,7 +599,7 @@ subroutine elsi_trace_mat_mat_cmplx(bh,mat1,mat2,trace)
 
    complex(kind=r8), external :: zdotc
 
-   character(len=40), parameter :: caller = "elsi_trace_mat_mat_cmplx"
+   character(len=*), parameter :: caller = "elsi_trace_mat_mat_cmplx"
 
    l_trace = zdotc(bh%n_lrow*bh%n_lcol,mat1,1,mat2,1)
 
@@ -629,7 +629,7 @@ subroutine elsi_set_full_mat_real(ph,bh,uplo,row_map,col_map,mat)
 
    real(kind=r8), allocatable :: tmp_real(:,:)
 
-   character(len=40), parameter :: caller = "elsi_set_full_mat_real"
+   character(len=*), parameter :: caller = "elsi_set_full_mat_real"
 
    call elsi_allocate(bh,tmp_real,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp_real",&
            caller)
@@ -683,7 +683,7 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,row_map,col_map,mat)
 
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
-   character(len=40), parameter :: caller = "elsi_set_full_mat_cmplx"
+   character(len=*), parameter :: caller = "elsi_set_full_mat_cmplx"
 
    call elsi_allocate(bh,tmp_cmplx,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp_cmplx",&
            caller)

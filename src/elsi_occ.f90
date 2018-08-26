@@ -46,7 +46,7 @@ subroutine elsi_compute_mu_and_occ(eh,n_electron,n_state,n_spin,n_kpt,&
    real(kind=r8),     intent(out) :: occ_nums(n_state,n_spin,n_kpt) !< Occupation members
    real(kind=r8),     intent(out) :: mu                             !< Chemical potential
 
-   character(len=40), parameter :: caller = "elsi_compute_mu_and_occ"
+   character(len=*), parameter :: caller = "elsi_compute_mu_and_occ"
 
    call elsi_mu_and_occ(eh%ph,eh%bh,n_electron,n_state,n_spin,n_kpt,k_weights,&
            evals,occ_nums,mu)
@@ -83,7 +83,7 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_weights,&
    integer(kind=i4) :: i_spin
    integer(kind=i4) :: n_steps
 
-   character(len=40), parameter :: caller = "elsi_mu_and_occ"
+   character(len=*), parameter :: caller = "elsi_mu_and_occ"
 
    ! Determine smallest and largest eivenvalues
    e_low  = evals(1,1,1)
@@ -179,7 +179,7 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
    integer(kind=i4) :: i_spin
    integer(kind=i4) :: i_mp
 
-   character(len=40), parameter :: caller = "elsi_check_electrons"
+   character(len=*), parameter :: caller = "elsi_check_electrons"
 
    invert_width = 1.0_r8/ph%mu_width
    diff_ne_out  = 0.0_r8
@@ -338,7 +338,7 @@ subroutine elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
    integer(kind=i4)   :: n_steps
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_find_mu"
+   character(len=*), parameter :: caller = "elsi_find_mu"
 
    n_steps  = 0
    found_mu = .false.
@@ -419,8 +419,6 @@ subroutine elsi_adjust_occ(ph,bh,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&
    real(kind=r8),      intent(inout) :: occ_nums(n_state,n_spin,n_kpt)
    real(kind=r8),      intent(inout) :: diff_ne
 
-   real(kind=r8), allocatable :: eval_aux(:)
-
    real(kind=r8)    :: min_eval
    integer(kind=i4) :: max_id
    integer(kind=i4) :: i_state
@@ -429,7 +427,9 @@ subroutine elsi_adjust_occ(ph,bh,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&
    integer(kind=i4) :: i_val
    integer(kind=i4) :: n_total
 
-   character(len=40), parameter :: caller = "elsi_adjust_occ"
+   real(kind=r8), allocatable :: eval_aux(:)
+
+   character(len=*), parameter :: caller = "elsi_adjust_occ"
 
    n_total = n_state*n_spin*n_kpt
 
@@ -494,7 +494,7 @@ subroutine elsi_compute_entropy(eh,n_state,n_spin,n_kpt,k_weights,evals,&
    real(kind=r8),     intent(in)  :: mu                             !< Input chemical potential
    real(kind=r8),     intent(out) :: ts                             !< Entropy
 
-   character(len=40), parameter :: caller = "elsi_compute_entropy"
+   character(len=*), parameter :: caller = "elsi_compute_entropy"
 
    call elsi_entropy(eh%ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
 
@@ -532,8 +532,8 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
    integer(kind=i4) :: i_spin
    integer(kind=i4) :: i_mp
 
-   real(kind=r8),     parameter :: ts_thr = 1.0e-15_r8
-   character(len=40), parameter :: caller = "elsi_entropy"
+   real(kind=r8),    parameter :: ts_thr = 1.0e-15_r8
+   character(len=*), parameter :: caller = "elsi_entropy"
 
    invert_width = 1.0_r8/ph%mu_width
    ts           = 0.0_r8

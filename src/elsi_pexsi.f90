@@ -72,7 +72,7 @@ subroutine elsi_init_pexsi(ph,bh)
    integer(kind=i4) :: log_id
    integer(kind=i4) :: ierr
 
-   character(len=40), parameter :: caller = "elsi_init_pexsi"
+   character(len=*), parameter :: caller = "elsi_init_pexsi"
 
    if(.not. ph%pexsi_started) then
       ph%pexsi_options%spin = ph%spin_degen
@@ -201,7 +201,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    real(kind=r8), external :: ddot
 
-   character(len=40), parameter :: caller = "elsi_solve_pexsi_real"
+   character(len=*), parameter :: caller = "elsi_solve_pexsi_real"
 
    ! Load sparse matrices for PEXSI
    if(ph%ovlp_is_unit) then
@@ -556,7 +556,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    real(kind=r8), allocatable :: tmp_real(:)
    real(kind=r8), allocatable :: send_buf(:)
 
-   character(len=40), parameter :: caller = "elsi_compute_edm_pexsi_real"
+   character(len=*), parameter :: caller = "elsi_compute_edm_pexsi_real"
 
    call elsi_get_time(t0)
 
@@ -729,7 +729,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    complex(kind=r8), external :: zdotc
 
-   character(len=40), parameter :: caller = "elsi_solve_pexsi_cmplx"
+   character(len=*), parameter :: caller = "elsi_solve_pexsi_cmplx"
 
    ! Load sparse matrices for PEXSI
    if(ph%ovlp_is_unit) then
@@ -1085,7 +1085,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    complex(kind=r8), allocatable :: tmp_cmplx(:)
    complex(kind=r8), allocatable :: send_buf_cmplx(:)
 
-   character(len=40), parameter :: caller = "elsi_compute_edm_pexsi_cmplx"
+   character(len=*), parameter :: caller = "elsi_compute_edm_pexsi_cmplx"
 
    call elsi_get_time(t0)
 
@@ -1222,7 +1222,7 @@ subroutine elsi_set_pexsi_default(ph)
 
    type(elsi_param_t), intent(inout) :: ph
 
-   character(len=40), parameter :: caller = "elsi_set_pexsi_default"
+   character(len=*), parameter :: caller = "elsi_set_pexsi_default"
 
    ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(ph%pexsi_options)
@@ -1247,7 +1247,7 @@ subroutine elsi_cleanup_pexsi(ph)
 
    integer(kind=i4) :: ierr
 
-   character(len=40), parameter :: caller = "elsi_cleanup_pexsi"
+   character(len=*), parameter :: caller = "elsi_cleanup_pexsi"
 
    if(ph%pexsi_started) then
       call f_ppexsi_plan_finalize(ph%pexsi_plan,ierr)

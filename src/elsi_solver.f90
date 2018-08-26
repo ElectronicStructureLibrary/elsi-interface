@@ -13,7 +13,7 @@ module ELSI_SOLVER
 
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
                              NTPOLY_SOLVER,MULTI_PROC,SINGLE_PROC,PEXSI_CSC,&
-                             SIESTA_CSC,DATETIME_LEN
+                             SIESTA_CSC
    use ELSI_DATATYPE,  only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_NTPOLY,    only: elsi_init_ntpoly,elsi_solve_ntpoly
    use ELSI_ELPA,      only: elsi_init_elpa,elsi_compute_occ_elpa,&
@@ -74,7 +74,7 @@ subroutine elsi_get_energy(ph,bh,energy,solver)
    real(kind=r8)    :: tmp_real
    integer(kind=i4) :: ierr
 
-   character(len=40), parameter :: caller = "elsi_get_energy"
+   character(len=*), parameter :: caller = "elsi_get_energy"
 
    energy = ph%ebs*ph%i_weight
 
@@ -111,10 +111,10 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(eh%ph%n_basis)             !< Eigenvalues
    real(kind=r8),     intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
-   real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: dt0
+   real(kind=r8)     :: t0
+   character(len=29) :: dt0
 
-   character(len=40), parameter :: caller = "elsi_ev_real"
+   character(len=*), parameter :: caller = "elsi_ev_real"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
    call elsi_check(eh%ph,eh%bh,caller)
@@ -202,10 +202,10 @@ subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(eh%ph%n_basis)             !< Eigenvalues
    complex(kind=r8),  intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
-   real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: dt0
+   real(kind=r8)     :: t0
+   character(len=29) :: dt0
 
-   character(len=40), parameter :: caller = "elsi_ev_complex"
+   character(len=*), parameter :: caller = "elsi_ev_complex"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
    call elsi_check(eh%ph,eh%bh,caller)
@@ -246,10 +246,10 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(eh%ph%n_basis)             !< Eigenvalues
    real(kind=r8),     intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
-   real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: dt0
+   real(kind=r8)     :: t0
+   character(len=29) :: dt0
 
-   character(len=40), parameter :: caller = "elsi_ev_real_sparse"
+   character(len=*), parameter :: caller = "elsi_ev_real_sparse"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
    call elsi_check(eh%ph,eh%bh,caller)
@@ -391,10 +391,10 @@ subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
    real(kind=r8),     intent(inout) :: eval(eh%ph%n_basis)             !< Eigenvalues
    complex(kind=r8),  intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
-   real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: dt0
+   real(kind=r8)     :: t0
+   character(len=29) :: dt0
 
-   character(len=40), parameter :: caller = "elsi_ev_complex_sparse"
+   character(len=*), parameter :: caller = "elsi_ev_complex_sparse"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
    call elsi_check(eh%ph,eh%bh,caller)
@@ -456,10 +456,10 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol)   !< Density matrix
    real(kind=r8),     intent(inout) :: energy                          !< Energy
 
-   real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: dt0
+   real(kind=r8)     :: t0
+   character(len=29) :: dt0
 
-   character(len=40), parameter :: caller = "elsi_dm_real"
+   character(len=*), parameter :: caller = "elsi_dm_real"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
    call elsi_check(eh%ph,eh%bh,caller)
@@ -704,10 +704,10 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
    complex(kind=r8),  intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol)   !< Density matrix
    real(kind=r8),     intent(inout) :: energy                          !< Energy
 
-   real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: dt0
+   real(kind=r8)     :: t0
+   character(len=29) :: dt0
 
-   character(len=40), parameter :: caller = "elsi_dm_complex"
+   character(len=*), parameter :: caller = "elsi_dm_complex"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
    call elsi_check(eh%ph,eh%bh,caller)
@@ -864,10 +864,10 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
    real(kind=r8),     intent(inout) :: dm(eh%bh%nnz_l_sp)   !< Density matrix
    real(kind=r8),     intent(inout) :: energy               !< Energy
 
-   real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: dt0
+   real(kind=r8)     :: t0
+   character(len=29) :: dt0
 
-   character(len=40), parameter :: caller = "elsi_dm_real_sparse"
+   character(len=*), parameter :: caller = "elsi_dm_real_sparse"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
    call elsi_check(eh%ph,eh%bh,caller)
@@ -1315,10 +1315,10 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
    complex(kind=r8),  intent(inout) :: dm(eh%bh%nnz_l_sp)   !< Density matrix
    real(kind=r8),     intent(inout) :: energy               !< Energy
 
-   real(kind=r8)               :: t0
-   character(len=DATETIME_LEN) :: dt0
+   real(kind=r8)     :: t0
+   character(len=29) :: dt0
 
-   character(len=40), parameter :: caller = "elsi_dm_complex_sparse"
+   character(len=*), parameter :: caller = "elsi_dm_complex_sparse"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
    call elsi_check(eh%ph,eh%bh,caller)
@@ -1599,7 +1599,7 @@ subroutine elsi_init_blacs(eh)
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: block_size
 
-   character(len=40), parameter :: caller = "elsi_init_blacs"
+   character(len=*), parameter :: caller = "elsi_init_blacs"
 
    if(eh%ph%parallel_mode == MULTI_PROC .and. .not. eh%bh%blacs_ready) then
       ! Set square-like process grid

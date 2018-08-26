@@ -10,9 +10,8 @@
 module ELSI_IO
 
    use ELSI_CONSTANTS, only: MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
-                             SIESTA_CSC,UNSET,STR_LEN,UUID_LEN,ELPA_SOLVER,&
-                             PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,NTPOLY_SOLVER,&
-                             DATETIME_LEN
+                             SIESTA_CSC,UNSET,ELPA_SOLVER,PEXSI_SOLVER,&
+                             SIPS_SOLVER,OMM_SOLVER,NTPOLY_SOLVER
    use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_PRECISION, only: r8,i4,i8
    use FORTJSON,       only: fjson_write_name_value,fjson_reset_fj_handle,&
@@ -46,7 +45,7 @@ subroutine elsi_say(bh,info_str)
    type(elsi_basic_t), intent(in) :: bh
    character(len=*),   intent(in) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_say"
+   character(len=*), parameter :: caller = "elsi_say"
 
    if(bh%print_info > 0) then
       write(bh%print_unit,"(A)") trim(info_str)
@@ -61,18 +60,18 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
 
    implicit none
 
-   type(elsi_param_t),          intent(in)    :: ph
-   type(elsi_basic_t),          intent(inout) :: bh
-   type(fjson_handle),          intent(inout) :: jh
-   character(len=DATETIME_LEN), intent(in)    :: dt0
-   real(kind=r8),               intent(in)    :: t0
-   character(len=*),            intent(in)    :: caller
+   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_basic_t), intent(inout) :: bh
+   type(fjson_handle), intent(inout) :: jh
+   character(len=*),   intent(in)    :: dt0
+   real(kind=r8),      intent(in)    :: t0
+   character(len=*),   intent(in)    :: caller
 
-   integer(kind=i4)            :: solver_use
-   real(kind=r8)               :: t1
-   real(kind=r8)               :: t_total
-   character(len=STR_LEN)      :: solver_tag
-   character(len=DATETIME_LEN) :: dt_record
+   integer(kind=i4)  :: solver_use
+   real(kind=r8)     :: t1
+   real(kind=r8)     :: t_total
+   character(len=20) :: solver_tag
+   character(len=29) :: dt_record
 
    if(bh%print_json > 0) then
       if(.not. bh%json_init) then
@@ -183,7 +182,7 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
 
    real(kind=r8) :: sparsity
 
-   character(len=40), parameter :: caller = "elsi_print_handle_summary"
+   character(len=*), parameter :: caller = "elsi_print_handle_summary"
 
    call fjson_write_name_value(jh,"n_electrons",ph%n_electrons)
    if(ph%parallel_mode == MULTI_PROC) then
@@ -234,8 +233,8 @@ subroutine elsi_print_versioning(uuid,jh)
 
    implicit none
 
-   character(len=UUID_LEN), intent(in)    :: uuid
-   type(fjson_handle),      intent(inout) :: jh
+   character(len=*),   intent(in)    :: uuid
+   type(fjson_handle), intent(inout) :: jh
 
    logical           :: MODIFIED
    character(len=8)  :: VERSION
@@ -245,7 +244,7 @@ subroutine elsi_print_versioning(uuid,jh)
    character(len=40) :: HOSTNAME
    character(len=20) :: DATETIME
 
-   character(len=40), parameter :: caller = "elsi_print_versioning"
+   character(len=*), parameter :: caller = "elsi_print_versioning"
 
    call elsi_version_info(VERSION,DATESTAMP,COMMIT,MODIFIED,MESSAGE,HOSTNAME,&
            DATETIME)
@@ -272,7 +271,7 @@ subroutine elsi_print_ntpoly_settings(ph,jh)
    type(elsi_param_t), intent(in)    :: ph
    type(fjson_handle), intent(inout) :: jh
 
-   character(len=40), parameter :: caller = "elsi_print_ntpoly_settings"
+   character(len=*), parameter :: caller = "elsi_print_ntpoly_settings"
 
    call fjson_start_name_object(jh,"solver_settings")
    call fjson_write_name_value(jh,"nt_method",ph%nt_method)
@@ -293,7 +292,7 @@ subroutine elsi_print_elpa_settings(ph,jh)
    type(elsi_param_t), intent(in)    :: ph
    type(fjson_handle), intent(inout) :: jh
 
-   character(len=40), parameter :: caller = "elsi_print_elpa_settings"
+   character(len=*), parameter :: caller = "elsi_print_elpa_settings"
 
    call fjson_start_name_object(jh,"solver_settings")
    call fjson_write_name_value(jh,"elpa_solver",ph%elpa_solver)
@@ -316,7 +315,7 @@ subroutine elsi_print_omm_settings(ph,jh)
    type(elsi_param_t), intent(in)    :: ph
    type(fjson_handle), intent(inout) :: jh
 
-   character(len=40), parameter :: caller = "elsi_print_omm_settings"
+   character(len=*), parameter :: caller = "elsi_print_omm_settings"
 
    call fjson_start_name_object(jh,"solver_settings")
    call fjson_write_name_value(jh,"omm_n_states",ph%omm_n_states)
@@ -337,7 +336,7 @@ subroutine elsi_print_pexsi_settings(ph,jh)
    type(elsi_param_t), intent(in)    :: ph
    type(fjson_handle), intent(inout) :: jh
 
-   character(len=40), parameter :: caller = "elsi_print_pexsi_settings"
+   character(len=*), parameter :: caller = "elsi_print_pexsi_settings"
 
    call fjson_start_name_object(jh,"solver_settings")
    call fjson_write_name_value(jh,"pexsi_n_pole",ph%pexsi_options%numPole)
@@ -375,7 +374,7 @@ subroutine elsi_print_sips_settings(ph,jh)
    type(elsi_param_t), intent(in)    :: ph
    type(fjson_handle), intent(inout) :: jh
 
-   character(len=40), parameter :: caller = "elsi_print_sips_settings"
+   character(len=*), parameter :: caller = "elsi_print_sips_settings"
 
    call fjson_start_name_object(jh,"solver_settings")
    call fjson_write_name_value(jh,"sips_n_states",ph%n_states)
@@ -398,7 +397,7 @@ subroutine elsi_print_den_settings(bh,jh)
    type(elsi_basic_t), intent(in)    :: bh
    type(fjson_handle), intent(inout) :: jh
 
-   character(len=40), parameter :: caller = "elsi_print_den_settings"
+   character(len=*), parameter :: caller = "elsi_print_den_settings"
 
    call fjson_start_name_object(jh,"matrix_format_settings")
    call fjson_write_name_value(jh,"blk",bh%blk)
@@ -419,7 +418,7 @@ subroutine elsi_print_csc_settings(bh,jh)
    type(elsi_basic_t), intent(in)    :: bh
    type(fjson_handle), intent(inout) :: jh
 
-   character(len=40), parameter :: caller = "elsi_print_csc_settings"
+   character(len=*), parameter :: caller = "elsi_print_csc_settings"
 
    call fjson_start_name_object(jh,"matrix_format_settings")
    call fjson_write_name_value(jh,"def0",bh%def0)
@@ -444,7 +443,7 @@ subroutine elsi_final_print(ph,bh)
    character(len=200) :: ll
    character(len=200) :: info_str
 
-   character(len=40), parameter :: caller = "elsi_final_print"
+   character(len=*), parameter :: caller = "elsi_final_print"
 
    write(ll,"(2X,A)") "|------------------------------------------------------"
    call elsi_say(bh,ll)
@@ -573,7 +572,7 @@ subroutine elsi_get_time(wtime)
    real(kind=r8)     :: second
    real(kind=r8)     :: millisecond
 
-   character(len=40), parameter :: caller = "elsi_get_time"
+   character(len=*), parameter :: caller = "elsi_get_time"
 
    call date_and_time(cdate,ctime)
 
@@ -647,7 +646,7 @@ subroutine elsi_gen_uuid(uuid)
 
    implicit none
 
-   character(len=UUID_LEN), intent(out) :: uuid
+   character(len=36), intent(out) :: uuid
 
    integer(kind=i4) :: ii3
    integer(kind=i4) :: ii4
@@ -656,7 +655,7 @@ subroutine elsi_gen_uuid(uuid)
    character(len=3) :: ss3
    character(len=4) :: ss4
 
-   character(len=40), parameter :: caller = "elsi_gen_uuid"
+   character(len=*), parameter :: caller = "elsi_gen_uuid"
 
    call elsi_init_random_seed()
 
@@ -723,7 +722,7 @@ subroutine elsi_init_random_seed()
 
    integer(kind=i4), allocatable :: seed(:)
 
-   character(len=40), parameter :: caller = "elsi_init_random_seed"
+   character(len=*), parameter :: caller = "elsi_init_random_seed"
 
    call random_seed(size=n)
    call date_and_time(values=dt)

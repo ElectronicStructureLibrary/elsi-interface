@@ -60,7 +60,7 @@ subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    real(kind=r8),     intent(in)  :: n_electron    !< Number of electrons
    integer(kind=i4),  intent(in)  :: n_state       !< Number of states
 
-   character(len=40), parameter :: caller = "elsi_init"
+   character(len=*), parameter :: caller = "elsi_init"
 
    ! For safety
    call elsi_cleanup(eh)
@@ -107,7 +107,7 @@ subroutine elsi_set_mpi(eh,comm)
 
    integer(kind=i4) :: ierr
 
-   character(len=40), parameter :: caller = "elsi_set_mpi"
+   character(len=*), parameter :: caller = "elsi_set_mpi"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
@@ -134,7 +134,7 @@ subroutine elsi_set_mpi_global(eh,comm_all)
 
    integer(kind=i4) :: ierr
 
-   character(len=40), parameter :: caller = "elsi_set_mpi_global"
+   character(len=*), parameter :: caller = "elsi_set_mpi_global"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
@@ -201,7 +201,7 @@ subroutine elsi_set_blacs(eh,blacs_ctxt,block_size)
 
    integer(kind=i4), external :: numroc
 
-   character(len=40), parameter :: caller = "elsi_set_blacs"
+   character(len=*), parameter :: caller = "elsi_set_blacs"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
@@ -260,7 +260,7 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
    integer(kind=i4),  intent(in)    :: row_ind(nnz_l)    !< Row index
    integer(kind=i4),  intent(in)    :: col_ptr(n_lcol+1) !< Column pointer
 
-   character(len=40), parameter :: caller = "elsi_set_csc"
+   character(len=*), parameter :: caller = "elsi_set_csc"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
@@ -318,7 +318,7 @@ subroutine elsi_finalize(eh)
 
    type(elsi_handle), intent(inout) :: eh !< Handle
 
-   character(len=40), parameter :: caller = "elsi_finalize"
+   character(len=*), parameter :: caller = "elsi_finalize"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
    call elsi_final_print(eh%ph,eh%bh)
@@ -335,7 +335,7 @@ subroutine elsi_cleanup(eh)
 
    type(elsi_handle), intent(inout) :: eh
 
-   character(len=40), parameter :: caller = "elsi_cleanup"
+   character(len=*), parameter :: caller = "elsi_cleanup"
 
    call elsi_cleanup_elpa(eh%ph)
    call elsi_cleanup_ntpoly(eh%ph)

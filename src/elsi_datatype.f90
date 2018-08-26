@@ -10,7 +10,6 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANTS,     only: STR_LEN,UUID_LEN
    use ELSI_PRECISION,     only: r8,i4
    use ELPA,               only: elpa_t,elpa_autotune_t
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
@@ -26,13 +25,13 @@ module ELSI_DATATYPE
    type, public :: elsi_basic_t
 
       ! IO
-      integer(kind=i4)        :: print_info
-      integer(kind=i4)        :: print_unit
-      integer(kind=i4)        :: print_json
-      logical                 :: json_init = .false.
-      character(len=STR_LEN)  :: user_tag
-      character(len=UUID_LEN) :: uuid
-      logical                 :: uuid_ready = .false.
+      integer(kind=i4)  :: print_info
+      integer(kind=i4)  :: print_unit
+      integer(kind=i4)  :: print_json
+      logical           :: json_init = .false.
+      character(len=20) :: user_tag
+      character(len=36) :: uuid
+      logical           :: uuid_ready = .false.
 
       ! MPI
       integer(kind=i4) :: myid

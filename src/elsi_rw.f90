@@ -64,7 +64,7 @@ subroutine elsi_init_rw(rwh,task,parallel_mode,n_basis,n_electron)
    integer(kind=i4),     intent(in)  :: n_basis       !< Number of basis functions
    real(kind=r8),        intent(in)  :: n_electron    !< Number of electrons
 
-   character(len=40), parameter :: caller = "elsi_init_rw"
+   character(len=*), parameter :: caller = "elsi_init_rw"
 
    ! For safety
    call elsi_reset_rw(rwh)
@@ -94,7 +94,7 @@ subroutine elsi_finalize_rw(rwh)
 
    type(elsi_rw_handle), intent(inout) :: rwh !< Handle
 
-   character(len=40), parameter :: caller = "elsi_finalize_rw"
+   character(len=*), parameter :: caller = "elsi_finalize_rw"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_reset_rw(rwh)
@@ -114,7 +114,7 @@ subroutine elsi_set_rw_mpi(rwh,mpi_comm)
 
    integer(kind=i4) :: ierr
 
-   character(len=40), parameter :: caller = "elsi_set_rw_mpi"
+   character(len=*), parameter :: caller = "elsi_set_rw_mpi"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
 
@@ -147,7 +147,7 @@ subroutine elsi_set_rw_blacs(rwh,blacs_ctxt,block_size)
 
    integer(kind=i4), external :: numroc
 
-   character(len=40), parameter :: caller = "elsi_set_rw_blacs"
+   character(len=*), parameter :: caller = "elsi_set_rw_blacs"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
 
@@ -179,7 +179,7 @@ subroutine elsi_set_rw_csc(rwh,nnz_g,nnz_l_sp,n_lcol_sp)
    integer(kind=i4),     intent(in)    :: nnz_l_sp  !< Local number of nonzeros
    integer(kind=i4),     intent(in)    :: n_lcol_sp !< Local number of columns
 
-   character(len=40), parameter :: caller = "elsi_set_rw_csc"
+   character(len=*), parameter :: caller = "elsi_set_rw_csc"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
 
@@ -199,7 +199,7 @@ subroutine elsi_set_rw_zero_def(rwh,zero_def)
    type(elsi_rw_handle), intent(inout) :: rwh      !< Handle
    real(kind=r8),        intent(in)    :: zero_def !< Zero tolerance
 
-   character(len=40), parameter :: caller = "elsi_set_rw_zero_def"
+   character(len=*), parameter :: caller = "elsi_set_rw_zero_def"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
 
@@ -217,7 +217,7 @@ subroutine elsi_set_rw_header(rwh,header_user)
    type(elsi_rw_handle), intent(inout) :: rwh            !< Handle
    integer(kind=i4),     intent(in)    :: header_user(8) !< User's header
 
-   character(len=40), parameter :: caller = "elsi_set_rw_header"
+   character(len=*), parameter :: caller = "elsi_set_rw_header"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
 
@@ -235,7 +235,7 @@ subroutine elsi_get_rw_header(rwh,header_user)
    type(elsi_rw_handle), intent(in)  :: rwh            !< Handle
    integer(kind=i4),     intent(out) :: header_user(8) !< User's header
 
-   character(len=40), parameter :: caller = "elsi_get_rw_header"
+   character(len=*), parameter :: caller = "elsi_get_rw_header"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
 
@@ -282,7 +282,7 @@ subroutine elsi_reset_rw(rwh)
 
    type(elsi_rw_handle), intent(out) :: rwh
 
-   character(len=40), parameter :: caller = "elsi_reset_rw"
+   character(len=*), parameter :: caller = "elsi_reset_rw"
 
    rwh%rw_task       = UNSET
    rwh%parallel_mode = UNSET
@@ -309,7 +309,7 @@ subroutine elsi_read_mat_dim(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    integer(kind=i4),     intent(out)   :: n_lrow     !< Local number of rows
    integer(kind=i4),     intent(out)   :: n_lcol     !< Local number of columns
 
-   character(len=40), parameter :: caller = "elsi_read_mat_dim"
+   character(len=*), parameter :: caller = "elsi_read_mat_dim"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
 
@@ -332,7 +332,7 @@ subroutine elsi_read_mat_real(rwh,f_name,mat)
    character(len=*),     intent(in)    :: f_name                           !< File name
    real(kind=r8),        intent(out)   :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
-   character(len=40), parameter :: caller = "elsi_read_mat_real"
+   character(len=*), parameter :: caller = "elsi_read_mat_real"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
@@ -356,7 +356,7 @@ subroutine elsi_write_mat_real(rwh,f_name,mat)
    character(len=*),     intent(in) :: f_name                           !< File name
    real(kind=r8),        intent(in) :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
-   character(len=40), parameter :: caller = "elsi_write_mat_real"
+   character(len=*), parameter :: caller = "elsi_write_mat_real"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
@@ -380,7 +380,7 @@ subroutine elsi_read_mat_complex(rwh,f_name,mat)
    character(len=*),     intent(in)    :: f_name                           !< File name
    complex(kind=r8),     intent(out)   :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
-   character(len=40), parameter :: caller = "elsi_read_mat_complex"
+   character(len=*), parameter :: caller = "elsi_read_mat_complex"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
@@ -404,7 +404,7 @@ subroutine elsi_write_mat_complex(rwh,f_name,mat)
    character(len=*),     intent(in) :: f_name                           !< File name
    complex(kind=r8),     intent(in) :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
-   character(len=40), parameter :: caller = "elsi_write_mat_complex"
+   character(len=*), parameter :: caller = "elsi_write_mat_complex"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
@@ -444,7 +444,7 @@ subroutine elsi_read_mat_dim_mp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
 
    integer(kind=i4), external :: numroc
 
-   character(len=40), parameter :: caller = "elsi_read_mat_dim_mp"
+   character(len=*), parameter :: caller = "elsi_read_mat_dim_mp"
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -518,7 +518,7 @@ subroutine elsi_read_mat_dim_sparse(rwh,f_name,n_electron,n_basis,nnz_g,&
 
    integer(kind=i4), allocatable :: col_ptr(:)
 
-   character(len=40), parameter :: caller = "elsi_read_mat_dim_sparse"
+   character(len=*), parameter :: caller = "elsi_read_mat_dim_sparse"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
 
@@ -616,7 +616,7 @@ subroutine elsi_read_mat_real_mp(rwh,f_name,mat)
 
    type(elsi_handle) :: eh
 
-   character(len=40), parameter :: caller = "elsi_read_mat_real_mp"
+   character(len=*), parameter :: caller = "elsi_read_mat_real_mp"
 
    call elsi_init(eh,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rwh%n_basis,&
            rwh%n_electrons,0)
@@ -721,7 +721,7 @@ subroutine elsi_read_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
 
-   character(len=40), parameter :: caller = "elsi_read_mat_real_sparse"
+   character(len=*), parameter :: caller = "elsi_read_mat_real_sparse"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
@@ -799,7 +799,7 @@ subroutine elsi_read_mat_complex_mp(rwh,f_name,mat)
 
    type(elsi_handle) :: eh
 
-   character(len=40), parameter :: caller = "elsi_read_mat_complex_mp"
+   character(len=*), parameter :: caller = "elsi_read_mat_complex_mp"
 
    call elsi_init(eh,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rwh%n_basis,&
            rwh%n_electrons,0)
@@ -904,7 +904,7 @@ subroutine elsi_read_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
 
-   character(len=40), parameter :: caller = "elsi_read_mat_complex_sparse"
+   character(len=*), parameter :: caller = "elsi_read_mat_complex_sparse"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
@@ -985,7 +985,7 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
 
    type(elsi_handle) :: eh
 
-   character(len=40), parameter :: caller = "elsi_write_mat_real_mp"
+   character(len=*), parameter :: caller = "elsi_write_mat_real_mp"
 
    call elsi_init(eh,SIPS_SOLVER,MULTI_PROC,BLACS_DENSE,rwh%n_basis,&
            rwh%n_electrons,0)
@@ -1118,7 +1118,7 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
 
    type(elsi_handle) :: eh
 
-   character(len=40), parameter :: caller = "elsi_write_mat_complex_mp"
+   character(len=*), parameter :: caller = "elsi_write_mat_complex_mp"
 
    call elsi_init(eh,SIPS_SOLVER,MULTI_PROC,BLACS_DENSE,rwh%n_basis,&
            rwh%n_electrons,0)
@@ -1247,7 +1247,7 @@ subroutine elsi_write_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
 
    integer(kind=i4), allocatable :: col_ptr_shift(:)
 
-   character(len=40), parameter :: caller = "elsi_write_mat_real_sparse"
+   character(len=*), parameter :: caller = "elsi_write_mat_real_sparse"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
@@ -1349,7 +1349,7 @@ subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
 
    integer(kind=i4), allocatable :: col_ptr_shift(:)
 
-   character(len=40), parameter :: caller = "elsi_write_mat_complex_sparse"
+   character(len=*), parameter :: caller = "elsi_write_mat_complex_sparse"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
@@ -1446,7 +1446,7 @@ subroutine elsi_read_mat_dim_sp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    integer(kind=i4) :: header(HEADER_SIZE)
    integer(kind=i8) :: offset
 
-   character(len=40), parameter :: caller = "elsi_read_mat_dim_sp"
+   character(len=*), parameter :: caller = "elsi_read_mat_dim_sp"
 
    ! Open file
    open(file=f_name,unit=99,access="stream",form="unformatted")
@@ -1492,7 +1492,7 @@ subroutine elsi_read_mat_real_sp(rwh,f_name,mat)
    integer(kind=i4), allocatable :: col_ptr(:)
    real(kind=r8),    allocatable :: nnz_val(:)
 
-   character(len=40), parameter :: caller = "elsi_read_mat_real_sp"
+   character(len=*), parameter :: caller = "elsi_read_mat_real_sp"
 
    ! Open file
    open(file=f_name,unit=99,access="stream",form="unformatted")
@@ -1574,7 +1574,7 @@ subroutine elsi_read_mat_complex_sp(rwh,f_name,mat)
    integer(kind=i4), allocatable :: col_ptr(:)
    complex(kind=r8), allocatable :: nnz_val(:)
 
-   character(len=40), parameter :: caller = "elsi_read_mat_complex_sp"
+   character(len=*), parameter :: caller = "elsi_read_mat_complex_sp"
 
    ! Open file
    open(file=f_name,unit=99,access="stream",form="unformatted")
@@ -1657,7 +1657,7 @@ subroutine elsi_write_mat_real_sp(rwh,f_name,mat)
    integer(kind=i4), allocatable :: col_ptr(:)
    real(kind=r8),    allocatable :: nnz_val(:)
 
-   character(len=40), parameter :: caller = "elsi_write_mat_real_sp"
+   character(len=*), parameter :: caller = "elsi_write_mat_real_sp"
 
    ! Compute nnz
    call elsi_get_nnz(rwh%bh%def0,mat,rwh%bh%n_lrow,rwh%bh%n_lcol,nnz_g)
@@ -1748,7 +1748,7 @@ subroutine elsi_write_mat_complex_sp(rwh,f_name,mat)
    integer(kind=i4), allocatable :: col_ptr(:)
    complex(kind=r8), allocatable :: nnz_val(:)
 
-   character(len=40), parameter :: caller = "elsi_write_mat_complex_sp"
+   character(len=*), parameter :: caller = "elsi_write_mat_complex_sp"
 
    ! Compute nnz
    call elsi_get_nnz(rwh%bh%def0,mat,rwh%bh%n_lrow,rwh%bh%n_lcol,nnz_g)

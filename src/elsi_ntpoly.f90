@@ -71,7 +71,7 @@ subroutine elsi_init_ntpoly(ph,bh)
    integer(kind=i4) :: np_per_group
    integer(kind=i4) :: ierr
 
-   character(len=40), parameter :: caller = "elsi_init_ntpoly"
+   character(len=*), parameter :: caller = "elsi_init_ntpoly"
 
    if(.not. ph%nt_started) then
       np_per_group = bh%n_procs/ph%nt_n_group
@@ -116,7 +116,7 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
 
    type(DistributedSparseMatrix_t) :: ovlp_isr
 
-   character(len=40), parameter :: caller = "elsi_solve_ntpoly_real"
+   character(len=*), parameter :: caller = "elsi_solve_ntpoly_real"
 
    if(ph%n_calls == 1) then
       call elsi_get_time(t0)
@@ -194,7 +194,7 @@ subroutine elsi_compute_edm_ntpoly_real(ph,bh,ham,edm)
 
    type(DistributedSparseMatrix_t) :: tmp
 
-   character(len=40), parameter :: caller = "elsi_compute_edm_ntpoly_real"
+   character(len=*), parameter :: caller = "elsi_compute_edm_ntpoly_real"
 
    call elsi_get_time(t0)
 
@@ -228,7 +228,7 @@ subroutine elsi_cleanup_ntpoly(ph)
 
    type(elsi_param_t), intent(inout) :: ph
 
-   character(len=40), parameter :: caller = "elsi_cleanup_ntpoly"
+   character(len=*), parameter :: caller = "elsi_cleanup_ntpoly"
 
    if(ph%nt_started) then
       call DestructDistributedSparseMatrix(ph%nt_ham)
