@@ -12,36 +12,35 @@ MODULE MinimizerSolversModule
   USE PSMatrixModule, ONLY : Matrix_ps, ConstructEmptyMatrix, CopyMatrix, &
        & DestructMatrix, FillMatrixIdentity, PrintMatrixInformation
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters
-  USE MPI
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !! Solvers
+!! Solvers
   PUBLIC :: ConjugateGradient
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute the density matrix from a Hamiltonian using the CG method.
-  !> Based on two papers. The first by Scuseria \cite millam1997linear developed
-  !> the initial method, and then Challacombe \cite challacombe1999simplified
-  !> developed a simplified scheme.
+!> Compute the density matrix from a Hamiltonian using the CG method.
+!> Based on two papers. The first by Scuseria \cite millam1997linear developed
+!> the initial method, and then Challacombe \cite challacombe1999simplified
+!> developed a simplified scheme.
   SUBROUTINE ConjugateGradient(Hamiltonian, InverseSquareRoot, nel, Density, &
        & energy_value_out, chemical_potential_out, solver_parameters_in)
-    !> The matrix to compute the corresponding density from.
+!> The matrix to compute the corresponding density from.
     TYPE(Matrix_ps), INTENT(IN)  :: Hamiltonian
-    !> The inverse square root of the overlap matrix.
+!> The inverse square root of the overlap matrix.
     TYPE(Matrix_ps), INTENT(IN)  :: InverseSquareRoot
-    !> The number of electrons.
+!> The number of electrons.
     INTEGER, INTENT(IN) :: nel
-    !> The density matrix computed by this routine.
+!> The density matrix computed by this routine.
     TYPE(Matrix_ps), INTENT(INOUT) :: Density
-    !> Energy of the system
+!> Energy of the system
     REAL(NTREAL), INTENT(OUT), OPTIONAL :: energy_value_out
-    !> The chemical potential.
+!> The chemical potential.
     REAL(NTREAL), INTENT(OUT), OPTIONAL :: chemical_potential_out
-    !> Parameters for the solver.
+!> Parameters for the solver.
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
-    !! Handling Optional Parameters
+!! Handling Optional Parameters
     TYPE(SolverParameters_t) :: solver_parameters
-    !! Local Variables
+!! Local Variables
     REAL(NTREAL) :: trace_value
     REAL(NTREAL) :: last_trace_value
     REAL(NTREAL) :: norm_value
@@ -58,12 +57,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL) :: b, c, d
     REAL(NTREAL) :: root1, root2, root_temp
     REAL(NTREAL) :: energy_value, energy_value2
-    !! Temporary Variables
+!! Temporary Variables
     TYPE(MatrixMemoryPool_p) :: pool1
     INTEGER :: outer_counter
     INTEGER :: matrix_dimension
 
-    !! Optional Parameters
+!! Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
@@ -78,7 +77,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintParameters(solver_parameters)
     END IF
 
-    !! Construct All The Necessary Matrices
+!! Construct All The Necessary Matrices
     matrix_dimension = Hamiltonian%actual_matrix_dimension
     CALL ConstructEmptyMatrix(Density, Hamiltonian)
     CALL ConstructEmptyMatrix(WorkingHamiltonian, Hamiltonian)
@@ -92,13 +91,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL ConstructEmptyMatrix(Identity, Hamiltonian)
     CALL FillMatrixIdentity(Identity)
 
-    !! Compute the working hamiltonian.
+!! Compute the working hamiltonian.
     CALL MatrixMultiply(InverseSquareRoot,Hamiltonian,TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool1)
     CALL MatrixMultiply(TempMat,InverseSquareRoot,WorkingHamiltonian, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool1)
 
-    !! Load Balancing Step
+!! Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL PermuteMatrix(WorkingHamiltonian, WorkingHamiltonian, &
             & solver_parameters%BalancePermutation, memorypool_in=pool1)
@@ -106,13 +105,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & solver_parameters%BalancePermutation, memorypool_in=pool1)
     END IF
 
-    !! Initialize
+!! Initialize
     trace_value = 0.0_NTREAL
     last_trace_value = 0.0_NTREAL
     CALL CopyMatrix(Identity, P_k)
     CALL ScaleMatrix(P_k,REAL(0.5*nel,NTREAL)/matrix_dimension)
 
-    !! Compute The Gradient
+!! Compute The Gradient
     CALL CopyMatrix(Identity,TempMat)
     CALL IncrementMatrix(P_k,TempMat,-1.0_NTREAL)
     CALL MatrixMultiply(P_k,WorkingHamiltonian,TempMat2, &
@@ -127,7 +126,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL ScaleMatrix(H_k,-1.0_NTREAL)
     CALL CopyMatrix(H_k,G_k)
 
-    !! Iterate
+!! Iterate
     IF (solver_parameters%be_verbose) THEN
        CALL WriteHeader("Iterations")
        CALL EnterSubLog
@@ -144,7 +143,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           CALL ExitSubLog
        END IF
 
-       !! Compute The Step Size
+!! Compute The Step Size
        CALL DotMatrix(H_k, Gradient, b)
        CALL MatrixMultiply(H_k,WorkingHamiltonian,TempMat, &
             & threshold_in=solver_parameters%threshold, memory_pool_in=pool1)
@@ -158,7 +157,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL DotMatrix(H_k, TempMat2, d)
        d = -2.0_NTREAL*d
 
-       !! Find optimal step size by solving a quadratic equation.
+!! Find optimal step size by solving a quadratic equation.
        root_temp = SQRT(c*c - 3.0_NTREAL * b * d)
        root1 = (-1.0_NTREAL*root_temp - c)/(3.0_NTREAL*d)
        root2 = (root_temp - c)/(3.0_NTREAL*d)
@@ -170,7 +169,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
        CALL IncrementMatrix(H_k,P_k,REAL(step_size,NTREAL))
 
-       !! Compute new gradient
+!! Compute new gradient
        CALL CopyMatrix(Identity,TempMat)
        CALL IncrementMatrix(P_k,TempMat,-1.0_NTREAL)
        CALL MatrixMultiply(P_k,WorkingHamiltonian,TempMat2, &
@@ -184,7 +183,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL CopyMatrix(Gradient,G_kplusone)
        CALL ScaleMatrix(G_kplusone,-1.0_NTREAL)
 
-       !! Compute conjugate direction
+!! Compute conjugate direction
        CALL DotMatrix(G_kplusone,G_kplusone,gamma)
        CALL DotMatrix(G_k, G_k, gamma_d)
        gamma = gamma/gamma_d
@@ -195,7 +194,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL IncrementMatrix(G_kplusone,H_k)
        CALL CopyMatrix(G_kplusone,G_k)
 
-       !! Energy value based convergence
+!! Energy value based convergence
        energy_value2 = energy_value
        CALL DotMatrix(P_k, WorkingHamiltonian, energy_value)
        energy_value = 2.0_NTREAL*energy_value
@@ -213,13 +212,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintMatrixInformation(P_k)
     END IF
 
-    !! Undo Load Balancing Step
+!! Undo Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL UndoPermuteMatrix(P_k, P_k, &
             & solver_parameters%BalancePermutation, memorypool_in=pool1)
     END IF
 
-    !! Compute the density matrix in the non-orthogonalized basis
+!! Compute the density matrix in the non-orthogonalized basis
     CALL MatrixMultiply(InverseSquareRoot,P_k,TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool1)
     CALL MatrixMultiply(TempMat,InverseSquareRoot,Density, &
@@ -232,7 +231,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        energy_value_out = energy_value
     END IF
 
-    !! Cleanup
+!! Cleanup
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF

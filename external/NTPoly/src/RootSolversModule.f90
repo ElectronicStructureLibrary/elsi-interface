@@ -17,30 +17,29 @@ MODULE RootSolversModule
        & DestructMatrix, FillMatrixIdentity, PrintMatrixInformation
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters
   USE SquareRootSolversModule, ONLY : SquareRoot, InverseSquareRoot
-  USE MPI
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !! Solvers
+!! Solvers
   PUBLIC :: ComputeRoot
   PUBLIC :: ComputeInverseRoot
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute a general matrix root.
+!> Compute a general matrix root.
   SUBROUTINE ComputeRoot(InputMat, OutputMat, root, solver_parameters_in)
-    !> The input matrix
+!> The input matrix
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
-    !> OutputMat = InputMat^1/root.
+!> OutputMat = InputMat^1/root.
     TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
-    !> Which root to compute.
+!> Which root to compute.
     INTEGER, INTENT(IN) :: root
-    !> Parameters for the solver
+!> Parameters for the solver
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
-    !! Handling Solver Parameters
+!! Handling Solver Parameters
     TYPE(SolverParameters_t) :: solver_parameters
-    !! Local Variables
+!! Local Variables
     TYPE(Matrix_ps) :: TempMat
 
-    !! Handle The Optional Parameters
+!! Handle The Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
@@ -54,7 +53,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintParameters(solver_parameters)
     END IF
 
-    !! Handle base cases, or call to general implementation.
+!! Handle base cases, or call to general implementation.
     IF (root .EQ. 1) THEN
        CALL CopyMatrix(InputMat, OutputMat)
     ELSE IF (root .EQ. 2) THEN
@@ -79,33 +78,33 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   END SUBROUTINE ComputeRoot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Actual implementation of computing a general matrix root.
+!> Actual implementation of computing a general matrix root.
   SUBROUTINE ComputeRootImplementation(InputMat, OutputMat, root, &
        & solver_parameters)
-    !> The input matrix
+!> The input matrix
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
-    !> OutputMat = InputMat^1/root.
+!> OutputMat = InputMat^1/root.
     TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
-    !> Which root to compute.
+!> Which root to compute.
     INTEGER, INTENT(IN) :: root
-    !> Parameters for the solver
+!> Parameters for the solver
     TYPE(SolverParameters_t), INTENT(IN) :: solver_parameters
-    !! Handling Solver Parameters
+!! Handling Solver Parameters
     TYPE(SolverParameters_t) :: fixed_parameters
-    !! Local Variables
+!! Local Variables
     TYPE(Matrix_ps) :: RaisedMat
     TYPE(Matrix_ps) :: TempMat
     TYPE(Polynomial_t) :: power_poly
     INTEGER :: counter
 
-    !! Set up the solver parameters
+!! Set up the solver parameters
     fixed_parameters%threshold = solver_parameters%threshold
     fixed_parameters%be_verbose = solver_parameters%be_verbose
     fixed_parameters%do_load_balancing = solver_parameters%do_load_balancing
     fixed_parameters%BalancePermutation = solver_parameters%BalancePermutation
 
-    !! We will use the formula A^(1/x) = A*A^(1/x - 1)
-    !! So first, we raise to the root-1 power
+!! We will use the formula A^(1/x) = A*A^(1/x - 1)
+!! So first, we raise to the root-1 power
     CALL ConstructPolynomial(power_poly,root)
     DO counter=1,root-1
        CALL SetCoefficient(power_poly,counter,REAL(0.0,NTREAL))
@@ -115,35 +114,35 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & fixed_parameters)
     CALL DestructPolynomial(power_poly)
 
-    !! Now compute the inverse pth root
+!! Now compute the inverse pth root
     CALL ComputeInverseRoot(RaisedMat, TempMat, root, solver_parameters)
 
-    !! Multiply by the original matrix
+!! Multiply by the original matrix
     CALL MatrixMultiply(InputMat, TempMat, OutputMat, &
          & threshold_in=solver_parameters%threshold)
 
-    !! Cleanup
+!! Cleanup
     CALL DestructMatrix(RaisedMat)
     CALL DestructMatrix(TempMat)
   END SUBROUTINE ComputeRootImplementation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute a general inverse matrix root.
+!> Compute a general inverse matrix root.
   SUBROUTINE ComputeInverseRoot(InputMat, OutputMat, root, solver_parameters_in)
-    !> The input matrix
+!> The input matrix
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
-    !> OutputMat = InputMat^-1/root.
+!> OutputMat = InputMat^-1/root.
     TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
-    !> Which root to compute.
+!> Which root to compute.
     INTEGER, INTENT(IN) :: root
-    !> Parameters for the solver.
+!> Parameters for the solver.
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
-    !! Handling Solver Parameters
+!! Handling Solver Parameters
     TYPE(SolverParameters_t) :: solver_parameters
-    !! Local Variables
+!! Local Variables
     TYPE(Matrix_ps) :: TempMat
 
-    !! Handle The Optional Parameters
-    !! Optional Parameters
+!! Handle The Optional Parameters
+!! Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
@@ -157,7 +156,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintParameters(solver_parameters)
     END IF
 
-    !! Handle base cases, or call to general implementation.
+!! Handle base cases, or call to general implementation.
     IF (root .EQ. 1) THEN
        CALL Invert(InputMat, OutputMat, solver_parameters)
     ELSE IF (root .EQ. 2) THEN
@@ -179,41 +178,41 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
   END SUBROUTINE ComputeInverseRoot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute a general inverse matrix root for root > 4.
+!> Compute a general inverse matrix root for root > 4.
   SUBROUTINE ComputeInverseRootImplemention(InputMat, OutputMat, root, &
        & solver_parameters_in)
-    !> Matrix to compute the root of.
+!> Matrix to compute the root of.
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
-    !> The inverse nth root of that matrix.
+!> The inverse nth root of that matrix.
     TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
-    !> Which inverse root to compute.
+!> Which inverse root to compute.
     INTEGER, INTENT(IN) :: root
-    !> Parameters for the solver.
+!> Parameters for the solver.
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
-    !! Constants.
+!! Constants.
     REAL(NTREAL), PARAMETER :: NEGATIVE_ONE = -1.0
-    !! Handling Solver Parameters
+!! Handling Solver Parameters
     TYPE(SolverParameters_t) :: solver_parameters
-    !! Local Matrices
+!! Local Matrices
     TYPE(Matrix_ps) :: SqrtMat, FthrtMat
     TYPE(Matrix_ps) :: IdentityMat
     TYPE(Matrix_ps) :: Mk
     TYPE(Matrix_ps) :: IntermediateMat
     TYPE(Matrix_ps) :: IntermediateMatP
     TYPE(Matrix_ps) :: Temp
-    !! Local Variables
+!! Local Variables
     INTEGER :: target_root
     REAL(NTREAL) :: e_min
     REAL(NTREAL) :: e_max
     REAL(NTREAL) :: scaling_factor
     REAL(NTREAL) :: norm_value
-    !! Temporary Variables
+!! Temporary Variables
     INTEGER :: outer_counter
     INTEGER :: inner_counter
     TYPE(MatrixMemoryPool_p) :: pool
 
-    !! Handle The Optional Parameters
-    !! Optional Parameters
+!! Handle The Optional Parameters
+!! Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
@@ -227,12 +226,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintParameters(solver_parameters)
     END IF
 
-    !! Compute The Scaling Factor
+!! Compute The Scaling Factor
     CALL GershgorinBounds(InputMat, e_min, e_max)
     scaling_factor = e_max/SQRT(2.0)**(1.0/root)
 
-    !! Compute the target root (adjust for the fact that we just took the
-    !! fourth root.
+!! Compute the target root (adjust for the fact that we just took the
+!! fourth root.
     target_root = 0
     IF (MOD(root,4) .EQ. 0) THEN
        target_root = root/4
@@ -242,17 +241,17 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        target_root = (root-2)/2 + 1
     END IF
 
-    !! Initialize
-    !! Fourth Root Matrix
+!! Initialize
+!! Fourth Root Matrix
     CALL SquareRoot(InputMat, SqrtMat, solver_parameters)
     CALL SquareRoot(SqrtMat, FthrtMat, solver_parameters)
     CALL DestructMatrix(SqrtMat)
 
-    !! Setup the Matrices
+!! Setup the Matrices
     CALL ConstructEmptyMatrix(IdentityMat, InputMat)
     CALL FillMatrixIdentity(IdentityMat)
 
-    !! Load Balancing Step
+!! Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL PermuteMatrix(FthrtMat, FthrtMat, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
@@ -333,13 +332,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL CopyMatrix(Temp, OutputMat)
     END IF
 
-    !! Undo Load Balancing Step
+!! Undo Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL UndoPermuteMatrix(OutputMat, OutputMat, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
     END IF
 
-    !! Cleanup
+!! Cleanup
     IF (solver_parameters_in%be_verbose) THEN
        CALL ExitSubLog
     END IF

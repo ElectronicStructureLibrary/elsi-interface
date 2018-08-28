@@ -4,7 +4,7 @@ MODULE TimerModule
   USE LoggingModule, ONLY : EnterSubLog, ExitSubLog, WriteListElement, &
        & WriteHeader
   USE ProcessGridModule, ONLY : global_grid
-  USE MPI
+  USE MPIModule
   IMPLICIT NONE
   PRIVATE
   LOGICAL :: is_initialized = .FALSE.
@@ -19,11 +19,11 @@ MODULE TimerModule
   PUBLIC :: PrintAllTimers
   PUBLIC :: PrintAllTimersDistributed
 CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Register a timer with the timer module.  Call this before using that timer.
+!> Register a timer with the timer module.  Call this before using that timer.
   SUBROUTINE RegisterTimer(timer_name)
-    !> Name of the timer.
+!> Name of the timer.
     CHARACTER(len=*), INTENT(IN) :: timer_name
-    !! Local Data
+!! Local Data
     CHARACTER(len=20), DIMENSION(:), ALLOCATABLE :: temp_timer_list
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: temp_start_times
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: temp_elapsed_times
@@ -50,11 +50,11 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
   END SUBROUTINE RegisterTimer
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Start the clock running for a given timer.
+!> Start the clock running for a given timer.
   SUBROUTINE StartTimer(timer_name)
-    !> Name of the timer. Must be registered.
+!> Name of the timer. Must be registered.
     CHARACTER(len=*), INTENT(IN) :: timer_name
-    !! Local Data
+!! Local Data
     INTEGER :: timer_position
     DOUBLE PRECISION :: temp_time
 
@@ -65,11 +65,11 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
   END SUBROUTINE StartTimer
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Stop the clock for a given timer.
+!> Stop the clock for a given timer.
   SUBROUTINE StopTimer(timer_name)
-    !> Name of the timer. Must be registered.
+!> Name of the timer. Must be registered.
     CHARACTER(len=*), INTENT(IN) :: timer_name
-    !! Local Data
+!! Local Data
     INTEGER :: timer_position
     DOUBLE PRECISION :: temp_elapsed_time
     DOUBLE PRECISION :: temp_start_time
@@ -83,11 +83,11 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
   END SUBROUTINE StopTimer
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Print out the elapsed time for a given timer.
+!> Print out the elapsed time for a given timer.
   SUBROUTINE PrintTimer(timer_name)
-    !> Name of the timer. Must be registered.
+!> Name of the timer. Must be registered.
     CHARACTER(len=*), INTENT(IN) :: timer_name
-    !! Local Data
+!! Local Data
     INTEGER :: timer_position
 
     timer_position = GetTimerPosition(timer_name)
@@ -100,9 +100,9 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL ExitSubLog
   END SUBROUTINE PrintTimer
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Print out the elapsed time for each timer on this process.
+!> Print out the elapsed time for each timer on this process.
   SUBROUTINE PrintAllTimers()
-    !! Local Data
+!! Local Data
     INTEGER :: timer_position
 
     CALL WriteHeader("Timers")
@@ -114,10 +114,10 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL ExitSubLog
   END SUBROUTINE PrintAllTimers
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Print out the elapsed time for each timer based on the max value across
-  !> processes.
+!> Print out the elapsed time for each timer based on the max value across
+!> processes.
   SUBROUTINE PrintAllTimersDistributed()
-    !! Local Data
+!! Local Data
     INTEGER          :: timer_position
     DOUBLE PRECISION :: elapsed
     DOUBLE PRECISION :: max_time
@@ -137,15 +137,15 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL ExitSubLog
   END SUBROUTINE PrintAllTimersDistributed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Figure out the position in the timer list where timer_name is.
-  !> This is a utility routine.
+!> Figure out the position in the timer list where timer_name is.
+!> This is a utility routine.
   FUNCTION GetTimerPosition(timer_name) RESULT(timer_position)
-    !! Parameters
-    !> Name of the timer.
+!! Parameters
+!> Name of the timer.
     CHARACTER(len=*), INTENT(IN) :: timer_name
-    !> The position of the timer. 0 means the timer hasn't been registered.
+!> The position of the timer. 0 means the timer hasn't been registered.
     INTEGER :: timer_position
-    !! Local Data
+!! Local Data
     INTEGER :: counter
     LOGICAL :: not_found
 

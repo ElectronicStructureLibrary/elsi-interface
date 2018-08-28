@@ -1,1 +1,0 @@
-  columns = this%columns

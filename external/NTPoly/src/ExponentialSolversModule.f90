@@ -19,43 +19,42 @@ MODULE ExponentialSolversModule
   USE RootSolversModule, ONLY : ComputeRoot
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters
   USE SquareRootSolversModule, ONLY : SquareRoot
-  USE MPI
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !! Solvers
+!! Solvers
   PUBLIC :: ComputeExponential
   PUBLIC :: ComputeExponentialPade
   PUBLIC :: ComputeExponentialTaylor
   PUBLIC :: ComputeLogarithm
   PUBLIC :: ComputeLogarithmTaylor
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute the exponential of a matrix.
+!> Compute the exponential of a matrix.
   SUBROUTINE ComputeExponential(InputMat, OutputMat, solver_parameters_in)
-    !> The input matrix
+!> The input matrix
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
-    !> OutputMat = exp(InputMat)
+!> OutputMat = exp(InputMat)
     TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
-    !> Parameters for the solver
+!> Parameters for the solver
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
-    !! Handling Solver Parameters
+!! Handling Solver Parameters
     TYPE(SolverParameters_t) :: solver_parameters
     TYPE(SolverParameters_t) :: sub_solver_parameters
     TYPE(SolverParameters_t) :: psub_solver_parameters
-    !! Local Matrices
+!! Local Matrices
     TYPE(Matrix_ps) :: ScaledMat
     TYPE(Matrix_ps) :: TempMat
     TYPE(MatrixMemoryPool_p) :: pool
-    !! For Chebyshev Expansion
+!! For Chebyshev Expansion
     TYPE(ChebyshevPolynomial_t) :: polynomial
-    !! Local Variables
+!! Local Variables
     REAL(NTREAL) :: spectral_radius
     REAL(NTREAL) :: sigma_val
     INTEGER :: sigma_counter
     INTEGER :: counter
 
-    !! Handle The Optional Parameters
-    !! Optional Parameters
+!! Handle The Optional Parameters
+!! Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
@@ -74,7 +73,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     CALL ConstructEmptyMatrix(OutputMat, InputMat)
 
-    !! Scale the matrix
+!! Scale the matrix
     CALL PowerBounds(InputMat,spectral_radius,psub_solver_parameters)
     sigma_val = 1.0
     sigma_counter = 1
@@ -90,7 +89,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL WriteElement(key="Sigma", float_value_in=sigma_val)
     END IF
 
-    !! Expand Chebyshev Series
+!! Expand Chebyshev Series
     CALL ConstructPolynomial(polynomial,16)
     CALL SetCoefficient(polynomial,1,1.266065877752007e+00_NTREAL)
     CALL SetCoefficient(polynomial,2,1.130318207984970e+00_NTREAL)
@@ -110,11 +109,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL SetCoefficient(polynomial,16,-1.629151584468762e-16_NTREAL)
 
     CALL Compute(ScaledMat,OutputMat,polynomial,sub_solver_parameters)
-    !CALL FactorizedChebyshevCompute(ScaledMat,OutputMat,polynomial, &
-    !     & sub_solver_parameters)
+!CALL FactorizedChebyshevCompute(ScaledMat,OutputMat,polynomial, &
+!     & sub_solver_parameters)
 
-    !! Undo the scaling by squaring at the end.
-    !! Load Balancing Step
+!! Undo the scaling by squaring at the end.
+!! Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL PermuteMatrix(OutputMat, OutputMat, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
@@ -135,7 +134,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & solver_parameters%BalancePermutation, memorypool_in=pool)
     END IF
 
-    !! Cleanup
+!! Cleanup
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF
@@ -144,19 +143,19 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL DestructMatrix(TempMat)
   END SUBROUTINE ComputeExponential
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute the exponential of a matrix using a pade approximation.
-  !> Be warned, the pade method can result in a lot of intermediate fill.
+!> Compute the exponential of a matrix using a pade approximation.
+!> Be warned, the pade method can result in a lot of intermediate fill.
   SUBROUTINE ComputeExponentialPade(InputMat, OutputMat, solver_parameters_in)
-    !> The input matrix
+!> The input matrix
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
-    !> OutputMat = exp(InputMat)
+!> OutputMat = exp(InputMat)
     TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
-    !> Parameters for the solver
+!> Parameters for the solver
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
-    !! Handling Solver Parameters
+!! Handling Solver Parameters
     TYPE(SolverParameters_t) :: solver_parameters
     TYPE(SolverParameters_t) :: sub_solver_parameters
-    !! Local Matrices
+!! Local Matrices
     TYPE(Matrix_ps) :: ScaledMat
     TYPE(Matrix_ps) :: IdentityMat
     TYPE(Matrix_ps) :: TempMat
@@ -164,14 +163,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_ps) :: P1, P2
     TYPE(Matrix_ps) :: LeftMat, RightMat
     TYPE(MatrixMemoryPool_p) :: pool
-    !! Local Variables
+!! Local Variables
     REAL(NTREAL) :: spectral_radius
     REAL(NTREAL) :: sigma_val
     INTEGER :: sigma_counter
     INTEGER :: counter
 
-    !! Handle The Optional Parameters
-    !! Optional Parameters
+!! Handle The Optional Parameters
+!! Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
@@ -185,11 +184,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintParameters(solver_parameters)
     END IF
 
-    !! Setup
+!! Setup
     CALL ConstructEmptyMatrix(IdentityMat, InputMat)
     CALL FillMatrixIdentity(IdentityMat)
 
-    !! Scale the matrix
+!! Scale the matrix
     spectral_radius = MatrixNorm(InputMat)
     sigma_val = 1.0
     sigma_counter = 1
@@ -204,11 +203,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL WriteElement(key="Scaling_Steps", int_value_in=sigma_counter)
     END IF
 
-    !! Sub Solver Parameters
+!! Sub Solver Parameters
     sub_solver_parameters = solver_parameters
     sub_solver_parameters%threshold = sub_solver_parameters%threshold/sigma_val
 
-    !! Power Matrices
+!! Power Matrices
     CALL MatrixMultiply(ScaledMat, ScaledMat, B1, &
          & threshold_in=sub_solver_parameters%threshold, memory_pool_in=pool)
     CALL MatrixMultiply(B1, B1, B2, &
@@ -216,13 +215,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL MatrixMultiply(B2, B2, B3, &
          & threshold_in=sub_solver_parameters%threshold, memory_pool_in=pool)
 
-    !! Polynomials - 1
+!! Polynomials - 1
     CALL CopyMatrix(IdentityMat, P1)
     CALL ScaleMatrix(P1,17297280.0_NTREAL)
     CALL IncrementMatrix(B1, P1, alpha_in=1995840.0_NTREAL)
     CALL IncrementMatrix(B2, P1, alpha_in=25200.0_NTREAL)
     CALL IncrementMatrix(B3, P1, alpha_in=56.0_NTREAL)
-    !! Polynomials - 2
+!! Polynomials - 2
     CALL CopyMatrix(IdentityMat, TempMat)
     CALL ScaleMatrix(TempMat,8648640.0_NTREAL)
     CALL IncrementMatrix(B1, TempMat, alpha_in=277200.0_NTREAL)
@@ -231,7 +230,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL MatrixMultiply(ScaledMat, TempMat, P2, &
          & threshold_in=sub_solver_parameters%threshold, memory_pool_in=pool)
 
-    !! Left and Right
+!! Left and Right
     CALL CopyMatrix(P1, LeftMat)
     CALL IncrementMatrix(P2, LeftMat, -1.0_NTREAL)
     CALL CopyMatrix(P1, RightMat)
@@ -239,7 +238,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     CALL CGSolver(LeftMat, OutputMat, RightMat, sub_solver_parameters)
 
-    !! Undo the scaling by squaring at the end.
+!! Undo the scaling by squaring at the end.
     DO counter=1,sigma_counter-1
        CALL MatrixMultiply(OutputMat,OutputMat,TempMat, &
             & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
@@ -250,7 +249,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintMatrixInformation(OutputMat)
     END IF
 
-    !! Cleanup
+!! Cleanup
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF
@@ -266,33 +265,33 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL DestructMatrixMemoryPool(pool)
   END SUBROUTINE ComputeExponentialPade
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute the exponential of a matrix using a taylor series expansion.
-  !> This is only really useful if you have a very small spectrum, because
-  !> quite a bit of scaling is required.
+!> Compute the exponential of a matrix using a taylor series expansion.
+!> This is only really useful if you have a very small spectrum, because
+!> quite a bit of scaling is required.
   SUBROUTINE ComputeExponentialTaylor(InputMat, OutputMat, solver_parameters_in)
-    !> The input matrix
+!> The input matrix
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
-    !> OutputMat = exp(InputMat)
+!> OutputMat = exp(InputMat)
     TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
-    !> Parameters for the solver
+!> Parameters for the solver
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
-    !! Handling Solver Parameters
+!! Handling Solver Parameters
     TYPE(SolverParameters_t) :: solver_parameters
     TYPE(SolverParameters_t) :: psub_solver_parameters
-    !! Local Matrices
+!! Local Matrices
     TYPE(Matrix_ps) :: ScaledMat
     TYPE(Matrix_ps) :: Ak
     TYPE(Matrix_ps) :: TempMat
     TYPE(MatrixMemoryPool_p) :: pool
-    !! Local Variables
+!! Local Variables
     REAL(NTREAL) :: spectral_radius
     REAL(NTREAL) :: sigma_val
     REAL(NTREAL) :: taylor_denom
     INTEGER :: sigma_counter
     INTEGER :: counter
 
-    !! Handle The Optional Parameters
-    !! Optional Parameters
+!! Handle The Optional Parameters
+!! Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
@@ -308,10 +307,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintParameters(solver_parameters)
     END IF
 
-    !! Compute The Scaling Factor
+!! Compute The Scaling Factor
     CALL PowerBounds(InputMat,spectral_radius,psub_solver_parameters)
 
-    !! Figure out how much to scale the matrix.
+!! Figure out how much to scale the matrix.
     sigma_val = 1.0
     sigma_counter = 1
     DO WHILE (spectral_radius/sigma_val .GT. 3.0e-8)
@@ -325,7 +324,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL ConstructEmptyMatrix(OutputMat, InputMat)
     CALL FillMatrixIdentity(OutputMat)
 
-    !! Load Balancing Step
+!! Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL PermuteMatrix(ScaledMat, ScaledMat, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
@@ -333,7 +332,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & solver_parameters%BalancePermutation, memorypool_in=pool)
     END IF
 
-    !! Expand Taylor Series
+!! Expand Taylor Series
     taylor_denom = 1.0
     CALL CopyMatrix(OutputMat, Ak)
     DO counter=1,10
@@ -355,7 +354,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & solver_parameters%BalancePermutation, memorypool_in=pool)
     END IF
 
-    !! Cleanup
+!! Cleanup
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF
@@ -365,23 +364,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL DestructMatrixMemoryPool(pool)
   END SUBROUTINE ComputeExponentialTaylor
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute the logarithm of a matrix.
+!> Compute the logarithm of a matrix.
   SUBROUTINE ComputeLogarithm(InputMat, OutputMat, solver_parameters_in)
-    !> The input matrix
+!> The input matrix
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
-    !> OutputMat = exp(InputMat)
+!> OutputMat = exp(InputMat)
     TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
-    !> Parameters for the solver
+!> Parameters for the solver
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
-    !! Handling Solver Parameters
+!! Handling Solver Parameters
     TYPE(SolverParameters_t) :: solver_parameters
-    !! Local Matrices
+!! Local Matrices
     TYPE(Matrix_ps) :: ScaledMat
     TYPE(Matrix_ps) :: TempMat
     TYPE(Matrix_ps) :: IdentityMat
-    !! For Chebyshev Expansion
+!! For Chebyshev Expansion
     TYPE(ChebyshevPolynomial_t) :: polynomial
-    !! Local Variables
+!! Local Variables
     TYPE(SolverParameters_t) :: i_sub_solver_parameters
     TYPE(SolverParameters_t) :: p_sub_solver_parameters
     TYPE(SolverParameters_t) :: f_sub_solver_parameters
@@ -389,8 +388,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: sigma_val
     INTEGER :: sigma_counter
 
-    !! Handle The Optional Parameters
-    !! Optional Parameters
+!! Handle The Optional Parameters
+!! Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
@@ -408,14 +407,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintParameters(solver_parameters)
     END IF
 
-    !! Setup
+!! Setup
     CALL ConstructEmptyMatrix(IdentityMat, InputMat)
     CALL FillMatrixIdentity(IdentityMat)
 
-    !! Copy to a temporary matrix for scaling.
+!! Copy to a temporary matrix for scaling.
     CALL CopyMatrix(InputMat,ScaledMat)
 
-    !! Compute The Scaling Factor
+!! Compute The Scaling Factor
     sigma_val = 1
     sigma_counter = 1
     CALL PowerBounds(InputMat,spectral_radius,p_sub_solver_parameters)
@@ -431,11 +430,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & f_sub_solver_parameters%threshold/REAL(2**(sigma_counter-1),NTREAL)
     CALL ComputeRoot(InputMat, ScaledMat, sigma_val, i_sub_solver_parameters)
 
-    !! Shift Scaled Matrix
+!! Shift Scaled Matrix
     CALL IncrementMatrix(IdentityMat,ScaledMat, &
          & alpha_in=REAL(-1.0,NTREAL))
 
-    !! Expand Chebyshev Series
+!! Expand Chebyshev Series
     CALL ConstructPolynomial(polynomial,32)
     CALL SetCoefficient(polynomial,1,-0.485101351704_NTREAL)
     CALL SetCoefficient(polynomial,2,1.58828112379_NTREAL)
@@ -473,11 +472,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL FactorizedCompute(ScaledMat, OutputMat, polynomial, &
          & f_sub_solver_parameters)
 
-    !! Scale Back
+!! Scale Back
     CALL ScaleMatrix(OutputMat, &
          & REAL(2**(sigma_counter-1),NTREAL))
 
-    !! Cleanup
+!! Cleanup
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF
@@ -487,23 +486,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL DestructMatrix(TempMat)
   END SUBROUTINE ComputeLogarithm
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute the logarithm of a matrix using a taylor series expansion.
+!> Compute the logarithm of a matrix using a taylor series expansion.
   SUBROUTINE ComputeLogarithmTaylor(InputMat, OutputMat, solver_parameters_in)
-    !> The input matrix
+!> The input matrix
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
-    !> OutputMat = exp(InputMat)
+!> OutputMat = exp(InputMat)
     TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
-    !> Parameters for the solver
+!> Parameters for the solver
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
-    !! Handling Solver Parameters
+!! Handling Solver Parameters
     TYPE(SolverParameters_t) :: solver_parameters
-    !! Local Matrices
+!! Local Matrices
     TYPE(Matrix_ps) :: ScaledMat
     TYPE(Matrix_ps) :: TempMat
     TYPE(Matrix_ps) :: Ak
     TYPE(Matrix_ps) :: IdentityMat
     TYPE(MatrixMemoryPool_p) :: pool
-    !! Local Variables
+!! Local Variables
     TYPE(SolverParameters_t) :: sub_solver_parameters
     REAL(NTREAL) :: e_min, e_max, spectral_radius
     REAL(NTREAL) :: sigma_val
@@ -511,8 +510,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: sigma_counter
     INTEGER :: counter
 
-    !! Handle The Optional Parameters
-    !! Optional Parameters
+!! Handle The Optional Parameters
+!! Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
@@ -527,15 +526,15 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintParameters(solver_parameters)
     END IF
 
-    !! Compute The Scaling Factor
+!! Compute The Scaling Factor
     CALL GershgorinBounds(InputMat, e_min, e_max)
     spectral_radius = MAX(ABS(e_min), ABS(e_max))
 
-    !! Figure out how much to scale the matrix.
+!! Figure out how much to scale the matrix.
     sigma_val = 1.0
     sigma_counter = 1
     CALL CopyMatrix(InputMat,ScaledMat)
-    !do while (spectral_radius/sigma_val .gt. 1.1e-5)
+!do while (spectral_radius/sigma_val .gt. 1.1e-5)
     DO WHILE (spectral_radius/sigma_val .GT. 1.1e-7)
        CALL SquareRoot(ScaledMat,TempMat,sub_solver_parameters)
        CALL CopyMatrix(TempMat,ScaledMat)
@@ -548,12 +547,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL ConstructEmptyMatrix(IdentityMat, InputMat)
     CALL FillMatrixIdentity(IdentityMat)
 
-    !! Setup Matrices
+!! Setup Matrices
     CALL IncrementMatrix(IdentityMat,ScaledMat, &
          & alpha_in=REAL(-1.0,NTREAL))
     CALL CopyMatrix(IdentityMat,Ak)
 
-    !! Load Balancing Step
+!! Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL PermuteMatrix(ScaledMat, ScaledMat, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
@@ -561,7 +560,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & solver_parameters%BalancePermutation, memorypool_in=pool)
     END IF
 
-    !! Expand taylor series.
+!! Expand taylor series.
     CALL CopyMatrix(ScaledMat,OutputMat)
     DO counter=2,10
        IF (MOD(counter,2) .EQ. 0) THEN
@@ -576,16 +575,16 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & alpha_in=1.0/taylor_denom)
     END DO
 
-    !! Undo scaling.
+!! Undo scaling.
     CALL ScaleMatrix(OutputMat,REAL(2**sigma_counter,NTREAL))
 
-    !! Undo load balancing.
+!! Undo load balancing.
     IF (solver_parameters%do_load_balancing) THEN
        CALL UndoPermuteMatrix(OutputMat, OutputMat, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
     END IF
 
-    !! Cleanup
+!! Cleanup
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF

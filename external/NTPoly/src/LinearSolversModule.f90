@@ -16,45 +16,44 @@ MODULE LinearSolversModule
        & FillMatrixIdentity, MergeMatrixLocalBlocks, PrintMatrixInformation
   USE SMatrixModule, ONLY : Matrix_lsr
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters
-  USE MPI
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: CGSolver
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Solve the matrix equation AX = B using the conjugate gradient method.
+!> Solve the matrix equation AX = B using the conjugate gradient method.
   SUBROUTINE CGSolver(AMat, XMat, BMat, solver_parameters_in)
-    !> The matrix A, must be hermitian, positive definite.
+!> The matrix A, must be hermitian, positive definite.
     TYPE(Matrix_ps), INTENT(IN)  :: AMat
-    !> The solved for matrix X.
+!> The solved for matrix X.
     TYPE(Matrix_ps), INTENT(INOUT) :: XMat
-    !> The right hand side.
+!> The right hand side.
     TYPE(Matrix_ps), INTENT(IN)  :: BMat
-    !> Parameters for the solver
+!> Parameters for the solver
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
-    !! Handling Optional Parameters
+!! Handling Optional Parameters
     TYPE(SolverParameters_t) :: solver_parameters
-    !! Local Variables
+!! Local Variables
     TYPE(Matrix_ps) :: Identity
     TYPE(Matrix_ps) :: ABalanced
     TYPE(Matrix_ps) :: BBalanced
     TYPE(Matrix_ps) :: RMat, PMat, QMat
     TYPE(Matrix_ps) :: RMatT, PMatT
     TYPE(Matrix_ps) :: TempMat
-    !! Temporary Variables
+!! Temporary Variables
     INTEGER :: outer_counter
     REAL(NTREAL) :: norm_value
     TYPE(MatrixMemoryPool_p) :: pool
     REAL(NTREAL) :: top, bottom, new_top, step_size
 
-    !! Optional Parameters
+!! Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
        solver_parameters = SolverParameters_t()
     END IF
 
-    !! Print out parameters
+!! Print out parameters
     IF (solver_parameters%be_verbose) THEN
        CALL WriteHeader("Linear Solver")
        CALL EnterSubLog
@@ -62,7 +61,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintParameters(solver_parameters)
     END IF
 
-    !! Setup all the matrices
+!! Setup all the matrices
     CALL ConstructEmptyMatrix(Identity, AMat)
     CALL FillMatrixIdentity(Identity)
     CALL ConstructEmptyMatrix(ABalanced, AMat)
@@ -72,7 +71,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL ConstructEmptyMatrix(QMat, AMat)
     CALL ConstructEmptyMatrix(TempMat, AMat)
 
-    !! Load Balancing Step
+!! Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL PermuteMatrix(Identity, Identity, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
@@ -85,16 +84,16 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL CopyMatrix(BMat,BBalanced)
     END IF
 
-    !! Initial Matrix Values
+!! Initial Matrix Values
     CALL CopyMatrix(Identity, XMat)
-    !! Compute residual
+!! Compute residual
     CALL MatrixMultiply(ABalanced, Xmat, TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
     CALL CopyMatrix(BBalanced,RMat)
     CALL IncrementMatrix(TempMat, RMat, -1.0_NTREAL)
     CALL CopyMatrix(RMat,PMat)
 
-    !! Iterate
+!! Iterate
     IF (solver_parameters%be_verbose) THEN
        CALL WriteHeader("Iterations")
        CALL EnterSubLog
@@ -111,7 +110,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           EXIT
        END IF
 
-       !! Compute the Step Size
+!! Compute the Step Size
        CALL MatrixMultiply(ABalanced, PMat, QMat, &
             & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
 
@@ -131,12 +130,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL MatrixTrace(TempMat, bottom)
        step_size = top/bottom
 
-       !! Update
+!! Update
        CALL IncrementMatrix(PMat, XMat, alpha_in=step_size)
        norm_value = ABS(step_size*MatrixNorm(PMat))
        CALL IncrementMatrix(QMat, RMat, alpha_in=-1.0_NTREAL*step_size)
 
-       !! Update PMat
+!! Update PMat
        CALL TransposeMatrix(RMat,RMatT)
        IF (RMatT%is_complex) THEN
           CALL ConjugateMatrix(RMatT)
@@ -155,13 +154,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintMatrixInformation(XMat)
     END IF
 
-    !! Undo Load Balancing Step
+!! Undo Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL UndoPermuteMatrix(XMat,XMat, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
     END IF
 
-    !! Cleanup
+!! Cleanup
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF

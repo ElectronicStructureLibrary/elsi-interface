@@ -9,21 +9,20 @@ MODULE PolynomialSolversModule
   USE PSMatrixModule
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters
   USE TimerModule
-  USE MPI
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> A datatype that represents a polynomial.
+!> A datatype that represents a polynomial.
   TYPE, PUBLIC :: Polynomial_t
-     !> Coefficients of the polynomial.
+!> Coefficients of the polynomial.
      REAL(NTREAL), DIMENSION(:), ALLOCATABLE :: coefficients
   END TYPE Polynomial_t
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !! Polynomial type
+!! Polynomial type
   PUBLIC :: ConstructPolynomial
   PUBLIC :: DestructPolynomial
   PUBLIC :: SetCoefficient
-  !! Solvers
+!! Solvers
   PUBLIC :: Compute
   PUBLIC :: FactorizedCompute
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -43,51 +42,51 @@ MODULE PolynomialSolversModule
      MODULE PROCEDURE FactorizedCompute_stand
   END INTERFACE
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Construct a polynomial.
+!> Construct a polynomial.
   PURE SUBROUTINE ConstructPolynomial_stand(this, degree)
-    !> The polynomial to construct.
+!> The polynomial to construct.
     TYPE(Polynomial_t), INTENT(INOUT) :: this
-    !> The degree of the polynomial.
+!> The degree of the polynomial.
     INTEGER, INTENT(IN) :: degree
 
     ALLOCATE(this%coefficients(degree))
     this%coefficients = 0
   END SUBROUTINE ConstructPolynomial_stand
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Destruct a polynomial object.
+!> Destruct a polynomial object.
   PURE SUBROUTINE DestructPolynomial_stand(this)
-    !> The polynomial to destruct.
+!> The polynomial to destruct.
     TYPE(Polynomial_t), INTENT(INOUT) :: this
     IF (ALLOCATED(this%coefficients)) THEN
        DEALLOCATE(this%coefficients)
     END IF
   END SUBROUTINE DestructPolynomial_stand
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Set coefficient of a polynomial.
+!> Set coefficient of a polynomial.
   SUBROUTINE SetCoefficient_stand(this, degree, coefficient)
-    !> The polynomial to set.
+!> The polynomial to set.
     TYPE(Polynomial_t), INTENT(INOUT) :: this
-    !> Degree for which to set the coefficient.
+!> Degree for which to set the coefficient.
     INTEGER, INTENT(IN) :: degree
-    !> Coefficient value.
+!> Coefficient value.
     REAL(NTREAL), INTENT(IN) :: coefficient
 
     this%coefficients(degree) = coefficient
   END SUBROUTINE SetCoefficient_stand
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute A Matrix Polynomial Using Horner's Method.
+!> Compute A Matrix Polynomial Using Horner's Method.
   SUBROUTINE Compute_stand(InputMat, OutputMat, poly, solver_parameters_in)
-    !> The input matrix
+!> The input matrix
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
-    !> OutputMat = poly(InputMat)
+!> OutputMat = poly(InputMat)
     TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
-    !> Polynomial to compute.
+!> Polynomial to compute.
     TYPE(Polynomial_t), INTENT(IN) :: poly
-    !> Parameters for the solver.
+!> Parameters for the solver.
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
-    !! Handling Solver Parameters
+!! Handling Solver Parameters
     TYPE(SolverParameters_t) :: solver_parameters
-    !! Local Variables
+!! Local Variables
     TYPE(Matrix_ps) :: Identity
     TYPE(Matrix_ps) :: BalancedInput
     TYPE(Matrix_ps) :: Temporary
@@ -95,7 +94,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: counter
     TYPE(MatrixMemoryPool_p) :: pool
 
-    !! Handle The Optional Parameters
+!! Handle The Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
@@ -112,13 +111,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL WriteElement(key="Degree", int_value_in=degree-1)
     END IF
 
-    !! Initial values for matrices
+!! Initial values for matrices
     CALL ConstructEmptyMatrix(Identity, InputMat)
     CALL FillMatrixIdentity(Identity)
     CALL ConstructEmptyMatrix(Temporary, InputMat)
     CALL CopyMatrix(InputMat,BalancedInput)
 
-    !! Load Balancing Step
+!! Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL PermuteMatrix(Identity, Identity, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
@@ -142,13 +141,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        END DO
     END IF
 
-    !! Undo Load Balancing Step
+!! Undo Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL UndoPermuteMatrix(OutputMat, OutputMat, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
     END IF
 
-    !! Cleanup
+!! Cleanup
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF
@@ -157,22 +156,22 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL DestructMatrixMemoryPool(pool)
   END SUBROUTINE Compute_stand
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute A Matrix Polynomial Using Paterson and Stockmeyer's method.
-  !> This method first factors the polynomial to reduce the number of
-  !> matrix multiplies required.
+!> Compute A Matrix Polynomial Using Paterson and Stockmeyer's method.
+!> This method first factors the polynomial to reduce the number of
+!> matrix multiplies required.
   SUBROUTINE FactorizedCompute_stand(InputMat, OutputMat, poly, &
        & solver_parameters_in)
-    !> The input matrix
+!> The input matrix
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
-    !> OutputMat = poly(InputMat)
+!> OutputMat = poly(InputMat)
     TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
-    !> The polynomial to compute.
+!> The polynomial to compute.
     TYPE(Polynomial_t), INTENT(IN) :: poly
-    !> Parameters for the solver.
+!> Parameters for the solver.
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
-    !! Handling Solver Parameters
+!! Handling Solver Parameters
     TYPE(SolverParameters_t) :: solver_parameters
-    !! Local Variables
+!! Local Variables
     TYPE(Matrix_ps) :: Identity
     TYPE(Matrix_ps), DIMENSION(:), ALLOCATABLE :: x_powers
     TYPE(Matrix_ps) :: Bk
@@ -185,14 +184,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: c_index
     TYPE(MatrixMemoryPool_p) :: pool
 
-    !! Handle The Optional Parameters
+!! Handle The Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
        solver_parameters = SolverParameters_t()
     END IF
 
-    !! Parameters for splitting up polynomial.
+!! Parameters for splitting up polynomial.
     degree = SIZE(poly%coefficients)
     m_value = degree-1
     s_value = INT(SQRT(REAL(m_value)))
@@ -209,11 +208,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     ALLOCATE(x_powers(s_value+1))
 
-    !! Initial values for matrices
+!! Initial values for matrices
     CALL ConstructEmptyMatrix(Identity, InputMat)
     CALL FillMatrixIdentity(Identity)
 
-    !! Create the X Powers
+!! Create the X Powers
     CALL ConstructEmptyMatrix(x_powers(1), InputMat)
     CALL FillMatrixIdentity(x_powers(1))
     DO counter=1,s_value+1-1
@@ -222,7 +221,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END DO
     CALL CopyMatrix(x_powers(s_value+1),Xs)
 
-    !! S_k = bmX
+!! S_k = bmX
     CALL CopyMatrix(Identity,Bk)
     CALL ScaleMatrix(Bk, poly%coefficients(s_value*r_value+1))
     DO counter=1,m_value-s_value*r_value+1-1
@@ -232,7 +231,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END DO
     CALL MatrixMultiply(Bk,Xs,OutputMat, memory_pool_in=pool)
 
-    !! S_k += bmx + bm-1I
+!! S_k += bmx + bm-1I
     k_value = r_value - 1
     CALL CopyMatrix(Identity,Bk)
     CALL ScaleMatrix(Bk,poly%coefficients(s_value*k_value+1))
@@ -243,7 +242,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END DO
     CALL IncrementMatrix(Bk,OutputMat)
 
-    !! Loop over the rest.
+!! Loop over the rest.
     DO k_value=r_value-2,-1+1,-1
        CALL CopyMatrix(Identity,Bk)
        CALL ScaleMatrix(Bk, &
@@ -258,7 +257,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL IncrementMatrix(Bk,OutputMat)
     END DO
 
-    !! Cleanup
+!! Cleanup
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF

@@ -12,21 +12,20 @@ MODULE HermiteSolversModule
   USE PSMatrixModule, ONLY : Matrix_ps, ConstructEmptyMatrix, CopyMatrix, &
        & DestructMatrix, FillMatrixIdentity, PrintMatrixInformation
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters
-  USE MPI
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> A datatype that represents a Hermite polynomial.
+!> A datatype that represents a Hermite polynomial.
   TYPE, PUBLIC :: HermitePolynomial_t
-     !> Coefficients of the polynomial.
+!> Coefficients of the polynomial.
      REAL(NTREAL), DIMENSION(:), ALLOCATABLE :: coefficients
   END TYPE HermitePolynomial_t
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !! Polynomial type
+!! Polynomial type
   PUBLIC :: ConstructPolynomial
   PUBLIC :: DestructPolynomial
   PUBLIC :: SetCoefficient
-  !! Solvers
+!! Solvers
   PUBLIC :: Compute
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTERFACE ConstructPolynomial
@@ -42,20 +41,20 @@ MODULE HermiteSolversModule
      MODULE PROCEDURE Compute_horner
   END INTERFACE
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Construct a Hermite polynomial object.
+!> Construct a Hermite polynomial object.
   PURE SUBROUTINE ConstructPolynomial_horner(this, degree)
-    !> The polynomial to construct.
+!> The polynomial to construct.
     TYPE(HermitePolynomial_t), INTENT(inout) :: this
-    !> The degree of the polynomial.
+!> The degree of the polynomial.
     INTEGER, INTENT(in) :: degree
 
     ALLOCATE(this%coefficients(degree))
     this%coefficients = 0
   END SUBROUTINE ConstructPolynomial_horner
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Destruct a Hermite polynomial object.
+!> Destruct a Hermite polynomial object.
   PURE SUBROUTINE DestructPolynomial_horner(this)
-    !> The polynomial to destruct.
+!> The polynomial to destruct.
     TYPE(HermitePolynomial_t), INTENT(inout) :: this
 
     IF (ALLOCATED(this%coefficients)) THEN
@@ -63,32 +62,32 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
   END SUBROUTINE DestructPolynomial_horner
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Set a coefficient of a Hermite polynomial.
+!> Set a coefficient of a Hermite polynomial.
   SUBROUTINE SetCoefficient_horner(this, degree, coefficient)
-    !> The polynomial to set.
+!> The polynomial to set.
     TYPE(HermitePolynomial_t), INTENT(inout) :: this
-    !> The degree for which to set the coefficient.
+!> The degree for which to set the coefficient.
     INTEGER, INTENT(in) :: degree
-    !> Coefficient value to set.
+!> Coefficient value to set.
     REAL(NTREAL), INTENT(in) :: coefficient
 
     this%coefficients(degree) = coefficient
   END SUBROUTINE SetCoefficient_horner
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute The Hermite Polynomial of the matrix.
-  !> This method uses the standard Hermite Polynomial expansion.
+!> Compute The Hermite Polynomial of the matrix.
+!> This method uses the standard Hermite Polynomial expansion.
   SUBROUTINE Compute_horner(InputMat, OutputMat, poly, solver_parameters_in)
-    !> The input matrix.
+!> The input matrix.
     TYPE(Matrix_ps), INTENT(in)  :: InputMat
-    !> OutputMat = poly(InputMat)
+!> OutputMat = poly(InputMat)
     TYPE(Matrix_ps), INTENT(inout) :: OutputMat
-    !> Polynomial to compute.
+!> Polynomial to compute.
     TYPE(HermitePolynomial_t), INTENT(in) :: poly
-    !> Parameters for the solver
+!> Parameters for the solver
     TYPE(SolverParameters_t), INTENT(in), OPTIONAL :: solver_parameters_in
-    !! Handling Solver Parameters
+!! Handling Solver Parameters
     TYPE(SolverParameters_t) :: solver_parameters
-    !! Local Matrices
+!! Local Matrices
     TYPE(Matrix_ps) :: Identity
     TYPE(Matrix_ps) :: BalancedInput
     TYPE(Matrix_ps) :: Hk
@@ -96,11 +95,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_ps) :: Hkplus1
     TYPE(Matrix_ps) :: Hkprime
     TYPE(MatrixMemoryPool_p) :: pool
-    !! Local Variables
+!! Local Variables
     INTEGER :: degree
     INTEGER :: counter
 
-    !! Handle The Optional Parameters
+!! Handle The Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
@@ -117,12 +116,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintParameters(solver_parameters)
     END IF
 
-    !! Initial values for matrices
+!! Initial values for matrices
     CALL ConstructEmptyMatrix(Identity, InputMat)
     CALL FillMatrixIdentity(Identity)
     CALL CopyMatrix(InputMat,BalancedInput)
 
-    !! Load Balancing Step
+!! Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL PermuteMatrix(Identity, Identity, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
@@ -130,7 +129,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & solver_parameters%BalancePermutation, memorypool_in=pool)
     END IF
 
-    !! Recursive expansion
+!! Recursive expansion
     CALL CopyMatrix(Identity, Hkminus1)
     CALL CopyMatrix(Hkminus1, OutputMat)
     CALL ScaleMatrix(OutputMat, poly%coefficients(1))
@@ -163,13 +162,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PrintMatrixInformation(OutputMat)
     END IF
 
-    !! Undo Load Balancing Step
+!! Undo Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
        CALL UndoPermuteMatrix(OutputMat, OutputMat, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
     END IF
 
-    !! Cleanup
+!! Cleanup
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF
