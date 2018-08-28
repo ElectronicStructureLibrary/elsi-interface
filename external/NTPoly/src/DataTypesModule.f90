@@ -1,33 +1,18 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module to store specifications for basic data types.
 MODULE DataTypesModule
-  USE ErrorModule, ONLY : CheckMPIError, Error_t
-  USE ISO_C_BINDING
+  USE ISO_C_BINDING, ONLY : C_DOUBLE, C_DOUBLE_COMPLEX
+  USE MPI
   IMPLICIT NONE
-  INCLUDE "mpif.h"
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  INTEGER, PARAMETER :: BITSPERDOUBLE = 8
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> The precision of floating point numbers we will use in this program.
-  INTEGER, PARAMETER, PUBLIC :: NTREAL = c_double
+  INTEGER, PARAMETER, PUBLIC :: NTREAL = C_DOUBLE
   !> MPI floating point datatype with the precision we will use in this program.
-  INTEGER, PUBLIC :: MPINTREAL
+  INTEGER, PUBLIC :: MPINTREAL = MPI_DOUBLE_PRECISION
+  !> The complex numbers we will use in this program.
+  INTEGER, PARAMETER, PUBLIC :: NTCOMPLEX = C_DOUBLE_COMPLEX
+  !> MPI complex datatype with the precision we will use in this program.
+  INTEGER, PARAMETER, PUBLIC :: MPINTCOMPLEX = MPI_DOUBLE_COMPLEX
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  PUBLIC :: MPITypeInfoInit
-CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> A subroutine to make a double precision MPI type with the requested
-  !! precision. Must be called before MPINTREAL is used.
-  SUBROUTINE MPITypeInfoInit()
-    !! Local Data
-    TYPE(Error_t) :: error
-    INTEGER :: mpi_error
-    LOGICAL :: error_occurred
-
-    CALL MPI_TYPE_CREATE_F90_REAL(BITSPERDOUBLE,MPI_UNDEFINED, &
-         & MPINTREAL, mpi_error)
-    MPINTREAL = MPI_DOUBLE_PRECISION
-    error_occurred = CheckMPIError(error,"Creating MPI Data Types",mpi_error, &
-         & immediate_cleanup_in = .TRUE.)
-  END SUBROUTINE MPITypeInfoInit
 END MODULE DataTypesModule

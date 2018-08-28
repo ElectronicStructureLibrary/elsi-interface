@@ -1,20 +1,15 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A Module For Computing General Matrix Polynomials.
 MODULE PolynomialSolversModule
-  USE DataTypesModule, ONLY : NTREAL
-  USE DistributedMatrixMemoryPoolModule, ONLY : DistributedMatrixMemoryPool_t
-  USE DistributedSparseMatrixAlgebraModule, ONLY : DistributedGemm, &
-       & IncrementDistributedSparseMatrix, ScaleDistributedSparseMatrix
-  USE DistributedSparseMatrixModule, ONLY : DistributedSparseMatrix_t, &
-       & ConstructEmptyDistributedSparseMatrix, CopyDistributedSparseMatrix, &
-       & DestructDistributedSparseMatrix, FillDistributedIdentity
-  USE FixedSolversModule, ONLY : FixedSolverParameters_t, &
-       & PrintFixedSolverParameters
-  USE LoadBalancerModule, ONLY : PermuteMatrix, UndoPermuteMatrix
-  USE LoggingModule, ONLY : EnterSubLog, ExitSubLog, WriteElement, &
-       & WriteHeader, WriteCitation
-  USE ProcessGridModule
-  USE TimerModule, ONLY : StartTimer, StopTimer
+  USE DataTypesModule
+  USE LoadBalancerModule
+  USE LoggingModule
+  USE PMatrixMemoryPoolModule
+  USE PSMatrixAlgebraModule
+  USE PSMatrixModule
+  USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters
+  USE TimerModule
+  USE MPI
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -29,70 +24,82 @@ MODULE PolynomialSolversModule
   PUBLIC :: DestructPolynomial
   PUBLIC :: SetCoefficient
   !! Solvers
-  PUBLIC :: HornerCompute
-  PUBLIC :: PatersonStockmeyerCompute
+  PUBLIC :: Compute
+  PUBLIC :: FactorizedCompute
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  INTERFACE ConstructPolynomial
+     MODULE PROCEDURE ConstructPolynomial_stand
+  END INTERFACE
+  INTERFACE DestructPolynomial
+     MODULE PROCEDURE DestructPolynomial_stand
+  END INTERFACE
+  INTERFACE SetCoefficient
+     MODULE PROCEDURE SetCoefficient_stand
+  END INTERFACE
+  INTERFACE Compute
+     MODULE PROCEDURE Compute_stand
+  END INTERFACE
+  INTERFACE FactorizedCompute
+     MODULE PROCEDURE FactorizedCompute_stand
+  END INTERFACE
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Construct a polynomial.
-  !! @param[inout] this the polynomial to construct.
-  !! @param[in] degree of the polynomial.
-  PURE SUBROUTINE ConstructPolynomial(this, degree)
-    !! Parameters
-    TYPE(Polynomial_t), INTENT(inout) :: this
-    INTEGER, INTENT(in) :: degree
+  PURE SUBROUTINE ConstructPolynomial_stand(this, degree)
+    !> The polynomial to construct.
+    TYPE(Polynomial_t), INTENT(INOUT) :: this
+    !> The degree of the polynomial.
+    INTEGER, INTENT(IN) :: degree
 
     ALLOCATE(this%coefficients(degree))
     this%coefficients = 0
-  END SUBROUTINE ConstructPolynomial
+  END SUBROUTINE ConstructPolynomial_stand
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Destruct a polynomial object.
-  !! @param[inout] this the polynomial to destruct.
-  PURE SUBROUTINE DestructPolynomial(this)
-    !! Parameters
-    TYPE(Polynomial_t), INTENT(inout) :: this
+  PURE SUBROUTINE DestructPolynomial_stand(this)
+    !> The polynomial to destruct.
+    TYPE(Polynomial_t), INTENT(INOUT) :: this
     IF (ALLOCATED(this%coefficients)) THEN
        DEALLOCATE(this%coefficients)
     END IF
-  END SUBROUTINE DestructPolynomial
+  END SUBROUTINE DestructPolynomial_stand
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Set coefficient of a polynomial.
-  !! @param[inout] this the polynomial to set.
-  !! @param[in] degree for which to set the coefficient.
-  !! @param[in] coefficient value.
-  SUBROUTINE SetCoefficient(this, degree, coefficient)
-    !! Parameters
-    TYPE(Polynomial_t), INTENT(inout) :: this
-    INTEGER, INTENT(in) :: degree
-    REAL(NTREAL), INTENT(in) :: coefficient
+  SUBROUTINE SetCoefficient_stand(this, degree, coefficient)
+    !> The polynomial to set.
+    TYPE(Polynomial_t), INTENT(INOUT) :: this
+    !> Degree for which to set the coefficient.
+    INTEGER, INTENT(IN) :: degree
+    !> Coefficient value.
+    REAL(NTREAL), INTENT(IN) :: coefficient
 
     this%coefficients(degree) = coefficient
-  END SUBROUTINE SetCoefficient
+  END SUBROUTINE SetCoefficient_stand
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute A Matrix Polynomial Using Horner's Method.
-  !! @param[in] InputMat the input matrix
-  !! @param[out] OutputMat = poly(InputMat)
-  !! @param[in] poly polynomial to compute.
-  !! @param[in] solver_parameters_in parameters for the solver (optional).
-  SUBROUTINE HornerCompute(InputMat, OutputMat, poly, solver_parameters_in)
-    !! Parameters
-    TYPE(DistributedSparseMatrix_t), INTENT(in)  :: InputMat
-    TYPE(DistributedSparseMatrix_t), INTENT(inout) :: OutputMat
-    TYPE(Polynomial_t), INTENT(in) :: poly
-    TYPE(FixedSolverParameters_t), INTENT(in), OPTIONAL :: solver_parameters_in
+  SUBROUTINE Compute_stand(InputMat, OutputMat, poly, solver_parameters_in)
+    !> The input matrix
+    TYPE(Matrix_ps), INTENT(IN)  :: InputMat
+    !> OutputMat = poly(InputMat)
+    TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
+    !> Polynomial to compute.
+    TYPE(Polynomial_t), INTENT(IN) :: poly
+    !> Parameters for the solver.
+    TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
     !! Handling Solver Parameters
-    TYPE(FixedSolverParameters_t) :: solver_parameters
+    TYPE(SolverParameters_t) :: solver_parameters
     !! Local Variables
-    TYPE(DistributedSparseMatrix_t) :: Identity
-    TYPE(DistributedSparseMatrix_t) :: BalancedInput
-    TYPE(DistributedSparseMatrix_t) :: Temporary
+    TYPE(Matrix_ps) :: Identity
+    TYPE(Matrix_ps) :: BalancedInput
+    TYPE(Matrix_ps) :: Temporary
     INTEGER :: degree
     INTEGER :: counter
-    TYPE(DistributedMatrixMemoryPool_t) :: pool
+    TYPE(MatrixMemoryPool_p) :: pool
 
     !! Handle The Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = FixedSolverParameters_t()
+       solver_parameters = SolverParameters_t()
     END IF
 
     degree = SIZE(poly%coefficients)
@@ -101,15 +108,15 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL WriteHeader("Polynomial Solver")
        CALL EnterSubLog
        CALL WriteElement(key="Method", text_value_in="Horner")
-       CALL PrintFixedSolverParameters(solver_parameters)
-       CALL WriteElement(key="Degree", int_value_in=degree)
+       CALL PrintParameters(solver_parameters)
+       CALL WriteElement(key="Degree", int_value_in=degree-1)
     END IF
 
     !! Initial values for matrices
-    CALL ConstructEmptyDistributedSparseMatrix(Identity, InputMat%actual_matrix_dimension)
-    CALL FillDistributedIdentity(Identity)
-    CALL ConstructEmptyDistributedSparseMatrix(Temporary, InputMat%actual_matrix_dimension)
-    CALL CopyDistributedSparseMatrix(InputMat,BalancedInput)
+    CALL ConstructEmptyMatrix(Identity, InputMat)
+    CALL FillMatrixIdentity(Identity)
+    CALL ConstructEmptyMatrix(Temporary, InputMat)
+    CALL CopyMatrix(InputMat,BalancedInput)
 
     !! Load Balancing Step
     IF (solver_parameters%do_load_balancing) THEN
@@ -118,19 +125,19 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PermuteMatrix(BalancedInput, BalancedInput, &
             & solver_parameters%BalancePermutation, memorypool_in=pool)
     END IF
-    CALL CopyDistributedSparseMatrix(Identity,OutputMat)
+    CALL CopyMatrix(Identity,OutputMat)
 
     IF (SIZE(poly%coefficients) .EQ. 1) THEN
-       CALL ScaleDistributedSparseMatrix(OutputMat, poly%coefficients(degree))
+       CALL ScaleMatrix(OutputMat, poly%coefficients(degree))
     ELSE
-       CALL ScaleDistributedSparseMatrix(OutputMat,poly%coefficients(degree-1))
-       CALL IncrementDistributedSparseMatrix(BalancedInput,OutputMat, &
+       CALL ScaleMatrix(OutputMat,poly%coefficients(degree-1))
+       CALL IncrementMatrix(BalancedInput,OutputMat, &
             & poly%coefficients(degree))
        DO counter = degree-2,1,-1
-          CALL DistributedGemm(BalancedInput,OutputMat,Temporary, &
+          CALL MatrixMultiply(BalancedInput,OutputMat,Temporary, &
                & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
-          CALL CopyDistributedSparseMatrix(Temporary,OutputMat)
-          CALL IncrementDistributedSparseMatrix(Identity, &
+          CALL CopyMatrix(Temporary,OutputMat)
+          CALL IncrementMatrix(Identity, &
                & OutputMat, alpha_in=poly%coefficients(counter))
        END DO
     END IF
@@ -145,43 +152,44 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF
-    CALL DestructDistributedSparseMatrix(Temporary)
-    CALL DestructDistributedSparseMatrix(Identity)
-  END SUBROUTINE HornerCompute
+    CALL DestructMatrix(Temporary)
+    CALL DestructMatrix(Identity)
+    CALL DestructMatrixMemoryPool(pool)
+  END SUBROUTINE Compute_stand
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute A Matrix Polynomial Using Paterson and Stockmeyer's method.
-  !! This method first factors the polynomial to reduce the number of
-  !! matrix multiplies required.
-  !! @param[in] InputMat the input matrix
-  !! @param[out] OutputMat = poly(InputMat)
-  !! @param[in] poly polynomial to compute.
-  !! @param[in] solver_parameters_in parameters for the solver (optional).
-  SUBROUTINE PatersonStockmeyerCompute(InputMat, OutputMat, poly, &
+  !> This method first factors the polynomial to reduce the number of
+  !> matrix multiplies required.
+  SUBROUTINE FactorizedCompute_stand(InputMat, OutputMat, poly, &
        & solver_parameters_in)
-    !! Parameters
-    TYPE(DistributedSparseMatrix_t), INTENT(in)  :: InputMat
-    TYPE(DistributedSparseMatrix_t), INTENT(inout) :: OutputMat
-    TYPE(Polynomial_t), INTENT(in) :: poly
-    TYPE(FixedSolverParameters_t), INTENT(in), OPTIONAL :: solver_parameters_in
+    !> The input matrix
+    TYPE(Matrix_ps), INTENT(IN)  :: InputMat
+    !> OutputMat = poly(InputMat)
+    TYPE(Matrix_ps), INTENT(INOUT) :: OutputMat
+    !> The polynomial to compute.
+    TYPE(Polynomial_t), INTENT(IN) :: poly
+    !> Parameters for the solver.
+    TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
     !! Handling Solver Parameters
-    TYPE(FixedSolverParameters_t) :: solver_parameters
+    TYPE(SolverParameters_t) :: solver_parameters
     !! Local Variables
-    TYPE(DistributedSparseMatrix_t) :: Identity
-    TYPE(DistributedSparseMatrix_t), DIMENSION(:), ALLOCATABLE :: x_powers
-    TYPE(DistributedSparseMatrix_t) :: Bk
-    TYPE(DistributedSparseMatrix_t) :: Xs
-    TYPE(DistributedSparseMatrix_t) :: Temp
+    TYPE(Matrix_ps) :: Identity
+    TYPE(Matrix_ps), DIMENSION(:), ALLOCATABLE :: x_powers
+    TYPE(Matrix_ps) :: Bk
+    TYPE(Matrix_ps) :: Xs
+    TYPE(Matrix_ps) :: Temp
     INTEGER :: degree
     INTEGER :: m_value, s_value, r_value
     INTEGER :: k_value
     INTEGER :: counter
     INTEGER :: c_index
+    TYPE(MatrixMemoryPool_p) :: pool
 
     !! Handle The Optional Parameters
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = FixedSolverParameters_t()
+       solver_parameters = SolverParameters_t()
     END IF
 
     !! Parameters for splitting up polynomial.
@@ -195,60 +203,59 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL EnterSubLog
        CALL WriteElement(key="Method", text_value_in="Paterson Stockmeyer")
        CALL WriteCitation("paterson1973number")
-       CALL PrintFixedSolverParameters(solver_parameters)
-       CALL WriteElement(key="Degree", int_value_in=degree)
+       CALL PrintParameters(solver_parameters)
+       CALL WriteElement(key="Degree", int_value_in=degree-1)
     END IF
 
     ALLOCATE(x_powers(s_value+1))
 
     !! Initial values for matrices
-    CALL ConstructEmptyDistributedSparseMatrix(Identity, &
-         & InputMat%actual_matrix_dimension)
-    CALL FillDistributedIdentity(Identity)
+    CALL ConstructEmptyMatrix(Identity, InputMat)
+    CALL FillMatrixIdentity(Identity)
 
     !! Create the X Powers
-    CALL ConstructEmptyDistributedSparseMatrix(x_powers(1), &
-         & InputMat%actual_matrix_dimension)
-    CALL FillDistributedIdentity(x_powers(1))
+    CALL ConstructEmptyMatrix(x_powers(1), InputMat)
+    CALL FillMatrixIdentity(x_powers(1))
     DO counter=1,s_value+1-1
-       CALL DistributedGemm(InputMat,x_powers(counter-1+1),x_powers(counter+1))
+       CALL MatrixMultiply(InputMat,x_powers(counter-1+1),x_powers(counter+1),&
+            & memory_pool_in=pool)
     END DO
-    CALL CopyDistributedSparseMatrix(x_powers(s_value+1),Xs)
+    CALL CopyMatrix(x_powers(s_value+1),Xs)
 
     !! S_k = bmX
-    CALL CopyDistributedSparseMatrix(Identity,Bk)
-    CALL ScaleDistributedSparseMatrix(Bk, poly%coefficients(s_value*r_value+1))
+    CALL CopyMatrix(Identity,Bk)
+    CALL ScaleMatrix(Bk, poly%coefficients(s_value*r_value+1))
     DO counter=1,m_value-s_value*r_value+1-1
        c_index = s_value*r_value + counter
-       CALL IncrementDistributedSparseMatrix(x_powers(counter+1),Bk, &
+       CALL IncrementMatrix(x_powers(counter+1),Bk, &
             & alpha_in=poly%coefficients(c_index+1))
     END DO
-    CALL DistributedGemm(Bk,Xs,OutputMat)
+    CALL MatrixMultiply(Bk,Xs,OutputMat, memory_pool_in=pool)
 
     !! S_k += bmx + bm-1I
     k_value = r_value - 1
-    CALL CopyDistributedSparseMatrix(Identity,Bk)
-    CALL ScaleDistributedSparseMatrix(Bk,poly%coefficients(s_value*k_value+1))
+    CALL CopyMatrix(Identity,Bk)
+    CALL ScaleMatrix(Bk,poly%coefficients(s_value*k_value+1))
     DO counter=1,s_value-1+1-1
        c_index = s_value*k_value + counter
-       CALL IncrementDistributedSparseMatrix(x_powers(counter+1),Bk, &
+       CALL IncrementMatrix(x_powers(counter+1),Bk, &
             & alpha_in=poly%coefficients(c_index+1))
     END DO
-    CALL IncrementDistributedSparseMatrix(Bk,OutputMat)
+    CALL IncrementMatrix(Bk,OutputMat)
 
     !! Loop over the rest.
     DO k_value=r_value-2,-1+1,-1
-       CALL CopyDistributedSparseMatrix(Identity,Bk)
-       CALL ScaleDistributedSparseMatrix(Bk, &
+       CALL CopyMatrix(Identity,Bk)
+       CALL ScaleMatrix(Bk, &
             & poly%coefficients(s_value*k_value+1))
        DO counter=1,s_value-1+1-1
           c_index = s_value*k_value + counter
-          CALL IncrementDistributedSparseMatrix(x_powers(counter+1),Bk, &
+          CALL IncrementMatrix(x_powers(counter+1),Bk, &
                & alpha_in=poly%coefficients(c_index+1))
        END DO
-       CALL DistributedGemm(Xs,OutputMat,Temp)
-       CALL CopyDistributedSparseMatrix(Temp,OutputMat)
-       CALL IncrementDistributedSparseMatrix(Bk,OutputMat)
+       CALL MatrixMultiply(Xs,OutputMat,Temp)
+       CALL CopyMatrix(Temp,OutputMat)
+       CALL IncrementMatrix(Bk,OutputMat)
     END DO
 
     !! Cleanup
@@ -256,11 +263,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL ExitSubLog
     END IF
     DO counter=1,s_value+1
-       CALL DestructDistributedSparseMatrix(x_powers(counter))
+       CALL DestructMatrix(x_powers(counter))
     END DO
     DEALLOCATE(x_powers)
-    CALL DestructDistributedSparseMatrix(Bk)
-    CALL DestructDistributedSparseMatrix(Xs)
-    CALL DestructDistributedSparseMatrix(Temp)
-  END SUBROUTINE PatersonStockmeyerCompute
+    CALL DestructMatrix(Bk)
+    CALL DestructMatrix(Xs)
+    CALL DestructMatrix(Temp)
+    CALL DestructMatrixMemoryPool(pool)
+  END SUBROUTINE FactorizedCompute_stand
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE PolynomialSolversModule

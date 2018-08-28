@@ -1,11 +1,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module to do timings.
 MODULE TimerModule
-  USE LoggingModule, ONLY : EnterSubLog, ExitSubLog, WriteElement, &
+  USE LoggingModule, ONLY : EnterSubLog, ExitSubLog, WriteListElement, &
        & WriteHeader
-  USE ProcessGridModule
+  USE ProcessGridModule, ONLY : global_grid
+  USE MPI
   IMPLICIT NONE
-  INCLUDE "mpif.h"
   PRIVATE
   LOGICAL :: is_initialized = .FALSE.
   CHARACTER(len=20), DIMENSION(:), ALLOCATABLE :: timer_list
@@ -20,10 +20,9 @@ MODULE TimerModule
   PUBLIC :: PrintAllTimersDistributed
 CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Register a timer with the timer module.  Call this before using that timer.
-  !! @param[in] timer_name name of the timer.
   SUBROUTINE RegisterTimer(timer_name)
-    !! Parameters
-    CHARACTER(len=*), INTENT(in) :: timer_name
+    !> Name of the timer.
+    CHARACTER(len=*), INTENT(IN) :: timer_name
     !! Local Data
     CHARACTER(len=20), DIMENSION(:), ALLOCATABLE :: temp_timer_list
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: temp_start_times
@@ -36,9 +35,9 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        temp_timer_list(:SIZE(timer_list)) = timer_list
        temp_start_times(:SIZE(start_times)) = start_times
        temp_elapsed_times(:SIZE(elapsed_times)) = elapsed_times
-       CALL move_alloc(temp_timer_list,timer_list)
-       CALL move_alloc(temp_start_times,start_times)
-       CALL move_alloc(temp_elapsed_times,elapsed_times)
+       CALL MOVE_ALLOC(temp_timer_list,timer_list)
+       CALL MOVE_ALLOC(temp_start_times,start_times)
+       CALL MOVE_ALLOC(temp_elapsed_times,elapsed_times)
        timer_list(SIZE(timer_list)) = timer_name
        elapsed_times(SIZE(timer_list)) = 0
     ELSE
@@ -52,15 +51,13 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END SUBROUTINE RegisterTimer
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Start the clock running for a given timer.
-  !! @param[in] timer_name name of the timer. Must be registered.
   SUBROUTINE StartTimer(timer_name)
-    !! Parameters
-    CHARACTER(len=*), INTENT(in) :: timer_name
+    !> Name of the timer. Must be registered.
+    CHARACTER(len=*), INTENT(IN) :: timer_name
     !! Local Data
     INTEGER :: timer_position
     DOUBLE PRECISION :: temp_time
 
-    !call MPI_Barrier(global_comm,grid_error)
     temp_time = MPI_WTIME()
     timer_position = GetTimerPosition(timer_name)
     IF (timer_position > 0) THEN
@@ -69,16 +66,14 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END SUBROUTINE StartTimer
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Stop the clock for a given timer.
-  !! @param[in] timer_name name of the timer. Must be registered.
   SUBROUTINE StopTimer(timer_name)
-    !! Parameters
-    CHARACTER(len=*), INTENT(in) :: timer_name
+    !> Name of the timer. Must be registered.
+    CHARACTER(len=*), INTENT(IN) :: timer_name
     !! Local Data
     INTEGER :: timer_position
     DOUBLE PRECISION :: temp_elapsed_time
     DOUBLE PRECISION :: temp_start_time
 
-    !call MPI_Barrier(global_comm,grid_error)
     timer_position = GetTimerPosition(timer_name)
     IF (timer_position > 0) THEN
        temp_elapsed_time = MPI_WTIME()
@@ -89,10 +84,9 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END SUBROUTINE StopTimer
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Print out the elapsed time for a given timer.
-  !! @param[in] timer_name name of the timer. Must be registered.
   SUBROUTINE PrintTimer(timer_name)
-    !! Parameters
-    CHARACTER(len=*), INTENT(in) :: timer_name
+    !> Name of the timer. Must be registered.
+    CHARACTER(len=*), INTENT(IN) :: timer_name
     !! Local Data
     INTEGER :: timer_position
 
@@ -100,7 +94,7 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL WriteHeader("Timers")
     CALL EnterSubLog
     IF (timer_position > 0) THEN
-       CALL WriteElement(key=timer_name, &
+       CALL WriteListElement(key=timer_name, &
             & float_value_in=elapsed_times(timer_position))
     END IF
     CALL ExitSubLog
@@ -114,45 +108,42 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL WriteHeader("Timers")
     CALL EnterSubLog
     DO timer_position = LBOUND(timer_list,dim=1), UBOUND(timer_list,dim=1)
-       CALL WriteElement(key=timer_list(timer_position), &
+       CALL WriteListElement(key=timer_list(timer_position), &
             & float_value_in=elapsed_times(timer_position))
     END DO
     CALL ExitSubLog
   END SUBROUTINE PrintAllTimers
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Print out the elapsed time for each timer based on the max value across
-  !! processes.
+  !> processes.
   SUBROUTINE PrintAllTimersDistributed()
     !! Local Data
     INTEGER          :: timer_position
     DOUBLE PRECISION :: elapsed
     DOUBLE PRECISION :: max_time
+    INTEGER          :: ierr
 
-    IF (IsRoot()) THEN
-       CALL WriteHeader("Timers")
-       CALL EnterSubLog
-    END IF
+    CALL WriteHeader("Timers")
+    CALL EnterSubLog
+
     DO timer_position = LBOUND(timer_list,dim=1), UBOUND(timer_list,dim=1)
        elapsed = elapsed_times(timer_position)
-       CALL MPI_Allreduce(elapsed,max_time,1,MPI_DOUBLE_PRECISION,MPI_MAX, &
-            & global_comm, grid_error)
-       IF (IsRoot()) THEN
-          CALL WriteElement(key=timer_list(timer_position), &
-               & float_value_in=max_time)
-       END IF
+       CALL MPI_Allreduce(elapsed, max_time, 1, MPI_DOUBLE_PRECISION , &
+            & MPI_MAX, global_grid%global_comm, ierr)
+       CALL WriteListElement(key=timer_list(timer_position), &
+            & float_value_in=max_time)
     END DO
-    IF (IsRoot()) THEN
-       CALL ExitSubLog
-    END IF
+
+    CALL ExitSubLog
   END SUBROUTINE PrintAllTimersDistributed
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Figure out the position in the timer list where timer_name is.
-  !! This is a utility routine.
-  !! @param[in] timer_name name of the timer.
-  !! @return the position of the timer. 0 means the timer hasn't been registered.
+  !> This is a utility routine.
   FUNCTION GetTimerPosition(timer_name) RESULT(timer_position)
     !! Parameters
-    CHARACTER(len=*), INTENT(in) :: timer_name
+    !> Name of the timer.
+    CHARACTER(len=*), INTENT(IN) :: timer_name
+    !> The position of the timer. 0 means the timer hasn't been registered.
     INTEGER :: timer_position
     !! Local Data
     INTEGER :: counter
@@ -175,4 +166,5 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        timer_position = counter
     END IF
   END FUNCTION GetTimerPosition
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE TimerModule

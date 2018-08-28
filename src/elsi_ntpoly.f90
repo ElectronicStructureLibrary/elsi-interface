@@ -15,18 +15,16 @@ module ELSI_NTPOLY
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_check_mpi,mpi_logical
    use ELSI_PRECISION, only: r8,i4
-   use NTPOLY,         only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,&
-                             DistributedSparseMatrix_t,FillFromTripletList,&
-                             ConstructEmptyDistributedSparseMatrix,&
-                             ScaleDistributedSparseMatrix,&
-                             CopyDistributedSparseMatrix,&
-                             FilterDistributedSparseMatrix,&
-                             GetTripletList,DestructDistributedSparseMatrix,&
-                             ConstructProcessGrid,DestructProcessGrid,&
+   use NTPOLY,         only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,Matrix_ps,&
+                             ConstructEmptyMatrix,DestructMatrix,CopyMatrix,&
+                             FillMatrixFromTripletList,ScaleMatrix,&
+                             GetMatrixTripletList,FilterMatrix,ProcessGrid_t,&
+                             ConstructNewProcessGrid,DestructProcessGrid,&
                              ConstructRandomPermutation,DestructPermutation,&
-                             InverseSquareRoot,IterativeSolverParameters_t,&
-                             Triplet_t,TripletList_t,ConstructTripletList,&
-                             AppendToTripletList,DestructTripletList
+                             InverseSquareRoot,SolverParameters_t,Triplet_r,&
+                             Triplet_c,TripletList_r,TripletList_c,&
+                             ConstructTripletList,AppendToTripletList,&
+                             DestructTripletList
 
    implicit none
 
@@ -36,23 +34,18 @@ module ELSI_NTPOLY
    public :: elsi_cleanup_ntpoly
    public :: elsi_solve_ntpoly
    public :: elsi_compute_edm_ntpoly
-   public :: DistributedSparseMatrix_t
-   public :: ConstructEmptyDistributedSparseMatrix
-   public :: FillFromTripletList
-   public :: GetTripletList
-   public :: TripletList_t
+   public :: Matrix_ps
+   public :: ConstructEmptyMatrix
+   public :: FillMatrixFromTripletList
+   public :: GetMatrixTripletList
+   public :: TripletList_r
+   public :: TripletList_c
    public :: ConstructTripletList
    public :: AppendToTripletList
    public :: DestructTripletList
-   public :: Triplet_t
-
-   interface elsi_solve_ntpoly
-      module procedure elsi_solve_ntpoly_real
-   end interface
-
-   interface elsi_compute_edm_ntpoly
-      module procedure elsi_compute_edm_ntpoly_real
-   end interface
+   public :: Triplet_r
+   public :: Triplet_c
+   public :: ProcessGrid_t
 
 contains
 
@@ -85,7 +78,8 @@ subroutine elsi_init_ntpoly(ph,bh)
 
       n_pcol = np_per_group/n_prow
 
-      call ConstructProcessGrid(bh%comm,n_prow,n_pcol,ph%nt_n_group)
+      call ConstructNewProcessGrid(ph%nt_pgrid,bh%comm,n_prow,n_pcol,&
+              ph%nt_n_group)
 
       call MPI_Bcast(ph%nt_output,1,mpi_logical,0,bh%comm,ierr)
 
@@ -99,39 +93,39 @@ end subroutine
 !>
 !! This routine interfaces to NTPoly.
 !!
-subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
+subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 
    implicit none
 
-   type(elsi_param_t),              intent(inout) :: ph
-   type(elsi_basic_t),              intent(in)    :: bh
-   type(DistributedSparseMatrix_t), intent(in)    :: ham
-   type(DistributedSparseMatrix_t), intent(inout) :: ovlp
-   type(DistributedSparseMatrix_t), intent(inout) :: dm
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(in)    :: bh
+   type(Matrix_ps),    intent(in)    :: ham
+   type(Matrix_ps),    intent(inout) :: ovlp
+   type(Matrix_ps),    intent(inout) :: dm
 
    integer(kind=i4)   :: ne
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   type(DistributedSparseMatrix_t) :: ovlp_isr
+   type(Matrix_ps) :: ovlp_isr
 
-   character(len=*), parameter :: caller = "elsi_solve_ntpoly_real"
+   character(len=*), parameter :: caller = "elsi_solve_ntpoly"
 
    if(ph%n_calls == 1) then
       call elsi_get_time(t0)
 
       call ConstructRandomPermutation(ph%nt_perm,ovlp%logical_matrix_dimension)
 
-      ph%nt_options = IterativeSolverParameters_t(ph%nt_tol,ph%nt_filter,&
-                         ph%nt_max_iter,ph%nt_output,ph%nt_perm)
+      ph%nt_options = SolverParameters_t(ph%nt_tol,ph%nt_filter,ph%nt_max_iter,&
+                         ph%nt_output,ph%nt_perm)
 
       ! Overlap seems more difficult to converge
       ph%nt_options%threshold = max(0.01_r8*ph%nt_filter,1.0e-15_r8)
 
       call InverseSquareRoot(ovlp,ovlp_isr,ph%nt_options,ph%nt_isr)
-      call CopyDistributedSparseMatrix(ovlp_isr,ovlp)
-      call DestructDistributedSparseMatrix(ovlp_isr)
+      call CopyMatrix(ovlp_isr,ovlp)
+      call DestructMatrix(ovlp_isr)
 
       ph%nt_options%threshold = ph%nt_filter
 
@@ -145,7 +139,7 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
 
    call elsi_get_time(t0)
 
-   call ConstructEmptyDistributedSparseMatrix(dm,ph%n_basis)
+   call ConstructEmptyMatrix(dm,ham)
 
    ne = int(ph%n_electrons,kind=i4)
 
@@ -160,10 +154,10 @@ subroutine elsi_solve_ntpoly_real(ph,bh,ham,ovlp,dm)
       call HPCP(ham,ovlp,ne,dm,ph%ebs,ph%mu,ph%nt_options)
    end select
 
-   call ScaleDistributedSparseMatrix(dm,ph%spin_degen)
+   call ScaleMatrix(dm,ph%spin_degen)
 
    if(ph%nt_filter < bh%def0) then
-      call FilterDistributedSparseMatrix(dm,bh%def0)
+      call FilterMatrix(dm,bh%def0)
    endif
 
    call elsi_get_time(t1)
@@ -178,36 +172,36 @@ end subroutine
 !>
 !! This routine computes the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_ntpoly_real(ph,bh,ham,edm)
+subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
 
    implicit none
 
-   type(elsi_param_t),              intent(in)    :: ph
-   type(elsi_basic_t),              intent(in)    :: bh
-   type(DistributedSparseMatrix_t), intent(inout) :: ham
-   type(DistributedSparseMatrix_t), intent(inout) :: edm ! On entry: DM
+   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_basic_t), intent(in)    :: bh
+   type(Matrix_ps),    intent(inout) :: ham
+   type(Matrix_ps),    intent(inout) :: edm ! On entry: DM
 
    real(kind=r8)      :: factor
    real(kind=r8)      :: t0
    real(kind=r8)      :: t1
    character(len=200) :: info_str
 
-   type(DistributedSparseMatrix_t) :: tmp
+   type(Matrix_ps) :: tmp
 
-   character(len=*), parameter :: caller = "elsi_compute_edm_ntpoly_real"
+   character(len=*), parameter :: caller = "elsi_compute_edm_ntpoly"
 
    call elsi_get_time(t0)
 
    factor = 1.0_r8/ph%spin_degen
 
-   call ConstructEmptyDistributedSparseMatrix(tmp,ph%n_basis)
-   call CopyDistributedSparseMatrix(edm,tmp)
+   call ConstructEmptyMatrix(tmp,ham)
+   call CopyMatrix(edm,tmp)
    call EnergyDensityMatrix(ham,tmp,edm,ph%nt_options)
-   call DestructDistributedSparseMatrix(tmp)
-   call ScaleDistributedSparseMatrix(edm,factor)
+   call DestructMatrix(tmp)
+   call ScaleMatrix(edm,factor)
 
    if(ph%nt_filter < bh%def0) then
-      call FilterDistributedSparseMatrix(edm,bh%def0)
+      call FilterMatrix(edm,bh%def0)
    endif
 
    call elsi_get_time(t1)
@@ -231,11 +225,11 @@ subroutine elsi_cleanup_ntpoly(ph)
    character(len=*), parameter :: caller = "elsi_cleanup_ntpoly"
 
    if(ph%nt_started) then
-      call DestructDistributedSparseMatrix(ph%nt_ham)
-      call DestructDistributedSparseMatrix(ph%nt_ovlp)
-      call DestructDistributedSparseMatrix(ph%nt_dm)
+      call DestructMatrix(ph%nt_ham)
+      call DestructMatrix(ph%nt_ovlp)
+      call DestructMatrix(ph%nt_dm)
       call DestructPermutation(ph%nt_perm)
-      call DestructProcessGrid()
+      call DestructProcessGrid(ph%nt_pgrid)
    endif
 
    ph%nt_started = .false.
