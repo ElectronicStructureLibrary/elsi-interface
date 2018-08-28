@@ -153,8 +153,11 @@ ENDIF()
 
 ### Parallel Fortran tests: dm + NTPoly ###
 test_fortran(31_ntpoly d 0 r 6 ${h_real} ${s_real})
-test_fortran(32_ntpoly d 1 r 6 ${h_real} ${s_real})
-test_fortran(33_ntpoly d 2 r 6 ${h_real} ${s_real})
+test_fortran(32_ntpoly d 0 c 6 ${h_cmplx} ${s_cmplx})
+test_fortran(33_ntpoly d 1 r 6 ${h_real} ${s_real})
+test_fortran(34_ntpoly d 1 c 6 ${h_cmplx} ${s_cmplx})
+test_fortran(35_ntpoly d 2 r 6 ${h_real} ${s_real})
+test_fortran(36_ntpoly d 2 c 6 ${h_cmplx} ${s_cmplx})
 
 ### Serial Fortran tests: ev + ELPA (LAPACK) ###
 ADD_TEST(test_serial_01_lapack
@@ -214,4 +217,8 @@ IF(ENABLE_C_TESTS)
     test_c(07_pexsi d 0 r 3 ${h_real} ${s_real})
     test_c(08_pexsi d 0 c 3 ${h_cmplx} ${s_cmplx})
   ENDIF()
+
+  ### Parallel C tests: dm + NTPoly ###
+  test_c(09_ntpoly d 0 r 6 ${h_real} ${s_real})
+  test_c(10_ntpoly d 0 c 6 ${h_cmplx} ${s_cmplx})
 ENDIF()
