@@ -26,7 +26,6 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: ELPA_SOLVER   = 1
    integer(kind=i4), parameter :: OMM_SOLVER    = 2
    integer(kind=i4), parameter :: PEXSI_SOLVER  = 3
-   integer(kind=i4), parameter :: CHESS_SOLVER  = 4
    integer(kind=i4), parameter :: SIPS_SOLVER   = 5
    integer(kind=i4), parameter :: NTPOLY_SOLVER = 6
 

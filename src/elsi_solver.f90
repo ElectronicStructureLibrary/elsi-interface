@@ -78,8 +78,11 @@ subroutine elsi_get_energy(ph,bh,energy,solver)
 
    energy = ph%ebs*ph%i_weight
 
+   ! Handle different conventions
    if(solver == OMM_SOLVER) then
       energy = ph%spin_degen*energy
+   elseif(solver == NTPOLY_SOLVER) then
+      energy = ph%spin_degen*energy/2.0_r8
    endif
 
    if(ph%n_spins*ph%n_kpts > 1) then
