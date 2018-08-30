@@ -611,7 +611,7 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
                if(evals(i_state,i_spin,i_kpt) > mu-delta .and.&
                   evals(i_state,i_spin,i_kpt) < mu+delta) then
                   arg = evals(i_state,i_spin,i_kpt)-mu
-                  ts  = ts+k_weights(i_kpt)*(((arg**2)-const)**2)
+                  ts  = ts+(((arg**2)-const)**2)*k_weights(i_kpt)
                endif
             enddo
          enddo
@@ -624,7 +624,7 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
             do i_state = 1,n_state
                arg = (evals(i_state,i_spin,i_kpt)-mu)*invert_width
                arg = -arg-sqrt(0.5_r8)
-               ts  = ts-arg*exp(-arg**2)
+               ts  = ts-arg*exp(-arg**2)*k_weights(i_kpt)
             enddo
          enddo
       enddo
