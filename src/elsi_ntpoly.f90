@@ -196,7 +196,7 @@ subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
 
    call ConstructEmptyMatrix(tmp,ham)
    call CopyMatrix(edm,tmp)
-   call EnergyDensityMatrix(ham,tmp,edm,ph%nt_options)
+   call EnergyDensityMatrix(ham,tmp,edm,ph%nt_filter)
    call DestructMatrix(tmp)
    call ScaleMatrix(edm,factor)
 

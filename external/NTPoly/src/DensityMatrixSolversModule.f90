@@ -11,7 +11,8 @@ MODULE DensityMatrixSolversModule
   USE PSMatrixAlgebraModule, ONLY : IncrementMatrix, MatrixMultiply, &
        & DotMatrix, MatrixTrace, ScaleMatrix
   USE PSMatrixModule, ONLY : Matrix_ps, ConstructEmptyMatrix, DestructMatrix, &
-       & CopyMatrix, PrintMatrixInformation, FillMatrixIdentity
+       & CopyMatrix, PrintMatrixInformation, FillMatrixIdentity, &
+       & ConjugateMatrix
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters
   IMPLICIT NONE
   PRIVATE
@@ -21,27 +22,26 @@ MODULE DensityMatrixSolversModule
   PUBLIC :: TRS2
   PUBLIC :: TRS4
   PUBLIC :: HPCP
-! PUBLIC :: HPCPPlus
   PUBLIC :: EnergyDensityMatrix
+! PUBLIC :: HPCPPlus
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> Compute the density matrix from a Hamiltonian using the PM method.
 !! Based on the PM algorithm presented in \cite palser1998canonical
-!! @param[in] Hamiltonian the matrix to compute the corresponding density from
-!! @param[in] InverseSquareRoot of the overlap matrix.
-!! @param[in] nel the number of electrons.
-!! @param[out] Density the density matrix computed by this routine.
-!! @param[out] energy_value_out the energy of the system (optional).
-!! @param[out] chemical_potential_out the chemical potential (optional).
-!! @param[in] solver_parameters_in parameters for the solver (optional)
   SUBROUTINE PM(Hamiltonian, InverseSquareRoot, nel, Density, &
        & energy_value_out, chemical_potential_out, solver_parameters_in)
-!! Parameters
+!> The matrix to compute the corresponding density from.
     TYPE(Matrix_ps), INTENT(IN) :: Hamiltonian
+!> The inverse square root of the overlap matrix.
     TYPE(Matrix_ps), INTENT(IN) :: InverseSquareRoot
+!> The number of electrons.
     INTEGER, INTENT(IN) :: nel
+!> The density matrix computed by this routine.
     TYPE(Matrix_ps), INTENT(INOUT) :: Density
+!> The energy of the system (optional).
     REAL(NTREAL), INTENT(OUT), OPTIONAL :: energy_value_out
+!> The chemical potential (optional).
     REAL(NTREAL), INTENT(OUT), OPTIONAL :: chemical_potential_out
+!> Parameters for the solver (optional).
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
 !! Handling Optional Parameters
     TYPE(SolverParameters_t) :: solver_parameters
@@ -279,23 +279,22 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END SUBROUTINE PM
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> Compute the density matrix from a Hamiltonian using the TRS2 method.
-!! Based on the TRS2 algorithm presented in \cite niklasson2002
-!! @param[in] Hamiltonian the matrix to compute the corresponding density from
-!! @param[in] InverseSquareRoot of the overlap matrix.
-!! @param[in] nel the number of electrons.
-!! @param[out] Density the density matrix computed by this routine.
-!! @param[out] energy_value_out the energy of the system (optional).
-!! @param[out] chemical_potential_out the chemical potential (optional).
-!! @param[in] solver_parameters_in parameters for the solver (optional)
+!! Based on the TRS2 algorithm presented in \cite niklasson2002.
   SUBROUTINE TRS2(Hamiltonian, InverseSquareRoot, nel, Density, &
        & energy_value_out, chemical_potential_out, solver_parameters_in)
-!! Parameters
+!> The matrix to compute the corresponding density from
     TYPE(Matrix_ps), INTENT(IN) :: Hamiltonian
+!> The inverse square root of the overlap matrix.
     TYPE(Matrix_ps), INTENT(IN) :: InverseSquareRoot
+!> The number of electrons.
     INTEGER, INTENT(IN) :: nel
+!> The density matrix computed by this routine.
     TYPE(Matrix_ps), INTENT(INOUT) :: Density
+!> The energy of the system (optional).
     REAL(NTREAL), INTENT(OUT), OPTIONAL :: energy_value_out
+!> The chemical potential (optional).
     REAL(NTREAL), INTENT(OUT), OPTIONAL :: chemical_potential_out
+!> Parameters for the solver (optional).
     TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
 !! Handling Optional Parameters
     TYPE(SolverParameters_t) :: solver_parameters
@@ -488,24 +487,22 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> Compute the density matrix from a Hamiltonian using the TRS4 method.
 !! Based on the TRS4 algorithm presented in \cite niklasson2002
-!! @param[in] Hamiltonian the matrix to compute the corresponding density from
-!! @param[in] InverseSquareRoot of the overlap matrix.
-!! @param[in] nel the number of electrons.
-!! @param[out] Density the density matrix computed by this routine.
-!! @param[out] energy_value_out the energy of the system (optional).
-!! @param[out] chemical_potential_out the chemical potential (optional).
-!! @param[in] solver_parameters_in parameters for the solver (optional).
   SUBROUTINE TRS4(Hamiltonian, InverseSquareRoot, nel, Density, &
        & energy_value_out, chemical_potential_out, solver_parameters_in)
-!! Parameters
+!> The matrix to compute the corresponding density from.
     TYPE(Matrix_ps), INTENT(IN)  :: Hamiltonian
+!> The inverse square root of the overlap matrix.
     TYPE(Matrix_ps), INTENT(IN) :: InverseSquareRoot
+!> The number of electrons.
     INTEGER, INTENT(IN) :: nel
+!> The density matrix computed by this routine.
     TYPE(Matrix_ps), INTENT(INOUT) :: Density
+!> The energy of the system (optional).
     REAL(NTREAL), INTENT(OUT), OPTIONAL :: energy_value_out
+!> The chemical potential (optional).
     REAL(NTREAL), INTENT(OUT), OPTIONAL :: chemical_potential_out
-    TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: &
-         & solver_parameters_in
+!> Parameters for the solver (optional).
+    TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
     REAL(NTREAL), PARAMETER :: sigma_min = 0.0_NTREAL
     REAL(NTREAL), PARAMETER :: sigma_max = 6.0_NTREAL
 !! Handling Optional Parameters
@@ -536,8 +533,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
 
     IF (solver_parameters%be_verbose) THEN
-       CALL EnterSubLog
        CALL WriteHeader("Density Matrix Solver")
+       CALL EnterSubLog
        CALL WriteElement(key="Method", text_value_in="TRS4")
        CALL WriteCitation("niklasson2002expansion")
        CALL PrintParameters(solver_parameters)
@@ -601,8 +598,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL IncrementMatrix(X_k2,Gx_right)
 
 !! Compute Traces
-      CALL DotMatrix(X_k2,Fx_right,trace_fx)
-      CALL DotMatrix(X_k2,Gx_right,trace_gx)
+       CALL DotMatrix(X_k2,Fx_right,trace_fx)
+       CALL DotMatrix(X_k2,Gx_right,trace_gx)
 
 !! Avoid Overflow
        IF (ABS(trace_gx) .LT. 1.0e-14_NTREAL) THEN
@@ -728,25 +725,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END SUBROUTINE TRS4
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> Compute the density matrix from a Hamiltonian using the HPCP method.
-!! Based on the algorithm presented in \cite truflandier2016communication
-!! @param[in] Hamiltonian the matrix to compute the corresponding density from
-!! @param[in] InverseSquareRoot of the overlap matrix.
-!! @param[in] nel the number of electrons.
-!! @param[out] Density the density matrix computed by this routine.
-!! @param[out] energy_value_out the energy of the system (optional).
-!! @param[out] chemical_potential_out the chemical potential (optional).
-!! @param[in] solver_parameters_in parameters for the solver (optional).
+!! Based on the algorithm presented in \cite truflandier2016communication.
   SUBROUTINE HPCP(Hamiltonian, InverseSquareRoot, nel, Density, &
        & energy_value_out, chemical_potential_out, solver_parameters_in)
-!! Parameters
+!> The matrix to compute the corresponding density from.
     TYPE(Matrix_ps), INTENT(IN) :: Hamiltonian
+!> The inverse square root of the overlap matrix.
     TYPE(Matrix_ps), INTENT(IN) :: InverseSquareRoot
+!> The number of electrons.
     INTEGER, INTENT(IN) :: nel
+!> The density matrix computed by this routine.
     TYPE(Matrix_ps), INTENT(INOUT) :: Density
+!> The energy of the system (optional).
     REAL(NTREAL), INTENT(OUT), OPTIONAL :: energy_value_out
+!> The chemical potential (optional).
     REAL(NTREAL), INTENT(OUT), OPTIONAL :: chemical_potential_out
-    TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: &
-         & solver_parameters_in
+!> Parameters for the solver (optional).
+    TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: solver_parameters_in
 !! Handling Optional Parameters
     TYPE(SolverParameters_t) :: solver_parameters
 !! Local Matrices
@@ -1245,29 +1240,28 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END SUBROUTINE HPCPPlus
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> Compute the energy-weighted density matrix.
-!! @param[in] Hamiltonian the matrix to compute the corresponding density from.
-!! @param[in] Density the density matrix
-!! @param[out] EnergyDensity the energy-weighted density matrix
   SUBROUTINE EnergyDensityMatrix(Hamiltonian, Density, EnergyDensity, &
-       & solver_parameters_in)
-!! Parameters
+       & threshold_in)
+!> The matrix to compute from.
     TYPE(Matrix_ps), INTENT(IN) :: Hamiltonian
+!> The density matrix.
     TYPE(Matrix_ps), INTENT(IN) :: Density
+!> The energy-weighted density matrix.
     TYPE(Matrix_ps), INTENT(INOUT) :: EnergyDensity
-    TYPE(SolverParameters_t), INTENT(IN), OPTIONAL :: &
-         & solver_parameters_in
+!> Threshold for flushing small values (default = 0).
+    REAL(NTREAL), INTENT(IN), OPTIONAL :: threshold_in
 !! Handling Optional Parameters
-    TYPE(SolverParameters_t) :: solver_parameters
+    REAL(NTREAL) :: threshold
 !! Local Matrices
     TYPE(Matrix_ps) :: TempMat
 !! Temporary Variables
-    TYPE(MatrixMemoryPool_p) :: pool1
+    TYPE(MatrixMemoryPool_p) :: pool
 
 !! Optional Parameters
-    IF (PRESENT(solver_parameters_in)) THEN
-       solver_parameters = solver_parameters_in
+    IF (PRESENT(threshold_in)) THEN
+       threshold = threshold_in
     ELSE
-       solver_parameters = SolverParameters_t()
+       threshold = 0.0_NTREAL
     END IF
 
 !! Construct All The Necessary Matrices
@@ -1275,14 +1269,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL ConstructEmptyMatrix(TempMat, Hamiltonian)
 
 !! EDM = DM * H * DM
-    CALL MatrixMultiply(Density,Hamiltonian,TempMat, &
-         & threshold_in=solver_parameters%threshold, memory_pool_in=pool1)
-    CALL MatrixMultiply(TempMat,Density,EnergyDensity, &
-         & threshold_in=solver_parameters%threshold, memory_pool_in=pool1)
+    CALL MatrixMultiply(Density, Hamiltonian, TempMat, &
+         & threshold_in=threshold, memory_pool_in=pool)
+    CALL MatrixMultiply(TempMat, Density, EnergyDensity, &
+         & threshold_in=threshold, memory_pool_in=pool)
 
 !! Cleanup
     CALL DestructMatrix(TempMat)
-    CALL DestructMatrixMemoryPool(pool1)
+    CALL DestructMatrixMemoryPool(pool)
   END SUBROUTINE EnergyDensityMatrix
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE DensityMatrixSolversModule
