@@ -42,7 +42,6 @@ ENDIF()
 IF(LIBDIR_ABS STREQUAL "${PROJECT_BINARY_DIR}/lib" OR INCDIR_ABS STREQUAL "${PROJECT_BINARY_DIR}/include")
   MESSAGE(FATAL_ERROR "${MAGENTA}Installation directory cannot be the same as build directory${COLORRESET}")
 ENDIF()
-MESSAGE(STATUS "ELSI will be installed to: ${CMAKE_INSTALL_PREFIX}")
 
 ### Options ###
 OPTION(ENABLE_TESTS "Build ELSI Fortran test programs" OFF)
