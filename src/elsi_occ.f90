@@ -231,7 +231,7 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
          do i_spin = 1,n_spin
             do i_state = 1,n_state
                arg    = (evals(i_state,i_spin,i_kpt)-mu_in)*invert_width
-               weight = exp(-arg*arg)
+               weight = exp(-arg**2)
 
                occ_nums(i_state,i_spin,i_kpt) = 0.5_r8*(1.0_r8-erf(arg))*&
                                                    spin_degen
@@ -270,15 +270,15 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
-               if(evals(i_state,i_spin,i_kpt) <= mu_in-delta) then
+               arg = (evals(i_state,i_spin,i_kpt)-mu_in)/delta
+
+               if(arg <= -1.0_r8) then
                   occ_nums(i_state,i_spin,i_kpt) = spin_degen
-               elseif(evals(i_state,i_spin,i_kpt) >= mu_in+delta) then
+               elseif(arg >= 1.0_r8) then
                   occ_nums(i_state,i_spin,i_kpt) = 0.0_r8
                else
-                  occ_nums(i_state,i_spin,i_kpt) = spin_degen*&
-                     (0.25_r8/delta**3)*&
-                     (evals(i_state,i_spin,i_kpt)-mu_in+2.0_r8*delta)*&
-                     (evals(i_state,i_spin,i_kpt)-mu_in-delta)**2
+                  occ_nums(i_state,i_spin,i_kpt) = spin_degen*0.25_r8*&
+                     (arg+2.0_r8)*(arg-1.0_r8)**2
                endif
 
                diff_ne_out = diff_ne_out+occ_nums(i_state,i_spin,i_kpt)*&
@@ -293,7 +293,7 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
                arg = (evals(i_state,i_spin,i_kpt)-mu_in)*invert_width
                arg = -arg-sqrt(0.5_r8)
 
-               occ_nums(i_state,i_spin,i_kpt) = (0.5_r8+erf(arg)*0.5_r8+&
+               occ_nums(i_state,i_spin,i_kpt) = (0.5_r8-erf(arg)*0.5_r8-&
                   INVERT_SQRT_PI*sqrt(0.5_r8)*exp(-arg**2))*spin_degen
 
                diff_ne_out = diff_ne_out+occ_nums(i_state,i_spin,i_kpt)*&
@@ -520,7 +520,6 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
    real(kind=r8)    :: spin_degen
    real(kind=r8)    :: invert_width
    real(kind=r8)    :: delta
-   real(kind=r8)    :: const
    real(kind=r8)    :: pre
    real(kind=r8)    :: arg
    real(kind=r8)    :: weight
@@ -557,13 +556,12 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
          do i_spin = 1,n_spin
             do i_state = 1,n_state
                arg = (evals(i_state,i_spin,i_kpt)-mu)*invert_width
-               arg = -(arg*arg)
-               ts  = ts+exp(arg)*k_weights(i_kpt)
+               ts  = ts+exp(-arg**2)*k_weights(i_kpt)
             enddo
          enddo
       enddo
    case(FERMI)
-      pre = -spin_degen*ph%mu_width
+      pre = spin_degen*ph%mu_width
 
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
@@ -571,7 +569,7 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
                arg = occ_nums(i_state,i_spin,i_kpt)/spin_degen
 
                if(1.0_r8-arg > ts_thr .and. arg > ts_thr) then
-                  ts = ts+(arg*log(arg)+(1.0_r8-arg)*log(1.0_r8-arg))*&
+                  ts = ts-(arg*log(arg)+(1.0_r8-arg)*log(1.0_r8-arg))*&
                           k_weights(i_kpt)
                endif
             enddo
@@ -584,7 +582,7 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
          do i_spin = 1,n_spin
             do i_state = 1,n_state
                arg    = (evals(i_state,i_spin,i_kpt)-mu)*invert_width
-               weight = exp(-arg*arg)
+               weight = exp(-arg**2)
                A      = INVERT_SQRT_PI
                H_even = 1.0_r8
                H_odd  = 2.0_r8*arg
@@ -599,32 +597,29 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
             enddo
          enddo
       enddo
-
    case(CUBIC)
       delta = 0.75_r8*ph%mu_width*SQRT_PI
-      pre   = 0.1875_r8*spin_degen*ph%mu_width/(delta**4)
-      const = delta**2
+      pre   = 0.1875_r8*spin_degen*ph%mu_width
 
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
-               if(evals(i_state,i_spin,i_kpt) > mu-delta .and.&
-                  evals(i_state,i_spin,i_kpt) < mu+delta) then
-                  arg = evals(i_state,i_spin,i_kpt)-mu
-                  ts  = ts+(((arg**2)-const)**2)*k_weights(i_kpt)
+               arg = (evals(i_state,i_spin,i_kpt)-mu)/delta
+
+               if(arg > -1.0_r8 .and. arg < 1.0_r8) then
+                  ts = ts+(((arg**2)-1.0_r8)**2)*k_weights(i_kpt)
                endif
             enddo
          enddo
       enddo
    case(COLD)
-      pre = sqrt(0.5_r8)*spin_degen*ph%mu_width*INVERT_SQRT_PI
+      pre = 0.5_r8*spin_degen*ph%mu_width*INVERT_SQRT_PI
 
       do i_kpt = 1,n_kpt
          do i_spin = 1,n_spin
             do i_state = 1,n_state
                arg = (evals(i_state,i_spin,i_kpt)-mu)*invert_width
-               arg = -arg-sqrt(0.5_r8)
-               ts  = ts-arg*exp(-arg**2)*k_weights(i_kpt)
+               ts  = ts+exp(-(arg-sqrt(0.5_r8))**2)*(1.0_r8-sqrt(2.0_r8)*arg)
             enddo
          enddo
       enddo
