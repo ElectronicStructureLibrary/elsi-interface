@@ -4,7 +4,7 @@
 # module load netlib-lapack
 # module load netlib-scalapack/2.0.2
 # module load xl
-# Need CMake 3.11.0 (see http://gitlab.kitware.com/cmake/cmake/issues/17784)
+# Need CMake 3.11 or newer (see http://gitlab.kitware.com/cmake/cmake/issues/17784)
 
 SET(CMAKE_Fortran_COMPILER "mpixlf" CACHE STRING "MPI Fortran compiler")
 SET(CMAKE_C_COMPILER "mpixlc" CACHE STRING "MPI C compiler")
