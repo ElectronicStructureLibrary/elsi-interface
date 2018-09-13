@@ -1,10 +1,10 @@
 ### Summitdev ###
 
-# module load essl/5.5.0-20161110
+# module load cmake/3.11.3
+# module load essl/5.5.0
 # module load netlib-lapack
 # module load netlib-scalapack/2.0.2
 # module load xl
-# Need CMake 3.11.0 (see http://gitlab.kitware.com/cmake/cmake/issues/17784)
 
 SET(CMAKE_Fortran_COMPILER "mpixlf" CACHE STRING "MPI Fortran compiler")
 SET(CMAKE_C_COMPILER "mpixlc" CACHE STRING "MPI C compiler")
