@@ -48,6 +48,7 @@ MACRO(add_test_target arg1)
 
   TARGET_INCLUDE_DIRECTORIES(${arg1} PRIVATE
     ${INC_PATHS}
+    ${CMAKE_Fortran_MODULE_DIRECTORY}
     ${PROJECT_SOURCE_DIR}/src)
 ENDMACRO()
 

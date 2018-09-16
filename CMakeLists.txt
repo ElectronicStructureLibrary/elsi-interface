@@ -92,8 +92,6 @@ ENDFOREACH()
 generate_library_targets(LIB_PATHS LIBS)
 
 ### Compilations ###
-INCLUDE_DIRECTORIES(${CMAKE_Fortran_MODULE_DIRECTORY})
-
 IF(USE_EXTERNAL_ELPA)
   MESSAGE(STATUS "Using external ELPA")
 ELSE()
