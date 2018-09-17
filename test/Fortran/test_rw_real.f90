@@ -136,7 +136,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
 
    if(myid == 0) then
       write(*,"(2X,A)") "Finished writing H and S matrices"
-      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t1-t2,"s"
       write(*,*)
    endif
 
@@ -226,7 +226,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
 
    if(myid == 0) then
       write(*,"(2X,A)") "Finished writing H and S matrices"
-      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t1-t2,"s"
       write(*,*)
    endif
 
