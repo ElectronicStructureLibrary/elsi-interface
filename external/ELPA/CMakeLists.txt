@@ -26,7 +26,7 @@ LIST(APPEND elpa_src
 
 ### Kernels ###
 IF(ELPA2_KERNEL STREQUAL "AVX512")
-  MESSAGE(STATUS "Using ELPA AVX 512 kernel")
+  MESSAGE(STATUS "Using ELPA AVX512 kernel")
   LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_avx512.f90
     src/mod_compute_hh_trafo_complex_avx512.f90
@@ -35,7 +35,7 @@ IF(ELPA2_KERNEL STREQUAL "AVX512")
     src/elpa2_kernels_real_avx512_2hv.c
     src/elpa2_kernels_complex_avx512_1hv.c)
 ELSEIF(ELPA2_KERNEL STREQUAL "AVX2")
-  MESSAGE(STATUS "Using ELPA AVX 2 kernel")
+  MESSAGE(STATUS "Using ELPA AVX2 kernel")
   LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_avx2.f90
     src/mod_compute_hh_trafo_complex_avx2.f90
@@ -66,7 +66,6 @@ ELSE()
   LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real.f90
     src/mod_compute_hh_trafo_complex.f90
-    src/mod_fortran_interfaces.f90
     src/elpa2_utilities.f90
     src/elpa2_kernels_real.f90
     src/elpa2_kernels_complex.f90)

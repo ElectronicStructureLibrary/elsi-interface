@@ -303,7 +303,7 @@ subroutine elsi_compute_edm_elpa_real(ph,bh,row_map,col_map,eval,evec,occ,edm,&
    max_state = 0
 
    do i = 1,ph%n_states_solve
-      factor(i) = -1.0_r8*occ(i,ph%i_spin,ph%i_kpt)*eval(i)
+      factor(i) = -occ(i,ph%i_spin,ph%i_kpt)*eval(i)
       if(factor(i) > 0.0_r8) then
          factor(i) = sqrt(factor(i))
          max_state = i
@@ -329,10 +329,8 @@ subroutine elsi_compute_edm_elpa_real(ph,bh,row_map,col_map,eval,evec,occ,edm,&
    edm = 0.0_r8
 
    ! Compute density matrix
-   call pdsyrk('U','N',ph%n_basis,max_state,1.0_r8,work,1,1,bh%desc,0.0_r8,edm,&
-           1,1,bh%desc)
-
-   edm = -1.0_r8*edm
+   call pdsyrk('U','N',ph%n_basis,max_state,-1.0_r8,work,1,1,bh%desc,0.0_r8,&
+           edm,1,1,bh%desc)
 
    call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,edm)
 
@@ -786,7 +784,7 @@ subroutine elsi_compute_edm_elpa_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,&
    max_state = 0
 
    do i = 1,ph%n_states_solve
-      factor(i) = -1.0_r8*occ(i,ph%i_spin,ph%i_kpt)*eval(i)
+      factor(i) = -occ(i,ph%i_spin,ph%i_kpt)*eval(i)
       if(factor(i) > 0.0_r8) then
          factor(i) = sqrt(factor(i))
          max_state = i
@@ -812,10 +810,8 @@ subroutine elsi_compute_edm_elpa_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,&
    edm = (0.0_r8,0.0_r8)
 
    ! Compute density matrix
-   call pzherk('U','N',ph%n_basis,max_state,(1.0_r8,0.0_r8),work,1,1,bh%desc,&
+   call pzherk('U','N',ph%n_basis,max_state,(-1.0_r8,0.0_r8),work,1,1,bh%desc,&
            (0.0_r8,0.0_r8),edm,1,1,bh%desc)
-
-   edm = (-1.0_r8,0.0_r8)*edm
 
    call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,edm)
 

@@ -307,7 +307,7 @@ subroutine elsi_compute_edm_elpa_real(ph,bh,row_map,col_map,eval,evec,occ,edm,&
    max_state = 0
 
    do i = 1,ph%n_states_solve
-      factor(i) = -1.0_r8*occ(i,ph%i_spin,ph%i_kpt)*eval(i)
+      factor(i) = -occ(i,ph%i_spin,ph%i_kpt)*eval(i)
       if(factor(i) > 0.0_r8) then
          factor(i) = sqrt(factor(i))
          max_state = i
@@ -333,10 +333,8 @@ subroutine elsi_compute_edm_elpa_real(ph,bh,row_map,col_map,eval,evec,occ,edm,&
    edm = 0.0_r8
 
    ! Compute density matrix
-   call pdsyrk('U','N',ph%n_basis,max_state,1.0_r8,work,1,1,bh%desc,0.0_r8,edm,&
-           1,1,bh%desc)
-
-   edm = -1.0_r8*edm
+   call pdsyrk('U','N',ph%n_basis,max_state,-1.0_r8,work,1,1,bh%desc,0.0_r8,&
+           edm,1,1,bh%desc)
 
    call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,edm)
 
@@ -372,14 +370,13 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_to_standard_evp_real"
 
-   call elsi_get_time(t0)
-
    if(ph%n_calls == 1) then
       if(ph%check_sing) then
          call elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
       endif
 
       if(ph%n_good == ph%n_basis) then ! Not singular
+         call elsi_get_time(t0)
 
          ph%ovlp_is_sing = .false.
 
@@ -540,6 +537,7 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
    call elsi_get_time(t0)
 
    call elsi_allocate(bh,tmp_real,bh%n_lrow,bh%n_lcol,"tmp_real",caller)
+
    tmp_real = evec
 
    if(ph%ovlp_is_sing) then
@@ -730,7 +728,7 @@ subroutine elsi_compute_edm_elpa_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,&
    max_state = 0
 
    do i = 1,ph%n_states_solve
-      factor(i) = -1.0_r8*occ(i,ph%i_spin,ph%i_kpt)*eval(i)
+      factor(i) = -occ(i,ph%i_spin,ph%i_kpt)*eval(i)
       if(factor(i) > 0.0_r8) then
          factor(i) = sqrt(factor(i))
          max_state = i
@@ -756,10 +754,8 @@ subroutine elsi_compute_edm_elpa_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,&
    edm = (0.0_r8,0.0_r8)
 
    ! Compute density matrix
-   call pzherk('U','N',ph%n_basis,max_state,(1.0_r8,0.0_r8),work,1,1,bh%desc,&
+   call pzherk('U','N',ph%n_basis,max_state,(-1.0_r8,0.0_r8),work,1,1,bh%desc,&
            (0.0_r8,0.0_r8),edm,1,1,bh%desc)
-
-   edm = (-1.0_r8,0.0_r8)*edm
 
    call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,edm)
 
@@ -795,14 +791,14 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_to_standard_evp_cmplx"
 
-   call elsi_get_time(t0)
-
    if(ph%n_calls == 1) then
       if(ph%check_sing) then
          call elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
       endif
 
       if(ph%n_good == ph%n_basis) then ! Not singular
+         call elsi_get_time(t0)
+
          ph%ovlp_is_sing = .false.
 
          ! S = (U^T)U, U -> S
@@ -962,6 +958,7 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
    call elsi_get_time(t0)
 
    call elsi_allocate(bh,tmp_cmplx,bh%n_lrow,bh%n_lcol,"tmp_cmplx",caller)
+
    tmp_cmplx = evec
 
    if(ph%ovlp_is_sing) then
