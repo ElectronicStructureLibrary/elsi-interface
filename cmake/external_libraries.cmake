@@ -12,7 +12,7 @@ ENDMACRO()
 # Go through directories listed in LIB_PATHS and turn entries of LIBS into targets.
 FUNCTION(generate_library_targets _PATHS _LIBRARIES)
   FOREACH(LIB ${${_LIBRARIES}})
-    FIND_LIBRARY(LIB_FULLPATH ${LIB} PATHS ${${_PATHS}})
+    FIND_LIBRARY(LIB_FULLPATH ${LIB} HINTS ${${_PATHS}})
 
     IF(LIB_FULLPATH)
       MESSAGE(STATUS "Found ${LIB_FULLPATH}")
