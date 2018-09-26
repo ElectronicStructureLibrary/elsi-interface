@@ -17,9 +17,8 @@ LIST(APPEND ntpoly_src
   src/LoggingModule.f90
   src/MatrixMarketModule.f90
   src/MatrixMemoryPoolModule.f90
-  src/MatrixReduceModule.f90
   src/MinimizerSolversModule.f90
-  src/MPIModule.f90
+  src/NTMPIModule.f90
   src/PermutationModule.f90
   src/PMatrixMemoryPoolModule.f90
   src/PolynomialSolversModule.f90
@@ -37,6 +36,12 @@ LIST(APPEND ntpoly_src
   src/TrigonometrySolversModule.f90
   src/TripletListModule.f90
   src/TripletModule.f90)
+
+IF(USE_MPI_IALLGATHER)
+  LIST(APPEND ntpoly_src src/MatrixReduceModule.f90)
+ELSE()
+  LIST(APPEND ntpoly_src src/MatrixReduceModuleNoIallgather.f90)
+ENDIF()
 
 ADD_LIBRARY(NTPoly ${ntpoly_src})
 

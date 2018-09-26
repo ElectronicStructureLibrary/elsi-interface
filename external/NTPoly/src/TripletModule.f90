@@ -1,9 +1,10 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A Module For Storing Triplets of Integer, Integer, Value.
 MODULE TripletModule
-  USE DataTypesModule, ONLY: NTREAL, MPINTREAL, NTCOMPLEX, MPINTCOMPLEX
+  USE DataTypesModule, ONLY: NTREAL, MPINTREAL, NTCOMPLEX, MPINTCOMPLEX, &
+       & MPINTINTEGER
   USE ISO_C_BINDING, ONLY : c_int
-  USE MPIModule
+  USE NTMPIModule
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -174,7 +175,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: bytes_per_double
     INTEGER :: ierr
 
-    CALL MPI_Type_extent(MPI_INTEGER,bytes_per_int,ierr)
+    CALL MPI_Type_extent(MPINTINTEGER,bytes_per_int,ierr)
     CALL MPI_Type_extent(MPINTREAL,bytes_per_double,ierr)
     triplet_block_length(1) = 1
     triplet_block_length(2) = 1
@@ -182,8 +183,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     triplet_displacement(1) = 0
     triplet_displacement(2) = bytes_per_int + triplet_displacement(1)
     triplet_displacement(3) = bytes_per_int + triplet_displacement(2)
-    triplet_sub_types(1) = MPI_INTEGER
-    triplet_sub_types(2) = MPI_INTEGER
+    triplet_sub_types(1) = MPINTINTEGER
+    triplet_sub_types(2) = MPINTINTEGER
     triplet_sub_types(3) = MPINTREAL
 
     CALL MPI_Type_struct(3,triplet_block_length,triplet_displacement,&
@@ -207,7 +208,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: bytes_per_double
     INTEGER :: ierr
 
-    CALL MPI_Type_extent(MPI_INTEGER,bytes_per_int,ierr)
+    CALL MPI_Type_extent(MPINTINTEGER,bytes_per_int,ierr)
     CALL MPI_Type_extent(MPINTCOMPLEX,bytes_per_double,ierr)
     triplet_block_length(1) = 1
     triplet_block_length(2) = 1
@@ -215,8 +216,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     triplet_displacement(1) = 0
     triplet_displacement(2) = bytes_per_int + triplet_displacement(1)
     triplet_displacement(3) = bytes_per_int + triplet_displacement(2)
-    triplet_sub_types(1) = MPI_INTEGER
-    triplet_sub_types(2) = MPI_INTEGER
+    triplet_sub_types(1) = MPINTINTEGER
+    triplet_sub_types(2) = MPINTINTEGER
     triplet_sub_types(3) = MPINTCOMPLEX
 
     CALL MPI_Type_struct(3,triplet_block_length,triplet_displacement,&

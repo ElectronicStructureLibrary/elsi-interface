@@ -27,6 +27,16 @@ MODULE MatrixReduceModule
 !> The displacements for where those gathered values should go.
      INTEGER, DIMENSION(:), ALLOCATABLE :: displacement
 
+!> For mpi backup, a list of request objets for outer indices.
+     INTEGER, DIMENSION(:), ALLOCATABLE :: outer_send_request_list
+     INTEGER, DIMENSION(:), ALLOCATABLE :: outer_recv_request_list
+!> For mpi backup, a list of request objects for inner indices.
+     INTEGER, DIMENSION(:), ALLOCATABLE :: inner_send_request_list
+     INTEGER, DIMENSION(:), ALLOCATABLE :: inner_recv_request_list
+!> For mpi backup, a list of request object for data.
+     INTEGER, DIMENSION(:), ALLOCATABLE :: data_send_request_list
+     INTEGER, DIMENSION(:), ALLOCATABLE :: data_recv_request_list
+
   END TYPE ReduceHelper_t
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: ReduceAndComposeMatrixSizes
@@ -80,6 +90,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !! Local Data
   INTEGER :: grid_error
+  INTEGER :: II
+  INTEGER :: istart, isize, iend
 
   CALL MPI_Comm_size(communicator,helper%comm_size,grid_error)
 
@@ -88,11 +100,22 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & matrix%rows,matrix%columns*helper%comm_size)
   gathered_matrix%outer_index(1) = 0
 
-!! Gather Information About Other Processes
-  CALL MPI_IAllGather(matrix%outer_index(2:), matrix%columns,&
-       & MPINTINTEGER, gathered_matrix%outer_index(2:), &
-       & matrix%columns, MPINTINTEGER, communicator, helper%outer_request, &
-       & grid_error)
+  ALLOCATE(helper%outer_send_request_list(helper%comm_size))
+  ALLOCATE(helper%outer_recv_request_list(helper%comm_size))
+
+!! Send/Recv Outer Index
+  DO II = 1, helper%comm_size
+!! Send/Recv Outer Index
+     CALL MPI_ISend(matrix%outer_index(2:), matrix%columns, MPINTINTEGER, &
+          & II-1, 3, communicator, helper%outer_send_request_list(II), &
+          & grid_error)
+     istart = (matrix%columns)*(II-1)+2
+     isize = matrix%columns
+     iend = istart + isize - 1
+     CALL MPI_Irecv(gathered_matrix%outer_index(istart:iend), isize, &
+          & MPINTINTEGER, II-1, 3, communicator, &
+          & helper%outer_recv_request_list(II), grid_error)
+  END DO
 
   END SUBROUTINE ReduceAndComposeMatrixSizes_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -110,6 +133,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !! Local Data
   INTEGER :: grid_error
+  INTEGER :: II
+  INTEGER :: istart, isize, iend
 
   CALL MPI_Comm_size(communicator,helper%comm_size,grid_error)
 
@@ -118,11 +143,22 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & matrix%rows,matrix%columns*helper%comm_size)
   gathered_matrix%outer_index(1) = 0
 
-!! Gather Information About Other Processes
-  CALL MPI_IAllGather(matrix%outer_index(2:), matrix%columns,&
-       & MPINTINTEGER, gathered_matrix%outer_index(2:), &
-       & matrix%columns, MPINTINTEGER, communicator, helper%outer_request, &
-       & grid_error)
+  ALLOCATE(helper%outer_send_request_list(helper%comm_size))
+  ALLOCATE(helper%outer_recv_request_list(helper%comm_size))
+
+!! Send/Recv Outer Index
+  DO II = 1, helper%comm_size
+!! Send/Recv Outer Index
+     CALL MPI_ISend(matrix%outer_index(2:), matrix%columns, MPINTINTEGER, &
+          & II-1, 3, communicator, helper%outer_send_request_list(II), &
+          & grid_error)
+     istart = (matrix%columns)*(II-1)+2
+     isize = matrix%columns
+     iend = istart + isize - 1
+     CALL MPI_Irecv(gathered_matrix%outer_index(istart:iend), isize, &
+          & MPINTINTEGER, II-1, 3, communicator, &
+          & helper%outer_recv_request_list(II), grid_error)
+  END DO
 
   END SUBROUTINE ReduceAndComposeMatrixSizes_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -143,7 +179,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER :: grid_error
   INTEGER :: II
   INTEGER :: total_values
+  INTEGER :: istart, iend, isize
   INTEGER :: idx
+
+!! Send Receive Buffers
+  ALLOCATE(helper%inner_send_request_list(helper%comm_size))
+  ALLOCATE(helper%inner_recv_request_list(helper%comm_size))
+  ALLOCATE(helper%data_send_request_list(helper%comm_size))
+  ALLOCATE(helper%data_recv_request_list(helper%comm_size))
 
 !! Compute values per process
   ALLOCATE(helper%values_per_process(helper%comm_size))
@@ -166,14 +209,29 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ALLOCATE(gathered_matrix%inner_index(total_values))
 
 !! MPI Calls
-  CALL MPI_IAllGatherv(matrix%inner_index,SIZE(matrix%values),MPINTINTEGER, &
-       & gathered_matrix%inner_index, helper%values_per_process, &
-       & helper%displacement, MPINTINTEGER, communicator, &
-       & helper%inner_request, grid_error)
-    CALL MPI_IAllGatherv(matrix%values, SIZE(matrix%values), MPINTREAL,&
-         & gathered_matrix%values, helper%values_per_process, &
-         & helper%displacement, MPINTREAL, communicator, helper%data_request, &
-         & grid_error)
+  DO II = 1, helper%comm_size
+!! Send/Recv inner index
+     CALL MPI_ISend(matrix%inner_index, SIZE(matrix%inner_index), MPINTINTEGER, &
+          & II-1, 2, communicator, helper%inner_send_request_list(II), &
+          & grid_error)
+     istart = helper%displacement(II)+1
+     isize = helper%values_per_process(II)
+     iend = istart + isize - 1
+     CALL MPI_Irecv(gathered_matrix%inner_index(istart:iend), isize, MPINTINTEGER, &
+          & II-1, 2, communicator, &
+          & helper%inner_recv_request_list(II), grid_error)
+  END DO
+    DO II = 1, helper%comm_size
+       CALL MPI_ISend(matrix%values, SIZE(matrix%values), MPINTREAL, &
+            & II-1, 4, communicator, helper%data_send_request_list(II), &
+            & grid_error)
+       istart = helper%displacement(II)+1
+       isize = helper%values_per_process(II)
+       iend = istart + isize - 1
+       CALL MPI_Irecv(gathered_matrix%values(istart:iend), isize, MPINTREAL, &
+            & II-1, 4, communicator, &
+            & helper%data_recv_request_list(II), grid_error)
+    END DO
 
   END SUBROUTINE ReduceAndComposeMatrixData_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -198,7 +256,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER :: grid_error
   INTEGER :: II
   INTEGER :: total_values
+  INTEGER :: istart, iend, isize
   INTEGER :: idx
+
+!! Send Receive Buffers
+  ALLOCATE(helper%inner_send_request_list(helper%comm_size))
+  ALLOCATE(helper%inner_recv_request_list(helper%comm_size))
+  ALLOCATE(helper%data_send_request_list(helper%comm_size))
+  ALLOCATE(helper%data_recv_request_list(helper%comm_size))
 
 !! Compute values per process
   ALLOCATE(helper%values_per_process(helper%comm_size))
@@ -221,14 +286,29 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ALLOCATE(gathered_matrix%inner_index(total_values))
 
 !! MPI Calls
-  CALL MPI_IAllGatherv(matrix%inner_index,SIZE(matrix%values),MPINTINTEGER, &
-       & gathered_matrix%inner_index, helper%values_per_process, &
-       & helper%displacement, MPINTINTEGER, communicator, &
-       & helper%inner_request, grid_error)
-    CALL MPI_IAllGatherv(matrix%values, SIZE(matrix%values), MPINTCOMPLEX,&
-         & gathered_matrix%values, helper%values_per_process, &
-         & helper%displacement, MPINTCOMPLEX, communicator, &
-         & helper%data_request, grid_error)
+  DO II = 1, helper%comm_size
+!! Send/Recv inner index
+     CALL MPI_ISend(matrix%inner_index, SIZE(matrix%inner_index), MPINTINTEGER, &
+          & II-1, 2, communicator, helper%inner_send_request_list(II), &
+          & grid_error)
+     istart = helper%displacement(II)+1
+     isize = helper%values_per_process(II)
+     iend = istart + isize - 1
+     CALL MPI_Irecv(gathered_matrix%inner_index(istart:iend), isize, MPINTINTEGER, &
+          & II-1, 2, communicator, &
+          & helper%inner_recv_request_list(II), grid_error)
+  END DO
+    DO II = 1, helper%comm_size
+       CALL MPI_ISend(matrix%values, SIZE(matrix%values), MPINTCOMPLEX, &
+            & II-1, 4, communicator, helper%data_send_request_list(II), &
+            & grid_error)
+       istart = helper%displacement(II)+1
+       isize = helper%values_per_process(II)
+       iend = istart + isize - 1
+       CALL MPI_Irecv(gathered_matrix%values(istart:iend), isize, &
+            & MPINTCOMPLEX, II-1, 4, communicator, &
+            & helper%data_recv_request_list(II), grid_error)
+    END DO
 
   END SUBROUTINE ReduceAndComposeMatrixData_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -257,6 +337,25 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
+
+    IF (ALLOCATED(helper%outer_send_request_list)) THEN
+       DEALLOCATE(helper%outer_send_request_list)
+    END IF
+    IF (ALLOCATED(helper%outer_recv_request_list)) THEN
+       DEALLOCATE(helper%outer_recv_request_list)
+    END IF
+    IF (ALLOCATED(helper%inner_send_request_list)) THEN
+       DEALLOCATE(helper%inner_send_request_list)
+    END IF
+    IF (ALLOCATED(helper%inner_recv_request_list)) THEN
+       DEALLOCATE(helper%inner_recv_request_list)
+    END IF
+    IF (ALLOCATED(helper%data_send_request_list)) THEN
+       DEALLOCATE(helper%data_send_request_list)
+    END IF
+    IF (ALLOCATED(helper%data_recv_request_list)) THEN
+       DEALLOCATE(helper%data_recv_request_list)
+    END IF
 
 
   END SUBROUTINE ReduceAndComposeMatrixCleanup_lsr
@@ -287,6 +386,25 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
 
+    IF (ALLOCATED(helper%outer_send_request_list)) THEN
+       DEALLOCATE(helper%outer_send_request_list)
+    END IF
+    IF (ALLOCATED(helper%outer_recv_request_list)) THEN
+       DEALLOCATE(helper%outer_recv_request_list)
+    END IF
+    IF (ALLOCATED(helper%inner_send_request_list)) THEN
+       DEALLOCATE(helper%inner_send_request_list)
+    END IF
+    IF (ALLOCATED(helper%inner_recv_request_list)) THEN
+       DEALLOCATE(helper%inner_recv_request_list)
+    END IF
+    IF (ALLOCATED(helper%data_send_request_list)) THEN
+       DEALLOCATE(helper%data_send_request_list)
+    END IF
+    IF (ALLOCATED(helper%data_recv_request_list)) THEN
+       DEALLOCATE(helper%data_recv_request_list)
+    END IF
+
 
   END SUBROUTINE ReduceAndComposeMatrixCleanup_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -305,6 +423,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Local Data
   INTEGER :: grid_error
   INTEGER :: sum_outer_indices
+  INTEGER :: II
+  INTEGER :: istart, isize, iend
 
   CALL MPI_Comm_size(communicator,helper%comm_size,grid_error)
 
@@ -313,10 +433,21 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   sum_outer_indices = (matrix%columns+1)*helper%comm_size
   ALLOCATE(gathered_matrix%outer_index(sum_outer_indices+1))
 
-!! Gather Outer Indices
-  CALL MPI_IAllGather(matrix%outer_index, matrix%columns+1,&
-       & MPINTINTEGER, gathered_matrix%outer_index, matrix%columns+1, &
-       & MPINTINTEGER, communicator, helper%outer_request, grid_error)
+  ALLOCATE(helper%outer_send_request_list(helper%comm_size))
+  ALLOCATE(helper%outer_recv_request_list(helper%comm_size))
+
+!! Send/Recv Outer Index
+  DO II = 1, helper%comm_size
+     CALL MPI_ISend(matrix%outer_index, SIZE(matrix%outer_index), &
+          & MPINTINTEGER, II-1, 3, communicator, &
+          & helper%outer_send_request_list(II), grid_error)
+     istart = (matrix%columns+1)*(II-1)+1
+     isize = matrix%columns + 1
+     iend = istart + isize - 1
+     CALL MPI_Irecv(gathered_matrix%outer_index(istart:iend), isize, &
+          & MPINTINTEGER, II-1, 3, communicator, &
+          & helper%outer_recv_request_list(II), grid_error)
+  END DO
 
   END SUBROUTINE ReduceAndSumMatrixSizes_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -335,6 +466,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Local Data
   INTEGER :: grid_error
   INTEGER :: sum_outer_indices
+  INTEGER :: II
+  INTEGER :: istart, isize, iend
 
   CALL MPI_Comm_size(communicator,helper%comm_size,grid_error)
 
@@ -343,10 +476,21 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   sum_outer_indices = (matrix%columns+1)*helper%comm_size
   ALLOCATE(gathered_matrix%outer_index(sum_outer_indices+1))
 
-!! Gather Outer Indices
-  CALL MPI_IAllGather(matrix%outer_index, matrix%columns+1,&
-       & MPINTINTEGER, gathered_matrix%outer_index, matrix%columns+1, &
-       & MPINTINTEGER, communicator, helper%outer_request, grid_error)
+  ALLOCATE(helper%outer_send_request_list(helper%comm_size))
+  ALLOCATE(helper%outer_recv_request_list(helper%comm_size))
+
+!! Send/Recv Outer Index
+  DO II = 1, helper%comm_size
+     CALL MPI_ISend(matrix%outer_index, SIZE(matrix%outer_index), &
+          & MPINTINTEGER, II-1, 3, communicator, &
+          & helper%outer_send_request_list(II), grid_error)
+     istart = (matrix%columns+1)*(II-1)+1
+     isize = matrix%columns + 1
+     iend = istart + isize - 1
+     CALL MPI_Irecv(gathered_matrix%outer_index(istart:iend), isize, &
+          & MPINTINTEGER, II-1, 3, communicator, &
+          & helper%outer_recv_request_list(II), grid_error)
+  END DO
 
   END SUBROUTINE ReduceAndSumMatrixSizes_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -366,7 +510,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER :: grid_error
   INTEGER :: II
   INTEGER :: sum_total_values
+  INTEGER :: istart, isize, iend
   INTEGER :: idx
+
+!! Send Receive Buffers
+  ALLOCATE(helper%inner_send_request_list(helper%comm_size))
+  ALLOCATE(helper%inner_recv_request_list(helper%comm_size))
+  ALLOCATE(helper%data_send_request_list(helper%comm_size))
+  ALLOCATE(helper%data_recv_request_list(helper%comm_size))
 
 !! Compute values per process
   ALLOCATE(helper%values_per_process(helper%comm_size))
@@ -389,14 +540,29 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ALLOCATE(gathered_matrix%inner_index(sum_total_values))
 
 !! MPI Calls
-  CALL MPI_IAllGatherv(matrix%inner_index, SIZE(matrix%values), MPINTINTEGER, &
-       & gathered_matrix%inner_index, helper%values_per_process, &
-       & helper%displacement, MPINTINTEGER, communicator, &
-       & helper%inner_request, grid_error)
-    CALL MPI_IAllGatherv(matrix%values, SIZE(matrix%values), MPINTREAL,&
-         & gathered_matrix%values, helper%values_per_process, &
-         & helper%displacement, MPINTREAL, communicator, helper%data_request, &
-         & grid_error)
+  DO II = 1, helper%comm_size
+!! Send/Recv inner index
+     CALL MPI_ISend(matrix%inner_index, SIZE(matrix%inner_index), &
+          & MPINTINTEGER, II-1, 2, communicator, &
+          & helper%inner_send_request_list(II), grid_error)
+     istart = helper%displacement(II)+1
+     isize = helper%values_per_process(II)
+     iend = istart + isize - 1
+     CALL MPI_Irecv(gathered_matrix%inner_index(istart:iend), isize, &
+          & MPINTINTEGER, II-1, 2, communicator, &
+          & helper%inner_recv_request_list(II), grid_error)
+  END DO
+    DO II = 1, helper%comm_size
+       CALL MPI_ISend(matrix%values, SIZE(matrix%values), MPINTREAL, &
+            & II-1, 4, communicator, helper%data_send_request_list(II), &
+            & grid_error)
+       istart = helper%displacement(II)+1
+       isize = helper%values_per_process(II)
+       iend = istart + isize - 1
+       CALL MPI_Irecv(gathered_matrix%values(istart:iend), isize, MPINTREAL, &
+            & II-1, 4, communicator, &
+            & helper%data_recv_request_list(II), grid_error)
+    END DO
 
   END SUBROUTINE ReduceAndSumMatrixData_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -419,7 +585,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER :: grid_error
   INTEGER :: II
   INTEGER :: sum_total_values
+  INTEGER :: istart, isize, iend
   INTEGER :: idx
+
+!! Send Receive Buffers
+  ALLOCATE(helper%inner_send_request_list(helper%comm_size))
+  ALLOCATE(helper%inner_recv_request_list(helper%comm_size))
+  ALLOCATE(helper%data_send_request_list(helper%comm_size))
+  ALLOCATE(helper%data_recv_request_list(helper%comm_size))
 
 !! Compute values per process
   ALLOCATE(helper%values_per_process(helper%comm_size))
@@ -442,14 +615,29 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ALLOCATE(gathered_matrix%inner_index(sum_total_values))
 
 !! MPI Calls
-  CALL MPI_IAllGatherv(matrix%inner_index, SIZE(matrix%values), MPINTINTEGER, &
-       & gathered_matrix%inner_index, helper%values_per_process, &
-       & helper%displacement, MPINTINTEGER, communicator, &
-       & helper%inner_request, grid_error)
-    CALL MPI_IAllGatherv(matrix%values, SIZE(matrix%values), MPINTCOMPLEX,&
-         & gathered_matrix%values, helper%values_per_process, &
-         & helper%displacement, MPINTCOMPLEX, communicator, &
-         & helper%data_request, grid_error)
+  DO II = 1, helper%comm_size
+!! Send/Recv inner index
+     CALL MPI_ISend(matrix%inner_index, SIZE(matrix%inner_index), &
+          & MPINTINTEGER, II-1, 2, communicator, &
+          & helper%inner_send_request_list(II), grid_error)
+     istart = helper%displacement(II)+1
+     isize = helper%values_per_process(II)
+     iend = istart + isize - 1
+     CALL MPI_Irecv(gathered_matrix%inner_index(istart:iend), isize, &
+          & MPINTINTEGER, II-1, 2, communicator, &
+          & helper%inner_recv_request_list(II), grid_error)
+  END DO
+    DO II = 1, helper%comm_size
+       CALL MPI_ISend(matrix%values, SIZE(matrix%values), MPINTCOMPLEX, &
+            & II-1, 4, communicator, helper%data_send_request_list(II), &
+            & grid_error)
+       istart = helper%displacement(II)+1
+       isize = helper%values_per_process(II)
+       iend = istart + isize - 1
+       CALL MPI_Irecv(gathered_matrix%values(istart:iend), isize, &
+            & MPINTCOMPLEX, II-1, 4, communicator, &
+            & helper%data_recv_request_list(II), grid_error)
+    END DO
 
   END SUBROUTINE ReduceAndSumMatrixData_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -504,6 +692,25 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
 
+    IF (ALLOCATED(helper%outer_send_request_list)) THEN
+       DEALLOCATE(helper%outer_send_request_list)
+    END IF
+    IF (ALLOCATED(helper%outer_recv_request_list)) THEN
+       DEALLOCATE(helper%outer_recv_request_list)
+    END IF
+    IF (ALLOCATED(helper%inner_send_request_list)) THEN
+       DEALLOCATE(helper%inner_send_request_list)
+    END IF
+    IF (ALLOCATED(helper%inner_recv_request_list)) THEN
+       DEALLOCATE(helper%inner_recv_request_list)
+    END IF
+    IF (ALLOCATED(helper%data_send_request_list)) THEN
+       DEALLOCATE(helper%data_send_request_list)
+    END IF
+    IF (ALLOCATED(helper%data_recv_request_list)) THEN
+       DEALLOCATE(helper%data_recv_request_list)
+    END IF
+
   END SUBROUTINE ReduceAndSumMatrixCleanup_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> Finally routine to sum up the matrices.
@@ -557,6 +764,25 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
 
+    IF (ALLOCATED(helper%outer_send_request_list)) THEN
+       DEALLOCATE(helper%outer_send_request_list)
+    END IF
+    IF (ALLOCATED(helper%outer_recv_request_list)) THEN
+       DEALLOCATE(helper%outer_recv_request_list)
+    END IF
+    IF (ALLOCATED(helper%inner_send_request_list)) THEN
+       DEALLOCATE(helper%inner_send_request_list)
+    END IF
+    IF (ALLOCATED(helper%inner_recv_request_list)) THEN
+       DEALLOCATE(helper%inner_recv_request_list)
+    END IF
+    IF (ALLOCATED(helper%data_send_request_list)) THEN
+       DEALLOCATE(helper%data_send_request_list)
+    END IF
+    IF (ALLOCATED(helper%data_recv_request_list)) THEN
+       DEALLOCATE(helper%data_recv_request_list)
+    END IF
+
   END SUBROUTINE ReduceAndSumMatrixCleanup_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> Test if a request for the size of the matrices is complete.
@@ -566,8 +792,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> True if the request is finished.
     LOGICAL :: request_completed
 
-    CALL MPI_Test(helper%outer_request, request_completed, &
-         & MPI_STATUS_IGNORE, helper%error_code)
+    LOGICAL :: send_request_completed, recv_request_completed
+    CALL MPI_Testall(SIZE(helper%outer_send_request_list), &
+         & helper%outer_send_request_list, send_request_completed, &
+         & MPI_STATUSES_IGNORE, helper%error_code)
+    CALL MPI_Testall(SIZE(helper%outer_recv_request_list), &
+         & helper%outer_recv_request_list, recv_request_completed, &
+         & MPI_STATUSES_IGNORE, helper%error_code)
+    request_completed = send_request_completed .AND. recv_request_completed
 
   END FUNCTION TestReduceSizeRequest
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -578,8 +810,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> True if the request is finished.
     LOGICAL :: request_completed
 
-    CALL MPI_Test(helper%inner_request, request_completed, &
-         & MPI_STATUS_IGNORE, helper%error_code)
+    LOGICAL :: send_request_completed, recv_request_completed
+    CALL MPI_Testall(SIZE(helper%inner_send_request_list), &
+         & helper%inner_send_request_list, send_request_completed, &
+         & MPI_STATUSES_IGNORE, helper%error_code)
+    CALL MPI_Testall(SIZE(helper%inner_recv_request_list), &
+         & helper%inner_recv_request_list, recv_request_completed, &
+         & MPI_STATUSES_IGNORE, helper%error_code)
+    request_completed = send_request_completed .AND. recv_request_completed
 
   END FUNCTION TestReduceInnerRequest
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -590,8 +828,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> True if the request is finished.
     LOGICAL :: request_completed
 
-    CALL MPI_Test(helper%data_request, request_completed, &
-         & MPI_STATUS_IGNORE, helper%error_code)
+    LOGICAL :: send_request_completed, recv_request_completed
+    CALL MPI_Testall(SIZE(helper%data_send_request_list), &
+         & helper%data_send_request_list, send_request_completed, &
+         & MPI_STATUSES_IGNORE, helper%error_code)
+    CALL MPI_Testall(SIZE(helper%data_recv_request_list), &
+         & helper%data_recv_request_list, recv_request_completed, &
+         & MPI_STATUSES_IGNORE, helper%error_code)
+    request_completed = send_request_completed .AND. recv_request_completed
 
   END FUNCTION TestReduceDataRequest
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

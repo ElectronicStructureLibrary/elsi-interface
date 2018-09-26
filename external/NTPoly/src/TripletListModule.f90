@@ -1,13 +1,13 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A Module For Storing Lists of Triplets.
 MODULE TripletListModule
-  USE DataTypesModule, ONLY: NTREAL, MPINTREAL, NTCOMPLEX, MPINTCOMPLEX
+  USE DataTypesModule, ONLY: NTREAL, MPINTREAL, NTCOMPLEX, MPINTCOMPLEX, &
+       & MPINTINTEGER
   USE TripletModule, ONLY : Triplet_r, Triplet_c, CompareTriplets, &
        & ConvertTripletType
   USE MatrixMarketModule, ONLY : MM_SYMMETRIC, MM_SKEW_SYMMETRIC, MM_HERMITIAN
   USE TimerModule, ONLY : StartTimer, StopTimer
   USE ISO_C_BINDING, ONLY : c_int
-  USE MPIModule
   IMPLICIT NONE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: TripletList_r
@@ -690,8 +690,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
 
 !! Figure Out How Much Data Gets Received
-  CALL MPI_ALLTOALL(send_per_process, 1, MPI_INTEGER, recv_per_process, 1, &
-       & MPI_INTEGER, comm, mpi_error)
+  CALL MPI_ALLTOALL(send_per_process, 1, MPINTINTEGER, recv_per_process, 1, &
+       & MPINTINTEGER, comm, mpi_error)
   recv_offsets(1) = 0
   DO counter = 2, num_processes
      recv_offsets(counter) = recv_offsets(counter-1) + &
@@ -719,17 +719,15 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
 
 !! Do Actual Send
-  CALL StartTimer("AllToAllV")
   CALL MPI_Alltoallv(send_buffer_col, send_per_process, send_offsets, &
-       & MPI_INTEGER, recv_buffer_col, recv_per_process, recv_offsets, &
-       & MPI_INTEGER, comm, mpi_error)
+       & MPINTINTEGER, recv_buffer_col, recv_per_process, recv_offsets, &
+       & MPINTINTEGER, comm, mpi_error)
   CALL MPI_Alltoallv(send_buffer_row, send_per_process, send_offsets, &
-       & MPI_INTEGER, recv_buffer_row, recv_per_process, recv_offsets, &
-       & MPI_INTEGER, comm, mpi_error)
+       & MPINTINTEGER, recv_buffer_row, recv_per_process, recv_offsets, &
+       & MPINTINTEGER, comm, mpi_error)
   CALL MPI_Alltoallv(send_buffer_val, send_per_process, send_offsets, &
        & MPINTREAL, recv_buffer_val, recv_per_process, recv_offsets, &
        & MPINTREAL, comm, mpi_error)
-  CALL StopTimer("AllToAllV")
 
 !! Unpack Into The Output Triplet List
   CALL ConstructTripletList(local_data_out, size_in=SUM(recv_per_process))
@@ -803,8 +801,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
 
 !! Figure Out How Much Data Gets Received
-  CALL MPI_ALLTOALL(send_per_process, 1, MPI_INTEGER, recv_per_process, 1, &
-       & MPI_INTEGER, comm, mpi_error)
+  CALL MPI_ALLTOALL(send_per_process, 1, MPINTINTEGER, recv_per_process, 1, &
+       & MPINTINTEGER, comm, mpi_error)
   recv_offsets(1) = 0
   DO counter = 2, num_processes
      recv_offsets(counter) = recv_offsets(counter-1) + &
@@ -832,17 +830,15 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
 
 !! Do Actual Send
-  CALL StartTimer("AllToAllV")
   CALL MPI_Alltoallv(send_buffer_col, send_per_process, send_offsets, &
-       & MPI_INTEGER, recv_buffer_col, recv_per_process, recv_offsets, &
-       & MPI_INTEGER, comm, mpi_error)
+       & MPINTINTEGER, recv_buffer_col, recv_per_process, recv_offsets, &
+       & MPINTINTEGER, comm, mpi_error)
   CALL MPI_Alltoallv(send_buffer_row, send_per_process, send_offsets, &
-       & MPI_INTEGER, recv_buffer_row, recv_per_process, recv_offsets, &
-       & MPI_INTEGER, comm, mpi_error)
+       & MPINTINTEGER, recv_buffer_row, recv_per_process, recv_offsets, &
+       & MPINTINTEGER, comm, mpi_error)
   CALL MPI_Alltoallv(send_buffer_val, send_per_process, send_offsets, &
        & MPINTCOMPLEX, recv_buffer_val, recv_per_process, recv_offsets, &
        & MPINTCOMPLEX, comm, mpi_error)
-  CALL StopTimer("AllToAllV")
 
 !! Unpack Into The Output Triplet List
   CALL ConstructTripletList(local_data_out, size_in=SUM(recv_per_process))
