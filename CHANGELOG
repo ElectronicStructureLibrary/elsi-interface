@@ -18,6 +18,7 @@
    * Interface for externally linked ELPA compatible with ELPA 2018.05.
 
    NTPoly:
+   * Redistributed source code of NTPoly 2.0.
    * Added canonical purificaiton, trace correcting purification, 4th order
      trace resetting purification, and generalized hole-particle canonical
      purification methods.
@@ -94,8 +95,8 @@
    * Switched to the PT-SCOTCH library as the default sparse matrix
      reordering software.
    * Redistributed superLU_DIST 5.3.0 and (PT-)SCOTCH 6.0.5a libraries.
-     The user may still provide their own SuperLU_DIST library linked
-     against any compatible sparse matrix reordering library.
+     Users may still provide their own SuperLU_DIST library linked against
+     any compatible sparse matrix reordering library.
    * Removed ParMETIS as a mandatory external dependency for PEXSI.
 
 ============================

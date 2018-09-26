@@ -125,7 +125,7 @@ Solvers supported in the current version of ELSI are:  ELPA \cite{elpa_auckentha
 \hline
 \textcolor{blue}{SLEPc-SIPs} & real         & dense/sparse & no/no   & eigenvalues, eigenvectors, density matrix, energy-weighted density matrix, chemical potential, electronic entropy\\
 \hline
-\textcolor{blue}{NTPoly}     & real         & dense/sparse & no/no   & density matrix, energy-weighted density matrix, chemical potential\\
+\textcolor{blue}{NTPoly}     & real/complex & dense/sparse & yes/yes & density matrix, energy-weighted density matrix, chemical potential\\
 \hline
 \end{tabular}
 
@@ -291,7 +291,7 @@ ELSI is a National Science Foundation Software Infrastructure for Sustained Inno
 \chapter{Installation of ELSI}
 \section{Overview}
 \label{sec:install}
-The ELSI package contains the ELSI Interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.0.3), and NTPoly (version 1.3).  We highly encourage all users to request access to our \href{http://git.elsi-interchange.org/elsi-devel}{GitLab server}GitLab server, where we regularly update ELSI between releases while preserving stability.\\
+The ELSI package contains the ELSI Interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.0.3), and NTPoly (version 2.0).  We highly encourage all users to request access to our \href{http://git.elsi-interchange.org/elsi-devel}{GitLab server}GitLab server, where we regularly update ELSI between releases while preserving stability.\\
 
 Starting from the May 2018 (version 2.0.0) release, the installation of ELSI makes use of the \href{http://cmake.org}{CMake} software.\\
 
@@ -321,7 +321,7 @@ Linear algebra libraries should be provided for ELSI to link against:
 \textcolor{blue}{BLAS, LAPACK, BLACS, ScaLAPACK}
 \end{Verbatim}
 
-By default, the redistributed ELPA, libOMM, and NTPoly solvers will be built.  If PEXSI is enabled during configuration, the redistributed PEXSI library and its dependencies, namely the SuperLU\_DIST and PT-SCOTCH libraries, will be built as well.  Optionally, the redistributed ELPA, libOMM, SuperLU\_DIST and PT-SCOTCH libraries may be substituted by user's optimized versions.  Please note that in the current version of ELSI, an external version of PEXSI or NTPoly is not officially supported.\\
+By default, the redistributed ELPA, libOMM, and NTPoly solvers will be built.  If PEXSI is enabled during configuration, the redistributed PEXSI library and its dependencies, namely the SuperLU\_DIST and PT-SCOTCH libraries, will be built as well.  Optionally, the redistributed ELPA, libOMM, SuperLU\_DIST, PT-SCOTCH, and NTPoly libraries may be substituted by user's optimized versions.  Please note that in the current version of ELSI, an external version of PEXSI is not officially supported.\\
 
 \section{CMake Basics}
 \label{sec:cmake}
@@ -428,6 +428,7 @@ Experienced users are encouraged to link the ELSI interface against external, be
 -DUSE_EXTERNAL_ELPA=ON
 -DUSE_EXTERNAL_OMM=ON
 -DUSE_EXTERNAL_SUPERLU=ON
+-DUSE_EXTERNAL_NTPOLY=ON
 \end{verbatim}
 
 The external libraries and the include paths should be set via the following three keywords:
@@ -437,7 +438,7 @@ The external libraries and the include paths should be set via the following thr
 -DLIBS=NAMES_OF_YOUR_EXTERNAL_LIBRARIES
 \end{verbatim}
 
-Each of the above keywords is a space-separated or semicolon-separated list.  If an external library depends on additional libraries, \textcolor{blue}{LIBS} should include all the relevant libraries.  For instance, \textcolor{blue}{LIBS} should include the ELPA library and CUDA libraries when using an external ELPA compiled with GPU (CUDA) support; \textcolor{blue}{LIBS} should include the SuperLU\_DIST library and the sparse matrix reordering library used to compile SuperLU\_DIST when using an external SuperLU\_DIST.  Please note that in the current version of ELSI, an external version of PEXSI or NTPoly is not officially supported.\\
+Each of the above keywords is a space-separated or semicolon-separated list.  If an external library depends on additional libraries, \textcolor{blue}{LIBS} should include all the relevant libraries.  For instance, \textcolor{blue}{LIBS} should include the ELPA library and CUDA libraries when using an external ELPA compiled with GPU (CUDA) support; \textcolor{blue}{LIBS} should include the SuperLU\_DIST library and the sparse matrix reordering library used to compile SuperLU\_DIST when using an external SuperLU\_DIST.  Please note that in the current version of ELSI, an external version of PEXSI is not officially supported.\\
 
 The PEXSI and SLEPc-SIPs solvers are not enabled by default.  PEXSI may be activated by specifying:
 \begin{verbatim}
@@ -874,21 +875,11 @@ n (\boldsymbol{r}) \approx \sum_{n=1}^{N_\text{kpt}} w_n
 \sum_{l=1}^{N_\text{basis}} f_{l \boldsymbol{k}_n} \psi_{l \boldsymbol{k}_n}^* (\boldsymbol{r}) \psi_{l \boldsymbol{k}_n} (\boldsymbol{r}) .
 \end{equation}
 
-Here, $w_n$ is the weight of the n$^\text{th}$ \textbf{\textit{k}}-point; $N_\text{kpt}$ is the number of \textbf{\textit{k}}-points.  The weights of all \textbf{\textit{k}}-points add up to 1.  Obviously, a denser grid of \textbf{\textit{k}}-points leads to a higher accuracy with higher computational cost.  The Hamilton and overlap matrices for multiple \textbf{\textit{k}}-points are block-diagonal, such that each block on the diagonal corresponds to an eigenproblem of one \textbf{\textit{k}}-point.  These eigenproblems can be solved separately.\\
+Here, $w_n$ is the weight of the n$^\text{th}$ \textbf{\textit{k}}-point; $N_\text{kpt}$ is the number of \textbf{\textit{k}}-points.  The weights of all \textbf{\textit{k}}-points add up to 1.  Obviously, a denser grid of \textbf{\textit{k}}-points leads to a higher accuracy with a higher computational cost.  The Hamilton and overlap matrices for multiple \textbf{\textit{k}}-points are block-diagonal, such that each block on the diagonal corresponds to an eigenproblem of one \textbf{\textit{k}}-point.  These eigenproblems can be solved separately.\\
 
-The handling of spin-polarized case and periodic case in ELSI are more or less equivalent.  The problems, either from two spin channels, or from multiple \textbf{\textit{k}}-points, are treated as equivalent ``unit tasks''.  If the chosen solver is an eigensolver (e.g. ELPA), all the unit tasks are solved independently, returning separate eigensolutions to the electronic structure code.  The electronic structure code can then assemble the pieces of the solutions and construct the electron density.  When computing density matrices, the unit tasks are coupled together by the normalization condition of the number of electrons:\\
-\begin{equation}
-\label{eq:normalization}
-N_\text{electron} = \sum_{n=1}^{N_\text{kpt}} \sum_{m=1}^{N_\text{spin}} \sum_{l=1}^{N_\text{basis}} w_n f_{lmn} ,
-\end{equation}
+In ELSI, all the eigenproblems from two spin channels and multiple \textbf{\textit{k}}-points are treated equivalently as ``unit tasks''.  To set up the ELSI interface for a calculation with more than one \textbf{\textit{k}}-point and/or more than one spin channel,  the \textcolor{blue}{elsi\_set\_kpoint} and/or \textcolor{blue}{elsi\_set\_spin} subroutines are called to pass the required information into ELSI.  The MPI communicator for each unit task is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi}.  In addition, a global MPI communicator for all tasks is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi\_global}.  Note that the current ELSI interface only supports the case where the eigenproblems for all the \textbf{\textit{k}}-points and spin channels are fully parallelized, i.e., there is no MPI task handling more than one \textbf{\textit{k}}-point and/or more than one spin channel.  In ELSI, the two spin channels are always coupled by a uniform chemical potential.  The distribution of electrons among the two channels, and thus the net spin moment of the system, cannot be specified.  Calculations with a fixed, user-specified spin moment can be performed by initializing two independent ELSI instances for the two spin channels, as they are not coupled by a uniform chemical potential.\\
 
-where $N_\text{kpt}$, $N_\text{spin}$, and $N_\text{basis}$ are the number of \textbf{\textit{k}}-points, the number of spin channels, and the number of basis functions, respectively.  $w_n$ is again the weight of the n$^\text{th}$ \textbf{\textit{k}}-point.  $f_{lmn}$ is the occupation number of the l$^\text{th}$ state in the m$^\text{th}$ spin channel and the n$^\text{th}$ \textbf{\textit{k}}-point.  To determine the occupation numbers, the eigenvalues at each unit task need to be collected across all the tasks.  With the correct occupation numbers, density matrices can be computed by \ref{eq:density_matrix}.\\
-
-If the PEXSI solver is chosen, the pole expansion in \ref{eq:pole} is performed for all the unit tasks in parallel, with the same trial chemical potential $\mu$.  The resulting number of electrons needs to be determined in order to refine the chemical potential.  The chemical potential yielding the correct number of electrons is used to construct the density matrices on the unit tasks.  If the OMM solver is chosen, the orbital minimization in \ref{eq:omm_energy} is performed for all the unit tasks to obtain density matrices.  Again, OMM cannot handle systems with fractional occupation numbers.\\
-
-At present, the SLEPc-SIPs and NTPoly solvers are not compatible with spin-polarized and/or periodic calculations.\\
-
-To set up the ELSI interface for a calculation with more than one \textbf{\textit{k}}-point and/or more than one spin channel,  the \textcolor{blue}{elsi\_set\_kpoint} and/or \textcolor{blue}{elsi\_set\_spin} subroutines are called to pass the required information into ELSI.  The MPI communicator for each unit task is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi}.  In addition, a global MPI communicator for all tasks is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi\_global}.  Note that the current ELSI interface only supports the case where the eigenproblems for all the \textbf{\textit{k}}-points and spin channels are fully parallelized, i.e., there is no MPI task handling more than one \textbf{\textit{k}}-point and/or more than one spin channel.  Another limitation is that the two spin channels are always coupled by the normalization condition \ref{eq:normalization}, with a uniform chemical potential for the two channels.  The distribution of electrons among the two channels, and thus the net spin moment of the system, is solely determined by \ref{eq:normalization}.  Future work will enable calculations with a fixed, user-specified spin moment.\\
+In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-polarized and/or periodic calculations.\\
 
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_kpoint}(handle, n\_kpt, i\_kpt, weight)]
@@ -1025,7 +1016,7 @@ The following subroutines return all the eigenvalues and a subset of eigenvector
 \end{tabular}
 \end{table}
 
-\newpage
+\bigskip
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_ev\_complex\_sparse}(handle, ham, ovlp, eval, evec)]
 \end{labeling}
@@ -1082,7 +1073,7 @@ The following subroutines return the density matrix computed from the provided H
 \hline
 \end{tabular}
 
-\newpage
+\bigskip
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_dm\_complex}(handle, ham, ovlp, dm, energy)]
 \end{labeling}
@@ -1103,7 +1094,7 @@ The following subroutines return the density matrix computed from the provided H
 \hline
 \end{tabular}
 
-\bigskip
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_dm\_real\_sparse}(handle, ham, ovlp, dm, energy)]
 \end{labeling}
@@ -1205,7 +1196,7 @@ Note that logical variables are not used in all ELSI API.  Integers are used to 
 \hline
 \end{tabular}
 
-\newpage
+\bigskip
 \textbf{Remarks}\\
 
 \textbf{1)} If the overlap matrix is set to be an identity matrix, all settings related to the singularity (ill-conditioning) check take no effect.  The \textcolor{blue}{ovlp} argument passed into \textcolor{blue}{elsi\_ev\_real}, \textcolor{blue}{elsi\_ev\_complex}, \textcolor{blue}{elsi\_ev\_real\_sparse}, \textcolor{blue}{elsi\_ev\_complex\_sparse}, \textcolor{blue}{elsi\_dm\_real}, \textcolor{blue}{elsi\_dm\_complex}, \textcolor{blue}{elsi\_dm\_real\_sparse}, and \textcolor{blue}{elsi\_dm\_complex\_sparse} will not be referenced.\\
@@ -1748,6 +1739,7 @@ The following subroutines read a dense or sparse matrix from file.  While writin
 
 The following three subroutines read a dense matrix from file.  Before reading a dense matrix, MPI and BLACS should be set up properly using \textcolor{blue}{elsi\_set\_rw\_mpi} and \textcolor{blue}{elsi\_set\_rw\_blacs}.  \textcolor{blue}{elsi\_read\_mat\_dim} is used to read the dimension of a matrix, including the number of electrons in the physical system (for testing purpose), the global size of the matrix, and the local size of the matrix.  Memory needs to be allocated according to the return values of \textcolor{blue}{local\_row} and \textcolor{blue}{local\_col}.  Then \textcolor{blue}{elsi\_read\_mat\_real} or \textcolor{blue}{elsi\_read\_mat\_complex} may be called to read a real or complex matrix, respectively.\\
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_read\_mat\_dim}(handle, filename, n\_electron, n\_basis, local\_row, local\_col)]
 \end{labeling}
@@ -2207,6 +2199,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 \bigskip
 \noindent\rule{18cm}{0.4pt}
 
-The source code of ELPA 2016.11.001 (LGPL3), libOMM (BSD2), NTPoly 1.3 (MIT), PEXSI 1.0.3 (BSD3), PT-SCOTCH 6.0.0 (CeCILL-C), and SuperLU\_DIST 5.3.0 (BSD3) are redistributed through this version of ELSI.  Individual license of each library can be found in the corresponding subfolder.\\
+The source code of ELPA 2016.11.001 (LGPL3), libOMM (BSD2), NTPoly 2.0 (MIT), PEXSI 1.0.3 (BSD3), PT-SCOTCH 6.0.0 (CeCILL-C), and SuperLU\_DIST 5.3.0 (BSD3) are redistributed through this version of ELSI.  Individual license of each library can be found in the corresponding subfolder.\\
 
 \end{document}
