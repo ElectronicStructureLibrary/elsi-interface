@@ -78,8 +78,11 @@ subroutine elsi_get_energy(ph,bh,energy,solver)
 
    energy = ph%ebs*ph%i_weight
 
+   ! Handle different conventions
    if(solver == OMM_SOLVER) then
       energy = ph%spin_degen*energy
+   elseif(solver == NTPOLY_SOLVER) then
+      energy = ph%spin_degen*energy/2.0_r8
    endif
 
    if(ph%n_spins*ph%n_kpts > 1) then
@@ -840,6 +843,13 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
       call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
               eh%dm_cmplx_csc,dm)
       call elsi_get_energy(eh%ph,eh%bh,energy,PEXSI_SOLVER)
+   case(NTPOLY_SOLVER)
+      call elsi_init_ntpoly(eh%ph,eh%bh)
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%ph%nt_ham,&
+              eh%ph%nt_ovlp)
+      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
+      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
+      call elsi_get_energy(eh%ph,eh%bh,energy,NTPOLY_SOLVER)
    case default
       call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
    end select
@@ -1574,6 +1584,34 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
       end select
 
       call elsi_get_energy(eh%ph,eh%bh,energy,PEXSI_SOLVER)
+   case(NTPOLY_SOLVER)
+      call elsi_init_ntpoly(eh%ph,eh%bh)
+
+      select case(eh%ph%matrix_format)
+      case(PEXSI_CSC)
+         call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 ham,ovlp,eh%ph%nt_ham,eh%ph%nt_ovlp)
+      case(SIESTA_CSC)
+         call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,eh%row_ind_sp2,&
+                 eh%col_ptr_sp2,ham,ovlp,eh%ph%nt_ham,eh%ph%nt_ovlp)
+      case default
+         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+      end select
+
+      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
+
+      select case(eh%ph%matrix_format)
+      case(PEXSI_CSC)
+         call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%ph%nt_dm,dm)
+      case(SIESTA_CSC)
+         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                 eh%ph%nt_dm,dm)
+      case default
+         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+      end select
+
+      call elsi_get_energy(eh%ph,eh%bh,energy,NTPOLY_SOLVER)
    case default
       call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
    end select

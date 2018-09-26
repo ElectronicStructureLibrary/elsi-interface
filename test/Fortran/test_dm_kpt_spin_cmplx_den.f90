@@ -65,9 +65,10 @@ program test_dm_kpt_spin_cmplx_den
    real(kind=r8), parameter :: k_weights(2) = 0.5_r8
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_elpa   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_omm    = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_pexsi  = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_ntpoly = -2622.88214509311_r8
 
    ! Initialize MPI
    call MPI_Init(ierr)
@@ -88,6 +89,7 @@ program test_dm_kpt_spin_cmplx_den
          write(*,"(2X,A)") "##  Arg#1: 1 = ELPA                           ##"
          write(*,"(2X,A)") "##         2 = libOMM                         ##"
          write(*,"(2X,A)") "##         3 = PEXSI                          ##"
+         write(*,"(2X,A)") "##         6 = NTPoly                         ##"
          write(*,"(2X,A)") "##  Arg#2: H matrix file                      ##"
          write(*,"(2X,A)") "##  Arg#3: S matrix file                      ##"
          write(*,"(2X,A)") "################################################"
@@ -123,6 +125,9 @@ program test_dm_kpt_spin_cmplx_den
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + PEXSI"
          e_ref = e_pexsi
          tol   = 1.0e-3_r8
+      elseif(solver == 6) then
+         write(*,"(2X,A)") "Now start testing  elsi_dm_complex + NTPoly"
+         e_ref = e_ntpoly
       endif
       write(*,*)
    endif

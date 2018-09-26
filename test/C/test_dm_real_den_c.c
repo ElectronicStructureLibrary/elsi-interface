@@ -42,6 +42,7 @@ void test_dm_real_den_c(MPI_Comm comm,
    double e_elpa;
    double e_omm;
    double e_pexsi;
+   double e_ntpoly;
    double e_test;
    double e_tol;
    double e_ref;
@@ -50,9 +51,10 @@ void test_dm_real_den_c(MPI_Comm comm,
    elsi_handle e_h;
    elsi_rw_handle rw_h;
 
-   e_elpa  = -2622.88214509316;
-   e_omm   = -2622.88214509316;
-   e_pexsi = -2622.88143358352;
+   e_elpa   = -2622.88214509316;
+   e_omm    = -2622.88214509316;
+   e_pexsi  = -2622.88143358352;
+   e_ntpoly = -2622.88214509311;
 
    MPI_Comm_size(comm,&n_proc);
    MPI_Comm_rank(comm,&myid);
@@ -78,6 +80,10 @@ void test_dm_real_den_c(MPI_Comm comm,
    if (solver == 3) {
        e_ref = e_pexsi;
        e_tol = 0.001;
+   }
+   if (solver == 6) {
+       e_ref = e_ntpoly;
+       e_tol = 0.00000001;
    }
 
    tmp = (int) round(sqrt((double) n_proc));

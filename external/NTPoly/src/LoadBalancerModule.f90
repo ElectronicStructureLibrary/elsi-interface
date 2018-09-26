@@ -1,11 +1,10 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> Module for load balancing the matrix multiplication calculation.
 MODULE LoadBalancerModule
-  USE DistributedMatrixMemoryPoolModule, ONLY : DistributedMatrixMemoryPool_t
-  USE DistributedSparseMatrixAlgebraModule, ONLY : DistributedGemm
-  USE DistributedSparseMatrixModule, ONLY : DistributedSparseMatrix_t, &
-       & ConstructEmptyDistributedSparseMatrix, &
-       & DestructDistributedSparseMatrix, FillDistributedPermutation
+  USE PMatrixMemoryPoolModule, ONLY : MatrixMemoryPool_p
+  USE PSMatrixAlgebraModule, ONLY : MatrixMultiply
+  USE PSMatrixModule, ONLY : Matrix_ps, ConstructEmptyMatrix, &
+       & DestructMatrix, FillMatrixPermutation
   USE PermutationModule, ONLY : Permutation_t
   IMPLICIT NONE
   PRIVATE
@@ -13,90 +12,83 @@ MODULE LoadBalancerModule
   PUBLIC :: PermuteMatrix
   PUBLIC :: UndoPermuteMatrix
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Apply a permutation to a matrix.
-  !! @param[in] mat matrix to permute.
-  !! @param[out] mat_out permuted matrix.
-  !! @param[in] permutation to apply.
-  !! @param[inout] memorypool_in memory pool to use. Optional.
+!> Apply a permutation to a matrix.
   SUBROUTINE PermuteMatrix(mat, mat_out, permutation, memorypool_in)
-    !! Parameters
-    TYPE(DistributedSparseMatrix_t), INTENT(IN) :: mat
-    TYPE(DistributedSparseMatrix_t), INTENT(INOUT) :: mat_out
+!> The matrix to permute.
+    TYPE(Matrix_ps), INTENT(IN) :: mat
+!> The permuted matrix.
+    TYPE(Matrix_ps), INTENT(INOUT) :: mat_out
+!> The permutation to apply.
     TYPE(Permutation_t), INTENT(IN) :: permutation
-    TYPE(DistributedMatrixMemoryPool_t), INTENT(INOUT),OPTIONAL :: memorypool_in
-    !! Local Variables
-    TYPE(DistributedSparseMatrix_t) :: PermuteRows, PermuteColumns
-    TYPE(DistributedSparseMatrix_t) :: Temp
+!> Memory pool to use
+    TYPE(MatrixMemoryPool_p), INTENT(INOUT), OPTIONAL :: memorypool_in
+!! Local Variables
+    TYPE(Matrix_ps) :: PermuteRows, PermuteColumns
+    TYPE(Matrix_ps) :: Temp
 
-    CALL ConstructEmptyDistributedSparseMatrix(PermuteRows, &
-         & mat%actual_matrix_dimension)
-    CALL ConstructEmptyDistributedSparseMatrix(PermuteColumns, &
-         & mat%actual_matrix_dimension)
-    CALL FillDistributedPermutation(PermuteRows, permutation%index_lookup, &
-         & permuterows=.TRUE.)
-    CALL FillDistributedPermutation(PermuteColumns, permutation%index_lookup, &
-         & permuterows=.FALSE.)
-    CALL ConstructEmptyDistributedSparseMatrix(Temp, &
-         mat%actual_matrix_dimension)
+!! Build Permutation Matrices
+    CALL ConstructEmptyMatrix(PermuteRows, mat)
+    CALL ConstructEmptyMatrix(PermuteColumns, mat)
+    CALL FillMatrixPermutation(PermuteRows, permutation%index_lookup, &
+         & permute_rows_in=.TRUE.)
+    CALL FillMatrixPermutation(PermuteColumns, permutation%index_lookup, &
+         & permute_rows_in=.FALSE.)
+    CALL ConstructEmptyMatrix(Temp, mat)
 
-    !! Permute Matrices.
+!! Permute Matrices.
     IF (PRESENT(memorypool_in)) THEN
-       CALL DistributedGemm(PermuteRows, mat, Temp, &
+       CALL MatrixMultiply(PermuteRows, mat, Temp, &
             & memory_pool_in=memorypool_in)
-       CALL DistributedGemm(Temp, PermuteColumns, mat_out, &
+       CALL MatrixMultiply(Temp, PermuteColumns, mat_out, &
             & memory_pool_in=memorypool_in)
     ELSE
-       CALL DistributedGemm(PermuteRows, mat, Temp)
-       CALL DistributedGemm(Temp, PermuteColumns, mat_out)
+       CALL MatrixMultiply(PermuteRows, mat, Temp)
+       CALL MatrixMultiply(Temp, PermuteColumns, mat_out)
     END IF
 
-    CALL DestructDistributedSparseMatrix(PermuteRows)
-    CALL DestructDistributedSparseMatrix(PermuteColumns)
-    CALL DestructDistributedSparseMatrix(Temp)
+    CALL DestructMatrix(PermuteRows)
+    CALL DestructMatrix(PermuteColumns)
+    CALL DestructMatrix(Temp)
   END SUBROUTINE PermuteMatrix
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Undo a permutation applied to a matrix.
-  !! @param[in] mat matrix to undo permutation of.
-  !! @param[out] mat_out unpermuted matrix.
-  !! @param[in] permutation to remove.
-  !! @param[inout] memorypool_in memory pool to use. Optional.
+!> Undo a permutation applied to a matrix.
   SUBROUTINE UndoPermuteMatrix(mat, mat_out, permutation, memorypool_in)
-    !! Parameters
-    TYPE(DistributedSparseMatrix_t), INTENT(IN) :: mat
-    TYPE(DistributedSparseMatrix_t), INTENT(INOUT) :: mat_out
+!> Matrix to undo permutation of.
+    TYPE(Matrix_ps), INTENT(IN) :: mat
+!> Unpermuted matrix.
+    TYPE(Matrix_ps), INTENT(INOUT) :: mat_out
+!> Permutation to remove.
     TYPE(Permutation_t), INTENT(IN) :: permutation
-    TYPE(DistributedMatrixMemoryPool_t), INTENT(INOUT),OPTIONAL :: memorypool_in
-    !! Local Variables
-    TYPE(DistributedSparseMatrix_t) :: PermuteRows, PermuteColumns
-    TYPE(DistributedSparseMatrix_t) :: Temp
+!> Memory pool to use.
+    TYPE(MatrixMemoryPool_p), INTENT(INOUT),OPTIONAL :: memorypool_in
+!! Local Variables
+    TYPE(Matrix_ps) :: PermuteRows, PermuteColumns
+    TYPE(Matrix_ps) :: Temp
 
-    !! Build Permutation Matrices
-    CALL ConstructEmptyDistributedSparseMatrix(PermuteRows, &
-         & mat%actual_matrix_dimension)
-    CALL ConstructEmptyDistributedSparseMatrix(PermuteColumns, &
-         mat%actual_matrix_dimension)
-    CALL FillDistributedPermutation(PermuteRows, permutation%index_lookup, &
-         & permuterows=.TRUE.)
-    CALL FillDistributedPermutation(PermuteColumns, permutation%index_lookup, &
-         & permuterows=.FALSE.)
-    CALL ConstructEmptyDistributedSparseMatrix(Temp, &
-         & mat%actual_matrix_dimension)
+!! Build Permutation Matrices
+    CALL ConstructEmptyMatrix(PermuteRows, mat)
+    CALL ConstructEmptyMatrix(PermuteColumns, mat)
+    CALL FillMatrixPermutation(PermuteRows, permutation%index_lookup, &
+         & permute_rows_in=.TRUE.)
+    CALL FillMatrixPermutation(PermuteColumns, permutation%index_lookup, &
+         & permute_rows_in=.FALSE.)
+    CALL ConstructEmptyMatrix(Temp, mat)
 
-    !! Permute Matrices.
+!! Permute Matrices.
     IF (PRESENT(memorypool_in)) THEN
-       CALL DistributedGemm(PermuteColumns, mat, Temp, &
+       CALL MatrixMultiply(PermuteColumns, mat, Temp, &
             & memory_pool_in=memorypool_in)
-       CALL DistributedGemm(Temp, PermuteRows, mat_out, &
+       CALL MatrixMultiply(Temp, PermuteRows, mat_out, &
             & memory_pool_in=memorypool_in)
     ELSE
-       CALL DistributedGemm(PermuteColumns, mat, Temp)
-       CALL DistributedGemm(Temp, PermuteRows, mat_out)
+       CALL MatrixMultiply(PermuteColumns, mat, Temp)
+       CALL MatrixMultiply(Temp, PermuteRows, mat_out)
     END IF
 
-    !! Cleanup
-    CALL DestructDistributedSparseMatrix(PermuteRows)
-    CALL DestructDistributedSparseMatrix(PermuteColumns)
-    CALL DestructDistributedSparseMatrix(Temp)
+!! Cleanup
+    CALL DestructMatrix(PermuteRows)
+    CALL DestructMatrix(PermuteColumns)
+    CALL DestructMatrix(Temp)
   END SUBROUTINE UndoPermuteMatrix
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE LoadBalancerModule

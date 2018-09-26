@@ -1,13 +1,13 @@
 MODULE NTPoly
 
    USE DensityMatrixSolversModule
-   USE DistributedMatrixMemoryPoolModule
-   USE DistributedSparseMatrixAlgebraModule
-   USE DistributedSparseMatrixModule
-   USE IterativeSolversModule
    USE PermutationModule
+   USE PMatrixMemoryPoolModule
    USE ProcessGridModule
+   USE PSMatrixAlgebraModule
+   USE PSMatrixModule
    USE SquareRootSolversModule
+   USE SolverParametersModule
    USE TripletListModule
    USE TripletModule
 

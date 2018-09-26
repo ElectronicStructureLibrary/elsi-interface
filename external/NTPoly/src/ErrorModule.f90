@@ -1,8 +1,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A (under development) module to do handle error passing.
 MODULE ErrorModule
+  USE NTMPIModule
   IMPLICIT NONE
-  INCLUDE "mpif.h"
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: SetGenericError
@@ -12,20 +12,20 @@ MODULE ErrorModule
   PUBLIC :: PrintError
   PUBLIC :: Cleanup
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> A type that can be passed around to accumulate errors.
+!> A type that can be passed around to accumulate errors.
   TYPE, PUBLIC :: Error_t
      PRIVATE
-     !> Flag for whether or not an error has occurred.
+!> Flag for whether or not an error has occurred.
      LOGICAL :: error_set
-     !> Detailed description of the error.
+!> Detailed description of the error.
      CHARACTER(len=1000) :: error_description
-     !> Store an error caused by a failed MPI call.
+!> Store an error caused by a failed MPI call.
      INTEGER :: mpi_error
      LOGICAL :: mpi_error_set !< flag for whether mpi error occurred.
-     !> Store an error caused by a bad allocation call.
+!> Store an error caused by a bad allocation call.
      INTEGER :: alloc_error
      LOGICAL :: alloc_error_set !< flag for whether alloc error occurred.
-     !> MPI Rank so it is possible to know who is root.
+!> MPI Rank so it is possible to know who is root.
      INTEGER :: mpi_rank = 0
   END TYPE Error_t
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -33,12 +33,11 @@ MODULE ErrorModule
      MODULE PROCEDURE Error_t_init
   END INTERFACE
 CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Default constructor for an error type
-  !! @return the newly constructed error type
+!> Default constructor for an error type.
   FUNCTION Error_t_init() RESULT(return_value)
-    !! Parameters
+!> The newly constructed error type
     TYPE(Error_t) :: return_value
-    !! Local Data
+!! Local Data
     INTEGER :: mpi_error
 
     return_value%error_set = .FALSE.
@@ -48,26 +47,25 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL MPI_Comm_rank(MPI_COMM_WORLD,return_value%mpi_rank,mpi_error)
   END FUNCTION Error_t_init
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Routine to call if a generic error has occurred.
-  !! @param[in,out] this the error variable to be set.
-  !! @param[in] error_description some string describing the details of the error.
-  !! @param[in] immediate_cleanup_in if true, the cleanup error handler is called.
+!> Routine to call if a generic error has occurred.
   SUBROUTINE SetGenericError(this, error_description, immediate_cleanup_in)
-    !! Parameters
+!> The error variable to be set.
     TYPE(Error_t), INTENT(inout)  :: this
+!> Some string describing the details of the error.
     CHARACTER(len=*), INTENT(in)  :: error_description
+!> If true, the cleanup error handler is called.
     LOGICAL, INTENT(in), OPTIONAL :: immediate_cleanup_in
-    !! Local Data
+!! Local Data
     LOGICAL :: immediate_cleanup
 
-    !! Process Optional Arguments
+!! Process Optional Arguments
     IF (.NOT. PRESENT(immediate_cleanup_in)) THEN
        immediate_cleanup = .FALSE.
     ELSE
        immediate_cleanup = immediate_cleanup_in
     END IF
 
-    !! Set Flags and Variables
+!! Set Flags and Variables
     this%error_description = error_description
     this%error_set = .TRUE.
 
@@ -76,31 +74,31 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
   END SUBROUTINE SetGenericError
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Routine to call to check if an MPI error has occurred.
-  !! @param[in,out] this the error variable to be set.
-  !! @param[in] error_description some string describing the details of the error.
-  !! @param[in] mpi_error the error variable produced by mpi.
-  !! @param[in] immediate_cleanup_in if true, the cleanup error handler is called.
-  !! @return true if an error has occurred, false otherwise.
+!> Routine to call to check if an MPI error has occurred.
   FUNCTION CheckMPIError(this, error_description, mpi_error, &
        & immediate_cleanup_in) RESULT(error_occurred)
-    !! Parameters
+!! Parameters
+!> The error variable to be set.
     TYPE(Error_t), INTENT(inout)  :: this
+!> Some string describing the details of the error.
     CHARACTER(len=*), INTENT(in)  :: error_description
+!> The error variable produced by mpi.
     INTEGER, INTENT(in)           :: mpi_error
+!> If true, the cleanup error handler is called.
     LOGICAL, INTENT(in), OPTIONAL :: immediate_cleanup_in
+!> True if an error has occurred, false otherwise.
     LOGICAL :: error_occurred
-    !! Local Data
+!! Local Data
     LOGICAL :: immediate_cleanup
 
-    !! Process Optional Arguments
+!! Process Optional Arguments
     IF (.NOT. PRESENT(immediate_cleanup_in)) THEN
        immediate_cleanup = .FALSE.
     ELSE
        immediate_cleanup = immediate_cleanup_in
     END IF
 
-    !! Check Error
+!! Check Error
     IF (.NOT. mpi_error .EQ. MPI_SUCCESS) THEN
        this%mpi_error_set = .TRUE.
        this%mpi_error = mpi_error
@@ -109,31 +107,30 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     error_occurred = ErrorOccurred(this)
   END FUNCTION CheckMPIError
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Routine to call if an alloc error has occurred.
-  !! @param[in,out] this the error variable to be set.
-  !! @param[in] error_description some string describing the details of the error.
-  !! @param[in] alloc_error the error variable produced by alloc.
-  !! @param[in] immediate_cleanup_in if true, the cleanup error handler is called.
-  !! @return true if an error has occurred, false otherwise.
+!> Routine to call if an alloc error has occurred.
   FUNCTION CheckAllocError(this, error_description, alloc_error, &
        & immediate_cleanup_in) RESULT(error_occurred)
-    !! Parameters
+!> This the error variable to be set.
     TYPE(Error_t), INTENT(inout)  :: this
+!> Some string describing the details of the error.
     CHARACTER(len=*), INTENT(in)  :: error_description
+!> The error variable produced by alloc.
     INTEGER, INTENT(in)           :: alloc_error
+!> If true, the cleanup error handler is called.
     LOGICAL, INTENT(in), OPTIONAL :: immediate_cleanup_in
+!> True if an error has occurred, false otherwise.
     LOGICAL :: error_occurred
-    !! Local Data
+!! Local Data
     LOGICAL :: immediate_cleanup
 
-    !! Process Optional Arguments
+!! Process Optional Arguments
     IF (.NOT. PRESENT(immediate_cleanup_in)) THEN
        immediate_cleanup = .FALSE.
     ELSE
        immediate_cleanup = immediate_cleanup_in
     END IF
 
-    !! Check Error
+!! Check Error
     IF (.NOT. alloc_error .EQ. 0) THEN
        this%alloc_error_set = .TRUE.
        this%alloc_error = alloc_error
@@ -142,29 +139,27 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     error_occurred = ErrorOccurred(this)
   END FUNCTION CheckAllocError
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Check if an error has occurred or not.
-  !! @param[in] this the error variable to check.
-  !! @return true if an error has occurred, false otherwise.
+!> Check if an error has occurred or not.
   FUNCTION ErrorOccurred(this) RESULT(occurred)
-    !! Parameters
+!> The error variable to check.
     TYPE(Error_t), INTENT(in) :: this
+!> True if an error has occurred, false otherwise.
     LOGICAL :: occurred
 
     occurred = this%error_set
   END FUNCTION ErrorOccurred
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Print out that an error has occurred.
-  !! @param[in] this the error to print out.
+!> Print out that an error has occurred.
   RECURSIVE SUBROUTINE PrintError(this)
-    !! Parameters
+!> The error to print out.
     TYPE(Error_t), INTENT(in) :: this
-    !! Local Data
+!! Local Data
     CHARACTER(len=80) :: error_string
     INTEGER :: error_string_len
     INTEGER :: error_string_error
     TYPE(Error_t) :: temp_error
 
-    !! Print Out Information About The Error
+!! Print Out Information About The Error
     IF (ErrorOccurred(this)) THEN
        IF (this%mpi_rank .EQ. 0) THEN
           WRITE(*,*) "An error has occurred."
@@ -189,12 +184,11 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
   END SUBROUTINE PrintError
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> As a last case resort, this will print an error message and quit.
-  !! @param[in] this the error which has caused the need to cleanup the program.
+!> As a last case resort, this will print an error message and quit.
   SUBROUTINE Cleanup(this)
-    !! Parameters
+!> The error which has caused the need to cleanup the program.
     TYPE(Error_t), INTENT(in) :: this
-    !! Local Data
+!! Local Data
     INTEGER :: abort_error
 
     CALL PrintError(this)
@@ -204,4 +198,5 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL MPI_Abort(MPI_COMM_WORLD,MPI_ERR_UNKNOWN,abort_error)
     END IF
   END SUBROUTINE Cleanup
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE ErrorModule

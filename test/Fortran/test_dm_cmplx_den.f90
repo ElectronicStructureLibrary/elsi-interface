@@ -56,9 +56,10 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
    type(elsi_rw_handle) :: rw_h
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_omm   = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_elpa   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_omm    = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_pexsi  = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_ntpoly = -2622.88214509311_r8
 
    call MPI_Comm_size(mpi_comm,n_proc,ierr)
    call MPI_Comm_rank(mpi_comm,myid,ierr)
@@ -79,6 +80,9 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + PEXSI"
          e_ref = e_pexsi
          tol   = 1.0e-3_r8
+      elseif(solver == 6) then
+         write(*,"(2X,A)") "Now start testing  elsi_dm_complex + NTPoly"
+         e_ref = e_ntpoly
       endif
       write(*,*)
    endif

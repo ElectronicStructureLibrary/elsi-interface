@@ -31,6 +31,7 @@ A) PREREQUISITES
      - ELPA          [2017.05.003 or newer]
      - libOMM
      - MatrixSwitch
+     - NTPoly        [2.0]
      - PT-SCOTCH     [6.0.0]
      - SuperLU_DIST  [5.3.0]
 
@@ -115,6 +116,7 @@ C) CONFIGURATION
      -DUSE_EXTERNAL_ELPA=ON
      -DUSE_EXTERNAL_OMM=ON
      -DUSE_EXTERNAL_SUPERLU=ON
+     -DUSE_EXTERNAL_NTPOLY=ON
 
    The external libraries and the corresponding include paths should be set
    via the following three keywords:
@@ -128,8 +130,8 @@ C) CONFIGURATION
 
      -DENABLE_PEXSI=ON
 
-   At present, an external version of the PEXSI or NTPoly library is not
-   officially supported.
+   At present, an external version of the PEXSI library is not officially
+   supported.
 
    3) Build targets
 

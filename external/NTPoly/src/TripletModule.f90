@@ -1,126 +1,253 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> A Module For Storing Triplets of Integer, Integer, Double.
+!> A Module For Storing Triplets of Integer, Integer, Value.
 MODULE TripletModule
-  USE DataTypesModule, ONLY: NTREAL, MPINTREAL
+  USE DataTypesModule, ONLY: NTREAL, MPINTREAL, NTCOMPLEX, MPINTCOMPLEX, &
+       & MPINTINTEGER
   USE ISO_C_BINDING, ONLY : c_int
+  USE NTMPIModule
   IMPLICIT NONE
-  INCLUDE "mpif.h"
   PRIVATE
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> A data type for a triplet of integer, integer, double.
-  !! As this is related to matrix multiplication, the referencing indices are
-  !! rows and columns.
-  TYPE, PUBLIC :: Triplet_t
-     INTEGER(kind=c_int)    :: index_column !< column value.
-     INTEGER(kind=c_int)    :: index_row    !< row value.
-     REAL(NTREAL) :: point_value  !< actual value at those indices.
-  END TYPE Triplet_t
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: SetTriplet
   PUBLIC :: GetTripletValues
   PUBLIC :: CompareTriplets
-  PUBLIC :: GetMPITripletType
+  PUBLIC :: GetMPITripletType_r
+  PUBLIC :: GetMPITripletType_c
+  PUBLIC :: ConvertTripletType
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Flag about whether we've registered an mpi triplet type before
-  LOGICAL :: set_mpi_triplet_type = .FALSE.
-  !> A derived data type for mpi triplets
-  INTEGER, SAVE :: mpi_triplet_type
-  !> For error handling in this module
-  !type(Error_t) :: error_handler
+  INTERFACE SetTriplet
+     MODULE PROCEDURE SetTriplet_r
+     MODULE PROCEDURE SetTriplet_c
+  END INTERFACE
+  INTERFACE GetTripletValues
+     MODULE PROCEDURE GetTripletValues_r
+     MODULE PROCEDURE GetTripletValues_c
+  END INTERFACE
+  INTERFACE CompareTriplets
+     MODULE PROCEDURE CompareTriplets_r
+     MODULE PROCEDURE CompareTriplets_c
+  END INTERFACE
+  INTERFACE ConvertTripletType
+     MODULE PROCEDURE ConvertTripletToReal
+     MODULE PROCEDURE ConvertTripletToComplex
+  END INTERFACE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!> A data type for a triplet of integer, integer, double.
+!> As this is related to matrix multiplication, the referencing indices are
+!> rows and columns.
+  TYPE, PUBLIC :: Triplet_r
+     INTEGER(kind=c_int) :: index_column !< column value.
+     INTEGER(kind=c_int) :: index_row    !< row value.
+     REAL(NTREAL)        :: point_value  !< actual value at those indices.
+  END TYPE Triplet_r
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!> A data type for a triplet of integer, integer, complex.
+!> As this is related to matrix multiplication, the referencing indices are
+!> rows and columns.
+  TYPE, PUBLIC :: Triplet_c
+     INTEGER(kind=c_int) :: index_column !< column value.
+     INTEGER(kind=c_int) :: index_row    !< row value.
+     COMPLEX(NTCOMPLEX)  :: point_value  !< actual value at those indices.
+  END TYPE Triplet_c
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Set the values of a triplet.
-  !! @param[inout] this the triplet to set the values of.
-  !! @param[in] index_column the column value.
-  !! @param[in] index_row the row value.
-  !! @param[in] point_value the value at that point.
-  PURE SUBROUTINE SetTriplet(this,index_column,index_row,point_value)
-    !! Parameters
-    TYPE(Triplet_t), INTENT(INOUT)       :: this
-    INTEGER, INTENT(IN)                  :: index_column
-    INTEGER, INTENT(IN)                  :: index_row
-    REAL(NTREAL), INTENT(IN)   :: point_value
+!> Set the values of a triplet.
+  PURE SUBROUTINE SetTriplet_r(this,index_column,index_row,point_value)
+!> The triplet to set the values of.
+    TYPE(Triplet_r), INTENT(INOUT) :: this
+!> The column value.
+    INTEGER, INTENT(IN)            :: index_column
+!> The row value.
+    INTEGER, INTENT(IN)            :: index_row
+!> The value at that point.
+    REAL(NTREAL), INTENT(IN)       :: point_value
 
-    this%index_column = index_column
-    this%index_row    = index_row
-    this%point_value  = point_value
-  END SUBROUTINE SetTriplet
+  this%index_column = index_column
+  this%index_row    = index_row
+  this%point_value  = point_value
+
+  END SUBROUTINE SetTriplet_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Get the values of a triplet.
-  !! @param[in] this the triplet to extract the values of.
-  !! @param[out] index_column column value.
-  !! @param[out] index_row row value.
-  !! @param[out] point_value actual stored value.
-  PURE SUBROUTINE GetTripletValues(this,index_column,index_row,point_value)
-    !! Parameters
-    TYPE(Triplet_t), INTENT(IN)           :: this
-    INTEGER, INTENT(OUT)                  :: index_column
-    INTEGER, INTENT(OUT)                  :: index_row
+!> Set the values of a triplet.
+  PURE SUBROUTINE SetTriplet_c(this,index_column,index_row,point_value)
+!> The triplet to set the values of.
+    TYPE(Triplet_c), INTENT(INOUT) :: this
+!> The column value.
+    INTEGER, INTENT(IN)            :: index_column
+!> The row value.
+    INTEGER, INTENT(IN)            :: index_row
+!> The value at that point.
+    COMPLEX(NTCOMPLEX), INTENT(IN) :: point_value
+
+  this%index_column = index_column
+  this%index_row    = index_row
+  this%point_value  = point_value
+
+  END SUBROUTINE SetTriplet_c
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!> Get the values of a triplet.
+  PURE SUBROUTINE GetTripletValues_r(this,index_column,index_row,point_value)
+!> The triplet to extract the values of.
+    TYPE(Triplet_r), INTENT(IN) :: this
+!> Column value.
+    INTEGER, INTENT(OUT)        :: index_column
+!> Row value.
+    INTEGER, INTENT(OUT)        :: index_row
+!> Actual stored value.
     REAL(NTREAL), INTENT(OUT)   :: point_value
 
-    index_column = this%index_column
-    index_row    = this%index_row
-    point_value  = this%point_value
-  END SUBROUTINE GetTripletValues
+  index_column = this%index_column
+  index_row    = this%index_row
+  point_value  = this%point_value
+
+  END SUBROUTINE GetTripletValues_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compare two triplets based on their index values, first by column and
-  !! second by row. Returns A < B.
-  !! Used for sorting.
-  !! @param[in] tripA first triplet.
-  !! @param[in] tripB second triplet.
-  !! @return A < B.
-  PURE FUNCTION CompareTriplets(tripA, tripB) RESULT(islessthan)
-    !! Parameters
-    TYPE(Triplet_t), INTENT(IN) :: tripA, tripB
+!> Get the values of a triplet.
+  PURE SUBROUTINE GetTripletValues_c(this,index_column,index_row,point_value)
+!> The triplet to extract the values of.
+    TYPE(Triplet_c), INTENT(IN)     :: this
+!> Column value.
+    INTEGER, INTENT(OUT)            :: index_column
+!> Row value.
+    INTEGER, INTENT(OUT)            :: index_row
+!> Actual stored value.
+    COMPLEX(NTCOMPLEX), INTENT(OUT) :: point_value
+
+  index_column = this%index_column
+  index_row    = this%index_row
+  point_value  = this%point_value
+
+  END SUBROUTINE GetTripletValues_c
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!> Compare two triplets based on their index values, first by column and
+!> second by row. Returns A < B.
+  PURE FUNCTION CompareTriplets_r(tripA, tripB) RESULT(islessthan)
+!> First triplet.
+    TYPE(Triplet_r), INTENT(IN) :: tripA
+!> Second triplet.
+    TYPE(Triplet_r), INTENT(IN) :: tripB
+!> A < B.
     LOGICAL :: islessthan
 
-    IF (tripA%index_column .GT. tripB%index_column) THEN
-       islessthan = .TRUE.
-    ELSE IF ((tripA%index_column .EQ. tripB%index_column) .AND. &
-         & (tripA%index_row .GT. tripB%index_row)) THEN
-       islessthan = .TRUE.
-    ELSE
-       islessthan = .FALSE.
-    END IF
-  END FUNCTION CompareTriplets
+  IF (tripA%index_column .GT. tripB%index_column) THEN
+     islessthan = .TRUE.
+  ELSE IF ((tripA%index_column .EQ. tripB%index_column) .AND. &
+       & (tripA%index_row .GT. tripB%index_row)) THEN
+     islessthan = .TRUE.
+  ELSE
+     islessthan = .FALSE.
+  END IF
+
+  END FUNCTION CompareTriplets_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Returns an MPI Derived Data Type For A Triplet.
-  !! We statically store this derived type so that we don't have to recreate
-  !! it every time this function is called. Thus this functional call should
-  !! add very little overhead.
-  !! @return the derived type
-  FUNCTION GetMPITripletType() RESULT(return_mpi_triplet_type)
-    !! Parameters
-    INTEGER :: return_mpi_triplet_type
-    !! Local Data
+!> Compare two triplets based on their index values, first by column and
+!> second by row. Returns A < B.
+  PURE FUNCTION CompareTriplets_c(tripA, tripB) RESULT(islessthan)
+!> First triplet.
+    TYPE(Triplet_c), INTENT(IN) :: tripA
+!> Second triplet.
+    TYPE(Triplet_c), INTENT(IN) :: tripB
+!> A < B.
+    LOGICAL :: islessthan
+
+  IF (tripA%index_column .GT. tripB%index_column) THEN
+     islessthan = .TRUE.
+  ELSE IF ((tripA%index_column .EQ. tripB%index_column) .AND. &
+       & (tripA%index_row .GT. tripB%index_row)) THEN
+     islessthan = .TRUE.
+  ELSE
+     islessthan = .FALSE.
+  END IF
+
+  END FUNCTION CompareTriplets_c
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!> Returns an MPI Derived Data Type For A Triplet.
+!> We statically store this derived type so that we don't have to recreate
+!> it every time this function is called. Thus this functional call should
+!> add very little overhead.
+  FUNCTION GetMPITripletType_r() RESULT(mpi_triplet_type)
+!> MPI Derived Type
+    INTEGER :: mpi_triplet_type
+!! Local Data
     INTEGER, DIMENSION(3) :: triplet_sub_types
     INTEGER, DIMENSION(3) :: triplet_displacement
     INTEGER, DIMENSION(3) :: triplet_block_length
     INTEGER :: bytes_per_int
     INTEGER :: bytes_per_double
     INTEGER :: ierr
-    !  logical :: error_occurred
 
-    !! Check if already created this data type
-    IF (set_mpi_triplet_type) THEN
-       return_mpi_triplet_type = mpi_triplet_type
-    ELSE
-       !! Otherwise make it
-       CALL MPI_Type_extent(MPI_INTEGER4,bytes_per_int,ierr)
-       CALL MPI_Type_extent(MPINTREAL,bytes_per_double,ierr)
-       triplet_block_length(1) = 1
-       triplet_block_length(2) = 1
-       triplet_block_length(3) = 1
-       triplet_displacement(1) = 0
-       triplet_displacement(2) = bytes_per_int + triplet_displacement(1)
-       triplet_displacement(3) = bytes_per_int + triplet_displacement(2)
-       triplet_sub_types(1) = MPI_INTEGER4
-       triplet_sub_types(2) = MPI_INTEGER4
-       triplet_sub_types(3) = MPINTREAL
+    CALL MPI_Type_extent(MPINTINTEGER,bytes_per_int,ierr)
+    CALL MPI_Type_extent(MPINTREAL,bytes_per_double,ierr)
+    triplet_block_length(1) = 1
+    triplet_block_length(2) = 1
+    triplet_block_length(3) = 1
+    triplet_displacement(1) = 0
+    triplet_displacement(2) = bytes_per_int + triplet_displacement(1)
+    triplet_displacement(3) = bytes_per_int + triplet_displacement(2)
+    triplet_sub_types(1) = MPINTINTEGER
+    triplet_sub_types(2) = MPINTINTEGER
+    triplet_sub_types(3) = MPINTREAL
 
-       CALL MPI_Type_struct(3,triplet_block_length,triplet_displacement,&
-            & triplet_sub_types,mpi_triplet_type,ierr)
-       CALL MPI_Type_commit(mpi_triplet_type,ierr)
-       return_mpi_triplet_type = mpi_triplet_type
-    END IF
-  END FUNCTION GetMPITripletType
+    CALL MPI_Type_struct(3,triplet_block_length,triplet_displacement,&
+         & triplet_sub_types,mpi_triplet_type,ierr)
+    CALL MPI_Type_commit(mpi_triplet_type,ierr)
+
+  END FUNCTION GetMPITripletType_r
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!> Returns an MPI Derived Data Type For A Triplet.
+!> We statically store this derived type so that we don't have to recreate
+!> it every time this function is called. Thus this functional call should
+!> add very little overhead.
+  FUNCTION GetMPITripletType_c() RESULT(mpi_triplet_type)
+!> MPI Derived Type
+    INTEGER :: mpi_triplet_type
+!! Local Data
+    INTEGER, DIMENSION(3) :: triplet_sub_types
+    INTEGER, DIMENSION(3) :: triplet_displacement
+    INTEGER, DIMENSION(3) :: triplet_block_length
+    INTEGER :: bytes_per_int
+    INTEGER :: bytes_per_double
+    INTEGER :: ierr
+
+    CALL MPI_Type_extent(MPINTINTEGER,bytes_per_int,ierr)
+    CALL MPI_Type_extent(MPINTCOMPLEX,bytes_per_double,ierr)
+    triplet_block_length(1) = 1
+    triplet_block_length(2) = 1
+    triplet_block_length(3) = 1
+    triplet_displacement(1) = 0
+    triplet_displacement(2) = bytes_per_int + triplet_displacement(1)
+    triplet_displacement(3) = bytes_per_int + triplet_displacement(2)
+    triplet_sub_types(1) = MPINTINTEGER
+    triplet_sub_types(2) = MPINTINTEGER
+    triplet_sub_types(3) = MPINTCOMPLEX
+
+    CALL MPI_Type_struct(3,triplet_block_length,triplet_displacement,&
+         & triplet_sub_types,mpi_triplet_type,ierr)
+    CALL MPI_Type_commit(mpi_triplet_type,ierr)
+
+  END FUNCTION GetMPITripletType_c
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!> Convert a complex triplet to a real triplet.
+  SUBROUTINE ConvertTripletToReal(cin_triplet, rout_triplet)
+!> The starting triplet
+    TYPE(Triplet_c), INTENT(IN)    :: cin_triplet
+!> Real valued triplet.
+    TYPE(Triplet_r), INTENT(INOUT) :: rout_triplet
+
+    rout_triplet%index_row = cin_triplet%index_row
+    rout_triplet%index_column = cin_triplet%index_column
+    rout_triplet%point_value = REAL(cin_triplet%point_value)
+  END SUBROUTINE ConvertTripletToReal
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!> Convert a real triplet to a complex triplet.
+  SUBROUTINE ConvertTripletToComplex(rin_triplet, cout_triplet)
+!> The starting triplet.
+    TYPE(Triplet_r), INTENT(IN)    :: rin_triplet
+!> Complex valued triplet.
+    TYPE(Triplet_c), INTENT(INOUT) :: cout_triplet
+
+    cout_triplet%index_row = rin_triplet%index_row
+    cout_triplet%index_column = rin_triplet%index_column
+    cout_triplet%point_value = CMPLX(rin_triplet%point_value, 0, KIND=NTCOMPLEX)
+  END SUBROUTINE ConvertTripletToComplex
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE TripletModule

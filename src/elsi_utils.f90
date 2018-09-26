@@ -12,8 +12,7 @@ module ELSI_UTILS
    use ELSI_CONSTANTS, only: UNSET,UT_MAT,LT_MAT,N_SOLVERS,N_PARALLEL_MODES,&
                              N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,&
                              BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,AUTO,ELPA_SOLVER,&
-                             OMM_SOLVER,PEXSI_SOLVER,CHESS_SOLVER,SIPS_SOLVER,&
-                             NTPOLY_SOLVER
+                             OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER
    use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
    use ELSI_MPI,       only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
@@ -327,8 +326,6 @@ subroutine elsi_check(ph,bh,caller)
                     " small for this number of MPI tasks.",caller)
          endif
       endif
-   case(CHESS_SOLVER)
-      call elsi_stop(bh,"CheSS not yet supported.",caller)
    case(SIPS_SOLVER)
       if(ph%n_basis < bh%n_procs) then
          call elsi_stop(bh,"Matrix size too small to use SLEPc-SIPs with"//&
@@ -352,16 +349,6 @@ subroutine elsi_check(ph,bh,caller)
    case(NTPOLY_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
          call elsi_stop(bh,"NTPoly requires MULTI_PROC parallel mode.",caller)
-      endif
-
-      if(ph%n_spins > 1) then
-         call elsi_stop(bh,"Calculations with two spin channels not yet"//&
-                 " supported with NTPoly.",caller)
-      endif
-
-      if(ph%n_kpts > 1) then
-         call elsi_stop(bh,"Calculations with multiple k-points not yet"//&
-                 " supported with NTPoly.",caller)
       endif
    end select
 

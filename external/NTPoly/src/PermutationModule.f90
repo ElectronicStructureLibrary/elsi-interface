@@ -4,36 +4,35 @@ MODULE PermutationModule
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> A data structure for storing permutations.
+!> A data structure for storing permutations.
   TYPE, PUBLIC :: Permutation_t
-     !> For each row/column, what index does it correspond to in the
-     !! unperturbed matrix.
+!> For each row/column, what index does it correspond to in the
+!> unperturbed matrix.
      INTEGER, DIMENSION(:), ALLOCATABLE :: index_lookup
-     !> For each row/column in the unperturbed, what index does it correspond to
-     !! in this matrix.
+!> For each row/column in the unperturbed, what index does it correspond to
+!> in this matrix.
      INTEGER, DIMENSION(:), ALLOCATABLE :: reverse_index_lookup
   END TYPE Permutation_t
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: ConstructDefaultPermutation
   PUBLIC :: ConstructReversePermutation
   PUBLIC :: ConstructRandomPermutation
+  PUBLIC :: ConstructLimitedRandomPermutation
   PUBLIC :: DestructPermutation
-CONTAINS
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Constructs a permutation that preserves the original order.
-  !! @param[inout] this the permutation to construct.
-  !! @param[in] matrix_dimension size of the matrix.
+CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!> Constructs a permutation that preserves the original order.
   SUBROUTINE ConstructDefaultPermutation(this, matrix_dimension)
-    !! Parameters
+!> The permutation to construct.
     TYPE(Permutation_t), INTENT(inout) :: this
+!> The dimension of the matrix.
     INTEGER, INTENT(in) :: matrix_dimension
-    !! Local Data
+!! Local Data
     INTEGER :: counter
 
     ALLOCATE(this%index_lookup(matrix_dimension))
     ALLOCATE(this%reverse_index_lookup(matrix_dimension))
 
-    !! Fill by counting.
+!! Fill by counting.
     fill: DO counter = 1, matrix_dimension
        this%index_lookup(counter) = counter
        this%reverse_index_lookup(counter) = counter
@@ -41,20 +40,19 @@ CONTAINS
 
   END SUBROUTINE ConstructDefaultPermutation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Constructs a permutation that reverses the original order.
-  !! @param[inout] this the permutation to construct.
-  !! @param[in] matrix_dimension size of the matrix.
+!> Constructs a permutation that reverses the original order.
   SUBROUTINE ConstructReversePermutation(this, matrix_dimension)
-    !! Parameters
+!> A permutation that reverses the original order.
     TYPE(Permutation_t), INTENT(inout) :: this
+!> The size of the matrix.
     INTEGER, INTENT(in) :: matrix_dimension
-    !! Local Data
+!! Local Data
     INTEGER :: counter
 
     ALLOCATE(this%index_lookup(matrix_dimension))
     ALLOCATE(this%reverse_index_lookup(matrix_dimension))
 
-    !! Fill by counting.
+!! Fill by counting.
     fill: DO counter = 1, matrix_dimension
        this%index_lookup(counter) = matrix_dimension - counter + 1
        this%reverse_index_lookup(counter) = counter
@@ -62,15 +60,14 @@ CONTAINS
 
   END SUBROUTINE ConstructReversePermutation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Constructs a permutation that has a random order.
-  !! @param[inout] this the permutation to construct.
-  !! @param[in] matrix_dimension size of the matrix.
-  !! Implements Knuth shuffle.
+!> Constructs a permutation that has a random order.
+!> Implements Knuth shuffle.
   SUBROUTINE ConstructRandomPermutation(this, matrix_dimension)
-    !! Parameters
+!> A permutation that reverses the original order.
     TYPE(Permutation_t), INTENT(inout) :: this
+!> The size of the matrix.
     INTEGER, INTENT(in) :: matrix_dimension
-    !! Local Data
+!! Local Data
     INTEGER :: counter
     INTEGER :: random_integer
     REAL(KIND=8) :: rand_temp
@@ -78,16 +75,16 @@ CONTAINS
     INTEGER, DIMENSION(:), ALLOCATABLE :: seed
     INTEGER :: seed_size
 
-    !! Temporary, seed the random number generator
+!! Temporary, seed the random number generator
     CALL RANDOM_SEED(size=seed_size)
     ALLOCATE(seed(seed_size))
     seed = 0
     CALL RANDOM_SEED(put=seed)
 
-    !! First fill by counting.
+!! First fill by counting.
     CALL ConstructDefaultPermutation(this,matrix_dimension)
 
-    !! Do the shuffle
+!! Do the shuffle
     shuffle: DO counter=matrix_dimension,1,-1
        CALL RANDOM_NUMBER(rand_temp)
        random_integer = FLOOR(matrix_dimension*rand_temp)+1
@@ -96,16 +93,58 @@ CONTAINS
        this%index_lookup(random_integer) = swap_space
     END DO shuffle
 
-    !! Compute the reverse lookup
+!! Compute the reverse lookup
     reverse: DO counter=1,matrix_dimension
        this%reverse_index_lookup(this%index_lookup(counter)) = counter
     END DO reverse
   END SUBROUTINE ConstructRandomPermutation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Destruct a permutation object.
-  !! @param[inout] this the permutation to destruct.
+!> Constructs a permutation that has a random order, but there is no
+!> permutation from beyond the actual matrix dimension.
+  SUBROUTINE ConstructLimitedRandomPermutation(this, actual_matrix_dimension, &
+       & logical_matrix_dimension)
+!> The permutation to construct.
+    TYPE(Permutation_t), INTENT(inout) :: this
+!> Actual size of the matrix.
+    INTEGER, INTENT(in) :: actual_matrix_dimension
+!> Padded size of the matrix.
+    INTEGER, INTENT(in) :: logical_matrix_dimension
+!! Local Data
+    INTEGER :: counter
+    INTEGER :: random_integer
+    REAL(KIND=8) :: rand_temp
+    INTEGER :: swap_space
+    INTEGER, DIMENSION(:), ALLOCATABLE :: seed
+    INTEGER :: seed_size
+
+!! Temporary, seed the random number generator
+    CALL RANDOM_SEED(size=seed_size)
+    ALLOCATE(seed(seed_size))
+    seed = 0
+    CALL RANDOM_SEED(put=seed)
+
+!! First fill by counting.
+    CALL ConstructDefaultPermutation(this,logical_matrix_dimension)
+
+!! Do the shuffle
+    shuffle: DO counter=actual_matrix_dimension,1,-1
+       CALL RANDOM_NUMBER(rand_temp)
+       random_integer = FLOOR(actual_matrix_dimension*rand_temp)+1
+       swap_space = this%index_lookup(actual_matrix_dimension)
+       this%index_lookup(actual_matrix_dimension) = &
+            & this%index_lookup(random_integer)
+       this%index_lookup(random_integer) = swap_space
+    END DO shuffle
+
+!! Compute the reverse lookup
+    reverse: DO counter=1,logical_matrix_dimension
+       this%reverse_index_lookup(this%index_lookup(counter)) = counter
+    END DO reverse
+  END SUBROUTINE ConstructLimitedRandomPermutation
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!> Destruct a permutation object.
   PURE SUBROUTINE DestructPermutation(this)
-    !! Parameters
+!> The permutation to destruct.
     TYPE(Permutation_t), INTENT(inout) :: this
 
     IF (ALLOCATED(this%index_lookup)) THEN
@@ -115,4 +154,5 @@ CONTAINS
        DEALLOCATE(this%reverse_index_lookup)
     END IF
   END SUBROUTINE DestructPermutation
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE PermutationModule

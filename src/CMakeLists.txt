@@ -35,17 +35,18 @@ SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/elsi_version.f90
 IF(NOT ENABLE_PEXSI)
   LIST(APPEND elsi_src stub_pexsi.f90)
 ENDIF()
-
 IF(NOT ENABLE_SIPS)
   LIST(APPEND elsi_src stub_sips.f90)
 ENDIF()
-
 IF(NOT USE_EXTERNAL_ELPA)
   LIST(APPEND elsi_src
     elsi_elpa.f90
     stub_aeo.f90)
 ELSE()
   LIST(APPEND elsi_src elsi_aeo.f90)
+ENDIF()
+IF(USE_EXTERNAL_NTPOLY)
+  LIST(APPEND elsi_src ${PROJECT_SOURCE_DIR}/external/NTPoly/src/Interface.f90)
 ENDIF()
 
 ADD_LIBRARY(elsi ${elsi_src})

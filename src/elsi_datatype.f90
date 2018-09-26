@@ -15,8 +15,8 @@ module ELSI_DATATYPE
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use FORTJSON,           only: fjson_handle
    use MATRIXSWITCH,       only: matrix
-   use NTPOLY,             only: Permutation_t,DistributedSparseMatrix_t,&
-                                 IterativeSolverParameters_t
+   use NTPOLY,             only: Permutation_t,Matrix_ps,SolverParameters_t,&
+                                 ProcessGrid_t
 
    implicit none
 
@@ -169,19 +169,20 @@ module ELSI_DATATYPE
       logical          :: sips_started = .false.
 
       ! NTPoly
-      integer(kind=i4)                  :: nt_n_group
-      integer(kind=i4)                  :: nt_method
-      integer(kind=i4)                  :: nt_isr ! Method to find S^(-1/2)
-      integer(kind=i4)                  :: nt_max_iter
-      real(kind=r8)                     :: nt_tol
-      real(kind=r8)                     :: nt_filter
-      logical                           :: nt_output
-      logical                           :: nt_started = .false.
-      type(DistributedSparseMatrix_t)   :: nt_ham
-      type(DistributedSparseMatrix_t)   :: nt_ovlp
-      type(DistributedSparseMatrix_t)   :: nt_dm
-      type(IterativeSolverParameters_t) :: nt_options
-      type(Permutation_t)               :: nt_perm
+      integer(kind=i4)         :: nt_n_group
+      integer(kind=i4)         :: nt_method
+      integer(kind=i4)         :: nt_isr ! Method to find S^(-1/2)
+      integer(kind=i4)         :: nt_max_iter
+      real(kind=r8)            :: nt_tol
+      real(kind=r8)            :: nt_filter
+      logical                  :: nt_output
+      logical                  :: nt_started = .false.
+      type(Matrix_ps)          :: nt_ham
+      type(Matrix_ps)          :: nt_ovlp
+      type(Matrix_ps)          :: nt_dm
+      type(SolverParameters_t) :: nt_options
+      type(Permutation_t)      :: nt_perm
+      type(ProcessGrid_t)      :: nt_pgrid
 
    end type
 

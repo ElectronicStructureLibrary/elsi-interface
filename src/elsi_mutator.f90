@@ -1527,6 +1527,9 @@ subroutine elsi_get_edm_complex(eh,edm)
                  eh%dm_cmplx_csc)
          call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
                  eh%dm_cmplx_csc,edm)
+      case(NTPOLY_SOLVER)
+         call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
+         call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,edm)
       case default
          call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
       end select
@@ -1612,6 +1615,17 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
                     eh%col_ptr_sp2,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         end select
+      case(NTPOLY_SOLVER)
+         call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
+
+         select case(eh%ph%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%ph%nt_dm,edm)
+         case(SIESTA_CSC)
+            call elsi_ntpoly_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                    eh%ph%nt_dm,edm)
          end select
       case default
          call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
