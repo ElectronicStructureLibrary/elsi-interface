@@ -126,7 +126,8 @@ module ELSI_DATATYPE
       logical                         :: elpa_autotune
       logical                         :: elpa_output
       logical                         :: elpa_started = .false.
-      class(elpa_t),          pointer :: elpa_main
+      class(elpa_t),          pointer :: elpa_aux
+      class(elpa_t),          pointer :: elpa_solve
       class(elpa_autotune_t), pointer :: elpa_tune
 
       ! libOMM
