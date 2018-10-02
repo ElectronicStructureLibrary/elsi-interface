@@ -74,10 +74,10 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
       enddo
 
       ! Compute S = (U^T)U, U -> S
-      call dpotrf('U',ph%n_basis,ovlp,ph%n_basis,ierr)
+      call dpotrf("U",ph%n_basis,ovlp,ph%n_basis,ierr)
 
       ! compute U^-1 -> S
-      call dtrtri('U','N',ph%n_basis,ovlp,ph%n_basis,ierr)
+      call dtrtri("U","N",ph%n_basis,ovlp,ph%n_basis,ierr)
 
       call elsi_get_time(t1)
 
@@ -92,11 +92,11 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
    if(ph%ovlp_is_sing) then ! Use scaled eigenvectors
       ! evec_real used as tmp_real
       ! tmp_real = H_real * S_real
-      call dgemm('N','N',ph%n_basis,ph%n_good,ph%n_basis,1.0_r8,ham,ph%n_basis,&
+      call dgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,1.0_r8,ham,ph%n_basis,&
               ovlp,ph%n_basis,0.0_r8,evec,ph%n_basis)
 
       ! H_real = (S_real)^T * tmp_real
-      call dgemm('T','N',ph%n_good,ph%n_good,ph%n_basis,1.0_r8,ovlp,ph%n_basis,&
+      call dgemm("T","N",ph%n_good,ph%n_good,ph%n_basis,1.0_r8,ovlp,ph%n_basis,&
               evec,ph%n_basis,0.0_r8,ham,ph%n_basis)
    else ! Use Cholesky
       ! tmp_real = H_real * S_real
@@ -107,7 +107,7 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
             nwork = ph%n_basis-n+1
          endif
 
-         call dgemm('N','N',n+nwork-1,nwork,n+nwork-1,1.0_r8,ham,ph%n_basis,&
+         call dgemm("N","N",n+nwork-1,nwork,n+nwork-1,1.0_r8,ham,ph%n_basis,&
                  ovlp(1,n),ph%n_basis,0.0_r8,evec(1,n),ph%n_basis)
       enddo
 
@@ -119,7 +119,7 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
             nwork = ph%n_basis-n+1
          endif
 
-         call dgemm('T','N',nwork,ph%n_basis-n+1,n+nwork-1,1.0_r8,ovlp(1,n),&
+         call dgemm("T","N",nwork,ph%n_basis-n+1,n+nwork-1,1.0_r8,ovlp(1,n),&
                  ph%n_basis,evec(1,n),ph%n_basis,0.0_r8,ham(n,n),ph%n_basis)
       enddo
    endif
@@ -160,12 +160,12 @@ subroutine elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
       call elsi_allocate(bh,tmp_real,bh%n_lrow,bh%n_lcol,"tmp_real",caller)
       tmp_real = evec
 
-      call dgemm('N','N',ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,&
+      call dgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,&
               ph%n_basis,tmp_real,ph%n_basis,0.0_r8,evec,ph%n_basis)
 
       call elsi_deallocate(bh,tmp_real,"tmp_real")
    else ! Nonsingular, use Cholesky
-      call dtrmm('L','U','N','N',ph%n_basis,ph%n_states,1.0_r8,ovlp,ph%n_basis,&
+      call dtrmm("L","U","N","N",ph%n_basis,ph%n_states,1.0_r8,ovlp,ph%n_basis,&
               evec,ph%n_basis)
    endif
 
@@ -219,7 +219,7 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
    call elsi_allocate(bh,tau_real,ph%n_good,"tau_real",caller)
    call elsi_allocate(bh,tmp_real,ph%n_good,ph%n_good,"tmp_real",caller)
 
-   call dsytrd('U',ph%n_good,ham,ph%n_basis,eval,off_diag,tau_real,tmp_real,&
+   call dsytrd("U",ph%n_good,ham,ph%n_basis,eval,off_diag,tau_real,tmp_real,&
            ph%n_good*ph%n_good,ierr)
 
    success = elpa_solve_tridi_double(ph%n_good,ph%n_states_solve,eval,off_diag,&
@@ -233,7 +233,7 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
    evec(1:ph%n_good,1:ph%n_states_solve) =&
       tmp_real(1:ph%n_good,1:ph%n_states_solve)
 
-   call dormtr('L','U','N',ph%n_good,ph%n_states_solve,ham,ph%n_basis,tau_real,&
+   call dormtr("L","U","N",ph%n_good,ph%n_states_solve,ham,ph%n_basis,tau_real,&
            evec,ph%n_basis,tmp_real,ph%n_good*ph%n_good,ierr)
 
    call elsi_deallocate(bh,off_diag,"off_diag")
@@ -302,7 +302,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    call elsi_allocate(bh,tau_real,ph%n_basis,"tau_real",caller)
    call elsi_allocate(bh,tmp_real,ph%n_basis,ph%n_basis,"tmp_real",caller)
 
-   call dsytrd('U',ph%n_basis,copy_real,ph%n_basis,eval,off_diag,tau_real,&
+   call dsytrd("U",ph%n_basis,copy_real,ph%n_basis,eval,off_diag,tau_real,&
            tmp_real,ph%n_basis*ph%n_basis,ierr)
 
    success = elpa_solve_tridi_double(ph%n_basis,ph%n_basis,eval,off_diag,&
@@ -328,7 +328,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    if(ph%n_good < ph%n_basis) then
       evec = tmp_real
 
-      call dormtr('L','U','N',ph%n_basis,ph%n_basis,copy_real,ph%n_basis,&
+      call dormtr("L","U","N",ph%n_basis,ph%n_basis,copy_real,ph%n_basis,&
               tau_real,evec,ph%n_basis,tmp_real,ph%n_basis*ph%n_basis,ierr)
    endif
 
@@ -424,10 +424,10 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
       enddo
 
       ! Compute S = (U^H)U, U -> S
-      call zpotrf('U',ph%n_basis,ovlp,ph%n_basis,ierr)
+      call zpotrf("U",ph%n_basis,ovlp,ph%n_basis,ierr)
 
       ! compute U^-1 -> S
-      call ztrtri('U','N',ph%n_basis,ovlp,ph%n_basis,ierr)
+      call ztrtri("U","N",ph%n_basis,ovlp,ph%n_basis,ierr)
 
       call elsi_get_time(t1)
 
@@ -442,11 +442,11 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
    if(ph%ovlp_is_sing) then ! Use scaled eigenvectors
       ! evec_cmplx used as tmp_cmplx
       ! tmp_cmplx = H_cmplx * S_cmplx
-      call zgemm('N','N',ph%n_basis,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ham,&
+      call zgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ham,&
               ph%n_basis,ovlp,ph%n_basis,(0.0_r8,0.0_r8),evec,ph%n_basis)
 
       ! H_cmplx = (S_cmplx)^* * tmp_cmplx
-      call zgemm('C','N',ph%n_good,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ovlp,&
+      call zgemm("C","N",ph%n_good,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ovlp,&
               ph%n_basis,evec,ph%n_basis,(0.0_r8,0.0_r8),ham,ph%n_basis)
    else ! Use cholesky
       ! tmp_cmplx = H_cmplx * S_cmplx
@@ -457,7 +457,7 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
             nwork = ph%n_basis-n+1
          endif
 
-         call zgemm('N','N',n+nwork-1,nwork,n+nwork-1,(1.0_r8,0.0_r8),ham,&
+         call zgemm("N","N",n+nwork-1,nwork,n+nwork-1,(1.0_r8,0.0_r8),ham,&
                  ph%n_basis,ovlp(1,n),ph%n_basis,(0.0_r8,0.0_r8),evec(1,n),&
                  ph%n_basis)
       enddo
@@ -470,7 +470,7 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
             nwork = ph%n_basis-n+1
          endif
 
-         call zgemm('C','N',nwork,ph%n_basis-n+1,n+nwork-1,(1.0_r8,0.0_r8),&
+         call zgemm("C","N",nwork,ph%n_basis-n+1,n+nwork-1,(1.0_r8,0.0_r8),&
                  ovlp(1,n),ph%n_basis,evec(1,n),ph%n_basis,(0.0_r8,0.0_r8),&
                  ham(n,n),ph%n_basis)
       enddo
@@ -512,13 +512,13 @@ subroutine elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
       call elsi_allocate(bh,tmp_cmplx,bh%n_lrow,bh%n_lcol,"tmp_cmplx",caller)
       tmp_cmplx = evec
 
-      call zgemm('N','N',ph%n_basis,ph%n_states_solve,ph%n_good,&
+      call zgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&
               (1.0_r8,0.0_r8),ovlp,ph%n_basis,tmp_cmplx,ph%n_basis,&
               (0.0_r8,0.0_r8),evec,ph%n_basis)
 
       call elsi_deallocate(bh,tmp_cmplx,"tmp_cmplx")
    else ! Nonsingular, use Cholesky
-      call ztrmm('L','U','N','N',ph%n_basis,ph%n_states,(1.0_r8,0.0_r8),ovlp,&
+      call ztrmm("L","U","N","N",ph%n_basis,ph%n_states,(1.0_r8,0.0_r8),ovlp,&
               ph%n_basis,evec,ph%n_basis)
    endif
 
@@ -574,7 +574,7 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    call elsi_allocate(bh,tmp_real,ph%n_good,ph%n_good,"tmp_real",caller)
    call elsi_allocate(bh,tmp_cmplx,ph%n_good,ph%n_good,"tmp_cmplx",caller)
 
-   call zhetrd('U',ph%n_good,ham,ph%n_basis,eval,off_diag,tau_cmplx,tmp_cmplx,&
+   call zhetrd("U",ph%n_good,ham,ph%n_basis,eval,off_diag,tau_cmplx,tmp_cmplx,&
            ph%n_good*ph%n_good,ierr)
 
    success = elpa_solve_tridi_double(ph%n_good,ph%n_states_solve,eval,off_diag,&
@@ -588,7 +588,7 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    evec(1:ph%n_good,1:ph%n_states_solve) =&
       tmp_real(1:ph%n_good,1:ph%n_states_solve)
 
-   call zunmtr('L','U','N',ph%n_good,ph%n_states_solve,ham,ph%n_basis,&
+   call zunmtr("L","U","N",ph%n_good,ph%n_states_solve,ham,ph%n_basis,&
            tau_cmplx,evec,ph%n_basis,tmp_cmplx,ph%n_good*ph%n_good,ierr)
 
    call elsi_deallocate(bh,off_diag,"off_diag")
@@ -660,7 +660,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    call elsi_allocate(bh,tmp_real,ph%n_basis,ph%n_basis,"tmp_real",caller)
    call elsi_allocate(bh,tmp_cmplx,ph%n_basis,ph%n_basis,"tmp_cmplx",caller)
 
-   call zhetrd('U',ph%n_basis,copy_cmplx,ph%n_basis,eval,off_diag,tau_cmplx,&
+   call zhetrd("U",ph%n_basis,copy_cmplx,ph%n_basis,eval,off_diag,tau_cmplx,&
            tmp_cmplx,ph%n_basis*ph%n_basis,ierr)
 
    success = elpa_solve_tridi_double(ph%n_basis,ph%n_basis,eval,off_diag,&
@@ -686,7 +686,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    if(ph%n_good < ph%n_basis) then
       evec = tmp_real
 
-      call zunmtr('L','U','N',ph%n_basis,ph%n_basis,copy_cmplx,ph%n_basis,&
+      call zunmtr("L","U","N",ph%n_basis,ph%n_basis,copy_cmplx,ph%n_basis,&
               tau_cmplx,evec,ph%n_basis,tmp_cmplx,ph%n_basis*ph%n_basis,ierr)
    endif
 

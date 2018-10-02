@@ -252,7 +252,7 @@ subroutine elsi_compute_dm_elpa_real(ph,bh,row_map,col_map,evec,occ,dm,work)
    dm = 0.0_r8
 
    ! Compute density matrix
-   call pdsyrk('U','N',ph%n_basis,max_state,1.0_r8,work,1,1,bh%desc,0.0_r8,dm,&
+   call pdsyrk("U","N",ph%n_basis,max_state,1.0_r8,work,1,1,bh%desc,0.0_r8,dm,&
            1,1,bh%desc)
 
    call elsi_deallocate(bh,factor,"factor")
@@ -329,7 +329,7 @@ subroutine elsi_compute_edm_elpa_real(ph,bh,row_map,col_map,eval,evec,occ,edm,&
    edm = 0.0_r8
 
    ! Compute density matrix
-   call pdsyrk('U','N',ph%n_basis,max_state,-1.0_r8,work,1,1,bh%desc,0.0_r8,&
+   call pdsyrk("U","N",ph%n_basis,max_state,-1.0_r8,work,1,1,bh%desc,0.0_r8,&
            edm,1,1,bh%desc)
 
    call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,edm)
@@ -408,16 +408,16 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    if(ph%ovlp_is_sing) then ! Use scaled eigenvectors
       ! evec_real used as tmp_real
       ! tmp_real = H_real * S_real
-      call pdgemm('N','N',ph%n_basis,ph%n_good,ph%n_basis,1.0_r8,ham,1,1,&
+      call pdgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,1.0_r8,ham,1,1,&
               bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,0.0_r8,evec,1,1,&
               bh%desc)
 
       ! H_real = (S_real)^T * tmp_real
-      call pdgemm('T','N',ph%n_good,ph%n_good,ph%n_basis,1.0_r8,ovlp,1,&
+      call pdgemm("T","N",ph%n_good,ph%n_good,ph%n_basis,1.0_r8,ovlp,1,&
               ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
    else ! Use Cholesky
-      success = elpa_mult_at_b_real_double('U','L',ph%n_basis,ph%n_basis,ovlp,&
+      success = elpa_mult_at_b_real_double("U","L",ph%n_basis,ph%n_basis,ovlp,&
                    bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,bh%blk,&
                    ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
 
@@ -430,7 +430,7 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
       evec = ham
 
-      success = elpa_mult_at_b_real_double('U','U',ph%n_basis,ph%n_basis,ovlp,&
+      success = elpa_mult_at_b_real_double("U","U",ph%n_basis,ph%n_basis,ovlp,&
                    bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,bh%blk,&
                    ph%elpa_comm_row,ph%elpa_comm_col,ham,bh%n_lrow,bh%n_lcol)
 
@@ -573,14 +573,14 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
    tmp_real = evec
 
    if(ph%ovlp_is_sing) then
-      call pdgemm('N','N',ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,1,&
+      call pdgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,1,&
               ph%n_basis-ph%n_good+1,bh%desc,tmp_real,1,1,bh%desc,0.0_r8,evec,&
               1,1,bh%desc)
    else ! Nonsingular, use Cholesky
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
 
-      success = elpa_mult_at_b_real_double('L','N',ph%n_basis,ph%n_states,ham,&
+      success = elpa_mult_at_b_real_double("L","N",ph%n_basis,ph%n_states,ham,&
                    bh%n_lrow,bh%n_lcol,tmp_real,bh%n_lrow,bh%n_lcol,bh%blk,&
                    ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
 
@@ -733,7 +733,7 @@ subroutine elsi_compute_dm_elpa_cmplx(ph,bh,row_map,col_map,evec,occ,dm,work)
    dm = (0.0_r8,0.0_r8)
 
    ! Compute density matrix
-   call pzherk('U','N',ph%n_basis,max_state,(1.0_r8,0.0_r8),work,1,1,bh%desc,&
+   call pzherk("U","N",ph%n_basis,max_state,(1.0_r8,0.0_r8),work,1,1,bh%desc,&
            (0.0_r8,0.0_r8),dm,1,1,bh%desc)
 
    call elsi_deallocate(bh,factor,"factor")
@@ -810,7 +810,7 @@ subroutine elsi_compute_edm_elpa_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,&
    edm = (0.0_r8,0.0_r8)
 
    ! Compute density matrix
-   call pzherk('U','N',ph%n_basis,max_state,(-1.0_r8,0.0_r8),work,1,1,bh%desc,&
+   call pzherk("U","N",ph%n_basis,max_state,(-1.0_r8,0.0_r8),work,1,1,bh%desc,&
            (0.0_r8,0.0_r8),edm,1,1,bh%desc)
 
    call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,edm)
@@ -890,16 +890,16 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    if(ph%ovlp_is_sing) then ! Use scaled eigenvectors
       ! evec_cmplx used as tmp_cmplx
       ! tmp_cmplx = H_cmplx * S_cmplx
-      call pzgemm('N','N',ph%n_basis,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ham,&
+      call pzgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ham,&
               1,1,bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,&
               (0.0_r8,0.0_r8),evec,1,1,bh%desc)
 
       ! H_cmplx = (S_cmplx)^* * tmp_cmplx
-      call pzgemm('C','N',ph%n_good,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ovlp,&
+      call pzgemm("C","N",ph%n_good,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ovlp,&
               1,ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)
    else ! Use cholesky
-      success = elpa_mult_ah_b_complex_double('U','L',ph%n_basis,ph%n_basis,&
+      success = elpa_mult_ah_b_complex_double("U","L",ph%n_basis,ph%n_basis,&
                    ovlp,bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,bh%blk,&
                    ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
 
@@ -912,7 +912,7 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
       evec = ham
 
-      success = elpa_mult_ah_b_complex_double('U','U',ph%n_basis,ph%n_basis,&
+      success = elpa_mult_ah_b_complex_double("U","U",ph%n_basis,ph%n_basis,&
                    ovlp,bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,bh%blk,&
                    ph%elpa_comm_row,ph%elpa_comm_col,ham,bh%n_lrow,bh%n_lcol)
 
@@ -1055,14 +1055,14 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
    tmp_cmplx = evec
 
    if(ph%ovlp_is_sing) then
-      call pzgemm('N','N',ph%n_basis,ph%n_states_solve,ph%n_good,&
+      call pzgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&
               (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp_cmplx,&
               1,1,bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
    else ! Nonsingular, use Cholesky
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
-      success = elpa_mult_ah_b_complex_double('L','N',ph%n_basis,ph%n_states,&
+      success = elpa_mult_ah_b_complex_double("L","N",ph%n_basis,ph%n_states,&
                    ham,bh%n_lrow,bh%n_lcol,tmp_cmplx,bh%n_lrow,bh%n_lcol,&
                    bh%blk,ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,&
                    bh%n_lcol)

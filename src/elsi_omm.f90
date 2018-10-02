@@ -60,7 +60,7 @@ subroutine elsi_init_omm(ph,bh)
    character(len=*), parameter :: caller = "elsi_init_omm"
 
    if(.not. ph%omm_started) then
-      call ms_scalapack_setup(bh%comm,bh%n_prow,'r',bh%blk,&
+      call ms_scalapack_setup(bh%comm,bh%n_prow,"r",bh%blk,&
               icontxt=bh%blacs_ctxt)
 
       ph%omm_n_lrow = numroc(ph%omm_n_states,bh%blk,bh%my_prow,0,bh%n_prow)

@@ -1657,7 +1657,7 @@ subroutine elsi_init_blacs(eh)
       ! Initialize BLACS
       blacs_ctxt = eh%bh%comm
 
-      call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
+      call BLACS_Gridinit(blacs_ctxt,"r",nprow,npcol)
 
       ! Find block size
       block_size = 1
