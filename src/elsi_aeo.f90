@@ -19,10 +19,13 @@ module ELSI_ELPA
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_UTILS,     only: elsi_get_nnz,elsi_set_full_mat
    use ELPA,           only: elpa_t,elpa_init,elpa_uninit,elpa_allocate,&
-                             elpa_deallocate,ELPA_SOLVER_1STAGE,&
-                             ELPA_SOLVER_2STAGE,ELPA_2STAGE_REAL_GPU,&
-                             ELPA_2STAGE_COMPLEX_GPU,ELPA_2STAGE_REAL_DEFAULT,&
-                             ELPA_2STAGE_COMPLEX_DEFAULT
+                             elpa_deallocate,elpa_autotune_deallocate,&
+                             ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
+                             ELPA_2STAGE_REAL_GPU,ELPA_2STAGE_COMPLEX_GPU,&
+                             ELPA_2STAGE_REAL_DEFAULT,&
+                             ELPA_2STAGE_COMPLEX_DEFAULT,ELPA_AUTOTUNE_FAST,&
+                             ELPA_AUTOTUNE_DOMAIN_REAL,&
+                             ELPA_AUTOTUNE_DOMAIN_COMPLEX
 
    implicit none
 
@@ -1105,6 +1108,12 @@ subroutine elsi_cleanup_elpa(ph)
          nullify(ph%elpa_aux)
       endif
 
+      if(associated(ph%elpa_tune)) then
+         call elpa_autotune_deallocate(ph%elpa_tune)
+
+         nullify(ph%elpa_tune)
+      endif
+
       call elpa_uninit()
 
       call MPI_Comm_free(ph%elpa_comm_row,ierr)
@@ -1177,6 +1186,20 @@ subroutine elsi_elpa_evec_real(ph,bh,ham,eval,evec,sing_check)
          write(info_str,"(2X,A)") "Starting ELPA eigensolver"
          call elsi_say(bh,info_str)
 
+         if(ph%elpa_autotune) then
+            if(.not. associated(ph%elpa_tune)) then
+               ph%elpa_tune => ph%elpa_solve%autotune_setup(ELPA_AUTOTUNE_FAST,&
+                                  ELPA_AUTOTUNE_DOMAIN_REAL,ierr)
+            endif
+
+            if(.not. ph%elpa_solve%autotune_step(ph%elpa_tune)) then
+               call ph%elpa_solve%autotune_set_best(ph%elpa_tune)
+               call elpa_autotune_deallocate(ph%elpa_tune)
+
+               nullify(ph%elpa_tune)
+            endif
+         endif
+
          call ph%elpa_solve%eigenvectors(ham,eval,evec,ierr)
       endif
    endif
@@ -1248,6 +1271,20 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
          write(info_str,"(2X,A)") "Starting ELPA eigensolver"
          call elsi_say(bh,info_str)
 
+         if(ph%elpa_autotune) then
+            if(.not. associated(ph%elpa_tune)) then
+               ph%elpa_tune => ph%elpa_solve%autotune_setup(ELPA_AUTOTUNE_FAST,&
+                                  ELPA_AUTOTUNE_DOMAIN_COMPLEX,ierr)
+            endif
+
+            if(.not. ph%elpa_solve%autotune_step(ph%elpa_tune)) then
+               call ph%elpa_solve%autotune_set_best(ph%elpa_tune)
+               call elpa_autotune_deallocate(ph%elpa_tune)
+
+               nullify(ph%elpa_tune)
+            endif
+         endif
+
          call ph%elpa_solve%eigenvectors(ham,eval,evec,ierr)
       endif
    endif
@@ -1312,7 +1349,6 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
          call elsi_stop(bh,"ELPA setup failed.",caller)
       endif
 
-
       if(ph%elpa_solver == 1) then
          call ph%elpa_solve%set("solver",ELPA_SOLVER_1STAGE,ierr)
       else
@@ -1363,12 +1399,6 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
                "No GPU kernels available with 1-stage ELPA"
             call elsi_say(bh,info_str)
          endif
-      endif
-
-      ! Auto-tuning not yet working
-      if(ph%elpa_autotune) then
-         write(info_str,"(2X,A)") "ELPA auto-tuning not yet available"
-         call elsi_say(bh,info_str)
       endif
    endif
 
