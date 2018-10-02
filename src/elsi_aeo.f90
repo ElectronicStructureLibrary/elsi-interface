@@ -1172,7 +1172,7 @@ subroutine elsi_elpa_evec_real(ph,bh,ham,eval,evec,sing_check)
          call elsi_allocate(bh,copy_ham,bh%n_lrow,bh%n_lcol,"copy_ham_r4",&
                  caller)
 
-         copy_ham_r4=real(ham,kind=r4)
+         copy_ham_r4 = real(ham,kind=r4)
 
          call ph%elpa_solve%eigenvectors(copy_ham_r4,eval_r4,evec_r4,ierr)
 
@@ -1257,7 +1257,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
          call elsi_allocate(bh,copy_ham,bh%n_lrow,bh%n_lcol,"copy_ham_r4",&
                  caller)
 
-         copy_ham_r4=cmplx(ham,kind=r4)
+         copy_ham_r4 = cmplx(ham,kind=r4)
 
          call ph%elpa_solve%eigenvectors(copy_ham_r4,eval_r4,evec_r4,ierr)
 
