@@ -373,7 +373,7 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
          call ph%elpa_aux%cholesky(ovlp,ierr)
 
          if(ierr /= 0) then
-            call elsi_stop(bh,"Cholesky decomposition failed.",caller)
+            call elsi_stop(bh,"Cholesky failed.",caller)
          endif
 
          ! U^-1 -> S
@@ -556,7 +556,7 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
 
-      call ph%elpa_aux%hermitian_multiply("L","N",ph%n_basis,ham,tmp_real,&
+      call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham,tmp_real,&
               bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
 
       if(ierr /= 0) then
@@ -819,7 +819,7 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
          call ph%elpa_aux%cholesky(ovlp,ierr)
 
          if(ierr /= 0) then
-            call elsi_stop(bh,"Cholesky decomposition failed.",caller)
+            call elsi_stop(bh,"Cholesky failed.",caller)
          endif
 
          ! U^-1 -> S
@@ -1002,7 +1002,7 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
-      call ph%elpa_aux%hermitian_multiply("L","N",ph%n_basis,ham,tmp_cmplx,&
+      call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham,tmp_cmplx,&
               bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
 
       if(ierr /= 0) then
