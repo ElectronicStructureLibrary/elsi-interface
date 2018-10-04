@@ -10,17 +10,16 @@
 module ELSI_SIPS
 
    use ELSI_CONSTANTS, only: UNSET
-   use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
-   use ELSI_IO,        only: elsi_say,elsi_get_time
-   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI,       only: elsi_stop
+   use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
+   use ELSI_IO, only: elsi_say,elsi_get_time
+   use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI, only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
-   use M_SIPS,         only: sips_initialize,sips_load_ham_ovlp,sips_load_ham,&
-                             sips_update_ham,sips_set_eps,sips_update_eps,&
-                             sips_set_slices,sips_solve_eps,sips_get_inertias,&
-                             sips_get_eigenvalues,sips_get_eigenvectors,&
-                             sips_get_slices,sips_get_slices_from_inertias,&
-                             sips_get_dm,sips_get_edm,sips_finalize
+   use M_SIPS, only: sips_initialize,sips_load_ham_ovlp,sips_load_ham,&
+       sips_update_ham,sips_set_eps,sips_update_eps,sips_set_slices,&
+       sips_solve_eps,sips_get_inertias,sips_get_eigenvalues,&
+       sips_get_eigenvectors,sips_get_slices,sips_get_slices_from_inertias,&
+       sips_get_dm,sips_get_edm,sips_finalize
 
    implicit none
 
@@ -64,8 +63,8 @@ subroutine elsi_init_sips(ph,bh)
       if(ph%sips_n_slices == UNSET) then
          ! TODO: Number of slices
          ph%sips_np_per_slice = 1
-         ph%sips_n_slices     = bh%n_procs
-      endif
+         ph%sips_n_slices = bh%n_procs
+      end if
 
       ! 1D block distribution
       bh%n_lcol_sp1 = ph%n_basis/bh%n_procs
@@ -73,14 +72,14 @@ subroutine elsi_init_sips(ph,bh)
       ! The last process holds all remaining columns
       if(bh%myid == bh%n_procs-1) then
          bh%n_lcol_sp1 = ph%n_basis-(bh%n_procs-1)*bh%n_lcol_sp1
-      endif
+      end if
 
       if(bh%n_lcol_sp == UNSET) then
          bh%n_lcol_sp = bh%n_lcol_sp1
-      endif
+      end if
 
       ph%sips_started = .true.
-   endif
+   end if
 
 end subroutine
 
@@ -92,24 +91,24 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   integer(kind=i4),   intent(inout) :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4),   intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
-   real(kind=r8),      intent(in)    :: ham(bh%nnz_l_sp1)
-   real(kind=r8),      intent(in)    :: ovlp(bh%nnz_l_sp1)
-   real(kind=r8),      intent(inout) :: eval(ph%n_states)
-   real(kind=r8),      intent(out)   :: evec(bh%n_lcol_sp1,ph%n_states)
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp1)
+   integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
+   real(kind=r8), intent(in) :: ham(bh%nnz_l_sp1)
+   real(kind=r8), intent(in) :: ovlp(bh%nnz_l_sp1)
+   real(kind=r8), intent(inout) :: eval(ph%n_states)
+   real(kind=r8), intent(out) :: evec(bh%n_lcol_sp1,ph%n_states)
 
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   real(kind=r8)      :: max_diff
-   integer(kind=i4)   :: i
-   integer(kind=i4)   :: n_solved
-   logical            :: inertia_ok
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   real(kind=r8) :: max_diff
+   integer(kind=i4) :: i
+   integer(kind=i4) :: n_solved
+   logical :: inertia_ok
    character(len=200) :: info_str
 
-   real(kind=r8),    allocatable :: eval_save(:)
-   real(kind=r8),    allocatable :: slices(:)
+   real(kind=r8), allocatable :: eval_save(:)
+   real(kind=r8), allocatable :: slices(:)
    integer(kind=i4), allocatable :: inertias(:)
 
    character(len=*), parameter :: caller = "elsi_solve_sips_real"
@@ -133,14 +132,14 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
                  col_ptr,ham)
 
          call sips_set_eps(1)
-      endif
+      end if
    else ! n_calls > sips_n_elpa+1
       ! Update H matrix
       call sips_update_ham(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,&
               col_ptr,ham)
 
       call sips_update_eps(ph%sips_n_slices)
-   endif
+   end if
 
    call elsi_get_time(t1)
 
@@ -152,17 +151,17 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    call elsi_allocate(bh,slices,ph%sips_n_slices+1,"slices",caller)
 
    if(ph%n_calls == 1) then
-      eval    = ph%sips_interval(2)
+      eval = ph%sips_interval(2)
       eval(1) = ph%sips_interval(1)
-   endif
+   end if
 
    if(ph%sips_do_inertia) then ! Inertia counting
       call elsi_get_time(t0)
 
       call elsi_allocate(bh,inertias,ph%sips_n_slices+1,"inertias",caller)
 
-      inertia_ok        = .false.
-      eval(1)           = eval(1)-ph%sips_buffer
+      inertia_ok = .false.
+      eval(1) = eval(1)-ph%sips_buffer
       eval(ph%n_states) = eval(ph%n_states)+ph%sips_buffer
 
       do while(.not. inertia_ok)
@@ -174,7 +173,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
          call sips_get_inertias(ph%sips_n_slices,slices,inertias)
 
          if(inertias(1) > ph%sips_first_ev-1) then
-            eval(1)    = eval(1)-ph%sips_buffer
+            eval(1) = eval(1)-ph%sips_buffer
             inertia_ok = .false.
          else
             do i = 1,ph%sips_n_slices
@@ -183,22 +182,22 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
                   if(i > 1) then
                      inertia_ok = .false.
-                  endif
+                  end if
 
                   exit
-               endif
-            enddo
+               end if
+            end do
 
             if(inertias(i) < ph%sips_first_ev-1) then
-               eval(1)    = eval(1)+ph%sips_buffer
+               eval(1) = eval(1)+ph%sips_buffer
                inertia_ok = .false.
-            endif
-         endif
+            end if
+         end if
 
          if(inertias(ph%sips_n_slices+1) <&
             ph%n_states+ph%sips_first_ev-1) then
             eval(ph%n_states) = eval(ph%n_states)+ph%sips_buffer
-            inertia_ok        = .false.
+            inertia_ok = .false.
          else
             do i = ph%sips_n_slices+1,2,-1
                if(inertias(i-1) < ph%n_states+ph%sips_first_ev-1) then
@@ -206,13 +205,13 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
                   if(i < ph%sips_n_slices+1) then
                      inertia_ok = .false.
-                  endif
+                  end if
 
                   exit
-               endif
-            enddo
-         endif
-      enddo
+               end if
+            end do
+         end if
+      end do
 
       call sips_get_slices_from_inertias(ph%n_states,ph%sips_n_slices,inertias,&
               slices)
@@ -228,7 +227,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    else
       call sips_get_slices(ph%sips_slice_type,ph%n_states,ph%sips_n_slices,&
               ph%sips_inertia_tol*2,1.0e-5_r8,eval,slices)
-   endif
+   end if
 
    call sips_set_slices(ph%sips_n_slices,slices)
 
@@ -239,7 +238,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
    if(n_solved < ph%n_states) then
       call elsi_stop(bh,"SLEPc-SIPs solver failed.",caller)
-   endif
+   end if
 
    call elsi_get_time(t1)
 
@@ -264,7 +263,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
       ph%sips_do_inertia = .true.
    else
       ph%sips_do_inertia = .false.
-   endif
+   end if
 
    call elsi_deallocate(bh,eval_save,"eval_save")
    call elsi_deallocate(bh,slices,"slices")
@@ -285,15 +284,15 @@ subroutine elsi_compute_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   integer(kind=i4),   intent(inout) :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4),   intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
-   real(kind=r8),      intent(in)    :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
-   real(kind=r8),      intent(out)   :: dm(bh%nnz_l_sp1)
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp1)
+   integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
+   real(kind=r8), intent(in) :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8), intent(out) :: dm(bh%nnz_l_sp1)
 
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    character(len=200) :: info_str
 
    character(len=*), parameter :: caller = "elsi_compute_dm_sips_real"
@@ -319,15 +318,15 @@ subroutine elsi_compute_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   integer(kind=i4),   intent(inout) :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4),   intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
-   real(kind=r8),      intent(in)    :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
-   real(kind=r8),      intent(out)   :: edm(bh%nnz_l_sp1)
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp1)
+   integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
+   real(kind=r8), intent(in) :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8), intent(out) :: edm(bh%nnz_l_sp1)
 
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    character(len=200) :: info_str
 
    character(len=*), parameter :: caller = "elsi_compute_edm_sips_real"
@@ -359,7 +358,7 @@ subroutine elsi_cleanup_sips(ph)
 
    if(ph%sips_started) then
       call sips_finalize()
-   endif
+   end if
 
    ph%sips_started = .false.
 

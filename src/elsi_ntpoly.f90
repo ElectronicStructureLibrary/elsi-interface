@@ -10,21 +10,18 @@
 module ELSI_NTPOLY
 
    use ELSI_CONSTANTS, only: UNSET,NTPOLY_PM,NTPOLY_TC2,NTPOLY_TRS4,NTPOLY_HPCP
-   use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
-   use ELSI_IO,        only: elsi_say,elsi_get_time
-   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI,       only: elsi_check_mpi,mpi_logical
+   use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
+   use ELSI_IO, only: elsi_say,elsi_get_time
+   use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI, only: elsi_check_mpi,mpi_logical
    use ELSI_PRECISION, only: r8,i4
-   use NTPOLY,         only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,Matrix_ps,&
-                             ConstructEmptyMatrix,DestructMatrix,CopyMatrix,&
-                             FillMatrixFromTripletList,ScaleMatrix,&
-                             GetMatrixTripletList,FilterMatrix,ProcessGrid_t,&
-                             ConstructNewProcessGrid,DestructProcessGrid,&
-                             ConstructRandomPermutation,DestructPermutation,&
-                             InverseSquareRoot,SolverParameters_t,Triplet_r,&
-                             Triplet_c,TripletList_r,TripletList_c,&
-                             ConstructTripletList,AppendToTripletList,&
-                             DestructTripletList
+   use NTPOLY, only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,Matrix_ps,&
+       ConstructEmptyMatrix,DestructMatrix,CopyMatrix,&
+       FillMatrixFromTripletList,ScaleMatrix,GetMatrixTripletList,FilterMatrix,&
+       ProcessGrid_t,ConstructNewProcessGrid,DestructProcessGrid,&
+       ConstructRandomPermutation,DestructPermutation,InverseSquareRoot,&
+       SolverParameters_t,Triplet_r,Triplet_c,TripletList_r,TripletList_c,&
+       ConstructTripletList,AppendToTripletList,DestructTripletList
 
    implicit none
 
@@ -57,7 +54,7 @@ subroutine elsi_init_ntpoly(ph,bh)
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in)    :: bh
+   type(elsi_basic_t), intent(in) :: bh
 
    integer(kind=i4) :: n_prow
    integer(kind=i4) :: n_pcol
@@ -73,8 +70,8 @@ subroutine elsi_init_ntpoly(ph,bh)
       do n_prow = nint(sqrt(real(np_per_group,kind=r8))),2,-1
          if(mod(np_per_group,n_prow) == 0) then
             exit
-         endif
-      enddo
+         end if
+      end do
 
       n_pcol = np_per_group/n_prow
 
@@ -86,7 +83,7 @@ subroutine elsi_init_ntpoly(ph,bh)
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
       ph%nt_started = .true.
-   endif
+   end if
 
 end subroutine
 
@@ -98,14 +95,14 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   type(Matrix_ps),    intent(in)    :: ham
-   type(Matrix_ps),    intent(inout) :: ovlp
-   type(Matrix_ps),    intent(inout) :: dm
+   type(elsi_basic_t), intent(in) :: bh
+   type(Matrix_ps), intent(in) :: ham
+   type(Matrix_ps), intent(inout) :: ovlp
+   type(Matrix_ps), intent(inout) :: dm
 
-   integer(kind=i4)   :: ne
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
+   integer(kind=i4) :: ne
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    character(len=200) :: info_str
 
    type(Matrix_ps) :: ovlp_isr
@@ -135,7 +132,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
       call elsi_say(bh,info_str)
       write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    call elsi_get_time(t0)
 
@@ -158,7 +155,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 
    if(ph%nt_filter < bh%def0) then
       call FilterMatrix(dm,bh%def0)
-   endif
+   end if
 
    call elsi_get_time(t1)
 
@@ -176,14 +173,14 @@ subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   type(Matrix_ps),    intent(inout) :: ham
-   type(Matrix_ps),    intent(inout) :: edm ! On entry: DM
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   type(Matrix_ps), intent(inout) :: ham
+   type(Matrix_ps), intent(inout) :: edm ! On entry: DM
 
-   real(kind=r8)      :: factor
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
+   real(kind=r8) :: factor
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    character(len=200) :: info_str
 
    type(Matrix_ps) :: tmp
@@ -202,7 +199,7 @@ subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
 
    if(ph%nt_filter < bh%def0) then
       call FilterMatrix(edm,bh%def0)
-   endif
+   end if
 
    call elsi_get_time(t1)
 
@@ -230,7 +227,7 @@ subroutine elsi_cleanup_ntpoly(ph)
       call DestructMatrix(ph%nt_dm)
       call DestructPermutation(ph%nt_perm)
       call DestructProcessGrid(ph%nt_pgrid)
-   endif
+   end if
 
    ph%nt_started = .false.
 

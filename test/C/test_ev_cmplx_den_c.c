@@ -49,7 +49,7 @@ void test_ev_cmplx_den_c(MPI_Comm comm,
    elsi_rw_handle rw_h;
 
    e_elpa = -2564.61963724048;
-   e_tol  = 0.00000001;
+   e_tol = 0.00000001;
 
    MPI_Comm_size(comm,&n_proc);
    MPI_Comm_rank(comm,&myid);
@@ -58,9 +58,9 @@ void test_ev_cmplx_den_c(MPI_Comm comm,
    comm_f = MPI_Comm_c2f(comm);
 
    // Parameters
-   blk      = 16;
-   format   = 0; // BLACS_DENSE
-   int_one  = 1;
+   blk = 16;
+   format = 0; // BLACS_DENSE
+   int_one = 1;
    int_zero = 0;
 
    tmp = (int) round(sqrt((double) n_proc));
@@ -83,10 +83,10 @@ void test_ev_cmplx_den_c(MPI_Comm comm,
    c_elsi_read_mat_dim(rw_h,h_file,&n_electrons,&n_basis,&l_row,&l_col);
 
    l_size = l_row * l_col;
-   h      = malloc(l_size * sizeof(double _Complex));
-   s      = malloc(l_size * sizeof(double _Complex));
-   evec   = malloc(l_size * sizeof(double _Complex));
-   eval   = malloc(n_basis * sizeof(double));
+   h = malloc(l_size * sizeof(double _Complex));
+   s = malloc(l_size * sizeof(double _Complex));
+   evec = malloc(l_size * sizeof(double _Complex));
+   eval = malloc(n_basis * sizeof(double));
 
    c_elsi_read_mat_complex(rw_h,h_file,h);
    c_elsi_read_mat_complex(rw_h,s_file,s);

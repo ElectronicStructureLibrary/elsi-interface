@@ -9,7 +9,7 @@
 !!
 module ELSI_MPI
 
-   use ELSI_DATATYPE,  only: elsi_basic_t
+   use ELSI_DATATYPE, only: elsi_basic_t
    use ELSI_PRECISION, only: i4
 
    implicit none
@@ -29,11 +29,11 @@ subroutine elsi_stop(bh,info,caller)
    implicit none
 
    type(elsi_basic_t), intent(in) :: bh
-   character(len=*),   intent(in) :: info
-   character(len=*),   intent(in) :: caller
+   character(len=*), intent(in) :: info
+   character(len=*), intent(in) :: caller
 
    character(len=200) :: info_str
-   integer(kind=i4)   :: ierr
+   integer(kind=i4) :: ierr
 
    if(bh%mpi_all_ready) then
       write(info_str,"(A,I7,4A)") "**Error! MPI task ",bh%myid_all," in ",&
@@ -41,7 +41,7 @@ subroutine elsi_stop(bh,info,caller)
       write(*,"(A)") trim(info_str)
 
       call MPI_Abort(bh%comm_all,0,ierr)
-   elseif(bh%mpi_ready) then
+   else if(bh%mpi_ready) then
       write(info_str,"(A,I7,4A)") "**Error! MPI task ",bh%myid," in ",&
          trim(caller),": ",trim(info)
       write(*,"(A)") trim(info_str)
@@ -50,7 +50,7 @@ subroutine elsi_stop(bh,info,caller)
    else
       write(info_str,"(4A)") "**Error! ",trim(caller),": ",trim(info)
       write(*,"(A)") trim(info_str)
-   endif
+   end if
 
    stop
 
@@ -64,9 +64,9 @@ subroutine elsi_check_mpi(bh,routine,ierr,caller)
    implicit none
 
    type(elsi_basic_t), intent(in) :: bh
-   character(len=*),   intent(in) :: routine
-   integer(kind=i4),   intent(in) :: ierr
-   character(len=*),   intent(in) :: caller
+   character(len=*), intent(in) :: routine
+   integer(kind=i4), intent(in) :: ierr
+   character(len=*), intent(in) :: caller
 
    character(len=200) :: info_str
 
@@ -74,7 +74,7 @@ subroutine elsi_check_mpi(bh,routine,ierr,caller)
       write(info_str,"(2A)") routine," failed."
 
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
 end subroutine
 

@@ -7,7 +7,6 @@ ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
 LIST(APPEND elsi_src
   ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
   elsi_c_interface.f90
-  elsi_c2f.f90
   elsi_constants.f90
   elsi_datatype.f90
   elsi_interface.f90

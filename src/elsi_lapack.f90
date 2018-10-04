@@ -10,12 +10,12 @@
 !!
 module ELSI_LAPACK
 
-   use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
-   use ELSI_IO,        only: elsi_say,elsi_get_time
-   use ELSI_MALLOC,    only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI,       only: elsi_stop,mpi_comm_self
+   use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
+   use ELSI_IO, only: elsi_say,elsi_get_time
+   use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI, only: elsi_stop,mpi_comm_self
    use ELSI_PRECISION, only: r8,i4
-   use ELPA1,          only: elpa_solve_tridi_double
+   use ELPA1, only: elpa_solve_tridi_double
 
    implicit none
 
@@ -39,27 +39,27 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
-   real(kind=r8),      intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   integer(kind=i4)   :: nwork
-   integer(kind=i4)   :: n
-   integer(kind=i4)   :: i
-   integer(kind=i4)   :: j
-   integer(kind=i4)   :: ierr
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
+   integer(kind=i4) :: nwork
+   integer(kind=i4) :: n
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: ierr
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    character(len=200) :: info_str
 
-   integer(kind=i4), parameter :: nblk   = 128
+   integer(kind=i4), parameter :: nblk = 128
    character(len=*), parameter :: caller = "elsi_to_standard_evp_sp_real"
 
    if(ph%check_sing) then
       call elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
-   endif
+   end if
 
    if(ph%n_good == ph%n_basis) then ! Not singular
       call elsi_get_time(t0)
@@ -70,8 +70,8 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
       do i = 1,ph%n_basis
          do j= 1,i-1
             ovlp(i,j) = 0.0_r8
-         enddo
-      enddo
+         end do
+      end do
 
       ! Compute S = (U^T)U, U -> S
       call dpotrf("U",ph%n_basis,ovlp,ph%n_basis,ierr)
@@ -85,7 +85,7 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
       call elsi_say(bh,info_str)
       write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    call elsi_get_time(t0)
 
@@ -105,11 +105,11 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
 
          if(n+nwork-1 > ph%n_basis) then
             nwork = ph%n_basis-n+1
-         endif
+         end if
 
          call dgemm("N","N",n+nwork-1,nwork,n+nwork-1,1.0_r8,ham,ph%n_basis,&
                  ovlp(1,n),ph%n_basis,0.0_r8,evec(1,n),ph%n_basis)
-      enddo
+      end do
 
       ! H_real = (tmp_real)*T * S_real
       do n = 1,ph%n_basis,nblk
@@ -117,12 +117,12 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
 
          if(n+nwork-1 > ph%n_basis) then
             nwork = ph%n_basis-n+1
-         endif
+         end if
 
          call dgemm("T","N",nwork,ph%n_basis-n+1,n+nwork-1,1.0_r8,ovlp(1,n),&
                  ph%n_basis,evec(1,n),ph%n_basis,0.0_r8,ham(n,n),ph%n_basis)
-      enddo
-   endif
+      end do
+   end if
 
    call elsi_get_time(t1)
 
@@ -141,13 +141,13 @@ subroutine elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(in)    :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    character(len=200) :: info_str
 
    real(kind=r8), allocatable :: tmp_real(:,:)
@@ -167,7 +167,7 @@ subroutine elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
    else ! Nonsingular, use Cholesky
       call dtrmm("L","U","N","N",ph%n_basis,ph%n_states,1.0_r8,ovlp,ph%n_basis,&
               evec,ph%n_basis)
-   endif
+   end if
 
    call elsi_get_time(t1)
 
@@ -186,16 +186,16 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
-   real(kind=r8),      intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   logical            :: success
-   integer(kind=i4)   :: ierr
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
+   logical :: success
+   integer(kind=i4) :: ierr
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    character(len=200) :: info_str
 
    real(kind=r8), allocatable :: off_diag(:)
@@ -207,7 +207,7 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
    ! Transform to standard form
    if(.not. ph%ovlp_is_unit) then
       call elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
-   endif
+   end if
 
    ! Solve evp, return eigenvalues and eigenvectors
    call elsi_get_time(t0)
@@ -228,7 +228,7 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
 
    if(.not. success) then
       call elsi_stop(bh,"ELPA tridiagonal solver failed.",caller)
-   endif
+   end if
 
    evec(1:ph%n_good,1:ph%n_states_solve) =&
       tmp_real(1:ph%n_good,1:ph%n_states_solve)
@@ -243,7 +243,7 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
    ! Overwrite zero eigenvalues
    if(ph%n_good < ph%n_basis) then
       eval(ph%n_good+1:ph%n_basis) = eval(ph%n_good)+10.0_r8
-   endif
+   end if
 
    call elsi_get_time(t1)
 
@@ -255,7 +255,7 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
    ! Back-transform eigenvectors
    if(.not. ph%ovlp_is_unit) then
       call elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
-   endif
+   end if
 
 end subroutine
 
@@ -270,17 +270,17 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
-   real(kind=r8),      intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   integer(kind=i4)   :: i
-   integer(kind=i4)   :: ierr
-   real(kind=r8)      :: ev_sqrt
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   logical            :: success
+   integer(kind=i4) :: i
+   integer(kind=i4) :: ierr
+   real(kind=r8) :: ev_sqrt
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   logical :: success
    character(len=200) :: info_str
 
    real(kind=r8), allocatable :: off_diag(:)
@@ -311,7 +311,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
 
    if(.not. success) then
       call elsi_stop(bh,"ELPA tridiagonal solver failed.",caller)
-   endif
+   end if
 
    ! Get the number of nonsingular eigenvalues
    eval = -eval
@@ -319,8 +319,8 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    do i = 1,ph%n_basis
       if(eval(i) < ph%sing_tol) then
          exit
-      endif
-   enddo
+      end if
+   end do
 
    ph%n_good = i-1
 
@@ -330,7 +330,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
 
       call dormtr("L","U","N",ph%n_basis,ph%n_basis,copy_real,ph%n_basis,&
               tau_real,evec,ph%n_basis,tmp_real,ph%n_basis*ph%n_basis,ierr)
-   endif
+   end if
 
    call elsi_deallocate(bh,off_diag,"off_diag")
    call elsi_deallocate(bh,tau_real,"tau_real")
@@ -350,7 +350,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
 
       if(ph%stop_sing) then
          call elsi_stop(bh,"Overlap matrix is singular.",caller)
-      endif
+      end if
 
       write(info_str,"(2X,A,I10)") "| Number of basis functions reduced to :",&
          ph%n_good
@@ -360,7 +360,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
       do i = 1,ph%n_good
          ev_sqrt = sqrt(eval(i))
          ovlp(:,i) = evec(:,i)/ev_sqrt
-      enddo
+      end do
    else ! Nonsingular
       ph%ovlp_is_sing = .false.
 
@@ -369,7 +369,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
       write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
-   endif ! Singular overlap?
+   end if ! Singular overlap?
 
    call elsi_get_time(t1)
 
@@ -389,27 +389,27 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   complex(kind=r8),   intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
-   complex(kind=r8),   intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   integer(kind=i4)   :: nwork
-   integer(kind=i4)   :: n
-   integer(kind=i4)   :: i
-   integer(kind=i4)   :: j
-   integer(kind=i4)   :: ierr
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
+   integer(kind=i4) :: nwork
+   integer(kind=i4) :: n
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: ierr
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    character(len=200) :: info_str
 
-   integer(kind=i4), parameter :: nblk   = 128
+   integer(kind=i4), parameter :: nblk = 128
    character(len=*), parameter :: caller = "elsi_to_standard_evp_sp_cmplx"
 
    if(ph%check_sing) then
       call elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
-   endif
+   end if
 
    if(ph%n_good == ph%n_basis) then ! Not singular
       call elsi_get_time(t0)
@@ -420,8 +420,8 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
       do i = 1,ph%n_basis
          do j= 1,i-1
             ovlp(i,j) = (0.0_r8,0.0_r8)
-         enddo
-      enddo
+         end do
+      end do
 
       ! Compute S = (U^H)U, U -> S
       call zpotrf("U",ph%n_basis,ovlp,ph%n_basis,ierr)
@@ -435,7 +435,7 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
       call elsi_say(bh,info_str)
       write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    call elsi_get_time(t0)
 
@@ -455,12 +455,12 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
 
          if(n+nwork-1 > ph%n_basis) then
             nwork = ph%n_basis-n+1
-         endif
+         end if
 
          call zgemm("N","N",n+nwork-1,nwork,n+nwork-1,(1.0_r8,0.0_r8),ham,&
                  ph%n_basis,ovlp(1,n),ph%n_basis,(0.0_r8,0.0_r8),evec(1,n),&
                  ph%n_basis)
-      enddo
+      end do
 
       ! H_cmplx = (tmp_cmplx)^* * S_cmplx
       do n = 1,ph%n_basis,nblk
@@ -468,13 +468,13 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
 
          if(n+nwork-1 > ph%n_basis) then
             nwork = ph%n_basis-n+1
-         endif
+         end if
 
          call zgemm("C","N",nwork,ph%n_basis-n+1,n+nwork-1,(1.0_r8,0.0_r8),&
                  ovlp(1,n),ph%n_basis,evec(1,n),ph%n_basis,(0.0_r8,0.0_r8),&
                  ham(n,n),ph%n_basis)
-      enddo
-   endif
+      end do
+   end if
 
    call elsi_get_time(t1)
 
@@ -493,13 +493,13 @@ subroutine elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   complex(kind=r8),   intent(in)    :: ovlp(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8),   intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    character(len=200) :: info_str
 
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
@@ -520,7 +520,7 @@ subroutine elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
    else ! Nonsingular, use Cholesky
       call ztrmm("L","U","N","N",ph%n_basis,ph%n_states,(1.0_r8,0.0_r8),ovlp,&
               ph%n_basis,evec,ph%n_basis)
-   endif
+   end if
 
    call elsi_get_time(t1)
 
@@ -539,21 +539,21 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   complex(kind=r8),   intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
-   complex(kind=r8),   intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   logical            :: success
-   integer(kind=i4)   :: ierr
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
+   logical :: success
+   integer(kind=i4) :: ierr
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    character(len=200) :: info_str
 
-   real(kind=r8),    allocatable :: off_diag(:)
+   real(kind=r8), allocatable :: off_diag(:)
    complex(kind=r8), allocatable :: tau_cmplx(:)
-   real(kind=r8),    allocatable :: tmp_real(:,:)
+   real(kind=r8), allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
    character(len=*), parameter :: caller = "elsi_solve_lapack_cmplx"
@@ -561,7 +561,7 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    ! Transform to standard form
    if(.not. ph%ovlp_is_unit) then
       call elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
-   endif
+   end if
 
    ! Solve evp, return eigenvalues and eigenvectors
    call elsi_get_time(t0)
@@ -583,7 +583,7 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    if(.not. success) then
       call elsi_stop(bh,"ELPA tridiagonal solver failed.",caller)
-   endif
+   end if
 
    evec(1:ph%n_good,1:ph%n_states_solve) =&
       tmp_real(1:ph%n_good,1:ph%n_states_solve)
@@ -599,7 +599,7 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    ! Overwrite zero eigenvalues
    if(ph%n_good < ph%n_basis) then
       eval(ph%n_good+1:ph%n_basis) = eval(ph%n_good)+10.0_r8
-   endif
+   end if
 
    call elsi_get_time(t1)
 
@@ -611,7 +611,7 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    ! Back-transform eigenvectors
    if(.not. ph%ovlp_is_unit) then
       call elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
-   endif
+   end if
 
 end subroutine
 
@@ -626,22 +626,22 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(out)   :: eval(ph%n_basis)
-   complex(kind=r8),   intent(out)   :: evec(bh%n_lrow,bh%n_lcol)
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   integer(kind=i4)   :: i
-   integer(kind=i4)   :: ierr
-   real(kind=r8)      :: ev_sqrt
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   logical            :: success
+   integer(kind=i4) :: i
+   integer(kind=i4) :: ierr
+   real(kind=r8) :: ev_sqrt
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   logical :: success
    character(len=200) :: info_str
 
-   real(kind=r8),    allocatable :: off_diag(:)
+   real(kind=r8), allocatable :: off_diag(:)
    complex(kind=r8), allocatable :: tau_cmplx(:)
-   real(kind=r8),    allocatable :: tmp_real(:,:)
+   real(kind=r8), allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
    complex(kind=r8), allocatable :: copy_cmplx(:,:)
 
@@ -669,7 +669,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
 
    if(.not. success) then
       call elsi_stop(bh,"ELPA tridiagonal solver failed.",caller)
-   endif
+   end if
 
    ! Get the number of nonsingular eigenvalues
    eval = -eval
@@ -677,8 +677,8 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    do i = 1,ph%n_basis
       if(eval(i) < ph%sing_tol) then
          exit
-      endif
-   enddo
+      end if
+   end do
 
    ph%n_good = i-1
 
@@ -688,7 +688,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
 
       call zunmtr("L","U","N",ph%n_basis,ph%n_basis,copy_cmplx,ph%n_basis,&
               tau_cmplx,evec,ph%n_basis,tmp_cmplx,ph%n_basis*ph%n_basis,ierr)
-   endif
+   end if
 
    call elsi_deallocate(bh,off_diag,"off_diag")
    call elsi_deallocate(bh,tau_cmplx,"tau_cmplx")
@@ -709,7 +709,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
 
       if(ph%stop_sing) then
          call elsi_stop(bh,"Overlap matrix is singular.",caller)
-      endif
+      end if
 
       write(info_str,"(2X,A,I10)") "| Number of basis functions reduced to :",&
          ph%n_good
@@ -719,7 +719,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
       do i = 1,ph%n_good
          ev_sqrt = sqrt(eval(i))
          ovlp(:,i) = evec(:,i)/ev_sqrt
-      enddo
+      end do
    else ! Nonsingular
       ph%ovlp_is_sing = .false.
 
@@ -728,7 +728,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
       write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
-   endif ! Singular overlap?
+   end if ! Singular overlap?
 
    call elsi_get_time(t1)
 

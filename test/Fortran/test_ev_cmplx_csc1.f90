@@ -44,24 +44,26 @@ subroutine test_ev_cmplx_csc1(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: mu
    real(kind=r8) :: weight(1)
    real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref  = 0.0_r8
-   real(kind=r8) :: tol    = 0.0_r8
+   real(kind=r8) :: e_ref = 0.0_r8
+   real(kind=r8) :: tol = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
    complex(kind=r8), allocatable :: ham(:)
    complex(kind=r8), allocatable :: ovlp(:)
    complex(kind=r8), allocatable :: evec(:,:)
-   real(kind=r8),    allocatable :: eval(:)
-   real(kind=r8),    allocatable :: occ(:)
+
+   real(kind=r8), allocatable :: eval(:)
+   real(kind=r8), allocatable :: occ(:)
+
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
-   type(elsi_handle)    :: e_h
+   type(elsi_handle) :: e_h
    type(elsi_rw_handle) :: rw_h
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
 
    integer(kind=i4), external :: numroc
 
@@ -131,7 +133,7 @@ subroutine test_ev_cmplx_csc1(mpi_comm,solver,h_file,s_file)
    endif
 
    ! Initialize ELSI
-   n_states  = int(n_electrons,kind=i4)
+   n_states = int(n_electrons,kind=i4)
    weight(1) = 1.0_r8
 
    call elsi_init(e_h,solver,1,1,matrix_size,n_electrons,n_states)

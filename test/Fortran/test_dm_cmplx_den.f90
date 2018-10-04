@@ -38,8 +38,8 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: n_test
    real(kind=r8) :: tmp
    real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref  = 0.0_r8
-   real(kind=r8) :: tol    = 0.0_r8
+   real(kind=r8) :: e_ref = 0.0_r8
+   real(kind=r8) :: tol = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -52,13 +52,13 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
 
    complex(kind=r8), external :: zdotc
 
-   type(elsi_handle)    :: e_h
+   type(elsi_handle) :: e_h
    type(elsi_rw_handle) :: rw_h
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa   = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_omm    = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_pexsi  = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_omm = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
    real(kind=r8), parameter :: e_ntpoly = -2622.88214509311_r8
 
    call MPI_Comm_size(mpi_comm,n_proc,ierr)
@@ -79,7 +79,7 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
       elseif(solver == 3) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + PEXSI"
          e_ref = e_pexsi
-         tol   = 1.0e-3_r8
+         tol = 1.0e-3_r8
       elseif(solver == 6) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + NTPoly"
          e_ref = e_ntpoly
@@ -122,7 +122,7 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
 
    call elsi_finalize_rw(rw_h)
 
-   ham_save  = ham
+   ham_save = ham
    ovlp_save = ovlp
 
    t2 = MPI_Wtime()

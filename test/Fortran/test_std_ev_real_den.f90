@@ -40,16 +40,19 @@ program test_standard_ev_real
    integer(kind=i4) :: local_col
    integer(kind=i4) :: ldm
    integer(kind=i4) :: n
-   integer(kind=i4), allocatable :: seed(:)
-   integer(kind=i4), external :: numroc
 
    real(kind=r8) :: t1
    real(kind=r8) :: t2
+
+   integer(kind=i4), allocatable :: seed(:)
+
    real(kind=r8), allocatable :: mat_a(:,:)
    real(kind=r8), allocatable :: mat_b(:,:)
    real(kind=r8), allocatable :: mat_tmp(:,:)
    real(kind=r8), allocatable :: evec(:,:)
    real(kind=r8), allocatable :: eval(:)
+
+   integer(kind=i4), external :: numroc
 
    type(elsi_handle) :: e_h
 

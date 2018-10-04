@@ -40,28 +40,29 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: n_test
    real(kind=r8) :: tmp
    real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref  = 0.0_r8
-   real(kind=r8) :: tol    = 0.0_r8
+   real(kind=r8) :: e_ref = 0.0_r8
+   real(kind=r8) :: tol = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
-   real(kind=r8),    allocatable :: ham(:)
-   real(kind=r8),    allocatable :: ovlp(:)
-   real(kind=r8),    allocatable :: dm(:)
-   real(kind=r8),    allocatable :: edm(:)
+   real(kind=r8), allocatable :: ham(:)
+   real(kind=r8), allocatable :: ovlp(:)
+   real(kind=r8), allocatable :: dm(:)
+   real(kind=r8), allocatable :: edm(:)
+
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
    real(kind=r8), external :: ddot
 
-   type(elsi_handle)    :: e_h
+   type(elsi_handle) :: e_h
    type(elsi_rw_handle) :: rw_h
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa   = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_omm    = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_pexsi  = -2622.88194292325_r8
-   real(kind=r8), parameter :: e_sips   = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_omm = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_sips = -2622.88214509316_r8
    real(kind=r8), parameter :: e_ntpoly = -2622.88214509311_r8
 
    call MPI_Comm_size(mpi_comm,n_proc,ierr)
@@ -82,7 +83,7 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
       elseif(solver == 3) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + PEXSI"
          e_ref = e_pexsi
-         tol   = 1.0e-3_r8
+         tol = 1.0e-3_r8
       elseif(solver == 5) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + SLEPc-SIPs"
          e_ref = e_sips
@@ -94,10 +95,10 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    endif
 
    if(solver == 3) then
-      task_id    = myid/2
+      task_id = myid/2
       id_in_task = mod(myid,2)
    else
-      task_id    = 0
+      task_id = 0
       id_in_task = myid
    endif
 
@@ -127,9 +128,9 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
 
       n_electrons = real(buffer(1),kind=r8)
       matrix_size = buffer(2)
-      nnz_g       = buffer(3)
-      nnz_l       = buffer(4)
-      n_l_cols    = buffer(5)
+      nnz_g = buffer(3)
+      nnz_l = buffer(4)
+      n_l_cols = buffer(5)
    endif
 
    allocate(ham(nnz_l))

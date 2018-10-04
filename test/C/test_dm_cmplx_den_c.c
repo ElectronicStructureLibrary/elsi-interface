@@ -51,9 +51,9 @@ void test_dm_cmplx_den_c(MPI_Comm comm,
    elsi_handle e_h;
    elsi_rw_handle rw_h;
 
-   e_elpa   = -2622.88214509316;
-   e_omm    = -2622.88214509316;
-   e_pexsi  = -2622.88143358352;
+   e_elpa = -2622.88214509316;
+   e_omm = -2622.88214509316;
+   e_pexsi = -2622.88143358352;
    e_ntpoly = -2622.88214509311;
 
    MPI_Comm_size(comm,&n_proc);
@@ -63,10 +63,10 @@ void test_dm_cmplx_den_c(MPI_Comm comm,
    comm_f = MPI_Comm_c2f(comm);
 
    // Parameters
-   blk      = 16;
-   format   = 0; // BLACS_DENSE
+   blk = 16;
+   format = 0; // BLACS_DENSE
    parallel = 1; // MULTI_PROC
-   int_one  = 1;
+   int_one = 1;
    int_zero = 0;
 
    if (solver == 1) {
@@ -106,9 +106,9 @@ void test_dm_cmplx_den_c(MPI_Comm comm,
    c_elsi_read_mat_dim(rw_h,h_file,&n_electrons,&n_basis,&l_row,&l_col);
 
    l_size = l_row * l_col;
-   h      = malloc(l_size * sizeof(double _Complex));
-   s      = malloc(l_size * sizeof(double _Complex));
-   dm     = malloc(l_size * sizeof(double _Complex));
+   h = malloc(l_size * sizeof(double _Complex));
+   s = malloc(l_size * sizeof(double _Complex));
+   dm = malloc(l_size * sizeof(double _Complex));
 
    c_elsi_read_mat_complex(rw_h,h_file,h);
    c_elsi_read_mat_complex(rw_h,s_file,s);

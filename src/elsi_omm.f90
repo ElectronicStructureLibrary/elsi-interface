@@ -10,17 +10,15 @@
 module ELSI_OMM
 
    use ELSI_CONSTANTS, only: BLACS_DENSE
-   use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
-   use ELSI_IO,        only: elsi_say,elsi_get_time
-   use ELSI_MPI,       only: elsi_check_mpi,mpi_sum,mpi_integer4
+   use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
+   use ELSI_IO, only: elsi_say,elsi_get_time
+   use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_integer4
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_UTILS,     only: elsi_get_nnz
-   use ELPA1,          only: elpa_cholesky_real_double,&
-                             elpa_cholesky_complex_double,&
-                             elpa_invert_trm_real_double,&
-                             elpa_invert_trm_complex_double
-   use MATRIXSWITCH,   only: matrix,m_register_pdbc,ms_scalapack_setup,&
-                             m_deallocate
+   use ELSI_UTILS, only: elsi_get_nnz
+   use ELPA1, only: elpa_cholesky_real_double,elpa_cholesky_complex_double,&
+       elpa_invert_trm_real_double,elpa_invert_trm_complex_double
+   use MATRIXSWITCH, only: matrix,m_register_pdbc,ms_scalapack_setup,&
+       m_deallocate
 
    implicit none
 
@@ -51,7 +49,7 @@ subroutine elsi_init_omm(ph,bh)
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in)    :: bh
+   type(elsi_basic_t), intent(in) :: bh
 
    integer(kind=i4) :: ierr
 
@@ -69,7 +67,7 @@ subroutine elsi_init_omm(ph,bh)
               bh%blacs_ctxt,max(1,ph%omm_n_lrow),ierr)
 
       ph%omm_started = .true.
-   endif
+   end if
 
 end subroutine
 
@@ -80,19 +78,19 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   real(kind=r8),      intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
 
-   logical            :: coeff_ready
-   logical            :: new_ovlp
-   logical            :: success
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   integer(kind=i4)   :: ierr
+   logical :: coeff_ready
+   logical :: new_ovlp
+   logical :: success
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
    character(len=200) :: info_str
 
    type(matrix) :: ham_omm
@@ -115,7 +113,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-   endif
+   end if
 
    if(.not. ph%ovlp_is_unit) then
       if(ph%omm_flavor == 2) then
@@ -137,27 +135,27 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
             call elsi_say(bh,info_str)
             write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
             call elsi_say(bh,info_str)
-         endif
+         end if
 
          if(ph%n_calls > ph%omm_n_elpa+1) then
             success = elpa_invert_trm_real_double(ph%n_basis,ovlp,bh%n_lrow,&
                          bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
                          .false.)
-         endif
-      endif ! omm_flavor == 2
-   endif ! ovlp_is_unit
+         end if
+      end if ! omm_flavor == 2
+   end if ! ovlp_is_unit
 
    if(ph%n_calls == 1) then
       coeff_ready = .false.
    else
       coeff_ready = .true.
-   endif
+   end if
 
    if(ph%n_calls == ph%omm_n_elpa+1) then
       new_ovlp = .true.
    else
       new_ovlp = .false.
-   endif
+   end if
 
    call elsi_get_time(t0)
 
@@ -191,13 +189,13 @@ subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   real(kind=r8),      intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
-   real(kind=r8),      intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
 
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    character(len=200) :: info_str
 
    type(matrix) :: ham_omm
@@ -238,19 +236,19 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   complex(kind=r8),   intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8),   intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8),   intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
-   complex(kind=r8),   intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
 
-   logical            :: coeff_ready
-   logical            :: new_ovlp
-   logical            :: success
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
-   integer(kind=i4)   :: ierr
+   logical :: coeff_ready
+   logical :: new_ovlp
+   logical :: success
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
    character(len=200) :: info_str
 
    type(matrix) :: ham_omm
@@ -273,7 +271,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-   endif
+   end if
 
    if(.not. ph%ovlp_is_unit) then
       if(ph%omm_flavor == 2) then
@@ -295,27 +293,27 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
             call elsi_say(bh,info_str)
             write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
             call elsi_say(bh,info_str)
-         endif
+         end if
 
          if(ph%n_calls > ph%omm_n_elpa+1) then
             success = elpa_invert_trm_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
                          bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
                          .false.)
-         endif
-      endif ! omm_flavor == 2
-   endif ! ovlp_is_unit
+         end if
+      end if ! omm_flavor == 2
+   end if ! ovlp_is_unit
 
    if(ph%n_calls == 1) then
       coeff_ready = .false.
    else
       coeff_ready = .true.
-   endif
+   end if
 
    if(ph%n_calls == ph%omm_n_elpa+1) then
       new_ovlp = .true.
    else
       new_ovlp = .false.
-   endif
+   end if
 
    call elsi_get_time(t0)
 
@@ -349,13 +347,13 @@ subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
-   complex(kind=r8),   intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
-   complex(kind=r8),   intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
 
-   real(kind=r8)      :: t0
-   real(kind=r8)      :: t1
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    character(len=200) :: info_str
 
    type(matrix) :: ham_omm

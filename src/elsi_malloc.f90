@@ -9,9 +9,9 @@
 !!
 module ELSI_MALLOC
 
-   use ELSI_DATATYPE,  only: elsi_basic_t
-   use ELSI_IO,        only: elsi_say
-   use ELSI_MPI,       only: elsi_stop
+   use ELSI_DATATYPE, only: elsi_basic_t
+   use ELSI_IO, only: elsi_say
+   use ELSI_MPI, only: elsi_stop
    use ELSI_PRECISION, only: i4,i8,r4,r8
 
    implicit none
@@ -62,14 +62,14 @@ subroutine elsi_allocate_real4_1d(bh,array,dim_1,arrayname,caller)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   real(kind=r4),      intent(inout), allocatable :: array(:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r4), intent(inout), allocatable :: array(:)
+   integer(kind=i4), intent(in) :: dim_1
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -78,14 +78,14 @@ subroutine elsi_allocate_real4_1d(bh,array,dim_1,arrayname,caller)
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = 0.0_r4
 
@@ -98,14 +98,14 @@ subroutine elsi_allocate_real8_1d(bh,array,dim_1,arrayname,caller)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   real(kind=r8),      intent(inout), allocatable :: array(:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout), allocatable :: array(:)
+   integer(kind=i4), intent(in) :: dim_1
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -114,14 +114,14 @@ subroutine elsi_allocate_real8_1d(bh,array,dim_1,arrayname,caller)
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = 0.0_r8
 
@@ -134,14 +134,14 @@ subroutine elsi_allocate_integer4_1d(bh,array,dim_1,arrayname,caller)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   integer(kind=i4),   intent(inout), allocatable :: array(:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(inout), allocatable :: array(:)
+   integer(kind=i4), intent(in) :: dim_1
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -150,14 +150,14 @@ subroutine elsi_allocate_integer4_1d(bh,array,dim_1,arrayname,caller)
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = 0
 
@@ -170,14 +170,14 @@ subroutine elsi_allocate_integer8_1d(bh,array,dim_1,arrayname,caller)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   integer(kind=i8),   intent(inout), allocatable :: array(:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i8), intent(inout), allocatable :: array(:)
+   integer(kind=i4), intent(in) :: dim_1
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -186,14 +186,14 @@ subroutine elsi_allocate_integer8_1d(bh,array,dim_1,arrayname,caller)
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = 0
 
@@ -206,14 +206,14 @@ subroutine elsi_allocate_complex16_1d(bh,array,dim_1,arrayname,caller)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   complex(kind=r8),   intent(inout), allocatable :: array(:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout), allocatable :: array(:)
+   integer(kind=i4), intent(in) :: dim_1
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -222,14 +222,14 @@ subroutine elsi_allocate_complex16_1d(bh,array,dim_1,arrayname,caller)
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = (0.0_r8,0.0_r8)
 
@@ -242,15 +242,15 @@ subroutine elsi_allocate_real4_2d(bh,array,dim_1,dim_2,arrayname,caller)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   real(kind=r4),      intent(inout), allocatable :: array(:,:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   integer(kind=i4),   intent(in)                 :: dim_2
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r4), intent(inout), allocatable :: array(:,:)
+   integer(kind=i4), intent(in) :: dim_1
+   integer(kind=i4), intent(in) :: dim_2
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -259,14 +259,14 @@ subroutine elsi_allocate_real4_2d(bh,array,dim_1,dim_2,arrayname,caller)
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1,dim_2),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = 0.0_r4
 
@@ -279,15 +279,15 @@ subroutine elsi_allocate_real8_2d(bh,array,dim_1,dim_2,arrayname,caller)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   real(kind=r8),      intent(inout), allocatable :: array(:,:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   integer(kind=i4),   intent(in)                 :: dim_2
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout), allocatable :: array(:,:)
+   integer(kind=i4), intent(in) :: dim_1
+   integer(kind=i4), intent(in) :: dim_2
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -296,14 +296,14 @@ subroutine elsi_allocate_real8_2d(bh,array,dim_1,dim_2,arrayname,caller)
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1,dim_2),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = 0.0_r8
 
@@ -316,15 +316,15 @@ subroutine elsi_allocate_integer4_2d(bh,array,dim_1,dim_2,arrayname,caller)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   integer(kind=i4),   intent(inout), allocatable :: array(:,:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   integer(kind=i4),   intent(in)                 :: dim_2
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(inout), allocatable :: array(:,:)
+   integer(kind=i4), intent(in) :: dim_1
+   integer(kind=i4), intent(in) :: dim_2
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -333,14 +333,14 @@ subroutine elsi_allocate_integer4_2d(bh,array,dim_1,dim_2,arrayname,caller)
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1,dim_2),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = 0
 
@@ -353,15 +353,15 @@ subroutine elsi_allocate_complex8_2d(bh,array,dim_1,dim_2,arrayname,caller)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   complex(kind=r4),   intent(inout), allocatable :: array(:,:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   integer(kind=i4),   intent(in)                 :: dim_2
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r4), intent(inout), allocatable :: array(:,:)
+   integer(kind=i4), intent(in) :: dim_1
+   integer(kind=i4), intent(in) :: dim_2
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -370,14 +370,14 @@ subroutine elsi_allocate_complex8_2d(bh,array,dim_1,dim_2,arrayname,caller)
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1,dim_2),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = (0.0_r4,0.0_r4)
 
@@ -390,15 +390,15 @@ subroutine elsi_allocate_complex16_2d(bh,array,dim_1,dim_2,arrayname,caller)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   complex(kind=r8),   intent(inout), allocatable :: array(:,:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   integer(kind=i4),   intent(in)                 :: dim_2
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout), allocatable :: array(:,:)
+   integer(kind=i4), intent(in) :: dim_1
+   integer(kind=i4), intent(in) :: dim_2
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -407,14 +407,14 @@ subroutine elsi_allocate_complex16_2d(bh,array,dim_1,dim_2,arrayname,caller)
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1,dim_2),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = (0.0_r8,0.0_r8)
 
@@ -427,16 +427,16 @@ subroutine elsi_allocate_real8_3d(bh,array,dim_1,dim_2,dim_3,arrayname,caller)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   real(kind=r8),      intent(inout), allocatable :: array(:,:,:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   integer(kind=i4),   intent(in)                 :: dim_2
-   integer(kind=i4),   intent(in)                 :: dim_3
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout), allocatable :: array(:,:,:)
+   integer(kind=i4), intent(in) :: dim_1
+   integer(kind=i4), intent(in) :: dim_2
+   integer(kind=i4), intent(in) :: dim_3
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -445,14 +445,14 @@ subroutine elsi_allocate_real8_3d(bh,array,dim_1,dim_2,dim_3,arrayname,caller)
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1,dim_2,dim_3),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = 0.0_r8
 
@@ -466,16 +466,16 @@ subroutine elsi_allocate_integer4_3d(bh,array,dim_1,dim_2,dim_3,arrayname,&
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   integer(kind=i4),   intent(inout), allocatable :: array(:,:,:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   integer(kind=i4),   intent(in)                 :: dim_2
-   integer(kind=i4),   intent(in)                 :: dim_3
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(inout), allocatable :: array(:,:,:)
+   integer(kind=i4), intent(in) :: dim_1
+   integer(kind=i4), intent(in) :: dim_2
+   integer(kind=i4), intent(in) :: dim_3
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -484,14 +484,14 @@ subroutine elsi_allocate_integer4_3d(bh,array,dim_1,dim_2,dim_3,arrayname,&
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1,dim_2,dim_3),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = 0
 
@@ -505,16 +505,16 @@ subroutine elsi_allocate_complex16_3d(bh,array,dim_1,dim_2,dim_3,arrayname,&
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   complex(kind=r8),   intent(inout), allocatable :: array(:,:,:)
-   integer(kind=i4),   intent(in)                 :: dim_1
-   integer(kind=i4),   intent(in)                 :: dim_2
-   integer(kind=i4),   intent(in)                 :: dim_3
-   character(len=*),   intent(in)                 :: arrayname
-   character(len=*),   intent(in)                 :: caller
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout), allocatable :: array(:,:,:)
+   integer(kind=i4), intent(in) :: dim_1
+   integer(kind=i4), intent(in) :: dim_2
+   integer(kind=i4), intent(in) :: dim_3
+   character(len=*), intent(in) :: arrayname
+   character(len=*), intent(in) :: caller
 
-   real(kind=r8)      :: arraysize
-   integer(kind=i4)   :: error
+   real(kind=r8) :: arraysize
+   integer(kind=i4) :: error
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
@@ -523,14 +523,14 @@ subroutine elsi_allocate_complex16_3d(bh,array,dim_1,dim_2,dim_3,arrayname,&
       write(info_str,"(4X,A,F10.3,2A)") "Allocating ",arraysize," MB for ",&
          trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    allocate(array(dim_1,dim_2,dim_3),stat=error)
 
    if(error > 0) then
       write(info_str,"(2A)") "Error in allocating ",trim(arrayname)
       call elsi_stop(bh,info_str,caller)
-   endif
+   end if
 
    array = (0.0_r8,0.0_r8)
 
@@ -543,16 +543,16 @@ subroutine elsi_deallocate_real4_1d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   real(kind=r4),      intent(inout), allocatable :: array(:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r4), intent(inout), allocatable :: array(:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 
@@ -565,16 +565,16 @@ subroutine elsi_deallocate_real8_1d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   real(kind=r8),      intent(inout), allocatable :: array(:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout), allocatable :: array(:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 
@@ -587,16 +587,16 @@ subroutine elsi_deallocate_integer4_1d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   integer(kind=i4),   intent(inout), allocatable :: array(:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(inout), allocatable :: array(:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 
@@ -609,16 +609,16 @@ subroutine elsi_deallocate_integer8_1d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   integer(kind=i8),   intent(inout), allocatable :: array(:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i8), intent(inout), allocatable :: array(:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 
@@ -631,16 +631,16 @@ subroutine elsi_deallocate_complex16_1d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   complex(kind=r8),   intent(inout), allocatable :: array(:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout), allocatable :: array(:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 
@@ -653,16 +653,16 @@ subroutine elsi_deallocate_real4_2d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   real(kind=r4),      intent(inout), allocatable :: array(:,:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r4), intent(inout), allocatable :: array(:,:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 
@@ -675,16 +675,16 @@ subroutine elsi_deallocate_real8_2d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   real(kind=r8),      intent(inout), allocatable :: array(:,:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout), allocatable :: array(:,:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 
@@ -697,16 +697,16 @@ subroutine elsi_deallocate_integer4_2d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   integer(kind=i4),   intent(inout), allocatable :: array(:,:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(inout), allocatable :: array(:,:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 
@@ -719,16 +719,16 @@ subroutine elsi_deallocate_complex8_2d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   complex(kind=r4),   intent(inout), allocatable :: array(:,:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r4), intent(inout), allocatable :: array(:,:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 
@@ -742,16 +742,16 @@ subroutine elsi_deallocate_complex16_2d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   complex(kind=r8),   intent(inout), allocatable :: array(:,:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout), allocatable :: array(:,:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 
@@ -764,16 +764,16 @@ subroutine elsi_deallocate_real8_3d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   real(kind=r8),      intent(inout), allocatable :: array(:,:,:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout), allocatable :: array(:,:,:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 
@@ -786,16 +786,16 @@ subroutine elsi_deallocate_integer4_3d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   integer(kind=i4),   intent(inout), allocatable :: array(:,:,:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(inout), allocatable :: array(:,:,:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 
@@ -808,16 +808,16 @@ subroutine elsi_deallocate_complex16_3d(bh,array,arrayname)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)                 :: bh
-   complex(kind=r8),   intent(inout), allocatable :: array(:,:,:)
-   character(len=*),   intent(in)                 :: arrayname
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout), allocatable :: array(:,:,:)
+   character(len=*), intent(in) :: arrayname
 
    character(len=200) :: info_str
 
    if(bh%print_info > 2) then
       write(info_str,"(4X,2A)") "Deallocating ",trim(arrayname)
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    deallocate(array)
 

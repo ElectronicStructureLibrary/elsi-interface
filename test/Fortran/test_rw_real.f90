@@ -104,7 +104,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
 
    call elsi_finalize_rw(rw_h)
 
-   ham_save  = ham
+   ham_save = ham
    ovlp_save = ovlp
 
    t2 = MPI_Wtime()
@@ -201,7 +201,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
 
    call elsi_finalize_rw(rw_h)
 
-   ham_csc_save  = ham_csc
+   ham_csc_save = ham_csc
    ovlp_csc_save = ovlp_csc
 
    t2 = MPI_Wtime()

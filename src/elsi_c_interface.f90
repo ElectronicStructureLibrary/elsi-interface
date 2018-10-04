@@ -11,7 +11,6 @@ module ELSI_C_INTERFACE
 
    use, intrinsic :: ISO_C_BINDING
    use ELSI
-   use ELSI_C2F
 
    implicit none
 
@@ -19,13 +18,63 @@ module ELSI_C_INTERFACE
 
 contains
 
+!>
+!! This routine encodes the standard convention that 0 is .false., any other
+!! integer is .true..
+!!
+function c_int_to_f_logical(int_c) result(logical_f)
+
+   implicit none
+
+   integer(kind=c_int), intent(in) :: int_c
+   logical :: logical_f
+
+   if(int_c == 0) then
+     logical_f = .false.
+   else
+     logical_f = .true.
+   end if
+
+end function
+
+!>
+!! This routine converts a C string into a Fortran string. A Fortran string is
+!! NOT just a character array without a NULL character. A Fortran string (i.e.
+!! char(*)) is a separate data type from a character array (i.e. char,
+!! dimension(*)) and they are NOT interoperable in interfaces.
+!!
+function c_string_to_f_string(string_c) result(string_f)
+
+   implicit none
+
+   character(kind=c_char,len=1), intent(in) :: string_c(*)
+   character(len=:), allocatable :: string_f
+
+   integer(kind=c_int) :: string_f_len
+
+   string_f_len = 0
+
+   do
+     if(string_c(string_f_len+1) == C_NULL_CHAR) then
+        exit
+     end if
+
+     string_f_len = string_f_len+1
+   end do
+
+   allocate(character(len=string_f_len) :: string_f)
+
+   string_f = transfer(string_c(1:string_f_len),string_f)
+
+end function
+
 subroutine elsi_init_c_wrapper(handle_c,solver,parallel_mode,matrix_format,&
               n_basis,n_electron,n_state)&
    bind(C,name="c_elsi_init")
 
    implicit none
 
-   type(c_ptr)                            :: handle_c
+   type(c_ptr) :: handle_c
    integer(kind=c_int), value, intent(in) :: solver
    integer(kind=c_int), value, intent(in) :: parallel_mode
    integer(kind=c_int), value, intent(in) :: matrix_format
@@ -49,7 +98,7 @@ subroutine elsi_set_mpi_c_wrapper(handle_c,mpi_comm)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: mpi_comm
 
    type(elsi_handle), pointer :: handle_f
@@ -65,7 +114,7 @@ subroutine elsi_set_mpi_global_c_wrapper(handle_c,mpi_comm_global)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: mpi_comm_global
 
    type(elsi_handle), pointer :: handle_f
@@ -81,7 +130,7 @@ subroutine elsi_set_spin_c_wrapper(handle_c,n_spin,i_spin)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: n_spin
    integer(kind=c_int), value, intent(in) :: i_spin
 
@@ -98,7 +147,7 @@ subroutine elsi_set_kpoint_c_wrapper(handle_c,n_kpt,i_kpt,weight)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: n_kpt
    integer(kind=c_int), value, intent(in) :: i_kpt
    real(kind=c_double), value, intent(in) :: weight
@@ -116,7 +165,7 @@ subroutine elsi_set_blacs_c_wrapper(handle_c,blacs_ctxt,block_size)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: blacs_ctxt
    integer(kind=c_int), value, intent(in) :: block_size
 
@@ -133,12 +182,12 @@ subroutine elsi_set_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: nnz_g
    integer(kind=c_int), value, intent(in) :: nnz_l
    integer(kind=c_int), value, intent(in) :: n_lcol
-   integer(kind=c_int),        intent(in) :: row_ind(nnz_l)
-   integer(kind=c_int),        intent(in) :: col_ptr(n_lcol+1)
+   integer(kind=c_int), intent(in) :: row_ind(nnz_l)
+   integer(kind=c_int), intent(in) :: col_ptr(n_lcol+1)
 
    type(elsi_handle), pointer :: handle_f
 
@@ -174,7 +223,7 @@ subroutine elsi_ev_real_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
    type(c_ptr), value, intent(in) :: eval_c
    type(c_ptr), value, intent(in) :: evec_c
 
-   type(elsi_handle),   pointer :: handle_f
+   type(elsi_handle), pointer :: handle_f
    real(kind=c_double), pointer :: ham_f(:,:)
    real(kind=c_double), pointer :: ovlp_f(:,:)
    real(kind=c_double), pointer :: eval_f(:)
@@ -187,8 +236,8 @@ subroutine elsi_ev_real_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
    call c_f_pointer(handle_c,handle_f)
 
    n_basis = handle_f%ph%n_basis
-   lrow    = handle_f%bh%n_lrow
-   lcol    = handle_f%bh%n_lcol
+   lrow = handle_f%bh%n_lrow
+   lcol = handle_f%bh%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[lrow,lcol])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
@@ -210,10 +259,10 @@ subroutine elsi_ev_complex_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
    type(c_ptr), value, intent(in) :: eval_c
    type(c_ptr), value, intent(in) :: evec_c
 
-   type(elsi_handle),              pointer :: handle_f
+   type(elsi_handle), pointer :: handle_f
    complex(kind=c_double_complex), pointer :: ham_f(:,:)
    complex(kind=c_double_complex), pointer :: ovlp_f(:,:)
-   real(kind=c_double),            pointer :: eval_f(:)
+   real(kind=c_double), pointer :: eval_f(:)
    complex(kind=c_double_complex), pointer :: evec_f(:,:)
 
    integer(kind=c_int) :: n_basis
@@ -223,8 +272,8 @@ subroutine elsi_ev_complex_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
    call c_f_pointer(handle_c,handle_f)
 
    n_basis = handle_f%ph%n_basis
-   lrow    = handle_f%bh%n_lrow
-   lcol    = handle_f%bh%n_lcol
+   lrow = handle_f%bh%n_lrow
+   lcol = handle_f%bh%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[lrow,lcol])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
@@ -246,7 +295,7 @@ subroutine elsi_ev_real_sparse_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
    type(c_ptr), value, intent(in) :: eval_c
    type(c_ptr), value, intent(in) :: evec_c
 
-   type(elsi_handle),   pointer :: handle_f
+   type(elsi_handle), pointer :: handle_f
    real(kind=c_double), pointer :: ham_f(:)
    real(kind=c_double), pointer :: ovlp_f(:)
    real(kind=c_double), pointer :: eval_f(:)
@@ -260,9 +309,9 @@ subroutine elsi_ev_real_sparse_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,evec_c)&
    call c_f_pointer(handle_c,handle_f)
 
    n_basis = handle_f%ph%n_basis
-   nnz_l   = handle_f%bh%nnz_l_sp
-   lrow    = handle_f%bh%n_lrow
-   lcol    = handle_f%bh%n_lcol
+   nnz_l = handle_f%bh%nnz_l_sp
+   lrow = handle_f%bh%n_lrow
+   lcol = handle_f%bh%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[nnz_l])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
@@ -285,10 +334,10 @@ subroutine elsi_ev_complex_sparse_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,&
    type(c_ptr), value, intent(in) :: eval_c
    type(c_ptr), value, intent(in) :: evec_c
 
-   type(elsi_handle),      pointer :: handle_f
+   type(elsi_handle), pointer :: handle_f
    complex(kind=c_double), pointer :: ham_f(:)
    complex(kind=c_double), pointer :: ovlp_f(:)
-   real(kind=c_double),    pointer :: eval_f(:)
+   real(kind=c_double), pointer :: eval_f(:)
    complex(kind=c_double), pointer :: evec_f(:,:)
 
    integer(kind=c_int) :: n_basis
@@ -299,9 +348,9 @@ subroutine elsi_ev_complex_sparse_c_wrapper(handle_c,ham_c,ovlp_c,eval_c,&
    call c_f_pointer(handle_c,handle_f)
 
    n_basis = handle_f%ph%n_basis
-   nnz_l   = handle_f%bh%nnz_l_sp
-   lrow    = handle_f%bh%n_lrow
-   lcol    = handle_f%bh%n_lcol
+   nnz_l = handle_f%bh%nnz_l_sp
+   lrow = handle_f%bh%n_lrow
+   lcol = handle_f%bh%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[nnz_l])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
@@ -317,13 +366,13 @@ subroutine elsi_dm_real_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
 
    implicit none
 
-   type(c_ptr), value,  intent(in)    :: handle_c
-   type(c_ptr), value,  intent(in)    :: ham_c
-   type(c_ptr), value,  intent(in)    :: ovlp_c
-   type(c_ptr), value,  intent(in)    :: dm_c
+   type(c_ptr), value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: ham_c
+   type(c_ptr), value, intent(in) :: ovlp_c
+   type(c_ptr), value, intent(in) :: dm_c
    real(kind=c_double), intent(inout) :: energy
 
-   type(elsi_handle),   pointer :: handle_f
+   type(elsi_handle), pointer :: handle_f
    real(kind=c_double), pointer :: ham_f(:,:)
    real(kind=c_double), pointer :: ovlp_f(:,:)
    real(kind=c_double), pointer :: dm_f(:,:)
@@ -335,8 +384,8 @@ subroutine elsi_dm_real_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
    call c_f_pointer(handle_c,handle_f)
 
    n_basis = handle_f%ph%n_basis
-   lrow    = handle_f%bh%n_lrow
-   lcol    = handle_f%bh%n_lcol
+   lrow = handle_f%bh%n_lrow
+   lcol = handle_f%bh%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[lrow,lcol])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
@@ -351,13 +400,13 @@ subroutine elsi_dm_complex_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
 
    implicit none
 
-   type(c_ptr), value,  intent(in)    :: handle_c
-   type(c_ptr), value,  intent(in)    :: ham_c
-   type(c_ptr), value,  intent(in)    :: ovlp_c
-   type(c_ptr), value,  intent(in)    :: dm_c
+   type(c_ptr), value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: ham_c
+   type(c_ptr), value, intent(in) :: ovlp_c
+   type(c_ptr), value, intent(in) :: dm_c
    real(kind=c_double), intent(inout) :: energy
 
-   type(elsi_handle),              pointer :: handle_f
+   type(elsi_handle), pointer :: handle_f
    complex(kind=c_double_complex), pointer :: ham_f(:,:)
    complex(kind=c_double_complex), pointer :: ovlp_f(:,:)
    complex(kind=c_double_complex), pointer :: dm_f(:,:)
@@ -369,8 +418,8 @@ subroutine elsi_dm_complex_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
    call c_f_pointer(handle_c,handle_f)
 
    n_basis = handle_f%ph%n_basis
-   lrow    = handle_f%bh%n_lrow
-   lcol    = handle_f%bh%n_lcol
+   lrow = handle_f%bh%n_lrow
+   lcol = handle_f%bh%n_lcol
 
    call c_f_pointer(ham_c,ham_f,shape=[lrow,lcol])
    call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
@@ -385,13 +434,13 @@ subroutine elsi_dm_real_sparse_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
 
    implicit none
 
-   type(c_ptr), value,  intent(in)    :: handle_c
-   type(c_ptr), value,  intent(in)    :: ham_c
-   type(c_ptr), value,  intent(in)    :: ovlp_c
-   type(c_ptr), value,  intent(in)    :: dm_c
+   type(c_ptr), value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: ham_c
+   type(c_ptr), value, intent(in) :: ovlp_c
+   type(c_ptr), value, intent(in) :: dm_c
    real(kind=c_double), intent(inout) :: energy
 
-   type(elsi_handle),   pointer :: handle_f
+   type(elsi_handle), pointer :: handle_f
    real(kind=c_double), pointer :: ham_f(:)
    real(kind=c_double), pointer :: ovlp_f(:)
    real(kind=c_double), pointer :: dm_f(:)
@@ -415,13 +464,13 @@ subroutine elsi_dm_complex_sparse_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
 
    implicit none
 
-   type(c_ptr), value,  intent(in)    :: handle_c
-   type(c_ptr), value,  intent(in)    :: ham_c
-   type(c_ptr), value,  intent(in)    :: ovlp_c
-   type(c_ptr), value,  intent(in)    :: dm_c
+   type(c_ptr), value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: ham_c
+   type(c_ptr), value, intent(in) :: ovlp_c
+   type(c_ptr), value, intent(in) :: dm_c
    real(kind=c_double), intent(inout) :: energy
 
-   type(elsi_handle),      pointer :: handle_f
+   type(elsi_handle), pointer :: handle_f
    complex(kind=c_double), pointer :: ham_f(:)
    complex(kind=c_double), pointer :: ovlp_f(:)
    complex(kind=c_double), pointer :: dm_f(:)
@@ -445,7 +494,7 @@ subroutine elsi_set_output_c_wrapper(handle_c,out_level)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: out_level
 
    type(elsi_handle), pointer :: handle_f
@@ -461,7 +510,7 @@ subroutine elsi_set_unit_ovlp_c_wrapper(handle_c,unit_ovlp)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: unit_ovlp
 
    type(elsi_handle), pointer :: handle_f
@@ -477,7 +526,7 @@ subroutine elsi_set_zero_def_c_wrapper(handle_c,zero_def)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: zero_def
 
    type(elsi_handle), pointer :: handle_f
@@ -493,7 +542,7 @@ subroutine elsi_set_sing_check_c_wrapper(handle_c,sing_check)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: sing_check
 
    type(elsi_handle), pointer :: handle_f
@@ -509,7 +558,7 @@ subroutine elsi_set_sing_tol_c_wrapper(handle_c,sing_tol)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: sing_tol
 
    type(elsi_handle), pointer :: handle_f
@@ -525,7 +574,7 @@ subroutine elsi_set_sing_stop_c_wrapper(handle_c,sing_stop)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: sing_stop
 
    type(elsi_handle), pointer :: handle_f
@@ -541,7 +590,7 @@ subroutine elsi_set_elpa_solver_c_wrapper(handle_c,elpa_solver)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: elpa_solver
 
    type(elsi_handle), pointer :: handle_f
@@ -557,7 +606,7 @@ subroutine elsi_set_elpa_n_single_c_wrapper(handle_c,n_single)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: n_single
 
    type(elsi_handle), pointer :: handle_f
@@ -573,7 +622,7 @@ subroutine elsi_set_elpa_gpu_c_wrapper(handle_c,use_gpu)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: use_gpu
 
    type(elsi_handle), pointer :: handle_f
@@ -589,7 +638,7 @@ subroutine elsi_set_elpa_gpu_kernels_c_wrapper(handle_c,use_gpu_kernels)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: use_gpu_kernels
 
    type(elsi_handle), pointer :: handle_f
@@ -605,7 +654,7 @@ subroutine elsi_set_elpa_autotune_c_wrapper(handle_c,use_autotune)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: use_autotune
 
    type(elsi_handle), pointer :: handle_f
@@ -621,7 +670,7 @@ subroutine elsi_set_omm_flavor_c_wrapper(handle_c,omm_flavor)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: omm_flavor
 
    type(elsi_handle), pointer :: handle_f
@@ -637,7 +686,7 @@ subroutine elsi_set_omm_n_elpa_c_wrapper(handle_c,n_elpa)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: n_elpa
 
    type(elsi_handle), pointer :: handle_f
@@ -653,7 +702,7 @@ subroutine elsi_set_omm_tol_c_wrapper(handle_c,omm_tol)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: omm_tol
 
    type(elsi_handle), pointer :: handle_f
@@ -669,7 +718,7 @@ subroutine elsi_set_pexsi_n_mu_c_wrapper(handle_c,n_mu)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: n_mu
 
    type(elsi_handle), pointer :: handle_f
@@ -685,7 +734,7 @@ subroutine elsi_set_pexsi_n_pole_c_wrapper(handle_c,n_pole)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: n_pole
 
    type(elsi_handle), pointer :: handle_f
@@ -701,7 +750,7 @@ subroutine elsi_set_pexsi_np_per_pole_c_wrapper(handle_c,np_per_pole)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: np_per_pole
 
    type(elsi_handle), pointer :: handle_f
@@ -717,7 +766,7 @@ subroutine elsi_set_pexsi_np_symbo_c_wrapper(handle_c,np_symbo)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: np_symbo
 
    type(elsi_handle), pointer :: handle_f
@@ -733,7 +782,7 @@ subroutine elsi_set_pexsi_ordering_c_wrapper(handle_c,ordering)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: ordering
 
    type(elsi_handle), pointer :: handle_f
@@ -749,7 +798,7 @@ subroutine elsi_set_pexsi_temp_c_wrapper(handle_c,temp)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: temp
 
    type(elsi_handle), pointer :: handle_f
@@ -765,7 +814,7 @@ subroutine elsi_set_pexsi_gap_c_wrapper(handle_c,gap)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: gap
 
    type(elsi_handle), pointer :: handle_f
@@ -781,7 +830,7 @@ subroutine elsi_set_pexsi_delta_e_c_wrapper(handle_c,delta_e)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: delta_e
 
    type(elsi_handle), pointer :: handle_f
@@ -797,7 +846,7 @@ subroutine elsi_set_pexsi_mu_min_c_wrapper(handle_c,mu_min)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: mu_min
 
    type(elsi_handle), pointer :: handle_f
@@ -813,7 +862,7 @@ subroutine elsi_set_pexsi_mu_max_c_wrapper(handle_c,mu_max)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: mu_max
 
    type(elsi_handle), pointer :: handle_f
@@ -829,7 +878,7 @@ subroutine elsi_set_pexsi_inertia_tol_c_wrapper(handle_c,inertia_tol)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: inertia_tol
 
    type(elsi_handle), pointer :: handle_f
@@ -845,7 +894,7 @@ subroutine elsi_set_sips_n_elpa_c_wrapper(handle_c,n_elpa)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: n_elpa
 
    type(elsi_handle), pointer :: handle_f
@@ -861,7 +910,7 @@ subroutine elsi_set_sips_n_slice_c_wrapper(handle_c,n_slice)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: n_slice
 
    type(elsi_handle), pointer :: handle_f
@@ -877,7 +926,7 @@ subroutine elsi_set_sips_first_ev_c_wrapper(handle_c,first_ev)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: first_ev
 
    type(elsi_handle), pointer :: handle_f
@@ -893,7 +942,7 @@ subroutine elsi_set_sips_slice_type_c_wrapper(handle_c,slice_type)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: slice_type
 
    type(elsi_handle), pointer :: handle_f
@@ -909,7 +958,7 @@ subroutine elsi_set_sips_buffer_c_wrapper(handle_c,buffer)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: buffer
 
    type(elsi_handle), pointer :: handle_f
@@ -925,7 +974,7 @@ subroutine elsi_set_sips_inertia_tol_c_wrapper(handle_c,inertia_tol)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: inertia_tol
 
    type(elsi_handle), pointer :: handle_f
@@ -941,7 +990,7 @@ subroutine elsi_set_sips_interval_c_wrapper(handle_c,lower,upper)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: lower
    real(kind=c_double), value, intent(in) :: upper
 
@@ -958,7 +1007,7 @@ subroutine elsi_set_ntpoly_method_c_wrapper(handle_c,nt_method)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: nt_method
 
    type(elsi_handle), pointer :: handle_f
@@ -974,7 +1023,7 @@ subroutine elsi_set_ntpoly_isr_c_wrapper(handle_c,nt_isr)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: nt_isr
 
    type(elsi_handle), pointer :: handle_f
@@ -990,7 +1039,7 @@ subroutine elsi_set_ntpoly_tol_c_wrapper(handle_c,nt_tol)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: nt_tol
 
    type(elsi_handle), pointer :: handle_f
@@ -1006,7 +1055,7 @@ subroutine elsi_set_ntpoly_filter_c_wrapper(handle_c,filter)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: filter
 
    type(elsi_handle), pointer :: handle_f
@@ -1022,7 +1071,7 @@ subroutine elsi_set_ntpoly_max_iter_c_wrapper(handle_c,max_iter)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: max_iter
 
    type(elsi_handle), pointer :: handle_f
@@ -1038,7 +1087,7 @@ subroutine elsi_set_mu_broaden_scheme_c_wrapper(handle_c,broaden_scheme)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: broaden_scheme
 
    type(elsi_handle), pointer :: handle_f
@@ -1054,7 +1103,7 @@ subroutine elsi_set_mu_broaden_width_c_wrapper(handle_c,broaden_width)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: broaden_width
 
    type(elsi_handle), pointer :: handle_f
@@ -1070,7 +1119,7 @@ subroutine elsi_set_mu_tol_c_wrapper(handle_c,mu_tol)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: mu_tol
 
    type(elsi_handle), pointer :: handle_f
@@ -1086,7 +1135,7 @@ subroutine elsi_set_mu_spin_degen_c_wrapper(handle_c,spin_degen)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: spin_degen
 
    type(elsi_handle), pointer :: handle_f
@@ -1102,7 +1151,7 @@ subroutine elsi_set_mu_mp_order_c_wrapper(handle_c,mp_order)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: mp_order
 
    type(elsi_handle), pointer :: handle_f
@@ -1118,7 +1167,7 @@ subroutine elsi_set_output_log_c_wrapper(handle_c,out_log)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: out_log
 
    type(elsi_handle), pointer :: handle_f
@@ -1134,7 +1183,7 @@ subroutine elsi_get_pexsi_mu_min_c_wrapper(handle_c,mu_min)&
 
    implicit none
 
-   type(c_ptr), value,  intent(in)  :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), intent(out) :: mu_min
 
    type(elsi_handle), pointer :: handle_f
@@ -1150,7 +1199,7 @@ subroutine elsi_get_pexsi_mu_max_c_wrapper(handle_c,mu_max)&
 
    implicit none
 
-   type(c_ptr), value,  intent(in)  :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), intent(out) :: mu_max
 
    type(elsi_handle), pointer :: handle_f
@@ -1166,7 +1215,7 @@ subroutine elsi_get_initialized_c_wrapper(handle_c,handle_init)&
 
    implicit none
 
-   type(c_ptr), value,  intent(in)  :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), intent(out) :: handle_init
 
    type(elsi_handle), pointer :: handle_f
@@ -1206,7 +1255,7 @@ subroutine elsi_get_n_sing_c_wrapper(handle_c,n_sing)&
 
    implicit none
 
-   type(c_ptr), value,  intent(in)  :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), intent(out) :: n_sing
 
    type(elsi_handle), pointer :: handle_f
@@ -1222,7 +1271,7 @@ subroutine elsi_get_mu_c_wrapper(handle_c,mu)&
 
    implicit none
 
-   type(c_ptr), value,  intent(in)  :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), intent(out) :: mu
 
    type(elsi_handle), pointer :: handle_f
@@ -1241,7 +1290,7 @@ subroutine elsi_get_edm_real_c_wrapper(handle_c,edm_c)&
    type(c_ptr), value, intent(in) :: handle_c
    type(c_ptr), value, intent(in) :: edm_c
 
-   type(elsi_handle),   pointer :: handle_f
+   type(elsi_handle), pointer :: handle_f
    real(kind=c_double), pointer :: edm_f(:,:)
 
    integer(kind=c_int) :: lrow
@@ -1266,7 +1315,7 @@ subroutine elsi_get_edm_complex_c_wrapper(handle_c,edm_c)&
    type(c_ptr), value, intent(in) :: handle_c
    type(c_ptr), value, intent(in) :: edm_c
 
-   type(elsi_handle),      pointer :: handle_f
+   type(elsi_handle), pointer :: handle_f
    complex(kind=c_double), pointer :: edm_f(:,:)
 
    integer(kind=c_int) :: lrow
@@ -1291,7 +1340,7 @@ subroutine elsi_get_edm_real_sparse_c_wrapper(handle_c,edm_c)&
    type(c_ptr), value, intent(in) :: handle_c
    type(c_ptr), value, intent(in) :: edm_c
 
-   type(elsi_handle),   pointer :: handle_f
+   type(elsi_handle), pointer :: handle_f
    real(kind=c_double), pointer :: edm_f(:)
 
    integer(kind=c_int) :: nnz_l
@@ -1314,7 +1363,7 @@ subroutine elsi_get_edm_complex_sparse_c_wrapper(handle_c,edm_c)&
    type(c_ptr), value, intent(in) :: handle_c
    type(c_ptr), value, intent(in) :: edm_c
 
-   type(elsi_handle),      pointer :: handle_f
+   type(elsi_handle), pointer :: handle_f
    complex(kind=c_double), pointer :: edm_f(:)
 
    integer(kind=c_int) :: nnz_l
@@ -1335,7 +1384,7 @@ subroutine elsi_init_rw_c_wrapper(handle_c,rw_task,parallel_mode,n_basis,&
 
    implicit none
 
-   type(c_ptr)                            :: handle_c
+   type(c_ptr) :: handle_c
    integer(kind=c_int), value, intent(in) :: rw_task
    integer(kind=c_int), value, intent(in) :: parallel_mode
    integer(kind=c_int), value, intent(in) :: n_basis
@@ -1356,7 +1405,7 @@ subroutine elsi_set_rw_mpi_c_wrapper(handle_c,mpi_comm)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: mpi_comm
 
    type(elsi_rw_handle), pointer :: handle_f
@@ -1372,7 +1421,7 @@ subroutine elsi_set_rw_blacs_c_wrapper(handle_c,blacs_ctxt,block_size)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: blacs_ctxt
    integer(kind=c_int), value, intent(in) :: block_size
 
@@ -1389,7 +1438,7 @@ subroutine elsi_set_rw_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_lcol)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    integer(kind=c_int), value, intent(in) :: nnz_g
    integer(kind=c_int), value, intent(in) :: nnz_l
    integer(kind=c_int), value, intent(in) :: n_lcol
@@ -1422,7 +1471,7 @@ subroutine elsi_set_rw_zero_def_c_wrapper(handle_c,zero_def)&
 
    implicit none
 
-   type(c_ptr),         value, intent(in) :: handle_c
+   type(c_ptr), value, intent(in) :: handle_c
    real(kind=c_double), value, intent(in) :: zero_def
 
    type(elsi_rw_handle), pointer :: handle_f
@@ -1439,8 +1488,8 @@ subroutine elsi_read_mat_dim_c_wrapper(handle_c,name_c,n_electrons,n_basis,&
 
    implicit none
 
-   type(c_ptr), value,  intent(in)  :: handle_c
-   character(kind=c_char,len=1)     :: name_c(128)
+   type(c_ptr), value, intent(in) :: handle_c
+   character(kind=c_char,len=1) :: name_c(128)
    real(kind=c_double), intent(out) :: n_electrons
    integer(kind=c_int), intent(out) :: n_basis
    integer(kind=c_int), intent(out) :: n_lrow
@@ -1464,8 +1513,8 @@ subroutine elsi_read_mat_dim_sparse_c_wrapper(handle_c,name_c,n_electrons,&
 
    implicit none
 
-   type(c_ptr), value,  intent(in)  :: handle_c
-   character(kind=c_char,len=1)     :: name_c(128)
+   type(c_ptr), value, intent(in) :: handle_c
+   character(kind=c_char,len=1) :: name_c(128)
    real(kind=c_double), intent(out) :: n_electrons
    integer(kind=c_int), intent(out) :: n_basis
    integer(kind=c_int), intent(out) :: nnz_g
@@ -1491,11 +1540,11 @@ subroutine elsi_read_mat_real_c_wrapper(handle_c,name_c,mat_c)&
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   character(kind=c_char,len=1)   :: name_c(128)
+   character(kind=c_char,len=1) :: name_c(128)
    type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle), pointer :: handle_f
-   real(kind=c_double),  pointer :: mat_f(:,:)
+   real(kind=c_double), pointer :: mat_f(:,:)
 
    character(len=:), allocatable :: name_f
 
@@ -1522,15 +1571,15 @@ subroutine elsi_read_mat_real_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   character(kind=c_char,len=1)   :: name_c(128)
+   character(kind=c_char,len=1) :: name_c(128)
    type(c_ptr), value, intent(in) :: row_ind_c
    type(c_ptr), value, intent(in) :: col_ptr_c
    type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle), pointer :: handle_f
-   integer(kind=c_int),  pointer :: row_ind_f(:)
-   integer(kind=c_int),  pointer :: col_ptr_f(:)
-   real(kind=c_double),  pointer :: mat_f(:)
+   integer(kind=c_int), pointer :: row_ind_f(:)
+   integer(kind=c_int), pointer :: col_ptr_f(:)
+   real(kind=c_double), pointer :: mat_f(:)
 
    character(len=:), allocatable :: name_f
 
@@ -1540,7 +1589,7 @@ subroutine elsi_read_mat_real_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
    call c_f_pointer(handle_c,handle_f)
 
    nnz_l = handle_f%bh%nnz_l_sp
-   lcol  = handle_f%bh%n_lcol_sp
+   lcol = handle_f%bh%n_lcol_sp
 
    call c_f_pointer(row_ind_c,row_ind_f,shape=[nnz_l])
    call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
@@ -1558,11 +1607,11 @@ subroutine elsi_write_mat_real_c_wrapper(handle_c,name_c,mat_c)&
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   character(kind=c_char,len=1)   :: name_c(128)
+   character(kind=c_char,len=1) :: name_c(128)
    type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle), pointer :: handle_f
-   real(kind=c_double),  pointer :: mat_f(:,:)
+   real(kind=c_double), pointer :: mat_f(:,:)
 
    character(len=:), allocatable :: name_f
 
@@ -1589,15 +1638,15 @@ subroutine elsi_write_mat_real_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   character(kind=c_char,len=1)   :: name_c(128)
+   character(kind=c_char,len=1) :: name_c(128)
    type(c_ptr), value, intent(in) :: row_ind_c
    type(c_ptr), value, intent(in) :: col_ptr_c
    type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle), pointer :: handle_f
-   integer(kind=c_int),  pointer :: row_ind_f(:)
-   integer(kind=c_int),  pointer :: col_ptr_f(:)
-   real(kind=c_double),  pointer :: mat_f(:)
+   integer(kind=c_int), pointer :: row_ind_f(:)
+   integer(kind=c_int), pointer :: col_ptr_f(:)
+   real(kind=c_double), pointer :: mat_f(:)
 
    character(len=:), allocatable :: name_f
 
@@ -1607,7 +1656,7 @@ subroutine elsi_write_mat_real_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
    call c_f_pointer(handle_c,handle_f)
 
    nnz_l = handle_f%bh%nnz_l_sp
-   lcol  = handle_f%bh%n_lcol_sp
+   lcol = handle_f%bh%n_lcol_sp
 
    call c_f_pointer(row_ind_c,row_ind_f,shape=[nnz_l])
    call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
@@ -1625,10 +1674,10 @@ subroutine elsi_read_mat_complex_c_wrapper(handle_c,name_c,mat_c)&
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   character(kind=c_char,len=1)   :: name_c(128)
+   character(kind=c_char,len=1) :: name_c(128)
    type(c_ptr), value, intent(in) :: mat_c
 
-   type(elsi_rw_handle),   pointer :: handle_f
+   type(elsi_rw_handle), pointer :: handle_f
    complex(kind=c_double), pointer :: mat_f(:,:)
 
    character(len=:), allocatable :: name_f
@@ -1656,14 +1705,14 @@ subroutine elsi_read_mat_complex_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   character(kind=c_char,len=1)   :: name_c(128)
+   character(kind=c_char,len=1) :: name_c(128)
    type(c_ptr), value, intent(in) :: row_ind_c
    type(c_ptr), value, intent(in) :: col_ptr_c
    type(c_ptr), value, intent(in) :: mat_c
 
-   type(elsi_rw_handle),   pointer :: handle_f
-   integer(kind=c_int),    pointer :: row_ind_f(:)
-   integer(kind=c_int),    pointer :: col_ptr_f(:)
+   type(elsi_rw_handle), pointer :: handle_f
+   integer(kind=c_int), pointer :: row_ind_f(:)
+   integer(kind=c_int), pointer :: col_ptr_f(:)
    complex(kind=c_double), pointer :: mat_f(:)
 
    character(len=:), allocatable :: name_f
@@ -1674,7 +1723,7 @@ subroutine elsi_read_mat_complex_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
    call c_f_pointer(handle_c,handle_f)
 
    nnz_l = handle_f%bh%nnz_l_sp
-   lcol  = handle_f%bh%n_lcol_sp
+   lcol = handle_f%bh%n_lcol_sp
 
    call c_f_pointer(row_ind_c,row_ind_f,shape=[nnz_l])
    call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
@@ -1692,10 +1741,10 @@ subroutine elsi_write_mat_complex_c_wrapper(handle_c,name_c,mat_c)&
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   character(kind=c_char,len=1)   :: name_c(128)
+   character(kind=c_char,len=1) :: name_c(128)
    type(c_ptr), value, intent(in) :: mat_c
 
-   type(elsi_rw_handle),   pointer :: handle_f
+   type(elsi_rw_handle), pointer :: handle_f
    complex(kind=c_double), pointer :: mat_f(:,:)
 
    character(len=:), allocatable :: name_f
@@ -1723,14 +1772,14 @@ subroutine elsi_write_mat_complex_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   character(kind=c_char,len=1)   :: name_c(128)
+   character(kind=c_char,len=1) :: name_c(128)
    type(c_ptr), value, intent(in) :: row_ind_c
    type(c_ptr), value, intent(in) :: col_ptr_c
    type(c_ptr), value, intent(in) :: mat_c
 
-   type(elsi_rw_handle),   pointer :: handle_f
-   integer(kind=c_int),    pointer :: row_ind_f(:)
-   integer(kind=c_int),    pointer :: col_ptr_f(:)
+   type(elsi_rw_handle), pointer :: handle_f
+   integer(kind=c_int), pointer :: row_ind_f(:)
+   integer(kind=c_int), pointer :: col_ptr_f(:)
    complex(kind=c_double), pointer :: mat_f(:)
 
    character(len=:), allocatable :: name_f
@@ -1741,7 +1790,7 @@ subroutine elsi_write_mat_complex_sparse_c_wrapper(handle_c,name_c,row_ind_c,&
    call c_f_pointer(handle_c,handle_f)
 
    nnz_l = handle_f%bh%nnz_l_sp
-   lcol  = handle_f%bh%n_lcol_sp
+   lcol = handle_f%bh%n_lcol_sp
 
    call c_f_pointer(row_ind_c,row_ind_f,shape=[nnz_l])
    call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])

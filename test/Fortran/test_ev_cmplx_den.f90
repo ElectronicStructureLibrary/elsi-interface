@@ -39,8 +39,8 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: mu
    real(kind=r8) :: weight(1)
    real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref  = 0.0_r8
-   real(kind=r8) :: tol    = 0.0_r8
+   real(kind=r8) :: e_ref = 0.0_r8
+   real(kind=r8) :: tol = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -53,11 +53,11 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
    real(kind=r8), allocatable :: eval(:)
    real(kind=r8), allocatable :: occ(:)
 
-   type(elsi_handle)    :: e_h
+   type(elsi_handle) :: e_h
    type(elsi_rw_handle) :: rw_h
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa  = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
 
    call MPI_Comm_size(mpi_comm,n_proc,ierr)
    call MPI_Comm_rank(mpi_comm,myid,ierr)
@@ -118,7 +118,7 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
 
    call elsi_finalize_rw(rw_h)
 
-   ham_save  = ham
+   ham_save = ham
    ovlp_save = ovlp
 
    t2 = MPI_Wtime()
@@ -130,7 +130,7 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
    endif
 
    ! Initialize ELSI
-   n_states  = int(n_electrons,kind=i4)
+   n_states = int(n_electrons,kind=i4)
    weight(1) = 1.0_r8
 
    if(n_proc == 1) then

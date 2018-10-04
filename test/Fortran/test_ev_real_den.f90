@@ -39,8 +39,8 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: mu
    real(kind=r8) :: weight(1)
    real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref  = 0.0_r8
-   real(kind=r8) :: tol    = 0.0_r8
+   real(kind=r8) :: e_ref = 0.0_r8
+   real(kind=r8) :: tol = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -52,7 +52,7 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
    real(kind=r8), allocatable :: eval(:)
    real(kind=r8), allocatable :: occ(:)
 
-   type(elsi_handle)    :: e_h
+   type(elsi_handle) :: e_h
    type(elsi_rw_handle) :: rw_h
 
    ! Reference values
@@ -74,7 +74,7 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
       elseif(solver == 5) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_real + SLEPc-SIPs"
          e_ref = e_sips
-         tol   = 1.0e-6_r8
+         tol = 1.0e-6_r8
       endif
       write(*,*)
    endif
@@ -121,7 +121,7 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
 
    call elsi_finalize_rw(rw_h)
 
-   ham_save  = ham
+   ham_save = ham
    ovlp_save = ovlp
 
    t2 = MPI_Wtime()
@@ -133,7 +133,7 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
    endif
 
    ! Initialize ELSI
-   n_states  = int(n_electrons,kind=i4)
+   n_states = int(n_electrons,kind=i4)
    weight(1) = 1.0_r8
 
    if(n_proc == 1) then

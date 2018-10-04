@@ -45,8 +45,8 @@ program test_dm_kpt_spin_cmplx_den
 
    real(kind=r8) :: n_electrons
    real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref  = 0.0_r8
-   real(kind=r8) :: tol    = 0.0_r8
+   real(kind=r8) :: e_ref = 0.0_r8
+   real(kind=r8) :: tol = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -56,18 +56,18 @@ program test_dm_kpt_spin_cmplx_den
    complex(kind=r8), allocatable :: dm(:,:)
    complex(kind=r8), allocatable :: edm(:,:)
 
-   type(elsi_handle)    :: e_h
+   type(elsi_handle) :: e_h
    type(elsi_rw_handle) :: rw_h
 
    integer(kind=i4), parameter :: n_spin = 2
-   integer(kind=i4), parameter :: n_kpt  = 2
+   integer(kind=i4), parameter :: n_kpt = 2
 
    real(kind=r8), parameter :: k_weights(2) = 0.5_r8
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa   = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_omm    = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_pexsi  = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_omm = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
    real(kind=r8), parameter :: e_ntpoly = -2622.88214509311_r8
 
    ! Initialize MPI
@@ -124,7 +124,7 @@ program test_dm_kpt_spin_cmplx_den
       elseif(solver == 3) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + PEXSI"
          e_ref = e_pexsi
-         tol   = 1.0e-3_r8
+         tol = 1.0e-3_r8
       elseif(solver == 6) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + NTPoly"
          e_ref = e_ntpoly
@@ -137,12 +137,12 @@ program test_dm_kpt_spin_cmplx_den
    ! simplicity. Therefore, the 2 k-points and 2 spin channels can be evenly
    ! distributed among tasks. In practice, the number of MPI tasks assigned to
    ! different k-points and spin channels can be different.
-   n_group       = n_spin*n_kpt
-   group_size    = n_proc/(n_spin*n_kpt)
-   my_group      = myid/group_size
+   n_group = n_spin*n_kpt
+   group_size = n_proc/(n_spin*n_kpt)
+   my_group = myid/group_size
    myid_in_group = mod(myid,group_size)
-   my_spin       = 1+my_group/n_spin
-   my_kpt        = 1+mod(my_group,n_kpt)
+   my_spin = 1+my_group/n_spin
+   my_kpt = 1+mod(my_group,n_kpt)
 
    call MPI_Comm_split(mpi_comm,my_group,myid_in_group,mpi_comm_group,ierr)
 

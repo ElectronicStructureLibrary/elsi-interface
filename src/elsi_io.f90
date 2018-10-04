@@ -10,15 +10,14 @@
 module ELSI_IO
 
    use ELSI_CONSTANTS, only: MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
-                             SIESTA_CSC,UNSET,ELPA_SOLVER,PEXSI_SOLVER,&
-                             SIPS_SOLVER,OMM_SOLVER,NTPOLY_SOLVER
-   use ELSI_DATATYPE,  only: elsi_param_t,elsi_basic_t
+       SIESTA_CSC,UNSET,ELPA_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
+       NTPOLY_SOLVER
+   use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_PRECISION, only: r8,i4,i8
-   use FORTJSON,       only: fjson_write_name_value,fjson_reset_fj_handle,&
-                             fjson_start_name_object,fjson_start_array,&
-                             fjson_finish_object,fjson_open_file,fjson_handle,&
-                             fjson_start_object,fjson_get_datetime_rfc3339,&
-                             fjson_close_file,fjson_finish_array
+   use FORTJSON, only: fjson_write_name_value,fjson_reset_fj_handle,&
+       fjson_start_name_object,fjson_start_array,fjson_finish_object,&
+       fjson_open_file,fjson_handle,fjson_start_object,&
+       fjson_get_datetime_rfc3339,fjson_close_file,fjson_finish_array
 
    implicit none
 
@@ -43,13 +42,13 @@ subroutine elsi_say(bh,info_str)
    implicit none
 
    type(elsi_basic_t), intent(in) :: bh
-   character(len=*),   intent(in) :: info_str
+   character(len=*), intent(in) :: info_str
 
    character(len=*), parameter :: caller = "elsi_say"
 
    if(bh%print_info > 0) then
       write(bh%print_unit,"(A)") trim(info_str)
-   endif
+   end if
 
 end subroutine
 
@@ -60,16 +59,16 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(inout) :: bh
    type(fjson_handle), intent(inout) :: jh
-   character(len=*),   intent(in)    :: dt0
-   real(kind=r8),      intent(in)    :: t0
-   character(len=*),   intent(in)    :: caller
+   character(len=*), intent(in) :: dt0
+   real(kind=r8), intent(in) :: t0
+   character(len=*), intent(in) :: caller
 
-   integer(kind=i4)  :: solver_use
-   real(kind=r8)     :: t1
-   real(kind=r8)     :: t_total
+   integer(kind=i4) :: solver_use
+   real(kind=r8) :: t1
+   real(kind=r8) :: t_total
    character(len=20) :: solver_tag
    character(len=29) :: dt_record
 
@@ -81,10 +80,10 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
          if(.not. bh%uuid_ready) then
             call elsi_gen_uuid(bh%uuid)
             bh%uuid_ready = .true.
-         endif
+         end if
 
          bh%json_init = .true.
-      endif
+      end if
 
       call elsi_get_time(t1)
       call fjson_get_datetime_rfc3339(dt_record)
@@ -97,14 +96,14 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
             solver_tag = "LAPACK"
          else
             solver_tag = "ELPA"
-         endif
+         end if
       case(OMM_SOLVER)
          if(ph%n_calls <= ph%omm_n_elpa) then
             solver_tag = "ELPA"
          else
             solver_tag = "LIBOMM"
             solver_use = 2
-         endif
+         end if
       case(PEXSI_SOLVER)
          solver_tag = "PEXSI"
          solver_use = 3
@@ -114,7 +113,7 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
          else
             solver_tag = "SLEPC_SIPS"
             solver_use = 5
-         endif
+         end if
       case(NTPOLY_SOLVER)
          solver_tag = "NTPOLY"
          solver_use = 6
@@ -130,12 +129,12 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
          call fjson_write_name_value(jh,"output_type","EIGENSOLUTION")
       else
          call fjson_write_name_value(jh,"output_type","DENSITY MATRIX")
-      endif
+      end if
       if(caller(9:9) == "r") then
          call fjson_write_name_value(jh,"data_type","REAL")
       else
          call fjson_write_name_value(jh,"data_type","COMPLEX")
-      endif
+      end if
       call fjson_write_name_value(jh,"elsi_tag",trim(solver_tag))
       call fjson_write_name_value(jh,"user_tag",trim(bh%user_tag))
       call fjson_write_name_value(jh,"start_datetime",dt0)
@@ -162,10 +161,10 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
          call elsi_print_den_settings(bh,jh)
       else
          call elsi_print_csc_settings(bh,jh)
-      endif
+      end if
 
       call fjson_finish_object(jh)
-   endif
+   end if
 
 end subroutine
 
@@ -176,8 +175,8 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
-   type(elsi_basic_t), intent(in)    :: bh
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
    type(fjson_handle), intent(inout) :: jh
 
    real(kind=r8) :: sparsity
@@ -188,41 +187,41 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
    if(ph%parallel_mode == MULTI_PROC) then
       call fjson_write_name_value(jh,"n_spin",ph%n_spins)
       call fjson_write_name_value(jh,"n_kpts",ph%n_kpts)
-   endif
+   end if
    if(ph%solver == ELPA_SOLVER .or. ph%solver == SIPS_SOLVER) then
       call fjson_write_name_value(jh,"n_states",ph%n_states)
-   endif
+   end if
    if(ph%matrix_format == BLACS_DENSE) then
       call fjson_write_name_value(jh,"matrix_format","BLACS_DENSE")
-   elseif(ph%matrix_format == PEXSI_CSC) then
+   else if(ph%matrix_format == PEXSI_CSC) then
       call fjson_write_name_value(jh,"matrix_format","PEXSI_CSC")
-   elseif(ph%matrix_format == SIESTA_CSC) then
+   else if(ph%matrix_format == SIESTA_CSC) then
       call fjson_write_name_value(jh,"matrix_format","SIESTA_CSC")
-   endif
+   end if
    call fjson_write_name_value(jh,"n_basis",ph%n_basis)
    if(ph%parallel_mode == MULTI_PROC) then
       sparsity = 1.0_r8-(1.0_r8*bh%nnz_g/ph%n_basis/ph%n_basis)
       call fjson_write_name_value(jh,"sparsity",sparsity)
       call fjson_write_name_value(jh,"nnz_g",bh%nnz_g)
-   endif
+   end if
    if(ph%parallel_mode == MULTI_PROC) then
       call fjson_write_name_value(jh,"parallel_mode","MULTI_PROC")
-   elseif(ph%parallel_mode == SINGLE_PROC) then
+   else if(ph%parallel_mode == SINGLE_PROC) then
       call fjson_write_name_value(jh,"parallel_mode","SINGLE_PROC")
-   endif
+   end if
    call fjson_write_name_value(jh,"n_procs",bh%n_procs)
    call fjson_write_name_value(jh,"n_procs_all",bh%n_procs_all)
    if(ph%solver == ELPA_SOLVER) then
       call fjson_write_name_value(jh,"solver_chosen","ELPA")
-   elseif(ph%solver == NTPOLY_SOLVER) then
+   else if(ph%solver == NTPOLY_SOLVER) then
       call fjson_write_name_value(jh,"solver_chosen","NTPOLY")
-   elseif(ph%solver == OMM_SOLVER) then
+   else if(ph%solver == OMM_SOLVER) then
       call fjson_write_name_value(jh,"solver_chosen","libOMM")
-   elseif(ph%solver == PEXSI_SOLVER) then
+   else if(ph%solver == PEXSI_SOLVER) then
       call fjson_write_name_value(jh,"solver_chosen","PEXSI")
-   elseif(ph%solver == SIPS_SOLVER) then
+   else if(ph%solver == SIPS_SOLVER) then
       call fjson_write_name_value(jh,"solver_chosen","SLEPc_SIPs")
-   endif
+   end if
 
 end subroutine
 
@@ -233,13 +232,13 @@ subroutine elsi_print_versioning(uuid,jh)
 
    implicit none
 
-   character(len=*),   intent(in)    :: uuid
+   character(len=*), intent(in) :: uuid
    type(fjson_handle), intent(inout) :: jh
 
-   logical           :: MODIFIED
-   character(len=8)  :: VERSION
-   character(len=8)  :: DATESTAMP
-   character(len=8)  :: COMMIT
+   logical :: MODIFIED
+   character(len=8) :: VERSION
+   character(len=8) :: DATESTAMP
+   character(len=8) :: COMMIT
    character(len=40) :: MESSAGE
    character(len=40) :: HOSTNAME
    character(len=20) :: DATETIME
@@ -268,7 +267,7 @@ subroutine elsi_print_ntpoly_settings(ph,jh)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_param_t), intent(in) :: ph
    type(fjson_handle), intent(inout) :: jh
 
    character(len=*), parameter :: caller = "elsi_print_ntpoly_settings"
@@ -289,7 +288,7 @@ subroutine elsi_print_elpa_settings(ph,jh)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_param_t), intent(in) :: ph
    type(fjson_handle), intent(inout) :: jh
 
    character(len=*), parameter :: caller = "elsi_print_elpa_settings"
@@ -312,7 +311,7 @@ subroutine elsi_print_omm_settings(ph,jh)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_param_t), intent(in) :: ph
    type(fjson_handle), intent(inout) :: jh
 
    character(len=*), parameter :: caller = "elsi_print_omm_settings"
@@ -333,7 +332,7 @@ subroutine elsi_print_pexsi_settings(ph,jh)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_param_t), intent(in) :: ph
    type(fjson_handle), intent(inout) :: jh
 
    character(len=*), parameter :: caller = "elsi_print_pexsi_settings"
@@ -371,7 +370,7 @@ subroutine elsi_print_sips_settings(ph,jh)
 
    implicit none
 
-   type(elsi_param_t), intent(in)    :: ph
+   type(elsi_param_t), intent(in) :: ph
    type(fjson_handle), intent(inout) :: jh
 
    character(len=*), parameter :: caller = "elsi_print_sips_settings"
@@ -394,7 +393,7 @@ subroutine elsi_print_den_settings(bh,jh)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)    :: bh
+   type(elsi_basic_t), intent(in) :: bh
    type(fjson_handle), intent(inout) :: jh
 
    character(len=*), parameter :: caller = "elsi_print_den_settings"
@@ -415,7 +414,7 @@ subroutine elsi_print_csc_settings(bh,jh)
 
    implicit none
 
-   type(elsi_basic_t), intent(in)    :: bh
+   type(elsi_basic_t), intent(in) :: bh
    type(fjson_handle), intent(inout) :: jh
 
    character(len=*), parameter :: caller = "elsi_print_csc_settings"
@@ -439,7 +438,7 @@ subroutine elsi_final_print(ph,bh)
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
 
-   real(kind=r8)      :: sparsity
+   real(kind=r8) :: sparsity
    character(len=200) :: ll
    character(len=200) :: info_str
 
@@ -469,12 +468,12 @@ subroutine elsi_final_print(ph,bh)
 
       write(info_str,"(2X,A,I22)") "|   Number of k-points        :",ph%n_kpts
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    if(ph%solver == ELPA_SOLVER .or. ph%solver == SIPS_SOLVER) then
       write(info_str,"(2X,A,I22)") "|   Number of states          :",ph%n_states
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    write(info_str,"(2X,A)") "|"
    call elsi_say(bh,info_str)
@@ -485,13 +484,13 @@ subroutine elsi_final_print(ph,bh)
    if(ph%matrix_format == BLACS_DENSE) then
       write(info_str,"(2X,A,A22)") "|   Matrix format             :",&
          "BLACS_DENSE"
-   elseif(ph%matrix_format == PEXSI_CSC) then
+   else if(ph%matrix_format == PEXSI_CSC) then
       write(info_str,"(2X,A,A22)") "|   Matrix format             :",&
          "PEXSI_CSC"
-   elseif(ph%matrix_format == SIESTA_CSC) then
+   else if(ph%matrix_format == SIESTA_CSC) then
       write(info_str,"(2X,A,A22)") "|   Matrix format             :",&
          "SIESTA_CSC"
-   endif
+   end if
    call elsi_say(bh,info_str)
 
    write(info_str,"(2X,A,I22)") "|   Number of basis functions :",ph%n_basis
@@ -502,7 +501,7 @@ subroutine elsi_final_print(ph,bh)
 
       write(info_str,"(2X,A,E22.8)") "|   Matrix sparsity           :",sparsity
       call elsi_say(bh,info_str)
-   endif
+   end if
 
    write(info_str,"(2X,A)") "|"
    call elsi_say(bh,info_str)
@@ -513,10 +512,10 @@ subroutine elsi_final_print(ph,bh)
    if(ph%parallel_mode == MULTI_PROC) then
       write(info_str,"(2X,A,A22)") "|   Parallel mode             :",&
          "MULTI_PROC"
-   elseif(ph%parallel_mode == SINGLE_PROC) then
+   else if(ph%parallel_mode == SINGLE_PROC) then
       write(info_str,"(2X,A,A22)") "|   Parallel mode             :",&
          "SINGLE_PROC"
-   endif
+   end if
    call elsi_say(bh,info_str)
 
    write(info_str,"(2X,A,I22)") "|   Number of MPI tasks       :",bh%n_procs_all
@@ -524,16 +523,16 @@ subroutine elsi_final_print(ph,bh)
 
    if(ph%solver == ELPA_SOLVER) then
       write(info_str,"(2X,A,A22)") "|   Solver requested          :","ELPA"
-   elseif(ph%solver == OMM_SOLVER) then
+   else if(ph%solver == OMM_SOLVER) then
       write(info_str,"(2X,A,A22)") "|   Solver requested          :","libOMM"
-   elseif(ph%solver == PEXSI_SOLVER) then
+   else if(ph%solver == PEXSI_SOLVER) then
       write(info_str,"(2X,A,A22)") "|   Solver requested          :","PEXSI"
-   elseif(ph%solver == SIPS_SOLVER) then
+   else if(ph%solver == SIPS_SOLVER) then
       write(info_str,"(2X,A,A22)") "|   Solver requested          :",&
          "SLEPc-SIPs"
-   elseif(ph%solver == NTPOLY_SOLVER) then
+   else if(ph%solver == NTPOLY_SOLVER) then
       write(info_str,"(2X,A,A22)") "|   Solver requested          :","NTPoly"
-   endif
+   end if
    call elsi_say(bh,info_str)
 
    write(info_str,"(2X,A,I22)") "|   Number of ELSI calls      :",ph%n_calls
@@ -561,16 +560,16 @@ subroutine elsi_get_time(wtime)
 
    real(kind=r8), intent(out) :: wtime
 
-   character(len=8)  :: cdate
+   character(len=8) :: cdate
    character(len=10) :: ctime
-   integer(kind=i4)  :: val
-   integer(kind=i4)  :: int_year
-   real(kind=r8)     :: year
-   real(kind=r8)     :: day
-   real(kind=r8)     :: hour
-   real(kind=r8)     :: minute
-   real(kind=r8)     :: second
-   real(kind=r8)     :: millisecond
+   integer(kind=i4) :: val
+   integer(kind=i4) :: int_year
+   real(kind=r8) :: year
+   real(kind=r8) :: day
+   real(kind=r8) :: hour
+   real(kind=r8) :: minute
+   real(kind=r8) :: second
+   real(kind=r8) :: millisecond
 
    character(len=*), parameter :: caller = "elsi_get_time"
 
@@ -579,8 +578,8 @@ subroutine elsi_get_time(wtime)
    read(cdate(1:4),"(I4)") val
 
    int_year = val
-   year     = real(val,kind=r8)-2009.0_r8 ! 2009 is an arbitrary zero
-   day      = year*365+floor(year/4.0_r8)
+   year = real(val,kind=r8)-2009.0_r8 ! 2009 is an arbitrary zero
+   day = year*365+floor(year/4.0_r8)
 
    read(cdate(5:6),"(I2)") val
 
@@ -589,34 +588,34 @@ subroutine elsi_get_time(wtime)
    do while(val > 0)
       if(val == 1) then
          day = day+31
-      elseif(val == 2) then
+      else if(val == 2) then
          if(mod(int_year,4) == 0) then
             day = day+29
          else
             day = day+28
-         endif
-      elseif(val == 3) then
+         end if
+      else if(val == 3) then
          day = day+31
-      elseif(val == 4) then
+      else if(val == 4) then
          day = day+30
-      elseif(val == 5) then
+      else if(val == 5) then
          day = day+31
-      elseif(val == 6) then
+      else if(val == 6) then
          day = day+30
-      elseif(val == 7) then
+      else if(val == 7) then
          day = day+31
-      elseif(val == 8) then
+      else if(val == 8) then
          day = day+31
-      elseif(val == 9) then
+      else if(val == 9) then
          day = day+30
-      elseif(val == 10) then
+      else if(val == 10) then
          day = day+31
-      elseif(val == 11) then
+      else if(val == 11) then
          day = day+30
-      endif
+      end if
 
       val = val-1
-   enddo
+   end do
 
    read(cdate(7:8),"(I2)") val
    day = day+real(val,kind=r8)-1
@@ -651,7 +650,7 @@ subroutine elsi_gen_uuid(uuid)
    integer(kind=i4) :: ii3
    integer(kind=i4) :: ii4
    integer(kind=i4) :: i_entry
-   real(kind=r8)    :: rr(8)
+   real(kind=r8) :: rr(8)
    character(len=3) :: ss3
    character(len=4) :: ss4
 
@@ -670,18 +669,18 @@ subroutine elsi_gen_uuid(uuid)
 
       if(i_entry == 1) then
          write(uuid,"(A)") ss4
-      elseif(i_entry == 2) then
+      else if(i_entry == 2) then
          write(uuid,"(2A)") trim(uuid),ss4
-      elseif(i_entry == 3) then
+      else if(i_entry == 3) then
          write(uuid,"(3A)") trim(uuid),"-",ss4
-      elseif(i_entry == 4) then
+      else if(i_entry == 4) then
          write(uuid,"(3A)") trim(uuid),"-4",ss3
-      elseif(i_entry == 5) then
+      else if(i_entry == 5) then
          write(uuid,"(4A)") trim(uuid),"-A",ss3,"-"
       else
          write(uuid,"(2A)") trim(uuid),ss4
-      endif
-   enddo
+      end if
+   end do
 
 end subroutine
 
@@ -699,9 +698,9 @@ integer(kind=i4) function lcg(s)
       s = 104729
    else
       s = mod(s,int(huge(0_2)*2,kind=i8))
-   endif
+   end if
 
-   s   = mod(s*int(huge(0_2),kind=i8),int(huge(0_2)*2,kind=i8))
+   s = mod(s*int(huge(0_2),kind=i8),int(huge(0_2)*2,kind=i8))
    lcg = int(mod(s,int(huge(0),kind=i8)),kind(0))
 
 end function
@@ -735,7 +734,7 @@ subroutine elsi_init_random_seed()
    ! Writting the array with seeds
    do i = 1,n
       seed(i) = lcg(t)
-   enddo
+   end do
 
    call random_seed(put=seed)
 

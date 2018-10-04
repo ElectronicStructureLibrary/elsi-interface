@@ -62,8 +62,8 @@ subroutine sips_load_ham_ovlp(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham,ovlp)
    integer(kind=i4) :: nnz_l
    integer(kind=i4) :: col_idx(nnz_l)
    integer(kind=i4) :: row_ptr(ncol_l+1)
-   real(kind=r8)    :: ham(nnz_l)
-   real(kind=r8)    :: ovlp(nnz_l)
+   real(kind=r8) :: ham(nnz_l)
+   real(kind=r8) :: ovlp(nnz_l)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called."
    stop
@@ -79,7 +79,7 @@ subroutine sips_load_ham(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham)
    integer(kind=i4) :: nnz_l
    integer(kind=i4) :: col_idx(nnz_l)
    integer(kind=i4) :: row_ptr(ncol_l+1)
-   real(kind=r8)    :: ham(nnz_l)
+   real(kind=r8) :: ham(nnz_l)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called."
    stop
@@ -95,7 +95,7 @@ subroutine sips_update_ham(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham)
    integer(kind=i4) :: nnz_l
    integer(kind=i4) :: col_idx(nnz_l)
    integer(kind=i4) :: row_ptr(ncol_l+1)
-   real(kind=r8)    :: ham(nnz_l)
+   real(kind=r8) :: ham(nnz_l)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called."
    stop
@@ -129,7 +129,7 @@ subroutine sips_set_slices(nsub,subs)
    implicit none
 
    integer(kind=i4) :: nsub
-   real(kind=r8)    :: subs(nsub+1)
+   real(kind=r8) :: subs(nsub+1)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called."
    stop
@@ -153,7 +153,7 @@ subroutine sips_get_eigenvalues(nev,evals)
    implicit none
 
    integer(kind=i4) :: nev
-   real(kind=r8)    :: evals(nev)
+   real(kind=r8) :: evals(nev)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called."
    stop
@@ -166,7 +166,7 @@ subroutine sips_get_eigenvectors(nev,lrow,evec)
 
    integer(kind=i4) :: nev
    integer(kind=i4) :: lrow
-   real(kind=r8)    :: evec(lrow,nev)
+   real(kind=r8) :: evec(lrow,nev)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called."
    stop
@@ -178,7 +178,7 @@ subroutine sips_get_inertias(nsub,subs,inertias)
    implicit none
 
    integer(kind=i4) :: nsub
-   real(kind=r8)    :: subs(nsub+1)
+   real(kind=r8) :: subs(nsub+1)
    integer(kind=i4) :: inertias(nsub+1)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called."
@@ -193,10 +193,10 @@ subroutine sips_get_slices(algr,nev,nsub,buf,subbuf,evals,subs)
    integer(kind=i4) :: algr
    integer(kind=i4) :: nev
    integer(kind=i4) :: nsub
-   real(kind=r8)    :: buf
-   real(kind=r8)    :: subbuf
-   real(kind=r8)    :: evals(nev)
-   real(kind=r8)    :: subs(nsub+1)
+   real(kind=r8) :: buf
+   real(kind=r8) :: subbuf
+   real(kind=r8) :: evals(nev)
+   real(kind=r8) :: subs(nsub+1)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called."
    stop
@@ -210,7 +210,7 @@ subroutine sips_get_slices_from_inertias(nev,nsub,inertias,subs)
    integer(kind=i4) :: nev
    integer(kind=i4) :: nsub
    integer(kind=i4) :: inertias(nsub+1)
-   real(kind=r8)    :: subs(nsub+1)
+   real(kind=r8) :: subs(nsub+1)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called."
    stop
@@ -226,8 +226,8 @@ subroutine sips_get_dm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,dm)
    integer(kind=i4) :: col_idx(nnz_l)
    integer(kind=i4) :: row_ptr(ncol_l+1)
    integer(kind=i4) :: nev
-   real(kind=r8)    :: occ(nev)
-   real(kind=r8)    :: dm(nnz_l)
+   real(kind=r8) :: occ(nev)
+   real(kind=r8) :: dm(nnz_l)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called."
    stop
@@ -243,8 +243,8 @@ subroutine sips_get_edm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,edm)
    integer(kind=i4) :: col_idx(nnz_l)
    integer(kind=i4) :: row_ptr(ncol_l+1)
    integer(kind=i4) :: nev
-   real(kind=r8)    :: occ(nev)
-   real(kind=r8)    :: edm(nnz_l)
+   real(kind=r8) :: occ(nev)
+   real(kind=r8) :: edm(nnz_l)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called."
    stop
