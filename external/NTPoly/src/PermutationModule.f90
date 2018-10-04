@@ -78,7 +78,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Temporary, seed the random number generator
     CALL RANDOM_SEED(size=seed_size)
     ALLOCATE(seed(seed_size))
-    seed = 0
+    seed = 181004
     CALL RANDOM_SEED(put=seed)
 
 !! First fill by counting.
@@ -120,7 +120,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Temporary, seed the random number generator
     CALL RANDOM_SEED(size=seed_size)
     ALLOCATE(seed(seed_size))
-    seed = 0
+    seed = 181004
     CALL RANDOM_SEED(put=seed)
 
 !! First fill by counting.

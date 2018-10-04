@@ -11,7 +11,8 @@ MODULE GeometryOptimizationModule
        & IncrementMatrix, MatrixTrace, ScaleMatrix
   USE PSMatrixModule, ONLY : Matrix_ps, DestructMatrix, ConstructEmptyMatrix, &
        & FillMatrixIdentity, PrintMatrixInformation, CopyMatrix
-  USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters
+  USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters, &
+       & SolverParameters_init
   USE SquareRootSolversModule, ONLY : SquareRoot, InverseSquareRoot
   IMPLICIT NONE
   PRIVATE
@@ -56,7 +57,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = SolverParameters_t()
+       solver_parameters = SolverParameters_init()
     END IF
 
     IF (solver_parameters%be_verbose) THEN
@@ -213,7 +214,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = SolverParameters_t()
+       solver_parameters = SolverParameters_init()
     END IF
 
     IF (solver_parameters%be_verbose) THEN
