@@ -9,7 +9,7 @@
 !!
 module ELSI_OMM
 
-   use ELSI_CONSTANTS, only: BLACS_DENSE
+   use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_integer4
@@ -107,7 +107,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
    call m_register_pdbc(dm_omm,dm,bh%desc)
 
    ! Compute sparsity
-   if(ph%n_calls == 1 .and. ph%matrix_format == BLACS_DENSE) then
+   if(bh%nnz_l == UNSET .and. bh%nnz_g == UNSET) then
       call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
@@ -265,7 +265,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
    call m_register_pdbc(dm_omm,dm,bh%desc)
 
    ! Compute sparsity
-   if(ph%n_calls == 1 .and. ph%matrix_format == BLACS_DENSE) then
+   if(bh%nnz_l == UNSET .and. bh%nnz_g == UNSET) then
       call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)

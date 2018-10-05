@@ -1222,13 +1222,6 @@ subroutine elsi_set_pexsi_default(ph)
    ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(ph%pexsi_options)
 
-   ! Use 1 process in symbolic factorization
-   ph%pexsi_options%npSymbFact = 1
-
-   ! Use parallel matrix ordering by ParMETIS/PT-SCOTCH
-   ! Note: must use serial ordering on some platform (segfault otherwise)
-   ph%pexsi_options%ordering = 0
-
 end subroutine
 
 !>

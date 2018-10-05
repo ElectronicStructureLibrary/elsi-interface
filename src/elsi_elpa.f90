@@ -9,7 +9,7 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANTS, only: BLACS_DENSE,UT_MAT
+   use ELSI_CONSTANTS, only: UT_MAT,UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
@@ -623,7 +623,7 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    elpa_print_times = ph%elpa_output
 
    ! Compute sparsity
-   if(ph%n_calls == 1 .and. ph%matrix_format == BLACS_DENSE) then
+   if(bh%nnz_l == UNSET .and. bh%nnz_g == UNSET) then
       call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
@@ -1107,7 +1107,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    elpa_print_times = ph%elpa_output
 
    ! Compute sparsity
-   if(ph%n_calls == 1 .and. ph%matrix_format == BLACS_DENSE) then
+   if(bh%nnz_l == UNSET .and. bh%nnz_g == UNSET) then
       call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)

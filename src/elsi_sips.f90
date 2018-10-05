@@ -17,9 +17,9 @@ module ELSI_SIPS
    use ELSI_PRECISION, only: r8,i4
    use M_SIPS, only: sips_initialize,sips_load_ham_ovlp,sips_load_ham,&
        sips_update_ham,sips_set_eps,sips_update_eps,sips_set_slices,&
-       sips_solve_eps,sips_get_inertias,sips_get_eigenvalues,&
-       sips_get_eigenvectors,sips_get_slices,sips_get_slices_from_inertias,&
-       sips_get_dm,sips_get_edm,sips_finalize
+       sips_get_slices,sips_get_inertias,sips_get_slices_from_inertias,&
+       sips_solve_eps,sips_get_eigenvalues,sips_get_eigenvectors,sips_get_dm,&
+       sips_get_edm,sips_finalize
 
    implicit none
 
@@ -57,7 +57,7 @@ subroutine elsi_init_sips(ph,bh)
 
    character(len=*), parameter :: caller = "elsi_init_sips"
 
-   if(ph%n_calls == ph%sips_n_elpa+1) then
+   if(.not. ph%sips_started) then
       call sips_initialize()
 
       if(ph%sips_n_slices == UNSET) then
@@ -133,7 +133,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
          call sips_set_eps(1)
       end if
-   else ! n_calls > sips_n_elpa+1
+   else
       ! Update H matrix
       call sips_update_ham(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,&
               col_ptr,ham)

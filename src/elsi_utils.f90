@@ -11,8 +11,7 @@ module ELSI_UTILS
 
    use ELSI_CONSTANTS, only: UNSET,UT_MAT,LT_MAT,N_SOLVERS,N_PARALLEL_MODES,&
        N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
-       SIESTA_CSC,AUTO,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
-       NTPOLY_SOLVER
+       SIESTA_CSC,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&

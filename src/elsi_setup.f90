@@ -9,9 +9,8 @@
 !!
 module ELSI_SETUP
 
-   use ELSI_CONSTANTS, only: UNSET,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-       SIPS_SOLVER,NTPOLY_SOLVER,SINGLE_PROC,MULTI_PROC,BLACS_DENSE,PEXSI_CSC,&
-       SIESTA_CSC
+   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
+       NTPOLY_SOLVER,SINGLE_PROC,MULTI_PROC,BLACS_DENSE,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_NTPOLY, only: elsi_cleanup_ntpoly
    use ELSI_ELPA, only: elsi_cleanup_elpa
@@ -89,6 +88,7 @@ subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    end if
 
    if(solver == PEXSI_SOLVER) then
+      ! This overrides user settings, so must call it here
       call elsi_set_pexsi_default(eh%ph)
    end if
 

@@ -9,7 +9,6 @@
 !!
 module ELSI_REDIST
 
-   use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
