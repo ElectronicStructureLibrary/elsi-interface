@@ -7,7 +7,8 @@ MODULE PolynomialSolversModule
   USE PMatrixMemoryPoolModule
   USE PSMatrixAlgebraModule
   USE PSMatrixModule
-  USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters
+  USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters, &
+       & SolverParameters_init
   USE TimerModule
   IMPLICIT NONE
   PRIVATE
@@ -98,7 +99,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = SolverParameters_t()
+       solver_parameters = SolverParameters_init()
     END IF
 
     degree = SIZE(poly%coefficients)
@@ -188,7 +189,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = SolverParameters_t()
+       solver_parameters = SolverParameters_init()
     END IF
 
 !! Parameters for splitting up polynomial.

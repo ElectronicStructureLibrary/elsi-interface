@@ -9,6 +9,7 @@ MODULE TripletListModule
   USE TimerModule, ONLY : StartTimer, StopTimer
   USE ISO_C_BINDING, ONLY : c_int
   IMPLICIT NONE
+  PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: TripletList_r
   PUBLIC :: TripletList_c
@@ -25,6 +26,7 @@ MODULE TripletListModule
   PUBLIC :: RedistributeTripletLists
   PUBLIC :: ShiftTripletList
   PUBLIC :: ConvertTripletListType
+  PUBLIC :: ConstructTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTERFACE TripletList_r
      MODULE PROCEDURE ConstructTripletList_r

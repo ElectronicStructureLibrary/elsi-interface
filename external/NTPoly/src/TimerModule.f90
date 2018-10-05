@@ -5,6 +5,7 @@ MODULE TimerModule
        & WriteHeader
   USE ProcessGridModule, ONLY : global_grid
   USE NTMPIModule
+  USE DataTypesModule, ONLY : MPINTREAL
   IMPLICIT NONE
   PRIVATE
   LOGICAL :: is_initialized = .FALSE.
@@ -128,8 +129,8 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     DO timer_position = LBOUND(timer_list,dim=1), UBOUND(timer_list,dim=1)
        elapsed = elapsed_times(timer_position)
-       CALL MPI_Allreduce(elapsed, max_time, 1, MPI_DOUBLE ,MPI_MAX, &
-            & global_grid%global_comm, ierr)
+       CALL MPI_Allreduce(elapsed, max_time, 1, MPINTREAL, &
+            & MPI_MAX, global_grid%global_comm, ierr)
        CALL WriteElement(key=timer_list(timer_position), &
             & float_value_in=max_time)
     END DO
