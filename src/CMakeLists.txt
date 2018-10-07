@@ -1,7 +1,12 @@
 ### Generate version info ###
-ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
-  COMMAND perl ${PROJECT_SOURCE_DIR}/src/elsi_version_writer.pl ${PROJECT_VERSION} ${elsi_DATESTAMP} > ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
-  VERBATIM)
+INCLUDE(GetGitRevision)
+get_git_head_revision(GIT_COMMIT)
+
+STRING(TIMESTAMP DATETIME UTC)
+
+CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/src/elsi_version.f90.in
+  ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
+  @ONLY)
 
 ### Source files ###
 LIST(APPEND elsi_src

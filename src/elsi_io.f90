@@ -235,25 +235,20 @@ subroutine elsi_print_versioning(uuid,jh)
    character(len=*), intent(in) :: uuid
    type(fjson_handle), intent(inout) :: jh
 
-   logical :: MODIFIED
    character(len=8) :: VERSION
    character(len=8) :: DATESTAMP
    character(len=8) :: COMMIT
-   character(len=40) :: MESSAGE
    character(len=40) :: HOSTNAME
    character(len=20) :: DATETIME
 
    character(len=*), parameter :: caller = "elsi_print_versioning"
 
-   call elsi_version_info(VERSION,DATESTAMP,COMMIT,MODIFIED,MESSAGE,HOSTNAME,&
-           DATETIME)
+   call elsi_version_info(VERSION,DATESTAMP,COMMIT,HOSTNAME,DATETIME)
 
    call fjson_write_name_value(jh,"data_source","ELSI")
    call fjson_write_name_value(jh,"code_version",trim(VERSION))
    call fjson_write_name_value(jh,"code_date_stamp",trim(DATESTAMP))
    call fjson_write_name_value(jh,"git_commit_abbrev",trim(COMMIT))
-   call fjson_write_name_value(jh,"git_commit_modified",MODIFIED)
-   call fjson_write_name_value(jh,"git_message_abbrev",trim(MESSAGE))
    call fjson_write_name_value(jh,"compiled_on_hostname",trim(HOSTNAME))
    call fjson_write_name_value(jh,"compiled_at_datetime",trim(DATETIME))
    call fjson_write_name_value(jh,"uuid",trim(uuid))

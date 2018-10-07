@@ -1189,34 +1189,23 @@ subroutine elsi_get_version(major,minor,patch)
    integer(kind=i4), intent(out) :: patch !< Patch level
 
    integer(kind=i4) :: i
-   integer(kind=i4) :: j(2) ! Where are the dots
-   logical :: l1
+   integer(kind=i4) :: j
    character(len=8) :: s1
    character(len=8) :: s2
    character(len=8) :: s3
    character(len=40) :: s4
-   character(len=40) :: s5
-   character(len=20) :: s6
+   character(len=20) :: s5
 
    character(len=*), parameter :: caller = "elsi_get_version"
 
-   call elsi_version_info(s1,s2,s3,l1,s4,s5,s6)
+   call elsi_version_info(s1,s2,s3,s4,s5)
 
-   do i = 2,3
-      if(s1(i:i) == ".") then
-         j(1) = i
-      end if
-   end do
+   i = index(s1,".",.false.)
+   j = index(s1,".",.true.)
 
-   do i = 4,6
-      if(s1(i:i) == ".") then
-         j(2) = i
-      end if
-   end do
-
-   read(s1(1:j(1)-1),*) major
-   read(s1(j(1)+1:j(2)-1),*) minor
-   read(s1(j(2)+1:8),*) patch
+   read(s1(1:i-1),*) major
+   read(s1(i+1:j-1),*) minor
+   read(s1(j+1:8),*) patch
 
 end subroutine
 
@@ -1229,17 +1218,15 @@ subroutine elsi_get_datestamp(datestamp)
 
    integer(kind=i4), intent(out) :: datestamp !< Date stamp
 
-   logical :: l1
    character(len=8) :: s1
    character(len=8) :: s2
    character(len=8) :: s3
    character(len=40) :: s4
-   character(len=40) :: s5
-   character(len=20) :: s6
+   character(len=20) :: s5
 
    character(len=*), parameter :: caller = "elsi_get_datestamp"
 
-   call elsi_version_info(s1,s2,s3,l1,s4,s5,s6)
+   call elsi_version_info(s1,s2,s3,s4,s5)
 
    read(s2,*) datestamp
 
