@@ -11,8 +11,7 @@ SET(elsi_DATESTAMP "20181002")
 
 ### CMake modules ###
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-INCLUDE(color_message)
-INCLUDE(external_libraries)
+INCLUDE(Tools)
 
 ### Installation paths ###
 IF(PROJECT_BINARY_DIR STREQUAL PROJECT_SOURCE_DIR)

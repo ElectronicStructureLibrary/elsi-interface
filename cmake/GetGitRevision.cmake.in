@@ -1,0 +1,41 @@
+#
+# Internal file for GetGitRevisionDescription.cmake
+#
+# Requires CMake 2.6 or newer (uses the 'function' command)
+#
+# Original Author:
+# 2009-2010 Ryan Pavlik <rpavlik@iastate.edu> <abiryan@ryand.net>
+# http://academic.cleardefinition.com
+# Iowa State University HCI Graduate Program/VRAC
+#
+# Copyright Iowa State University 2009-2010.
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+
+SET(HEAD_HASH)
+
+FILE(READ "@HEAD_FILE@" HEAD_CONTENTS LIMIT 1024)
+
+STRING(STRIP "${HEAD_CONTENTS}" HEAD_CONTENTS)
+IF(HEAD_CONTENTS MATCHES "ref")
+  # Named branch
+  STRING(REPLACE "ref: " "" HEAD_REF "${HEAD_CONTENTS}")
+  IF(EXISTS "@GIT_DIR@/${HEAD_REF}")
+    CONFIGURE_FILE("@GIT_DIR@/${HEAD_REF}" "@GIT_DATA@/head-ref" COPYONLY)
+  ELSE()
+    CONFIGURE_FILE("@GIT_DIR@/packed-refs" "@GIT_DATA@/packed-refs" COPYONLY)
+    FILE(READ "@GIT_DATA@/packed-refs" PACKED_REFS)
+    IF(${PACKED_REFS} MATCHES "([0-9a-z]*) ${HEAD_REF}")
+      SET(HEAD_HASH "${CMAKE_MATCH_1}")
+    ENDIF()
+  ENDIF()
+ELSE()
+  # Detached HEAD
+  CONFIGURE_FILE("@GIT_DIR@/HEAD" "@GIT_DATA@/head-ref" COPYONLY)
+ENDIF()
+
+IF(NOT HEAD_HASH)
+  FILE(READ "@GIT_DATA@/head-ref" HEAD_HASH LIMIT 1024)
+  STRING(STRIP "${HEAD_HASH}" HEAD_HASH)
+ENDIF()
