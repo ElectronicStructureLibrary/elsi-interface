@@ -15,12 +15,12 @@ module ELSI_RW
        MULTI_PROC,SINGLE_PROC,UNSET,N_MATRIX_FORMATS,N_PARALLEL_MODES
    use ELSI_DATATYPE, only: elsi_handle,elsi_rw_handle,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_REDIST, only: elsi_sips_to_blacs_dm,elsi_blacs_to_sips_hs,&
-       elsi_blacs_to_sips_hs_dim
    use ELSI_MPI, only: mpi_sum,mpi_real8,mpi_complex16,mpi_integer4,&
        mpi_mode_rdonly,mpi_mode_wronly,mpi_mode_create,mpi_info_null,&
        mpi_status_ignore,mpi_success,elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4,i8
+   use ELSI_REDIST, only: elsi_sips_to_blacs_dm,elsi_blacs_to_sips_hs,&
+       elsi_blacs_to_sips_hs_dim
    use ELSI_SETUP, only: elsi_init,elsi_set_mpi,elsi_set_blacs,elsi_cleanup
    use ELSI_UTILS, only: elsi_get_nnz,elsi_reset_basic,elsi_check_init
 

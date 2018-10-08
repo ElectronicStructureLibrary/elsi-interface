@@ -14,15 +14,15 @@ module ELSI_MUTATOR
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_compute_edm_elpa
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_REDIST, only: elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,&
-       elsi_ntpoly_to_blacs_dm,elsi_ntpoly_to_siesta_dm,elsi_ntpoly_to_sips_dm,&
-       elsi_pexsi_to_blacs_dm,elsi_pexsi_to_siesta_dm,elsi_sips_to_blacs_dm,&
-       elsi_sips_to_siesta_dm
    use ELSI_MPI, only: elsi_stop
    use ELSI_NTPOLY, only: elsi_compute_edm_ntpoly
    use ELSI_OMM, only: elsi_compute_edm_omm
    use ELSI_PEXSI, only: elsi_compute_edm_pexsi
    use ELSI_PRECISION, only: r8,i4
+   use ELSI_REDIST, only: elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,&
+       elsi_ntpoly_to_blacs_dm,elsi_ntpoly_to_siesta_dm,elsi_ntpoly_to_sips_dm,&
+       elsi_pexsi_to_blacs_dm,elsi_pexsi_to_siesta_dm,elsi_sips_to_blacs_dm,&
+       elsi_sips_to_siesta_dm
    use ELSI_SIPS, only: elsi_compute_edm_sips
    use ELSI_UTILS, only: elsi_check_init
 

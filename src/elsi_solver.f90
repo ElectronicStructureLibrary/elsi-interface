@@ -14,12 +14,16 @@ module ELSI_SOLVER
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
        NTPOLY_SOLVER,MULTI_PROC,SINGLE_PROC,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
-   use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_solve_ntpoly
    use ELSI_ELPA, only: elsi_init_elpa,elsi_compute_occ_elpa,&
        elsi_compute_dm_elpa,elsi_solve_elpa
    use ELSI_IO, only: elsi_add_log,elsi_get_time,fjson_get_datetime_rfc3339
    use ELSI_LAPACK, only: elsi_solve_lapack
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
+   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
+   use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_solve_ntpoly
+   use ELSI_OMM, only: elsi_init_omm,elsi_solve_omm
+   use ELSI_PEXSI, only: elsi_init_pexsi,elsi_solve_pexsi
+   use ELSI_PRECISION, only: r8,i4
    use ELSI_REDIST, only: elsi_blacs_to_ntpoly_hs,elsi_blacs_to_pexsi_hs_dim,&
        elsi_blacs_to_pexsi_hs,elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,&
        elsi_blacs_to_sips_hs_dim,elsi_blacs_to_sips_hs,elsi_ntpoly_to_blacs_dm,&
@@ -29,10 +33,6 @@ module ELSI_SOLVER
        elsi_siesta_to_pexsi_hs,elsi_siesta_to_sips_hs_dim,&
        elsi_siesta_to_sips_hs,elsi_sips_to_blacs_dm,elsi_sips_to_blacs_ev,&
        elsi_sips_to_blacs_hs,elsi_sips_to_ntpoly_hs,elsi_sips_to_siesta_dm
-   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
-   use ELSI_OMM, only: elsi_init_omm,elsi_solve_omm
-   use ELSI_PEXSI, only: elsi_init_pexsi,elsi_solve_pexsi
-   use ELSI_PRECISION, only: r8,i4
    use ELSI_SETUP, only: elsi_set_blacs
    use ELSI_SIPS, only: elsi_init_sips,elsi_solve_sips,elsi_compute_dm_sips
    use ELSI_UTILS, only: elsi_check,elsi_check_init

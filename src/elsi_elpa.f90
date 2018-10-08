@@ -623,8 +623,10 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    elpa_print_times = ph%elpa_output
 
    ! Compute sparsity
-   if(bh%nnz_l == UNSET .and. bh%nnz_g == UNSET) then
-      call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+   if(bh%nnz_g == UNSET) then
+      if(bh%nnz_l == UNSET) then
+         call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+      end if
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
@@ -1107,8 +1109,10 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    elpa_print_times = ph%elpa_output
 
    ! Compute sparsity
-   if(bh%nnz_l == UNSET .and. bh%nnz_g == UNSET) then
-      call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+   if(bh%nnz_g == UNSET) then
+      if(bh%nnz_l == UNSET) then
+         call elsi_get_nnz(bh%def0,ham,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+      end if
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 

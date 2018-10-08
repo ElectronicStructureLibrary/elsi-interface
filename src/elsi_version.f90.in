@@ -3,7 +3,7 @@
 !
 ! This file is part of ELSI and is distributed under the BSD 3-clause license,
 ! which may be found in the LICENSE file in the ELSI root directory.
-!
+
 !>
 !! This subroutine returns details about ELSI's versioning.
 !!
