@@ -22,7 +22,7 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: N_PARALLEL_MODES = 2
 
    ! Method names
-   integer(kind=i4), parameter :: AUTO = 0
+   integer(kind=i4), parameter :: AUTO_SOLVER = 0
    integer(kind=i4), parameter :: ELPA_SOLVER = 1
    integer(kind=i4), parameter :: OMM_SOLVER = 2
    integer(kind=i4), parameter :: PEXSI_SOLVER = 3
