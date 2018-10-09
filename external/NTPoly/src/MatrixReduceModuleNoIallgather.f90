@@ -1,3 +1,5 @@
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> Module for reducing matrices across processes.
 MODULE MatrixReduceModule
@@ -10,30 +12,30 @@ MODULE MatrixReduceModule
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> A data structure to stores internal information about a reduce call.
+  !> A data structure to stores internal information about a reduce call.
   TYPE, PUBLIC :: ReduceHelper_t
-!> Number of processors involved in this gather.
+     !> Number of processors involved in this gather.
      INTEGER :: comm_size
-!> A request object for gathering outer indices.
+     !> A request object for gathering outer indices.
      INTEGER :: outer_request
-!> A request object for gathering inner indices.
+     !> A request object for gathering inner indices.
      INTEGER :: inner_request
-!> A request object for gathering data.
+     !> A request object for gathering data.
      INTEGER :: data_request
-!> The error code after an MPI call.
+     !> The error code after an MPI call.
      INTEGER :: error_code
-!> Number of values to gather from each process.
+     !> Number of values to gather from each process.
      INTEGER, DIMENSION(:), ALLOCATABLE :: values_per_process
-!> The displacements for where those gathered values should go.
+     !> The displacements for where those gathered values should go.
      INTEGER, DIMENSION(:), ALLOCATABLE :: displacement
 
-!> For mpi backup, a list of request objets for outer indices.
+     !> For mpi backup, a list of request objets for outer indices.
      INTEGER, DIMENSION(:), ALLOCATABLE :: outer_send_request_list
      INTEGER, DIMENSION(:), ALLOCATABLE :: outer_recv_request_list
-!> For mpi backup, a list of request objects for inner indices.
+     !> For mpi backup, a list of request objects for inner indices.
      INTEGER, DIMENSION(:), ALLOCATABLE :: inner_send_request_list
      INTEGER, DIMENSION(:), ALLOCATABLE :: inner_recv_request_list
-!> For mpi backup, a list of request object for data.
+     !> For mpi backup, a list of request object for data.
      INTEGER, DIMENSION(:), ALLOCATABLE :: data_send_request_list
      INTEGER, DIMENSION(:), ALLOCATABLE :: data_recv_request_list
 
@@ -76,26 +78,25 @@ MODULE MatrixReduceModule
      MODULE PROCEDURE ReduceAndSumMatrixCleanup_lsc
   END INTERFACE
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> The first routine to call, gathers the sizes of the data to be sent.
+  !> The first routine to call, gathers the sizes of the data to be sent.
   SUBROUTINE ReduceAndComposeMatrixSizes_lsr(matrix, communicator, &
        & gathered_matrix, helper)
-!> The matrix to send.
+    !> The matrix to send.
     TYPE(Matrix_lsr), INTENT(IN)        :: matrix
-!> The matrix we are gathering.
+    !> The matrix we are gathering.
     TYPE(Matrix_lsr), INTENT(INOUT)     :: gathered_matrix
-!> The communicator to send along.
+    !> The communicator to send along.
     INTEGER, INTENT(INOUT)              :: communicator
-!> The  helper associated with this gather.
+    !> The  helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-
-!! Local Data
+  !! Local Data
   INTEGER :: grid_error
   INTEGER :: II
   INTEGER :: istart, isize, iend
 
   CALL MPI_Comm_size(communicator,helper%comm_size,grid_error)
 
-!! Build Storage
+  !! Build Storage
   CALL ConstructEmptyMatrix(gathered_matrix, &
        & matrix%rows,matrix%columns*helper%comm_size)
   gathered_matrix%outer_index(1) = 0
@@ -103,9 +104,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ALLOCATE(helper%outer_send_request_list(helper%comm_size))
   ALLOCATE(helper%outer_recv_request_list(helper%comm_size))
 
-!! Send/Recv Outer Index
+  !! Send/Recv Outer Index
   DO II = 1, helper%comm_size
-!! Send/Recv Outer Index
+     !! Send/Recv Outer Index
      CALL MPI_ISend(matrix%outer_index(2:), matrix%columns, MPINTINTEGER, &
           & II-1, 3, communicator, helper%outer_send_request_list(II), &
           & grid_error)
@@ -116,29 +117,27 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           & MPINTINTEGER, II-1, 3, communicator, &
           & helper%outer_recv_request_list(II), grid_error)
   END DO
-
   END SUBROUTINE ReduceAndComposeMatrixSizes_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> The first routine to call, gathers the sizes of the data to be sent.
+  !> The first routine to call, gathers the sizes of the data to be sent.
   SUBROUTINE ReduceAndComposeMatrixSizes_lsc(matrix, communicator, &
        & gathered_matrix, helper)
-!! The matrix to send.
+    !! The matrix to send.
     TYPE(Matrix_lsc), INTENT(IN)        :: matrix
-!> The matrix we are gathering.
+    !> The matrix we are gathering.
     TYPE(Matrix_lsc), INTENT(INOUT)     :: gathered_matrix
-!! The communicator to send along.
+    !! The communicator to send along.
     INTEGER, INTENT(INOUT)              :: communicator
-!! The helper associated with this gather.
+    !! The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-
-!! Local Data
+  !! Local Data
   INTEGER :: grid_error
   INTEGER :: II
   INTEGER :: istart, isize, iend
 
   CALL MPI_Comm_size(communicator,helper%comm_size,grid_error)
 
-!! Build Storage
+  !! Build Storage
   CALL ConstructEmptyMatrix(gathered_matrix, &
        & matrix%rows,matrix%columns*helper%comm_size)
   gathered_matrix%outer_index(1) = 0
@@ -146,9 +145,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ALLOCATE(helper%outer_send_request_list(helper%comm_size))
   ALLOCATE(helper%outer_recv_request_list(helper%comm_size))
 
-!! Send/Recv Outer Index
+  !! Send/Recv Outer Index
   DO II = 1, helper%comm_size
-!! Send/Recv Outer Index
+     !! Send/Recv Outer Index
      CALL MPI_ISend(matrix%outer_index(2:), matrix%columns, MPINTINTEGER, &
           & II-1, 3, communicator, helper%outer_send_request_list(II), &
           & grid_error)
@@ -159,43 +158,41 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           & MPINTINTEGER, II-1, 3, communicator, &
           & helper%outer_recv_request_list(II), grid_error)
   END DO
-
   END SUBROUTINE ReduceAndComposeMatrixSizes_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Second function to call, will gather the data and align it one matrix
-!! @param[inout]
+  !> Second function to call, will gather the data and align it one matrix
+  !! @param[inout]
   SUBROUTINE ReduceAndComposeMatrixData_lsr(matrix, communicator, &
        & gathered_matrix, helper)
-!> The matrix to send.
+    !> The matrix to send.
     TYPE(Matrix_lsr), INTENT(IN)        :: matrix
-!> The matrix we are gathering.
+    !> The matrix we are gathering.
     TYPE(Matrix_lsr), INTENT(INOUT)     :: gathered_matrix
-!> The helper associated with this gather.
+    !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-!> The communicator to send along.
+    !> The communicator to send along.
     INTEGER, INTENT(INOUT)              :: communicator
-
-!! Local Data
+  !! Local Data
   INTEGER :: grid_error
   INTEGER :: II
   INTEGER :: total_values
   INTEGER :: istart, iend, isize
   INTEGER :: idx
 
-!! Send Receive Buffers
+  !! Send Receive Buffers
   ALLOCATE(helper%inner_send_request_list(helper%comm_size))
   ALLOCATE(helper%inner_recv_request_list(helper%comm_size))
   ALLOCATE(helper%data_send_request_list(helper%comm_size))
   ALLOCATE(helper%data_recv_request_list(helper%comm_size))
 
-!! Compute values per process
+  !! Compute values per process
   ALLOCATE(helper%values_per_process(helper%comm_size))
   DO II = 1, helper%comm_size
      idx = matrix%columns*II + 1
      helper%values_per_process(II) = gathered_matrix%outer_index(idx)
   END DO
 
-!! Build Displacement List
+  !! Build Displacement List
   ALLOCATE(helper%displacement(helper%comm_size))
   helper%displacement(1) = 0
   DO II = 2, SIZE(helper%displacement)
@@ -203,14 +200,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           & helper%values_per_process(II-1)
   END DO
 
-!! Build Storage
+  !! Build Storage
   total_values = SUM(helper%values_per_process)
   ALLOCATE(gathered_matrix%values(total_values))
   ALLOCATE(gathered_matrix%inner_index(total_values))
 
-!! MPI Calls
+  !! MPI Calls
   DO II = 1, helper%comm_size
-!! Send/Recv inner index
+     !! Send/Recv inner index
      CALL MPI_ISend(matrix%inner_index, SIZE(matrix%inner_index), MPINTINTEGER, &
           & II-1, 2, communicator, helper%inner_send_request_list(II), &
           & grid_error)
@@ -232,47 +229,45 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & II-1, 4, communicator, &
             & helper%data_recv_request_list(II), grid_error)
     END DO
-
   END SUBROUTINE ReduceAndComposeMatrixData_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Second function to call, will gather the data and align it one matrix
-!! next to another.
-!! @param[in] matrix to send.
-!! @param[inout] communicator to send along.
-!! @param[inout] gathered_matrix the matrix we are gathering.
-!! @param[inout] helper a helper associated with this gather.
+  !> Second function to call, will gather the data and align it one matrix
+  !! next to another.
+  !! @param[in] matrix to send.
+  !! @param[inout] communicator to send along.
+  !! @param[inout] gathered_matrix the matrix we are gathering.
+  !! @param[inout] helper a helper associated with this gather.
   SUBROUTINE ReduceAndComposeMatrixData_lsc(matrix, communicator, &
        & gathered_matrix, helper)
-!> The matrix to send.
+    !> The matrix to send.
     TYPE(Matrix_lsc), INTENT(IN)        :: matrix
-!> The matrix we are gathering.
+    !> The matrix we are gathering.
     TYPE(Matrix_lsc), INTENT(INOUT)     :: gathered_matrix
-!> The helper associated with this gather.
+    !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-!> The communicator to send along.
+    !> The communicator to send along.
     INTEGER, INTENT(INOUT)              :: communicator
-
-!! Local Data
+  !! Local Data
   INTEGER :: grid_error
   INTEGER :: II
   INTEGER :: total_values
   INTEGER :: istart, iend, isize
   INTEGER :: idx
 
-!! Send Receive Buffers
+  !! Send Receive Buffers
   ALLOCATE(helper%inner_send_request_list(helper%comm_size))
   ALLOCATE(helper%inner_recv_request_list(helper%comm_size))
   ALLOCATE(helper%data_send_request_list(helper%comm_size))
   ALLOCATE(helper%data_recv_request_list(helper%comm_size))
 
-!! Compute values per process
+  !! Compute values per process
   ALLOCATE(helper%values_per_process(helper%comm_size))
   DO II = 1, helper%comm_size
      idx = matrix%columns*II + 1
      helper%values_per_process(II) = gathered_matrix%outer_index(idx)
   END DO
 
-!! Build Displacement List
+  !! Build Displacement List
   ALLOCATE(helper%displacement(helper%comm_size))
   helper%displacement(1) = 0
   DO II = 2, SIZE(helper%displacement)
@@ -280,14 +275,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           & helper%values_per_process(II-1)
   END DO
 
-!! Build Storage
+  !! Build Storage
   total_values = SUM(helper%values_per_process)
   ALLOCATE(gathered_matrix%values(total_values))
   ALLOCATE(gathered_matrix%inner_index(total_values))
 
-!! MPI Calls
+  !! MPI Calls
   DO II = 1, helper%comm_size
-!! Send/Recv inner index
+     !! Send/Recv inner index
      CALL MPI_ISend(matrix%inner_index, SIZE(matrix%inner_index), MPINTINTEGER, &
           & II-1, 2, communicator, helper%inner_send_request_list(II), &
           & grid_error)
@@ -309,24 +304,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & MPINTCOMPLEX, II-1, 4, communicator, &
             & helper%data_recv_request_list(II), grid_error)
     END DO
-
   END SUBROUTINE ReduceAndComposeMatrixData_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Third function to call, finishes setting up the matrices.
+  !> Third function to call, finishes setting up the matrices.
   PURE SUBROUTINE ReduceAndComposeMatrixCleanup_lsr(matrix, gathered_matrix, &
        & helper)
-!> The matrix to send.
+    !> The matrix to send.
     TYPE(Matrix_lsr), INTENT(IN)    :: matrix
-!> The matrix we are gathering.
+    !> The matrix we are gathering.
     TYPE(Matrix_lsr), INTENT(INOUT) :: gathered_matrix
-!> The helper associated with this gather.
+    !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
 
-!! Local Data
+  !! Local Data
   INTEGER :: II, JJ
   INTEGER :: temp_offset
 
-!! Sum Up The Outer Indices
+  !! Sum Up The Outer Indices
   DO II = 1, helper%comm_size - 1
      temp_offset = II*matrix%columns+1
      DO JJ = 1, matrix%columns
@@ -337,7 +331,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
-
     IF (ALLOCATED(helper%outer_send_request_list)) THEN
        DEALLOCATE(helper%outer_send_request_list)
     END IF
@@ -356,25 +349,24 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (ALLOCATED(helper%data_recv_request_list)) THEN
        DEALLOCATE(helper%data_recv_request_list)
     END IF
-
 
   END SUBROUTINE ReduceAndComposeMatrixCleanup_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Third function to call, finishes setting up the matrices.
+  !> Third function to call, finishes setting up the matrices.
   PURE SUBROUTINE ReduceAndComposeMatrixCleanup_lsc(matrix, gathered_matrix, &
        & helper)
-!> The matrix to send.
+    !> The matrix to send.
     TYPE(Matrix_lsc), INTENT(IN)    :: matrix
-!> The matrix we are gathering.
+    !> The matrix we are gathering.
     TYPE(Matrix_lsc), INTENT(INOUT) :: gathered_matrix
-!> The helper associated with this gather.
+    !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
 
-!! Local Data
+  !! Local Data
   INTEGER :: II, JJ
   INTEGER :: temp_offset
 
-!! Sum Up The Outer Indices
+  !! Sum Up The Outer Indices
   DO II = 1, helper%comm_size - 1
      temp_offset = II*matrix%columns+1
      DO JJ = 1, matrix%columns
@@ -385,7 +377,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
-
     IF (ALLOCATED(helper%outer_send_request_list)) THEN
        DEALLOCATE(helper%outer_send_request_list)
     END IF
@@ -405,22 +396,20 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        DEALLOCATE(helper%data_recv_request_list)
     END IF
 
-
   END SUBROUTINE ReduceAndComposeMatrixCleanup_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> The first routine to call, gathers the sizes of the data to be sent.
+  !> The first routine to call, gathers the sizes of the data to be sent.
   SUBROUTINE ReduceAndSumMatrixSizes_lsr(matrix, communicator,  &
        & gathered_matrix, helper)
-!> The matrix to send.
+    !> The matrix to send.
     TYPE(Matrix_lsr), INTENT(IN)        :: matrix
-!> The matrix we are gathering.
+    !> The matrix we are gathering.
     TYPE(Matrix_lsr), INTENT(INOUT)     :: gathered_matrix
-!> The communicator to send along.
+    !> The communicator to send along.
     INTEGER, INTENT(INOUT)              :: communicator
-!> The  helper associated with this gather.
+    !> The  helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-
-!! Local Data
+  !! Local Data
   INTEGER :: grid_error
   INTEGER :: sum_outer_indices
   INTEGER :: II
@@ -428,7 +417,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL MPI_Comm_size(communicator,helper%comm_size,grid_error)
 
-!! Build Storage
+  !! Build Storage
   CALL DestructMatrix(gathered_matrix)
   sum_outer_indices = (matrix%columns+1)*helper%comm_size
   ALLOCATE(gathered_matrix%outer_index(sum_outer_indices+1))
@@ -436,7 +425,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ALLOCATE(helper%outer_send_request_list(helper%comm_size))
   ALLOCATE(helper%outer_recv_request_list(helper%comm_size))
 
-!! Send/Recv Outer Index
+  !! Send/Recv Outer Index
   DO II = 1, helper%comm_size
      CALL MPI_ISend(matrix%outer_index, SIZE(matrix%outer_index), &
           & MPINTINTEGER, II-1, 3, communicator, &
@@ -448,22 +437,20 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           & MPINTINTEGER, II-1, 3, communicator, &
           & helper%outer_recv_request_list(II), grid_error)
   END DO
-
   END SUBROUTINE ReduceAndSumMatrixSizes_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> The first routine to call, gathers the sizes of the data to be sent.
+  !> The first routine to call, gathers the sizes of the data to be sent.
   SUBROUTINE ReduceAndSumMatrixSizes_lsc(matrix, communicator,  &
        & gathered_matrix, helper)
-!! The matrix to send.
+    !! The matrix to send.
     TYPE(Matrix_lsc), INTENT(IN)        :: matrix
-!> The matrix we are gathering.
+    !> The matrix we are gathering.
     TYPE(Matrix_lsc), INTENT(INOUT)     :: gathered_matrix
-!! The communicator to send along.
+    !! The communicator to send along.
     INTEGER, INTENT(INOUT)              :: communicator
-!! The helper associated with this gather.
+    !! The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-
-!! Local Data
+  !! Local Data
   INTEGER :: grid_error
   INTEGER :: sum_outer_indices
   INTEGER :: II
@@ -471,7 +458,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL MPI_Comm_size(communicator,helper%comm_size,grid_error)
 
-!! Build Storage
+  !! Build Storage
   CALL DestructMatrix(gathered_matrix)
   sum_outer_indices = (matrix%columns+1)*helper%comm_size
   ALLOCATE(gathered_matrix%outer_index(sum_outer_indices+1))
@@ -479,7 +466,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ALLOCATE(helper%outer_send_request_list(helper%comm_size))
   ALLOCATE(helper%outer_recv_request_list(helper%comm_size))
 
-!! Send/Recv Outer Index
+  !! Send/Recv Outer Index
   DO II = 1, helper%comm_size
      CALL MPI_ISend(matrix%outer_index, SIZE(matrix%outer_index), &
           & MPINTINTEGER, II-1, 3, communicator, &
@@ -491,42 +478,40 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           & MPINTINTEGER, II-1, 3, communicator, &
           & helper%outer_recv_request_list(II), grid_error)
   END DO
-
   END SUBROUTINE ReduceAndSumMatrixSizes_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Second routine to call for gathering and summing up the data.
+  !> Second routine to call for gathering and summing up the data.
   SUBROUTINE ReduceAndSumMatrixData_lsr(matrix, gathered_matrix, communicator, &
        & helper)
-!> The matrix to send.
+    !> The matrix to send.
     TYPE(Matrix_lsr), INTENT(IN)        :: matrix
-!> The matrix we are gathering.
+    !> The matrix we are gathering.
     TYPE(Matrix_lsr), INTENT(INOUT)     :: gathered_matrix
-!> The communicator to send along.
+    !> The communicator to send along.
     INTEGER, INTENT(INOUT)              :: communicator
-!> The helper associated with this gather.
+    !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-
-!! Local Data
+  !! Local Data
   INTEGER :: grid_error
   INTEGER :: II
   INTEGER :: sum_total_values
   INTEGER :: istart, isize, iend
   INTEGER :: idx
 
-!! Send Receive Buffers
+  !! Send Receive Buffers
   ALLOCATE(helper%inner_send_request_list(helper%comm_size))
   ALLOCATE(helper%inner_recv_request_list(helper%comm_size))
   ALLOCATE(helper%data_send_request_list(helper%comm_size))
   ALLOCATE(helper%data_recv_request_list(helper%comm_size))
 
-!! Compute values per process
+  !! Compute values per process
   ALLOCATE(helper%values_per_process(helper%comm_size))
   DO II = 1, helper%comm_size
      idx = (matrix%columns+1)*II
      helper%values_per_process(II) = gathered_matrix%outer_index(idx)
   END DO
 
-!! Build Displacement List
+  !! Build Displacement List
   ALLOCATE(helper%displacement(helper%comm_size))
   helper%displacement(1) = 0
   DO II = 2, SIZE(helper%displacement)
@@ -534,14 +519,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           & helper%values_per_process(II-1)
   END DO
 
-!! Build Storage
+  !! Build Storage
   sum_total_values = SUM(helper%values_per_process)
   ALLOCATE(gathered_matrix%values(sum_total_values))
   ALLOCATE(gathered_matrix%inner_index(sum_total_values))
 
-!! MPI Calls
+  !! MPI Calls
   DO II = 1, helper%comm_size
-!! Send/Recv inner index
+     !! Send/Recv inner index
      CALL MPI_ISend(matrix%inner_index, SIZE(matrix%inner_index), &
           & MPINTINTEGER, II-1, 2, communicator, &
           & helper%inner_send_request_list(II), grid_error)
@@ -563,45 +548,43 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & II-1, 4, communicator, &
             & helper%data_recv_request_list(II), grid_error)
     END DO
-
   END SUBROUTINE ReduceAndSumMatrixData_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Second routine to call for gathering and summing up the data.
-!! @param[in] matrix to send.
-!! @param[inout] communicator to send along.
-!! @param[inout] helper a helper associated with this gather.
+  !> Second routine to call for gathering and summing up the data.
+  !! @param[in] matrix to send.
+  !! @param[inout] communicator to send along.
+  !! @param[inout] helper a helper associated with this gather.
   SUBROUTINE ReduceAndSumMatrixData_lsc(matrix, gathered_matrix, communicator, &
        & helper)
-!> The matrix to send.
+    !> The matrix to send.
     TYPE(Matrix_lsc), INTENT(IN)    :: matrix
-!> The matrix we are gathering.
+    !> The matrix we are gathering.
     TYPE(Matrix_lsc), INTENT(INOUT) :: gathered_matrix
-!> The communicator to send along.
+    !> The communicator to send along.
     INTEGER, INTENT(INOUT)              :: communicator
-!> The helper associated with this gather.
+    !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-
-!! Local Data
+  !! Local Data
   INTEGER :: grid_error
   INTEGER :: II
   INTEGER :: sum_total_values
   INTEGER :: istart, isize, iend
   INTEGER :: idx
 
-!! Send Receive Buffers
+  !! Send Receive Buffers
   ALLOCATE(helper%inner_send_request_list(helper%comm_size))
   ALLOCATE(helper%inner_recv_request_list(helper%comm_size))
   ALLOCATE(helper%data_send_request_list(helper%comm_size))
   ALLOCATE(helper%data_recv_request_list(helper%comm_size))
 
-!! Compute values per process
+  !! Compute values per process
   ALLOCATE(helper%values_per_process(helper%comm_size))
   DO II = 1, helper%comm_size
      idx = (matrix%columns+1)*II
      helper%values_per_process(II) = gathered_matrix%outer_index(idx)
   END DO
 
-!! Build Displacement List
+  !! Build Displacement List
   ALLOCATE(helper%displacement(helper%comm_size))
   helper%displacement(1) = 0
   DO II = 2, SIZE(helper%displacement)
@@ -609,14 +592,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           & helper%values_per_process(II-1)
   END DO
 
-!! Build Storage
+  !! Build Storage
   sum_total_values = SUM(helper%values_per_process)
   ALLOCATE(gathered_matrix%values(sum_total_values))
   ALLOCATE(gathered_matrix%inner_index(sum_total_values))
 
-!! MPI Calls
+  !! MPI Calls
   DO II = 1, helper%comm_size
-!! Send/Recv inner index
+     !! Send/Recv inner index
      CALL MPI_ISend(matrix%inner_index, SIZE(matrix%inner_index), &
           & MPINTINTEGER, II-1, 2, communicator, &
           & helper%inner_send_request_list(II), grid_error)
@@ -638,32 +621,31 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & MPINTCOMPLEX, II-1, 4, communicator, &
             & helper%data_recv_request_list(II), grid_error)
     END DO
-
   END SUBROUTINE ReduceAndSumMatrixData_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Finally routine to sum up the matrices.
+  !> Finally routine to sum up the matrices.
   PURE SUBROUTINE ReduceAndSumMatrixCleanup_lsr(matrix, gathered_matrix, &
        & threshold, helper)
-!> The matrix to send.
+    !> The matrix to send.
     TYPE(Matrix_lsr), INTENT(IN)        :: matrix
-!> The gathered_matrix the matrix being gathered.
+    !> The gathered_matrix the matrix being gathered.
     TYPE(Matrix_lsr), INTENT(INOUT)     :: gathered_matrix
-!> The threshold the threshold for flushing values.
+    !> The threshold the threshold for flushing values.
     REAL(NTREAL), INTENT(IN)            :: threshold
-!> The helper associated with this gather.
+    !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-!! Local Data
+    !! Local Data
     TYPE(Matrix_lsr) :: temporary_matrix, sum_matrix
 
-!! Local Data
+  !! Local Data
   INTEGER :: II
   INTEGER :: temporary_total_values
 
-!! Build Matrix Objects
+  !! Build Matrix Objects
   CALL ConstructEmptyMatrix(temporary_matrix,matrix%rows,matrix%columns)
   CALL ConstructEmptyMatrix(sum_matrix,matrix%rows,matrix%columns)
 
-!! Sum
+  !! Sum
   DO II = 1, helper%comm_size
      temporary_total_values = helper%values_per_process(II)
      ALLOCATE(temporary_matrix%values(temporary_total_values))
@@ -691,7 +673,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructMatrix(temporary_matrix)
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
-
     IF (ALLOCATED(helper%outer_send_request_list)) THEN
        DEALLOCATE(helper%outer_send_request_list)
     END IF
@@ -710,32 +691,31 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (ALLOCATED(helper%data_recv_request_list)) THEN
        DEALLOCATE(helper%data_recv_request_list)
     END IF
-
   END SUBROUTINE ReduceAndSumMatrixCleanup_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Finally routine to sum up the matrices.
+  !> Finally routine to sum up the matrices.
   PURE SUBROUTINE ReduceAndSumMatrixCleanup_lsc(matrix, gathered_matrix, &
        & threshold, helper)
-!> The matrix to send.
+    !> The matrix to send.
     TYPE(Matrix_lsc), INTENT(IN)        :: matrix
-!> The threshold the threshold for flushing values.
+    !> The threshold the threshold for flushing values.
     TYPE(Matrix_lsc), INTENT(INOUT)     :: gathered_matrix
-!> The threshold the threshold for flushing values.
+    !> The threshold the threshold for flushing values.
     REAL(NTREAL), INTENT(IN)            :: threshold
-!> The helper associated with this gather.
+    !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-!! Local Data
+    !! Local Data
     TYPE(Matrix_lsc) :: temporary_matrix, sum_matrix
 
-!! Local Data
+  !! Local Data
   INTEGER :: II
   INTEGER :: temporary_total_values
 
-!! Build Matrix Objects
+  !! Build Matrix Objects
   CALL ConstructEmptyMatrix(temporary_matrix,matrix%rows,matrix%columns)
   CALL ConstructEmptyMatrix(sum_matrix,matrix%rows,matrix%columns)
 
-!! Sum
+  !! Sum
   DO II = 1, helper%comm_size
      temporary_total_values = helper%values_per_process(II)
      ALLOCATE(temporary_matrix%values(temporary_total_values))
@@ -763,7 +743,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructMatrix(temporary_matrix)
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
-
     IF (ALLOCATED(helper%outer_send_request_list)) THEN
        DEALLOCATE(helper%outer_send_request_list)
     END IF
@@ -782,16 +761,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (ALLOCATED(helper%data_recv_request_list)) THEN
        DEALLOCATE(helper%data_recv_request_list)
     END IF
-
   END SUBROUTINE ReduceAndSumMatrixCleanup_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Test if a request for the size of the matrices is complete.
+  !> Test if a request for the size of the matrices is complete.
   FUNCTION TestReduceSizeRequest(helper) RESULT(request_completed)
-!> The gatherer helper structure.
+    !> The gatherer helper structure.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-!> True if the request is finished.
+    !> True if the request is finished.
     LOGICAL :: request_completed
-
     LOGICAL :: send_request_completed, recv_request_completed
     CALL MPI_Testall(SIZE(helper%outer_send_request_list), &
          & helper%outer_send_request_list, send_request_completed, &
@@ -800,16 +777,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & helper%outer_recv_request_list, recv_request_completed, &
          & MPI_STATUSES_IGNORE, helper%error_code)
     request_completed = send_request_completed .AND. recv_request_completed
-
   END FUNCTION TestReduceSizeRequest
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Test if a request for the inner indices of the matrices is complete.
+  !> Test if a request for the inner indices of the matrices is complete.
   FUNCTION TestReduceInnerRequest(helper) RESULT(request_completed)
-!> The gatherer helper structure.
+    !> The gatherer helper structure.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-!> True if the request is finished.
+    !> True if the request is finished.
     LOGICAL :: request_completed
-
     LOGICAL :: send_request_completed, recv_request_completed
     CALL MPI_Testall(SIZE(helper%inner_send_request_list), &
          & helper%inner_send_request_list, send_request_completed, &
@@ -818,16 +793,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & helper%inner_recv_request_list, recv_request_completed, &
          & MPI_STATUSES_IGNORE, helper%error_code)
     request_completed = send_request_completed .AND. recv_request_completed
-
   END FUNCTION TestReduceInnerRequest
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Test if a request for the data of the matrices is complete.
+  !> Test if a request for the data of the matrices is complete.
   FUNCTION TestReduceDataRequest(helper) RESULT(request_completed)
-!> The gatherer helper structure.
+    !> The gatherer helper structure.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
-!> True if the request is finished.
+    !> True if the request is finished.
     LOGICAL :: request_completed
-
     LOGICAL :: send_request_completed, recv_request_completed
     CALL MPI_Testall(SIZE(helper%data_send_request_list), &
          & helper%data_send_request_list, send_request_completed, &
@@ -836,7 +809,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & helper%data_recv_request_list, recv_request_completed, &
          & MPI_STATUSES_IGNORE, helper%error_code)
     request_completed = send_request_completed .AND. recv_request_completed
-
   END FUNCTION TestReduceDataRequest
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE MatrixReduceModule

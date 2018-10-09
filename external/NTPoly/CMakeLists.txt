@@ -17,7 +17,6 @@ LIST(APPEND ntpoly_src
   src/LoggingModule.f90
   src/MatrixMarketModule.f90
   src/MatrixMemoryPoolModule.f90
-  src/MinimizerSolversModule.f90
   src/NTMPIModule.f90
   src/PermutationModule.f90
   src/PMatrixMemoryPoolModule.f90

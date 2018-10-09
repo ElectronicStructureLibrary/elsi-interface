@@ -1,3 +1,5 @@
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A Module For Storing Triplets of Integer, Integer, Value.
 MODULE TripletModule
@@ -32,33 +34,33 @@ MODULE TripletModule
      MODULE PROCEDURE ConvertTripletToComplex
   END INTERFACE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> A data type for a triplet of integer, integer, double.
-!> As this is related to matrix multiplication, the referencing indices are
-!> rows and columns.
+  !> A data type for a triplet of integer, integer, double.
+  !> As this is related to matrix multiplication, the referencing indices are
+  !> rows and columns.
   TYPE, PUBLIC :: Triplet_r
      INTEGER(kind=c_int) :: index_column !< column value.
      INTEGER(kind=c_int) :: index_row    !< row value.
      REAL(NTREAL)        :: point_value  !< actual value at those indices.
   END TYPE Triplet_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> A data type for a triplet of integer, integer, complex.
-!> As this is related to matrix multiplication, the referencing indices are
-!> rows and columns.
+  !> A data type for a triplet of integer, integer, complex.
+  !> As this is related to matrix multiplication, the referencing indices are
+  !> rows and columns.
   TYPE, PUBLIC :: Triplet_c
      INTEGER(kind=c_int) :: index_column !< column value.
      INTEGER(kind=c_int) :: index_row    !< row value.
      COMPLEX(NTCOMPLEX)  :: point_value  !< actual value at those indices.
   END TYPE Triplet_c
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Set the values of a triplet.
+  !> Set the values of a triplet.
   PURE SUBROUTINE SetTriplet_r(this,index_column,index_row,point_value)
-!> The triplet to set the values of.
+    !> The triplet to set the values of.
     TYPE(Triplet_r), INTENT(INOUT) :: this
-!> The column value.
+    !> The column value.
     INTEGER, INTENT(IN)            :: index_column
-!> The row value.
+    !> The row value.
     INTEGER, INTENT(IN)            :: index_row
-!> The value at that point.
+    !> The value at that point.
     REAL(NTREAL), INTENT(IN)       :: point_value
 
   this%index_column = index_column
@@ -67,15 +69,15 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   END SUBROUTINE SetTriplet_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Set the values of a triplet.
+  !> Set the values of a triplet.
   PURE SUBROUTINE SetTriplet_c(this,index_column,index_row,point_value)
-!> The triplet to set the values of.
+    !> The triplet to set the values of.
     TYPE(Triplet_c), INTENT(INOUT) :: this
-!> The column value.
+    !> The column value.
     INTEGER, INTENT(IN)            :: index_column
-!> The row value.
+    !> The row value.
     INTEGER, INTENT(IN)            :: index_row
-!> The value at that point.
+    !> The value at that point.
     COMPLEX(NTCOMPLEX), INTENT(IN) :: point_value
 
   this%index_column = index_column
@@ -84,15 +86,15 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   END SUBROUTINE SetTriplet_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Get the values of a triplet.
+  !> Get the values of a triplet.
   PURE SUBROUTINE GetTripletValues_r(this,index_column,index_row,point_value)
-!> The triplet to extract the values of.
+    !> The triplet to extract the values of.
     TYPE(Triplet_r), INTENT(IN) :: this
-!> Column value.
+    !> Column value.
     INTEGER, INTENT(OUT)        :: index_column
-!> Row value.
+    !> Row value.
     INTEGER, INTENT(OUT)        :: index_row
-!> Actual stored value.
+    !> Actual stored value.
     REAL(NTREAL), INTENT(OUT)   :: point_value
 
   index_column = this%index_column
@@ -101,15 +103,15 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   END SUBROUTINE GetTripletValues_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Get the values of a triplet.
+  !> Get the values of a triplet.
   PURE SUBROUTINE GetTripletValues_c(this,index_column,index_row,point_value)
-!> The triplet to extract the values of.
+    !> The triplet to extract the values of.
     TYPE(Triplet_c), INTENT(IN)     :: this
-!> Column value.
+    !> Column value.
     INTEGER, INTENT(OUT)            :: index_column
-!> Row value.
+    !> Row value.
     INTEGER, INTENT(OUT)            :: index_row
-!> Actual stored value.
+    !> Actual stored value.
     COMPLEX(NTCOMPLEX), INTENT(OUT) :: point_value
 
   index_column = this%index_column
@@ -118,14 +120,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   END SUBROUTINE GetTripletValues_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Compare two triplets based on their index values, first by column and
-!> second by row. Returns A < B.
+  !> Compare two triplets based on their index values, first by column and
+  !> second by row. Returns A < B.
   PURE FUNCTION CompareTriplets_r(tripA, tripB) RESULT(islessthan)
-!> First triplet.
+    !> First triplet.
     TYPE(Triplet_r), INTENT(IN) :: tripA
-!> Second triplet.
+    !> Second triplet.
     TYPE(Triplet_r), INTENT(IN) :: tripB
-!> A < B.
+    !> A < B.
     LOGICAL :: islessthan
 
   IF (tripA%index_column .GT. tripB%index_column) THEN
@@ -139,14 +141,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   END FUNCTION CompareTriplets_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Compare two triplets based on their index values, first by column and
-!> second by row. Returns A < B.
+  !> Compare two triplets based on their index values, first by column and
+  !> second by row. Returns A < B.
   PURE FUNCTION CompareTriplets_c(tripA, tripB) RESULT(islessthan)
-!> First triplet.
+    !> First triplet.
     TYPE(Triplet_c), INTENT(IN) :: tripA
-!> Second triplet.
+    !> Second triplet.
     TYPE(Triplet_c), INTENT(IN) :: tripB
-!> A < B.
+    !> A < B.
     LOGICAL :: islessthan
 
   IF (tripA%index_column .GT. tripB%index_column) THEN
@@ -160,14 +162,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   END FUNCTION CompareTriplets_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Returns an MPI Derived Data Type For A Triplet.
-!> We statically store this derived type so that we don't have to recreate
-!> it every time this function is called. Thus this functional call should
-!> add very little overhead.
+  !> Returns an MPI Derived Data Type For A Triplet.
+  !> We statically store this derived type so that we don't have to recreate
+  !> it every time this function is called. Thus this functional call should
+  !> add very little overhead.
   FUNCTION GetMPITripletType_r() RESULT(mpi_triplet_type)
-!> MPI Derived Type
+    !> MPI Derived Type
     INTEGER :: mpi_triplet_type
-!! Local Data
+    !! Local Data
     INTEGER, DIMENSION(3) :: triplet_sub_types
     INTEGER, DIMENSION(3) :: triplet_displacement
     INTEGER, DIMENSION(3) :: triplet_block_length
@@ -193,14 +195,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   END FUNCTION GetMPITripletType_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Returns an MPI Derived Data Type For A Triplet.
-!> We statically store this derived type so that we don't have to recreate
-!> it every time this function is called. Thus this functional call should
-!> add very little overhead.
+  !> Returns an MPI Derived Data Type For A Triplet.
+  !> We statically store this derived type so that we don't have to recreate
+  !> it every time this function is called. Thus this functional call should
+  !> add very little overhead.
   FUNCTION GetMPITripletType_c() RESULT(mpi_triplet_type)
-!> MPI Derived Type
+    !> MPI Derived Type
     INTEGER :: mpi_triplet_type
-!! Local Data
+    !! Local Data
     INTEGER, DIMENSION(3) :: triplet_sub_types
     INTEGER, DIMENSION(3) :: triplet_displacement
     INTEGER, DIMENSION(3) :: triplet_block_length
@@ -226,11 +228,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   END FUNCTION GetMPITripletType_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Convert a complex triplet to a real triplet.
+  !> Convert a complex triplet to a real triplet.
   SUBROUTINE ConvertTripletToReal(cin_triplet, rout_triplet)
-!> The starting triplet
+    !> The starting triplet
     TYPE(Triplet_c), INTENT(IN)    :: cin_triplet
-!> Real valued triplet.
+    !> Real valued triplet.
     TYPE(Triplet_r), INTENT(INOUT) :: rout_triplet
 
     rout_triplet%index_row = cin_triplet%index_row
@@ -238,11 +240,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     rout_triplet%point_value = REAL(cin_triplet%point_value)
   END SUBROUTINE ConvertTripletToReal
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Convert a real triplet to a complex triplet.
+  !> Convert a real triplet to a complex triplet.
   SUBROUTINE ConvertTripletToComplex(rin_triplet, cout_triplet)
-!> The starting triplet.
+    !> The starting triplet.
     TYPE(Triplet_r), INTENT(IN)    :: rin_triplet
-!> Complex valued triplet.
+    !> Complex valued triplet.
     TYPE(Triplet_c), INTENT(INOUT) :: cout_triplet
 
     cout_triplet%index_row = rin_triplet%index_row

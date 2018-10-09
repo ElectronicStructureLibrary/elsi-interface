@@ -1,3 +1,5 @@
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> Module for load balancing the matrix multiplication calculation.
 MODULE LoadBalancerModule
@@ -12,21 +14,21 @@ MODULE LoadBalancerModule
   PUBLIC :: PermuteMatrix
   PUBLIC :: UndoPermuteMatrix
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Apply a permutation to a matrix.
+  !> Apply a permutation to a matrix.
   SUBROUTINE PermuteMatrix(mat, mat_out, permutation, memorypool_in)
-!> The matrix to permute.
+    !> The matrix to permute.
     TYPE(Matrix_ps), INTENT(IN) :: mat
-!> The permuted matrix.
+    !> The permuted matrix.
     TYPE(Matrix_ps), INTENT(INOUT) :: mat_out
-!> The permutation to apply.
+    !> The permutation to apply.
     TYPE(Permutation_t), INTENT(IN) :: permutation
-!> Memory pool to use
+    !> Memory pool to use
     TYPE(MatrixMemoryPool_p), INTENT(INOUT), OPTIONAL :: memorypool_in
-!! Local Variables
+    !! Local Variables
     TYPE(Matrix_ps) :: PermuteRows, PermuteColumns
     TYPE(Matrix_ps) :: Temp
 
-!! Build Permutation Matrices
+    !! Build Permutation Matrices
     CALL ConstructEmptyMatrix(PermuteRows, mat)
     CALL ConstructEmptyMatrix(PermuteColumns, mat)
     CALL FillMatrixPermutation(PermuteRows, permutation%index_lookup, &
@@ -35,7 +37,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & permute_rows_in=.FALSE.)
     CALL ConstructEmptyMatrix(Temp, mat)
 
-!! Permute Matrices.
+    !! Permute Matrices.
     IF (PRESENT(memorypool_in)) THEN
        CALL MatrixMultiply(PermuteRows, mat, Temp, &
             & memory_pool_in=memorypool_in)
@@ -51,21 +53,21 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL DestructMatrix(Temp)
   END SUBROUTINE PermuteMatrix
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!> Undo a permutation applied to a matrix.
+  !> Undo a permutation applied to a matrix.
   SUBROUTINE UndoPermuteMatrix(mat, mat_out, permutation, memorypool_in)
-!> Matrix to undo permutation of.
+    !> Matrix to undo permutation of.
     TYPE(Matrix_ps), INTENT(IN) :: mat
-!> Unpermuted matrix.
+    !> Unpermuted matrix.
     TYPE(Matrix_ps), INTENT(INOUT) :: mat_out
-!> Permutation to remove.
+    !> Permutation to remove.
     TYPE(Permutation_t), INTENT(IN) :: permutation
-!> Memory pool to use.
+    !> Memory pool to use.
     TYPE(MatrixMemoryPool_p), INTENT(INOUT),OPTIONAL :: memorypool_in
-!! Local Variables
+    !! Local Variables
     TYPE(Matrix_ps) :: PermuteRows, PermuteColumns
     TYPE(Matrix_ps) :: Temp
 
-!! Build Permutation Matrices
+    !! Build Permutation Matrices
     CALL ConstructEmptyMatrix(PermuteRows, mat)
     CALL ConstructEmptyMatrix(PermuteColumns, mat)
     CALL FillMatrixPermutation(PermuteRows, permutation%index_lookup, &
@@ -74,7 +76,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & permute_rows_in=.FALSE.)
     CALL ConstructEmptyMatrix(Temp, mat)
 
-!! Permute Matrices.
+    !! Permute Matrices.
     IF (PRESENT(memorypool_in)) THEN
        CALL MatrixMultiply(PermuteColumns, mat, Temp, &
             & memory_pool_in=memorypool_in)
@@ -85,7 +87,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL MatrixMultiply(Temp, PermuteRows, mat_out)
     END IF
 
-!! Cleanup
+    !! Cleanup
     CALL DestructMatrix(PermuteRows)
     CALL DestructMatrix(PermuteColumns)
     CALL DestructMatrix(Temp)
