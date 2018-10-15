@@ -82,6 +82,7 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
       elseif(solver == 6) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + NTPoly"
          e_ref = e_ntpoly
+         tol = 1.0e-7_r8
       endif
       write(*,*)
    endif

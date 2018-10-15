@@ -128,6 +128,7 @@ program test_dm_kpt_spin_cmplx_den
       elseif(solver == 6) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + NTPoly"
          e_ref = e_ntpoly
+         tol = 1.0e-7_r8
       endif
       write(*,*)
    endif

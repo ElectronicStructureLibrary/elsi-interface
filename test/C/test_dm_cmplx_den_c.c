@@ -83,7 +83,7 @@ void test_dm_cmplx_den_c(MPI_Comm comm,
    }
    if (solver == 6) {
        e_ref = e_ntpoly;
-       e_tol = 0.00000001;
+       e_tol = 0.0000001;
    }
 
    tmp = (int) round(sqrt((double) n_proc));
