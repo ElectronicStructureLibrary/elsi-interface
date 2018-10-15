@@ -21,7 +21,8 @@ module ELSI_NTPOLY
        ProcessGrid_t,ConstructNewProcessGrid,DestructProcessGrid,&
        ConstructRandomPermutation,DestructPermutation,InverseSquareRoot,&
        SolverParameters_t,Triplet_r,Triplet_c,TripletList_r,TripletList_c,&
-       ConstructTripletList,AppendToTripletList,DestructTripletList
+       ConstructTripletList,AppendToTripletList,DestructTripletList,&
+       ActivateLogger,DeactivateLogger
 
    implicit none
 
@@ -81,6 +82,10 @@ subroutine elsi_init_ntpoly(ph,bh)
       call MPI_Bcast(ph%nt_output,1,mpi_logical,0,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
+
+      if(ph%nt_output .and. bh%myid_all == 0) then
+         call ActivateLogger()
+      end if
 
       ph%nt_started = .true.
    end if
@@ -222,6 +227,7 @@ subroutine elsi_cleanup_ntpoly(ph)
    character(len=*), parameter :: caller = "elsi_cleanup_ntpoly"
 
    if(ph%nt_started) then
+      call DeactivateLogger()
       call DestructMatrix(ph%nt_ham)
       call DestructMatrix(ph%nt_ovlp)
       call DestructMatrix(ph%nt_dm)

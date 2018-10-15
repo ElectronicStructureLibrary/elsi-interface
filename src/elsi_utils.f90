@@ -139,7 +139,7 @@ subroutine elsi_reset_param(ph)
    ph%sips_do_inertia = .true.
    ph%sips_started = .false.
    ph%nt_n_group = 1
-   ph%nt_method = 1
+   ph%nt_method = 2
    ph%nt_isr = 5
    ph%nt_max_iter = 100
    ph%nt_tol = 1.0e-8_r8
