@@ -1024,9 +1024,9 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    j_val = 0
 
    do i_val = 1,bh%nnz_l_sp
-      if(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp) then
+      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
          i_col = i_col+1
-      end if
+      end do
 
       i_row = row_ind(i_val)
 
@@ -1207,9 +1207,9 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    j_val = 0
 
    do i_val = 1,bh%nnz_l_sp
-      if(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp) then
+      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
          i_col = i_col+1
-      end if
+      end do
 
       i_row = row_ind(i_val)
 
@@ -1951,9 +1951,9 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    i_col = 0
 
    do i_val = 1,bh%nnz_l_sp
-      if(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp) then
+      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
          i_col = i_col+1
-      end if
+      end do
 
       i_row = row_ind(i_val)
 
@@ -2153,9 +2153,9 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    i_col = 0
 
    do i_val = 1,bh%nnz_l_sp
-      if(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp) then
+      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
          i_col = i_col+1
-      end if
+      end do
 
       i_row = row_ind(i_val)
 
@@ -2835,9 +2835,9 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    i_col = 0
 
    do i_val = 1,bh%nnz_l_sp
-      if(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp2) then
+      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp2)
          i_col = i_col+1
-      end if
+      end do
 
       i_row = row_ind(i_val)
 
@@ -3038,9 +3038,9 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    i_col = 0
 
    do i_val = 1,bh%nnz_l_sp
-      if(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp2) then
+      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp2)
          i_col = i_col+1
-      end if
+      end do
 
       i_row = row_ind(i_val)
 
@@ -3605,9 +3605,9 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    i_col = 0
 
    do i_val = 1,bh%nnz_l_sp2
-      if(i_val == col_ptr2(i_col+1) .and. i_col /= bh%n_lcol_sp2) then
+      do while(i_val == col_ptr2(i_col+1) .and. i_col /= bh%n_lcol_sp2)
          i_col = i_col+1
-      end if
+      end do
 
       i_row = row_ind2(i_val)
 
@@ -3791,9 +3791,9 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    i_col = 0
 
    do i_val = 1,bh%nnz_l_sp2
-      if(i_val == col_ptr2(i_col+1) .and. i_col /= bh%n_lcol_sp2) then
+      do while(i_val == col_ptr2(i_col+1) .and. i_col /= bh%n_lcol_sp2)
          i_col = i_col+1
-      end if
+      end do
 
       i_row = row_ind2(i_val)
 
@@ -3974,9 +3974,9 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
       i_col = 0
 
       do i_val = 1,bh%nnz_l_sp1
-         if(i_val == col_ptr1(i_col+1) .and. i_col /= bh%n_lcol_sp1) then
+         do while(i_val == col_ptr1(i_col+1) .and. i_col /= bh%n_lcol_sp1)
             i_col = i_col+1
-         end if
+         end do
 
          i_row = row_ind1(i_val)
 
@@ -4137,9 +4137,9 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
       i_col = 0
 
       do i_val = 1,bh%nnz_l_sp1
-         if(i_val == col_ptr1(i_col+1) .and. i_col /= bh%n_lcol_sp1) then
+         do while(i_val == col_ptr1(i_col+1) .and. i_col /= bh%n_lcol_sp1)
             i_col = i_col+1
-         end if
+         end do
 
          i_row = row_ind1(i_val)
 
@@ -5057,9 +5057,9 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    i_col = 0
 
    do i_val = 1,bh%nnz_l_sp
-      if(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp) then
+      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
          i_col = i_col+1
-      end if
+      end do
 
       coo%point_value = ham_csc(i_val)
       coo%index_row = row_ind(i_val)
@@ -5137,9 +5137,9 @@ subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    i_col = 0
 
    do i_val = 1,bh%nnz_l_sp
-      if(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp) then
+      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
          i_col = i_col+1
-      end if
+      end do
 
       coo%point_value = ham_csc(i_val)
       coo%index_row = row_ind(i_val)
