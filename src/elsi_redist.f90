@@ -590,16 +590,17 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    if(ph%n_calls == 1) then
       ! Only 1st pole computes row index and column pointer
       if(ph%pexsi_my_prow == 0) then
-         i_col = col_send(1)-1
+         col_ptr = 0
+         col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
 
          do i_val = 1,bh%nnz_l_sp
-            if(col_send(i_val) > i_col) then
-               i_col = i_col+1
-               col_ptr(i_col-col_send(1)+1) = i_val
-            end if
+            i_col = col_send(i_val)-d1*ph%pexsi_my_pcol
+            col_ptr(i_col) = col_ptr(i_col)+1
          end do
 
-         col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
+         do i_col = bh%n_lcol_sp,1,-1
+            col_ptr(i_col) = col_ptr(i_col+1)-col_ptr(i_col)
+         end do
       end if
 
       call elsi_deallocate(bh,col_send,"col_send")
@@ -912,16 +913,17 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    if(ph%n_calls == 1) then
       ! Only 1st pole computes row index and column pointer
       if(ph%pexsi_my_prow == 0) then
-         i_col = col_send(1)-1
+         col_ptr = 0
+         col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
 
          do i_val = 1,bh%nnz_l_sp
-            if(col_send(i_val) > i_col) then
-               i_col = i_col+1
-               col_ptr(i_col-col_send(1)+1) = i_val
-            end if
+            i_col = col_send(i_val)-d1*ph%pexsi_my_pcol
+            col_ptr(i_col) = col_ptr(i_col)+1
          end do
 
-         col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
+         do i_col = bh%n_lcol_sp,1,-1
+            col_ptr(i_col) = col_ptr(i_col+1)-col_ptr(i_col)
+         end do
       end if
 
       call elsi_deallocate(bh,col_send,"col_send")
@@ -1646,16 +1648,17 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    ! Compute row index and column pointer
    if(ph%n_calls == 1+ph%sips_n_elpa) then
-      i_col = col_recv(1)-1
+      col_ptr = 0
+      col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
 
       do i_val = 1,bh%nnz_l_sp
-         if(col_recv(i_val) > i_col) then
-            i_col = i_col+1
-            col_ptr(i_col-col_recv(1)+1) = i_val
-         end if
+         i_col = col_recv(i_val)-(ph%n_basis/bh%n_procs)*bh%myid
+         col_ptr(i_col) = col_ptr(i_col)+1
       end do
 
-      col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
+      do i_col = bh%n_lcol_sp,1,-1
+         col_ptr(i_col) = col_ptr(i_col+1)-col_ptr(i_col)
+      end do
    end if
 
    call elsi_deallocate(bh,col_recv,"col_recv")
@@ -1861,16 +1864,17 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    ! Compute row index and column pointer
    if(ph%n_calls == 1+ph%sips_n_elpa) then
-      i_col = col_recv(1)-1
+      col_ptr = 0
+      col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
 
       do i_val = 1,bh%nnz_l_sp
-         if(col_recv(i_val) > i_col) then
-            i_col = i_col+1
-            col_ptr(i_col-col_recv(1)+1) = i_val
-         end if
+         i_col = col_recv(i_val)-(ph%n_basis/bh%n_procs)*bh%myid
+         col_ptr(i_col) = col_ptr(i_col)+1
       end do
 
-      col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
+      do i_col = bh%n_lcol_sp,1,-1
+         col_ptr(i_col) = col_ptr(i_col+1)-col_ptr(i_col)
+      end do
    end if
 
    call elsi_deallocate(bh,col_recv,"col_recv")
@@ -3554,11 +3558,11 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    real(kind=r8), intent(in) :: ham_csc2(bh%nnz_l_sp2)
    real(kind=r8), intent(in) :: ovlp_csc2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
-   integer(kind=i4), intent(in) :: col_ptr2(bh%nnz_l_sp2)
+   integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
    real(kind=r8), intent(out) :: ham_csc1(bh%nnz_l_sp1)
    real(kind=r8), intent(inout) :: ovlp_csc1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr1(bh%nnz_l_sp1)
+   integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
@@ -3701,16 +3705,17 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    if(ph%n_calls == 1) then
       ! Only 1st pole computes row index and column pointer
       if(ph%pexsi_my_prow == 0) then
-         i_col = col_recv(1)-1
+         col_ptr1 = 0
+         col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
          do i_val = 1,bh%nnz_l_sp1
-            if(col_recv(i_val) > i_col) then
-               i_col = i_col+1
-               col_ptr1(i_col-col_recv(1)+1) = i_val
-            end if
+            i_col = col_recv(i_val)-n_lcol_aux*ph%pexsi_my_pcol
+            col_ptr1(i_col) = col_ptr1(i_col)+1
          end do
 
-         col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
+         do i_col = bh%n_lcol_sp1,1,-1
+            col_ptr1(i_col) = col_ptr1(i_col+1)-col_ptr1(i_col)
+         end do
       end if
    end if
 
@@ -3739,11 +3744,11 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    complex(kind=r8), intent(in) :: ham_csc2(bh%nnz_l_sp2)
    complex(kind=r8), intent(in) :: ovlp_csc2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
-   integer(kind=i4), intent(in) :: col_ptr2(bh%nnz_l_sp2)
+   integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
    complex(kind=r8), intent(out) :: ham_csc1(bh%nnz_l_sp1)
    complex(kind=r8), intent(inout) :: ovlp_csc1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr1(bh%nnz_l_sp1)
+   integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
@@ -3886,16 +3891,17 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    if(ph%n_calls == 1) then
       ! Only 1st pole computes row index and column pointer
       if(ph%pexsi_my_prow == 0) then
-         i_col = col_recv(1)-1
+         col_ptr1 = 0
+         col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
          do i_val = 1,bh%nnz_l_sp1
-            if(col_recv(i_val) > i_col) then
-               i_col = i_col+1
-               col_ptr1(i_col-col_recv(1)+1) = i_val
-            end if
+            i_col = col_recv(i_val)-n_lcol_aux*ph%pexsi_my_pcol
+            col_ptr1(i_col) = col_ptr1(i_col)+1
          end do
 
-         col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
+         do i_col = bh%n_lcol_sp1,1,-1
+            col_ptr1(i_col) = col_ptr1(i_col+1)-col_ptr1(i_col)
+         end do
       end if
    end if
 
