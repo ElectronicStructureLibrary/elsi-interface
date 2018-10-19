@@ -4313,6 +4313,7 @@ subroutine elsi_sips_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    character(len=*), parameter :: caller = "elsi_sips_to_siesta_dm_real"
 
    ph%pexsi_my_prow = 0
+   ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
    call elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,row_ind2,&
@@ -4341,6 +4342,7 @@ subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    character(len=*), parameter :: caller = "elsi_sips_to_siesta_dm_cmplx"
 
    ph%pexsi_my_prow = 0
+   ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
    call elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,row_ind2,&
@@ -4418,6 +4420,7 @@ subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    character(len=*), parameter :: caller = "elsi_siesta_to_sips_hs_real"
 
    ph%pexsi_my_prow = 0
+   ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
    n_calls_save = ph%n_calls
 
@@ -4457,6 +4460,7 @@ subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    character(len=*), parameter :: caller = "elsi_siesta_to_sips_hs_cmplx"
 
    ph%pexsi_my_prow = 0
+   ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
    n_calls_save = ph%n_calls
 
