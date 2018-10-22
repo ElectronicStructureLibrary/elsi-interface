@@ -127,10 +127,6 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
                          bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
                          .false.)
 
-            success = elpa_invert_trm_real_double(ph%n_basis,ovlp,bh%n_lrow,&
-                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
-                         .false.)
-
             call elsi_get_time(t1)
 
             write(info_str,"(2X,A)") "Finished Cholesky decomposition"
@@ -139,7 +135,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
             call elsi_say(bh,info_str)
          end if
 
-         if(.not. ph%omm_first) then
+         if(ph%omm_first) then
             success = elpa_invert_trm_real_double(ph%n_basis,ovlp,bh%n_lrow,&
                          bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
                          .false.)
@@ -289,10 +285,6 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
                          bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
                          .false.)
 
-            success = elpa_invert_trm_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
-                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
-                         .false.)
-
             call elsi_get_time(t1)
 
             write(info_str,"(2X,A)") "Finished Cholesky decomposition"
@@ -301,7 +293,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
             call elsi_say(bh,info_str)
          end if
 
-         if(.not. ph%omm_first) then
+         if(ph%omm_first) then
             success = elpa_invert_trm_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
                          bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
                          .false.)

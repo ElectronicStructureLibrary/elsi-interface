@@ -107,6 +107,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    real(kind=r8), intent(inout) :: eval(eh%ph%n_basis) !< Eigenvalues
    real(kind=r8), intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
+   integer(kind=i4) :: solver_save
    real(kind=r8) :: t0
    character(len=29) :: dt0
 
@@ -118,6 +119,19 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    call fjson_get_datetime_rfc3339(dt0)
 
    eh%ph%n_calls = eh%ph%n_calls+1
+   solver_save = eh%ph%solver
+
+   if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
+      solver_save = SIPS_SOLVER
+      eh%ph%solver = ELPA_SOLVER
+
+      ! Overlap will be destroyed by Cholesky
+      if(.not. allocated(eh%ovlp_real_copy)) then
+         call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "ovlp_real_copy",caller)
+         eh%ovlp_real_copy = ovlp
+      end if
+   end if
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
@@ -129,57 +143,45 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
                  evec)
       end if
    case(SIPS_SOLVER)
-      if(eh%ph%n_calls <= eh%ph%sips_n_elpa) then
-         if(eh%ph%n_calls == 1) then
-            ! Overlap will be destroyed by Cholesky
-            call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
-                    eh%bh%n_lcol,"ovlp_real_copy",caller)
-            eh%ovlp_real_copy = ovlp
-         end if
+      call elsi_init_sips(eh%ph,eh%bh)
 
-         call elsi_init_elpa(eh%ph,eh%bh)
-         call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,eval,&
-                 evec)
-      else
-         if(allocated(eh%ovlp_real_copy)) then
-            ! Retrieve overlap matrix that has been destroyed by Cholesky
-            ovlp = eh%ovlp_real_copy
-            call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
-         end if
-
-         call elsi_init_sips(eh%ph,eh%bh)
-
-         if(.not. allocated(eh%row_ind_sp1)) then
-            call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,ham,ovlp)
-
-            if(eh%ph%ovlp_is_unit) then
-               call elsi_allocate(eh%bh,eh%ovlp_real_csc,1,"ovlp_real_csc",&
-                       caller)
-            else
-               call elsi_allocate(eh%bh,eh%ovlp_real_csc,eh%bh%nnz_l_sp1,&
-                       "ovlp_real_csc",caller)
-            end if
-            call elsi_allocate(eh%bh,eh%ham_real_csc,eh%bh%nnz_l_sp1,&
-                    "ham_real_csc",caller)
-            call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,&
-                    eh%ph%n_states,"evec_real",caller)
-            call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp1,&
-                    "row_ind_sp1",caller)
-            call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp1+1,&
-                    "col_ptr_sp1",caller)
-         end if
-
-         call elsi_blacs_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%ham_real_csc,&
-                 eh%ovlp_real_csc,eh%row_ind_sp1,eh%col_ptr_sp1)
-         call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 eh%ham_real_csc,eh%ovlp_real_csc,eval,eh%evec_real)
-         call elsi_sips_to_blacs_ev(eh%ph,eh%bh,eh%evec_real,evec)
+      if(allocated(eh%ovlp_real_copy)) then
+         ! Restore overlap
+         ovlp = eh%ovlp_real_copy
+         call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
       end if
+
+      if(.not. allocated(eh%row_ind_sp1)) then
+         call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,ham,ovlp)
+
+         if(eh%ph%ovlp_is_unit) then
+            call elsi_allocate(eh%bh,eh%ovlp_real_csc,1,"ovlp_real_csc",caller)
+         else
+            call elsi_allocate(eh%bh,eh%ovlp_real_csc,eh%bh%nnz_l_sp1,&
+                    "ovlp_real_csc",caller)
+         end if
+         call elsi_allocate(eh%bh,eh%ham_real_csc,eh%bh%nnz_l_sp1,&
+                 "ham_real_csc",caller)
+         call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,eh%ph%n_states,&
+                 "evec_real",caller)
+         call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp1,"row_ind_sp1",&
+                 caller)
+         call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp1+1,&
+                 "col_ptr_sp1",caller)
+      end if
+
+      call elsi_blacs_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%ham_real_csc,&
+              eh%ovlp_real_csc,eh%row_ind_sp1,eh%col_ptr_sp1)
+      call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+              eh%ham_real_csc,eh%ovlp_real_csc,eval,eh%evec_real)
+      call elsi_sips_to_blacs_ev(eh%ph,eh%bh,eh%evec_real,evec)
    case default
       call elsi_stop(eh%bh,"Unsupported eigensolver.",caller)
    end select
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
+
+   eh%ph%solver = solver_save
 
 end subroutine
 
@@ -242,6 +244,7 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
    real(kind=r8), intent(inout) :: eval(eh%ph%n_basis) !< Eigenvalues
    real(kind=r8), intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
+   integer(kind=i4) :: solver_save
    real(kind=r8) :: t0
    character(len=29) :: dt0
 
@@ -253,6 +256,12 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
    call fjson_get_datetime_rfc3339(dt0)
 
    eh%ph%n_calls = eh%ph%n_calls+1
+   solver_save = eh%ph%solver
+
+   if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
+      solver_save = SIPS_SOLVER
+      eh%ph%solver = ELPA_SOLVER
+   end if
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
@@ -286,89 +295,59 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
       call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%ham_real_den,&
               eh%ovlp_real_den,eval,evec)
    case(SIPS_SOLVER)
-      if(eh%ph%n_calls <= eh%ph%sips_n_elpa) then
-         call elsi_init_elpa(eh%ph,eh%bh)
+      call elsi_init_sips(eh%ph,eh%bh)
 
-         if(.not. allocated(eh%ham_real_den)) then
-            call elsi_allocate(eh%bh,eh%ham_real_den,eh%bh%n_lrow,eh%bh%n_lcol,&
-                    "ham_real_den",caller)
-         end if
-         if(.not. allocated(eh%ovlp_real_den)) then
-            if(.not. eh%ph%ovlp_is_unit) then
-               call elsi_allocate(eh%bh,eh%ovlp_real_den,eh%bh%n_lrow,&
-                       eh%bh%n_lcol,"ovlp_real_den",caller)
-            else
-               call elsi_allocate(eh%bh,eh%ovlp_real_den,1,1,"ovlp_real_den",&
-                       caller)
-            end if
-         end if
-
-         select case(eh%ph%matrix_format)
-         case(PEXSI_CSC)
-            call elsi_sips_to_blacs_hs(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,ham,ovlp,eh%ham_real_den,eh%ovlp_real_den)
-         case(SIESTA_CSC)
-            call elsi_siesta_to_blacs_hs(eh%ph,eh%bh,eh%row_ind_sp2,&
-                    eh%col_ptr_sp2,ham,ovlp,eh%ham_real_den,eh%ovlp_real_den)
-         case default
-            call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
-         end select
-
-         call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-                 eh%ham_real_den,eh%ovlp_real_den,eval,evec)
-      else
-         call elsi_init_sips(eh%ph,eh%bh)
-
-         if(allocated(eh%ham_real_den)) then
-            call elsi_deallocate(eh%bh,eh%ham_real_den,"ham_real_den")
-         end if
-         if(allocated(eh%ovlp_real_den)) then
-            call elsi_deallocate(eh%bh,eh%ovlp_real_den,"ovlp_real_den")
-         end if
-         if(.not. allocated(eh%evec_real)) then
-            call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,&
-                    eh%ph%n_states,"evec_real",caller)
-         end if
-
-         select case(eh%ph%matrix_format)
-         case(PEXSI_CSC)
-            call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,ham,&
-                    ovlp,eval,eh%evec_real)
-         case(SIESTA_CSC)
-            if(.not. allocated(eh%row_ind_sp1)) then
-               call elsi_siesta_to_sips_hs_dim(eh%ph,eh%bh,eh%col_ptr_sp2)
-
-               if(eh%ph%ovlp_is_unit) then
-                  call elsi_allocate(eh%bh,eh%ovlp_real_csc,1,"ovlp_real_csc",&
-                          caller)
-               else
-                  call elsi_allocate(eh%bh,eh%ovlp_real_csc,eh%bh%nnz_l_sp1,&
-                          "ovlp_real_csc",caller)
-               end if
-               call elsi_allocate(eh%bh,eh%ham_real_csc,eh%bh%nnz_l_sp1,&
-                       "ham_real_csc",caller)
-               call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp1,&
-                       "row_ind_sp1",caller)
-               call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp1+1,&
-                       "col_ptr_sp1",caller)
-            end if
-
-            call elsi_siesta_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp2,&
-                    eh%col_ptr_sp2,eh%ham_real_csc,eh%ovlp_real_csc,&
-                    eh%row_ind_sp1,eh%col_ptr_sp1)
-            call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                    eh%ham_real_csc,eh%ovlp_real_csc,eval,eh%evec_real)
-         case default
-            call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
-         end select
-
-         call elsi_sips_to_blacs_ev(eh%ph,eh%bh,eh%evec_real,evec)
+      if(allocated(eh%ham_real_den)) then
+         call elsi_deallocate(eh%bh,eh%ham_real_den,"ham_real_den")
       end if
+      if(allocated(eh%ovlp_real_den)) then
+         call elsi_deallocate(eh%bh,eh%ovlp_real_den,"ovlp_real_den")
+      end if
+      if(.not. allocated(eh%evec_real)) then
+         call elsi_allocate(eh%bh,eh%evec_real,eh%bh%n_lcol_sp1,eh%ph%n_states,&
+                 "evec_real",caller)
+      end if
+
+      select case(eh%ph%matrix_format)
+      case(PEXSI_CSC)
+         call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,ham,&
+                 ovlp,eval,eh%evec_real)
+      case(SIESTA_CSC)
+         if(.not. allocated(eh%row_ind_sp1)) then
+            call elsi_siesta_to_sips_hs_dim(eh%ph,eh%bh,eh%col_ptr_sp2)
+
+            if(eh%ph%ovlp_is_unit) then
+               call elsi_allocate(eh%bh,eh%ovlp_real_csc,1,"ovlp_real_csc",&
+                       caller)
+            else
+               call elsi_allocate(eh%bh,eh%ovlp_real_csc,eh%bh%nnz_l_sp1,&
+                       "ovlp_real_csc",caller)
+            end if
+            call elsi_allocate(eh%bh,eh%ham_real_csc,eh%bh%nnz_l_sp1,&
+                    "ham_real_csc",caller)
+            call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp1,&
+                    "row_ind_sp1",caller)
+            call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp1+1,&
+                    "col_ptr_sp1",caller)
+         end if
+
+         call elsi_siesta_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp2,&
+                 eh%col_ptr_sp2,eh%ham_real_csc,eh%ovlp_real_csc,&
+                 eh%row_ind_sp1,eh%col_ptr_sp1)
+         call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                 eh%ham_real_csc,eh%ovlp_real_csc,eval,eh%evec_real)
+      case default
+         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+      end select
+
+      call elsi_sips_to_blacs_ev(eh%ph,eh%bh,eh%evec_real,evec)
    case default
       call elsi_stop(eh%bh,"Unsupported eigensolver.",caller)
    end select
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
+
+   eh%ph%solver = solver_save
 
 end subroutine
 
