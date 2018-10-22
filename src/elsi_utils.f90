@@ -97,6 +97,13 @@ subroutine elsi_reset_param(ph)
    ph%mu_tol = 1.0e-13_r8
    ph%mu_max_steps = 100
    ph%mu_mp_order = 1
+   ph%first_blacs_to_ntpoly = .true.
+   ph%first_blacs_to_pexsi = .true.
+   ph%first_blacs_to_sips = .true.
+   ph%first_siesta_to_blacs = .true.
+   ph%first_siesta_to_pexsi = .true.
+   ph%first_sips_to_blacs = .true.
+   ph%first_sips_to_ntpoly = .true.
    ph%elpa_solver = 2
    ph%elpa_n_single = 0
    ph%elpa_comm_row = UNSET
@@ -628,7 +635,7 @@ subroutine elsi_set_full_mat_real(ph,bh,uplo,row_map,col_map,mat)
    call pdtran(ph%n_basis,ph%n_basis,1.0_r8,mat,1,1,bh%desc,0.0_r8,tmp_real,1,&
            1,bh%desc)
 
-   if(uplo == UT_MAT) then ! Upper triangular
+   if(uplo == UT_MAT) then
       do j = 1,ph%n_basis-1
          if(col_map(j) > 0) then
             do i = j+1,ph%n_basis
@@ -638,7 +645,7 @@ subroutine elsi_set_full_mat_real(ph,bh,uplo,row_map,col_map,mat)
             end do
          end if
       end do
-   else if(uplo == LT_MAT) then ! Lower triangular
+   else if(uplo == LT_MAT) then
       do j = 2,ph%n_basis
          if(col_map(j) > 0) then
             do i = 1,j-1
@@ -682,7 +689,7 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,row_map,col_map,mat)
    call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),mat,1,1,bh%desc,&
            (0.0_r8,0.0_r8),tmp_cmplx,1,1,bh%desc)
 
-   if(uplo == UT_MAT) then ! Upper triangular
+   if(uplo == UT_MAT) then
       do j = 1,ph%n_basis-1
          if(col_map(j) > 0) then
             do i = j+1,ph%n_basis
@@ -692,7 +699,7 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,row_map,col_map,mat)
             end do
          end if
       end do
-   else if(uplo == LT_MAT) then ! Lower triangular
+   else if(uplo == LT_MAT) then
       do j = 2,ph%n_basis
          if(col_map(j) > 0) then
             do i = 1,j-1

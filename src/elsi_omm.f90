@@ -139,13 +139,13 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
             call elsi_say(bh,info_str)
          end if
 
-         if(ph%n_calls > ph%omm_n_elpa+1) then
+         if(.not. ph%omm_first) then
             success = elpa_invert_trm_real_double(ph%n_basis,ovlp,bh%n_lrow,&
                          bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
                          .false.)
          end if
-      end if ! omm_flavor == 2
-   end if ! ovlp_is_unit
+      end if
+   end if
 
    if(ph%n_calls == 1) then
       coeff_ready = .false.
@@ -301,13 +301,13 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
             call elsi_say(bh,info_str)
          end if
 
-         if(ph%n_calls > ph%omm_n_elpa+1) then
+         if(.not. ph%omm_first) then
             success = elpa_invert_trm_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
                          bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
                          .false.)
          end if
-      end if ! omm_flavor == 2
-   end if ! ovlp_is_unit
+      end if
+   end if
 
    if(ph%n_calls == 1) then
       coeff_ready = .false.

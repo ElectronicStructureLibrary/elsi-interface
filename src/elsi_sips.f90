@@ -155,7 +155,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
       eval(1) = ph%sips_interval(1)
    end if
 
-   if(ph%sips_do_inertia) then ! Inertia counting
+   if(ph%sips_do_inertia) then
       call elsi_get_time(t0)
 
       call elsi_allocate(bh,inertias,ph%sips_n_slices+1,"inertias",caller)

@@ -220,7 +220,7 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
 
                   diff_ne_out = diff_ne_out+occ_nums(i_state,i_spin,i_kpt)*&
                                    k_weights(i_kpt)
-               else ! Exponent larger than maximum value
+               else
                   occ_nums(i_state,i_spin,i_kpt) = 0.0_r8
                end if
             end do
@@ -236,7 +236,7 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
                occ_nums(i_state,i_spin,i_kpt) = 0.5_r8*(1.0_r8-erf(arg))*&
                                                    spin_degen
 
-               if(ph%mu_mp_order > 0) then ! 1st order
+               if(ph%mu_mp_order > 0) then
                   A = -0.25_r8*INVERT_SQRT_PI
                   H_even = 1.0_r8
                   H_odd = 2.0_r8*arg
@@ -245,7 +245,7 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
                      occ_nums(i_state,i_spin,i_kpt)+A*H_odd*weight*spin_degen
                end if
 
-               if(ph%mu_mp_order > 1) then ! higher order
+               if(ph%mu_mp_order > 1) then
                   do i_mp = 2,ph%mu_mp_order
                      A = -0.25_r8/real(i_mp,kind=r8)*A
                      H_even = 2.0_r8*arg*H_odd-2.0_r8*real(i_mp,kind=r8)*H_even
@@ -377,7 +377,7 @@ subroutine elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
    if(found_mu) then
       call elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
               evals,occ_nums,mu_out,diff_right)
-   else ! mu cannot reach required accuracy
+   else
       ! Use mu of the right bound...
       call elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_weights,&
               evals,occ_nums,mu_right,diff_right)

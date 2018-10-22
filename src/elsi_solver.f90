@@ -140,7 +140,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
          call elsi_init_elpa(eh%ph,eh%bh)
          call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,eval,&
                  evec)
-      else ! ELPA is done
+      else
          if(allocated(eh%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
             ovlp = eh%ovlp_real_copy
@@ -316,7 +316,7 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
 
          call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,&
                  eh%ham_real_den,eh%ovlp_real_den,eval,evec)
-      else ! ELPA is done
+      else
          call elsi_init_sips(eh%ph,eh%bh)
 
          if(allocated(eh%ham_real_den)) then
@@ -514,7 +514,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
          call elsi_compute_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,&
                  eh%evec_real,eh%occ,dm,ham)
          call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
-      else ! ELPA is done
+      else
          call elsi_init_omm(eh%ph,eh%bh)
 
          if(allocated(eh%ovlp_real_copy)) then
@@ -615,7 +615,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
          call elsi_compute_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,&
                  eh%evec_real,eh%occ,dm,ham)
          call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
-      else ! ELPA is done
+      else
          if(allocated(eh%ovlp_real_copy)) then
             ! Retrieve overlap matrix that has been destroyed by Cholesky
             ovlp = eh%ovlp_real_copy
@@ -761,7 +761,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
          call elsi_compute_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,&
                  eh%evec_cmplx,eh%occ,dm,ham)
          call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
-      else ! ELPA is done
+      else
          call elsi_init_omm(eh%ph,eh%bh)
 
          if(allocated(eh%ovlp_cmplx_copy)) then
@@ -1021,7 +1021,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          end select
 
          call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
-      else ! ELPA is done
+      else
          call elsi_init_omm(eh%ph,eh%bh)
 
          if(allocated(eh%ovlp_real_copy)) then
@@ -1192,7 +1192,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          end select
 
          call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
-      else ! ELPA is done
+      else
          call elsi_init_sips(eh%ph,eh%bh)
 
          if(allocated(eh%ham_real_den)) then
@@ -1472,7 +1472,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
          end select
 
          call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
-      else ! ELPA is done
+      else
          call elsi_init_omm(eh%ph,eh%bh)
 
          if(allocated(eh%ovlp_cmplx_copy)) then
