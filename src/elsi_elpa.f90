@@ -362,7 +362,7 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_to_standard_evp_real"
 
-   if(ph%n_calls == 1) then
+   if(ph%elpa_first) then
       if(ph%check_sing) then
          call elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
       end if
@@ -675,6 +675,8 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
       call elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
    end if
 
+   ph%elpa_first = .false.
+
 end subroutine
 
 !>
@@ -846,7 +848,7 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_to_standard_evp_cmplx"
 
-   if(ph%n_calls == 1) then
+   if(ph%elpa_first) then
       if(ph%check_sing) then
          call elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
       end if
@@ -1160,6 +1162,8 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    if(.not. ph%ovlp_is_unit) then
       call elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
    end if
+
+   ph%elpa_first = .false.
 
 end subroutine
 

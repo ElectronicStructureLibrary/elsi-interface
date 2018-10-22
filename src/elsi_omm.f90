@@ -78,7 +78,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
+   type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
@@ -153,7 +153,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
       coeff_ready = .true.
    end if
 
-   if(ph%n_calls == ph%omm_n_elpa+1) then
+   if(ph%omm_first) then
       new_ovlp = .true.
    else
       new_ovlp = .false.
@@ -181,6 +181,8 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
    call elsi_say(bh,info_str)
    write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,info_str)
+
+   ph%omm_first = .false.
 
 end subroutine
 
@@ -238,7 +240,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
+   type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
@@ -313,7 +315,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
       coeff_ready = .true.
    end if
 
-   if(ph%n_calls == ph%omm_n_elpa+1) then
+   if(ph%omm_first) then
       new_ovlp = .true.
    else
       new_ovlp = .false.
@@ -341,6 +343,8 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
    call elsi_say(bh,info_str)
    write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,info_str)
+
+   ph%omm_first = .false.
 
 end subroutine
 

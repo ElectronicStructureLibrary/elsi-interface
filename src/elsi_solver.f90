@@ -525,23 +525,23 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
          if(.not. allocated(eh%omm_c_real)) then
             call elsi_allocate(eh%bh,eh%omm_c_real,eh%ph%omm_n_lrow,&
                     eh%bh%n_lcol,"omm_c_real",caller)
-         end if
 
-         ! Initialize coefficient matrix with ELPA eigenvectors if possible
-         if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
-            call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real,1,1,&
-                    eh%bh%desc,0.0_r8,dm,1,1,eh%bh%desc)
+            ! Initialize coefficient matrix with ELPA eigenvectors
+            if(eh%ph%omm_n_elpa > 0) then
+               call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real,1,1,&
+                       eh%bh%desc,0.0_r8,dm,1,1,eh%bh%desc)
 
-            eh%omm_c_real(1:eh%ph%omm_n_lrow,:) = dm(1:eh%ph%omm_n_lrow,:)
+               eh%omm_c_real(1:eh%ph%omm_n_lrow,:) = dm(1:eh%ph%omm_n_lrow,:)
 
-            if(allocated(eh%evec_real)) then
-               call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
-            end if
-            if(allocated(eh%eval)) then
-               call elsi_deallocate(eh%bh,eh%eval,"eval")
-            end if
-            if(allocated(eh%occ)) then
-               call elsi_deallocate(eh%bh,eh%occ,"occ")
+               if(allocated(eh%evec_real)) then
+                  call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
+               end if
+               if(allocated(eh%eval)) then
+                  call elsi_deallocate(eh%bh,eh%eval,"eval")
+               end if
+               if(allocated(eh%occ)) then
+                  call elsi_deallocate(eh%bh,eh%occ,"occ")
+               end if
             end if
          end if
 
@@ -772,24 +772,24 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
          if(.not. allocated(eh%omm_c_cmplx)) then
             call elsi_allocate(eh%bh,eh%omm_c_cmplx,eh%ph%omm_n_lrow,&
                     eh%bh%n_lcol,"omm_c_cmplx",caller)
-         end if
 
-         ! Initialize coefficient matrix with ELPA eigenvectors if possible
-         if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
-            call pztranc(eh%ph%n_basis,eh%ph%n_basis,(1.0_r8,0.0_r8),&
-                    eh%evec_cmplx,1,1,eh%bh%desc,(0.0_r8,0.0_r8),dm,1,1,&
-                    eh%bh%desc)
+            ! Initialize coefficient matrix with ELPA eigenvectors
+            if(eh%ph%omm_n_elpa > 0) then
+               call pztranc(eh%ph%n_basis,eh%ph%n_basis,(1.0_r8,0.0_r8),&
+                       eh%evec_cmplx,1,1,eh%bh%desc,(0.0_r8,0.0_r8),dm,1,1,&
+                       eh%bh%desc)
 
-            eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:) = dm(1:eh%ph%omm_n_lrow,:)
+               eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:) = dm(1:eh%ph%omm_n_lrow,:)
 
-            if(allocated(eh%evec_cmplx)) then
-               call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
-            end if
-            if(allocated(eh%eval)) then
-               call elsi_deallocate(eh%bh,eh%eval,"eval")
-            end if
-            if(allocated(eh%occ)) then
-               call elsi_deallocate(eh%bh,eh%occ,"occ")
+               if(allocated(eh%evec_cmplx)) then
+                  call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
+               end if
+               if(allocated(eh%eval)) then
+                  call elsi_deallocate(eh%bh,eh%eval,"eval")
+               end if
+               if(allocated(eh%occ)) then
+                  call elsi_deallocate(eh%bh,eh%occ,"occ")
+               end if
             end if
          end if
 
@@ -1036,24 +1036,24 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          if(.not. allocated(eh%omm_c_real)) then
             call elsi_allocate(eh%bh,eh%omm_c_real,eh%ph%omm_n_lrow,&
                     eh%bh%n_lcol,"omm_c_real",caller)
-         end if
 
-         ! Initialize coefficient matrix with ELPA eigenvectors if possible
-         if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
-            call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real,1,1,&
-                    eh%bh%desc,0.0_r8,eh%dm_real_den,1,1,eh%bh%desc)
+            ! Initialize coefficient matrix with ELPA eigenvectors
+            if(eh%ph%omm_n_elpa > 0) then
+               call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real,1,1,&
+                       eh%bh%desc,0.0_r8,eh%dm_real_den,1,1,eh%bh%desc)
 
-            eh%omm_c_real(1:eh%ph%omm_n_lrow,:) =&
-               eh%dm_real_den(1:eh%ph%omm_n_lrow,:)
+               eh%omm_c_real(1:eh%ph%omm_n_lrow,:) =&
+                  eh%dm_real_den(1:eh%ph%omm_n_lrow,:)
 
-            if(allocated(eh%evec_real)) then
-               call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
-            end if
-            if(allocated(eh%eval)) then
-               call elsi_deallocate(eh%bh,eh%eval,"eval")
-            end if
-            if(allocated(eh%occ)) then
-               call elsi_deallocate(eh%bh,eh%occ,"occ")
+               if(allocated(eh%evec_real)) then
+                  call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
+               end if
+               if(allocated(eh%eval)) then
+                  call elsi_deallocate(eh%bh,eh%eval,"eval")
+               end if
+               if(allocated(eh%occ)) then
+                  call elsi_deallocate(eh%bh,eh%occ,"occ")
+               end if
             end if
          end if
 
@@ -1487,25 +1487,25 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
          if(.not. allocated(eh%omm_c_cmplx)) then
             call elsi_allocate(eh%bh,eh%omm_c_cmplx,eh%ph%omm_n_lrow,&
                     eh%bh%n_lcol,"omm_c_cmplx",caller)
-         end if
 
-         ! Initialize coefficient matrix with ELPA eigenvectors if possible
-         if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
-            call pztranc(eh%ph%n_basis,eh%ph%n_basis,(1.0_r8,0.0_r8),&
-                    eh%evec_cmplx,1,1,eh%bh%desc,(0.0_r8,0.0_r8),&
-                    eh%dm_cmplx_den,1,1,eh%bh%desc)
+            ! Initialize coefficient matrix with ELPA eigenvectors
+            if(eh%ph%omm_n_elpa > 0) then
+               call pztranc(eh%ph%n_basis,eh%ph%n_basis,(1.0_r8,0.0_r8),&
+                       eh%evec_cmplx,1,1,eh%bh%desc,(0.0_r8,0.0_r8),&
+                       eh%dm_cmplx_den,1,1,eh%bh%desc)
 
-            eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:) =&
-               eh%dm_cmplx_den(1:eh%ph%omm_n_lrow,:)
+               eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:) =&
+                  eh%dm_cmplx_den(1:eh%ph%omm_n_lrow,:)
 
-            if(allocated(eh%evec_cmplx)) then
-               call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
-            end if
-            if(allocated(eh%eval)) then
-               call elsi_deallocate(eh%bh,eh%eval,"eval")
-            end if
-            if(allocated(eh%occ)) then
-               call elsi_deallocate(eh%bh,eh%occ,"occ")
+               if(allocated(eh%evec_cmplx)) then
+                  call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
+               end if
+               if(allocated(eh%eval)) then
+                  call elsi_deallocate(eh%bh,eh%eval,"eval")
+               end if
+               if(allocated(eh%occ)) then
+                  call elsi_deallocate(eh%bh,eh%occ,"occ")
+               end if
             end if
          end if
 
