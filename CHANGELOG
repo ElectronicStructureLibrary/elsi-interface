@@ -19,7 +19,7 @@
 
    NTPoly:
    * Redistributed source code of NTPoly 2.0.
-   * Added canonical purificaiton, trace correcting purification, 4th order
+   * Added canonical purification, trace correcting purification, 4th order
      trace resetting purification, and generalized hole-particle canonical
      purification methods.
 
