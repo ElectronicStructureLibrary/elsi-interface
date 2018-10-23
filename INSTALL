@@ -28,7 +28,7 @@ A) PREREQUISITES
    ELSI will be built.  Optionally, they may be substituted by user's
    optimized versions:
 
-     - ELPA          [2017.05.003 or newer]
+     - ELPA          [2018.05.001 or newer]
      - libOMM
      - MatrixSwitch
      - NTPoly        [2.0]

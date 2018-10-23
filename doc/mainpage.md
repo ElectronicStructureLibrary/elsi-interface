@@ -9,12 +9,14 @@ We place particular emphasis on efficient support across platforms, from laptop-
 
 The libraries supported and enhanced in ELSI are:
 
-* <a href="http://elpa.mpcdf.mpg.de">ELPA</a> (the Eigenvalue SoLvers for Petaflop-Applications)
+* <a href="http://elpa.mpcdf.mpg.de">ELPA</a> (massively parallel dense eigensolvers)
 
-* <a href="http://esl.cecam.org/LibOMM">libOMM</a> (the Orbital Minimization Method)
+* <a href="http://william-dawson.github.io/NTPoly">libOMM</a> (orbital minimization method)
 
-* <a href="http://pexsi.org">PEXSI</a> (the Pole EXpansion and Selected Inversion method)
+* <a href="http://esl.cecam.org/LibOMM">libOMM</a> (density matrix purification)
 
-* <a href="http://keceli.github.io/SLEPc-SIPs">SLEPc-SIPs</a> (the SLEPc Shift-and-Invert Parallel Spectral transformations eigensolver)
+* <a href="http://pexsi.org">PEXSI</a> (pole expansion and selected inversion)
+
+* <a href="http://keceli.github.io/SLEPc-SIPs">SLEPc-SIPs</a> (sparse eigensolver based on shift-and-invert spectral transformations)
 
 We expect that related strong libraries will be supported by ELSI in the future, providing electronic structure codes and users with a flexible, customizable choice of solutions for the central algebraic problems that are often the bottleneck of our simulations.
