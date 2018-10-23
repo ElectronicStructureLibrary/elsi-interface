@@ -119,7 +119,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
-   if(ph%n_calls == ph%sips_n_elpa+1) then
+   if(ph%sips_first) then
       if(.not. ph%ovlp_is_unit) then
          ! Load H and S
          call sips_load_ham_ovlp(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,&
@@ -155,7 +155,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
       eval(1) = ph%sips_interval(1)
    end if
 
-   if(ph%sips_do_inertia) then ! Inertia counting
+   if(ph%sips_do_inertia) then
       call elsi_get_time(t0)
 
       call elsi_allocate(bh,inertias,ph%sips_n_slices+1,"inertias",caller)
@@ -274,6 +274,8 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    call elsi_say(bh,info_str)
    write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,info_str)
+
+   ph%sips_first = .false.
 
 end subroutine
 

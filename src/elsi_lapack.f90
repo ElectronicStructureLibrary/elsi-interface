@@ -89,7 +89,7 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
-   if(ph%ovlp_is_sing) then ! Use scaled eigenvectors
+   if(ph%ovlp_is_sing) then
       ! evec_real used as tmp_real
       ! tmp_real = H_real * S_real
       call dgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,1.0_r8,ham,ph%n_basis,&
@@ -369,7 +369,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
       write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
-   end if ! Singular overlap?
+   end if
 
    call elsi_get_time(t1)
 
@@ -439,7 +439,7 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
-   if(ph%ovlp_is_sing) then ! Use scaled eigenvectors
+   if(ph%ovlp_is_sing) then
       ! evec_cmplx used as tmp_cmplx
       ! tmp_cmplx = H_cmplx * S_cmplx
       call zgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ham,&
@@ -728,7 +728,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
       write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
-   end if ! Singular overlap?
+   end if
 
    call elsi_get_time(t1)
 

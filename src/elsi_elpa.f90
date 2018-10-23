@@ -362,7 +362,7 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_to_standard_evp_real"
 
-   if(ph%n_calls == 1) then
+   if(ph%elpa_first) then
       if(ph%check_sing) then
          call elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
       end if
@@ -400,7 +400,7 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
-   if(ph%ovlp_is_sing) then ! Use scaled eigenvectors
+   if(ph%ovlp_is_sing) then
       ! evec_real used as tmp_real
       ! tmp_real = H_real * S_real
       call pdgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,1.0_r8,ham,1,1,&
@@ -528,7 +528,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
       write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
-   end if ! Singular overlap?
+   end if
 
    call elsi_get_time(t1)
 
@@ -674,6 +674,8 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    if(.not. ph%ovlp_is_unit) then
       call elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
    end if
+
+   ph%elpa_first = .false.
 
 end subroutine
 
@@ -846,7 +848,7 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_to_standard_evp_cmplx"
 
-   if(ph%n_calls == 1) then
+   if(ph%elpa_first) then
       if(ph%check_sing) then
          call elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
       end if
@@ -885,7 +887,7 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
-   if(ph%ovlp_is_sing) then ! Use scaled eigenvectors
+   if(ph%ovlp_is_sing) then
       ! evec_cmplx used as tmp_cmplx
       ! tmp_cmplx = H_cmplx * S_cmplx
       call pzgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ham,&
@@ -1013,7 +1015,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
       write(info_str,"(2X,A,E10.2,A,E10.2)")&
          "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,info_str)
-   end if ! Singular overlap?
+   end if
 
    call elsi_get_time(t1)
 
@@ -1160,6 +1162,8 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    if(.not. ph%ovlp_is_unit) then
       call elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
    end if
+
+   ph%elpa_first = .false.
 
 end subroutine
 

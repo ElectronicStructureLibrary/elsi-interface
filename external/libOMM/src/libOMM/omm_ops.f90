@@ -415,22 +415,14 @@ subroutine m_dreduce(A,C,label)
 
   !**** INTERNAL ********************************!
 
+  character(1) :: c1, c2
   character(5) :: m_storage
 
   integer :: ot, i, j, info
 
-  type(matrix) :: work1
+  real(dp) :: scale_Cholesky
 
-  ! VY: Added to use ELPA functions
-  !     Jan 22, 2017
-  logical :: success
-  integer :: good
-  integer :: i_row, i_col
-  integer :: comm_row, comm_col, mpierr
-  integer :: ms_lap_myprow, ms_lap_mypcol
-  integer :: local_row, local_col
-  integer, allocatable :: local_row_list(:), local_col_list(:)
-  integer, external :: numroc
+  type(matrix) :: work1
 
   !**********************************************!
 
@@ -478,113 +470,32 @@ subroutine m_dreduce(A,C,label)
         end do
       end do
     case (2)
-!      call pdsygst(1,'u',C%dim1,C%dval,1,1,C%iaux1,A%dval,1,1,A%iaux1,scale_Cholesky,info)
-!      if (info/=0) call die('m_dreduce: error in pdsygst')
-!      if (C%is_serial) then
-!        c1='s'
-!      else
-!        c1='p'
-!      end if
-!      if (C%is_real) then
-!        c2='d'
-!      else
-!        c2='z'
-!      end if
-!      ! Fill in missing triangle of C.
-!      do i = 1, C%dim1
-!          do j = 1, i-1
-!              call m_set_element(C, i, j, 0.0_dp, 0.0_dp, label)
-!          end do
-!      end do
-!      write(m_storage,'(a1,a1,a3)') c1, c2, C%str_type
-!      call m_allocate(work1,C%dim1,C%dim2,m_storage)
-!      call m_add(C,'t',work1,1.0_dp,0.0_dp,label)
-!      do i = 1, work1%dim1
-!          call m_set_element(work1, i, i, 0.0_dp, 0.0_dp, label)
-!      end do
-!      call m_add(work1,'n',C,1.0_dp,1.0_dp)
-!      call m_deallocate(work1)
-
-! VY: Added ELPA functions for performance
-!     Jan 22, 2017
-
-      ! Get some BLACS information
-      call blacs_pcoord(ms_lap_icontxt,ms_mpi_rank,ms_lap_myprow,&
-                        ms_lap_mypcol)
-      local_row = numroc(C%dim1,ms_lap_bs_def,ms_lap_myprow,0,ms_lap_nprow)
-      local_col = numroc(C%dim1,ms_lap_bs_def,ms_lap_mypcol,0,ms_lap_npcol)
-
-      ! Get ELPA row and column communicators
-      good = elpa_get_communicators(ms_mpi_comm,ms_lap_myprow,&
-                                    ms_lap_mypcol,comm_row,comm_col)
-
-      ! Create a temporary array
-      write(m_storage,'(a1,a1,a3)') 'p','d',C%str_type
+      call pdsygst(1,'u',C%dim1,C%dval,1,1,C%iaux1,A%dval,1,1,A%iaux1,scale_Cholesky,info)
+      if (info/=0) call die('m_dreduce: error in pdsygst')
+      if (C%is_serial) then
+        c1='s'
+      else
+        c1='p'
+      end if
+      if (C%is_real) then
+        c2='d'
+      else
+        c2='z'
+      end if
+      ! Fill in missing triangle of C.
+      do i = 1, C%dim1
+          do j = 1, i-1
+              call m_set_element(C, i, j, 0.0_dp, 0.0_dp, label)
+          end do
+      end do
+      write(m_storage,'(a1,a1,a3)') c1, c2, C%str_type
       call m_allocate(work1,C%dim1,C%dim2,m_storage)
-
-      ! Do the work
-      success = elpa_mult_at_b_real_double('U','L',C%dim1,C%dim1,A%dval,&
-                                           local_row,local_col,C%dval,&
-                                           local_row,local_col,C%iaux1(5),&
-                                           comm_row,comm_col,work1%dval,&
-                                           local_row,local_col)
-
-      call pdtran(C%dim1,C%dim1,1d0,work1%dval,1,1,work1%iaux1,0d0,C%dval,&
-                  1,1,C%iaux1)
-
-      work1%dval = C%dval
-
-      success = elpa_mult_at_b_real_double('U','U',C%dim1,C%dim1,A%dval,&
-                                           local_row,local_col,work1%dval,&
-                                           local_row,local_col,C%iaux1(5),&
-                                           comm_row,comm_col,C%dval,&
-                                           local_row,local_col)
-
-      call pdtran(C%dim1,C%dim1,1d0,C%dval,1,1,C%iaux1,0d0,work1%dval,1,&
-                  1,work1%iaux1)
-
-      success = elpa_invert_trm_real_double(C%dim1,A%dval,local_row,&
-                                            C%iaux1(5),local_col,comm_row,&
-                                            comm_col,.false.)
-
-      call MPI_Comm_free(comm_row,mpierr)
-      call MPI_Comm_free(comm_col,mpierr)
-
-      ! Compute global-local mapping
-      allocate(local_row_list(C%dim1))
-      allocate(local_col_list(C%dim1))
-      local_row_list = 0
-      local_col_list = 0
-
-      i_row = 0
-      i_col = 0
-
-      do i = 1,C%dim1
-         if(MOD((i-1)/ms_lap_bs_def,ms_lap_nprow) == ms_lap_myprow) then
-            i_row = i_row+1
-            local_row_list(i) = i_row
-         endif
-         if(MOD((i-1)/ms_lap_bs_def,ms_lap_npcol) == ms_lap_mypcol) then
-            i_col = i_col+1
-            local_col_list(i) = i_col
-         endif
-      enddo
-
-      ! Set the lower part from the upper
-      do i_col = 1,C%dim1-1
-         if(local_col_list(i_col) == 0) cycle
-         do i_row = i_col+1,C%dim1
-            if(local_row_list(i_row) > 0) then
-               C%dval(local_row_list(i_row),local_col_list(i_col)) = &
-                  work1%dval(local_row_list(i_row),local_col_list(i_col))
-            endif
-         enddo
-      enddo
-
+      call m_add(C,'t',work1,1.0_dp,0.0_dp,label)
+      do i = 1, work1%dim1
+          call m_set_element(work1, i, i, 0.0_dp, 0.0_dp, label)
+      end do
+      call m_add(work1,'n',C,1.0_dp,1.0_dp)
       call m_deallocate(work1)
-      deallocate(local_row_list)
-      deallocate(local_col_list)
-
   end select
 
 end subroutine m_dreduce

@@ -97,6 +97,13 @@ subroutine elsi_reset_param(ph)
    ph%mu_tol = 1.0e-13_r8
    ph%mu_max_steps = 100
    ph%mu_mp_order = 1
+   ph%first_blacs_to_ntpoly = .true.
+   ph%first_blacs_to_pexsi = .true.
+   ph%first_blacs_to_sips = .true.
+   ph%first_siesta_to_blacs = .true.
+   ph%first_siesta_to_pexsi = .true.
+   ph%first_sips_to_blacs = .true.
+   ph%first_sips_to_ntpoly = .true.
    ph%elpa_solver = 2
    ph%elpa_n_single = 0
    ph%elpa_comm_row = UNSET
@@ -105,6 +112,7 @@ subroutine elsi_reset_param(ph)
    ph%elpa_gpu_kernels = .false.
    ph%elpa_autotune = .false.
    ph%elpa_output = .false.
+   ph%elpa_first = .true.
    ph%elpa_started = .false.
    ph%omm_n_lrow = UNSET
    ph%omm_n_states = UNSET
@@ -113,6 +121,7 @@ subroutine elsi_reset_param(ph)
    ph%omm_desc = UNSET
    ph%omm_tol = 1.0e-12_r8
    ph%omm_output = .false.
+   ph%omm_first = .true.
    ph%omm_started = .false.
    ph%pexsi_np_per_pole = UNSET
    ph%pexsi_np_per_point = UNSET
@@ -126,6 +135,7 @@ subroutine elsi_reset_param(ph)
    ph%pexsi_comm_inter_pole = UNSET
    ph%pexsi_comm_inter_point = UNSET
    ph%pexsi_ne = 0.0_r8
+   ph%pexsi_first = .true.
    ph%pexsi_started = .false.
    ph%sips_n_elpa = 0
    ph%sips_np_per_slice = UNSET
@@ -137,6 +147,7 @@ subroutine elsi_reset_param(ph)
    ph%sips_interval(2) = 2.0_r8
    ph%sips_inertia_tol = 1.0e-3_r8
    ph%sips_do_inertia = .true.
+   ph%sips_first = .true.
    ph%sips_started = .false.
    ph%nt_n_group = 1
    ph%nt_method = 2
@@ -145,6 +156,7 @@ subroutine elsi_reset_param(ph)
    ph%nt_tol = 1.0e-8_r8
    ph%nt_filter = 1.0e-15_r8
    ph%nt_output = .false.
+   ph%nt_first = .true.
    ph%nt_started = .false.
 
 end subroutine
@@ -623,7 +635,7 @@ subroutine elsi_set_full_mat_real(ph,bh,uplo,row_map,col_map,mat)
    call pdtran(ph%n_basis,ph%n_basis,1.0_r8,mat,1,1,bh%desc,0.0_r8,tmp_real,1,&
            1,bh%desc)
 
-   if(uplo == UT_MAT) then ! Upper triangular
+   if(uplo == UT_MAT) then
       do j = 1,ph%n_basis-1
          if(col_map(j) > 0) then
             do i = j+1,ph%n_basis
@@ -633,7 +645,7 @@ subroutine elsi_set_full_mat_real(ph,bh,uplo,row_map,col_map,mat)
             end do
          end if
       end do
-   else if(uplo == LT_MAT) then ! Lower triangular
+   else if(uplo == LT_MAT) then
       do j = 2,ph%n_basis
          if(col_map(j) > 0) then
             do i = 1,j-1
@@ -677,7 +689,7 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,row_map,col_map,mat)
    call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),mat,1,1,bh%desc,&
            (0.0_r8,0.0_r8),tmp_cmplx,1,1,bh%desc)
 
-   if(uplo == UT_MAT) then ! Upper triangular
+   if(uplo == UT_MAT) then
       do j = 1,ph%n_basis-1
          if(col_map(j) > 0) then
             do i = j+1,ph%n_basis
@@ -687,7 +699,7 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,row_map,col_map,mat)
             end do
          end if
       end do
-   else if(uplo == LT_MAT) then ! Lower triangular
+   else if(uplo == LT_MAT) then
       do j = 2,ph%n_basis
          if(col_map(j) > 0) then
             do i = 1,j-1

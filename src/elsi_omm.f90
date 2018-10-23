@@ -78,7 +78,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
+   type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
@@ -127,10 +127,6 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
                          bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
                          .false.)
 
-            success = elpa_invert_trm_real_double(ph%n_basis,ovlp,bh%n_lrow,&
-                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
-                         .false.)
-
             call elsi_get_time(t1)
 
             write(info_str,"(2X,A)") "Finished Cholesky decomposition"
@@ -139,13 +135,13 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
             call elsi_say(bh,info_str)
          end if
 
-         if(ph%n_calls > ph%omm_n_elpa+1) then
+         if(ph%omm_first) then
             success = elpa_invert_trm_real_double(ph%n_basis,ovlp,bh%n_lrow,&
                          bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
                          .false.)
          end if
-      end if ! omm_flavor == 2
-   end if ! ovlp_is_unit
+      end if
+   end if
 
    if(ph%n_calls == 1) then
       coeff_ready = .false.
@@ -153,7 +149,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
       coeff_ready = .true.
    end if
 
-   if(ph%n_calls == ph%omm_n_elpa+1) then
+   if(ph%omm_first) then
       new_ovlp = .true.
    else
       new_ovlp = .false.
@@ -181,6 +177,8 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
    call elsi_say(bh,info_str)
    write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,info_str)
+
+   ph%omm_first = .false.
 
 end subroutine
 
@@ -238,7 +236,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
+   type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
@@ -287,10 +285,6 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
                          bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
                          .false.)
 
-            success = elpa_invert_trm_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
-                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
-                         .false.)
-
             call elsi_get_time(t1)
 
             write(info_str,"(2X,A)") "Finished Cholesky decomposition"
@@ -299,13 +293,13 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
             call elsi_say(bh,info_str)
          end if
 
-         if(ph%n_calls > ph%omm_n_elpa+1) then
+         if(ph%omm_first) then
             success = elpa_invert_trm_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
                          bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
                          .false.)
          end if
-      end if ! omm_flavor == 2
-   end if ! ovlp_is_unit
+      end if
+   end if
 
    if(ph%n_calls == 1) then
       coeff_ready = .false.
@@ -313,7 +307,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
       coeff_ready = .true.
    end if
 
-   if(ph%n_calls == ph%omm_n_elpa+1) then
+   if(ph%omm_first) then
       new_ovlp = .true.
    else
       new_ovlp = .false.
@@ -341,6 +335,8 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
    call elsi_say(bh,info_str)
    write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,info_str)
+
+   ph%omm_first = .false.
 
 end subroutine
 

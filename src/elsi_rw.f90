@@ -992,8 +992,6 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
 
    eh%bh%def0 = rwh%bh%def0
    eh%ph%ovlp_is_unit = .true.
-   eh%ph%n_calls = 1
-   eh%ph%sips_n_elpa = 0
    eh%bh%n_lcol_sp = rwh%n_basis/rwh%bh%n_procs
    if(rwh%bh%myid == rwh%bh%n_procs-1) then
       eh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*eh%bh%n_lcol_sp
@@ -1125,8 +1123,6 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
 
    eh%bh%def0 = rwh%bh%def0
    eh%ph%ovlp_is_unit = .true.
-   eh%ph%n_calls = 1
-   eh%ph%sips_n_elpa = 0
    eh%bh%n_lcol_sp = rwh%n_basis/rwh%bh%n_procs
    if(rwh%bh%myid == rwh%bh%n_procs-1) then
       eh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*eh%bh%n_lcol_sp

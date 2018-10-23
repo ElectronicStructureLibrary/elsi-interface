@@ -217,7 +217,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call elsi_say(bh,info_str)
 
    ! Symbolic factorization
-   if(ph%n_calls == 1) then
+   if(ph%pexsi_first) then
       call elsi_get_time(t0)
 
       call f_ppexsi_symbolic_factorize_real_symmetric_matrix(ph%pexsi_plan,&
@@ -519,6 +519,8 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,info_str)
 
+   ph%pexsi_first = .false.
+
 end subroutine
 
 !>
@@ -745,7 +747,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call elsi_say(bh,info_str)
 
    ! Symbolic factorization
-   if(ph%n_calls == 1) then
+   if(ph%pexsi_first) then
       call elsi_get_time(t0)
 
       call f_ppexsi_symbolic_factorize_complex_symmetric_matrix(ph%pexsi_plan,&
@@ -1047,6 +1049,8 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call elsi_say(bh,info_str)
    write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,info_str)
+
+   ph%pexsi_first = .false.
 
 end subroutine
 

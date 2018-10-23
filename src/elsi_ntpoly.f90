@@ -114,7 +114,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 
    character(len=*), parameter :: caller = "elsi_solve_ntpoly"
 
-   if(ph%n_calls == 1) then
+   if(ph%nt_first) then
       call elsi_get_time(t0)
 
       call ConstructRandomPermutation(ph%nt_perm,ovlp%logical_matrix_dimension)
@@ -168,6 +168,8 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
    call elsi_say(bh,info_str)
    write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,info_str)
+
+   ph%nt_first = .false.
 
 end subroutine
 

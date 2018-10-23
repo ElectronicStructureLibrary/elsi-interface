@@ -115,6 +115,15 @@ module ELSI_DATATYPE
       integer(kind=i4) :: mu_max_steps
       integer(kind=i4) :: mu_mp_order
 
+      ! Matrix redistribution
+      logical :: first_blacs_to_ntpoly
+      logical :: first_blacs_to_pexsi
+      logical :: first_blacs_to_sips
+      logical :: first_siesta_to_blacs
+      logical :: first_siesta_to_pexsi
+      logical :: first_sips_to_blacs
+      logical :: first_sips_to_ntpoly
+
       ! ELPA
       integer(kind=i4) :: elpa_solver
       integer(kind=i4) :: elpa_n_single
@@ -124,6 +133,7 @@ module ELSI_DATATYPE
       logical :: elpa_gpu_kernels
       logical :: elpa_autotune
       logical :: elpa_output
+      logical :: elpa_first
       logical :: elpa_started = .false.
       class(elpa_t), pointer :: elpa_aux
       class(elpa_t), pointer :: elpa_solve
@@ -137,6 +147,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: omm_desc(9)
       real(kind=r8) :: omm_tol
       logical :: omm_output
+      logical :: omm_first
       logical :: omm_started = .false.
 
       ! PEXSI
@@ -152,6 +163,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: pexsi_comm_inter_pole
       integer(kind=i4) :: pexsi_comm_inter_point
       real(kind=r8) :: pexsi_ne
+      logical :: pexsi_first
       logical :: pexsi_started = .false.
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options) :: pexsi_options
@@ -166,6 +178,7 @@ module ELSI_DATATYPE
       real(kind=r8) :: sips_interval(2)
       real(kind=r8) :: sips_inertia_tol
       logical :: sips_do_inertia
+      logical :: sips_first
       logical :: sips_started = .false.
 
       ! NTPoly
@@ -176,6 +189,7 @@ module ELSI_DATATYPE
       real(kind=r8) :: nt_tol
       real(kind=r8) :: nt_filter
       logical :: nt_output
+      logical :: nt_first
       logical :: nt_started = .false.
       type(Matrix_ps) :: nt_ham
       type(Matrix_ps) :: nt_ovlp
