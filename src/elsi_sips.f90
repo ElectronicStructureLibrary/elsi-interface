@@ -28,19 +28,19 @@ module ELSI_SIPS
    public :: elsi_init_sips
    public :: elsi_cleanup_sips
    public :: elsi_solve_sips
-   public :: elsi_compute_dm_sips
-   public :: elsi_compute_edm_sips
+   public :: elsi_build_dm_sips
+   public :: elsi_build_edm_sips
 
    interface elsi_solve_sips
       module procedure elsi_solve_sips_real
    end interface
 
-   interface elsi_compute_dm_sips
-      module procedure elsi_compute_dm_sips_real
+   interface elsi_build_dm_sips
+      module procedure elsi_build_dm_sips_real
    end interface
 
-   interface elsi_compute_edm_sips
-      module procedure elsi_compute_edm_sips_real
+   interface elsi_build_edm_sips
+      module procedure elsi_build_edm_sips_real
    end interface
 
 contains
@@ -282,7 +282,7 @@ end subroutine
 !>
 !! This routine constructs the density matrix.
 !!
-subroutine elsi_compute_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
+subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 
    implicit none
 
@@ -297,7 +297,7 @@ subroutine elsi_compute_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
    real(kind=r8) :: t1
    character(len=200) :: info_str
 
-   character(len=*), parameter :: caller = "elsi_compute_dm_sips_real"
+   character(len=*), parameter :: caller = "elsi_build_dm_sips_real"
 
    call elsi_get_time(t0)
 
@@ -316,7 +316,7 @@ end subroutine
 !>
 !! This routine constructs the energy-weighted density matrix.
 !!
-subroutine elsi_compute_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
+subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
 
    implicit none
 
@@ -331,7 +331,7 @@ subroutine elsi_compute_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
    real(kind=r8) :: t1
    character(len=200) :: info_str
 
-   character(len=*), parameter :: caller = "elsi_compute_edm_sips_real"
+   character(len=*), parameter :: caller = "elsi_build_edm_sips_real"
 
    call elsi_get_time(t0)
 

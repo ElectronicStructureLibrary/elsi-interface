@@ -12,7 +12,6 @@ module ELSI_MUTATOR
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
        NTPOLY_SOLVER,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE, only: elsi_handle
-   use ELSI_ELPA, only: elsi_compute_edm_elpa
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop
    use ELSI_NTPOLY, only: elsi_compute_edm_ntpoly
@@ -23,8 +22,8 @@ module ELSI_MUTATOR
        elsi_ntpoly_to_blacs_dm,elsi_ntpoly_to_siesta_dm,elsi_ntpoly_to_sips_dm,&
        elsi_pexsi_to_blacs_dm,elsi_pexsi_to_siesta_dm,elsi_sips_to_blacs_dm,&
        elsi_sips_to_siesta_dm
-   use ELSI_SIPS, only: elsi_compute_edm_sips
-   use ELSI_UTILS, only: elsi_check_init
+   use ELSI_SIPS, only: elsi_build_edm_sips
+   use ELSI_UTILS, only: elsi_check_init,elsi_build_edm
 
    implicit none
 
@@ -1323,7 +1322,7 @@ subroutine elsi_get_edm_real(eh,edm)
          call elsi_allocate(eh%bh,tmp_real,eh%bh%n_lrow,eh%bh%n_lcol,&
                  "tmp_real",caller)
 
-         call elsi_compute_edm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
+         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
                  eh%evec_real,eh%occ,edm,tmp_real)
 
          call elsi_deallocate(eh%bh,tmp_real,"tmp_real")
@@ -1334,7 +1333,7 @@ subroutine elsi_get_edm_real(eh,edm)
          call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
                  eh%dm_real_csc,edm)
       case(SIPS_SOLVER)
-         call elsi_compute_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+         call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
                  eh%occ,eh%dm_real_csc)
          call elsi_sips_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
                  eh%dm_real_csc,edm)
@@ -1391,7 +1390,7 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
          call elsi_allocate(eh%bh,tmp_real,eh%bh%n_lrow,eh%bh%n_lcol,&
                  "tmp_real",caller)
 
-         call elsi_compute_edm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
+         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
                  eh%evec_real,eh%occ,eh%dm_real_den,tmp_real)
 
          call elsi_deallocate(eh%bh,tmp_real,"tmp_real")
@@ -1435,11 +1434,11 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
       case(SIPS_SOLVER)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
-            call elsi_compute_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%occ,edm)
+            call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                    eh%occ,edm)
          case(SIESTA_CSC)
-            call elsi_compute_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%occ,eh%dm_real_csc)
+            call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+                    eh%occ,eh%dm_real_csc)
             call elsi_sips_to_siesta_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
                     eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,&
                     eh%col_ptr_sp2,edm)
@@ -1502,7 +1501,7 @@ subroutine elsi_get_edm_complex(eh,edm)
          call elsi_allocate(eh%bh,tmp_cmplx,eh%bh%n_lrow,eh%bh%n_lcol,&
                  "tmp_cmplx",caller)
 
-         call elsi_compute_edm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
+         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
                  eh%evec_cmplx,eh%occ,edm,tmp_cmplx)
 
          call elsi_deallocate(eh%bh,tmp_cmplx,"tmp_cmplx")
@@ -1561,7 +1560,7 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
          call elsi_allocate(eh%bh,tmp_cmplx,eh%bh%n_lrow,eh%bh%n_lcol,&
                  "tmp_cmplx",caller)
 
-         call elsi_compute_edm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
+         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
                  eh%evec_cmplx,eh%occ,eh%dm_cmplx_den,tmp_cmplx)
 
          call elsi_deallocate(eh%bh,tmp_cmplx,"tmp_cmplx")
