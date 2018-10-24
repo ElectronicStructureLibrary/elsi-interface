@@ -13,8 +13,7 @@ module ELSI_ELPA
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,mpi_integer4
-   use ELSI_OCC, only: elsi_mu_and_occ,elsi_entropy
+   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_UTILS, only: elsi_get_nnz,elsi_set_full_mat
    use ELPA, only: elpa_t,elpa_init,elpa_uninit,elpa_allocate,elpa_deallocate,&
@@ -29,7 +28,6 @@ module ELSI_ELPA
 
    public :: elsi_init_elpa
    public :: elsi_cleanup_elpa
-   public :: elsi_compute_occ_elpa
    public :: elsi_compute_dm_elpa
    public :: elsi_compute_edm_elpa
    public :: elsi_solve_elpa
@@ -89,100 +87,6 @@ subroutine elsi_init_elpa(ph,bh)
 
       ph%elpa_started = .true.
    end if
-
-end subroutine
-
-!>
-!! This routine computes the chemical potential and occupation numbers.
-!!
-subroutine elsi_compute_occ_elpa(ph,bh,eval,occ)
-
-   implicit none
-
-   type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(in) :: eval(ph%n_basis)
-   real(kind=r8), intent(out) :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
-
-   real(kind=r8) :: mu
-   real(kind=r8) :: ts
-   real(kind=r8) :: n_electrons
-   integer(kind=i4) :: n_states
-   integer(kind=i4) :: n_spins
-   integer(kind=i4) :: n_kpts
-   integer(kind=i4) :: i
-   integer(kind=i4) :: ierr
-
-   real(kind=r8), allocatable :: eval_all(:,:,:)
-   real(kind=r8), allocatable :: k_weight(:)
-   real(kind=r8), allocatable :: tmp_real1(:)
-   real(kind=r8), allocatable :: tmp_real2(:,:,:)
-
-   character(len=*), parameter :: caller = "elsi_compute_occ_elpa"
-
-   ! Gather eigenvalues and occupation numbers
-   call elsi_allocate(bh,eval_all,ph%n_states,ph%n_spins,ph%n_kpts,"eval_all",&
-           caller)
-   call elsi_allocate(bh,k_weight,ph%n_kpts,"k_weight",caller)
-
-   if(ph%n_kpts > 1) then
-      call elsi_allocate(bh,tmp_real1,ph%n_kpts,"tmp_real",caller)
-
-      if(bh%myid == 0 .and. ph%i_spin == 1) then
-         tmp_real1(ph%i_kpt) = ph%i_weight
-      end if
-
-      call MPI_Allreduce(tmp_real1,k_weight,ph%n_kpts,mpi_real8,mpi_sum,&
-              bh%comm_all,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-      call elsi_deallocate(bh,tmp_real1,"tmp_real")
-   else
-      k_weight = ph%i_weight
-   end if
-
-   if(ph%n_spins*ph%n_kpts > 1) then
-      call elsi_allocate(bh,tmp_real2,ph%n_states,ph%n_spins,ph%n_kpts,&
-              "tmp_real",caller)
-
-      if(bh%myid == 0) then
-         tmp_real2(:,ph%i_spin,ph%i_kpt) = eval(1:ph%n_states)
-      end if
-
-      call MPI_Allreduce(tmp_real2,eval_all,ph%n_states*ph%n_spins*ph%n_kpts,&
-              mpi_real8,mpi_sum,bh%comm_all,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-      call elsi_deallocate(bh,tmp_real2,"tmp_real")
-   else
-      eval_all(:,ph%i_spin,ph%i_kpt) = eval(1:ph%n_states)
-   end if
-
-   ! Calculate chemical potential, occupation numbers, and electronic entropy
-   n_electrons = ph%n_electrons
-   n_states = ph%n_states
-   n_spins = ph%n_spins
-   n_kpts = ph%n_kpts
-
-   call elsi_mu_and_occ(ph,bh,n_electrons,n_states,n_spins,n_kpts,k_weight,&
-           eval_all,occ,mu)
-
-   call elsi_entropy(ph,n_states,n_spins,n_kpts,k_weight,eval_all,occ,mu,ts)
-
-   ph%mu = mu
-   ph%ts = ts
-
-   ! Calculate band structure energy
-   ph%ebs = 0.0_r8
-
-   do i = 1,ph%n_states_solve
-      ph%ebs = ph%ebs+eval(i)*occ(i,ph%i_spin,ph%i_kpt)
-   end do
-
-   call elsi_deallocate(bh,eval_all,"eval_all")
-   call elsi_deallocate(bh,k_weight,"k_weight")
 
 end subroutine
 
@@ -365,14 +269,14 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
          ph%ovlp_is_sing = .false.
 
-         ! S = (U^T)U, U -> S
+         ! S = U
          call ph%elpa_aux%cholesky(ovlp,ierr)
 
          if(ierr /= 0) then
             call elsi_stop(bh,"Cholesky failed.",caller)
          end if
 
-         ! U^-1 -> S
+         ! S = U^(-1)
          call ph%elpa_aux%invert_triangular(ovlp,ierr)
 
          if(ierr /= 0) then
@@ -390,14 +294,12 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
+   ! H = U^(-T) H U^(-1)
    if(ph%ovlp_is_sing) then
-      ! evec_real used as tmp_real
-      ! tmp_real = H_real * S_real
       call pdgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,1.0_r8,ham,1,1,&
               bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,0.0_r8,evec,1,1,&
               bh%desc)
 
-      ! H_real = (S_real)^T * tmp_real
       call pdgemm("T","N",ph%n_good,ph%n_good,ph%n_basis,1.0_r8,ovlp,1,&
               ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
@@ -815,14 +717,14 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
          ph%ovlp_is_sing = .false.
 
-         ! S = (U^T)U, U -> S
+         ! S = U
          call ph%elpa_aux%cholesky(ovlp,ierr)
 
          if(ierr /= 0) then
             call elsi_stop(bh,"Cholesky failed.",caller)
          end if
 
-         ! U^-1 -> S
+         ! S = U^(-1)
          call ph%elpa_aux%invert_triangular(ovlp,ierr)
 
          if(ierr /= 0) then
@@ -840,14 +742,12 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
+   ! H = U^(-T) H U^(-1)
    if(ph%ovlp_is_sing) then
-      ! evec_cmplx used as tmp_cmplx
-      ! tmp_cmplx = H_cmplx * S_cmplx
       call pzgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ham,&
               1,1,bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,&
               (0.0_r8,0.0_r8),evec,1,1,bh%desc)
 
-      ! H_cmplx = (S_cmplx)^* * tmp_cmplx
       call pzgemm("C","N",ph%n_good,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ovlp,&
               1,ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)

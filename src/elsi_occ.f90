@@ -14,7 +14,7 @@ module ELSI_OCC
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop
+   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_PRECISION, only: r8,i4
 
    implicit none
@@ -25,6 +25,7 @@ module ELSI_OCC
    public :: elsi_entropy
    public :: elsi_compute_mu_and_occ
    public :: elsi_compute_entropy
+   public :: elsi_get_occ
 
 contains
 
@@ -625,6 +626,101 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,mu,ts)
    end select
 
    ts = pre*ts
+
+end subroutine
+
+!>
+!! This routine computes the occupation numbers to be used internally to
+!! construct density matrices.
+!!
+subroutine elsi_get_occ(ph,bh,eval,occ)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(in) :: eval(ph%n_basis)
+   real(kind=r8), intent(out) :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+
+   real(kind=r8) :: mu
+   real(kind=r8) :: ts
+   real(kind=r8) :: n_electrons
+   integer(kind=i4) :: n_states
+   integer(kind=i4) :: n_spins
+   integer(kind=i4) :: n_kpts
+   integer(kind=i4) :: i
+   integer(kind=i4) :: ierr
+
+   real(kind=r8), allocatable :: eval_all(:,:,:)
+   real(kind=r8), allocatable :: k_weight(:)
+   real(kind=r8), allocatable :: tmp_real1(:)
+   real(kind=r8), allocatable :: tmp_real2(:,:,:)
+
+   character(len=*), parameter :: caller = "elsi_get_occ"
+
+   ! Gather eigenvalues and occupation numbers
+   call elsi_allocate(bh,eval_all,ph%n_states,ph%n_spins,ph%n_kpts,"eval_all",&
+           caller)
+   call elsi_allocate(bh,k_weight,ph%n_kpts,"k_weight",caller)
+
+   if(ph%n_kpts > 1) then
+      call elsi_allocate(bh,tmp_real1,ph%n_kpts,"tmp_real",caller)
+
+      if(bh%myid == 0 .and. ph%i_spin == 1) then
+         tmp_real1(ph%i_kpt) = ph%i_weight
+      end if
+
+      call MPI_Allreduce(tmp_real1,k_weight,ph%n_kpts,mpi_real8,mpi_sum,&
+              bh%comm_all,ierr)
+
+      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+
+      call elsi_deallocate(bh,tmp_real1,"tmp_real")
+   else
+      k_weight = ph%i_weight
+   end if
+
+   if(ph%n_spins*ph%n_kpts > 1) then
+      call elsi_allocate(bh,tmp_real2,ph%n_states,ph%n_spins,ph%n_kpts,&
+              "tmp_real",caller)
+
+      if(bh%myid == 0) then
+         tmp_real2(:,ph%i_spin,ph%i_kpt) = eval(1:ph%n_states)
+      end if
+
+      call MPI_Allreduce(tmp_real2,eval_all,ph%n_states*ph%n_spins*ph%n_kpts,&
+              mpi_real8,mpi_sum,bh%comm_all,ierr)
+
+      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+
+      call elsi_deallocate(bh,tmp_real2,"tmp_real")
+   else
+      eval_all(:,ph%i_spin,ph%i_kpt) = eval(1:ph%n_states)
+   end if
+
+   ! Calculate chemical potential, occupation numbers, and electronic entropy
+   n_electrons = ph%n_electrons
+   n_states = ph%n_states
+   n_spins = ph%n_spins
+   n_kpts = ph%n_kpts
+
+   call elsi_mu_and_occ(ph,bh,n_electrons,n_states,n_spins,n_kpts,k_weight,&
+           eval_all,occ,mu)
+
+   call elsi_entropy(ph,n_states,n_spins,n_kpts,k_weight,eval_all,occ,mu,ts)
+
+   ph%mu = mu
+   ph%ts = ts
+
+   ! Calculate band structure energy
+   ph%ebs = 0.0_r8
+
+   do i = 1,ph%n_states_solve
+      ph%ebs = ph%ebs+eval(i)*occ(i,ph%i_spin,ph%i_kpt)
+   end do
+
+   call elsi_deallocate(bh,eval_all,"eval_all")
+   call elsi_deallocate(bh,k_weight,"k_weight")
 
 end subroutine
 
