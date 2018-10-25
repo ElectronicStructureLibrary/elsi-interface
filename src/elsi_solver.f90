@@ -64,7 +64,7 @@ subroutine elsi_get_energy(ph,bh,energy,solver)
    integer(kind=i4), intent(in) :: solver
    real(kind=r8), intent(out) :: energy
 
-   real(kind=r8) :: tmp_real
+   real(kind=r8) :: tmp
    integer(kind=i4) :: ierr
 
    character(len=*), parameter :: caller = "elsi_get_energy"
@@ -83,11 +83,11 @@ subroutine elsi_get_energy(ph,bh,energy,solver)
          energy = 0.0_r8
       end if
 
-      call MPI_Allreduce(energy,tmp_real,1,mpi_real8,mpi_sum,bh%comm_all,ierr)
+      call MPI_Allreduce(energy,tmp,1,mpi_real8,mpi_sum,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-      energy = tmp_real
+      energy = tmp
    end if
 
 end subroutine

@@ -191,7 +191,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    real(kind=r8), allocatable :: inertias(:)
    real(kind=r8), allocatable :: ne_lower(:)
    real(kind=r8), allocatable :: ne_upper(:)
-   real(kind=r8), allocatable :: tmp_real(:)
+   real(kind=r8), allocatable :: tmp(:)
    real(kind=r8), allocatable :: send_buf(:)
 
    real(kind=r8), external :: ddot
@@ -394,9 +394,9 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    ! Get density matrix
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,tmp_real,bh%nnz_l_sp1,"tmp_real",caller)
+   call elsi_allocate(bh,tmp,bh%nnz_l_sp1,"tmp",caller)
 
-   call f_ppexsi_retrieve_real_dm(ph%pexsi_plan,tmp_real,local_energy,ierr)
+   call f_ppexsi_retrieve_real_dm(ph%pexsi_plan,tmp,local_energy,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Failed to get density matirx.",caller)
@@ -425,7 +425,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    if(ph%pexsi_options%nPoints == 1) then
       ! Scale density matrix
-      tmp_real = (ph%n_electrons/ph%pexsi_ne)*tmp_real
+      tmp = (ph%n_electrons/ph%pexsi_ne)*tmp
       converged = .true.
       ph%mu = shifts(1)
    else
@@ -452,7 +452,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
             ph%mu = shifts(i)
             converged = .true.
 
-            call MPI_Bcast(tmp_real,bh%nnz_l_sp1,mpi_real8,i-1,&
+            call MPI_Bcast(tmp,bh%nnz_l_sp1,mpi_real8,i-1,&
                     ph%pexsi_comm_inter_point,ierr)
 
             call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
@@ -478,12 +478,12 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_allocate(bh,send_buf,bh%nnz_l_sp1,"send_buf",caller)
 
       if(ph%pexsi_my_point == aux_min-1) then
-         send_buf = factor_min*tmp_real
+         send_buf = factor_min*tmp
       else if(ph%pexsi_my_point == aux_max-1) then
-         send_buf = factor_max*tmp_real
+         send_buf = factor_max*tmp
       end if
 
-      call MPI_Allreduce(send_buf,tmp_real,bh%nnz_l_sp1,mpi_real8,mpi_sum,&
+      call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,mpi_real8,mpi_sum,&
               ph%pexsi_comm_inter_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
@@ -492,10 +492,10 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    end if
 
    if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
-      dm = tmp_real
+      dm = tmp
    end if
 
-   call elsi_deallocate(bh,tmp_real,"tmp_real")
+   call elsi_deallocate(bh,tmp,"tmp")
    call elsi_deallocate(bh,shifts,"shifts")
 
    ! Compute energy = Tr(H*DM)
@@ -550,7 +550,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    character(len=200) :: info_str
 
    real(kind=r8), allocatable :: shifts(:)
-   real(kind=r8), allocatable :: tmp_real(:)
+   real(kind=r8), allocatable :: tmp(:)
    real(kind=r8), allocatable :: send_buf(:)
 
    character(len=*), parameter :: caller = "elsi_compute_edm_pexsi_real"
@@ -565,9 +565,9 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    end if
 
    ! Get energy density matrix
-   call elsi_allocate(bh,tmp_real,bh%nnz_l_sp1,"tmp_real",caller)
+   call elsi_allocate(bh,tmp,bh%nnz_l_sp1,"tmp",caller)
 
-   call f_ppexsi_retrieve_real_edm(ph%pexsi_plan,tmp_real,local_energy,ierr)
+   call f_ppexsi_retrieve_real_edm(ph%pexsi_plan,tmp,local_energy,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Failed to get energy density matirx.",caller)
@@ -604,7 +604,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
 
    if(ph%pexsi_options%nPoints == 1) then
       ! Scale energy density matrix
-      tmp_real = (ph%n_electrons/ph%pexsi_ne)*tmp_real
+      tmp = (ph%n_electrons/ph%pexsi_ne)*tmp
       converged = .true.
       ph%mu = shifts(1)
    else
@@ -631,7 +631,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
             ph%mu = shifts(i)
             converged = .true.
 
-            call MPI_Bcast(tmp_real,bh%nnz_l_sp1,mpi_real8,i-1,&
+            call MPI_Bcast(tmp,bh%nnz_l_sp1,mpi_real8,i-1,&
                     ph%pexsi_comm_inter_point,ierr)
 
             call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
@@ -652,12 +652,12 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
       call elsi_allocate(bh,send_buf,bh%nnz_l_sp1,"send_buf",caller)
 
       if(ph%pexsi_my_point == aux_min-1) then
-         send_buf = factor_min*tmp_real
+         send_buf = factor_min*tmp
       else if(ph%pexsi_my_point == aux_max-1) then
-         send_buf = factor_max*tmp_real
+         send_buf = factor_max*tmp
       end if
 
-      call MPI_Allreduce(send_buf,tmp_real,bh%nnz_l_sp1,mpi_real8,mpi_sum,&
+      call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,mpi_real8,mpi_sum,&
               ph%pexsi_comm_inter_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
@@ -666,10 +666,10 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    end if
 
    if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
-      edm = tmp_real
+      edm = tmp
    end if
 
-   call elsi_deallocate(bh,tmp_real,"tmp_real")
+   call elsi_deallocate(bh,tmp,"tmp")
    call elsi_deallocate(bh,shifts,"shifts")
 
    call elsi_get_time(t1)
@@ -720,7 +720,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    real(kind=r8), allocatable :: inertias(:)
    real(kind=r8), allocatable :: ne_lower(:)
    real(kind=r8), allocatable :: ne_upper(:)
-   complex(kind=r8), allocatable :: tmp_cmplx(:)
+   complex(kind=r8), allocatable :: tmp(:)
    real(kind=r8), allocatable :: send_buf(:)
    complex(kind=r8), allocatable :: send_buf_cmplx(:)
 
@@ -924,9 +924,9 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    ! Get density matrix
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,tmp_cmplx,bh%nnz_l_sp1,"tmp_cmplx",caller)
+   call elsi_allocate(bh,tmp,bh%nnz_l_sp1,"tmp",caller)
 
-   call f_ppexsi_retrieve_complex_dm(ph%pexsi_plan,tmp_cmplx,local_energy,ierr)
+   call f_ppexsi_retrieve_complex_dm(ph%pexsi_plan,tmp,local_energy,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Failed to get density matirx.",caller)
@@ -955,7 +955,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    if(ph%pexsi_options%nPoints == 1) then
       ! Scale density matrix
-      tmp_cmplx = (ph%n_electrons/ph%pexsi_ne)*tmp_cmplx
+      tmp = (ph%n_electrons/ph%pexsi_ne)*tmp
       converged = .true.
       ph%mu = shifts(1)
    else
@@ -982,7 +982,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
             ph%mu = shifts(i)
             converged = .true.
 
-            call MPI_Bcast(tmp_cmplx,bh%nnz_l_sp1,mpi_complex16,i-1,&
+            call MPI_Bcast(tmp,bh%nnz_l_sp1,mpi_complex16,i-1,&
                     ph%pexsi_comm_inter_point,ierr)
 
             call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
@@ -1008,13 +1008,13 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_allocate(bh,send_buf_cmplx,bh%nnz_l_sp1,"send_buf_cmplx",caller)
 
       if(ph%pexsi_my_point == aux_min-1) then
-         send_buf_cmplx = factor_min*tmp_cmplx
+         send_buf_cmplx = factor_min*tmp
       else if(ph%pexsi_my_point == aux_max-1) then
-         send_buf_cmplx = factor_max*tmp_cmplx
+         send_buf_cmplx = factor_max*tmp
       end if
 
-      call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,bh%nnz_l_sp1,mpi_complex16,&
-              mpi_sum,ph%pexsi_comm_inter_point,ierr)
+      call MPI_Allreduce(send_buf_cmplx,tmp,bh%nnz_l_sp1,mpi_complex16,mpi_sum,&
+              ph%pexsi_comm_inter_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -1022,10 +1022,10 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    end if
 
    if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
-      dm = tmp_cmplx
+      dm = tmp
    end if
 
-   call elsi_deallocate(bh,tmp_cmplx,"tmp_cmplx")
+   call elsi_deallocate(bh,tmp,"tmp")
    call elsi_deallocate(bh,shifts,"shifts")
 
    ! Compute energy = Tr(H*DM)
@@ -1081,7 +1081,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    character(len=200) :: info_str
 
    real(kind=r8), allocatable :: shifts(:)
-   complex(kind=r8), allocatable :: tmp_cmplx(:)
+   complex(kind=r8), allocatable :: tmp(:)
    complex(kind=r8), allocatable :: send_buf_cmplx(:)
 
    character(len=*), parameter :: caller = "elsi_compute_edm_pexsi_cmplx"
@@ -1096,9 +1096,9 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    end if
 
    ! Get energy density matrix
-   call elsi_allocate(bh,tmp_cmplx,bh%nnz_l_sp1,"tmp_cmplx",caller)
+   call elsi_allocate(bh,tmp,bh%nnz_l_sp1,"tmp",caller)
 
-   call f_ppexsi_retrieve_complex_edm(ph%pexsi_plan,tmp_cmplx,local_energy,ierr)
+   call f_ppexsi_retrieve_complex_edm(ph%pexsi_plan,tmp,local_energy,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Failed to get energy density matirx.",caller)
@@ -1135,7 +1135,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
 
    if(ph%pexsi_options%nPoints == 1) then
       ! Scale energy density matrix
-      tmp_cmplx = (ph%n_electrons/ph%pexsi_ne)*tmp_cmplx
+      tmp = (ph%n_electrons/ph%pexsi_ne)*tmp
       converged = .true.
       ph%mu = shifts(1)
    else
@@ -1162,7 +1162,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
             ph%mu = shifts(i)
             converged = .true.
 
-            call MPI_Bcast(tmp_cmplx,bh%nnz_l_sp1,mpi_complex16,i-1,&
+            call MPI_Bcast(tmp,bh%nnz_l_sp1,mpi_complex16,i-1,&
                     ph%pexsi_comm_inter_point,ierr)
 
             call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
@@ -1183,13 +1183,13 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
       call elsi_allocate(bh,send_buf_cmplx,bh%nnz_l_sp1,"send_buf_cmplx",caller)
 
       if(ph%pexsi_my_point == aux_min-1) then
-         send_buf_cmplx = factor_min*tmp_cmplx
+         send_buf_cmplx = factor_min*tmp
       else if(ph%pexsi_my_point == aux_max-1) then
-         send_buf_cmplx = factor_max*tmp_cmplx
+         send_buf_cmplx = factor_max*tmp
       end if
 
-      call MPI_Allreduce(send_buf_cmplx,tmp_cmplx,bh%nnz_l_sp1,mpi_complex16,&
-              mpi_sum,ph%pexsi_comm_inter_point,ierr)
+      call MPI_Allreduce(send_buf_cmplx,tmp,bh%nnz_l_sp1,mpi_complex16,mpi_sum,&
+              ph%pexsi_comm_inter_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -1197,10 +1197,10 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    end if
 
    if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
-      edm = tmp_cmplx
+      edm = tmp
    end if
 
-   call elsi_deallocate(bh,tmp_cmplx,"tmp_cmplx")
+   call elsi_deallocate(bh,tmp,"tmp")
    call elsi_deallocate(bh,shifts,"shifts")
 
    call elsi_get_time(t1)

@@ -279,25 +279,25 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
    integer(kind=i4) :: ierr
    character(len=200) :: info_str
 
-   real(kind=r8), allocatable :: tmp_real(:,:)
+   real(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_to_original_ev_real"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,tmp_real,bh%n_lrow,bh%n_lcol,"tmp_real",caller)
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   tmp_real = evec
+   tmp = evec
 
    if(ph%ovlp_is_sing) then
       call pdgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,1,&
-              ph%n_basis-ph%n_good+1,bh%desc,tmp_real,1,1,bh%desc,0.0_r8,evec,&
-              1,1,bh%desc)
+              ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,bh%desc,0.0_r8,evec,1,1,&
+              bh%desc)
    else ! Nonsingular, use Cholesky
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
 
-      call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham,tmp_real,&
+      call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham,tmp,&
               bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
 
       if(ierr /= 0) then
@@ -305,7 +305,7 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
       end if
    end if
 
-   call elsi_deallocate(bh,tmp_real,"tmp_real")
+   call elsi_deallocate(bh,tmp,"tmp")
 
    call elsi_get_time(t1)
 
@@ -582,25 +582,25 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
    integer(kind=i4) :: ierr
    character(len=200) :: info_str
 
-   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
+   complex(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_to_original_ev_cmplx"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,tmp_cmplx,bh%n_lrow,bh%n_lcol,"tmp_cmplx",caller)
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   tmp_cmplx = evec
+   tmp = evec
 
    if(ph%ovlp_is_sing) then
       call pzgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&
-              (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp_cmplx,&
-              1,1,bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
+              (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,&
+              bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
    else ! Nonsingular, use Cholesky
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
-      call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham,tmp_cmplx,&
+      call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham,tmp,&
               bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
 
       if(ierr /= 0) then
@@ -608,7 +608,7 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
       end if
    end if
 
-   call elsi_deallocate(bh,tmp_cmplx,"tmp_cmplx")
+   call elsi_deallocate(bh,tmp,"tmp")
 
    call elsi_get_time(t1)
 
@@ -743,22 +743,22 @@ subroutine elsi_elpa_evec_real(ph,bh,ham,eval,evec,sing_check)
    integer(kind=i4) :: ierr
    character(len=200) :: info_str
 
-   real(kind=r8), allocatable :: copy_ham(:,:)
-   real(kind=r4), allocatable :: copy_ham_r4(:,:)
+   real(kind=r8), allocatable :: copy(:,:)
+   real(kind=r4), allocatable :: copy_r4(:,:)
    real(kind=r4), allocatable :: eval_r4(:)
    real(kind=r4), allocatable :: evec_r4(:,:)
 
    character(len=*), parameter :: caller = "elsi_elpa_evec_real"
 
    if(sing_check) then
-      call elsi_allocate(bh,copy_ham,bh%n_lrow,bh%n_lcol,"copy_ham",caller)
+      call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
 
-      copy_ham = ham
+      copy = ham
 
       ! TODO: Define ill-conditioning tolerance
-      call ph%elpa_aux%eigenvectors(copy_ham,eval,evec,ierr)
+      call ph%elpa_aux%eigenvectors(copy,eval,evec,ierr)
 
-      call elsi_deallocate(bh,copy_ham,"copy_ham")
+      call elsi_deallocate(bh,copy,"copy")
    else
       if(.not. associated(ph%elpa_solve)) then
          call elsi_elpa_setup(ph,bh,.false.)
@@ -770,19 +770,18 @@ subroutine elsi_elpa_evec_real(ph,bh,ham,eval,evec,sing_check)
 
          call elsi_allocate(bh,eval_r4,ph%n_basis,"eval_r4",caller)
          call elsi_allocate(bh,evec_r4,bh%n_lrow,bh%n_lcol,"evec_r4",caller)
-         call elsi_allocate(bh,copy_ham,bh%n_lrow,bh%n_lcol,"copy_ham_r4",&
-                 caller)
+         call elsi_allocate(bh,copy_r4,bh%n_lrow,bh%n_lcol,"copy_r4",caller)
 
-         copy_ham_r4 = real(ham,kind=r4)
+         copy_r4 = real(ham,kind=r4)
 
-         call ph%elpa_solve%eigenvectors(copy_ham_r4,eval_r4,evec_r4,ierr)
+         call ph%elpa_solve%eigenvectors(copy_r4,eval_r4,evec_r4,ierr)
 
          eval = real(eval_r4,kind=r8)
          evec = real(evec_r4,kind=r8)
 
          call elsi_deallocate(bh,eval_r4,"eval_r4")
          call elsi_deallocate(bh,evec_r4,"evec_r4")
-         call elsi_deallocate(bh,copy_ham_r4,"copy_ham_r4")
+         call elsi_deallocate(bh,copy_r4,"copy_r4")
       else
          write(info_str,"(2X,A)") "Starting ELPA eigensolver"
          call elsi_say(bh,info_str)
@@ -828,22 +827,22 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
    integer(kind=i4) :: ierr
    character(len=200) :: info_str
 
-   complex(kind=r8), allocatable :: copy_ham(:,:)
-   complex(kind=r4), allocatable :: copy_ham_r4(:,:)
+   complex(kind=r8), allocatable :: copy(:,:)
+   complex(kind=r4), allocatable :: copy_r4(:,:)
    real(kind=r4), allocatable :: eval_r4(:)
    complex(kind=r4), allocatable :: evec_r4(:,:)
 
    character(len=*), parameter :: caller = "elsi_elpa_evec_cmplx"
 
    if(sing_check) then
-      call elsi_allocate(bh,copy_ham,bh%n_lrow,bh%n_lcol,"copy_ham",caller)
+      call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
 
-      copy_ham = ham
+      copy = ham
 
       ! TODO: Define ill-conditioning tolerance
-      call ph%elpa_aux%eigenvectors(copy_ham,eval,evec,ierr)
+      call ph%elpa_aux%eigenvectors(copy,eval,evec,ierr)
 
-      call elsi_deallocate(bh,copy_ham,"copy_ham")
+      call elsi_deallocate(bh,copy,"copy")
    else
       if(.not. associated(ph%elpa_solve)) then
          call elsi_elpa_setup(ph,bh,.false.)
@@ -855,19 +854,18 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
 
          call elsi_allocate(bh,eval_r4,ph%n_basis,"eval_r4",caller)
          call elsi_allocate(bh,evec_r4,bh%n_lrow,bh%n_lcol,"evec_r4",caller)
-         call elsi_allocate(bh,copy_ham,bh%n_lrow,bh%n_lcol,"copy_ham_r4",&
-                 caller)
+         call elsi_allocate(bh,copy_r4,bh%n_lrow,bh%n_lcol,"copy_r4",caller)
 
-         copy_ham_r4 = cmplx(ham,kind=r4)
+         copy_r4 = cmplx(ham,kind=r4)
 
-         call ph%elpa_solve%eigenvectors(copy_ham_r4,eval_r4,evec_r4,ierr)
+         call ph%elpa_solve%eigenvectors(copy_r4,eval_r4,evec_r4,ierr)
 
          eval = real(eval_r4,kind=r8)
          evec = cmplx(evec_r4,kind=r8)
 
          call elsi_deallocate(bh,eval_r4,"eval_r4")
          call elsi_deallocate(bh,evec_r4,"evec_r4")
-         call elsi_deallocate(bh,copy_ham_r4,"copy_ham_r4")
+         call elsi_deallocate(bh,copy_r4,"copy_r4")
       else
          write(info_str,"(2X,A)") "Starting ELPA eigensolver"
          call elsi_say(bh,info_str)

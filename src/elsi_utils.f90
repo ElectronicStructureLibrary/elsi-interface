@@ -638,22 +638,21 @@ subroutine elsi_set_full_mat_real(ph,bh,uplo,row_map,col_map,mat)
    integer(kind=i4) :: i
    integer(kind=i4) :: j
 
-   real(kind=r8), allocatable :: tmp_real(:,:)
+   real(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_set_full_mat_real"
 
-   call elsi_allocate(bh,tmp_real,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp_real",&
-           caller)
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp",caller)
 
-   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,mat,1,1,bh%desc,0.0_r8,tmp_real,1,&
-           1,bh%desc)
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,mat,1,1,bh%desc,0.0_r8,tmp,1,1,&
+           bh%desc)
 
    if(uplo == UT_MAT) then
       do j = 1,ph%n_basis-1
          if(col_map(j) > 0) then
             do i = j+1,ph%n_basis
                if(row_map(i) > 0) then
-                  mat(row_map(i),col_map(j)) = tmp_real(row_map(i),col_map(j))
+                  mat(row_map(i),col_map(j)) = tmp(row_map(i),col_map(j))
                end if
             end do
          end if
@@ -663,14 +662,14 @@ subroutine elsi_set_full_mat_real(ph,bh,uplo,row_map,col_map,mat)
          if(col_map(j) > 0) then
             do i = 1,j-1
                if(row_map(i) > 0) then
-                  mat(row_map(i),col_map(j)) = tmp_real(row_map(i),col_map(j))
+                  mat(row_map(i),col_map(j)) = tmp(row_map(i),col_map(j))
                end if
             end do
          end if
       end do
    end if
 
-   call elsi_deallocate(bh,tmp_real,"tmp_real")
+   call elsi_deallocate(bh,tmp,"tmp")
 
 end subroutine
 
@@ -692,22 +691,21 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,row_map,col_map,mat)
    integer(kind=i4) :: i
    integer(kind=i4) :: j
 
-   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
+   complex(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_set_full_mat_cmplx"
 
-   call elsi_allocate(bh,tmp_cmplx,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp_cmplx",&
-           caller)
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp",caller)
 
    call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),mat,1,1,bh%desc,&
-           (0.0_r8,0.0_r8),tmp_cmplx,1,1,bh%desc)
+           (0.0_r8,0.0_r8),tmp,1,1,bh%desc)
 
    if(uplo == UT_MAT) then
       do j = 1,ph%n_basis-1
          if(col_map(j) > 0) then
             do i = j+1,ph%n_basis
                if(row_map(i) > 0) then
-                  mat(row_map(i),col_map(j)) = tmp_cmplx(row_map(i),col_map(j))
+                  mat(row_map(i),col_map(j)) = tmp(row_map(i),col_map(j))
                end if
             end do
          end if
@@ -717,14 +715,14 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,row_map,col_map,mat)
          if(col_map(j) > 0) then
             do i = 1,j-1
                if(row_map(i) > 0) then
-                  mat(row_map(i),col_map(j)) = tmp_cmplx(row_map(i),col_map(j))
+                  mat(row_map(i),col_map(j)) = tmp(row_map(i),col_map(j))
                end if
             end do
          end if
       end do
    end if
 
-   call elsi_deallocate(bh,tmp_cmplx,"tmp_cmplx")
+   call elsi_deallocate(bh,tmp,"tmp")
 
    ! Make diagonal real
    do j = 1,ph%n_basis

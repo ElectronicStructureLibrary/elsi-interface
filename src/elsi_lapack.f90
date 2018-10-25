@@ -73,10 +73,10 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
          end do
       end do
 
-      ! Compute S = (U^T)U, U -> S
+      ! S = U
       call dpotrf("U",ph%n_basis,ovlp,ph%n_basis,ierr)
 
-      ! compute U^-1 -> S
+      ! S = U^(-1)
       call dtrtri("U","N",ph%n_basis,ovlp,ph%n_basis,ierr)
 
       call elsi_get_time(t1)
@@ -89,17 +89,14 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
+   ! H = U^(-T) H U^(-1)
    if(ph%ovlp_is_sing) then
-      ! evec_real used as tmp_real
-      ! tmp_real = H_real * S_real
       call dgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,1.0_r8,ham,ph%n_basis,&
               ovlp,ph%n_basis,0.0_r8,evec,ph%n_basis)
 
-      ! H_real = (S_real)^T * tmp_real
       call dgemm("T","N",ph%n_good,ph%n_good,ph%n_basis,1.0_r8,ovlp,ph%n_basis,&
               evec,ph%n_basis,0.0_r8,ham,ph%n_basis)
    else ! Use Cholesky
-      ! tmp_real = H_real * S_real
       do n = 1,ph%n_basis,nblk
          nwork = nblk
 
@@ -111,7 +108,6 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
                  ovlp(1,n),ph%n_basis,0.0_r8,evec(1,n),ph%n_basis)
       end do
 
-      ! H_real = (tmp_real)*T * S_real
       do n = 1,ph%n_basis,nblk
          nwork = nblk
 
@@ -150,20 +146,20 @@ subroutine elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
    real(kind=r8) :: t1
    character(len=200) :: info_str
 
-   real(kind=r8), allocatable :: tmp_real(:,:)
+   real(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_to_original_ev_sp_real"
 
    call elsi_get_time(t0)
 
    if(ph%ovlp_is_sing) then
-      call elsi_allocate(bh,tmp_real,bh%n_lrow,bh%n_lcol,"tmp_real",caller)
-      tmp_real = evec
+      call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
+      tmp = evec
 
       call dgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,&
-              ph%n_basis,tmp_real,ph%n_basis,0.0_r8,evec,ph%n_basis)
+              ph%n_basis,tmp,ph%n_basis,0.0_r8,evec,ph%n_basis)
 
-      call elsi_deallocate(bh,tmp_real,"tmp_real")
+      call elsi_deallocate(bh,tmp,"tmp")
    else ! Nonsingular, use Cholesky
       call dtrmm("L","U","N","N",ph%n_basis,ph%n_states,1.0_r8,ovlp,ph%n_basis,&
               evec,ph%n_basis)
@@ -199,8 +195,8 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
    character(len=200) :: info_str
 
    real(kind=r8), allocatable :: off_diag(:)
-   real(kind=r8), allocatable :: tau_real(:)
-   real(kind=r8), allocatable :: tmp_real(:,:)
+   real(kind=r8), allocatable :: tau(:)
+   real(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_solve_lapack_real"
 
@@ -216,29 +212,27 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
    call elsi_say(bh,info_str)
 
    call elsi_allocate(bh,off_diag,ph%n_good,"off_diag",caller)
-   call elsi_allocate(bh,tau_real,ph%n_good,"tau_real",caller)
-   call elsi_allocate(bh,tmp_real,ph%n_good,ph%n_good,"tmp_real",caller)
+   call elsi_allocate(bh,tau,ph%n_good,"tau",caller)
+   call elsi_allocate(bh,tmp,ph%n_good,ph%n_good,"tmp",caller)
 
-   call dsytrd("U",ph%n_good,ham,ph%n_basis,eval,off_diag,tau_real,tmp_real,&
+   call dsytrd("U",ph%n_good,ham,ph%n_basis,eval,off_diag,tau,tmp,&
            ph%n_good*ph%n_good,ierr)
 
    success = elpa_solve_tridi_double(ph%n_good,ph%n_states_solve,eval,off_diag,&
-                tmp_real,ph%n_good,64,ph%n_good,mpi_comm_self,mpi_comm_self,&
-                .false.)
+                tmp,ph%n_good,64,ph%n_good,mpi_comm_self,mpi_comm_self,.false.)
 
    if(.not. success) then
       call elsi_stop(bh,"ELPA tridiagonal solver failed.",caller)
    end if
 
-   evec(1:ph%n_good,1:ph%n_states_solve) =&
-      tmp_real(1:ph%n_good,1:ph%n_states_solve)
+   evec(1:ph%n_good,1:ph%n_states_solve) = tmp(1:ph%n_good,1:ph%n_states_solve)
 
-   call dormtr("L","U","N",ph%n_good,ph%n_states_solve,ham,ph%n_basis,tau_real,&
-           evec,ph%n_basis,tmp_real,ph%n_good*ph%n_good,ierr)
+   call dormtr("L","U","N",ph%n_good,ph%n_states_solve,ham,ph%n_basis,tau,evec,&
+           ph%n_basis,tmp,ph%n_good*ph%n_good,ierr)
 
    call elsi_deallocate(bh,off_diag,"off_diag")
-   call elsi_deallocate(bh,tau_real,"tau_real")
-   call elsi_deallocate(bh,tmp_real,"tmp_real")
+   call elsi_deallocate(bh,tau,"tau")
+   call elsi_deallocate(bh,tmp,"tmp")
 
    ! Overwrite zero eigenvalues
    if(ph%n_good < ph%n_basis) then
@@ -284,29 +278,28 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    character(len=200) :: info_str
 
    real(kind=r8), allocatable :: off_diag(:)
-   real(kind=r8), allocatable :: tau_real(:)
-   real(kind=r8), allocatable :: tmp_real(:,:)
-   real(kind=r8), allocatable :: copy_real(:,:)
+   real(kind=r8), allocatable :: tau(:)
+   real(kind=r8), allocatable :: tmp(:,:)
+   real(kind=r8), allocatable :: copy(:,:)
 
    character(len=*), parameter :: caller = "elsi_check_singularity_sp_real"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,copy_real,bh%n_lrow,bh%n_lcol,"copy_real",caller)
+   call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
 
-   ! Use copy_real to store overlap matrix, otherwise it will be destroyed by
-   ! eigenvalue calculation
-   copy_real = -ovlp
+   ! Overlap will be destroyed by eigenvalue calculation
+   copy = -ovlp
 
    call elsi_allocate(bh,off_diag,ph%n_basis,"off_diag",caller)
-   call elsi_allocate(bh,tau_real,ph%n_basis,"tau_real",caller)
-   call elsi_allocate(bh,tmp_real,ph%n_basis,ph%n_basis,"tmp_real",caller)
+   call elsi_allocate(bh,tau,ph%n_basis,"tau",caller)
+   call elsi_allocate(bh,tmp,ph%n_basis,ph%n_basis,"tmp",caller)
 
-   call dsytrd("U",ph%n_basis,copy_real,ph%n_basis,eval,off_diag,tau_real,&
-           tmp_real,ph%n_basis*ph%n_basis,ierr)
+   call dsytrd("U",ph%n_basis,copy,ph%n_basis,eval,off_diag,tau,tmp,&
+           ph%n_basis*ph%n_basis,ierr)
 
    success = elpa_solve_tridi_double(ph%n_basis,ph%n_basis,eval,off_diag,&
-                tmp_real,ph%n_basis,64,ph%n_basis,mpi_comm_self,mpi_comm_self,&
+                tmp,ph%n_basis,64,ph%n_basis,mpi_comm_self,mpi_comm_self,&
                 .false.)
 
    if(.not. success) then
@@ -326,16 +319,16 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
 
    ! Eigenvectors computed only for singular overlap matrix
    if(ph%n_good < ph%n_basis) then
-      evec = tmp_real
+      evec = tmp
 
-      call dormtr("L","U","N",ph%n_basis,ph%n_basis,copy_real,ph%n_basis,&
-              tau_real,evec,ph%n_basis,tmp_real,ph%n_basis*ph%n_basis,ierr)
+      call dormtr("L","U","N",ph%n_basis,ph%n_basis,copy,ph%n_basis,tau,evec,&
+              ph%n_basis,tmp,ph%n_basis*ph%n_basis,ierr)
    end if
 
    call elsi_deallocate(bh,off_diag,"off_diag")
-   call elsi_deallocate(bh,tau_real,"tau_real")
-   call elsi_deallocate(bh,tmp_real,"tmp_real")
-   call elsi_deallocate(bh,copy_real,"copy_real")
+   call elsi_deallocate(bh,tau,"tau")
+   call elsi_deallocate(bh,tmp,"tmp")
+   call elsi_deallocate(bh,copy,"copy")
 
    ph%n_states_solve = min(ph%n_good,ph%n_states)
 
@@ -423,10 +416,10 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
          end do
       end do
 
-      ! Compute S = (U^H)U, U -> S
+      ! S = U
       call zpotrf("U",ph%n_basis,ovlp,ph%n_basis,ierr)
 
-      ! compute U^-1 -> S
+      ! S = U^(-1)
       call ztrtri("U","N",ph%n_basis,ovlp,ph%n_basis,ierr)
 
       call elsi_get_time(t1)
@@ -439,17 +432,14 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
+   ! H = U^(-T) H U^(-1)
    if(ph%ovlp_is_sing) then
-      ! evec_cmplx used as tmp_cmplx
-      ! tmp_cmplx = H_cmplx * S_cmplx
       call zgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ham,&
               ph%n_basis,ovlp,ph%n_basis,(0.0_r8,0.0_r8),evec,ph%n_basis)
 
-      ! H_cmplx = (S_cmplx)^* * tmp_cmplx
       call zgemm("C","N",ph%n_good,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ovlp,&
               ph%n_basis,evec,ph%n_basis,(0.0_r8,0.0_r8),ham,ph%n_basis)
    else ! Use cholesky
-      ! tmp_cmplx = H_cmplx * S_cmplx
       do n = 1,ph%n_basis,nblk
          nwork = nblk
 
@@ -462,7 +452,6 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
                  ph%n_basis)
       end do
 
-      ! H_cmplx = (tmp_cmplx)^* * S_cmplx
       do n = 1,ph%n_basis,nblk
          nwork = nblk
 
@@ -502,21 +491,21 @@ subroutine elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
    real(kind=r8) :: t1
    character(len=200) :: info_str
 
-   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
+   complex(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_to_original_ev_sp_cmplx"
 
    call elsi_get_time(t0)
 
    if(ph%ovlp_is_sing) then
-      call elsi_allocate(bh,tmp_cmplx,bh%n_lrow,bh%n_lcol,"tmp_cmplx",caller)
-      tmp_cmplx = evec
+      call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
+      tmp = evec
 
       call zgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&
-              (1.0_r8,0.0_r8),ovlp,ph%n_basis,tmp_cmplx,ph%n_basis,&
-              (0.0_r8,0.0_r8),evec,ph%n_basis)
+              (1.0_r8,0.0_r8),ovlp,ph%n_basis,tmp,ph%n_basis,(0.0_r8,0.0_r8),&
+              evec,ph%n_basis)
 
-      call elsi_deallocate(bh,tmp_cmplx,"tmp_cmplx")
+      call elsi_deallocate(bh,tmp,"tmp")
    else ! Nonsingular, use Cholesky
       call ztrmm("L","U","N","N",ph%n_basis,ph%n_states,(1.0_r8,0.0_r8),ovlp,&
               ph%n_basis,evec,ph%n_basis)
@@ -552,7 +541,7 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    character(len=200) :: info_str
 
    real(kind=r8), allocatable :: off_diag(:)
-   complex(kind=r8), allocatable :: tau_cmplx(:)
+   complex(kind=r8), allocatable :: tau(:)
    real(kind=r8), allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
 
@@ -570,11 +559,11 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    call elsi_say(bh,info_str)
 
    call elsi_allocate(bh,off_diag,ph%n_good,"off_diag",caller)
-   call elsi_allocate(bh,tau_cmplx,ph%n_good,"tau_cmplx",caller)
+   call elsi_allocate(bh,tau,ph%n_good,"tau",caller)
    call elsi_allocate(bh,tmp_real,ph%n_good,ph%n_good,"tmp_real",caller)
    call elsi_allocate(bh,tmp_cmplx,ph%n_good,ph%n_good,"tmp_cmplx",caller)
 
-   call zhetrd("U",ph%n_good,ham,ph%n_basis,eval,off_diag,tau_cmplx,tmp_cmplx,&
+   call zhetrd("U",ph%n_good,ham,ph%n_basis,eval,off_diag,tau,tmp_cmplx,&
            ph%n_good*ph%n_good,ierr)
 
    success = elpa_solve_tridi_double(ph%n_good,ph%n_states_solve,eval,off_diag,&
@@ -588,11 +577,11 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    evec(1:ph%n_good,1:ph%n_states_solve) =&
       tmp_real(1:ph%n_good,1:ph%n_states_solve)
 
-   call zunmtr("L","U","N",ph%n_good,ph%n_states_solve,ham,ph%n_basis,&
-           tau_cmplx,evec,ph%n_basis,tmp_cmplx,ph%n_good*ph%n_good,ierr)
+   call zunmtr("L","U","N",ph%n_good,ph%n_states_solve,ham,ph%n_basis,tau,evec,&
+           ph%n_basis,tmp_cmplx,ph%n_good*ph%n_good,ierr)
 
    call elsi_deallocate(bh,off_diag,"off_diag")
-   call elsi_deallocate(bh,tau_cmplx,"tau_cmplx")
+   call elsi_deallocate(bh,tau,"tau")
    call elsi_deallocate(bh,tmp_real,"tmp_real")
    call elsi_deallocate(bh,tmp_cmplx,"tmp_cmplx")
 
@@ -640,28 +629,27 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    character(len=200) :: info_str
 
    real(kind=r8), allocatable :: off_diag(:)
-   complex(kind=r8), allocatable :: tau_cmplx(:)
+   complex(kind=r8), allocatable :: tau(:)
    real(kind=r8), allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
-   complex(kind=r8), allocatable :: copy_cmplx(:,:)
+   complex(kind=r8), allocatable :: copy(:,:)
 
    character(len=*), parameter :: caller = "elsi_check_singularity_sp_cmplx"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,copy_cmplx,bh%n_lrow,bh%n_lcol,"copy_cmplx",caller)
+   call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
 
-   ! Use copy_cmplx to store overlap matrix, otherwise it will be destroyed by
-   ! eigenvalue calculation
-   copy_cmplx = -ovlp
+   ! Overlap will be destroyed by eigenvalue calculation
+   copy = -ovlp
 
    call elsi_allocate(bh,off_diag,ph%n_basis,"off_diag",caller)
-   call elsi_allocate(bh,tau_cmplx,ph%n_basis,"tau_cmplx",caller)
+   call elsi_allocate(bh,tau,ph%n_basis,"tau",caller)
    call elsi_allocate(bh,tmp_real,ph%n_basis,ph%n_basis,"tmp_real",caller)
    call elsi_allocate(bh,tmp_cmplx,ph%n_basis,ph%n_basis,"tmp_cmplx",caller)
 
-   call zhetrd("U",ph%n_basis,copy_cmplx,ph%n_basis,eval,off_diag,tau_cmplx,&
-           tmp_cmplx,ph%n_basis*ph%n_basis,ierr)
+   call zhetrd("U",ph%n_basis,copy,ph%n_basis,eval,off_diag,tau,tmp_cmplx,&
+           ph%n_basis*ph%n_basis,ierr)
 
    success = elpa_solve_tridi_double(ph%n_basis,ph%n_basis,eval,off_diag,&
                 tmp_real,ph%n_basis,64,ph%n_basis,mpi_comm_self,mpi_comm_self,&
@@ -686,15 +674,15 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    if(ph%n_good < ph%n_basis) then
       evec = tmp_real
 
-      call zunmtr("L","U","N",ph%n_basis,ph%n_basis,copy_cmplx,ph%n_basis,&
-              tau_cmplx,evec,ph%n_basis,tmp_cmplx,ph%n_basis*ph%n_basis,ierr)
+      call zunmtr("L","U","N",ph%n_basis,ph%n_basis,copy,ph%n_basis,tau,evec,&
+              ph%n_basis,tmp_cmplx,ph%n_basis*ph%n_basis,ierr)
    end if
 
    call elsi_deallocate(bh,off_diag,"off_diag")
-   call elsi_deallocate(bh,tau_cmplx,"tau_cmplx")
+   call elsi_deallocate(bh,tau,"tau")
    call elsi_deallocate(bh,tmp_real,"tmp_real")
    call elsi_deallocate(bh,tmp_cmplx,"tmp_cmplx")
-   call elsi_deallocate(bh,copy_cmplx,"copy_cmplx")
+   call elsi_deallocate(bh,copy,"copy")
 
    ph%n_states_solve = min(ph%n_good,ph%n_states)
 

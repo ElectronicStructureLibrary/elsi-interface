@@ -653,8 +653,8 @@ subroutine elsi_get_occ(ph,bh,eval,occ)
 
    real(kind=r8), allocatable :: eval_all(:,:,:)
    real(kind=r8), allocatable :: k_weight(:)
-   real(kind=r8), allocatable :: tmp_real1(:)
-   real(kind=r8), allocatable :: tmp_real2(:,:,:)
+   real(kind=r8), allocatable :: tmp1(:)
+   real(kind=r8), allocatable :: tmp2(:,:,:)
 
    character(len=*), parameter :: caller = "elsi_get_occ"
 
@@ -664,36 +664,35 @@ subroutine elsi_get_occ(ph,bh,eval,occ)
    call elsi_allocate(bh,k_weight,ph%n_kpts,"k_weight",caller)
 
    if(ph%n_kpts > 1) then
-      call elsi_allocate(bh,tmp_real1,ph%n_kpts,"tmp_real",caller)
+      call elsi_allocate(bh,tmp1,ph%n_kpts,"tmp",caller)
 
       if(bh%myid == 0 .and. ph%i_spin == 1) then
-         tmp_real1(ph%i_kpt) = ph%i_weight
+         tmp1(ph%i_kpt) = ph%i_weight
       end if
 
-      call MPI_Allreduce(tmp_real1,k_weight,ph%n_kpts,mpi_real8,mpi_sum,&
-              bh%comm_all,ierr)
+      call MPI_Allreduce(tmp1,k_weight,ph%n_kpts,mpi_real8,mpi_sum,bh%comm_all,&
+              ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-      call elsi_deallocate(bh,tmp_real1,"tmp_real")
+      call elsi_deallocate(bh,tmp1,"tmp")
    else
       k_weight = ph%i_weight
    end if
 
    if(ph%n_spins*ph%n_kpts > 1) then
-      call elsi_allocate(bh,tmp_real2,ph%n_states,ph%n_spins,ph%n_kpts,&
-              "tmp_real",caller)
+      call elsi_allocate(bh,tmp2,ph%n_states,ph%n_spins,ph%n_kpts,"tmp",caller)
 
       if(bh%myid == 0) then
-         tmp_real2(:,ph%i_spin,ph%i_kpt) = eval(1:ph%n_states)
+         tmp2(:,ph%i_spin,ph%i_kpt) = eval(1:ph%n_states)
       end if
 
-      call MPI_Allreduce(tmp_real2,eval_all,ph%n_states*ph%n_spins*ph%n_kpts,&
+      call MPI_Allreduce(tmp2,eval_all,ph%n_states*ph%n_spins*ph%n_kpts,&
               mpi_real8,mpi_sum,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-      call elsi_deallocate(bh,tmp_real2,"tmp_real")
+      call elsi_deallocate(bh,tmp2,"tmp")
    else
       eval_all(:,ph%i_spin,ph%i_kpt) = eval(1:ph%n_states)
    end if

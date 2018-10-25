@@ -214,29 +214,28 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
    real(kind=r8) :: t1
    character(len=200) :: info_str
 
-   real(kind=r8), allocatable :: copy_real(:,:)
+   real(kind=r8), allocatable :: copy(:,:)
 
    character(len=*), parameter :: caller = "elsi_check_singularity_real"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,copy_real,bh%n_lrow,bh%n_lcol,"copy_real",caller)
+   call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
 
-   ! Use copy_real to store overlap matrix, otherwise it will be destroyed by
-   ! eigenvalue calculation
-   copy_real = ovlp
+   ! Overlap will be destroyed by eigenvalue calculation
+   copy = ovlp
 
    ! Use customized ELPA 2-stage solver to check overlap singularity
    ! Eigenvectors computed only for singular overlap matrix
-   success = elpa_check_singularity_real_double(ph%n_basis,ph%n_basis,&
-                copy_real,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
+   success = elpa_check_singularity_real_double(ph%n_basis,ph%n_basis,copy,&
+                bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
                 ph%elpa_comm_row,ph%elpa_comm_col,bh%comm,ph%sing_tol,ph%n_good)
 
    if(.not. success) then
       call elsi_stop(bh,"Singularity check failed.",caller)
    end if
 
-   call elsi_deallocate(bh,copy_real,"copy_real")
+   call elsi_deallocate(bh,copy,"copy")
 
    ph%n_states_solve = min(ph%n_good,ph%n_states)
 
@@ -303,26 +302,26 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
    real(kind=r8) :: t1
    character(len=200) :: info_str
 
-   real(kind=r8), allocatable :: tmp_real(:,:)
+   real(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_to_original_ev_real"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,tmp_real,bh%n_lrow,bh%n_lcol,"tmp_real",caller)
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   tmp_real = evec
+   tmp = evec
 
    if(ph%ovlp_is_sing) then
       call pdgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,1,&
-              ph%n_basis-ph%n_good+1,bh%desc,tmp_real,1,1,bh%desc,0.0_r8,evec,&
-              1,1,bh%desc)
+              ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,bh%desc,0.0_r8,evec,1,1,&
+              bh%desc)
    else ! Nonsingular, use Cholesky
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
 
       success = elpa_mult_at_b_real_double("L","N",ph%n_basis,ph%n_states,ham,&
-                   bh%n_lrow,bh%n_lcol,tmp_real,bh%n_lrow,bh%n_lcol,bh%blk,&
+                   bh%n_lrow,bh%n_lcol,tmp,bh%n_lrow,bh%n_lcol,bh%blk,&
                    ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
 
       if(.not. success) then
@@ -330,7 +329,7 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
       end if
    end if
 
-   call elsi_deallocate(bh,tmp_real,"tmp_real")
+   call elsi_deallocate(bh,tmp,"tmp")
 
    call elsi_get_time(t1)
 
@@ -554,29 +553,28 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
    real(kind=r8) :: t1
    character(len=200) :: info_str
 
-   complex(kind=r8), allocatable :: copy_cmplx(:,:)
+   complex(kind=r8), allocatable :: copy(:,:)
 
    character(len=*), parameter :: caller = "elsi_check_singularity_cmplx"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,copy_cmplx,bh%n_lrow,bh%n_lcol,"copy_cmplx",caller)
+   call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
 
-   ! Use copy_cmplx to store overlap matrix, otherwise it will be destroyed by
-   ! eigenvalue calculation
-   copy_cmplx = ovlp
+   ! Overlap will be destroyed by eigenvalue calculation
+   copy = ovlp
 
    ! Use customized ELPA 2-stage solver to check overlap singularity
    ! Eigenvectors computed only for singular overlap matrix
-   success = elpa_check_singularity_complex_double(ph%n_basis,ph%n_basis,&
-                copy_cmplx,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
+   success = elpa_check_singularity_complex_double(ph%n_basis,ph%n_basis,copy,&
+                bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
                 ph%elpa_comm_row,ph%elpa_comm_col,bh%comm,ph%sing_tol,ph%n_good)
 
    if(.not. success) then
       call elsi_stop(bh,"Singularity check failed.",caller)
    end if
 
-   call elsi_deallocate(bh,copy_cmplx,"copy_cmplx")
+   call elsi_deallocate(bh,copy,"copy")
 
    ph%n_states_solve = min(ph%n_good,ph%n_states)
 
@@ -643,35 +641,34 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
    real(kind=r8) :: t1
    character(len=200) :: info_str
 
-   complex(kind=r8), allocatable :: tmp_cmplx(:,:)
+   complex(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_to_original_ev_cmplx"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,tmp_cmplx,bh%n_lrow,bh%n_lcol,"tmp_cmplx",caller)
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   tmp_cmplx = evec
+   tmp = evec
 
    if(ph%ovlp_is_sing) then
       call pzgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&
-              (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp_cmplx,&
-              1,1,bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
+              (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,&
+              bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
    else ! Nonsingular, use Cholesky
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
       success = elpa_mult_ah_b_complex_double("L","N",ph%n_basis,ph%n_states,&
-                   ham,bh%n_lrow,bh%n_lcol,tmp_cmplx,bh%n_lrow,bh%n_lcol,&
-                   bh%blk,ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,&
-                   bh%n_lcol)
+                   ham,bh%n_lrow,bh%n_lcol,tmp,bh%n_lrow,bh%n_lcol,bh%blk,&
+                   ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
 
       if(.not. success) then
          call elsi_stop(bh,"Matrix multiplication failed.",caller)
       end if
    end if
 
-   call elsi_deallocate(bh,tmp_cmplx,"tmp_cmplx")
+   call elsi_deallocate(bh,tmp,"tmp")
 
    call elsi_get_time(t1)
 
