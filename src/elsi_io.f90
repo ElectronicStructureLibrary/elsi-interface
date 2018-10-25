@@ -10,8 +10,7 @@
 module ELSI_IO
 
    use ELSI_CONSTANTS, only: MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
-       SIESTA_CSC,UNSET,ELPA_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
-       NTPOLY_SOLVER
+       SIESTA_CSC,ELPA_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,NTPOLY_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_PRECISION, only: r8,i4,i8
    use FORTJSON, only: fjson_write_name_value,fjson_reset_fj_handle,&
