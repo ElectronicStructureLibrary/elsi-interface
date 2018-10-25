@@ -404,17 +404,11 @@ subroutine elsi_cleanup(eh)
    end if
 
    ! Auxiliary arrays
-   if(allocated(eh%ham_real_copy)) then
-      call elsi_deallocate(eh%bh,eh%ham_real_copy,"ham_real_copy")
-   end if
    if(allocated(eh%ovlp_real_copy)) then
       call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
    end if
    if(allocated(eh%ovlp_cmplx_copy)) then
       call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
-   end if
-   if(allocated(eh%ovlp_real_inv)) then
-      call elsi_deallocate(eh%bh,eh%ovlp_real_inv,"ovlp_real_inv")
    end if
    if(allocated(eh%occ)) then
       call elsi_deallocate(eh%bh,eh%occ,"occ")

@@ -93,6 +93,63 @@ subroutine elsi_get_energy(ph,bh,energy,solver)
 end subroutine
 
 !>
+!! This routine initializes BLACS, in case that the user selects a sparse format
+!! and BLACS is still used internally.
+!!
+subroutine elsi_init_blacs(eh)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh
+
+   integer(kind=i4) :: nprow
+   integer(kind=i4) :: npcol
+   integer(kind=i4) :: blacs_ctxt
+   integer(kind=i4) :: block_size
+
+   character(len=*), parameter :: caller = "elsi_init_blacs"
+
+   if(eh%ph%parallel_mode == MULTI_PROC .and. .not. eh%bh%blacs_ready) then
+      ! Set square-like process grid
+      do nprow = nint(sqrt(real(eh%bh%n_procs,kind=r8))),2,-1
+         if(mod(eh%bh%n_procs,nprow) == 0) then
+            exit
+         end if
+      end do
+
+      npcol = eh%bh%n_procs/nprow
+
+      if(max(nprow,npcol) > eh%ph%n_basis) then
+         call elsi_stop(eh%bh,"Matrix size is too small for this number of"//&
+                 " MPI tasks.",caller)
+      end if
+
+      ! Initialize BLACS
+      blacs_ctxt = eh%bh%comm
+
+      call BLACS_Gridinit(blacs_ctxt,"r",nprow,npcol)
+
+      ! Find block size
+      block_size = 1
+
+      do while(2*block_size*max(nprow,npcol) <= eh%ph%n_basis)
+         block_size = 2*block_size
+      end do
+
+      ! Maximum allowed value: 256
+      block_size = min(256,block_size)
+
+      ! ELPA works better with a small block_size
+      if(eh%ph%solver == ELPA_SOLVER) then
+         block_size = min(32,block_size)
+      end if
+
+      call elsi_set_blacs(eh,blacs_ctxt,block_size)
+   end if
+
+end subroutine
+
+!>
 !! This routine computes the eigenvalues and eigenvectors. Note the
 !! intent(inout) - it is because everything has the potential to be reused in
 !! the next call.
@@ -836,11 +893,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      ! Set up BLACS if not done by user
-      if(.not. eh%bh%blacs_ready) then
-         call elsi_init_blacs(eh)
-      end if
-
+      call elsi_init_blacs(eh)
       call elsi_init_elpa(eh%ph,eh%bh)
 
       if(.not. allocated(eh%ham_real_den)) then
@@ -911,11 +964,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
 
       call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
    case(OMM_SOLVER)
-      ! Set up BLACS if not done by user
-      if(.not. eh%bh%blacs_ready) then
-         call elsi_init_blacs(eh)
-      end if
-
+      call elsi_init_blacs(eh)
       call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_init_omm(eh%ph,eh%bh)
 
@@ -1190,11 +1239,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      ! Set up BLACS if not done by user
-      if(.not. eh%bh%blacs_ready) then
-         call elsi_init_blacs(eh)
-      end if
-
+      call elsi_init_blacs(eh)
       call elsi_init_elpa(eh%ph,eh%bh)
 
       if(.not. allocated(eh%ham_cmplx_den)) then
@@ -1265,11 +1310,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
 
       call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
    case(OMM_SOLVER)
-      ! Set up BLACS if not done by user
-      if(.not. eh%bh%blacs_ready) then
-         call elsi_init_blacs(eh)
-      end if
-
+      call elsi_init_blacs(eh)
       call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_init_omm(eh%ph,eh%bh)
 
@@ -1435,63 +1476,6 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
 
    eh%ph%edm_ready_cmplx = .true.
    eh%ph%solver = solver_save
-
-end subroutine
-
-!>
-!! This routine initializes BLACS, in case that the user selects a sparse format
-!! and BLACS is still used internally.
-!!
-subroutine elsi_init_blacs(eh)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh
-
-   integer(kind=i4) :: nprow
-   integer(kind=i4) :: npcol
-   integer(kind=i4) :: blacs_ctxt
-   integer(kind=i4) :: block_size
-
-   character(len=*), parameter :: caller = "elsi_init_blacs"
-
-   if(eh%ph%parallel_mode == MULTI_PROC .and. .not. eh%bh%blacs_ready) then
-      ! Set square-like process grid
-      do nprow = nint(sqrt(real(eh%bh%n_procs,kind=r8))),2,-1
-         if(mod(eh%bh%n_procs,nprow) == 0) then
-            exit
-         end if
-      end do
-
-      npcol = eh%bh%n_procs/nprow
-
-      if(max(nprow,npcol) > eh%ph%n_basis) then
-         call elsi_stop(eh%bh,"Matrix size is too small for this number of"//&
-                 " MPI tasks.",caller)
-      end if
-
-      ! Initialize BLACS
-      blacs_ctxt = eh%bh%comm
-
-      call BLACS_Gridinit(blacs_ctxt,"r",nprow,npcol)
-
-      ! Find block size
-      block_size = 1
-
-      do while(2*block_size*max(nprow,npcol) <= eh%ph%n_basis)
-         block_size = 2*block_size
-      end do
-
-      ! Maximum allowed value: 256
-      block_size = min(256,block_size)
-
-      ! ELPA works better with a small block_size
-      if(eh%ph%solver == ELPA_SOLVER) then
-         block_size = min(32,block_size)
-      end if
-
-      call elsi_set_blacs(eh,blacs_ctxt,block_size)
-   end if
 
 end subroutine
 

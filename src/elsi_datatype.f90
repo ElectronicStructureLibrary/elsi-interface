@@ -230,10 +230,8 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: col_ptr_sp2(:)
 
       ! Auxiliary
-      real(kind=r8), allocatable :: ham_real_copy(:,:)
       real(kind=r8), allocatable :: ovlp_real_copy(:,:)
       complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
-      real(kind=r8), allocatable :: ovlp_real_inv(:,:)
       real(kind=r8), allocatable :: occ(:,:,:)
       integer(kind=i4), allocatable :: row_map(:)
       integer(kind=i4), allocatable :: col_map(:)
