@@ -119,7 +119,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    if(.not. ph%ovlp_is_unit) then
       if(ph%omm_flavor == 2) then
-         if(ph%n_calls == 1) then
+         if(ph%omm_first .and. ph%elpa_first) then
             call elsi_get_time(t0)
 
             ! Cholesky factorization
@@ -143,7 +143,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
       end if
    end if
 
-   if(ph%n_calls == 1) then
+   if(ph%omm_first .and. ph%elpa_first) then
       coeff_ready = .false.
    else
       coeff_ready = .true.
@@ -277,7 +277,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    if(.not. ph%ovlp_is_unit) then
       if(ph%omm_flavor == 2) then
-         if(ph%n_calls == 1) then
+         if(ph%omm_first .and. ph%elpa_first) then
             call elsi_get_time(t0)
 
             ! Cholesky factorization
@@ -301,7 +301,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
       end if
    end if
 
-   if(ph%n_calls == 1) then
+   if(ph%omm_first .and. ph%elpa_first) then
       coeff_ready = .false.
    else
       coeff_ready = .true.

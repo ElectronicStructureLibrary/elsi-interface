@@ -150,7 +150,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
    call elsi_allocate(bh,slices,ph%sips_n_slices+1,"slices",caller)
 
-   if(ph%n_calls == 1) then
+   if(ph%sips_first .and. ph%elpa_first) then
       eval = ph%sips_interval(2)
       eval(1) = ph%sips_interval(1)
    end if
