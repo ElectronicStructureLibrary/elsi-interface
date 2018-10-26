@@ -1,3 +1,11 @@
+==================
+   Not Released
+==================
+
+   ELSI:
+   * Fixed single precision calculations with an externally linked ELPA.
+   * Fixed libOMM Cholesky flavor with random initial guess.
+
 ============================
    ELSI May 2018 (v2.1.0)
 ============================
