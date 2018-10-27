@@ -26,7 +26,7 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: ierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: n_states
-   integer(kind=i4) :: matrix_size
+   integer(kind=i4) :: n_basis
    integer(kind=i4) :: nnz_g
    integer(kind=i4) :: nnz_l
    integer(kind=i4) :: n_l_cols
@@ -51,8 +51,8 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
 
    complex(kind=r8), external :: zdotc
 
-   type(elsi_handle) :: e_h
-   type(elsi_rw_handle) :: rw_h
+   type(elsi_handle) :: eh
+   type(elsi_rw_handle) :: rwh
 
    ! Reference values
    real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
@@ -72,39 +72,39 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
       if(solver == 1) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + ELPA"
          e_ref = e_elpa
-      elseif(solver == 2) then
+      else if(solver == 2) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + libOMM"
          e_ref = e_omm
-      elseif(solver == 3) then
+      else if(solver == 3) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + PEXSI"
          e_ref = e_pexsi
          tol = 1.0e-3_r8
-      elseif(solver == 6) then
+      else if(solver == 6) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + NTPoly"
          e_ref = e_ntpoly
          tol = 1.0e-7_r8
-      endif
+      end if
       write(*,*)
-   endif
+   end if
 
    ! Read H and S matrices
-   call elsi_init_rw(rw_h,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rw_h,mpi_comm)
+   call elsi_init_rw(rwh,0,1,0,0.0_r8)
+   call elsi_set_rw_mpi(rwh,mpi_comm)
 
-   call elsi_read_mat_dim_sparse(rw_h,h_file,n_electrons,matrix_size,nnz_g,&
-           nnz_l,n_l_cols)
-   call elsi_get_rw_header(rw_h,header)
+   call elsi_read_mat_dim_sparse(rwh,h_file,n_electrons,n_basis,nnz_g,nnz_l,&
+           n_l_cols)
+   call elsi_get_rw_header(rwh,header)
 
    ! This is a limitation of this program, not a limitation of ELSI
-   if(mod(matrix_size,n_proc) /= 0) then
+   if(mod(n_basis,n_proc) /= 0) then
       blk = 0
 
       write(*,"(2X,A)") "Internal error"
       call MPI_Abort(mpi_comm,0,ierr)
       stop
    else
-      blk = matrix_size/n_proc
-   endif
+      blk = n_basis/n_proc
+   end if
 
    allocate(ham(nnz_l))
    allocate(ovlp(nnz_l))
@@ -115,10 +115,10 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
 
    t1 = MPI_Wtime()
 
-   call elsi_read_mat_complex_sparse(rw_h,h_file,row_ind,col_ptr,ham)
-   call elsi_read_mat_complex_sparse(rw_h,s_file,row_ind,col_ptr,ovlp)
+   call elsi_read_mat_complex_sparse(rwh,h_file,row_ind,col_ptr,ham)
+   call elsi_read_mat_complex_sparse(rwh,s_file,row_ind,col_ptr,ovlp)
 
-   call elsi_finalize_rw(rw_h)
+   call elsi_finalize_rw(rwh)
 
    t2 = MPI_Wtime()
 
@@ -126,29 +126,29 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
       write(*,"(2X,A)") "Finished reading H and S matrices"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-   endif
+   end if
 
    ! Initialize ELSI
    n_states = int(n_electrons,kind=i4)
 
-   call elsi_init(e_h,solver,1,2,matrix_size,n_electrons,n_states)
-   call elsi_set_mpi(e_h,mpi_comm)
-   call elsi_set_csc(e_h,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
-   call elsi_set_csc_blk(e_h,blk)
+   call elsi_init(eh,solver,1,2,n_basis,n_electrons,n_states)
+   call elsi_set_mpi(eh,mpi_comm)
+   call elsi_set_csc(eh,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
+   call elsi_set_csc_blk(eh,blk)
 
    ! Customize ELSI
-   call elsi_set_output(e_h,2)
-   call elsi_set_output_log(e_h,1)
-   call elsi_set_sing_check(e_h,0)
-   call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
-   call elsi_set_omm_n_elpa(e_h,1)
-   call elsi_set_pexsi_delta_e(e_h,80.0_r8)
-   call elsi_set_pexsi_np_per_pole(e_h,2)
+   call elsi_set_output(eh,2)
+   call elsi_set_output_log(eh,1)
+   call elsi_set_sing_check(eh,0)
+   call elsi_set_mu_broaden_width(eh,1.0e-6_r8)
+   call elsi_set_omm_n_elpa(eh,1)
+   call elsi_set_pexsi_delta_e(eh,80.0_r8)
+   call elsi_set_pexsi_np_per_pole(eh,2)
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_dm_complex_sparse(e_h,ham,ovlp,dm,e_test)
+   call elsi_dm_complex_sparse(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
@@ -156,17 +156,17 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
       write(*,"(2X,A)") "Finished SCF #1"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-   endif
+   end if
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_dm_complex_sparse(e_h,ham,ovlp,dm,e_test)
+   call elsi_dm_complex_sparse(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   call elsi_get_edm_complex_sparse(e_h,edm)
+   call elsi_get_edm_complex_sparse(eh,edm)
 
    ! Compute electron count
    tmp = real(zdotc(nnz_l,ovlp,1,dm,1),kind=r8)
@@ -192,13 +192,13 @@ subroutine test_dm_cmplx_csc2(mpi_comm,solver,h_file,s_file)
             write(*,"(2X,A)") "Passed."
          else
             write(*,"(2X,A)") "Failed."
-         endif
-      endif
+         end if
+      end if
       write(*,*)
-   endif
+   end if
 
    ! Finalize ELSI
-   call elsi_finalize(e_h)
+   call elsi_finalize(eh)
 
    deallocate(ham)
    deallocate(ovlp)

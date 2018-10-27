@@ -27,7 +27,7 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
    integer(kind=i4) :: ierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
-   integer(kind=i4) :: matrix_size
+   integer(kind=i4) :: n_basis
    integer(kind=i4) :: l_rows
    integer(kind=i4) :: l_cols
    integer(kind=i4) :: nnz_g
@@ -52,7 +52,7 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
    complex(kind=r8), allocatable :: ovlp_csc(:)
    complex(kind=r8), allocatable :: ovlp_csc_save(:)
 
-   type(elsi_rw_handle) :: rw_h
+   type(elsi_rw_handle) :: rwh
 
    real(kind=r8), parameter :: tol = 1.0e-20_r8
 
@@ -64,12 +64,12 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
       write(*,'("  ##     ELSI TEST PROGRAMS     ##")')
       write(*,'("  ################################")')
       write(*,*)
-   endif
+   end if
 
    ! Set up square-like processor grid
    do npcol = nint(sqrt(real(n_proc))),2,-1
       if(mod(n_proc,npcol) == 0) exit
-   enddo
+   end do
    nprow = n_proc/npcol
 
    ! Set block size
@@ -82,15 +82,15 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
    ! Read H and S matrices
    if(n_proc == 1) then
       ! Test SINGLE_PROC mode
-      call elsi_init_rw(rw_h,0,0,0,0.0_r8)
+      call elsi_init_rw(rwh,0,0,0,0.0_r8)
    else
       ! Test MULTI_PROC mode
-      call elsi_init_rw(rw_h,0,1,0,0.0_r8)
-      call elsi_set_rw_mpi(rw_h,mpi_comm)
-      call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
-   endif
+      call elsi_init_rw(rwh,0,1,0,0.0_r8)
+      call elsi_set_rw_mpi(rwh,mpi_comm)
+      call elsi_set_rw_blacs(rwh,blacs_ctxt,blk)
+   end if
 
-   call elsi_read_mat_dim(rw_h,h_file,n_electrons,matrix_size,l_rows,l_cols)
+   call elsi_read_mat_dim(rwh,h_file,n_electrons,n_basis,l_rows,l_cols)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
@@ -99,10 +99,10 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
 
    t1 = MPI_Wtime()
 
-   call elsi_read_mat_complex(rw_h,h_file,ham)
-   call elsi_read_mat_complex(rw_h,s_file,ovlp)
+   call elsi_read_mat_complex(rwh,h_file,ham)
+   call elsi_read_mat_complex(rwh,s_file,ovlp)
 
-   call elsi_finalize_rw(rw_h)
+   call elsi_finalize_rw(rwh)
 
    ham_save = ham
    ovlp_save = ovlp
@@ -113,24 +113,24 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
       write(*,"(2X,A)") "Finished reading H and S matrices"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-   endif
+   end if
 
    if(n_proc == 1) then
       ! Test SINGLE_PROC mode
-      call elsi_init_rw(rw_h,1,0,matrix_size,n_electrons)
+      call elsi_init_rw(rwh,1,0,n_basis,n_electrons)
    else
       ! Test MULTI_PROC mode
-      call elsi_init_rw(rw_h,1,1,matrix_size,n_electrons)
-      call elsi_set_rw_mpi(rw_h,mpi_comm)
-      call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
-   endif
+      call elsi_init_rw(rwh,1,1,n_basis,n_electrons)
+      call elsi_set_rw_mpi(rwh,mpi_comm)
+      call elsi_set_rw_blacs(rwh,blacs_ctxt,blk)
+   end if
 
-   call elsi_set_rw_zero_def(rw_h,tol)
+   call elsi_set_rw_zero_def(rwh,tol)
 
-   call elsi_write_mat_complex(rw_h,"H_complex.tmp",ham)
-   call elsi_write_mat_complex(rw_h,"S_complex.tmp",ovlp)
+   call elsi_write_mat_complex(rwh,"H_complex.tmp",ham)
+   call elsi_write_mat_complex(rwh,"S_complex.tmp",ovlp)
 
-   call elsi_finalize_rw(rw_h)
+   call elsi_finalize_rw(rwh)
 
    t1 = MPI_Wtime()
 
@@ -138,26 +138,25 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
       write(*,"(2X,A)") "Finished writing H and S matrices"
       write(*,"(2X,A,F10.3,A)") "| Time :",t1-t2,"s"
       write(*,*)
-   endif
+   end if
 
    ! Read H and S matrices
    if(n_proc == 1) then
       ! Test SINGLE_PROC mode
-      call elsi_init_rw(rw_h,0,0,0,0.0_r8)
+      call elsi_init_rw(rwh,0,0,0,0.0_r8)
    else
       ! Test MULTI_PROC mode
-      call elsi_init_rw(rw_h,0,1,0,0.0_r8)
-      call elsi_set_rw_mpi(rw_h,mpi_comm)
-      call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
-   endif
+      call elsi_init_rw(rwh,0,1,0,0.0_r8)
+      call elsi_set_rw_mpi(rwh,mpi_comm)
+      call elsi_set_rw_blacs(rwh,blacs_ctxt,blk)
+   end if
 
-   call elsi_read_mat_dim(rw_h,"H_complex.tmp",n_electrons,matrix_size,l_rows,&
-           l_cols)
+   call elsi_read_mat_dim(rwh,"H_complex.tmp",n_electrons,n_basis,l_rows,l_cols)
 
-   call elsi_read_mat_complex(rw_h,"H_complex.tmp",ham)
-   call elsi_read_mat_complex(rw_h,"S_complex.tmp",ovlp)
+   call elsi_read_mat_complex(rwh,"H_complex.tmp",ham)
+   call elsi_read_mat_complex(rwh,"S_complex.tmp",ovlp)
 
-   call elsi_finalize_rw(rw_h)
+   call elsi_finalize_rw(rwh)
 
    t2 = MPI_Wtime()
 
@@ -165,7 +164,7 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
       write(*,"(2X,A)") "Finished reading H and S matrices"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-   endif
+   end if
 
    err = max(maxval(abs(ham-ham_save)),maxval(abs(ovlp-ovlp_save)))
 
@@ -173,7 +172,7 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
       den_ok = .true.
    else
       den_ok = .false.
-   endif
+   end if
 
    deallocate(ham)
    deallocate(ham_save)
@@ -181,11 +180,11 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
    deallocate(ovlp_save)
 
    ! Read H and S matrices
-   call elsi_init_rw(rw_h,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rw_h,mpi_comm)
+   call elsi_init_rw(rwh,0,1,0,0.0_r8)
+   call elsi_set_rw_mpi(rwh,mpi_comm)
 
-   call elsi_read_mat_dim_sparse(rw_h,h_file,n_electrons,matrix_size,nnz_g,&
-           nnz_l,l_cols)
+   call elsi_read_mat_dim_sparse(rwh,h_file,n_electrons,n_basis,nnz_g,nnz_l,&
+           l_cols)
 
    allocate(ham_csc(nnz_l))
    allocate(ham_csc_save(nnz_l))
@@ -196,10 +195,10 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
 
    t1 = MPI_Wtime()
 
-   call elsi_read_mat_complex_sparse(rw_h,h_file,row_ind,col_ptr,ham_csc)
-   call elsi_read_mat_complex_sparse(rw_h,s_file,row_ind,col_ptr,ovlp_csc)
+   call elsi_read_mat_complex_sparse(rwh,h_file,row_ind,col_ptr,ham_csc)
+   call elsi_read_mat_complex_sparse(rwh,s_file,row_ind,col_ptr,ovlp_csc)
 
-   call elsi_finalize_rw(rw_h)
+   call elsi_finalize_rw(rwh)
 
    ham_csc_save = ham_csc
    ovlp_csc_save = ovlp_csc
@@ -210,17 +209,19 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
       write(*,"(2X,A)") "Finished reading H and S matrices"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-   endif
+   end if
 
    ! Test MULTI_PROC mode
-   call elsi_init_rw(rw_h,1,1,matrix_size,n_electrons)
-   call elsi_set_rw_mpi(rw_h,mpi_comm)
-   call elsi_set_rw_csc(rw_h,nnz_g,nnz_l,l_cols)
+   call elsi_init_rw(rwh,1,1,n_basis,n_electrons)
+   call elsi_set_rw_mpi(rwh,mpi_comm)
+   call elsi_set_rw_csc(rwh,nnz_g,nnz_l,l_cols)
 
-   call elsi_write_mat_complex_sparse(rw_h,"H_complex.tmp",row_ind,col_ptr,ham_csc)
-   call elsi_write_mat_complex_sparse(rw_h,"S_complex.tmp",row_ind,col_ptr,ovlp_csc)
+   call elsi_write_mat_complex_sparse(rwh,"H_complex.tmp",row_ind,col_ptr,&
+           ham_csc)
+   call elsi_write_mat_complex_sparse(rwh,"S_complex.tmp",row_ind,col_ptr,&
+           ovlp_csc)
 
-   call elsi_finalize_rw(rw_h)
+   call elsi_finalize_rw(rwh)
 
    t1 = MPI_Wtime()
 
@@ -228,19 +229,21 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
       write(*,"(2X,A)") "Finished writing H and S matrices"
       write(*,"(2X,A,F10.3,A)") "| Time :",t1-t2,"s"
       write(*,*)
-   endif
+   end if
 
    ! Read H and S matrices
-   call elsi_init_rw(rw_h,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rw_h,mpi_comm)
+   call elsi_init_rw(rwh,0,1,0,0.0_r8)
+   call elsi_set_rw_mpi(rwh,mpi_comm)
 
-   call elsi_read_mat_dim_sparse(rw_h,"H_complex.tmp",n_electrons,matrix_size,&
-           nnz_g,nnz_l,l_cols)
+   call elsi_read_mat_dim_sparse(rwh,"H_complex.tmp",n_electrons,n_basis,nnz_g,&
+           nnz_l,l_cols)
 
-   call elsi_read_mat_complex_sparse(rw_h,"H_complex.tmp",row_ind,col_ptr,ham_csc)
-   call elsi_read_mat_complex_sparse(rw_h,"S_complex.tmp",row_ind,col_ptr,ovlp_csc)
+   call elsi_read_mat_complex_sparse(rwh,"H_complex.tmp",row_ind,col_ptr,&
+           ham_csc)
+   call elsi_read_mat_complex_sparse(rwh,"S_complex.tmp",row_ind,col_ptr,&
+           ovlp_csc)
 
-   call elsi_finalize_rw(rw_h)
+   call elsi_finalize_rw(rwh)
 
    t2 = MPI_Wtime()
 
@@ -248,7 +251,7 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
       write(*,"(2X,A)") "Finished reading H and S matrices"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-   endif
+   end if
 
    err = max(maxval(abs(ham_csc-ham_csc_save)),&
             maxval(abs(ovlp_csc-ovlp_csc_save)))
@@ -258,9 +261,9 @@ subroutine test_rw_cmplx(mpi_comm,h_file,s_file)
          write(*,"(2X,A)") "Passed."
       else
          write(*,"(2X,A)") "Failed."
-      endif
+      end if
       write(*,*)
-   endif
+   end if
 
    deallocate(ham_csc)
    deallocate(ham_csc_save)

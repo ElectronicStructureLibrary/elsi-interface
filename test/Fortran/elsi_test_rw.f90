@@ -32,7 +32,7 @@ program elsi_test_rw
       call get_command_argument(3,arg3)
    else
       call test_die()
-   endif
+   end if
 
    select case(arg1(1:1))
    case("r") ! real
@@ -63,7 +63,7 @@ subroutine test_die()
       write(*,"(A)") "  ########################################"
       call MPI_Abort(MPI_COMM_WORLD,0,ierr)
       stop
-   endif
+   end if
 
 end subroutine
 

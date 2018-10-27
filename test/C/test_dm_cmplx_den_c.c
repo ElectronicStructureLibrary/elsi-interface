@@ -48,8 +48,8 @@ void test_dm_cmplx_den_c(MPI_Comm comm,
    double e_ref;
 
    MPI_Fint comm_f;
-   elsi_handle e_h;
-   elsi_rw_handle rw_h;
+   elsi_handle eh;
+   elsi_rw_handle rwh;
 
    e_elpa = -2622.88214509316;
    e_omm = -2622.88214509316;
@@ -99,42 +99,42 @@ void test_dm_cmplx_den_c(MPI_Comm comm,
    Cblacs_gridinit(&blacs_ctxt,"R",n_prow,n_pcol);
 
    // Read H and S matrices
-   c_elsi_init_rw(&rw_h,0,1,0,0.0);
-   c_elsi_set_rw_mpi(rw_h,comm_f);
-   c_elsi_set_rw_blacs(rw_h,blacs_ctxt,blk);
+   c_elsi_init_rw(&rwh,0,1,0,0.0);
+   c_elsi_set_rw_mpi(rwh,comm_f);
+   c_elsi_set_rw_blacs(rwh,blacs_ctxt,blk);
 
-   c_elsi_read_mat_dim(rw_h,h_file,&n_electrons,&n_basis,&l_row,&l_col);
+   c_elsi_read_mat_dim(rwh,h_file,&n_electrons,&n_basis,&l_row,&l_col);
 
    l_size = l_row * l_col;
    h = malloc(l_size * sizeof(double _Complex));
    s = malloc(l_size * sizeof(double _Complex));
    dm = malloc(l_size * sizeof(double _Complex));
 
-   c_elsi_read_mat_complex(rw_h,h_file,h);
-   c_elsi_read_mat_complex(rw_h,s_file,s);
+   c_elsi_read_mat_complex(rwh,h_file,h);
+   c_elsi_read_mat_complex(rwh,s_file,s);
 
-   c_elsi_finalize_rw(rw_h);
+   c_elsi_finalize_rw(rwh);
 
    n_states = n_electrons;
 
    // Initialize ELSI
-   c_elsi_init(&e_h,solver,parallel,format,n_basis,n_electrons,n_states);
-   c_elsi_set_mpi(e_h,comm_f);
-   c_elsi_set_blacs(e_h,blacs_ctxt,blk);
+   c_elsi_init(&eh,solver,parallel,format,n_basis,n_electrons,n_states);
+   c_elsi_set_mpi(eh,comm_f);
+   c_elsi_set_blacs(eh,blacs_ctxt,blk);
 
    // Customize ELSI
-   c_elsi_set_output(e_h,2);
-   c_elsi_set_sing_check(e_h,0);
-   c_elsi_set_mu_broaden_width(e_h,0.000001);
-   c_elsi_set_omm_n_elpa(e_h,1);
-   c_elsi_set_pexsi_delta_e(e_h,80.0);
-   c_elsi_set_pexsi_np_per_pole(e_h,2);
+   c_elsi_set_output(eh,2);
+   c_elsi_set_sing_check(eh,0);
+   c_elsi_set_mu_broaden_width(eh,0.000001);
+   c_elsi_set_omm_n_elpa(eh,1);
+   c_elsi_set_pexsi_delta_e(eh,80.0);
+   c_elsi_set_pexsi_np_per_pole(eh,2);
 
    // Call ELSI density matrix solver
-   c_elsi_dm_complex(e_h,h,s,dm,&e_test);
+   c_elsi_dm_complex(eh,h,s,dm,&e_test);
 
    // Finalize ELSI
-   c_elsi_finalize(e_h);
+   c_elsi_finalize(eh);
 
    if (myid == 0) {
        if (fabs(e_test-e_ref) < e_tol) {

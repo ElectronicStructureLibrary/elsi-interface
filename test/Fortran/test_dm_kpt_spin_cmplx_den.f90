@@ -37,7 +37,7 @@ program test_dm_kpt_spin_cmplx_den
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: n_states
-   integer(kind=i4) :: matrix_size
+   integer(kind=i4) :: n_basis
    integer(kind=i4) :: l_rows
    integer(kind=i4) :: l_cols
    integer(kind=i4) :: solver
@@ -56,8 +56,8 @@ program test_dm_kpt_spin_cmplx_den
    complex(kind=r8), allocatable :: dm(:,:)
    complex(kind=r8), allocatable :: edm(:,:)
 
-   type(elsi_handle) :: e_h
-   type(elsi_rw_handle) :: rw_h
+   type(elsi_handle) :: eh
+   type(elsi_rw_handle) :: rwh
 
    integer(kind=i4), parameter :: n_spin = 2
    integer(kind=i4), parameter :: n_kpt = 2
@@ -95,8 +95,8 @@ program test_dm_kpt_spin_cmplx_den
          write(*,"(2X,A)") "################################################"
          call MPI_Abort(mpi_comm,0,ierr)
          stop
-      endif
-   endif
+      end if
+   end if
 
    ! Require at least 4 MPI tasks
    if(mod(n_proc,4) /= 0) then
@@ -106,8 +106,8 @@ program test_dm_kpt_spin_cmplx_den
          write(*,"(2X,A)") "#########################################################"
          call MPI_Abort(mpi_comm,0,ierr)
          stop
-      endif
-   endif
+      end if
+   end if
 
    if(myid == 0) then
       tol = 1.0e-8_r8
@@ -118,20 +118,20 @@ program test_dm_kpt_spin_cmplx_den
       if(solver == 1) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + ELPA"
          e_ref = e_elpa
-      elseif(solver == 2) then
+      else if(solver == 2) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + libOMM"
          e_ref = e_omm
-      elseif(solver == 3) then
+      else if(solver == 3) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + PEXSI"
          e_ref = e_pexsi
          tol = 1.0e-3_r8
-      elseif(solver == 6) then
+      else if(solver == 6) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + NTPoly"
          e_ref = e_ntpoly
          tol = 1.0e-7_r8
-      endif
+      end if
       write(*,*)
-   endif
+   end if
 
    ! Create groups of MPI tasks for k-points and spin channels. Note: In this
    ! example, the number of MPI tasks is forced to be a multiple of 4 for
@@ -153,7 +153,7 @@ program test_dm_kpt_spin_cmplx_den
    ! Set up square-like processor grid within each group
    do npcol = nint(sqrt(real(group_size))),2,-1
       if(mod(group_size,npcol) == 0) exit
-   enddo
+   end do
    nprow = group_size/npcol
 
    ! Set block size
@@ -165,12 +165,12 @@ program test_dm_kpt_spin_cmplx_den
 
    ! Read H and S matrices
    ! H and S are the same for all k-points and spin channels in this example
-   call elsi_init_rw(rw_h,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rw_h,mpi_comm_group)
-   call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
+   call elsi_init_rw(rwh,0,1,0,0.0_r8)
+   call elsi_set_rw_mpi(rwh,mpi_comm_group)
+   call elsi_set_rw_blacs(rwh,blacs_ctxt,blk)
 
-   call elsi_read_mat_dim(rw_h,arg2,n_electrons,matrix_size,l_rows,l_cols)
-   call elsi_get_rw_header(rw_h,header)
+   call elsi_read_mat_dim(rwh,arg2,n_electrons,n_basis,l_rows,l_cols)
+   call elsi_get_rw_header(rwh,header)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
@@ -180,10 +180,10 @@ program test_dm_kpt_spin_cmplx_den
 
    t1 = MPI_Wtime()
 
-   call elsi_read_mat_complex(rw_h,arg2,ham)
-   call elsi_read_mat_complex(rw_h,arg3,ovlp)
+   call elsi_read_mat_complex(rwh,arg2,ham)
+   call elsi_read_mat_complex(rwh,arg3,ovlp)
 
-   call elsi_finalize_rw(rw_h)
+   call elsi_finalize_rw(rwh)
 
    ham_save = ham
 
@@ -194,33 +194,33 @@ program test_dm_kpt_spin_cmplx_den
       write(*,"(2X,A)") "Finished reading H and S matrices"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-   endif
+   end if
 
    ! Initialize ELSI
    n_states = int(n_electrons,kind=i4)
 
-   call elsi_init(e_h,solver,1,0,matrix_size,n_electrons,n_states)
-   call elsi_set_mpi(e_h,mpi_comm_group)
-   call elsi_set_blacs(e_h,blacs_ctxt,blk)
+   call elsi_init(eh,solver,1,0,n_basis,n_electrons,n_states)
+   call elsi_set_mpi(eh,mpi_comm_group)
+   call elsi_set_blacs(eh,blacs_ctxt,blk)
    ! Required for spin/kpt calculations
-   call elsi_set_mpi_global(e_h,mpi_comm)
-   call elsi_set_kpoint(e_h,n_kpt,my_kpt,k_weights(my_kpt))
-   call elsi_set_spin(e_h,n_spin,my_spin)
+   call elsi_set_mpi_global(eh,mpi_comm)
+   call elsi_set_kpoint(eh,n_kpt,my_kpt,k_weights(my_kpt))
+   call elsi_set_spin(eh,n_spin,my_spin)
 
    ! Customize ELSI
    if(my_group == 0) then ! Let one group talk
-      call elsi_set_output(e_h,2)
-   endif
-   call elsi_set_sing_check(e_h,0)
-   call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
-   call elsi_set_omm_n_elpa(e_h,1)
-   call elsi_set_pexsi_delta_e(e_h,80.0_r8)
-   call elsi_set_pexsi_np_per_pole(e_h,2)
+      call elsi_set_output(eh,2)
+   end if
+   call elsi_set_sing_check(eh,0)
+   call elsi_set_mu_broaden_width(eh,1.0e-6_r8)
+   call elsi_set_omm_n_elpa(eh,1)
+   call elsi_set_pexsi_delta_e(eh,80.0_r8)
+   call elsi_set_pexsi_np_per_pole(eh,2)
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 1)
-   call elsi_dm_complex(e_h,ham,ovlp,dm,e_test)
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
@@ -228,19 +228,19 @@ program test_dm_kpt_spin_cmplx_den
       write(*,"(2X,A)") "Finished SCF #1"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-   endif
+   end if
 
    ham = ham_save
 
    t1 = MPI_Wtime()
 
    ! Solve (pseudo SCF 2, with the same H)
-   call elsi_dm_complex(e_h,ham,ovlp,dm,e_test)
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   call elsi_get_edm_complex(e_h,edm)
+   call elsi_get_edm_complex(eh,edm)
 
    if(myid == 0) then
       write(*,"(2X,A)") "Finished SCF #2"
@@ -253,13 +253,13 @@ program test_dm_kpt_spin_cmplx_den
             write(*,"(2X,A)") "Passed."
          else
             write(*,"(2X,A)") "Failed."
-         endif
-      endif
+         end if
+      end if
       write(*,*)
-   endif
+   end if
 
    ! Finalize ELSI
-   call elsi_finalize(e_h)
+   call elsi_finalize(eh)
 
    deallocate(ham)
    deallocate(ham_save)

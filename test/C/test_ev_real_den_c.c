@@ -45,8 +45,8 @@ void test_ev_real_den_c(MPI_Comm comm,
    double e_tol;
 
    MPI_Fint comm_f;
-   elsi_handle e_h;
-   elsi_rw_handle rw_h;
+   elsi_handle eh;
+   elsi_rw_handle rwh;
 
    e_elpa = -2564.61963724048;
    e_tol = 0.00000001;
@@ -76,11 +76,11 @@ void test_ev_real_den_c(MPI_Comm comm,
    Cblacs_gridinit(&blacs_ctxt,"R",n_prow,n_pcol);
 
    // Read H and S matrices
-   c_elsi_init_rw(&rw_h,0,1,0,0.0);
-   c_elsi_set_rw_mpi(rw_h,comm_f);
-   c_elsi_set_rw_blacs(rw_h,blacs_ctxt,blk);
+   c_elsi_init_rw(&rwh,0,1,0,0.0);
+   c_elsi_set_rw_mpi(rwh,comm_f);
+   c_elsi_set_rw_blacs(rwh,blacs_ctxt,blk);
 
-   c_elsi_read_mat_dim(rw_h,h_file,&n_electrons,&n_basis,&l_row,&l_col);
+   c_elsi_read_mat_dim(rwh,h_file,&n_electrons,&n_basis,&l_row,&l_col);
 
    l_size = l_row * l_col;
    h = malloc(l_size * sizeof(double));
@@ -88,10 +88,10 @@ void test_ev_real_den_c(MPI_Comm comm,
    evec = malloc(l_size * sizeof(double));
    eval = malloc(n_basis * sizeof(double));
 
-   c_elsi_read_mat_real(rw_h,h_file,h);
-   c_elsi_read_mat_real(rw_h,s_file,s);
+   c_elsi_read_mat_real(rwh,h_file,h);
+   c_elsi_read_mat_real(rwh,s_file,s);
 
-   c_elsi_finalize_rw(rw_h);
+   c_elsi_finalize_rw(rwh);
 
    n_states = n_electrons;
 
@@ -99,24 +99,24 @@ void test_ev_real_den_c(MPI_Comm comm,
    if (n_proc == 1) {
        parallel = 0; // Test SINGLE_PROC mode
 
-       c_elsi_init(&e_h,solver,parallel,format,n_basis,n_electrons,n_states);
+       c_elsi_init(&eh,solver,parallel,format,n_basis,n_electrons,n_states);
    }
    else {
        parallel = 1; // Test MULTI_PROC mode
 
-       c_elsi_init(&e_h,solver,parallel,format,n_basis,n_electrons,n_states);
-       c_elsi_set_mpi(e_h,comm_f);
-       c_elsi_set_blacs(e_h,blacs_ctxt,blk);
+       c_elsi_init(&eh,solver,parallel,format,n_basis,n_electrons,n_states);
+       c_elsi_set_mpi(eh,comm_f);
+       c_elsi_set_blacs(eh,blacs_ctxt,blk);
    }
 
    // Customize ELSI
-   c_elsi_set_output(e_h,2);
+   c_elsi_set_output(eh,2);
 
    // Call ELSI eigensolver
-   c_elsi_ev_real(e_h,h,s,eval,evec);
+   c_elsi_ev_real(eh,h,s,eval,evec);
 
    // Finalize ELSI
-   c_elsi_finalize(e_h);
+   c_elsi_finalize(eh);
 
    e_test = 0.0;
    for (i=0; i<n_states; i++) {
