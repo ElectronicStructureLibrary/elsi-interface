@@ -27,13 +27,14 @@ module ELSI
 
    ! Setup
    public :: elsi_init
-   public :: elsi_finalize
    public :: elsi_set_mpi
    public :: elsi_set_mpi_global
    public :: elsi_set_spin
    public :: elsi_set_kpoint
    public :: elsi_set_blacs
    public :: elsi_set_csc
+   public :: elsi_reinit
+   public :: elsi_finalize
 
    ! Mutator
    public :: elsi_set_output
