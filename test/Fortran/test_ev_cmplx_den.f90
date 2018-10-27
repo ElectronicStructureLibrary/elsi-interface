@@ -150,7 +150,7 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
 
    t1 = MPI_Wtime()
 
-   ! Solve (pseudo SCF 1)
+   ! Solve
    call elsi_ev_complex(eh,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
@@ -169,7 +169,65 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
 
    t1 = MPI_Wtime()
 
-   ! Solve (pseudo SCF 2, with the same H)
+   ! Solve again
+   call elsi_ev_complex(eh,ham,ovlp,eval,evec)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
+   end if
+
+   ham = ham_save
+
+   if(n_proc == 1) then
+      ovlp = ovlp_save
+   end if
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
+   call elsi_ev_complex(eh,ham,ovlp,eval,evec)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #3"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
+   end if
+
+   ! Reinit for a new geometry
+   call elsi_reinit(eh)
+   call elsi_set_elpa_solver(eh,1)
+
+   ham = ham_save
+   ovlp = ovlp_save
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
+   call elsi_ev_complex(eh,ham,ovlp,eval,evec)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #4"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
+   end if
+
+   ham = ham_save
+
+   if(n_proc == 1) then
+      ovlp = ovlp_save
+   end if
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
    call elsi_ev_complex(eh,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
@@ -183,7 +241,7 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
    end do
 
    if(myid == 0) then
-      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,"(2X,A)") "Finished SCF #5"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
       write(*,"(2X,A)") "Finished test program"

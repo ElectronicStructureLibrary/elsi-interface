@@ -158,14 +158,14 @@ subroutine test_ev_real_csc2(mpi_comm,solver,h_file,s_file)
    call elsi_set_blacs(eh,blacs_ctxt,blk)
 
    ! Customize ELSI
-   call elsi_set_output(eh,2)
+   call elsi_set_output(eh,3)
    call elsi_set_output_log(eh,1)
    call elsi_set_mu_broaden_width(eh,1.0e-6_r8)
    call elsi_set_sips_n_elpa(eh,1)
 
    t1 = MPI_Wtime()
 
-   ! Solve (pseudo SCF 1)
+   ! Solve
    call elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
@@ -178,7 +178,51 @@ subroutine test_ev_real_csc2(mpi_comm,solver,h_file,s_file)
 
    t1 = MPI_Wtime()
 
-   ! Solve (pseudo SCF 2, with the same H)
+   ! Solve again
+   call elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
+   end if
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
+   call elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #3"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
+   end if
+
+   ! Reinit for a new geometry
+   call elsi_reinit(eh)
+   call elsi_set_csc(eh,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
+   call elsi_set_elpa_solver(eh,1)
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
+   call elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #4"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
+   end if
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
    call elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
 
    t2 = MPI_Wtime()
@@ -192,7 +236,7 @@ subroutine test_ev_real_csc2(mpi_comm,solver,h_file,s_file)
    end do
 
    if(myid == 0) then
-      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,"(2X,A)") "Finished SCF #5"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
       write(*,"(2X,A)") "Finished test program"
