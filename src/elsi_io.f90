@@ -123,7 +123,7 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       call fjson_start_object(jh)
 
       call elsi_print_versioning(bh%uuid,jh)
-      call fjson_write_name_value(jh,"iteration",ph%n_calls)
+      call fjson_write_name_value(jh,"iteration",ph%n_calls+ph%n_calls_all)
       if(caller(6:6) == "e") then
          call fjson_write_name_value(jh,"output_type","EIGENSOLUTION")
       else
@@ -529,7 +529,7 @@ subroutine elsi_final_print(ph,bh)
    end if
    call elsi_say(bh,info_str)
 
-   write(info_str,"(2X,A,I22)") "|   Number of ELSI calls      :",ph%n_calls
+   write(info_str,"(2X,A,I22)") "|   Number of ELSI calls      :",ph%n_calls_all
    call elsi_say(bh,info_str)
 
    write(info_str,"(2X,A)") "|"

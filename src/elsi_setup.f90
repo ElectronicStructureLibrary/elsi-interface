@@ -73,7 +73,6 @@ subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    eh%ph%solver = solver
    eh%ph%matrix_format = matrix_format
    eh%ph%parallel_mode = parallel_mode
-   eh%ph%n_calls = 0
 
    if(parallel_mode == SINGLE_PROC) then
       eh%bh%n_lrow = n_basis
@@ -329,6 +328,7 @@ subroutine elsi_reinit(eh)
       eh%bh%pexsi_csc_ready = .false.
       eh%bh%nnz_l_sp2 = UNSET
       eh%bh%siesta_csc_ready = .false.
+      eh%ph%n_calls_all = eh%ph%n_calls_all+eh%ph%n_calls
       eh%ph%n_calls = 0
       eh%ph%ovlp_is_sing = .false.
       eh%ph%n_good = eh%ph%n_basis
@@ -394,6 +394,8 @@ subroutine elsi_finalize(eh)
    type(elsi_handle), intent(inout) :: eh !< Handle
 
    character(len=*), parameter :: caller = "elsi_finalize"
+
+   eh%ph%n_calls_all = eh%ph%n_calls_all+eh%ph%n_calls
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
    call elsi_final_print(eh%ph,eh%bh)

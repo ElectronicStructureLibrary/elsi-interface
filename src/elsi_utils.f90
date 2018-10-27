@@ -83,6 +83,7 @@ subroutine elsi_reset_param(ph)
    ph%matrix_format = UNSET
    ph%parallel_mode = UNSET
    ph%n_calls = 0
+   ph%n_calls_all = 0
    ph%ovlp_is_unit = .false.
    ph%ovlp_is_sing = .false.
    ph%check_sing = .true.
