@@ -197,6 +197,21 @@ subroutine elsi_set_csc_c_wrapper(handle_c,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)&
 
 end subroutine
 
+subroutine elsi_reinit_c_wrapper(handle_c)&
+   bind(C,name="c_elsi_reinit")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_reinit(handle_f)
+
+end subroutine
+
 subroutine elsi_finalize_c_wrapper(handle_c)&
    bind(C,name="c_elsi_finalize")
 
