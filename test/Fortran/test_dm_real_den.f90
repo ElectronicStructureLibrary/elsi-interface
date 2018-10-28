@@ -157,7 +157,7 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
 
    t1 = MPI_Wtime()
 
-   ! Solve (pseudo SCF 1)
+   ! Solve
    call elsi_dm_real(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
@@ -172,7 +172,59 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
 
    t1 = MPI_Wtime()
 
-   ! Solve (pseudo SCF 2, with the same H)
+   ! Solve again
+   call elsi_dm_real(eh,ham,ovlp,dm,e_test)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
+   end if
+
+   ham = ham_save
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
+   call elsi_dm_real(eh,ham,ovlp,dm,e_test)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #3"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
+   end if
+
+   ! Reinit for a new geometry
+   call elsi_reinit(eh)
+   call elsi_set_elpa_solver(eh,1)
+   call elsi_set_omm_flavor(eh,2)
+   call elsi_set_ntpoly_method(eh,1)
+
+   ham = ham_save
+   ovlp = ovlp_save
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
+   call elsi_dm_real(eh,ham,ovlp,dm,e_test)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #4"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
+   end if
+
+   ham = ham_save
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
    call elsi_dm_real(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
@@ -186,7 +238,7 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
    call MPI_Reduce(tmp,n_test,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
 
    if(myid == 0) then
-      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,"(2X,A)") "Finished SCF #5"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
       write(*,"(2X,A)") "Finished test program"

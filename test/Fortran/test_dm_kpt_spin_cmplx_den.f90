@@ -219,7 +219,7 @@ program test_dm_kpt_spin_cmplx_den
 
    t1 = MPI_Wtime()
 
-   ! Solve (pseudo SCF 1)
+   ! Solve
    call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
@@ -234,7 +234,7 @@ program test_dm_kpt_spin_cmplx_den
 
    t1 = MPI_Wtime()
 
-   ! Solve (pseudo SCF 2, with the same H)
+   ! Solve again
    call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
