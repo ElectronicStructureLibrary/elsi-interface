@@ -350,6 +350,12 @@ subroutine elsi_reinit(eh)
       call elsi_cleanup_pexsi(eh%ph)
       call elsi_cleanup_sips(eh%ph)
 
+      if(allocated(eh%evec_real)) then
+         call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
+      end if
+      if(allocated(eh%evec_cmplx)) then
+         call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
+      end if
       if(allocated(eh%ham_real_csc)) then
          call elsi_deallocate(eh%bh,eh%ham_real_csc,"ham_real_csc")
       end if

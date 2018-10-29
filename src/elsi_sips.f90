@@ -362,6 +362,7 @@ subroutine elsi_cleanup_sips(ph)
       call sips_finalize()
    end if
 
+   ph%sips_first = .true.
    ph%sips_started = .false.
 
 end subroutine

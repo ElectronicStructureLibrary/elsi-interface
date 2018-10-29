@@ -237,6 +237,7 @@ subroutine elsi_cleanup_ntpoly(ph)
       call DestructProcessGrid(ph%nt_pgrid)
    end if
 
+   ph%nt_first = .true.
    ph%nt_started = .false.
 
 end subroutine

@@ -1248,6 +1248,7 @@ subroutine elsi_cleanup_pexsi(ph)
       call MPI_Comm_free(ph%pexsi_comm_inter_point,ierr)
    end if
 
+   ph%pexsi_first = .true.
    ph%pexsi_started = .false.
 
 end subroutine

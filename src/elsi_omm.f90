@@ -398,6 +398,7 @@ subroutine elsi_cleanup_omm(ph)
 
    character(len=*), parameter :: caller = "elsi_cleanup_omm"
 
+   ph%omm_first = .true.
    ph%omm_started = .false.
 
 end subroutine

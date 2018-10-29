@@ -722,6 +722,7 @@ subroutine elsi_cleanup_elpa(ph)
       call MPI_Comm_free(ph%elpa_comm_col,ierr)
    end if
 
+   ph%elpa_first = .true.
    ph%elpa_started = .false.
 
 end subroutine

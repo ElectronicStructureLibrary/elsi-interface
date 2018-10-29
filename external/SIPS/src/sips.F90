@@ -45,8 +45,14 @@ USE slepceps
     Mat                :: mats
     Mat                :: newmath
     Mat                :: submatA
+    MPI_Comm           :: matcomm
     VecScatter         :: ctx
     PetscErrorCode     :: ierr
+    PetscBool          :: flag_update_eps       = .true.
+    PetscBool          :: flag_update_ham       = .true.
+    PetscBool          :: flag_load_ham_ovlp    = .true.
+    PetscBool          :: flag_get_eigenvectors = .true.
+    PetscBool          :: flag_get_dm           = .true.
 
 CONTAINS
 
@@ -89,6 +95,12 @@ CONTAINS
 
         CALL VecScatterDestroy(ctx,ierr)
         CHKERRQ(ierr)
+
+         flag_update_eps       = .true.
+         flag_update_ham       = .true.
+         flag_load_ham_ovlp    = .true.
+         flag_get_eigenvectors = .true.
+         flag_get_dm           = .true.
 
     END SUBROUTINE
 
@@ -190,12 +202,7 @@ CONTAINS
 
         PetscInt, INTENT(IN) :: nsub
 
-        MPI_Comm, SAVE :: matcomm
-        PetscInt, SAVE :: counter = 0
-
-        counter = counter+1
-
-        IF (counter == 1) THEN
+        IF (flag_update_eps) THEN
             CALL EPSKrylovSchurGetSubcommMats(eps,submatA,PETSC_NULL_MAT,ierr)
             CHKERRQ(ierr)
 
@@ -214,6 +221,8 @@ CONTAINS
         CALL EPSKrylovSchurUpdateSubcommMats(eps,0.0_dp,1.0_dp,submatA,1.0_dp,&
                  0.0_dp,PETSC_NULL_MAT,SAME_NONZERO_PATTERN,PETSC_FALSE,ierr)
         CHKERRQ(ierr)
+
+        flag_update_eps = .false.
 
     END SUBROUTINE
 
@@ -329,20 +338,17 @@ CONTAINS
         PetscInt,  INTENT(INOUT) :: row_ptr(ncol_l+1) ! Row pointer
         PetscReal, INTENT(IN)    :: ham_val(nnz_l)    ! Non-zero values
 
-        PetscInt       :: i
-        PetscInt       :: k
-        PetscInt       :: nnz_this_row
-        PetscInt       :: which_row(1)
-        PetscInt, SAVE :: counter = 0
-
-        counter = counter+1
+        PetscInt :: i
+        PetscInt :: k
+        PetscInt :: nnz_this_row
+        PetscInt :: which_row(1)
 
         ! Index conversion
         col_idx = col_idx-1
         row_ptr = row_ptr-1
 
         ! Create a new ham matrix from the old one
-        IF (counter == 1) THEN
+        IF (flag_update_ham) THEN
             CALL MatDuplicate(math,MAT_COPY_VALUES,newmath,ierr)
             CHKERRQ(ierr)
 
@@ -376,6 +382,8 @@ CONTAINS
         CALL MatAssemblyEnd(newmath,MAT_FINAL_ASSEMBLY,ierr)
         CHKERRQ(ierr)
 
+        flag_update_ham = .false.
+
     END SUBROUTINE
 
     SUBROUTINE sips_load_ham_ovlp(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham_val,&
@@ -391,20 +399,17 @@ CONTAINS
         PetscReal, INTENT(IN)    :: ham_val(nnz_l)    ! Non-zero values
         PetscReal, INTENT(IN)    :: ovlp_val(nnz_l)   ! Non-zero values
 
-        PetscInt       :: i
-        PetscInt       :: k
-        PetscInt       :: nnz_this_row
-        PetscInt       :: which_row(1)
-        PetscInt, SAVE :: counter = 0
-
-        counter = counter+1
+        PetscInt :: i
+        PetscInt :: k
+        PetscInt :: nnz_this_row
+        PetscInt :: which_row(1)
 
         ! Index conversion
         col_idx = col_idx-1
         row_ptr = row_ptr-1
 
         ! Create PETSc matrix
-        IF (counter == 1) THEN
+        IF (flag_load_ham_ovlp) THEN
             CALL MatCreate(PETSC_COMM_WORLD,mats,ierr)
             CHKERRQ(ierr)
 
@@ -444,7 +449,7 @@ CONTAINS
         CHKERRQ(ierr)
 
         ! Create ham matrix from ovlp
-        IF (counter == 1) THEN
+        IF (flag_load_ham_ovlp) THEN
             CALL MatDuplicate(mats,MAT_COPY_VALUES,math,ierr)
             CHKERRQ(ierr)
 
@@ -476,6 +481,8 @@ CONTAINS
 
         CALL MatAssemblyEnd(math,MAT_FINAL_ASSEMBLY,ierr)
         CHKERRQ(ierr)
+
+        flag_load_ham_ovlp = .false.
 
     END SUBROUTINE
 
@@ -527,11 +534,8 @@ CONTAINS
 
         PetscInt           :: i
         PetscReal, POINTER :: vec_tmp(:)
-        PetscInt,  SAVE    :: counter = 0
 
-        counter = counter+1
-
-        IF (counter == 1) THEN
+        IF (flag_get_eigenvectors) THEN
             CALL MatCreateVecs(math,xr,PETSC_NULL_VEC,ierr)
             CHKERRQ(ierr)
         END IF
@@ -548,6 +552,8 @@ CONTAINS
             CALL VecRestoreArrayReadF90(xr,vec_tmp,ierr)
             CHKERRQ(ierr)
         END DO
+
+        flag_get_eigenvectors = .false.
 
     END SUBROUTINE
 
@@ -923,15 +929,12 @@ CONTAINS
         PetscInt           :: nnz_this_row
         PetscReal          :: tmp
         PetscReal, POINTER :: vec_tmp(:)
-        PetscInt,  SAVE    :: counter = 0
-
-        counter = counter+1
 
         ! Index conversion
         col_idx = col_idx-1
         row_ptr = row_ptr-1
 
-        IF (counter == 1) then
+        IF (flag_get_dm) then
             CALL MatCreateVecs(math,xr,PETSC_NULL_VEC,ierr)
             CHKERRQ(ierr)
 
@@ -974,6 +977,8 @@ CONTAINS
         ! Index conversion
         col_idx = col_idx+1
         row_ptr = row_ptr+1
+
+        flag_get_dm = .false.
 
     END SUBROUTINE
 
