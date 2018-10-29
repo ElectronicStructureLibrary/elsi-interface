@@ -32,24 +32,24 @@ subroutine elsi_stop(bh,info,caller)
    character(len=*), intent(in) :: info
    character(len=*), intent(in) :: caller
 
-   character(len=200) :: info_str
+   character(len=200) :: msg
    integer(kind=i4) :: ierr
 
    if(bh%mpi_all_ready) then
-      write(info_str,"(A,I7,4A)") "**Error! MPI task ",bh%myid_all," in ",&
+      write(msg,"(A,I7,4A)") "**Error! MPI task ",bh%myid_all," in ",&
          trim(caller),": ",trim(info)
-      write(*,"(A)") trim(info_str)
+      write(*,"(A)") trim(msg)
 
       call MPI_Abort(bh%comm_all,0,ierr)
    else if(bh%mpi_ready) then
-      write(info_str,"(A,I7,4A)") "**Error! MPI task ",bh%myid," in ",&
-         trim(caller),": ",trim(info)
-      write(*,"(A)") trim(info_str)
+      write(msg,"(A,I7,4A)") "**Error! MPI task ",bh%myid," in ",trim(caller),&
+         ": ",trim(info)
+      write(*,"(A)") trim(msg)
 
       call MPI_Abort(bh%comm,0,ierr)
    else
-      write(info_str,"(4A)") "**Error! ",trim(caller),": ",trim(info)
-      write(*,"(A)") trim(info_str)
+      write(msg,"(4A)") "**Error! ",trim(caller),": ",trim(info)
+      write(*,"(A)") trim(msg)
    end if
 
    stop
@@ -68,12 +68,12 @@ subroutine elsi_check_mpi(bh,routine,ierr,caller)
    integer(kind=i4), intent(in) :: ierr
    character(len=*), intent(in) :: caller
 
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    if(ierr /= MPI_SUCCESS) then
-      write(info_str,"(2A)") routine," failed."
+      write(msg,"(2A)") routine," failed."
 
-      call elsi_stop(bh,info_str,caller)
+      call elsi_stop(bh,msg,caller)
    end if
 
 end subroutine

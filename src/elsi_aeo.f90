@@ -98,7 +98,7 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_to_standard_evp_real"
 
@@ -128,10 +128,10 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
          call elsi_get_time(t1)
 
-         write(info_str,"(2X,A)") "Finished Cholesky decomposition"
-         call elsi_say(bh,info_str)
-         write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-         call elsi_say(bh,info_str)
+         write(msg,"(2X,A)") "Finished Cholesky decomposition"
+         call elsi_say(bh,msg)
+         write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+         call elsi_say(bh,msg)
       end if
    end if
 
@@ -171,10 +171,10 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished transformation to standard eigenproblem"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished transformation to standard eigenproblem"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -199,7 +199,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
    real(kind=r8) :: ev_sqrt
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_check_singularity_real"
 
@@ -219,19 +219,19 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
    if(ph%n_good < ph%n_basis) then ! Singular
       ph%ovlp_is_sing = .true.
 
-      write(info_str,"(2X,A)") "Overlap matrix is singular"
-      call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A,E10.2)")&
-         "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A)") "Overlap matrix is singular"
+      call elsi_say(bh,msg)
+      write(msg,"(2X,A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
+         eval(ph%n_basis),",",eval(1)
+      call elsi_say(bh,msg)
 
       if(ph%stop_sing) then
          call elsi_stop(bh,"Overlap matrix is singular.",caller)
       end if
 
-      write(info_str,"(2X,A,I10)") "| Number of basis functions reduced to :",&
+      write(msg,"(2X,A,I10)") "| Number of basis functions reduced to :",&
          ph%n_good
-      call elsi_say(bh,info_str)
+      call elsi_say(bh,msg)
 
       ! Overlap matrix is overwritten with scaled eigenvectors
       do i = ph%n_basis-ph%n_good+1,ph%n_basis
@@ -244,19 +244,19 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
    else ! Nonsingular
       ph%ovlp_is_sing = .false.
 
-      write(info_str,"(2X,A)") "Overlap matrix is not singular"
-      call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A,E10.2)")&
-         "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A)") "Overlap matrix is not singular"
+      call elsi_say(bh,msg)
+      write(msg,"(2X,A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
+         eval(ph%n_basis),",",eval(1)
+      call elsi_say(bh,msg)
    end if
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished singularity check of overlap matrix"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished singularity check of overlap matrix"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -277,7 +277,7 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    real(kind=r8), allocatable :: tmp(:,:)
 
@@ -309,10 +309,10 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished back-transformation of eigenvectors"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished back-transformation of eigenvectors"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -335,7 +335,7 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    integer(kind=i4) :: ierr
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_real"
 
@@ -367,10 +367,10 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished solving standard eigenproblem"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished solving standard eigenproblem"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ! Back-transform eigenvectors
    if(.not. ph%ovlp_is_unit) then
@@ -401,7 +401,7 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_to_standard_evp_cmplx"
 
@@ -431,10 +431,10 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
          call elsi_get_time(t1)
 
-         write(info_str,"(2X,A)") "Finished Cholesky decomposition"
-         call elsi_say(bh,info_str)
-         write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-         call elsi_say(bh,info_str)
+         write(msg,"(2X,A)") "Finished Cholesky decomposition"
+         call elsi_say(bh,msg)
+         write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+         call elsi_say(bh,msg)
       end if
    end if
 
@@ -474,10 +474,10 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished transformation to standard eigenproblem"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished transformation to standard eigenproblem"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -502,7 +502,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
    real(kind=r8) :: ev_sqrt
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_check_singularity_cmplx"
 
@@ -522,19 +522,19 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
    if(ph%n_good < ph%n_basis) then ! Singular
       ph%ovlp_is_sing = .true.
 
-      write(info_str,"(2X,A)") "Overlap matrix is singular"
-      call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A,E10.2)")&
-         "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A)") "Overlap matrix is singular"
+      call elsi_say(bh,msg)
+      write(msg,"(2X,A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
+         eval(ph%n_basis),",",eval(1)
+      call elsi_say(bh,msg)
 
       if(ph%stop_sing) then
          call elsi_stop(bh,"Overlap matrix is singular.",caller)
       end if
 
-      write(info_str,"(2X,A,I10)") "| Number of basis functions reduced to :",&
+      write(msg,"(2X,A,I10)") "| Number of basis functions reduced to :",&
          ph%n_good
-      call elsi_say(bh,info_str)
+      call elsi_say(bh,msg)
 
       ! Overlap matrix is overwritten with scaled eigenvectors
       do i = ph%n_basis-ph%n_good+1,ph%n_basis
@@ -547,19 +547,19 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
    else ! Nonsingular
       ph%ovlp_is_sing = .false.
 
-      write(info_str,"(2X,A)") "Overlap matrix is not singular"
-      call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A,E10.2)")&
-         "| Lowest and highest eigenvalues :",eval(ph%n_basis),",",eval(1)
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A)") "Overlap matrix is not singular"
+      call elsi_say(bh,msg)
+      write(msg,"(2X,A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
+         eval(ph%n_basis),",",eval(1)
+      call elsi_say(bh,msg)
    end if
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished singularity check of overlap matrix"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished singularity check of overlap matrix"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -580,7 +580,7 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    complex(kind=r8), allocatable :: tmp(:,:)
 
@@ -612,10 +612,10 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished back-transformation of eigenvectors"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished back-transformation of eigenvectors"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -638,7 +638,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    integer(kind=i4) :: ierr
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_cmplx"
 
@@ -670,10 +670,10 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished solving standard eigenproblem"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished solving standard eigenproblem"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ! Back-transform eigenvectors
    if(.not. ph%ovlp_is_unit) then
@@ -741,7 +741,7 @@ subroutine elsi_elpa_evec_real(ph,bh,ham,eval,evec,sing_check)
    logical, intent(in) :: sing_check
 
    integer(kind=i4) :: ierr
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    real(kind=r8), allocatable :: copy(:,:)
    real(kind=r4), allocatable :: copy_r4(:,:)
@@ -765,8 +765,8 @@ subroutine elsi_elpa_evec_real(ph,bh,ham,eval,evec,sing_check)
       end if
 
       if(ph%n_calls <= ph%elpa_n_single) then
-         write(info_str,"(2X,A)") "Starting ELPA eigensolver (single precision)"
-         call elsi_say(bh,info_str)
+         write(msg,"(2X,A)") "Starting ELPA eigensolver (single precision)"
+         call elsi_say(bh,msg)
 
          call elsi_allocate(bh,eval_r4,ph%n_basis,"eval_r4",caller)
          call elsi_allocate(bh,evec_r4,bh%n_lrow,bh%n_lcol,"evec_r4",caller)
@@ -783,8 +783,8 @@ subroutine elsi_elpa_evec_real(ph,bh,ham,eval,evec,sing_check)
          call elsi_deallocate(bh,evec_r4,"evec_r4")
          call elsi_deallocate(bh,copy_r4,"copy_r4")
       else
-         write(info_str,"(2X,A)") "Starting ELPA eigensolver"
-         call elsi_say(bh,info_str)
+         write(msg,"(2X,A)") "Starting ELPA eigensolver"
+         call elsi_say(bh,msg)
 
          if(ph%elpa_autotune) then
             if(.not. associated(ph%elpa_tune)) then
@@ -825,7 +825,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
    logical, intent(in) :: sing_check
 
    integer(kind=i4) :: ierr
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    complex(kind=r8), allocatable :: copy(:,:)
    complex(kind=r4), allocatable :: copy_r4(:,:)
@@ -849,8 +849,8 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
       end if
 
       if(ph%n_calls <= ph%elpa_n_single) then
-         write(info_str,"(2X,A)") "Starting ELPA eigensolver (single precision)"
-         call elsi_say(bh,info_str)
+         write(msg,"(2X,A)") "Starting ELPA eigensolver (single precision)"
+         call elsi_say(bh,msg)
 
          call elsi_allocate(bh,eval_r4,ph%n_basis,"eval_r4",caller)
          call elsi_allocate(bh,evec_r4,bh%n_lrow,bh%n_lcol,"evec_r4",caller)
@@ -867,8 +867,8 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
          call elsi_deallocate(bh,evec_r4,"evec_r4")
          call elsi_deallocate(bh,copy_r4,"copy_r4")
       else
-         write(info_str,"(2X,A)") "Starting ELPA eigensolver"
-         call elsi_say(bh,info_str)
+         write(msg,"(2X,A)") "Starting ELPA eigensolver"
+         call elsi_say(bh,msg)
 
          if(ph%elpa_autotune) then
             if(.not. associated(ph%elpa_tune)) then
@@ -907,7 +907,7 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: ierr2
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_elpa_setup"
 
@@ -964,11 +964,11 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
             ph%elpa_gpu = .false.
             ph%elpa_gpu_kernels = .false.
 
-            write(info_str,"(2X,A)") "No ELPA GPU acceleration available"
-            call elsi_say(bh,info_str)
+            write(msg,"(2X,A)") "No ELPA GPU acceleration available"
+            call elsi_say(bh,msg)
          else
-            write(info_str,"(2X,A)") "ELPA GPU acceleration activated"
-            call elsi_say(bh,info_str)
+            write(msg,"(2X,A)") "ELPA GPU acceleration activated"
+            call elsi_say(bh,msg)
          end if
       end if
 
@@ -987,16 +987,15 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
 
                ph%elpa_gpu_kernels = .false.
 
-               write(info_str,"(2X,A)") "ELPA GPU kernels not available"
-               call elsi_say(bh,info_str)
+               write(msg,"(2X,A)") "ELPA GPU kernels not available"
+               call elsi_say(bh,msg)
             else
-               write(info_str,"(2X,A)") "ELPA GPU kernels will be used"
-               call elsi_say(bh,info_str)
+               write(msg,"(2X,A)") "ELPA GPU kernels will be used"
+               call elsi_say(bh,msg)
             end if
          else ! GPU kernels currently only make sense with ELPA2
-            write(info_str,"(2X,A)")&
-               "No GPU kernels available with 1-stage ELPA"
-            call elsi_say(bh,info_str)
+            write(msg,"(2X,A)") "No GPU kernels available with 1-stage ELPA"
+            call elsi_say(bh,msg)
          end if
       end if
    end if

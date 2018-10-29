@@ -108,7 +108,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
    integer(kind=i4) :: ne
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    type(Matrix_ps) :: ovlp_isr
 
@@ -133,10 +133,10 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 
       call elsi_get_time(t1)
 
-      write(info_str,"(2X,A)") "Finished overlap matrix inverse square root"
-      call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A)") "Finished overlap matrix inverse square root"
+      call elsi_say(bh,msg)
+      write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+      call elsi_say(bh,msg)
    end if
 
    call elsi_get_time(t0)
@@ -164,10 +164,10 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished density matrix purification"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished density matrix purification"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%nt_first = .false.
 
@@ -188,7 +188,7 @@ subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
    real(kind=r8) :: factor
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    type(Matrix_ps) :: tmp
 
@@ -210,10 +210,10 @@ subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished energy density matrix calculation"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 

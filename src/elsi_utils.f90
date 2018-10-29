@@ -754,7 +754,7 @@ subroutine elsi_build_dm_real(ph,bh,row_map,col_map,evec,occ,dm,work)
    integer(kind=i4) :: max_state
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
 
@@ -797,10 +797,10 @@ subroutine elsi_build_dm_real(ph,bh,row_map,col_map,evec,occ,dm,work)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished density matrix calculation"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished density matrix calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -824,7 +824,7 @@ subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,evec,occ,dm,work)
    integer(kind=i4) :: max_state
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
 
@@ -867,10 +867,10 @@ subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,evec,occ,dm,work)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished density matrix calculation"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished density matrix calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -895,7 +895,7 @@ subroutine elsi_build_edm_real(ph,bh,row_map,col_map,eval,evec,occ,edm,work)
    integer(kind=i4) :: max_state
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
 
@@ -941,10 +941,10 @@ subroutine elsi_build_edm_real(ph,bh,row_map,col_map,eval,evec,occ,edm,work)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished energy density matrix calculation"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -969,7 +969,7 @@ subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,work)
    integer(kind=i4) :: max_state
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
 
@@ -1015,10 +1015,10 @@ subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,work)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished energy density matrix calculation"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
