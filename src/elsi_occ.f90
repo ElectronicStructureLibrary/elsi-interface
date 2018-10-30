@@ -336,7 +336,7 @@ subroutine elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
    real(kind=r8) :: diff_mid ! Electron count error on middle point
    logical :: found_mu
    integer(kind=i4) :: n_steps
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_find_mu"
 
@@ -386,14 +386,13 @@ subroutine elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_weights,evals,&
       mu_out = mu_right
 
       ! ...with adjusted occupation numbers
-      write(info_str,"(2X,A)")&
-         "Chemical potential cannot reach the required accuracy."
-      call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,E10.2,A)") "| Residual error :",diff_right
-      call elsi_say(bh,info_str)
-      write(info_str,"(2X,A)")&
-         "The error will be removed from the highest occupied states."
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A)") "Chemical potential cannot reach required accuracy."
+      call elsi_say(bh,msg)
+      write(msg,"(2X,A,E10.2,A)") "| Residual error :",diff_right
+      call elsi_say(bh,msg)
+      write(msg,"(2X,A)")&
+         "The error will be removed from highest occupied states."
+      call elsi_say(bh,msg)
 
       call elsi_adjust_occ(ph,bh,n_state,n_spin,n_kpt,k_weights,evals,occ_nums,&
               diff_right)

@@ -185,7 +185,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    integer(kind=i4) :: idx
    integer(kind=i4) :: ierr
    logical :: converged
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    real(kind=r8), allocatable :: shifts(:)
    real(kind=r8), allocatable :: inertias(:)
@@ -213,8 +213,8 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_stop(bh,"Failed to load matrices.",caller)
    end if
 
-   write(info_str,"(2X,A)") "Starting PEXSI density matrix solver"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Starting PEXSI density matrix solver"
+   call elsi_say(bh,msg)
 
    ! Symbolic factorization
    if(ph%pexsi_first) then
@@ -228,10 +228,10 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
       call elsi_get_time(t1)
 
-      write(info_str,"(2X,A)") "Finished symbolic factorization"
-      call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A)") "Finished symbolic factorization"
+      call elsi_say(bh,msg)
+      write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+      call elsi_say(bh,msg)
    end if
 
    if(ierr /= 0) then
@@ -325,10 +325,10 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
       call elsi_get_time(t1)
 
-      write(info_str,"(2X,A)") "Finished inertia counting"
-      call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A)") "Finished inertia counting"
+      call elsi_say(bh,msg)
+      write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+      call elsi_say(bh,msg)
 
       if(ierr /= 0) then
          call elsi_stop(bh,"Inertia counting failed.",caller)
@@ -382,10 +382,10 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished Fermi operator calculation"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished Fermi operator calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Fermi operator calculation failed.",caller)
@@ -514,10 +514,10 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished density matrix correction"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished density matrix correction"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%pexsi_first = .false.
 
@@ -547,7 +547,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    integer(kind=i4) :: i
    integer(kind=i4) :: ierr
    logical :: converged
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    real(kind=r8), allocatable :: shifts(:)
    real(kind=r8), allocatable :: tmp(:)
@@ -674,10 +674,10 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished energy density matrix calculation"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -714,7 +714,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    integer(kind=i4) :: idx
    integer(kind=i4) :: ierr
    logical :: converged
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    real(kind=r8), allocatable :: shifts(:)
    real(kind=r8), allocatable :: inertias(:)
@@ -743,8 +743,8 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_stop(bh,"Failed to load matrices.",caller)
    end if
 
-   write(info_str,"(2X,A)") "Starting PEXSI density matrix solver"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Starting PEXSI density matrix solver"
+   call elsi_say(bh,msg)
 
    ! Symbolic factorization
    if(ph%pexsi_first) then
@@ -758,10 +758,10 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
       call elsi_get_time(t1)
 
-      write(info_str,"(2X,A)") "Finished symbolic factorization"
-      call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A)") "Finished symbolic factorization"
+      call elsi_say(bh,msg)
+      write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+      call elsi_say(bh,msg)
    end if
 
    if(ierr /= 0) then
@@ -855,10 +855,10 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
       call elsi_get_time(t1)
 
-      write(info_str,"(2X,A)") "Finished inertia counting"
-      call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A)") "Finished inertia counting"
+      call elsi_say(bh,msg)
+      write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+      call elsi_say(bh,msg)
 
       if(ierr /= 0) then
          call elsi_stop(bh,"Inertia counting failed.",caller)
@@ -912,10 +912,10 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished Fermi operator calculation"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished Fermi operator calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Fermi operator calculation failed.",caller)
@@ -1045,10 +1045,10 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished density matrix correction"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished density matrix correction"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%pexsi_first = .false.
 
@@ -1078,7 +1078,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    integer(kind=i4) :: i
    integer(kind=i4) :: ierr
    logical :: converged
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    real(kind=r8), allocatable :: shifts(:)
    complex(kind=r8), allocatable :: tmp(:)
@@ -1205,10 +1205,10 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished energy density matrix calculation"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -1248,6 +1248,7 @@ subroutine elsi_cleanup_pexsi(ph)
       call MPI_Comm_free(ph%pexsi_comm_inter_point,ierr)
    end if
 
+   ph%pexsi_first = .true.
    ph%pexsi_started = .false.
 
 end subroutine

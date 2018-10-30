@@ -80,7 +80,8 @@ module ELSI_DATATYPE
       integer(kind=i4) :: solver
       integer(kind=i4) :: matrix_format
       integer(kind=i4) :: parallel_mode
-      integer(kind=i4) :: n_calls
+      integer(kind=i4) :: n_calls ! Number of calls in this geometry step
+      integer(kind=i4) :: n_calls_all ! Total number of calls
 
       ! Overlap
       logical :: ovlp_is_unit

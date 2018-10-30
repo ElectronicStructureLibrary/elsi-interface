@@ -337,7 +337,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: h_val_send(:)
@@ -618,10 +618,10 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_blacs_to_pexsi = .false.
 
@@ -662,7 +662,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send(:)
@@ -943,10 +943,10 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_blacs_to_pexsi = .false.
 
@@ -983,7 +983,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
@@ -1128,10 +1128,10 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -1166,7 +1166,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
@@ -1311,10 +1311,10 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -1488,7 +1488,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    integer(kind=i4) :: dest ! Destination of an element
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: h_val_send(:)
@@ -1669,10 +1669,10 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_blacs_to_sips = .false.
 
@@ -1706,7 +1706,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    integer(kind=i4) :: dest ! Destination of an element
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send(:)
@@ -1887,10 +1887,10 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_blacs_to_sips = .false.
 
@@ -1925,7 +1925,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    integer(kind=i4) :: p_row
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: h_val_send(:)
@@ -2091,10 +2091,10 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_sips_to_blacs = .false.
 
@@ -2129,7 +2129,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    integer(kind=i4) :: p_row
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send(:)
@@ -2295,10 +2295,10 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_sips_to_blacs = .false.
 
@@ -2331,7 +2331,7 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
    integer(kind=i4) :: n_lrow_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
@@ -2465,10 +2465,10 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -2499,7 +2499,7 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
@@ -2621,10 +2621,10 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -2655,7 +2655,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
@@ -2777,10 +2777,10 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -2813,7 +2813,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    integer(kind=i4) :: p_row
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: h_val_send(:)
@@ -2980,10 +2980,10 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_siesta_to_blacs = .false.
 
@@ -3018,7 +3018,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    integer(kind=i4) :: p_row
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send(:)
@@ -3185,10 +3185,10 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_siesta_to_blacs = .false.
 
@@ -3219,7 +3219,7 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,row_ind,col_ptr,dm_den,dm_csc)
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
@@ -3347,10 +3347,10 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,row_ind,col_ptr,dm_den,dm_csc)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -3379,7 +3379,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_den,dm_csc)
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
@@ -3507,10 +3507,10 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_den,dm_csc)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -3589,7 +3589,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    integer(kind=i4) :: n_lcol_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: h_val_send(:)
@@ -3739,10 +3739,10 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_siesta_to_pexsi = .false.
 
@@ -3777,7 +3777,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    integer(kind=i4) :: n_lcol_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send(:)
@@ -3927,10 +3927,10 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_siesta_to_pexsi = .false.
 
@@ -3964,7 +3964,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    integer(kind=i4) :: l_row
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
@@ -4092,10 +4092,10 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -4127,7 +4127,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    integer(kind=i4) :: l_row
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
@@ -4255,10 +4255,10 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -4499,7 +4499,7 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    integer(kind=i4) :: g_col
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    type(TripletList_r) :: ham_list
    type(TripletList_r) :: ovlp_list
@@ -4582,10 +4582,10 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_blacs_to_ntpoly = .false.
 
@@ -4613,7 +4613,7 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    integer(kind=i4) :: g_col
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    type(TripletList_c) :: ham_list
    type(TripletList_c) :: ovlp_list
@@ -4696,10 +4696,10 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_blacs_to_ntpoly = .false.
 
@@ -4729,7 +4729,7 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
@@ -4856,10 +4856,10 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -4887,7 +4887,7 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
@@ -5014,10 +5014,10 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -5043,7 +5043,7 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    integer(kind=i4) :: i_col
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    type(TripletList_r) :: ham_list
    type(TripletList_r) :: ovlp_list
@@ -5094,10 +5094,10 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_sips_to_ntpoly = .false.
 
@@ -5125,7 +5125,7 @@ subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    integer(kind=i4) :: i_col
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    type(TripletList_c) :: ham_list
    type(TripletList_c) :: ovlp_list
@@ -5176,10 +5176,10 @@ subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%first_sips_to_ntpoly = .false.
 
@@ -5211,7 +5211,7 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
@@ -5331,10 +5331,10 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -5364,7 +5364,7 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
@@ -5484,10 +5484,10 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -5565,7 +5565,7 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_csc)
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
@@ -5691,10 +5691,10 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_csc)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -5722,7 +5722,7 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_nt,dm_csc)
    integer(kind=i4) :: nnz_l_aux
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
@@ -5848,10 +5848,10 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_nt,dm_csc)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished matrix redistribution"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 

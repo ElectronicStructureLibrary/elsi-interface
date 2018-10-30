@@ -105,7 +105,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    integer(kind=i4) :: i
    integer(kind=i4) :: n_solved
    logical :: inertia_ok
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    real(kind=r8), allocatable :: eval_save(:)
    real(kind=r8), allocatable :: slices(:)
@@ -114,8 +114,8 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    character(len=*), parameter :: caller = "elsi_solve_sips_real"
 
    ! Solve the eigenvalue problem
-   write(info_str,"(2X,A)") "Starting SLEPc-SIPs eigensolver"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Starting SLEPc-SIPs eigensolver"
+   call elsi_say(bh,msg)
 
    call elsi_get_time(t0)
 
@@ -143,10 +143,10 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished loading matrices"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished loading matrices"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    call elsi_allocate(bh,slices,ph%sips_n_slices+1,"slices",caller)
 
@@ -220,10 +220,10 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
       call elsi_get_time(t1)
 
-      write(info_str,"(2X,A)") "Finished inertia counting"
-      call elsi_say(bh,info_str)
-      write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A)") "Finished inertia counting"
+      call elsi_say(bh,msg)
+      write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+      call elsi_say(bh,msg)
    else
       call sips_get_slices(ph%sips_slice_type,ph%n_states,ph%sips_n_slices,&
               ph%sips_inertia_tol*2,1.0e-5_r8,eval,slices)
@@ -242,10 +242,10 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished solving generalized eigenproblem"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished solving generalized eigenproblem"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    call elsi_get_time(t0)
 
@@ -270,10 +270,10 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished retrieving eigensolutions"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished retrieving eigensolutions"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%sips_first = .false.
 
@@ -295,7 +295,7 @@ subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_build_dm_sips_real"
 
@@ -306,10 +306,10 @@ subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished density matrix calculation"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished density matrix calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -329,7 +329,7 @@ subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_build_edm_sips_real"
 
@@ -340,10 +340,10 @@ subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
 
    call elsi_get_time(t1)
 
-   write(info_str,"(2X,A)") "Finished energy density matrix calculation"
-   call elsi_say(bh,info_str)
-   write(info_str,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
@@ -362,6 +362,7 @@ subroutine elsi_cleanup_sips(ph)
       call sips_finalize()
    end if
 
+   ph%sips_first = .true.
    ph%sips_started = .false.
 
 end subroutine

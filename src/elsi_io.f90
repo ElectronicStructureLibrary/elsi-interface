@@ -36,17 +36,17 @@ contains
 !>
 !! This routine prints a message.
 !!
-subroutine elsi_say(bh,info_str)
+subroutine elsi_say(bh,msg)
 
    implicit none
 
    type(elsi_basic_t), intent(in) :: bh
-   character(len=*), intent(in) :: info_str
+   character(len=*), intent(in) :: msg
 
    character(len=*), parameter :: caller = "elsi_say"
 
    if(bh%print_info > 0) then
-      write(bh%print_unit,"(A)") trim(info_str)
+      write(bh%print_unit,"(A)") trim(msg)
    end if
 
 end subroutine
@@ -123,7 +123,7 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       call fjson_start_object(jh)
 
       call elsi_print_versioning(bh%uuid,jh)
-      call fjson_write_name_value(jh,"iteration",ph%n_calls)
+      call fjson_write_name_value(jh,"iteration",ph%n_calls+ph%n_calls_all)
       if(caller(6:6) == "e") then
          call fjson_write_name_value(jh,"output_type","EIGENSOLUTION")
       else
@@ -434,111 +434,104 @@ subroutine elsi_final_print(ph,bh)
 
    real(kind=r8) :: sparsity
    character(len=200) :: ll
-   character(len=200) :: info_str
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_final_print"
 
    write(ll,"(2X,A)") "|------------------------------------------------------"
    call elsi_say(bh,ll)
 
-   write(info_str,"(2X,A)") "| Final ELSI Output"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "| Final ELSI Output"
+   call elsi_say(bh,msg)
 
    call elsi_say(bh,ll)
 
-   write(info_str,"(2X,A)") "|"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "|"
+   call elsi_say(bh,msg)
 
-   write(info_str,"(2X,A)") "| Physical Properties"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "| Physical Properties"
+   call elsi_say(bh,msg)
 
-   write(info_str,"(2X,A,E22.8)") "|   Number of electrons       :",&
-      ph%n_electrons
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A,E22.8)") "|   Number of electrons       :",ph%n_electrons
+   call elsi_say(bh,msg)
 
    if(ph%parallel_mode == MULTI_PROC) then
-      write(info_str,"(2X,A,I22)") "|   Number of spins           :",ph%n_spins
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A,I22)") "|   Number of spins           :",ph%n_spins
+      call elsi_say(bh,msg)
 
-      write(info_str,"(2X,A,I22)") "|   Number of k-points        :",ph%n_kpts
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A,I22)") "|   Number of k-points        :",ph%n_kpts
+      call elsi_say(bh,msg)
    end if
 
    if(ph%solver == ELPA_SOLVER .or. ph%solver == SIPS_SOLVER) then
-      write(info_str,"(2X,A,I22)") "|   Number of states          :",ph%n_states
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A,I22)") "|   Number of states          :",ph%n_states
+      call elsi_say(bh,msg)
    end if
 
-   write(info_str,"(2X,A)") "|"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "|"
+   call elsi_say(bh,msg)
 
-   write(info_str,"(2X,A)") "| Matrix Properties"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "| Matrix Properties"
+   call elsi_say(bh,msg)
 
    if(ph%matrix_format == BLACS_DENSE) then
-      write(info_str,"(2X,A,A22)") "|   Matrix format             :",&
-         "BLACS_DENSE"
+      write(msg,"(2X,A,A22)") "|   Matrix format             :","BLACS_DENSE"
    else if(ph%matrix_format == PEXSI_CSC) then
-      write(info_str,"(2X,A,A22)") "|   Matrix format             :",&
-         "PEXSI_CSC"
+      write(msg,"(2X,A,A22)") "|   Matrix format             :","PEXSI_CSC"
    else if(ph%matrix_format == SIESTA_CSC) then
-      write(info_str,"(2X,A,A22)") "|   Matrix format             :",&
-         "SIESTA_CSC"
+      write(msg,"(2X,A,A22)") "|   Matrix format             :","SIESTA_CSC"
    end if
-   call elsi_say(bh,info_str)
+   call elsi_say(bh,msg)
 
-   write(info_str,"(2X,A,I22)") "|   Number of basis functions :",ph%n_basis
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A,I22)") "|   Number of basis functions :",ph%n_basis
+   call elsi_say(bh,msg)
 
    if(ph%parallel_mode == MULTI_PROC) then
       sparsity = 1.0_r8-(1.0_r8*bh%nnz_g/ph%n_basis/ph%n_basis)
 
-      write(info_str,"(2X,A,E22.8)") "|   Matrix sparsity           :",sparsity
-      call elsi_say(bh,info_str)
+      write(msg,"(2X,A,E22.8)") "|   Matrix sparsity           :",sparsity
+      call elsi_say(bh,msg)
    end if
 
-   write(info_str,"(2X,A)") "|"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "|"
+   call elsi_say(bh,msg)
 
-   write(info_str,"(2X,A)") "| Computational Details"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "| Computational Details"
+   call elsi_say(bh,msg)
 
    if(ph%parallel_mode == MULTI_PROC) then
-      write(info_str,"(2X,A,A22)") "|   Parallel mode             :",&
-         "MULTI_PROC"
+      write(msg,"(2X,A,A22)") "|   Parallel mode             :","MULTI_PROC"
    else if(ph%parallel_mode == SINGLE_PROC) then
-      write(info_str,"(2X,A,A22)") "|   Parallel mode             :",&
-         "SINGLE_PROC"
+      write(msg,"(2X,A,A22)") "|   Parallel mode             :","SINGLE_PROC"
    end if
-   call elsi_say(bh,info_str)
+   call elsi_say(bh,msg)
 
-   write(info_str,"(2X,A,I22)") "|   Number of MPI tasks       :",bh%n_procs_all
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A,I22)") "|   Number of MPI tasks       :",bh%n_procs_all
+   call elsi_say(bh,msg)
 
    if(ph%solver == ELPA_SOLVER) then
-      write(info_str,"(2X,A,A22)") "|   Solver requested          :","ELPA"
+      write(msg,"(2X,A,A22)") "|   Solver requested          :","ELPA"
    else if(ph%solver == OMM_SOLVER) then
-      write(info_str,"(2X,A,A22)") "|   Solver requested          :","libOMM"
+      write(msg,"(2X,A,A22)") "|   Solver requested          :","libOMM"
    else if(ph%solver == PEXSI_SOLVER) then
-      write(info_str,"(2X,A,A22)") "|   Solver requested          :","PEXSI"
+      write(msg,"(2X,A,A22)") "|   Solver requested          :","PEXSI"
    else if(ph%solver == SIPS_SOLVER) then
-      write(info_str,"(2X,A,A22)") "|   Solver requested          :",&
-         "SLEPc-SIPs"
+      write(msg,"(2X,A,A22)") "|   Solver requested          :","SLEPc-SIPs"
    else if(ph%solver == NTPOLY_SOLVER) then
-      write(info_str,"(2X,A,A22)") "|   Solver requested          :","NTPoly"
+      write(msg,"(2X,A,A22)") "|   Solver requested          :","NTPoly"
    end if
-   call elsi_say(bh,info_str)
+   call elsi_say(bh,msg)
 
-   write(info_str,"(2X,A,I22)") "|   Number of ELSI calls      :",ph%n_calls
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A,I22)") "|   Number of ELSI calls      :",ph%n_calls_all
+   call elsi_say(bh,msg)
 
-   write(info_str,"(2X,A)") "|"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "|"
+   call elsi_say(bh,msg)
 
    call elsi_say(bh,ll)
 
-   write(info_str,"(2X,A)") "| ELSI Project (c)  elsi-interchange.org"
-   call elsi_say(bh,info_str)
+   write(msg,"(2X,A)") "| ELSI Project (c)  elsi-interchange.org"
+   call elsi_say(bh,msg)
 
    call elsi_say(bh,ll)
 

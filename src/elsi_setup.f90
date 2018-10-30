@@ -10,7 +10,7 @@
 module ELSI_SETUP
 
    use ELSI_CONSTANTS, only: PEXSI_SOLVER,SINGLE_PROC,MULTI_PROC,PEXSI_CSC,&
-       SIESTA_CSC
+       SIESTA_CSC,UNSET
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_ELPA, only: elsi_cleanup_elpa
    use ELSI_IO, only: elsi_say,elsi_final_print,fjson_close_file,&
@@ -28,13 +28,14 @@ module ELSI_SETUP
    private
 
    public :: elsi_init
-   public :: elsi_finalize
    public :: elsi_set_mpi
    public :: elsi_set_mpi_global
    public :: elsi_set_spin
    public :: elsi_set_kpoint
    public :: elsi_set_blacs
    public :: elsi_set_csc
+   public :: elsi_reinit
+   public :: elsi_finalize
    public :: elsi_cleanup
 
 contains
@@ -72,7 +73,6 @@ subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    eh%ph%solver = solver
    eh%ph%matrix_format = matrix_format
    eh%ph%parallel_mode = parallel_mode
-   eh%ph%n_calls = 0
 
    if(parallel_mode == SINGLE_PROC) then
       eh%bh%n_lrow = n_basis
@@ -308,6 +308,89 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 end subroutine
 
 !>
+!! This routine starts a new geometry step, which usually means a new overlap.
+!!
+subroutine elsi_reinit(eh)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+
+   character(len=*), parameter :: caller = "elsi_reinit"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(eh%ph%n_calls > 0) then
+      eh%bh%nnz_l = UNSET
+      eh%bh%nnz_g = UNSET
+      eh%bh%nnz_l_sp = UNSET
+      eh%bh%nnz_l_sp1 = UNSET
+      eh%bh%pexsi_csc_ready = .false.
+      eh%bh%nnz_l_sp2 = UNSET
+      eh%bh%siesta_csc_ready = .false.
+      eh%ph%n_calls_all = eh%ph%n_calls_all+eh%ph%n_calls
+      eh%ph%n_calls = 0
+      eh%ph%ovlp_is_sing = .false.
+      eh%ph%n_good = eh%ph%n_basis
+      eh%ph%n_states_solve = eh%ph%n_states
+      eh%ph%first_blacs_to_ntpoly = .true.
+      eh%ph%first_blacs_to_pexsi = .true.
+      eh%ph%first_blacs_to_sips = .true.
+      eh%ph%first_siesta_to_blacs = .true.
+      eh%ph%first_siesta_to_pexsi = .true.
+      eh%ph%first_sips_to_blacs = .true.
+      eh%ph%first_sips_to_ntpoly = .true.
+      eh%ph%elpa_first = .true.
+      eh%ph%omm_first = .true.
+      eh%ph%pexsi_first = .true.
+      eh%ph%sips_first = .true.
+      eh%ph%nt_first = .true.
+
+      call elsi_cleanup_ntpoly(eh%ph)
+      call elsi_cleanup_pexsi(eh%ph)
+      call elsi_cleanup_sips(eh%ph)
+
+      if(allocated(eh%evec_real)) then
+         call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
+      end if
+      if(allocated(eh%evec_cmplx)) then
+         call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
+      end if
+      if(allocated(eh%ham_real_csc)) then
+         call elsi_deallocate(eh%bh,eh%ham_real_csc,"ham_real_csc")
+      end if
+      if(allocated(eh%ham_cmplx_csc)) then
+         call elsi_deallocate(eh%bh,eh%ham_cmplx_csc,"ham_cmplx_csc")
+      end if
+      if(allocated(eh%ovlp_real_csc)) then
+         call elsi_deallocate(eh%bh,eh%ovlp_real_csc,"ovlp_real_csc")
+      end if
+      if(allocated(eh%ovlp_cmplx_csc)) then
+         call elsi_deallocate(eh%bh,eh%ovlp_cmplx_csc,"ovlp_cmplx_csc")
+      end if
+      if(allocated(eh%dm_real_csc)) then
+         call elsi_deallocate(eh%bh,eh%dm_real_csc,"dm_real_csc")
+      end if
+      if(allocated(eh%dm_cmplx_csc)) then
+         call elsi_deallocate(eh%bh,eh%dm_cmplx_csc,"dm_cmplx_csc")
+      end if
+      if(allocated(eh%row_ind_sp1)) then
+         call elsi_deallocate(eh%bh,eh%row_ind_sp1,"row_ind_sp1")
+      end if
+      if(allocated(eh%col_ptr_sp1)) then
+         call elsi_deallocate(eh%bh,eh%col_ptr_sp1,"col_ptr_sp1")
+      end if
+      if(allocated(eh%row_ind_sp2)) then
+         call elsi_deallocate(eh%bh,eh%row_ind_sp2,"row_ind_sp2")
+      end if
+      if(allocated(eh%col_ptr_sp2)) then
+         call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ptr_sp2")
+      end if
+   end if
+
+end subroutine
+
+!>
 !! This routine finalizes ELSI.
 !!
 subroutine elsi_finalize(eh)
@@ -317,6 +400,8 @@ subroutine elsi_finalize(eh)
    type(elsi_handle), intent(inout) :: eh !< Handle
 
    character(len=*), parameter :: caller = "elsi_finalize"
+
+   eh%ph%n_calls_all = eh%ph%n_calls_all+eh%ph%n_calls
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
    call elsi_final_print(eh%ph,eh%bh)

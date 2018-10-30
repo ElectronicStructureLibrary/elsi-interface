@@ -29,7 +29,7 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: n_states
-   integer(kind=i4) :: matrix_size
+   integer(kind=i4) :: n_basis
    integer(kind=i4) :: l_rows
    integer(kind=i4) :: l_cols
    integer(kind=i4) :: header(8)
@@ -52,8 +52,8 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
 
    complex(kind=r8), external :: zdotc
 
-   type(elsi_handle) :: e_h
-   type(elsi_rw_handle) :: rw_h
+   type(elsi_handle) :: eh
+   type(elsi_rw_handle) :: rwh
 
    ! Reference values
    real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
@@ -73,25 +73,25 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
       if(solver == 1) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + ELPA"
          e_ref = e_elpa
-      elseif(solver == 2) then
+      else if(solver == 2) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + libOMM"
          e_ref = e_omm
-      elseif(solver == 3) then
+      else if(solver == 3) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + PEXSI"
          e_ref = e_pexsi
          tol = 1.0e-3_r8
-      elseif(solver == 6) then
+      else if(solver == 6) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex + NTPoly"
          e_ref = e_ntpoly
          tol = 1.0e-7_r8
-      endif
+      end if
       write(*,*)
-   endif
+   end if
 
    ! Set up square-like processor grid
    do npcol = nint(sqrt(real(n_proc))),2,-1
       if(mod(n_proc,npcol) == 0) exit
-   enddo
+   end do
    nprow = n_proc/npcol
 
    ! Set block size
@@ -102,12 +102,12 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
    ! Read H and S matrices
-   call elsi_init_rw(rw_h,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rw_h,mpi_comm)
-   call elsi_set_rw_blacs(rw_h,blacs_ctxt,blk)
+   call elsi_init_rw(rwh,0,1,0,0.0_r8)
+   call elsi_set_rw_mpi(rwh,mpi_comm)
+   call elsi_set_rw_blacs(rwh,blacs_ctxt,blk)
 
-   call elsi_read_mat_dim(rw_h,h_file,n_electrons,matrix_size,l_rows,l_cols)
-   call elsi_get_rw_header(rw_h,header)
+   call elsi_read_mat_dim(rwh,h_file,n_electrons,n_basis,l_rows,l_cols)
+   call elsi_get_rw_header(rwh,header)
 
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
@@ -118,10 +118,10 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
 
    t1 = MPI_Wtime()
 
-   call elsi_read_mat_complex(rw_h,h_file,ham)
-   call elsi_read_mat_complex(rw_h,s_file,ovlp)
+   call elsi_read_mat_complex(rwh,h_file,ham)
+   call elsi_read_mat_complex(rwh,s_file,ovlp)
 
-   call elsi_finalize_rw(rw_h)
+   call elsi_finalize_rw(rwh)
 
    ham_save = ham
    ovlp_save = ovlp
@@ -132,28 +132,28 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
       write(*,"(2X,A)") "Finished reading H and S matrices"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-   endif
+   end if
 
    ! Initialize ELSI
    n_states = int(n_electrons,kind=i4)
 
-   call elsi_init(e_h,solver,1,0,matrix_size,n_electrons,n_states)
-   call elsi_set_mpi(e_h,mpi_comm)
-   call elsi_set_blacs(e_h,blacs_ctxt,blk)
+   call elsi_init(eh,solver,1,0,n_basis,n_electrons,n_states)
+   call elsi_set_mpi(eh,mpi_comm)
+   call elsi_set_blacs(eh,blacs_ctxt,blk)
 
    ! Customize ELSI
-   call elsi_set_output(e_h,2)
-   call elsi_set_output_log(e_h,1)
-   call elsi_set_sing_check(e_h,0)
-   call elsi_set_mu_broaden_width(e_h,1.0e-6_r8)
-   call elsi_set_omm_n_elpa(e_h,1)
-   call elsi_set_pexsi_delta_e(e_h,80.0_r8)
-   call elsi_set_pexsi_np_per_pole(e_h,2)
+   call elsi_set_output(eh,2)
+   call elsi_set_output_log(eh,1)
+   call elsi_set_sing_check(eh,0)
+   call elsi_set_mu_broaden_width(eh,1.0e-6_r8)
+   call elsi_set_omm_n_elpa(eh,1)
+   call elsi_set_pexsi_delta_e(eh,80.0_r8)
+   call elsi_set_pexsi_np_per_pole(eh,2)
 
    t1 = MPI_Wtime()
 
-   ! Solve (pseudo SCF 1)
-   call elsi_dm_complex(e_h,ham,ovlp,dm,e_test)
+   ! Solve
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
@@ -161,19 +161,71 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
       write(*,"(2X,A)") "Finished SCF #1"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
-   endif
+   end if
 
    ham = ham_save
 
    t1 = MPI_Wtime()
 
-   ! Solve (pseudo SCF 2, with the same H)
-   call elsi_dm_complex(e_h,ham,ovlp,dm,e_test)
+   ! Solve again
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
+   end if
+
+   ham = ham_save
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #3"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
+   end if
+
+   ! Reinit for a new geometry
+   call elsi_reinit(eh)
+   call elsi_set_elpa_solver(eh,1)
+   call elsi_set_omm_flavor(eh,2)
+   call elsi_set_ntpoly_method(eh,1)
+
+   ham = ham_save
+   ovlp = ovlp_save
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #4"
+      write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
+      write(*,*)
+   end if
+
+   ham = ham_save
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
-   call elsi_get_edm_complex(e_h,edm)
+   call elsi_get_edm_complex(eh,edm)
 
    ! Compute electron count
    tmp = real(zdotc(l_rows*l_cols,ovlp_save,1,dm,1),kind=r8)
@@ -181,7 +233,7 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
    call MPI_Reduce(tmp,n_test,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
 
    if(myid == 0) then
-      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,"(2X,A)") "Finished SCF #5"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
       write(*,"(2X,A)") "Finished test program"
@@ -199,13 +251,13 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
             write(*,"(2X,A)") "Passed."
          else
             write(*,"(2X,A)") "Failed."
-         endif
-      endif
+         end if
+      end if
       write(*,*)
-   endif
+   end if
 
    ! Finalize ELSI
-   call elsi_finalize(e_h)
+   call elsi_finalize(eh)
 
    deallocate(ham)
    deallocate(ham_save)
