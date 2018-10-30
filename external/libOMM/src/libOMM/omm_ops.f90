@@ -7,9 +7,6 @@ use MatrixSwitch_ops, only: ms_lap_icontxt,&
                             ms_lap_npcol,&
                             ms_lap_bs_def,&
                             ms_mpi_comm
-use ELPA1, only: elpa_get_communicators,&
-                 elpa_mult_at_b_real_double,&
-                 elpa_invert_trm_real_double
 
 implicit none
 
