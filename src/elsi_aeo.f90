@@ -57,7 +57,7 @@ subroutine elsi_init_elpa(ph,bh)
    character(len=*), parameter :: caller = "elsi_init_elpa"
 
    if(.not. ph%elpa_started) then
-      ierr = elpa_init(20171201)
+      ierr = elpa_init(20180525)
 
       if(ierr /= 0) then
          call elsi_stop(bh,"Initialization failed.",caller)
