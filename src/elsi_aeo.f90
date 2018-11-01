@@ -13,11 +13,10 @@ module ELSI_ELPA
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4,&
-       mpi_comm_self
+   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_UTILS, only: elsi_get_nnz,elsi_set_full_mat
-   use ELPA, only: elpa_t,elpa_init,elpa_uninit,elpa_allocate,elpa_deallocate,&
+   use ELPA, only: elpa_t,elpa_init,elpa_allocate,elpa_deallocate,&
        elpa_autotune_deallocate,ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
        ELPA_2STAGE_REAL_GPU,ELPA_2STAGE_COMPLEX_GPU,ELPA_2STAGE_REAL_DEFAULT,&
        ELPA_2STAGE_COMPLEX_DEFAULT,ELPA_AUTOTUNE_FAST,&
@@ -723,8 +722,7 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
       call ph%elpa_aux%set("nblk",bh%blk,ierr)
       call ph%elpa_aux%set("local_nrows",bh%n_lrow,ierr)
       call ph%elpa_aux%set("local_ncols",bh%n_lcol,ierr)
-      call ph%elpa_aux%set("mpi_comm_rows",ph%elpa_comm_row,ierr)
-      call ph%elpa_aux%set("mpi_comm_cols",ph%elpa_comm_col,ierr)
+      call ph%elpa_aux%set("mpi_comm_parent",bh%comm,ierr)
       call ph%elpa_aux%set("process_row",bh%my_prow,ierr)
       call ph%elpa_aux%set("process_col",bh%my_pcol,ierr)
 
@@ -743,8 +741,7 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
       call ph%elpa_solve%set("nblk",bh%blk,ierr)
       call ph%elpa_solve%set("local_nrows",bh%n_lrow,ierr)
       call ph%elpa_solve%set("local_ncols",bh%n_lcol,ierr)
-      call ph%elpa_solve%set("mpi_comm_rows",ph%elpa_comm_row,ierr)
-      call ph%elpa_solve%set("mpi_comm_cols",ph%elpa_comm_col,ierr)
+      call ph%elpa_solve%set("mpi_comm_parent",bh%comm,ierr)
       call ph%elpa_solve%set("process_row",bh%my_prow,ierr)
       call ph%elpa_solve%set("process_col",bh%my_pcol,ierr)
 
@@ -1084,8 +1081,11 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
 
    character(len=*), parameter :: caller = "elsi_elpa_tridiag"
 
-   ph%elpa_comm_row = mpi_comm_self
-   ph%elpa_comm_col = mpi_comm_self
+   ierr = elpa_init(20180525)
+
+   if(ierr /= 0) then
+      call elsi_stop(bh,"Initialization failed.",caller)
+   end if
 
    if(sing_check) then
       if(.not. associated(ph%elpa_aux)) then
@@ -1138,8 +1138,6 @@ subroutine elsi_cleanup_elpa(ph)
 
          nullify(ph%elpa_tune)
       end if
-
-      call elpa_uninit()
 
       call MPI_Comm_free(ph%elpa_comm_row,ierr)
       call MPI_Comm_free(ph%elpa_comm_col,ierr)
