@@ -233,6 +233,7 @@ subroutine elsi_set_blacs(eh,blacs_ctxt,block_size)
             i_row = i_row+1
             eh%row_map(i) = i_row
          end if
+
          if(mod((i-1)/eh%bh%blk,eh%bh%n_pcol) == eh%bh%my_pcol) then
             i_col = i_col+1
             eh%col_map(i) = i_col
@@ -274,6 +275,7 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
       if(allocated(eh%row_ind_sp1)) then
          call elsi_deallocate(eh%bh,eh%row_ind_sp1,"row_ind_sp1")
       end if
+
       if(allocated(eh%col_ptr_sp1)) then
          call elsi_deallocate(eh%bh,eh%col_ptr_sp1,"col_ptr_sp1")
       end if
@@ -292,6 +294,7 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
       if(allocated(eh%row_ind_sp2)) then
          call elsi_deallocate(eh%bh,eh%row_ind_sp2,"row_ind_sp2")
       end if
+
       if(allocated(eh%col_ptr_sp2)) then
          call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ptr_sp2")
       end if
@@ -353,36 +356,47 @@ subroutine elsi_reinit(eh)
       if(allocated(eh%evec_real)) then
          call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
       end if
+
       if(allocated(eh%evec_cmplx)) then
          call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
       end if
+
       if(allocated(eh%ham_real_csc)) then
          call elsi_deallocate(eh%bh,eh%ham_real_csc,"ham_real_csc")
       end if
+
       if(allocated(eh%ham_cmplx_csc)) then
          call elsi_deallocate(eh%bh,eh%ham_cmplx_csc,"ham_cmplx_csc")
       end if
+
       if(allocated(eh%ovlp_real_csc)) then
          call elsi_deallocate(eh%bh,eh%ovlp_real_csc,"ovlp_real_csc")
       end if
+
       if(allocated(eh%ovlp_cmplx_csc)) then
          call elsi_deallocate(eh%bh,eh%ovlp_cmplx_csc,"ovlp_cmplx_csc")
       end if
+
       if(allocated(eh%dm_real_csc)) then
          call elsi_deallocate(eh%bh,eh%dm_real_csc,"dm_real_csc")
       end if
+
       if(allocated(eh%dm_cmplx_csc)) then
          call elsi_deallocate(eh%bh,eh%dm_cmplx_csc,"dm_cmplx_csc")
       end if
+
       if(allocated(eh%row_ind_sp1)) then
          call elsi_deallocate(eh%bh,eh%row_ind_sp1,"row_ind_sp1")
       end if
+
       if(allocated(eh%col_ptr_sp1)) then
          call elsi_deallocate(eh%bh,eh%col_ptr_sp1,"col_ptr_sp1")
       end if
+
       if(allocated(eh%row_ind_sp2)) then
          call elsi_deallocate(eh%bh,eh%row_ind_sp2,"row_ind_sp2")
       end if
+
       if(allocated(eh%col_ptr_sp2)) then
          call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ptr_sp2")
       end if
@@ -430,27 +444,35 @@ subroutine elsi_cleanup(eh)
    if(allocated(eh%ham_real_den)) then
       call elsi_deallocate(eh%bh,eh%ham_real_den,"ham_real_den")
    end if
+
    if(allocated(eh%ham_cmplx_den)) then
       call elsi_deallocate(eh%bh,eh%ham_cmplx_den,"ham_cmplx_den")
    end if
+
    if(allocated(eh%ovlp_real_den)) then
       call elsi_deallocate(eh%bh,eh%ovlp_real_den,"ovlp_real_den")
    end if
+
    if(allocated(eh%ovlp_cmplx_den)) then
       call elsi_deallocate(eh%bh,eh%ovlp_cmplx_den,"ovlp_cmplx_den")
    end if
+
    if(allocated(eh%eval)) then
       call elsi_deallocate(eh%bh,eh%eval,"eval")
    end if
+
    if(allocated(eh%evec_real)) then
       call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
    end if
+
    if(allocated(eh%evec_cmplx)) then
       call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
    end if
+
    if(allocated(eh%dm_real_den)) then
       call elsi_deallocate(eh%bh,eh%dm_real_den,"dm_real_den")
    end if
+
    if(allocated(eh%dm_cmplx_den)) then
       call elsi_deallocate(eh%bh,eh%dm_cmplx_den,"dm_cmplx_den")
    end if
@@ -459,30 +481,39 @@ subroutine elsi_cleanup(eh)
    if(allocated(eh%ham_real_csc)) then
       call elsi_deallocate(eh%bh,eh%ham_real_csc,"ham_real_csc")
    end if
+
    if(allocated(eh%ham_cmplx_csc)) then
       call elsi_deallocate(eh%bh,eh%ham_cmplx_csc,"ham_cmplx_csc")
    end if
+
    if(allocated(eh%ovlp_real_csc)) then
       call elsi_deallocate(eh%bh,eh%ovlp_real_csc,"ovlp_real_csc")
    end if
+
    if(allocated(eh%ovlp_cmplx_csc)) then
       call elsi_deallocate(eh%bh,eh%ovlp_cmplx_csc,"ovlp_cmplx_csc")
    end if
+
    if(allocated(eh%dm_real_csc)) then
       call elsi_deallocate(eh%bh,eh%dm_real_csc,"dm_real_csc")
    end if
+
    if(allocated(eh%dm_cmplx_csc)) then
       call elsi_deallocate(eh%bh,eh%dm_cmplx_csc,"dm_cmplx_csc")
    end if
+
    if(allocated(eh%row_ind_sp1)) then
       call elsi_deallocate(eh%bh,eh%row_ind_sp1,"row_ind_sp1")
    end if
+
    if(allocated(eh%col_ptr_sp1)) then
       call elsi_deallocate(eh%bh,eh%col_ptr_sp1,"col_ptr_sp1")
    end if
+
    if(allocated(eh%row_ind_sp2)) then
       call elsi_deallocate(eh%bh,eh%row_ind_sp2,"row_ind_sp2")
    end if
+
    if(allocated(eh%col_ptr_sp2)) then
       call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ptr_sp2")
    end if
@@ -491,24 +522,31 @@ subroutine elsi_cleanup(eh)
    if(allocated(eh%ovlp_real_copy)) then
       call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
    end if
+
    if(allocated(eh%ovlp_cmplx_copy)) then
       call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
    end if
+
    if(allocated(eh%occ)) then
       call elsi_deallocate(eh%bh,eh%occ,"occ")
    end if
+
    if(allocated(eh%row_map)) then
       call elsi_deallocate(eh%bh,eh%row_map,"row_map")
    end if
+
    if(allocated(eh%col_map)) then
       call elsi_deallocate(eh%bh,eh%col_map,"col_map")
    end if
+
    if(allocated(eh%omm_c_real)) then
       call elsi_deallocate(eh%bh,eh%omm_c_real,"omm_c_real")
    end if
+
    if(allocated(eh%omm_c_cmplx)) then
       call elsi_deallocate(eh%bh,eh%omm_c_cmplx,"omm_c_cmplx")
    end if
+
    if(allocated(eh%pexsi_ne_vec)) then
       call elsi_deallocate(eh%bh,eh%pexsi_ne_vec,"pexsi_ne_vec")
    end if

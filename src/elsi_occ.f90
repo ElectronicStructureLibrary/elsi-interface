@@ -96,6 +96,7 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_weights,&
             if(evals(i_state,i_spin,i_kpt) < e_low) then
                e_low = evals(i_state,i_spin,i_kpt)
             end if
+
             if(evals(i_state,i_spin,i_kpt) > e_high) then
                e_high = evals(i_state,i_spin,i_kpt)
             end if

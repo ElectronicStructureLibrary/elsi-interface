@@ -28,23 +28,31 @@ end subroutine
 !>
 !! This subroutine returns details about ELSI's solver libraries.
 !!
-subroutine elsi_solver_info(have_pexsi,have_sips)
+subroutine elsi_solver_info(have_aeo,have_pexsi,have_sips)
 
    implicit none
 
+   logical, intent(out) :: have_aeo
    logical, intent(out) :: have_pexsi
    logical, intent(out) :: have_sips
 
-   character(len=*), parameter :: tmp1 = "@ENABLE_PEXSI@"
-   character(len=*), parameter :: tmp2 = "@ENABLE_SIPS@"
+   character(len=*), parameter :: tmp1 = "@USE_EXTERNAL_ELPA@"
+   character(len=*), parameter :: tmp2 = "@ENABLE_PEXSI@"
+   character(len=*), parameter :: tmp3 = "@ENABLE_SIPS@"
 
    if(tmp1 == "ON") then
+      have_aeo = .true.
+   else
+      have_aeo = .false.
+   end if
+
+   if(tmp2 == "ON") then
       have_pexsi = .true.
    else
       have_pexsi = .false.
    end if
 
-   if(tmp2 == "ON") then
+   if(tmp3 == "ON") then
       have_sips = .true.
    else
       have_sips = .false.

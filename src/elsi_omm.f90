@@ -11,12 +11,11 @@ module ELSI_OMM
 
    use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
+   use ELSI_ELPA, only: elsi_elpa_cholesky,elsi_elpa_invert
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_integer4
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS, only: elsi_get_nnz
-   use ELPA1, only: elpa_cholesky_real_double,elpa_cholesky_complex_double,&
-       elpa_invert_trm_real_double,elpa_invert_trm_complex_double
    use MATRIXSWITCH, only: matrix,m_register_pdbc,ms_scalapack_setup,&
        m_deallocate
 
@@ -85,12 +84,11 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
    real(kind=r8), intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
 
-   logical :: coeff_ready
-   logical :: new_ovlp
-   logical :: success
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
+   logical :: coeff_ready
+   logical :: new_ovlp
    character(len=200) :: msg
 
    type(matrix) :: ham_omm
@@ -122,10 +120,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
          if(ph%omm_first .and. ph%elpa_first) then
             call elsi_get_time(t0)
 
-            ! Cholesky factorization
-            success = elpa_cholesky_real_double(ph%n_basis,ovlp,bh%n_lrow,&
-                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
-                         .false.)
+            call elsi_elpa_cholesky(ph,bh,ovlp)
 
             call elsi_get_time(t1)
 
@@ -136,9 +131,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
          end if
 
          if(ph%omm_first .and. ph%omm_n_elpa > 0) then
-            success = elpa_invert_trm_real_double(ph%n_basis,ovlp,bh%n_lrow,&
-                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
-                         .false.)
+            call elsi_elpa_invert(ph,bh,ovlp)
          end if
       end if
    end if
@@ -243,12 +236,11 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
    complex(kind=r8), intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
 
-   logical :: coeff_ready
-   logical :: new_ovlp
-   logical :: success
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
+   logical :: coeff_ready
+   logical :: new_ovlp
    character(len=200) :: msg
 
    type(matrix) :: ham_omm
@@ -280,10 +272,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
          if(ph%omm_first .and. ph%elpa_first) then
             call elsi_get_time(t0)
 
-            ! Cholesky factorization
-            success = elpa_cholesky_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
-                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
-                         .false.)
+            call elsi_elpa_cholesky(ph,bh,ovlp)
 
             call elsi_get_time(t1)
 
@@ -294,9 +283,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
          end if
 
          if(ph%omm_first .and. ph%omm_n_elpa > 0) then
-            success = elpa_invert_trm_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
-                         bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
-                         .false.)
+            call elsi_elpa_invert(ph,bh,ovlp)
          end if
       end if
    end if

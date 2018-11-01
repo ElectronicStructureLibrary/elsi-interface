@@ -121,25 +121,26 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       t_total = t1-t0
 
       call fjson_start_object(jh)
-
       call elsi_print_versioning(bh%uuid,jh)
       call fjson_write_name_value(jh,"iteration",ph%n_calls+ph%n_calls_all)
+
       if(caller(6:6) == "e") then
          call fjson_write_name_value(jh,"output_type","EIGENSOLUTION")
       else
          call fjson_write_name_value(jh,"output_type","DENSITY MATRIX")
       end if
+
       if(caller(9:9) == "r") then
          call fjson_write_name_value(jh,"data_type","REAL")
       else
          call fjson_write_name_value(jh,"data_type","COMPLEX")
       end if
+
       call fjson_write_name_value(jh,"elsi_tag",trim(solver_tag))
       call fjson_write_name_value(jh,"user_tag",trim(bh%user_tag))
       call fjson_write_name_value(jh,"start_datetime",dt0)
       call fjson_write_name_value(jh,"record_datetime",dt_record)
       call fjson_write_name_value(jh,"total_time",t_total)
-
       call elsi_print_handle_summary(ph,bh,jh)
       call fjson_write_name_value(jh,"solver_used",trim(solver_tag))
 
@@ -183,13 +184,16 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
    character(len=*), parameter :: caller = "elsi_print_handle_summary"
 
    call fjson_write_name_value(jh,"n_electrons",ph%n_electrons)
+
    if(ph%parallel_mode == MULTI_PROC) then
       call fjson_write_name_value(jh,"n_spin",ph%n_spins)
       call fjson_write_name_value(jh,"n_kpts",ph%n_kpts)
    end if
+
    if(ph%solver == ELPA_SOLVER .or. ph%solver == SIPS_SOLVER) then
       call fjson_write_name_value(jh,"n_states",ph%n_states)
    end if
+
    if(ph%matrix_format == BLACS_DENSE) then
       call fjson_write_name_value(jh,"matrix_format","BLACS_DENSE")
    else if(ph%matrix_format == PEXSI_CSC) then
@@ -197,19 +201,24 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
    else if(ph%matrix_format == SIESTA_CSC) then
       call fjson_write_name_value(jh,"matrix_format","SIESTA_CSC")
    end if
+
    call fjson_write_name_value(jh,"n_basis",ph%n_basis)
+
    if(ph%parallel_mode == MULTI_PROC) then
       sparsity = 1.0_r8-(1.0_r8*bh%nnz_g/ph%n_basis/ph%n_basis)
       call fjson_write_name_value(jh,"sparsity",sparsity)
       call fjson_write_name_value(jh,"nnz_g",bh%nnz_g)
    end if
+
    if(ph%parallel_mode == MULTI_PROC) then
       call fjson_write_name_value(jh,"parallel_mode","MULTI_PROC")
    else if(ph%parallel_mode == SINGLE_PROC) then
       call fjson_write_name_value(jh,"parallel_mode","SINGLE_PROC")
    end if
+
    call fjson_write_name_value(jh,"n_procs",bh%n_procs)
    call fjson_write_name_value(jh,"n_procs_all",bh%n_procs_all)
+
    if(ph%solver == ELPA_SOLVER) then
       call fjson_write_name_value(jh,"solver_chosen","ELPA")
    else if(ph%solver == NTPOLY_SOLVER) then
@@ -481,6 +490,7 @@ subroutine elsi_final_print(ph,bh)
    else if(ph%matrix_format == SIESTA_CSC) then
       write(msg,"(2X,A,A22)") "|   Matrix format             :","SIESTA_CSC"
    end if
+
    call elsi_say(bh,msg)
 
    write(msg,"(2X,A,I22)") "|   Number of basis functions :",ph%n_basis
@@ -504,6 +514,7 @@ subroutine elsi_final_print(ph,bh)
    else if(ph%parallel_mode == SINGLE_PROC) then
       write(msg,"(2X,A,A22)") "|   Parallel mode             :","SINGLE_PROC"
    end if
+
    call elsi_say(bh,msg)
 
    write(msg,"(2X,A,I22)") "|   Number of MPI tasks       :",bh%n_procs_all
@@ -520,6 +531,7 @@ subroutine elsi_final_print(ph,bh)
    else if(ph%solver == NTPOLY_SOLVER) then
       write(msg,"(2X,A,A22)") "|   Solver requested          :","NTPoly"
    end if
+
    call elsi_say(bh,msg)
 
    write(msg,"(2X,A,I22)") "|   Number of ELSI calls      :",ph%n_calls_all

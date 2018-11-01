@@ -16,7 +16,7 @@ module ELSI_ELPA
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_UTILS, only: elsi_get_nnz,elsi_set_full_mat
-   use ELPA, only: elpa_t,elpa_init,elpa_uninit,elpa_allocate,elpa_deallocate,&
+   use ELPA, only: elpa_t,elpa_init,elpa_allocate,elpa_deallocate,&
        elpa_autotune_deallocate,ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
        ELPA_2STAGE_REAL_GPU,ELPA_2STAGE_COMPLEX_GPU,ELPA_2STAGE_REAL_DEFAULT,&
        ELPA_2STAGE_COMPLEX_DEFAULT,ELPA_AUTOTUNE_FAST,&
@@ -29,6 +29,9 @@ module ELSI_ELPA
    public :: elsi_init_elpa
    public :: elsi_cleanup_elpa
    public :: elsi_solve_elpa
+   public :: elsi_elpa_cholesky
+   public :: elsi_elpa_invert
+   public :: elsi_elpa_tridiag
 
    interface elsi_solve_elpa
       module procedure elsi_solve_elpa_real
@@ -38,6 +41,16 @@ module ELSI_ELPA
    interface elsi_elpa_evec
       module procedure elsi_elpa_evec_real
       module procedure elsi_elpa_evec_cmplx
+   end interface
+
+   interface elsi_elpa_cholesky
+      module procedure elsi_elpa_cholesky_real
+      module procedure elsi_elpa_cholesky_cmplx
+   end interface
+
+   interface elsi_elpa_invert
+      module procedure elsi_elpa_invert_real
+      module procedure elsi_elpa_invert_cmplx
    end interface
 
 contains
@@ -57,7 +70,7 @@ subroutine elsi_init_elpa(ph,bh)
    character(len=*), parameter :: caller = "elsi_init_elpa"
 
    if(.not. ph%elpa_started) then
-      ierr = elpa_init(20171201)
+      ierr = elpa_init(20180525)
 
       if(ierr /= 0) then
          call elsi_stop(bh,"Initialization failed.",caller)
@@ -113,18 +126,10 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
          ph%ovlp_is_sing = .false.
 
          ! S = U
-         call ph%elpa_aux%cholesky(ovlp,ierr)
-
-         if(ierr /= 0) then
-            call elsi_stop(bh,"Cholesky failed.",caller)
-         end if
+         call elsi_elpa_cholesky(ph,bh,ovlp)
 
          ! S = U^(-1)
-         call ph%elpa_aux%invert_triangular(ovlp,ierr)
-
-         if(ierr /= 0) then
-            call elsi_stop(bh,"Matrix inversion failed.",caller)
-         end if
+         call elsi_elpa_invert(ph,bh,ovlp)
 
          call elsi_get_time(t1)
 
@@ -146,7 +151,7 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
       call pdgemm("T","N",ph%n_good,ph%n_good,ph%n_basis,1.0_r8,ovlp,1,&
               ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
-   else ! Use Cholesky
+   else
       call ph%elpa_aux%hermitian_multiply("U","L",ph%n_basis,ovlp,ham,&
               bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
 
@@ -241,7 +246,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
             ovlp(:,col_map(i)) = evec(:,col_map(i))/ev_sqrt
          end if
       end do
-   else ! Nonsingular
+   else
       ph%ovlp_is_sing = .false.
 
       write(msg,"(2X,A)") "Overlap matrix is not singular"
@@ -293,7 +298,7 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
       call pdgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,1,&
               ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,bh%desc,0.0_r8,evec,1,1,&
               bh%desc)
-   else ! Nonsingular, use Cholesky
+   else
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
 
@@ -416,18 +421,10 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
          ph%ovlp_is_sing = .false.
 
          ! S = U
-         call ph%elpa_aux%cholesky(ovlp,ierr)
-
-         if(ierr /= 0) then
-            call elsi_stop(bh,"Cholesky failed.",caller)
-         end if
+         call elsi_elpa_cholesky(ph,bh,ovlp)
 
          ! S = U^(-1)
-         call ph%elpa_aux%invert_triangular(ovlp,ierr)
-
-         if(ierr /= 0) then
-            call elsi_stop(bh,"Matrix inversion failed.",caller)
-         end if
+         call elsi_elpa_invert(ph,bh,ovlp)
 
          call elsi_get_time(t1)
 
@@ -449,7 +446,7 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
       call pzgemm("C","N",ph%n_good,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ovlp,&
               1,ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)
-   else ! Use cholesky
+   else
       call ph%elpa_aux%hermitian_multiply("U","L",ph%n_basis,ovlp,ham,&
               bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
 
@@ -544,7 +541,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
             ovlp(:,col_map(i)) = evec(:,col_map(i))/ev_sqrt
          end if
       end do
-   else ! Nonsingular
+   else
       ph%ovlp_is_sing = .false.
 
       write(msg,"(2X,A)") "Overlap matrix is not singular"
@@ -596,7 +593,7 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
       call pzgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&
               (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,&
               bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
-   else ! Nonsingular, use Cholesky
+   else
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
@@ -685,45 +682,110 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine cleans up ELPA.
+!! This routine sets up an instance of ELPA.
 !!
-subroutine elsi_cleanup_elpa(ph)
+subroutine elsi_elpa_setup(ph,bh,is_aux)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   logical, intent(in) :: is_aux
 
    integer(kind=i4) :: ierr
+   integer(kind=i4) :: ierr2
+   character(len=200) :: msg
 
-   character(len=*), parameter :: caller = "elsi_cleanup_elpa"
+   character(len=*), parameter :: caller = "elsi_elpa_setup"
 
-   if(ph%elpa_started) then
-      if(associated(ph%elpa_solve)) then
-         call elpa_deallocate(ph%elpa_solve)
+   if(is_aux) then
+      ph%elpa_aux => elpa_allocate()
 
-         nullify(ph%elpa_solve)
+      call ph%elpa_aux%set("na",ph%n_basis,ierr)
+      call ph%elpa_aux%set("nev",ph%n_basis,ierr)
+      call ph%elpa_aux%set("nblk",bh%blk,ierr)
+      call ph%elpa_aux%set("local_nrows",bh%n_lrow,ierr)
+      call ph%elpa_aux%set("local_ncols",bh%n_lcol,ierr)
+      call ph%elpa_aux%set("mpi_comm_parent",bh%comm,ierr)
+      call ph%elpa_aux%set("process_row",bh%my_prow,ierr)
+      call ph%elpa_aux%set("process_col",bh%my_pcol,ierr)
+
+      ierr = ph%elpa_aux%setup()
+
+      if(ierr /= 0) then
+         call elsi_stop(bh,"ELPA setup failed.",caller)
       end if
 
-      if(associated(ph%elpa_aux)) then
-         call elpa_deallocate(ph%elpa_aux)
+      call ph%elpa_aux%set("solver",ELPA_SOLVER_2STAGE,ierr)
+   else
+      ph%elpa_solve => elpa_allocate()
 
-         nullify(ph%elpa_aux)
+      call ph%elpa_solve%set("na",ph%n_good,ierr)
+      call ph%elpa_solve%set("nev",ph%n_states_solve,ierr)
+      call ph%elpa_solve%set("nblk",bh%blk,ierr)
+      call ph%elpa_solve%set("local_nrows",bh%n_lrow,ierr)
+      call ph%elpa_solve%set("local_ncols",bh%n_lcol,ierr)
+      call ph%elpa_solve%set("mpi_comm_parent",bh%comm,ierr)
+      call ph%elpa_solve%set("process_row",bh%my_prow,ierr)
+      call ph%elpa_solve%set("process_col",bh%my_pcol,ierr)
+
+      ierr = ph%elpa_solve%setup()
+
+      if(ierr /= 0) then
+         call elsi_stop(bh,"ELPA setup failed.",caller)
       end if
 
-      if(associated(ph%elpa_tune)) then
-         call elpa_autotune_deallocate(ph%elpa_tune)
-
-         nullify(ph%elpa_tune)
+      if(ph%elpa_solver == 1) then
+         call ph%elpa_solve%set("solver",ELPA_SOLVER_1STAGE,ierr)
+      else
+         call ph%elpa_solve%set("solver",ELPA_SOLVER_2STAGE,ierr)
       end if
 
-      call elpa_uninit()
+      ! Try to enable ELPA GPU acceleration
+      if(ph%elpa_gpu) then
+         call ph%elpa_solve%set("gpu",1,ierr)
 
-      call MPI_Comm_free(ph%elpa_comm_row,ierr)
-      call MPI_Comm_free(ph%elpa_comm_col,ierr)
+         if(ierr /= 0) then
+            call ph%elpa_solve%set("gpu",0,ierr)
+
+            ph%elpa_gpu = .false.
+            ph%elpa_gpu_kernels = .false.
+
+            write(msg,"(2X,A)") "No ELPA GPU acceleration available"
+            call elsi_say(bh,msg)
+         else
+            write(msg,"(2X,A)") "ELPA GPU acceleration activated"
+            call elsi_say(bh,msg)
+         end if
+      end if
+
+      ! Try to enable ELPA2 GPU kernels
+      if(ph%elpa_gpu_kernels) then
+         if(ph%elpa_solver == 2) then
+            call ph%elpa_solve%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
+            call ph%elpa_solve%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,&
+                    ierr2)
+
+            if(ierr /= 0 .or. ierr2 /= 0) then
+               call ph%elpa_solve%set("real_kernel",ELPA_2STAGE_REAL_DEFAULT,&
+                       ierr)
+               call ph%elpa_solve%set("complex_kernel",&
+                       ELPA_2STAGE_COMPLEX_DEFAULT,ierr)
+
+               ph%elpa_gpu_kernels = .false.
+
+               write(msg,"(2X,A)") "ELPA GPU kernels not available"
+               call elsi_say(bh,msg)
+            else
+               write(msg,"(2X,A)") "ELPA GPU kernels will be used"
+               call elsi_say(bh,msg)
+            end if
+         else
+            write(msg,"(2X,A)") "No GPU kernels available with 1-stage ELPA"
+            call elsi_say(bh,msg)
+         end if
+      end if
    end if
-
-   ph%elpa_first = .true.
-   ph%elpa_started = .false.
 
 end subroutine
 
@@ -756,7 +818,6 @@ subroutine elsi_elpa_evec_real(ph,bh,ham,eval,evec,sing_check)
 
       copy = ham
 
-      ! TODO: Define ill-conditioning tolerance
       call ph%elpa_aux%eigenvectors(copy,eval,evec,ierr)
 
       call elsi_deallocate(bh,copy,"copy")
@@ -840,7 +901,6 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
 
       copy = ham
 
-      ! TODO: Define ill-conditioning tolerance
       call ph%elpa_aux%eigenvectors(copy,eval,evec,ierr)
 
       call elsi_deallocate(bh,copy,"copy")
@@ -896,110 +956,179 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
 end subroutine
 
 !>
-!! This routine sets up an instance of ELPA.
+!! This routine interfaces to ELPA Cholesky decomposition.
 !!
-subroutine elsi_elpa_setup(ph,bh,is_aux)
+subroutine elsi_elpa_cholesky_real(ph,bh,mat)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+
+   integer(kind=i4) :: ierr
+
+   character(len=*), parameter :: caller = "elsi_elpa_cholesky_real"
+
+   call ph%elpa_aux%cholesky(mat,ierr)
+
+   if(ierr /= 0) then
+      call elsi_stop(bh,"Cholesky failed.",caller)
+   end if
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA Cholesky decomposition.
+!!
+subroutine elsi_elpa_cholesky_cmplx(ph,bh,mat)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+
+   integer(kind=i4) :: ierr
+
+   character(len=*), parameter :: caller = "elsi_elpa_cholesky_cmplx"
+
+   call ph%elpa_aux%cholesky(mat,ierr)
+
+   if(ierr /= 0) then
+      call elsi_stop(bh,"Cholesky failed.",caller)
+   end if
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA matrix inversion.
+!!
+subroutine elsi_elpa_invert_real(ph,bh,mat)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+
+   integer(kind=i4) :: ierr
+
+   character(len=*), parameter :: caller = "elsi_elpa_invert_real"
+
+   call ph%elpa_aux%invert_triangular(mat,ierr)
+
+   if(ierr /= 0) then
+      call elsi_stop(bh,"Matrix inversion failed.",caller)
+   end if
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA matrix inversion.
+!!
+subroutine elsi_elpa_invert_cmplx(ph,bh,mat)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+
+   integer(kind=i4) :: ierr
+
+   character(len=*), parameter :: caller = "elsi_elpa_invert_cmplx"
+
+   call ph%elpa_aux%invert_triangular(mat,ierr)
+
+   if(ierr /= 0) then
+      call elsi_stop(bh,"Matrix inversion failed.",caller)
+   end if
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA tridiagonal solver.
+!!
+subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   logical, intent(in) :: is_aux
+   real(kind=r8), intent(inout) :: d(ph%n_basis)
+   real(kind=r8), intent(inout) :: e(ph%n_basis)
+   real(kind=r8), intent(inout) :: q(ph%n_basis,ph%n_basis)
+   logical, intent(in) :: sing_check
 
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: ierr2
-   character(len=200) :: msg
 
-   character(len=*), parameter :: caller = "elsi_elpa_setup"
+   character(len=*), parameter :: caller = "elsi_elpa_tridiag"
 
-   if(is_aux) then
-      ph%elpa_aux => elpa_allocate()
+   ierr = elpa_init(20180525)
 
-      call ph%elpa_aux%set("na",ph%n_basis,ierr)
-      call ph%elpa_aux%set("nev",ph%n_basis,ierr)
-      call ph%elpa_aux%set("local_nrows",bh%n_lrow,ierr)
-      call ph%elpa_aux%set("local_ncols",bh%n_lcol,ierr)
-      call ph%elpa_aux%set("nblk",bh%blk,ierr)
-      call ph%elpa_aux%set("mpi_comm_parent",bh%comm,ierr)
-      call ph%elpa_aux%set("process_row",bh%my_prow,ierr)
-      call ph%elpa_aux%set("process_col",bh%my_pcol,ierr)
-
-      ierr = ph%elpa_aux%setup()
-
-      if(ierr /= 0) then
-         call elsi_stop(bh,"ELPA setup failed.",caller)
-      end if
-
-      call ph%elpa_aux%set("solver",ELPA_SOLVER_2STAGE,ierr)
-   else
-      ph%elpa_solve => elpa_allocate()
-
-      call ph%elpa_solve%set("na",ph%n_good,ierr)
-      call ph%elpa_solve%set("nev",ph%n_states_solve,ierr)
-      call ph%elpa_solve%set("local_nrows",bh%n_lrow,ierr)
-      call ph%elpa_solve%set("local_ncols",bh%n_lcol,ierr)
-      call ph%elpa_solve%set("nblk",bh%blk,ierr)
-      call ph%elpa_solve%set("mpi_comm_parent",bh%comm,ierr)
-      call ph%elpa_solve%set("process_row",bh%my_prow,ierr)
-      call ph%elpa_solve%set("process_col",bh%my_pcol,ierr)
-
-      ierr = ph%elpa_solve%setup()
-
-      if(ierr /= 0) then
-         call elsi_stop(bh,"ELPA setup failed.",caller)
-      end if
-
-      if(ph%elpa_solver == 1) then
-         call ph%elpa_solve%set("solver",ELPA_SOLVER_1STAGE,ierr)
-      else
-         call ph%elpa_solve%set("solver",ELPA_SOLVER_2STAGE,ierr)
-      end if
-
-      ! Try to enable ELPA GPU acceleration
-      if(ph%elpa_gpu) then
-         call ph%elpa_solve%set("gpu",1,ierr)
-
-         if(ierr /= 0) then
-            call ph%elpa_solve%set("gpu",0,ierr)
-
-            ph%elpa_gpu = .false.
-            ph%elpa_gpu_kernels = .false.
-
-            write(msg,"(2X,A)") "No ELPA GPU acceleration available"
-            call elsi_say(bh,msg)
-         else
-            write(msg,"(2X,A)") "ELPA GPU acceleration activated"
-            call elsi_say(bh,msg)
-         end if
-      end if
-
-      ! Try to enable ELPA2 GPU kernels
-      if(ph%elpa_gpu_kernels) then
-         if(ph%elpa_solver == 2) then
-            call ph%elpa_solve%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
-            call ph%elpa_solve%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,&
-                    ierr2)
-
-            if(ierr /= 0 .or. ierr2 /= 0) then
-               call ph%elpa_solve%set("real_kernel",ELPA_2STAGE_REAL_DEFAULT,&
-                       ierr)
-               call ph%elpa_solve%set("complex_kernel",&
-                       ELPA_2STAGE_COMPLEX_DEFAULT,ierr)
-
-               ph%elpa_gpu_kernels = .false.
-
-               write(msg,"(2X,A)") "ELPA GPU kernels not available"
-               call elsi_say(bh,msg)
-            else
-               write(msg,"(2X,A)") "ELPA GPU kernels will be used"
-               call elsi_say(bh,msg)
-            end if
-         else ! GPU kernels currently only make sense with ELPA2
-            write(msg,"(2X,A)") "No GPU kernels available with 1-stage ELPA"
-            call elsi_say(bh,msg)
-         end if
-      end if
+   if(ierr /= 0) then
+      call elsi_stop(bh,"Initialization failed.",caller)
    end if
+
+   if(sing_check) then
+      if(.not. associated(ph%elpa_aux)) then
+         call elsi_elpa_setup(ph,bh,.true.)
+      end if
+
+      call ph%elpa_aux%solve_tridiagonal(d,e,q,ierr)
+   else
+      if(.not. associated(ph%elpa_solve)) then
+         call elsi_elpa_setup(ph,bh,.false.)
+      end if
+
+      call ph%elpa_aux%solve_tridiagonal(d,e,q,ierr)
+   end if
+
+   if(ierr /= 0) then
+      call elsi_stop(bh,"ELPA tridiagonal solver failed.",caller)
+   end if
+
+end subroutine
+
+!>
+!! This routine cleans up ELPA.
+!!
+subroutine elsi_cleanup_elpa(ph)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+
+   integer(kind=i4) :: ierr
+
+   character(len=*), parameter :: caller = "elsi_cleanup_elpa"
+
+   if(ph%elpa_started) then
+      if(associated(ph%elpa_solve)) then
+         call elpa_deallocate(ph%elpa_solve)
+
+         nullify(ph%elpa_solve)
+      end if
+
+      if(associated(ph%elpa_aux)) then
+         call elpa_deallocate(ph%elpa_aux)
+
+         nullify(ph%elpa_aux)
+      end if
+
+      if(associated(ph%elpa_tune)) then
+         call elpa_autotune_deallocate(ph%elpa_tune)
+
+         nullify(ph%elpa_tune)
+      end if
+
+      call MPI_Comm_free(ph%elpa_comm_row,ierr)
+      call MPI_Comm_free(ph%elpa_comm_col,ierr)
+   end if
+
+   ph%elpa_first = .true.
+   ph%elpa_started = .false.
 
 end subroutine
 
