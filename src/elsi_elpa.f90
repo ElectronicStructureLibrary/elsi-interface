@@ -13,7 +13,8 @@ module ELSI_ELPA
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4
+   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4,&
+       mpi_comm_self
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS, only: elsi_get_nnz,elsi_set_full_mat
    use CHECK_SINGULARITY, only: elpa_check_singularity_real_double,&
@@ -22,7 +23,7 @@ module ELSI_ELPA
        elpa_solve_evp_complex_1stage_double,elpa_cholesky_real_double,&
        elpa_cholesky_complex_double,elpa_invert_trm_real_double,&
        elpa_invert_trm_complex_double,elpa_mult_at_b_real_double,&
-       elpa_mult_ah_b_complex_double
+       elpa_mult_ah_b_complex_double,elpa_solve_tridi_double
    use ELPA2, only: elpa_solve_evp_real_2stage_double,&
        elpa_solve_evp_complex_2stage_double
 
@@ -33,10 +34,23 @@ module ELSI_ELPA
    public :: elsi_init_elpa
    public :: elsi_cleanup_elpa
    public :: elsi_solve_elpa
+   public :: elsi_elpa_cholesky
+   public :: elsi_elpa_invert
+   public :: elsi_elpa_tridiag
 
    interface elsi_solve_elpa
       module procedure elsi_solve_elpa_real
       module procedure elsi_solve_elpa_cmplx
+   end interface
+
+   interface elsi_elpa_cholesky
+      module procedure elsi_elpa_cholesky_real
+      module procedure elsi_elpa_cholesky_cmplx
+   end interface
+
+   interface elsi_elpa_invert
+      module procedure elsi_elpa_invert_real
+      module procedure elsi_elpa_invert_cmplx
    end interface
 
 contains
@@ -102,9 +116,9 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
    real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   logical :: success
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   logical :: ok
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_to_standard_evp_real"
@@ -120,21 +134,10 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
          ph%ovlp_is_sing = .false.
 
          ! S = U
-         success = elpa_cholesky_real_double(ph%n_basis,ovlp,bh%n_lrow,bh%blk,&
-                      bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,.false.)
-
-         if(.not. success) then
-            call elsi_stop(bh,"Cholesky failed.",caller)
-         end if
+         call elsi_elpa_cholesky(ph,bh,ovlp)
 
          ! S = U^(-1)
-         success = elpa_invert_trm_real_double(ph%n_basis,ovlp,bh%n_lrow,&
-                      bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
-                      .false.)
-
-         if(.not. success) then
-            call elsi_stop(bh,"Matrix inversion failed.",caller)
-         end if
+         call elsi_elpa_invert(ph,bh,ovlp)
 
          call elsi_get_time(t1)
 
@@ -156,12 +159,12 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
       call pdgemm("T","N",ph%n_good,ph%n_good,ph%n_basis,1.0_r8,ovlp,1,&
               ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
-   else ! Use Cholesky
-      success = elpa_mult_at_b_real_double("U","L",ph%n_basis,ph%n_basis,ovlp,&
-                   bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,bh%blk,&
-                   ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
+   else
+      ok = elpa_mult_at_b_real_double("U","L",ph%n_basis,ph%n_basis,ovlp,&
+              bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,bh%blk,&
+              ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
 
-      if(.not. success) then
+      if(.not. ok) then
          call elsi_stop(bh,"Matrix multiplication failed.",caller)
       end if
 
@@ -170,11 +173,11 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
       evec = ham
 
-      success = elpa_mult_at_b_real_double("U","U",ph%n_basis,ph%n_basis,ovlp,&
-                   bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,bh%blk,&
-                   ph%elpa_comm_row,ph%elpa_comm_col,ham,bh%n_lrow,bh%n_lcol)
+      ok = elpa_mult_at_b_real_double("U","U",ph%n_basis,ph%n_basis,ovlp,&
+              bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,bh%blk,&
+              ph%elpa_comm_row,ph%elpa_comm_col,ham,bh%n_lrow,bh%n_lcol)
 
-      if(.not. success) then
+      if(.not. ok) then
          call elsi_stop(bh,"Matrix multiplication failed.",caller)
       end if
 
@@ -208,10 +211,10 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
    real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8) :: ev_sqrt
-   integer(kind=i4) :: i
-   logical :: success
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: i
+   logical :: ok
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: copy(:,:)
@@ -227,11 +230,11 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
 
    ! Use customized ELPA 2-stage solver to check overlap singularity
    ! Eigenvectors computed only for singular overlap matrix
-   success = elpa_check_singularity_real_double(ph%n_basis,ph%n_basis,copy,&
-                bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-                ph%elpa_comm_row,ph%elpa_comm_col,bh%comm,ph%sing_tol,ph%n_good)
+   ok = elpa_check_singularity_real_double(ph%n_basis,ph%n_basis,copy,&
+           bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
+           ph%elpa_comm_col,bh%comm,ph%sing_tol,ph%n_good)
 
-   if(.not. success) then
+   if(.not. ok) then
       call elsi_stop(bh,"Singularity check failed.",caller)
    end if
 
@@ -264,7 +267,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
             ovlp(:,col_map(i)) = evec(:,col_map(i))/ev_sqrt
          end if
       end do
-   else ! Nonsingular
+   else
       ph%ovlp_is_sing = .false.
 
       write(msg,"(2X,A)") "Overlap matrix is not singular"
@@ -297,9 +300,9 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
    real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
-   logical :: success
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   logical :: ok
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: tmp(:,:)
@@ -316,15 +319,15 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
       call pdgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,1,&
               ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,bh%desc,0.0_r8,evec,1,1,&
               bh%desc)
-   else ! Nonsingular, use Cholesky
+   else
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
 
-      success = elpa_mult_at_b_real_double("L","N",ph%n_basis,ph%n_states,ham,&
-                   bh%n_lrow,bh%n_lcol,tmp,bh%n_lrow,bh%n_lcol,bh%blk,&
-                   ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
+      ok = elpa_mult_at_b_real_double("L","N",ph%n_basis,ph%n_states,ham,&
+              bh%n_lrow,bh%n_lcol,tmp,bh%n_lrow,bh%n_lcol,bh%blk,&
+              ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
 
-      if(.not. success) then
+      if(.not. ok) then
          call elsi_stop(bh,"Matrix multiplication failed.",caller)
       end if
    end if
@@ -359,7 +362,7 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   logical :: success
+   logical :: ok
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_real"
@@ -389,16 +392,16 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    ! Solve evp, return eigenvalues and eigenvectors
    if(ph%elpa_solver == 2) then
-      success = elpa_solve_evp_real_2stage_double(ph%n_good,ph%n_states_solve,&
-                   ham,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-                   ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+      ok = elpa_solve_evp_real_2stage_double(ph%n_good,ph%n_states_solve,ham,&
+              bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
+              ph%elpa_comm_col,bh%comm)
    else
-      success = elpa_solve_evp_real_1stage_double(ph%n_good,ph%n_states_solve,&
-                   ham,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-                   ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+      ok = elpa_solve_evp_real_1stage_double(ph%n_good,ph%n_states_solve,ham,&
+              bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
+              ph%elpa_comm_col,bh%comm)
    end if
 
-   if(.not. success) then
+   if(.not. ok) then
       call elsi_stop(bh,"ELPA solver failed.",caller)
    end if
 
@@ -440,9 +443,9 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
    complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   logical :: success
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   logical :: ok
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_to_standard_evp_cmplx"
@@ -458,22 +461,10 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
          ph%ovlp_is_sing = .false.
 
          ! S = U
-         success = elpa_cholesky_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
-                      bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
-                      .false.)
-
-         if(.not. success) then
-            call elsi_stop(bh,"Cholesky failed.",caller)
-         end if
+         call elsi_elpa_cholesky(ph,bh,ovlp)
 
          ! S = U^(-1)
-         success = elpa_invert_trm_complex_double(ph%n_basis,ovlp,bh%n_lrow,&
-                      bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
-                      .false.)
-
-         if(.not. success) then
-            call elsi_stop(bh,"Matrix inversion failed.",caller)
-         end if
+         call elsi_elpa_invert(ph,bh,ovlp)
 
          call elsi_get_time(t1)
 
@@ -495,12 +486,12 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
       call pzgemm("C","N",ph%n_good,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ovlp,&
               1,ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)
-   else ! Use cholesky
-      success = elpa_mult_ah_b_complex_double("U","L",ph%n_basis,ph%n_basis,&
-                   ovlp,bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,bh%blk,&
-                   ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
+   else
+      ok = elpa_mult_ah_b_complex_double("U","L",ph%n_basis,ph%n_basis,ovlp,&
+              bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,bh%blk,&
+              ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
 
-      if(.not. success) then
+      if(.not. ok) then
          call elsi_stop(bh,"Matrix multiplication failed.",caller)
       end if
 
@@ -509,11 +500,11 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
       evec = ham
 
-      success = elpa_mult_ah_b_complex_double("U","U",ph%n_basis,ph%n_basis,&
-                   ovlp,bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,bh%blk,&
-                   ph%elpa_comm_row,ph%elpa_comm_col,ham,bh%n_lrow,bh%n_lcol)
+      ok = elpa_mult_ah_b_complex_double("U","U",ph%n_basis,ph%n_basis,ovlp,&
+              bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,bh%blk,&
+              ph%elpa_comm_row,ph%elpa_comm_col,ham,bh%n_lrow,bh%n_lcol)
 
-      if(.not. success) then
+      if(.not. ok) then
          call elsi_stop(bh,"Matrix multiplication failed.",caller)
       end if
 
@@ -547,10 +538,10 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
    complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8) :: ev_sqrt
-   integer(kind=i4) :: i
-   logical :: success
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: i
+   logical :: ok
    character(len=200) :: msg
 
    complex(kind=r8), allocatable :: copy(:,:)
@@ -566,11 +557,11 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
 
    ! Use customized ELPA 2-stage solver to check overlap singularity
    ! Eigenvectors computed only for singular overlap matrix
-   success = elpa_check_singularity_complex_double(ph%n_basis,ph%n_basis,copy,&
-                bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-                ph%elpa_comm_row,ph%elpa_comm_col,bh%comm,ph%sing_tol,ph%n_good)
+   ok = elpa_check_singularity_complex_double(ph%n_basis,ph%n_basis,copy,&
+           bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
+           ph%elpa_comm_col,bh%comm,ph%sing_tol,ph%n_good)
 
-   if(.not. success) then
+   if(.not. ok) then
       call elsi_stop(bh,"Singularity check failed.",caller)
    end if
 
@@ -603,7 +594,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
             ovlp(:,col_map(i)) = evec(:,col_map(i))/ev_sqrt
          end if
       end do
-   else ! Nonsingular
+   else
       ph%ovlp_is_sing = .false.
 
       write(msg,"(2X,A)") "Overlap matrix is not singular"
@@ -636,9 +627,9 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
    complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
-   logical :: success
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   logical :: ok
    character(len=200) :: msg
 
    complex(kind=r8), allocatable :: tmp(:,:)
@@ -655,15 +646,15 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
       call pzgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&
               (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,&
               bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
-   else ! Nonsingular, use Cholesky
+   else
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
-      success = elpa_mult_ah_b_complex_double("L","N",ph%n_basis,ph%n_states,&
-                   ham,bh%n_lrow,bh%n_lcol,tmp,bh%n_lrow,bh%n_lcol,bh%blk,&
-                   ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
+      ok = elpa_mult_ah_b_complex_double("L","N",ph%n_basis,ph%n_states,ham,&
+              bh%n_lrow,bh%n_lcol,tmp,bh%n_lrow,bh%n_lcol,bh%blk,&
+              ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
 
-      if(.not. success) then
+      if(.not. ok) then
          call elsi_stop(bh,"Matrix multiplication failed.",caller)
       end if
    end if
@@ -698,7 +689,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   logical :: success
+   logical :: ok
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_cmplx"
@@ -728,16 +719,16 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    ! Solve evp, return eigenvalues and eigenvectors
    if(ph%elpa_solver == 2) then
-      success = elpa_solve_evp_complex_2stage_double(ph%n_good,&
-                   ph%n_states_solve,ham,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,&
-                   bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+      ok = elpa_solve_evp_complex_2stage_double(ph%n_good,ph%n_states_solve,&
+              ham,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
+              ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
    else
-      success = elpa_solve_evp_complex_1stage_double(ph%n_good,&
-                   ph%n_states_solve,ham,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,&
-                   bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+      ok = elpa_solve_evp_complex_1stage_double(ph%n_good,ph%n_states_solve,&
+              ham,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
+              ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
    end if
 
-   if(.not. success) then
+   if(.not. ok) then
       call elsi_stop(bh,"ELPA solver failed.",caller)
    end if
 
@@ -759,6 +750,134 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    end if
 
    ph%elpa_first = .false.
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA Cholesky decomposition.
+!!
+subroutine elsi_elpa_cholesky_real(ph,bh,mat)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+
+   logical :: ok
+
+   character(len=*), parameter :: caller = "elsi_elpa_cholesky_real"
+
+   ok = elpa_cholesky_real_double(ph%n_basis,mat,bh%n_lrow,bh%blk,bh%n_lcol,&
+           ph%elpa_comm_row,ph%elpa_comm_col,.false.)
+
+   if(.not. ok) then
+      call elsi_stop(bh,"Cholesky failed.",caller)
+   end if
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA Cholesky decomposition.
+!!
+subroutine elsi_elpa_cholesky_cmplx(ph,bh,mat)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+
+   logical :: ok
+
+   character(len=*), parameter :: caller = "elsi_elpa_cholesky_cmplx"
+
+   ok = elpa_cholesky_complex_double(ph%n_basis,mat,bh%n_lrow,bh%blk,bh%n_lcol,&
+           ph%elpa_comm_row,ph%elpa_comm_col,.false.)
+
+   if(.not. ok) then
+      call elsi_stop(bh,"Cholesky failed.",caller)
+   end if
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA matrix inversion.
+!!
+subroutine elsi_elpa_invert_real(ph,bh,mat)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+
+   logical :: ok
+
+   character(len=*), parameter :: caller = "elsi_elpa_invert_real"
+
+   ok = elpa_invert_trm_real_double(ph%n_basis,mat,bh%n_lrow,bh%blk,bh%n_lcol,&
+           ph%elpa_comm_row,ph%elpa_comm_col,.false.)
+
+   if(.not. ok) then
+      call elsi_stop(bh,"Matrix inversion failed.",caller)
+   end if
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA matrix inversion.
+!!
+subroutine elsi_elpa_invert_cmplx(ph,bh,mat)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+
+   logical :: ok
+
+   character(len=*), parameter :: caller = "elsi_elpa_invert_cmplx"
+
+   ok = elpa_invert_trm_complex_double(ph%n_basis,mat,bh%n_lrow,bh%blk,&
+           bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,.false.)
+
+   if(.not. ok) then
+      call elsi_stop(bh,"Matrix inversion failed.",caller)
+   end if
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA tridiagonal solver.
+!!
+subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout) :: d(ph%n_basis)
+   real(kind=r8), intent(inout) :: e(ph%n_basis)
+   real(kind=r8), intent(inout) :: q(ph%n_basis,ph%n_basis)
+   logical, intent(in) :: sing_check
+
+   logical :: ok
+
+   character(len=*), parameter :: caller = "elsi_elpa_tridiag"
+
+   if(sing_check) then
+      ok = elpa_solve_tridi_double(ph%n_basis,ph%n_basis,d,e,q,ph%n_basis,&
+              bh%blk,ph%n_basis,mpi_comm_self,mpi_comm_self,.false.)
+   else
+      ok = elpa_solve_tridi_double(ph%n_good,ph%n_states_solve,d,e,q,&
+              ph%n_basis,bh%blk,ph%n_basis,mpi_comm_self,mpi_comm_self,.false.)
+   end if
+
+   if(.not. ok) then
+      call elsi_stop(bh,"ELPA tridiagonal solver failed.",caller)
+   end if
 
 end subroutine
 
