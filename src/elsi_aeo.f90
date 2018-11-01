@@ -126,18 +126,10 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
          ph%ovlp_is_sing = .false.
 
          ! S = U
-         call ph%elpa_aux%cholesky(ovlp,ierr)
-
-         if(ierr /= 0) then
-            call elsi_stop(bh,"Cholesky failed.",caller)
-         end if
+         call elsi_elpa_cholesky(ph,bh,ovlp)
 
          ! S = U^(-1)
-         call ph%elpa_aux%invert_triangular(ovlp,ierr)
-
-         if(ierr /= 0) then
-            call elsi_stop(bh,"Matrix inversion failed.",caller)
-         end if
+         call elsi_elpa_invert(ph,bh,ovlp)
 
          call elsi_get_time(t1)
 
@@ -429,18 +421,10 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
          ph%ovlp_is_sing = .false.
 
          ! S = U
-         call ph%elpa_aux%cholesky(ovlp,ierr)
-
-         if(ierr /= 0) then
-            call elsi_stop(bh,"Cholesky failed.",caller)
-         end if
+         call elsi_elpa_cholesky(ph,bh,ovlp)
 
          ! S = U^(-1)
-         call ph%elpa_aux%invert_triangular(ovlp,ierr)
-
-         if(ierr /= 0) then
-            call elsi_stop(bh,"Matrix inversion failed.",caller)
-         end if
+         call elsi_elpa_invert(ph,bh,ovlp)
 
          call elsi_get_time(t1)
 
