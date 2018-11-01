@@ -549,6 +549,7 @@ subroutine elsi_read_mat_dim_sparse(rwh,f_name,n_electron,n_basis,nnz_g,&
    ! Compute n_lcol
    n_lcol_sp = n_basis/rwh%bh%n_procs
    n_lcol0 = n_lcol_sp
+
    if(rwh%bh%myid == rwh%bh%n_procs-1) then
       n_lcol_sp = n_basis-(rwh%bh%n_procs-1)*n_lcol0
    end if
@@ -631,6 +632,7 @@ subroutine elsi_read_mat_real_mp(rwh,f_name,mat)
    ! Compute n_lcol_sp
    rwh%bh%n_lcol_sp = rwh%n_basis/rwh%bh%n_procs
    n_lcol0 = rwh%bh%n_lcol_sp
+
    if(rwh%bh%myid == rwh%bh%n_procs-1) then
       rwh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*n_lcol0
    end if
@@ -814,6 +816,7 @@ subroutine elsi_read_mat_complex_mp(rwh,f_name,mat)
    ! Compute n_lcol_sp
    rwh%bh%n_lcol_sp = rwh%n_basis/rwh%bh%n_procs
    n_lcol0 = rwh%bh%n_lcol_sp
+
    if(rwh%bh%myid == rwh%bh%n_procs-1) then
       rwh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*n_lcol0
    end if
@@ -993,6 +996,7 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    eh%bh%def0 = rwh%bh%def0
    eh%ph%ovlp_is_unit = .true.
    eh%bh%n_lcol_sp = rwh%n_basis/rwh%bh%n_procs
+
    if(rwh%bh%myid == rwh%bh%n_procs-1) then
       eh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*eh%bh%n_lcol_sp
    end if
@@ -1124,6 +1128,7 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    eh%bh%def0 = rwh%bh%def0
    eh%ph%ovlp_is_unit = .true.
    eh%bh%n_lcol_sp = rwh%n_basis/rwh%bh%n_procs
+
    if(rwh%bh%myid == rwh%bh%n_procs-1) then
       eh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*eh%bh%n_lcol_sp
    end if
