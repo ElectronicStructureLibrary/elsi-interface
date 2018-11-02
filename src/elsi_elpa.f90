@@ -43,6 +43,11 @@ module ELSI_ELPA
       module procedure elsi_solve_elpa_cmplx
    end interface
 
+   interface elsi_elpa_evec
+      module procedure elsi_elpa_evec_real
+      module procedure elsi_elpa_evec_cmplx
+   end interface
+
    interface elsi_elpa_cholesky
       module procedure elsi_elpa_cholesky_real
       module procedure elsi_elpa_cholesky_cmplx
@@ -214,33 +219,14 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: i
-   logical :: ok
    character(len=200) :: msg
-
-   real(kind=r8), allocatable :: copy(:,:)
 
    character(len=*), parameter :: caller = "elsi_check_singularity_real"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
-
-   ! Overlap will be destroyed by eigenvalue calculation
-   copy = ovlp
-
-   ! Use customized ELPA 2-stage solver to check overlap singularity
-   ! Eigenvectors computed only for singular overlap matrix
-   ok = elpa_check_singularity_real_double(ph%n_basis,ph%n_basis,copy,&
-           bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
-           ph%elpa_comm_col,bh%comm,ph%sing_tol,ph%n_good)
-
-   if(.not. ok) then
-      call elsi_stop(bh,"Singularity check failed.",caller)
-   end if
-
-   call elsi_deallocate(bh,copy,"copy")
-
-   ph%n_states_solve = min(ph%n_good,ph%n_states)
+   ! Solve eigenvalues of S
+   call elsi_elpa_evec(ph,bh,ovlp,eval,evec,.true.)
 
    if(ph%n_good < ph%n_basis) then ! Singular
       ph%ovlp_is_sing = .true.
@@ -362,7 +348,6 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   logical :: ok
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_real"
@@ -387,23 +372,8 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
-   write(msg,"(2X,A)") "Starting ELPA eigensolver"
-   call elsi_say(bh,msg)
-
-   ! Solve evp, return eigenvalues and eigenvectors
-   if(ph%elpa_solver == 2) then
-      ok = elpa_solve_evp_real_2stage_double(ph%n_good,ph%n_states_solve,ham,&
-              bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
-              ph%elpa_comm_col,bh%comm)
-   else
-      ok = elpa_solve_evp_real_1stage_double(ph%n_good,ph%n_states_solve,ham,&
-              bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
-              ph%elpa_comm_col,bh%comm)
-   end if
-
-   if(.not. ok) then
-      call elsi_stop(bh,"ELPA solver failed.",caller)
-   end if
+   ! Solve
+   call elsi_elpa_evec(ph,bh,ham,eval,evec,.false.)
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
    if(ph%n_good < ph%n_basis) then
@@ -541,33 +511,14 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: i
-   logical :: ok
    character(len=200) :: msg
-
-   complex(kind=r8), allocatable :: copy(:,:)
 
    character(len=*), parameter :: caller = "elsi_check_singularity_cmplx"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
-
-   ! Overlap will be destroyed by eigenvalue calculation
-   copy = ovlp
-
-   ! Use customized ELPA 2-stage solver to check overlap singularity
-   ! Eigenvectors computed only for singular overlap matrix
-   ok = elpa_check_singularity_complex_double(ph%n_basis,ph%n_basis,copy,&
-           bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
-           ph%elpa_comm_col,bh%comm,ph%sing_tol,ph%n_good)
-
-   if(.not. ok) then
-      call elsi_stop(bh,"Singularity check failed.",caller)
-   end if
-
-   call elsi_deallocate(bh,copy,"copy")
-
-   ph%n_states_solve = min(ph%n_good,ph%n_states)
+   ! Solve eigenvalues of S
+   call elsi_elpa_evec(ph,bh,ovlp,eval,evec,.true.)
 
    if(ph%n_good < ph%n_basis) then ! Singular
       ph%ovlp_is_sing = .true.
@@ -689,7 +640,6 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   logical :: ok
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_cmplx"
@@ -714,23 +664,8 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
-   write(msg,"(2X,A)") "Starting ELPA eigensolver"
-   call elsi_say(bh,msg)
-
-   ! Solve evp, return eigenvalues and eigenvectors
-   if(ph%elpa_solver == 2) then
-      ok = elpa_solve_evp_complex_2stage_double(ph%n_good,ph%n_states_solve,&
-              ham,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-              ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
-   else
-      ok = elpa_solve_evp_complex_1stage_double(ph%n_good,ph%n_states_solve,&
-              ham,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-              ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
-   end if
-
-   if(.not. ok) then
-      call elsi_stop(bh,"ELPA solver failed.",caller)
-   end if
+   ! Solve
+   call elsi_elpa_evec(ph,bh,ham,eval,evec,.false.)
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
    if(ph%n_good < ph%n_basis) then
@@ -750,6 +685,124 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    end if
 
    ph%elpa_first = .false.
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA eigensolver.
+!!
+subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+   logical, intent(in) :: sing_check
+
+   logical :: ok
+   character(len=200) :: msg
+
+   real(kind=r8), allocatable :: copy(:,:)
+
+   character(len=*), parameter :: caller = "elsi_elpa_evec_real"
+
+   if(sing_check) then
+      call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
+
+      copy = mat
+
+      ! Use modified ELPA2, which computes eigenvectors only for singular matrix
+      ok = elpa_check_singularity_real_double(ph%n_basis,ph%n_basis,copy,&
+              bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
+              ph%elpa_comm_col,bh%comm,ph%sing_tol,ph%n_good)
+
+      if(.not. ok) then
+         call elsi_stop(bh,"Singularity check failed.",caller)
+      end if
+
+      call elsi_deallocate(bh,copy,"copy")
+
+      ph%n_states_solve = min(ph%n_good,ph%n_states)
+   else
+      write(msg,"(2X,A)") "Starting ELPA eigensolver"
+      call elsi_say(bh,msg)
+
+      if(ph%elpa_solver == 2) then
+         ok = elpa_solve_evp_real_2stage_double(ph%n_good,ph%n_states_solve,&
+                 mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
+                 ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+      else
+         ok = elpa_solve_evp_real_1stage_double(ph%n_good,ph%n_states_solve,&
+                 mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
+                 ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+      end if
+
+      if(.not. ok) then
+         call elsi_stop(bh,"ELPA eigensolver failed.",caller)
+      end if
+   end if
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA eigensolver.
+!!
+subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+   logical, intent(in) :: sing_check
+
+   logical :: ok
+   character(len=200) :: msg
+
+   complex(kind=r8), allocatable :: copy(:,:)
+
+   character(len=*), parameter :: caller = "elsi_elpa_evec_cmplx"
+
+   if(sing_check) then
+      call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
+
+      copy = mat
+
+      ! Use modified ELPA2, which computes eigenvectors only for singular matrix
+      ok = elpa_check_singularity_complex_double(ph%n_basis,ph%n_basis,copy,&
+              bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
+              ph%elpa_comm_col,bh%comm,ph%sing_tol,ph%n_good)
+
+      if(.not. ok) then
+         call elsi_stop(bh,"Singularity check failed.",caller)
+      end if
+
+      call elsi_deallocate(bh,copy,"copy")
+
+      ph%n_states_solve = min(ph%n_good,ph%n_states)
+   else
+      write(msg,"(2X,A)") "Starting ELPA eigensolver"
+      call elsi_say(bh,msg)
+
+      if(ph%elpa_solver == 2) then
+         ok = elpa_solve_evp_complex_2stage_double(ph%n_good,ph%n_states_solve,&
+                 mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
+                 ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+      else
+         ok = elpa_solve_evp_complex_1stage_double(ph%n_good,ph%n_states_solve,&
+                 mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
+                 ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+      end if
+
+      if(.not. ok) then
+         call elsi_stop(bh,"ELPA eigensolver failed.",caller)
+      end if
+   end if
 
 end subroutine
 

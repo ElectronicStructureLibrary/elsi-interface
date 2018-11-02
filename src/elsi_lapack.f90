@@ -204,7 +204,7 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
       call elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
    end if
 
-   ! Solve evp, return eigenvalues and eigenvectors
+   ! Solve
    call elsi_get_time(t0)
 
    write(msg,"(2X,A)") "Starting LAPACK eigensolver"
@@ -538,7 +538,7 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
       call elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
    end if
 
-   ! Solve evp, return eigenvalues and eigenvectors
+   ! Solve
    call elsi_get_time(t0)
 
    write(msg,"(2X,A)") "Starting LAPACK eigensolver"

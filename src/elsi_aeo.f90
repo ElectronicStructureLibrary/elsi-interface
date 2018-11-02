@@ -200,26 +200,18 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
    real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   integer(kind=i4) :: i
    real(kind=r8) :: ev_sqrt
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: i
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_check_singularity_real"
 
    call elsi_get_time(t0)
 
-   ! Use ELPA to check overlap singularity
+   ! Solve eigenvalues of S
    call elsi_elpa_evec(ph,bh,ovlp,eval,evec,.true.)
-
-   do i = 1,ph%n_basis
-      if(eval(i) < ph%sing_tol) then
-         ph%n_good = ph%n_good-1
-      end if
-   end do
-
-   ph%n_states_solve = min(ph%n_good,ph%n_states)
 
    if(ph%n_good < ph%n_basis) then ! Singular
       ph%ovlp_is_sing = .true.
@@ -273,7 +265,7 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
 
    implicit none
 
-   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(out) :: ham(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
@@ -337,9 +329,9 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
    real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   integer(kind=i4) :: ierr
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_real"
@@ -362,7 +354,7 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
-   ! Solve evp, return eigenvalues and eigenvectors
+   ! Solve
    call elsi_elpa_evec(ph,bh,ham,eval,evec,.false.)
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
@@ -495,26 +487,18 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
    complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   integer(kind=i4) :: i
    real(kind=r8) :: ev_sqrt
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: i
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_check_singularity_cmplx"
 
    call elsi_get_time(t0)
 
-   ! Use ELPA to check overlap singularity
+   ! Solve eigenvalues of S
    call elsi_elpa_evec(ph,bh,ovlp,eval,evec,.true.)
-
-   do i = 1,ph%n_basis
-      if(eval(i) < ph%sing_tol) then
-         ph%n_good = ph%n_good-1
-      end if
-   end do
-
-   ph%n_states_solve = min(ph%n_good,ph%n_states)
 
    if(ph%n_good < ph%n_basis) then ! Singular
       ph%ovlp_is_sing = .true.
@@ -568,10 +552,10 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
 
    implicit none
 
-   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(out) :: ham(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8) :: t0
@@ -632,9 +616,9 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
    complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   integer(kind=i4) :: ierr
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_cmplx"
@@ -657,7 +641,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
-   ! Solve evp, return eigenvalues and eigenvectors
+   ! Solve
    call elsi_elpa_evec(ph,bh,ham,eval,evec,.false.)
 
    ! Dummy eigenvalues for correct chemical potential, no physical meaning!
@@ -790,19 +774,20 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
 end subroutine
 
 !>
-!! This routine calls ELPA real eigensolver.
+!! This routine interfaces to ELPA eigensolver.
 !!
-subroutine elsi_elpa_evec_real(ph,bh,ham,eval,evec,sing_check)
+subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(inout) :: eval(ph%n_basis)
-   real(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
    logical, intent(in) :: sing_check
 
+   integer(kind=i4) :: i
    integer(kind=i4) :: ierr
    character(len=200) :: msg
 
@@ -816,11 +801,23 @@ subroutine elsi_elpa_evec_real(ph,bh,ham,eval,evec,sing_check)
    if(sing_check) then
       call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
 
-      copy = ham
+      copy = mat
 
       call ph%elpa_aux%eigenvectors(copy,eval,evec,ierr)
 
+      if(ierr /= 0) then
+         call elsi_stop(bh,"Singularity check failed.",caller)
+      end if
+
       call elsi_deallocate(bh,copy,"copy")
+
+      do i = 1,ph%n_basis
+         if(eval(i) < ph%sing_tol) then
+            ph%n_good = ph%n_good-1
+         end if
+      end do
+
+      ph%n_states_solve = min(ph%n_good,ph%n_states)
    else
       if(.not. associated(ph%elpa_solve)) then
          call elsi_elpa_setup(ph,bh,.false.)
@@ -834,7 +831,7 @@ subroutine elsi_elpa_evec_real(ph,bh,ham,eval,evec,sing_check)
          call elsi_allocate(bh,evec_r4,bh%n_lrow,bh%n_lcol,"evec_r4",caller)
          call elsi_allocate(bh,copy_r4,bh%n_lrow,bh%n_lcol,"copy_r4",caller)
 
-         copy_r4 = real(ham,kind=r4)
+         copy_r4 = real(mat,kind=r4)
 
          call ph%elpa_solve%eigenvectors(copy_r4,eval_r4,evec_r4,ierr)
 
@@ -862,30 +859,31 @@ subroutine elsi_elpa_evec_real(ph,bh,ham,eval,evec,sing_check)
             end if
          end if
 
-         call ph%elpa_solve%eigenvectors(ham,eval,evec,ierr)
+         call ph%elpa_solve%eigenvectors(mat,eval,evec,ierr)
       end if
-   end if
 
-   if(ierr /= 0) then
-      call elsi_stop(bh,"ELPA eigensolver failed.",caller)
+      if(ierr /= 0) then
+         call elsi_stop(bh,"ELPA eigensolver failed.",caller)
+      end if
    end if
 
 end subroutine
 
 !>
-!! This routine calls ELPA complex eigensolver.
+!! This routine interfaces to ELPA eigensolver.
 !!
-subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
+subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(inout) :: eval(ph%n_basis)
-   complex(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
    logical, intent(in) :: sing_check
 
+   integer(kind=i4) :: i
    integer(kind=i4) :: ierr
    character(len=200) :: msg
 
@@ -899,11 +897,23 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
    if(sing_check) then
       call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
 
-      copy = ham
+      copy = mat
 
       call ph%elpa_aux%eigenvectors(copy,eval,evec,ierr)
 
+      if(ierr /= 0) then
+         call elsi_stop(bh,"Singularity check failed.",caller)
+      end if
+
       call elsi_deallocate(bh,copy,"copy")
+
+      do i = 1,ph%n_basis
+         if(eval(i) < ph%sing_tol) then
+            ph%n_good = ph%n_good-1
+         end if
+      end do
+
+      ph%n_states_solve = min(ph%n_good,ph%n_states)
    else
       if(.not. associated(ph%elpa_solve)) then
          call elsi_elpa_setup(ph,bh,.false.)
@@ -917,7 +927,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
          call elsi_allocate(bh,evec_r4,bh%n_lrow,bh%n_lcol,"evec_r4",caller)
          call elsi_allocate(bh,copy_r4,bh%n_lrow,bh%n_lcol,"copy_r4",caller)
 
-         copy_r4 = cmplx(ham,kind=r4)
+         copy_r4 = cmplx(mat,kind=r4)
 
          call ph%elpa_solve%eigenvectors(copy_r4,eval_r4,evec_r4,ierr)
 
@@ -945,12 +955,12 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,ham,eval,evec,sing_check)
             end if
          end if
 
-         call ph%elpa_solve%eigenvectors(ham,eval,evec,ierr)
+         call ph%elpa_solve%eigenvectors(mat,eval,evec,ierr)
       end if
-   end if
 
-   if(ierr /= 0) then
-      call elsi_stop(bh,"ELPA eigensolver failed.",caller)
+      if(ierr /= 0) then
+         call elsi_stop(bh,"ELPA eigensolver failed.",caller)
+      end if
    end if
 
 end subroutine
@@ -1054,7 +1064,7 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
 
    implicit none
 
-   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(inout) :: d(ph%n_basis)
    real(kind=r8), intent(inout) :: e(ph%n_basis)
