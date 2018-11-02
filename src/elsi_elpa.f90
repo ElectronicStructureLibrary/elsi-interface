@@ -58,6 +58,11 @@ module ELSI_ELPA
       module procedure elsi_elpa_invert_cmplx
    end interface
 
+   interface elsi_elpa_multiply
+      module procedure elsi_elpa_multiply_real
+      module procedure elsi_elpa_multiply_cmplx
+   end interface
+
 contains
 
 !>
@@ -123,7 +128,6 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   logical :: ok
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_to_standard_evp_real"
@@ -165,26 +169,14 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
               ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
    else
-      ok = elpa_mult_at_b_real_double("U","L",ph%n_basis,ph%n_basis,ovlp,&
-              bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,bh%blk,&
-              ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
-
-      if(.not. ok) then
-         call elsi_stop(bh,"Matrix multiplication failed.",caller)
-      end if
+      call elsi_elpa_multiply(ph,bh,"U","L",ph%n_basis,ovlp,ham,evec)
 
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
 
       evec = ham
 
-      ok = elpa_mult_at_b_real_double("U","U",ph%n_basis,ph%n_basis,ovlp,&
-              bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,bh%blk,&
-              ph%elpa_comm_row,ph%elpa_comm_col,ham,bh%n_lrow,bh%n_lcol)
-
-      if(.not. ok) then
-         call elsi_stop(bh,"Matrix multiplication failed.",caller)
-      end if
+      call elsi_elpa_multiply(ph,bh,"U","U",ph%n_basis,ovlp,evec,ham)
 
       call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,ham)
    end if
@@ -288,7 +280,6 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   logical :: ok
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: tmp(:,:)
@@ -309,13 +300,7 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp,1,1,bh%desc,0.0_r8,ham,1,1,&
               bh%desc)
 
-      ok = elpa_mult_at_b_real_double("L","N",ph%n_basis,ph%n_states,ham,&
-              bh%n_lrow,bh%n_lcol,tmp,bh%n_lrow,bh%n_lcol,bh%blk,&
-              ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
-
-      if(.not. ok) then
-         call elsi_stop(bh,"Matrix multiplication failed.",caller)
-      end if
+      call elsi_elpa_multiply(ph,bh,"L","N",ph%n_states,ham,tmp,evec)
    end if
 
    call elsi_deallocate(bh,tmp,"tmp")
@@ -415,7 +400,6 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   logical :: ok
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_to_standard_evp_cmplx"
@@ -457,26 +441,14 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
               1,ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)
    else
-      ok = elpa_mult_ah_b_complex_double("U","L",ph%n_basis,ph%n_basis,ovlp,&
-              bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,bh%blk,&
-              ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
-
-      if(.not. ok) then
-         call elsi_stop(bh,"Matrix multiplication failed.",caller)
-      end if
+      call elsi_elpa_multiply(ph,bh,"U","L",ph%n_basis,ovlp,ham,evec)
 
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),evec,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
       evec = ham
 
-      ok = elpa_mult_ah_b_complex_double("U","U",ph%n_basis,ph%n_basis,ovlp,&
-              bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,bh%blk,&
-              ph%elpa_comm_row,ph%elpa_comm_col,ham,bh%n_lrow,bh%n_lcol)
-
-      if(.not. ok) then
-         call elsi_stop(bh,"Matrix multiplication failed.",caller)
-      end if
+      call elsi_elpa_multiply(ph,bh,"U","U",ph%n_basis,ovlp,evec,ham)
 
       call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,ham)
    end if
@@ -580,7 +552,6 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   logical :: ok
    character(len=200) :: msg
 
    complex(kind=r8), allocatable :: tmp(:,:)
@@ -601,13 +572,7 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
               (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
-      ok = elpa_mult_ah_b_complex_double("L","N",ph%n_basis,ph%n_states,ham,&
-              bh%n_lrow,bh%n_lcol,tmp,bh%n_lrow,bh%n_lcol,bh%blk,&
-              ph%elpa_comm_row,ph%elpa_comm_col,evec,bh%n_lrow,bh%n_lcol)
-
-      if(.not. ok) then
-         call elsi_stop(bh,"Matrix multiplication failed.",caller)
-      end if
+      call elsi_elpa_multiply(ph,bh,"L","N",ph%n_states,ham,tmp,evec)
    end if
 
    call elsi_deallocate(bh,tmp,"tmp")
@@ -898,6 +863,66 @@ subroutine elsi_elpa_invert_cmplx(ph,bh,mat)
 
    if(.not. ok) then
       call elsi_stop(bh,"Matrix inversion failed.",caller)
+   end if
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA matrix multiplication.
+!!
+subroutine elsi_elpa_multiply_real(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   character, intent(in) :: uplo_a
+   character, intent(in) :: uplo_c
+   integer(kind=i4), intent(in) :: n
+   real(kind=r8), intent(in) :: mat_a(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(in) :: mat_b(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: mat_c(bh%n_lrow,bh%n_lcol)
+
+   logical :: ok
+
+   character(len=*), parameter :: caller = "elsi_elpa_multiply_real"
+
+   ok = elpa_mult_at_b_real_double(uplo_a,uplo_c,ph%n_basis,n,mat_a,bh%n_lrow,&
+           bh%n_lcol,mat_b,bh%n_lrow,bh%n_lcol,bh%blk,ph%elpa_comm_row,&
+           ph%elpa_comm_col,mat_c,bh%n_lrow,bh%n_lcol)
+
+   if(.not. ok) then
+      call elsi_stop(bh,"Matrix multiplication failed.",caller)
+   end if
+
+end subroutine
+
+!>
+!! This routine interfaces to ELPA matrix multiplication.
+!!
+subroutine elsi_elpa_multiply_cmplx(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   character, intent(in) :: uplo_a
+   character, intent(in) :: uplo_c
+   integer(kind=i4), intent(in) :: n
+   complex(kind=r8), intent(in) :: mat_a(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(in) :: mat_b(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(out) :: mat_c(bh%n_lrow,bh%n_lcol)
+
+   logical :: ok
+
+   character(len=*), parameter :: caller = "elsi_elpa_multiply_cmplx"
+
+   ok = elpa_mult_ah_b_complex_double(uplo_a,uplo_c,ph%n_basis,n,mat_a,&
+           bh%n_lrow,bh%n_lcol,mat_b,bh%n_lrow,bh%n_lcol,bh%blk,&
+           ph%elpa_comm_row,ph%elpa_comm_col,mat_c,bh%n_lrow,bh%n_lcol)
+
+   if(.not. ok) then
+      call elsi_stop(bh,"Matrix multiplication failed.",caller)
    end if
 
 end subroutine
