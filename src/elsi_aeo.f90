@@ -1049,7 +1049,7 @@ subroutine elsi_elpa_multiply_real(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
    character(len=*), parameter :: caller = "elsi_elpa_multiply_real"
 
    call ph%elpa_aux%hermitian_multiply(uplo_a,uplo_c,n,mat_a,mat_b,bh%n_lrow,&
-           bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+           bh%n_lcol,mat_c,bh%n_lrow,bh%n_lcol,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Matrix multiplication failed.",caller)
@@ -1078,7 +1078,7 @@ subroutine elsi_elpa_multiply_cmplx(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
    character(len=*), parameter :: caller = "elsi_elpa_multiply_cmplx"
 
    call ph%elpa_aux%hermitian_multiply(uplo_a,uplo_c,n,mat_a,mat_b,bh%n_lrow,&
-           bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+           bh%n_lcol,mat_c,bh%n_lrow,bh%n_lcol,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Matrix multiplication failed.",caller)
@@ -1093,7 +1093,7 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
+   type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(inout) :: d(ph%n_basis)
    real(kind=r8), intent(inout) :: e(ph%n_basis)
