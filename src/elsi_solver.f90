@@ -604,15 +604,15 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
          if(eh%ph%ovlp_is_unit) then
             call elsi_allocate(eh%bh,eh%ovlp_real_csc,1,"ovlp_real_csc",caller)
          else
-            call elsi_allocate(eh%bh,eh%ovlp_real_csc,eh%bh%nnz_l_sp,&
+            call elsi_allocate(eh%bh,eh%ovlp_real_csc,eh%bh%nnz_l_sp1,&
                     "ovlp_real_csc",caller)
          end if
 
-         call elsi_allocate(eh%bh,eh%ham_real_csc,eh%bh%nnz_l_sp,&
+         call elsi_allocate(eh%bh,eh%ham_real_csc,eh%bh%nnz_l_sp1,&
                  "ham_real_csc",caller)
-         call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp,"row_ind_sp1",&
+         call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp1,"row_ind_sp1",&
                  caller)
-         call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp+1,&
+         call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp1+1,&
                  "col_ptr_sp1",caller)
       end if
 
@@ -625,7 +625,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%dm_real_csc)) then
-         call elsi_allocate(eh%bh,eh%dm_real_csc,eh%bh%nnz_l_sp,"dm_real_csc",&
+         call elsi_allocate(eh%bh,eh%dm_real_csc,eh%bh%nnz_l_sp1,"dm_real_csc",&
                  caller)
       end if
 
@@ -682,7 +682,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%dm_real_csc)) then
-         call elsi_allocate(eh%bh,eh%dm_real_csc,eh%bh%nnz_l_sp,"dm_real_csc",&
+         call elsi_allocate(eh%bh,eh%dm_real_csc,eh%bh%nnz_l_sp1,"dm_real_csc",&
                  caller)
       end if
 
@@ -829,15 +829,15 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_csc,1,"ovlp_cmplx_csc",&
                     caller)
          else
-            call elsi_allocate(eh%bh,eh%ovlp_cmplx_csc,eh%bh%nnz_l_sp,&
+            call elsi_allocate(eh%bh,eh%ovlp_cmplx_csc,eh%bh%nnz_l_sp1,&
                     "ovlp_cmplx_csc",caller)
          end if
 
-         call elsi_allocate(eh%bh,eh%ham_cmplx_csc,eh%bh%nnz_l_sp,&
+         call elsi_allocate(eh%bh,eh%ham_cmplx_csc,eh%bh%nnz_l_sp1,&
                  "ham_cmplx_csc",caller)
-         call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp,"row_ind_sp1",&
+         call elsi_allocate(eh%bh,eh%row_ind_sp1,eh%bh%nnz_l_sp1,"row_ind_sp1",&
                  caller)
-         call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp+1,&
+         call elsi_allocate(eh%bh,eh%col_ptr_sp1,eh%bh%n_lcol_sp1+1,&
                  "col_ptr_sp1",caller)
       end if
 
@@ -850,7 +850,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%dm_cmplx_csc)) then
-         call elsi_allocate(eh%bh,eh%dm_cmplx_csc,eh%bh%nnz_l_sp,&
+         call elsi_allocate(eh%bh,eh%dm_cmplx_csc,eh%bh%nnz_l_sp1,&
                  "dm_cmplx_csc",caller)
       end if
 
