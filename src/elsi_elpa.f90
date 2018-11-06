@@ -34,6 +34,7 @@ module ELSI_ELPA
    public :: elsi_init_elpa
    public :: elsi_cleanup_elpa
    public :: elsi_solve_elpa
+   public :: elsi_update_dm_elpa
    public :: elsi_elpa_cholesky
    public :: elsi_elpa_invert
    public :: elsi_elpa_tridiag
@@ -41,6 +42,11 @@ module ELSI_ELPA
    interface elsi_solve_elpa
       module procedure elsi_solve_elpa_real
       module procedure elsi_solve_elpa_cmplx
+   end interface
+
+   interface elsi_update_dm_elpa
+      module procedure elsi_update_dm_elpa_real
+      module procedure elsi_update_dm_elpa_cmplx
    end interface
 
    interface elsi_elpa_evec
@@ -382,6 +388,63 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 end subroutine
 
 !>
+!! This routine extrapolates density matrix using Cholesky decomposition of the
+!! old and new overlap matrices.
+!!
+subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(in) :: ovlp0(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: ovlp1(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
+
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
+   real(kind=r8), allocatable :: tmp(:,:)
+
+   character(len=*), parameter :: caller = "elsi_update_dm_elpa_real"
+
+   call elsi_get_time(t0)
+
+   ! S_1 = U_1
+   call elsi_elpa_cholesky(ph,bh,ovlp1)
+
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
+
+   ! tmp = U_0^(-T) P_0
+   call elsi_elpa_multiply(ph,bh,"U","N",ph%n_basis,ovlp0,dm,tmp)
+
+   ! dm = U_1^T U_0^(-T) P_0
+   call elsi_elpa_multiply(ph,bh,"U","N",ph%n_basis,ovlp1,tmp,dm)
+
+   ! tmp = U_1^T U_0^(-T) P_0 U_0^(-1)
+   call pdgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,dm,1,1,bh%desc,&
+           ovlp0,1,1,bh%desc,0.0_r8,tmp,1,1,bh%desc)
+
+   ! dm = U_1^T U_0^(-T) P_0 U_0^(-1) U_1
+   call pdgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,tmp,1,1,bh%desc,&
+           ovlp1,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
+
+   call elsi_deallocate(bh,tmp,"tmp")
+
+   ! S_1 = U_1^(-1)
+   call elsi_elpa_invert(ph,bh,ovlp1)
+
+   call elsi_get_time(t1)
+
+   write(msg,"(2X,A)") "Finished density matrix extrapolation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
+end subroutine
+
+!>
 !! This routine transforms a generalized eigenproblem to standard and returns
 !! the Cholesky factor for later use.
 !!
@@ -650,6 +713,63 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    end if
 
    ph%elpa_first = .false.
+
+end subroutine
+
+!>
+!! This routine extrapolates density matrix using Cholesky decomposition of the
+!! old and new overlap matrices.
+!!
+subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(in) :: ovlp0(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ovlp1(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
+
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
+   complex(kind=r8), allocatable :: tmp(:,:)
+
+   character(len=*), parameter :: caller = "elsi_update_dm_elpa_cmplx"
+
+   call elsi_get_time(t0)
+
+   ! S_1 = U_1
+   call elsi_elpa_cholesky(ph,bh,ovlp1)
+
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
+
+   ! tmp = U_0^(-T) P_0
+   call elsi_elpa_multiply(ph,bh,"U","N",ph%n_basis,ovlp0,dm,tmp)
+
+   ! dm = U_1^T U_0^(-T) P_0
+   call elsi_elpa_multiply(ph,bh,"U","N",ph%n_basis,ovlp1,tmp,dm)
+
+   ! tmp = U_1^T U_0^(-T) P_0 U_0^(-1)
+   call pzgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,dm,1,1,bh%desc,&
+           ovlp0,1,1,bh%desc,0.0_r8,tmp,1,1,bh%desc)
+
+   ! dm = U_1^T U_0^(-T) P_0 U_0^(-1) U_1
+   call pzgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,tmp,1,1,bh%desc,&
+           ovlp1,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
+
+   call elsi_deallocate(bh,tmp,"tmp")
+
+   ! S_1 = U_1^(-1)
+   call elsi_elpa_invert(ph,bh,ovlp1)
+
+   call elsi_get_time(t1)
+
+   write(msg,"(2X,A)") "Finished density matrix extrapolation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
