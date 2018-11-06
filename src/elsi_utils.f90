@@ -35,6 +35,7 @@ module ELSI_UTILS
    public :: elsi_set_full_mat
    public :: elsi_build_dm
    public :: elsi_build_edm
+   public :: elsi_gram_schmidt
 
    interface elsi_get_nnz
       module procedure elsi_get_nnz_real
@@ -64,6 +65,11 @@ module ELSI_UTILS
    interface elsi_build_edm
       module procedure elsi_build_edm_real
       module procedure elsi_build_edm_cmplx
+   end interface
+
+   interface elsi_gram_schmidt
+      module procedure elsi_gram_schmidt_real
+      module procedure elsi_gram_schmidt_cmplx
    end interface
 
 contains
@@ -737,7 +743,7 @@ end subroutine
 !>
 !! This routine constructs the density matrix.
 !!
-subroutine elsi_build_dm_real(ph,bh,row_map,col_map,evec,occ,dm,work)
+subroutine elsi_build_dm_real(ph,bh,row_map,col_map,evec,occ,dm)
 
    implicit none
 
@@ -746,9 +752,8 @@ subroutine elsi_build_dm_real(ph,bh,row_map,col_map,evec,occ,dm,work)
    integer(kind=i4), intent(in) :: row_map(ph%n_basis)
    integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    real(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(in) :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(out) :: dm(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: work(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
    integer(kind=i4) :: max_state
@@ -757,41 +762,44 @@ subroutine elsi_build_dm_real(ph,bh,row_map,col_map,evec,occ,dm,work)
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
+   real(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_build_dm_real"
 
    call elsi_get_time(t0)
 
    call elsi_allocate(bh,factor,ph%n_states_solve,"factor",caller)
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
    max_state = 0
 
    do i = 1,ph%n_states_solve
-      if(occ(i,ph%i_spin,ph%i_kpt) > 0.0_r8) then
-         factor(i) = sqrt(occ(i,ph%i_spin,ph%i_kpt))
+      if(occ(i) > 0.0_r8) then
+         factor(i) = sqrt(occ(i))
          max_state = i
       end if
    end do
 
-   work = evec
+   tmp = evec
 
    do i = 1,ph%n_states_solve
       if(factor(i) > 0.0_r8) then
          if(col_map(i) > 0) then
-            work(:,col_map(i)) = work(:,col_map(i))*factor(i)
+            tmp(:,col_map(i)) = tmp(:,col_map(i))*factor(i)
          end if
       else if(col_map(i) /= 0) then
-         work(:,col_map(i)) = 0.0_r8
+         tmp(:,col_map(i)) = 0.0_r8
       end if
    end do
 
    dm = 0.0_r8
 
    ! Compute density matrix
-   call pdsyrk("U","N",ph%n_basis,max_state,1.0_r8,work,1,1,bh%desc,0.0_r8,dm,&
-           1,1,bh%desc)
+   call pdsyrk("U","N",ph%n_basis,max_state,1.0_r8,tmp,1,1,bh%desc,0.0_r8,dm,1,&
+           1,bh%desc)
 
    call elsi_deallocate(bh,factor,"factor")
+   call elsi_deallocate(bh,tmp,"tmp")
 
    call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,dm)
 
@@ -807,7 +815,7 @@ end subroutine
 !>
 !! This routine constructs the density matrix.
 !!
-subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,evec,occ,dm,work)
+subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,evec,occ,dm)
 
    implicit none
 
@@ -816,9 +824,8 @@ subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,evec,occ,dm,work)
    integer(kind=i4), intent(in) :: row_map(ph%n_basis)
    integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    complex(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(in) :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8), intent(in) :: occ(ph%n_states)
    complex(kind=r8), intent(out) :: dm(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: work(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
    integer(kind=i4) :: max_state
@@ -827,41 +834,44 @@ subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,evec,occ,dm,work)
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
+   complex(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_build_dm_cmplx"
 
    call elsi_get_time(t0)
 
    call elsi_allocate(bh,factor,ph%n_states_solve,"factor",caller)
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
    max_state = 0
 
    do i = 1,ph%n_states_solve
-      if(occ(i,ph%i_spin,ph%i_kpt) > 0.0_r8) then
-         factor(i) = sqrt(occ(i,ph%i_spin,ph%i_kpt))
+      if(occ(i) > 0.0_r8) then
+         factor(i) = sqrt(occ(i))
          max_state = i
       end if
    end do
 
-   work = evec
+   tmp = evec
 
    do i = 1,ph%n_states_solve
       if(factor(i) > 0.0_r8) then
          if(col_map(i) > 0) then
-            work(:,col_map(i)) = work(:,col_map(i))*factor(i)
+            tmp(:,col_map(i)) = tmp(:,col_map(i))*factor(i)
          end if
       else if(col_map(i) /= 0) then
-         work(:,col_map(i)) = (0.0_r8,0.0_r8)
+         tmp(:,col_map(i)) = (0.0_r8,0.0_r8)
       end if
    end do
 
    dm = (0.0_r8,0.0_r8)
 
    ! Compute density matrix
-   call pzherk("U","N",ph%n_basis,max_state,(1.0_r8,0.0_r8),work,1,1,bh%desc,&
+   call pzherk("U","N",ph%n_basis,max_state,(1.0_r8,0.0_r8),tmp,1,1,bh%desc,&
            (0.0_r8,0.0_r8),dm,1,1,bh%desc)
 
    call elsi_deallocate(bh,factor,"factor")
+   call elsi_deallocate(bh,tmp,"tmp")
 
    call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,dm)
 
@@ -877,7 +887,7 @@ end subroutine
 !>
 !! This routine constructs the energy-weighted density matrix.
 !!
-subroutine elsi_build_edm_real(ph,bh,row_map,col_map,eval,evec,occ,edm,work)
+subroutine elsi_build_edm_real(ph,bh,row_map,col_map,eval,evec,occ,edm)
 
    implicit none
 
@@ -885,11 +895,10 @@ subroutine elsi_build_edm_real(ph,bh,row_map,col_map,eval,evec,occ,edm,work)
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_map(ph%n_basis)
    integer(kind=i4), intent(in) :: col_map(ph%n_basis)
-   real(kind=r8), intent(in) :: eval(ph%n_basis)
+   real(kind=r8), intent(in) :: eval(ph%n_states)
    real(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(in) :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(out) :: edm(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: work(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
    integer(kind=i4) :: max_state
@@ -898,17 +907,19 @@ subroutine elsi_build_edm_real(ph,bh,row_map,col_map,eval,evec,occ,edm,work)
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
+   real(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_build_edm_real"
 
    call elsi_get_time(t0)
 
    call elsi_allocate(bh,factor,ph%n_states_solve,"factor",caller)
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
    max_state = 0
 
    do i = 1,ph%n_states_solve
-      factor(i) = -occ(i,ph%i_spin,ph%i_kpt)*eval(i)
+      factor(i) = -occ(i)*eval(i)
       if(factor(i) > 0.0_r8) then
          factor(i) = sqrt(factor(i))
          max_state = i
@@ -917,25 +928,26 @@ subroutine elsi_build_edm_real(ph,bh,row_map,col_map,eval,evec,occ,edm,work)
       end if
    end do
 
-   work = evec
+   tmp = evec
 
    do i = 1,ph%n_states_solve
       if(factor(i) > 0.0_r8) then
          if(col_map(i) > 0) then
-            work(:,col_map(i)) = work(:,col_map(i))*factor(i)
+            tmp(:,col_map(i)) = tmp(:,col_map(i))*factor(i)
          end if
       else if(col_map(i) /= 0) then
-         work(:,col_map(i)) = 0.0_r8
+         tmp(:,col_map(i)) = 0.0_r8
       end if
    end do
-
-   call elsi_deallocate(bh,factor,"factor")
 
    edm = 0.0_r8
 
    ! Compute density matrix
-   call pdsyrk("U","N",ph%n_basis,max_state,-1.0_r8,work,1,1,bh%desc,0.0_r8,&
-           edm,1,1,bh%desc)
+   call pdsyrk("U","N",ph%n_basis,max_state,-1.0_r8,tmp,1,1,bh%desc,0.0_r8,edm,&
+           1,1,bh%desc)
+
+   call elsi_deallocate(bh,factor,"factor")
+   call elsi_deallocate(bh,tmp,"tmp")
 
    call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,edm)
 
@@ -951,7 +963,7 @@ end subroutine
 !>
 !! This routine constructs the energy-weighted density matrix.
 !!
-subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,work)
+subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm)
 
    implicit none
 
@@ -959,11 +971,10 @@ subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,work)
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_map(ph%n_basis)
    integer(kind=i4), intent(in) :: col_map(ph%n_basis)
-   real(kind=r8), intent(in) :: eval(ph%n_basis)
+   real(kind=r8), intent(in) :: eval(ph%n_states)
    complex(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(in) :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8), intent(in) :: occ(ph%n_states)
    complex(kind=r8), intent(out) :: edm(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: work(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
    integer(kind=i4) :: max_state
@@ -972,17 +983,19 @@ subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,work)
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
+   complex(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_build_edm_cmplx"
 
    call elsi_get_time(t0)
 
    call elsi_allocate(bh,factor,ph%n_states_solve,"factor",caller)
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
    max_state = 0
 
    do i = 1,ph%n_states_solve
-      factor(i) = -occ(i,ph%i_spin,ph%i_kpt)*eval(i)
+      factor(i) = -occ(i)*eval(i)
       if(factor(i) > 0.0_r8) then
          factor(i) = sqrt(factor(i))
          max_state = i
@@ -991,31 +1004,218 @@ subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm,work)
       end if
    end do
 
-   work = evec
+   tmp = evec
 
    do i = 1,ph%n_states_solve
       if(factor(i) > 0.0_r8) then
          if(col_map(i) > 0) then
-            work(:,col_map(i)) = work(:,col_map(i))*factor(i)
+            tmp(:,col_map(i)) = tmp(:,col_map(i))*factor(i)
          end if
       else if(col_map(i) /= 0) then
-         work(:,col_map(i)) = (0.0_r8,0.0_r8)
+         tmp(:,col_map(i)) = (0.0_r8,0.0_r8)
       end if
    end do
-
-   call elsi_deallocate(bh,factor,"factor")
 
    edm = (0.0_r8,0.0_r8)
 
    ! Compute density matrix
-   call pzherk("U","N",ph%n_basis,max_state,(-1.0_r8,0.0_r8),work,1,1,bh%desc,&
+   call pzherk("U","N",ph%n_basis,max_state,(-1.0_r8,0.0_r8),tmp,1,1,bh%desc,&
            (0.0_r8,0.0_r8),edm,1,1,bh%desc)
+
+   call elsi_deallocate(bh,factor,"factor")
+   call elsi_deallocate(bh,tmp,"tmp")
 
    call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,edm)
 
    call elsi_get_time(t1)
 
    write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
+end subroutine
+
+!>
+!! This routine orthonormalizes eigenvectors with respect to an overlap matrix
+!! using a modified Gram-Schmidt algorithm.
+!!
+subroutine elsi_gram_schmidt_real(ph,bh,col_map,ovlp,evec)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
+   real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+
+   integer(kind=i4) :: j
+   integer(kind=i4) :: i_done
+   integer(kind=i4) :: n_block
+   real(kind=r8) :: norm
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
+   real(kind=r8), allocatable :: tmp1(:)
+   real(kind=r8), allocatable :: tmp2(:,:)
+   real(kind=r8), allocatable :: tmp3(:,:)
+
+   character(len=*), parameter :: caller = "elsi_gram_schmidt_real"
+
+   call elsi_get_time(t0)
+
+   n_block = bh%n_lcol*bh%blk
+
+   call elsi_allocate(bh,tmp1,bh%n_lrow,"tmp1",caller)
+   call elsi_allocate(bh,tmp2,bh%n_lrow,bh%n_lcol,"tmp2",caller)
+   call elsi_allocate(bh,tmp3,bh%n_lrow,bh%n_lcol,"tmp3",caller)
+
+   call pdsymm("L","U",ph%n_basis,ph%n_states,1.0_r8,ovlp,1,1,bh%desc,evec,1,1,&
+           bh%desc,0.0_r8,tmp2,1,1,bh%desc)
+
+   i_done = 0
+
+   do j = 1,ph%n_states
+      if(j > i_done+1) then
+         ! Dot product of evec(j) with evec(i_done+1..j-1)
+         call pdgemv("T",ph%n_basis,j-1-i_done,1.0_r8,tmp2,1,i_done+1,bh%desc,&
+                 evec,1,j,bh%desc,1,0.0_r8,tmp1,1,1,bh%desc,1)
+
+         ! Orthogonalize
+         call pdgemv("N",ph%n_basis,j-1-i_done,-1.0_r8,evec,1,i_done+1,bh%desc,&
+                 tmp1,1,1,bh%desc,1,1.0_r8,evec,1,j,bh%desc,1)
+
+         call pdgemv("N",ph%n_basis,j-1-i_done,-1.0_r8,tmp2,1,i_done+1,bh%desc,&
+                 tmp1,1,1,bh%desc,1,1.0_r8,tmp2,1,j,bh%desc,1)
+      end if
+
+      ! Normalize
+      norm = 0.0_r8
+
+      call pddot(ph%n_basis,norm,tmp2,1,j,bh%desc,1,evec,1,j,bh%desc,1)
+
+      if(col_map(j) > 0) then
+         evec(:,col_map(j)) = evec(:,col_map(j))/sqrt(norm)
+         tmp2(:,col_map(j)) = tmp2(:,col_map(j))/sqrt(norm)
+      end if
+
+      if(j-i_done == n_block .and. j < ph%n_states) then
+         ! Dot product of evec(i_done+1..j) with evec(j+1..n_states)
+         call pdgemm("T","N",n_block,ph%n_states-j,ph%n_basis,1.0_r8,tmp2,1,&
+                 i_done+1,bh%desc,evec,1,j+1,bh%desc,0.0_r8,tmp3,1,j+1,bh%desc)
+
+         ! Orthogonalize
+         call pdgemm("N","N",ph%n_basis,ph%n_states-j,n_block,-1.0_r8,evec,1,&
+                 i_done+1,bh%desc,tmp3,1,j+1,bh%desc,1.0_r8,evec,1,j+1,bh%desc)
+
+         i_done = i_done+n_block
+      end if
+   end do
+
+   call elsi_deallocate(bh,tmp1,"tmp1")
+   call elsi_deallocate(bh,tmp2,"tmp2")
+   call elsi_deallocate(bh,tmp3,"tmp3")
+
+   call elsi_get_time(t1)
+
+   write(msg,"(2X,A)") "Finished Gram-Schmidt orthonormalization"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
+end subroutine
+
+!>
+!! This routine orthonormalizes eigenvectors with respect to an overlap matrix
+!! using a modified Gram-Schmidt algorithm.
+!!
+subroutine elsi_gram_schmidt_cmplx(ph,bh,col_map,ovlp,evec)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
+   complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+
+   integer(kind=i4) :: j
+   integer(kind=i4) :: i_done
+   integer(kind=i4) :: n_block
+   complex(kind=r8) :: norm
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
+   complex(kind=r8), allocatable :: tmp1(:)
+   complex(kind=r8), allocatable :: tmp2(:,:)
+   complex(kind=r8), allocatable :: tmp3(:,:)
+
+   character(len=*), parameter :: caller = "elsi_new_ev_cmplx"
+
+   call elsi_get_time(t0)
+
+   n_block = bh%n_lcol*bh%blk
+
+   call elsi_allocate(bh,tmp1,bh%n_lrow,"tmp1",caller)
+   call elsi_allocate(bh,tmp2,bh%n_lrow,bh%n_lcol,"tmp2",caller)
+   call elsi_allocate(bh,tmp3,bh%n_lrow,bh%n_lcol,"tmp3",caller)
+
+   call pzhemm("L","U",ph%n_basis,ph%n_states,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
+           evec,1,1,bh%desc,(0.0_r8,0.0_r8),tmp2,1,1,bh%desc)
+
+   i_done = 0
+
+   do j = 1,ph%n_states
+      if(j > i_done+1) then
+         ! Dot product of evec(j) with evec(i_done+1..j-1)
+         call pzgemv("T",ph%n_basis,j-1-i_done,(1.0_r8,0.0_r8),tmp2,1,i_done+1,&
+                 bh%desc,evec,1,j,bh%desc,1,(0.0_r8,0.0_r8),tmp1,1,1,bh%desc,1)
+
+         ! Orthogonalize
+         call pzgemv("N",ph%n_basis,j-1-i_done,(-1.0_r8,0.0_r8),evec,1,&
+                 i_done+1,bh%desc,tmp1,1,1,bh%desc,1,(1.0_r8,0.0_r8),evec,1,j,&
+                 bh%desc,1)
+
+         call pzgemv("N",ph%n_basis,j-1-i_done,(-1.0_r8,0.0_r8),tmp2,1,&
+                 i_done+1,bh%desc,tmp1,1,1,bh%desc,1,(1.0_r8,0.0_r8),tmp2,1,j,&
+                 bh%desc,1)
+      end if
+
+      ! Normalize
+      norm = (0.0_r8,0.0_r8)
+
+      call pzdotc(ph%n_basis,norm,tmp2,1,j,bh%desc,1,evec,1,j,bh%desc,1)
+
+      if(col_map(j) > 0) then
+         evec(:,col_map(j)) = evec(:,col_map(j))/sqrt(real(norm,kind=r8))
+         tmp2(:,col_map(j)) = tmp2(:,col_map(j))/sqrt(real(norm,kind=r8))
+      end if
+
+      if(j-i_done == n_block .and. j < ph%n_states) then
+         ! Dot product of evec(i_done+1..j) with evec(j+1..n_states)
+         call pzgemm("C","N",n_block,ph%n_states-j,ph%n_basis,(1.0_r8,0.0_r8),&
+                 tmp2,1,i_done+1,bh%desc,evec,1,j+1,bh%desc,(0.0_r8,0.0_r8),&
+                 tmp3,1,j+1,bh%desc)
+
+         ! Orthogonalize
+         call pzgemm("N","N",ph%n_basis,ph%n_states-j,n_block,(-1.0_r8,0.0_r8),&
+                 evec,1,i_done+1,bh%desc,tmp3,1,j+1,bh%desc,(1.0_r8,0.0_r8),&
+                 evec,1,j+1,bh%desc)
+
+         i_done = i_done+n_block
+      end if
+   end do
+
+   call elsi_deallocate(bh,tmp1,"tmp1")
+   call elsi_deallocate(bh,tmp2,"tmp2")
+   call elsi_deallocate(bh,tmp3,"tmp3")
+
+   call elsi_get_time(t1)
+
+   write(msg,"(2X,A)") "Finished Gram-Schmidt orthonormalization"
    call elsi_say(bh,msg)
    write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)

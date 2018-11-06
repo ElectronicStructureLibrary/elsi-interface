@@ -290,7 +290,7 @@ subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
-   real(kind=r8), intent(in) :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(out) :: dm(bh%nnz_l_sp1)
 
    real(kind=r8) :: t0
@@ -301,8 +301,8 @@ subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 
    call elsi_get_time(t0)
 
-   call sips_get_dm(bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,col_ptr,ph%n_states,&
-           occ(:,1,1),dm)
+   call sips_get_dm(bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,col_ptr,ph%n_states,occ,&
+           dm)
 
    call elsi_get_time(t1)
 
@@ -324,7 +324,7 @@ subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
-   real(kind=r8), intent(in) :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(out) :: edm(bh%nnz_l_sp1)
 
    real(kind=r8) :: t0
@@ -336,7 +336,7 @@ subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
    call elsi_get_time(t0)
 
    call sips_get_edm(bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,col_ptr,ph%n_states,&
-           occ(:,1,1),edm)
+           occ,edm)
 
    call elsi_get_time(t1)
 

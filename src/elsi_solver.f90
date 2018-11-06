@@ -555,8 +555,8 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,eh%eval,&
               eh%evec_real)
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
-      call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%evec_real,eh%occ,&
-              dm,ham)
+      call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%evec_real,&
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),dm)
       call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
    case(OMM_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
@@ -691,8 +691,8 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
               eh%ham_real_csc,eh%ovlp_real_csc,eh%eval,eh%evec_real)
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
-      call elsi_build_dm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,eh%occ,&
-              eh%dm_real_csc)
+      call elsi_build_dm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_csc)
       call elsi_sips_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
               eh%dm_real_csc,dm)
       call elsi_get_energy(eh%ph,eh%bh,energy,SIPS_SOLVER)
@@ -779,7 +779,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
               eh%evec_cmplx)
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%evec_cmplx,&
-              eh%occ,dm,ham)
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),dm)
       call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
    case(OMM_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
@@ -980,8 +980,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
       call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%ham_real_den,&
               eh%ovlp_real_den,eh%eval,eh%evec_real)
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
-      call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%evec_real,eh%occ,&
-              eh%dm_real_den,eh%ham_real_den)
+      call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%evec_real,&
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_den)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
@@ -1166,7 +1166,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
                  ovlp,eh%eval,eh%evec_real)
          call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
          call elsi_build_dm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 eh%occ,dm)
+                 eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),dm)
          call elsi_get_energy(eh%ph,eh%bh,energy,SIPS_SOLVER)
       case(SIESTA_CSC)
          if(.not. allocated(eh%row_ind_sp1)) then
@@ -1203,7 +1203,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
                  eh%ham_real_csc,eh%ovlp_real_csc,eh%eval,eh%evec_real)
          call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
          call elsi_build_dm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 eh%occ,eh%dm_real_csc)
+                 eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_csc)
          call elsi_sips_to_siesta_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
                  eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,&
                  eh%col_ptr_sp2,dm)
@@ -1346,7 +1346,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
               eh%ovlp_cmplx_den,eh%eval,eh%evec_cmplx)
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%evec_cmplx,&
-              eh%occ,eh%dm_cmplx_den,eh%ham_cmplx_den)
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_cmplx_den)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
