@@ -2375,7 +2375,7 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
             i_val = i_val+1
 
             ! Compute global id
-            col_send(i_val) = i_col+ph%sips_first_ev-1
+            col_send(i_val) = i_col
             row_send(i_val) = bh%myid*n_lrow_aux+i_row
             val_send(i_val) = evec_sips(i_row,i_col)
 

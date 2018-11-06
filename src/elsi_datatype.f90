@@ -174,7 +174,6 @@ module ELSI_DATATYPE
       integer(kind=i4) :: sips_np_per_slice
       integer(kind=i4) :: sips_n_slices
       integer(kind=i4) :: sips_slice_type
-      integer(kind=i4) :: sips_first_ev ! Index of first eigenvalue to compute
       real(kind=r8) :: sips_buffer ! Buffer for adjusting interval
       real(kind=r8) :: sips_interval(2)
       real(kind=r8) :: sips_inertia_tol

@@ -46,6 +46,7 @@ module ELSI
    public :: elsi_set_sing_stop
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
+   public :: elsi_set_elpa_cholesky
    public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
    public :: elsi_set_elpa_gpu_kernels
@@ -70,7 +71,6 @@ module ELSI
    public :: elsi_set_sips_buffer
    public :: elsi_set_sips_inertia_tol
    public :: elsi_set_sips_interval
-   public :: elsi_set_sips_first_ev
    public :: elsi_set_ntpoly_method
    public :: elsi_set_ntpoly_isr
    public :: elsi_set_ntpoly_tol

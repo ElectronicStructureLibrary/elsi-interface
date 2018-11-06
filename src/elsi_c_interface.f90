@@ -504,19 +504,19 @@ subroutine elsi_dm_complex_sparse_c_wrapper(handle_c,ham_c,ovlp_c,dm_c,energy)&
 
 end subroutine
 
-subroutine elsi_set_output_c_wrapper(handle_c,out_level)&
+subroutine elsi_set_output_c_wrapper(handle_c,output)&
    bind(C,name="c_elsi_set_output")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: out_level
+   integer(kind=c_int), value, intent(in) :: output
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_output(handle_f,out_level)
+   call elsi_set_output(handle_f,output)
 
 end subroutine
 
@@ -600,19 +600,35 @@ subroutine elsi_set_sing_stop_c_wrapper(handle_c,sing_stop)&
 
 end subroutine
 
-subroutine elsi_set_elpa_solver_c_wrapper(handle_c,elpa_solver)&
+subroutine elsi_set_elpa_solver_c_wrapper(handle_c,solver)&
    bind(C,name="c_elsi_set_elpa_solver")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: elpa_solver
+   integer(kind=c_int), value, intent(in) :: solver
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_elpa_solver(handle_f,elpa_solver)
+   call elsi_set_elpa_solver(handle_f,solver)
+
+end subroutine
+
+subroutine elsi_set_elpa_cholesky_c_wrapper(handle_c,cholesky)&
+   bind(C,name="c_elsi_set_elpa_cholesky")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: cholesky
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_elpa_cholesky(handle_f,cholesky)
 
 end subroutine
 
@@ -632,67 +648,67 @@ subroutine elsi_set_elpa_n_single_c_wrapper(handle_c,n_single)&
 
 end subroutine
 
-subroutine elsi_set_elpa_gpu_c_wrapper(handle_c,use_gpu)&
+subroutine elsi_set_elpa_gpu_c_wrapper(handle_c,gpu)&
    bind(C,name="c_elsi_set_elpa_gpu")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: use_gpu
+   integer(kind=c_int), value, intent(in) :: gpu
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_elpa_gpu(handle_f,use_gpu)
+   call elsi_set_elpa_gpu(handle_f,gpu)
 
 end subroutine
 
-subroutine elsi_set_elpa_gpu_kernels_c_wrapper(handle_c,use_gpu_kernels)&
+subroutine elsi_set_elpa_gpu_kernels_c_wrapper(handle_c,gpu_kernels)&
    bind(C,name="c_elsi_set_elpa_gpu_kernels")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: use_gpu_kernels
+   integer(kind=c_int), value, intent(in) :: gpu_kernels
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_elpa_gpu_kernels(handle_f,use_gpu_kernels)
+   call elsi_set_elpa_gpu_kernels(handle_f,gpu_kernels)
 
 end subroutine
 
-subroutine elsi_set_elpa_autotune_c_wrapper(handle_c,use_autotune)&
+subroutine elsi_set_elpa_autotune_c_wrapper(handle_c,autotune)&
    bind(C,name="c_elsi_set_elpa_autotune")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: use_autotune
+   integer(kind=c_int), value, intent(in) :: autotune
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_elpa_autotune(handle_f,use_autotune)
+   call elsi_set_elpa_autotune(handle_f,autotune)
 
 end subroutine
 
-subroutine elsi_set_omm_flavor_c_wrapper(handle_c,omm_flavor)&
+subroutine elsi_set_omm_flavor_c_wrapper(handle_c,flavor)&
    bind(C,name="c_elsi_set_omm_flavor")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: omm_flavor
+   integer(kind=c_int), value, intent(in) :: flavor
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_omm_flavor(handle_f,omm_flavor)
+   call elsi_set_omm_flavor(handle_f,flavor)
 
 end subroutine
 
@@ -712,19 +728,19 @@ subroutine elsi_set_omm_n_elpa_c_wrapper(handle_c,n_elpa)&
 
 end subroutine
 
-subroutine elsi_set_omm_tol_c_wrapper(handle_c,omm_tol)&
+subroutine elsi_set_omm_tol_c_wrapper(handle_c,tol)&
    bind(C,name="c_elsi_set_omm_tol")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   real(kind=c_double), value, intent(in) :: omm_tol
+   real(kind=c_double), value, intent(in) :: tol
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_omm_tol(handle_f,omm_tol)
+   call elsi_set_omm_tol(handle_f,tol)
 
 end subroutine
 
@@ -936,22 +952,6 @@ subroutine elsi_set_sips_n_slice_c_wrapper(handle_c,n_slice)&
 
 end subroutine
 
-subroutine elsi_set_sips_first_ev_c_wrapper(handle_c,first_ev)&
-   bind(C,name="c_elsi_set_sips_first_ev")
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: first_ev
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_set_sips_first_ev(handle_f,first_ev)
-
-end subroutine
-
 subroutine elsi_set_sips_slice_type_c_wrapper(handle_c,slice_type)&
    bind(C,name="c_elsi_set_sips_slice_type")
 
@@ -1017,51 +1017,51 @@ subroutine elsi_set_sips_interval_c_wrapper(handle_c,lower,upper)&
 
 end subroutine
 
-subroutine elsi_set_ntpoly_method_c_wrapper(handle_c,nt_method)&
+subroutine elsi_set_ntpoly_method_c_wrapper(handle_c,method)&
    bind(C,name="c_elsi_set_ntpoly_method")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: nt_method
+   integer(kind=c_int), value, intent(in) :: method
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_ntpoly_method(handle_f,nt_method)
+   call elsi_set_ntpoly_method(handle_f,method)
 
 end subroutine
 
-subroutine elsi_set_ntpoly_isr_c_wrapper(handle_c,nt_isr)&
+subroutine elsi_set_ntpoly_isr_c_wrapper(handle_c,isr)&
    bind(C,name="c_elsi_set_ntpoly_isr")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: nt_isr
+   integer(kind=c_int), value, intent(in) :: isr
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_ntpoly_isr(handle_f,nt_isr)
+   call elsi_set_ntpoly_isr(handle_f,isr)
 
 end subroutine
 
-subroutine elsi_set_ntpoly_tol_c_wrapper(handle_c,nt_tol)&
+subroutine elsi_set_ntpoly_tol_c_wrapper(handle_c,tol)&
    bind(C,name="c_elsi_set_ntpoly_tol")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   real(kind=c_double), value, intent(in) :: nt_tol
+   real(kind=c_double), value, intent(in) :: tol
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_ntpoly_tol(handle_f,nt_tol)
+   call elsi_set_ntpoly_tol(handle_f,tol)
 
 end subroutine
 
@@ -1129,19 +1129,19 @@ subroutine elsi_set_mu_broaden_width_c_wrapper(handle_c,broaden_width)&
 
 end subroutine
 
-subroutine elsi_set_mu_tol_c_wrapper(handle_c,mu_tol)&
+subroutine elsi_set_mu_tol_c_wrapper(handle_c,tol)&
    bind(C,name="c_elsi_set_mu_tol")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   real(kind=c_double), value, intent(in) :: mu_tol
+   real(kind=c_double), value, intent(in) :: tol
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_mu_tol(handle_f,mu_tol)
+   call elsi_set_mu_tol(handle_f,tol)
 
 end subroutine
 
@@ -1177,19 +1177,19 @@ subroutine elsi_set_mu_mp_order_c_wrapper(handle_c,mp_order)&
 
 end subroutine
 
-subroutine elsi_set_output_log_c_wrapper(handle_c,out_log)&
+subroutine elsi_set_output_log_c_wrapper(handle_c,output_log)&
    bind(C,name="c_elsi_set_output_log")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: out_log
+   integer(kind=c_int), value, intent(in) :: output_log
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_output_log(handle_f,out_log)
+   call elsi_set_output_log(handle_f,output_log)
 
 end subroutine
 
@@ -1225,19 +1225,19 @@ subroutine elsi_get_pexsi_mu_max_c_wrapper(handle_c,mu_max)&
 
 end subroutine
 
-subroutine elsi_get_initialized_c_wrapper(handle_c,handle_init)&
+subroutine elsi_get_initialized_c_wrapper(handle_c,initialized)&
    bind(C,name="c_elsi_get_initialized")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: handle_c
-   integer(kind=c_int), intent(out) :: handle_init
+   integer(kind=c_int), intent(out) :: initialized
 
    type(elsi_handle), pointer :: handle_f
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_get_initialized(handle_f,handle_init)
+   call elsi_get_initialized(handle_f,initialized)
 
 end subroutine
 
@@ -1294,6 +1294,22 @@ subroutine elsi_get_mu_c_wrapper(handle_c,mu)&
    call c_f_pointer(handle_c,handle_f)
 
    call elsi_get_mu(handle_f,mu)
+
+end subroutine
+
+subroutine elsi_get_entropy_c_wrapper(handle_c,entropy)&
+   bind(C,name="c_elsi_get_entropy")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   real(kind=c_double), intent(out) :: entropy
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_get_entropy(handle_f,entropy)
 
 end subroutine
 

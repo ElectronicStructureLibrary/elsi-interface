@@ -172,12 +172,12 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
          call sips_get_inertias(ph%sips_n_slices,slices,inertias)
 
-         if(inertias(1) > ph%sips_first_ev-1) then
+         if(inertias(1) > 0) then
             eval(1) = eval(1)-ph%sips_buffer
             inertia_ok = .false.
          else
             do i = 1,ph%sips_n_slices
-               if(inertias(i+1) > ph%sips_first_ev-1) then
+               if(inertias(i+1) > 0) then
                   eval(1) = slices(i)
 
                   if(i > 1) then
@@ -187,20 +187,14 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
                   exit
                end if
             end do
-
-            if(inertias(i) < ph%sips_first_ev-1) then
-               eval(1) = eval(1)+ph%sips_buffer
-               inertia_ok = .false.
-            end if
          end if
 
-         if(inertias(ph%sips_n_slices+1) <&
-            ph%n_states+ph%sips_first_ev-1) then
+         if(inertias(ph%sips_n_slices+1) < ph%n_states) then
             eval(ph%n_states) = eval(ph%n_states)+ph%sips_buffer
             inertia_ok = .false.
          else
             do i = ph%sips_n_slices+1,2,-1
-               if(inertias(i-1) < ph%n_states+ph%sips_first_ev-1) then
+               if(inertias(i-1) < ph%n_states) then
                   eval(ph%n_states) = slices(i)
 
                   if(i < ph%sips_n_slices+1) then

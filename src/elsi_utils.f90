@@ -161,7 +161,6 @@ subroutine elsi_reset_param(ph)
    ph%sips_np_per_slice = UNSET
    ph%sips_n_slices = UNSET
    ph%sips_slice_type = 2
-   ph%sips_first_ev = 1
    ph%sips_buffer = 1.0e-2_r8
    ph%sips_interval(1) = -2.0_r8
    ph%sips_interval(2) = 2.0_r8

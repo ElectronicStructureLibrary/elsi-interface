@@ -37,6 +37,7 @@ module ELSI_MUTATOR
    public :: elsi_set_sing_stop
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
+   public :: elsi_set_elpa_cholesky
    public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
    public :: elsi_set_elpa_gpu_kernels
@@ -61,7 +62,6 @@ module ELSI_MUTATOR
    public :: elsi_set_sips_buffer
    public :: elsi_set_sips_inertia_tol
    public :: elsi_set_sips_interval
-   public :: elsi_set_sips_first_ev
    public :: elsi_set_ntpoly_method
    public :: elsi_set_ntpoly_isr
    public :: elsi_set_ntpoly_tol
@@ -93,30 +93,30 @@ contains
 !>
 !! This routine sets ELSI output level.
 !!
-subroutine elsi_set_output(eh,out_level)
+subroutine elsi_set_output(eh,output)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: out_level !< Output level
+   integer(kind=i4), intent(in) :: output !< Output level
 
    character(len=*), parameter :: caller = "elsi_set_output"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(out_level <= 0) then
+   if(output <= 0) then
       eh%bh%print_info = 0
       eh%ph%omm_output = .false.
       eh%ph%pexsi_options%verbosity = 1
       eh%ph%elpa_output = .false.
       eh%ph%nt_output = .false.
-   else if(out_level == 1) then
+   else if(output == 1) then
       eh%bh%print_info = 1
       eh%ph%omm_output = .false.
       eh%ph%pexsi_options%verbosity = 1
       eh%ph%elpa_output = .false.
       eh%ph%nt_output = .false.
-   else if(out_level == 2) then
+   else if(output == 2) then
       eh%bh%print_info = 2
       eh%ph%omm_output = .true.
       eh%ph%pexsi_options%verbosity = 2
@@ -275,22 +275,45 @@ end subroutine
 !>
 !! This routine sets the ELPA solver.
 !!
-subroutine elsi_set_elpa_solver(eh,elpa_solver)
+subroutine elsi_set_elpa_solver(eh,solver)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: elpa_solver !< ELPA solver
+   integer(kind=i4), intent(in) :: solver !< ELPA solver
 
    character(len=*), parameter :: caller = "elsi_set_elpa_solver"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(elpa_solver < 1 .or. elpa_solver > 2) then
+   if(solver < 1 .or. solver > 2) then
       call elsi_stop(eh%bh,"Invalid choice.",caller)
    end if
 
-   eh%ph%elpa_solver = elpa_solver
+   eh%ph%elpa_solver = solver
+
+end subroutine
+
+!>
+!! This routine sets whether the Cholesky factorization step in ELPA has been
+!! performed externally or should be performed internally.
+!!
+subroutine elsi_set_elpa_cholesky(eh,cholesky)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: cholesky !< Cholesky factorized?
+
+   character(len=*), parameter :: caller = "elsi_set_elpa_cholesky"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(cholesky == 0) then
+      eh%ph%elpa_first = .true.
+   else
+      eh%ph%elpa_first = .false.
+   end if
 
 end subroutine
 
@@ -301,8 +324,8 @@ subroutine elsi_set_elpa_n_single(eh,n_single)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: eh
-   integer(kind=i4), intent(in) :: n_single
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: n_single !< Single-precision steps
 
    character(len=*), parameter :: caller = "elsi_set_elpa_n_single"
 
@@ -321,18 +344,18 @@ end subroutine
 !! back-transforming eigenvectors) should be enabled in ELPA. No effect if no
 !! GPU acceleration available.
 !!
-subroutine elsi_set_elpa_gpu(eh,use_gpu)
+subroutine elsi_set_elpa_gpu(eh,gpu)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: use_gpu !< Use GPU acceleration?
+   integer(kind=i4), intent(in) :: gpu !< Use GPU acceleration?
 
    character(len=*), parameter :: caller = "elsi_set_elpa_gpu"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(use_gpu == 0) then
+   if(gpu == 0) then
       eh%ph%elpa_gpu = .false.
    else
       eh%ph%elpa_gpu = .true.
@@ -345,18 +368,18 @@ end subroutine
 !! transforming eigenvectors) should be enabled in ELPA. No effect if no GPU
 !! acceleration available.
 !!
-subroutine elsi_set_elpa_gpu_kernels(eh,use_gpu_kernels)
+subroutine elsi_set_elpa_gpu_kernels(eh,gpu_kernels)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: use_gpu_kernels !< Use GPU kernels?
+   integer(kind=i4), intent(in) :: gpu_kernels !< Use GPU kernels?
 
    character(len=*), parameter :: caller = "elsi_set_elpa_gpu_kernels"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(use_gpu_kernels == 0) then
+   if(gpu_kernels == 0) then
       eh%ph%elpa_gpu_kernels = .false.
    else
       call elsi_set_elpa_gpu(eh,1)
@@ -370,18 +393,18 @@ end subroutine
 !! This routine sets whether auto-tuning should be enabled in ELPA. No effect if
 !! no auto-tuning available.
 !!
-subroutine elsi_set_elpa_autotune(eh,use_autotune)
+subroutine elsi_set_elpa_autotune(eh,autotune)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: use_autotune !< Use auto-tuning?
+   integer(kind=i4), intent(in) :: autotune !< Use auto-tuning?
 
    character(len=*), parameter :: caller = "elsi_set_elpa_autotune"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(use_autotune == 0) then
+   if(autotune == 0) then
       eh%ph%elpa_autotune = .false.
    else
       eh%ph%elpa_autotune = .true.
@@ -392,22 +415,22 @@ end subroutine
 !>
 !! This routine sets the flavor of libOMM.
 !!
-subroutine elsi_set_omm_flavor(eh,omm_flavor)
+subroutine elsi_set_omm_flavor(eh,flavor)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: omm_flavor !< libOMM flavor
+   integer(kind=i4), intent(in) :: flavor !< libOMM flavor
 
    character(len=*), parameter :: caller = "elsi_set_omm_flavor"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(omm_flavor /= 0 .and. omm_flavor /= 2) then
+   if(flavor /= 0 .and. flavor /= 2) then
       call elsi_stop(eh%bh,"Invalid choice.",caller)
    end if
 
-   eh%ph%omm_flavor = omm_flavor
+   eh%ph%omm_flavor = flavor
 
 end subroutine
 
@@ -436,22 +459,22 @@ end subroutine
 !>
 !! This routine sets the tolerance of OMM minimization.
 !!
-subroutine elsi_set_omm_tol(eh,min_tol)
+subroutine elsi_set_omm_tol(eh,tol)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: min_tol !< Tolerance of OMM minimization
+   real(kind=r8), intent(in) :: tol !< Tolerance of OMM minimization
 
    character(len=*), parameter :: caller = "elsi_set_omm_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(min_tol <= 0.0_r8) then
+   if(tol <= 0.0_r8) then
       call elsi_stop(eh%bh,"Input value should be positive.",caller)
    end if
 
-   eh%ph%omm_tol = min_tol
+   eh%ph%omm_tol = tol
 
 end subroutine
 
@@ -562,7 +585,7 @@ subroutine elsi_set_pexsi_ordering(eh,ordering)
 end subroutine
 
 !>
-!! This routine sets the temperature parameter in PEXSI.
+!! This routine sets the electronic temperature in PEXSI.
 !!
 subroutine elsi_set_pexsi_temp(eh,temp)
 
@@ -825,92 +848,68 @@ subroutine elsi_set_sips_interval(eh,lower,upper)
 end subroutine
 
 !>
-!! This routine sets the index of the first eigensolution to be solved.
-!!
-subroutine elsi_set_sips_first_ev(eh,first_ev)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: first_ev !< Index of first eigensolution
-
-   character(len=*), parameter :: caller = "elsi_set_sips_first_ev"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   if(first_ev < 1) then
-      eh%ph%sips_first_ev = 1
-   else if(first_ev > eh%ph%n_basis-eh%ph%n_states+1) then
-      eh%ph%sips_first_ev = eh%ph%n_basis-eh%ph%n_states+1
-   else
-      eh%ph%sips_first_ev = first_ev
-   end if
-
-end subroutine
-
-!>
 !! This routine sets the density matrix purification method in NTPoly.
 !!
-subroutine elsi_set_ntpoly_method(eh,nt_method)
+subroutine elsi_set_ntpoly_method(eh,method)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: nt_method !< Purification method
+   integer(kind=i4), intent(in) :: method !< Purification method
 
    character(len=*), parameter :: caller = "elsi_set_ntpoly_method"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(nt_method < 0 .or. nt_method > 3) then
+   if(method < 0 .or. method > 3) then
       call elsi_stop(eh%bh,"Invalid choice.",caller)
    end if
 
-   eh%ph%nt_method = nt_method
+   eh%ph%nt_method = method
 
 end subroutine
 
 !>
 !! This routine sets the inverse square root method in NTPoly.
 !!
-subroutine elsi_set_ntpoly_isr(eh,nt_isr)
+subroutine elsi_set_ntpoly_isr(eh,isr)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: nt_isr !< Inverse square root method
+   integer(kind=i4), intent(in) :: isr !< Inverse square root method
 
    character(len=*), parameter :: caller = "elsi_set_ntpoly_isr"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(nt_isr /= 2 .and. nt_isr /= 3 .and. nt_isr /= 5) then
+   if(isr /= 2 .and. isr /= 3 .and. isr /= 5) then
       call elsi_stop(eh%bh,"Invalid choice.",caller)
    end if
 
-   eh%ph%nt_isr = nt_isr
+   eh%ph%nt_isr = isr
 
 end subroutine
 
 !>
 !! This routine sets the tolerance of the density matrix purification.
 !!
-subroutine elsi_set_ntpoly_tol(eh,nt_tol)
+subroutine elsi_set_ntpoly_tol(eh,tol)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: nt_tol !< Tolerance
+   real(kind=r8), intent(in) :: tol !< Tolerance
 
    character(len=*), parameter :: caller = "elsi_set_ntpoly_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(nt_tol <= 0.0_r8) then
+   if(tol <= 0.0_r8) then
       call elsi_stop(eh%bh,"Input value should be positive.",caller)
    end if
 
-   eh%ph%nt_tol = nt_tol
+   eh%ph%nt_tol = tol
 
 end subroutine
 
@@ -940,7 +939,7 @@ subroutine elsi_set_ntpoly_max_iter(eh,max_iter)
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: max_iter !< Maximum number of iterations
+   integer(kind=i4), intent(in) :: max_iter !< Number of iterations
 
    character(len=*), parameter :: caller = "elsi_set_ntpoly_max_iter"
 
@@ -969,7 +968,7 @@ subroutine elsi_set_mu_broaden_scheme(eh,broaden_scheme)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(elpa_solver < 0 .or. elpa_solver > 4) then
+   if(broaden_scheme < 0 .or. broaden_scheme > 4) then
       call elsi_stop(eh%bh,"Invalid choice.",caller)
    end if
 
@@ -1004,22 +1003,22 @@ end subroutine
 !! This routine sets the desired accuracy of the determination of the chemical
 !! potential and the occupation numbers.
 !!
-subroutine elsi_set_mu_tol(eh,mu_tol)
+subroutine elsi_set_mu_tol(eh,tol)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: mu_tol !< Accuracy of mu
+   real(kind=r8), intent(in) :: tol !< Accuracy of mu
 
    character(len=*), parameter :: caller = "elsi_set_mu_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(mu_tol < 0.0_r8) then
+   if(tol < 0.0_r8) then
       call elsi_stop(eh%bh,"Input value should not be negative.",caller)
    end if
 
-   eh%ph%mu_tol = mu_tol
+   eh%ph%mu_tol = tol
 
 end subroutine
 
@@ -1158,19 +1157,19 @@ end subroutine
 !! This routine returns 0 if the input handle has not been initialized; returns
 !! 1 if it has been initialized.
 !!
-subroutine elsi_get_initialized(eh,handle_init)
+subroutine elsi_get_initialized(eh,initialized)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(out) :: handle_init !< Handle initialized?
+   integer(kind=i4), intent(out) :: initialized !< Handle initialized?
 
    character(len=*), parameter :: caller = "elsi_get_initialized"
 
    if(eh%handle_init) then
-      handle_init = 1
+      initialized = 1
    else
-      handle_init = 0
+      initialized = 0
    end if
 
 end subroutine
@@ -1270,18 +1269,18 @@ end subroutine
 !>
 !! This routine gets the entropy.
 !!
-subroutine elsi_get_entropy(eh,ts)
+subroutine elsi_get_entropy(eh,entropy)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(out) :: ts !< Entropy
+   real(kind=r8), intent(out) :: entropy !< Entropy
 
    character(len=*), parameter :: caller = "elsi_get_entropy"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   ts = eh%ph%ts
+   entropy = eh%ph%ts
 
 end subroutine
 
