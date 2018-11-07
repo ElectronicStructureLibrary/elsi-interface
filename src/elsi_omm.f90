@@ -115,7 +115,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    end if
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       if(ph%omm_flavor == 2) then
          if(ph%omm_first .and. ph%elpa_first) then
             call elsi_get_time(t0)
@@ -267,7 +267,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    end if
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       if(ph%omm_flavor == 2) then
          if(ph%omm_first .and. ph%elpa_first) then
             call elsi_get_time(t0)

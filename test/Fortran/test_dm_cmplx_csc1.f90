@@ -164,7 +164,7 @@ subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
    ! Customize ELSI
    call elsi_set_output(eh,2)
    call elsi_set_output_log(eh,1)
-   call elsi_set_sing_check(eh,0)
+   call elsi_set_illcond_check(eh,0)
    call elsi_set_mu_broaden_width(eh,1.0e-6_r8)
    call elsi_set_omm_n_elpa(eh,1)
    call elsi_set_pexsi_delta_e(eh,80.0_r8)

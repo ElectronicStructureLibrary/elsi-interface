@@ -90,11 +90,11 @@ subroutine elsi_reset_param(ph)
    ph%parallel_mode = UNSET
    ph%n_calls = 0
    ph%n_calls_all = 0
-   ph%ovlp_is_unit = .false.
-   ph%ovlp_is_sing = .false.
-   ph%check_sing = .true.
-   ph%sing_tol = 1.0e-5_r8
-   ph%stop_sing = .false.
+   ph%unit_ovlp = .false.
+   ph%ill_ovlp = .false.
+   ph%ill_check = .true.
+   ph%ill_tol = 1.0e-5_r8
+   ph%ill_abort = .false.
    ph%n_good = UNSET
    ph%n_electrons = 0.0_r8
    ph%n_basis = UNSET

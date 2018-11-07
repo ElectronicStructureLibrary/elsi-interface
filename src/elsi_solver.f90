@@ -211,7 +211,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
       if(.not. allocated(eh%row_ind_sp1)) then
          call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,ham,ovlp)
 
-         if(eh%ph%ovlp_is_unit) then
+         if(eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_real_csc,1,"ovlp_real_csc",caller)
          else
             call elsi_allocate(eh%bh,eh%ovlp_real_csc,eh%bh%nnz_l_sp1,&
@@ -331,7 +331,7 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
       end if
 
       if(.not. allocated(eh%ovlp_real_den)) then
-         if(.not. eh%ph%ovlp_is_unit) then
+         if(.not. eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_real_den,eh%bh%n_lrow,&
                     eh%bh%n_lcol,"ovlp_real_den",caller)
          else
@@ -377,7 +377,7 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
          if(.not. allocated(eh%row_ind_sp1)) then
             call elsi_siesta_to_sips_hs_dim(eh%ph,eh%bh,eh%col_ptr_sp2)
 
-            if(eh%ph%ovlp_is_unit) then
+            if(eh%ph%unit_ovlp) then
                call elsi_allocate(eh%bh,eh%ovlp_real_csc,1,"ovlp_real_csc",&
                        caller)
             else
@@ -450,7 +450,7 @@ subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
       end if
 
       if(.not. allocated(eh%ovlp_cmplx_den)) then
-         if(.not. eh%ph%ovlp_is_unit) then
+         if(.not. eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_den,eh%bh%n_lrow,&
                     eh%bh%n_lcol,"ovlp_cmplx_den",caller)
          else
@@ -601,7 +601,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       if(.not. allocated(eh%row_ind_sp1)) then
          call elsi_blacs_to_pexsi_hs_dim(eh%ph,eh%bh,ham,ovlp)
 
-         if(eh%ph%ovlp_is_unit) then
+         if(eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_real_csc,1,"ovlp_real_csc",caller)
          else
             call elsi_allocate(eh%bh,eh%ovlp_real_csc,eh%bh%nnz_l_sp1,&
@@ -649,7 +649,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       if(.not. allocated(eh%row_ind_sp1)) then
          call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,ham,ovlp)
 
-         if(eh%ph%ovlp_is_unit) then
+         if(eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_real_csc,1,"ovlp_real_csc",caller)
          else
             call elsi_allocate(eh%bh,eh%ovlp_real_csc,eh%bh%nnz_l_sp1,&
@@ -825,7 +825,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
       if(.not. allocated(eh%row_ind_sp1)) then
          call elsi_blacs_to_pexsi_hs_dim(eh%ph,eh%bh,ham,ovlp)
 
-         if(eh%ph%ovlp_is_unit) then
+         if(eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_csc,1,"ovlp_cmplx_csc",&
                     caller)
          else
@@ -929,7 +929,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%ovlp_real_den)) then
-         if(.not. eh%ph%ovlp_is_unit) then
+         if(.not. eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_real_den,eh%bh%n_lrow,&
                     eh%bh%n_lcol,"ovlp_real_den",caller)
          else
@@ -1006,7 +1006,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%ovlp_real_den)) then
-         if(.not. eh%ph%ovlp_is_unit) then
+         if(.not. eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_real_den,eh%bh%n_lrow,&
                     eh%bh%n_lcol,"ovlp_real_den",caller)
          else
@@ -1094,7 +1094,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          if(.not. allocated(eh%row_ind_sp1)) then
             call elsi_siesta_to_pexsi_hs_dim(eh%ph,eh%bh,eh%col_ptr_sp2)
 
-            if(eh%ph%ovlp_is_unit) then
+            if(eh%ph%unit_ovlp) then
                call elsi_allocate(eh%bh,eh%ovlp_real_csc,1,"ovlp_real_csc",&
                        caller)
             else
@@ -1172,7 +1172,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          if(.not. allocated(eh%row_ind_sp1)) then
             call elsi_siesta_to_sips_hs_dim(eh%ph,eh%bh,eh%col_ptr_sp2)
 
-            if(eh%ph%ovlp_is_unit) then
+            if(eh%ph%unit_ovlp) then
                call elsi_allocate(eh%bh,eh%ovlp_real_csc,1,"ovlp_real_csc",&
                        caller)
             else
@@ -1294,7 +1294,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%ovlp_cmplx_den)) then
-         if(.not. eh%ph%ovlp_is_unit) then
+         if(.not. eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_den,eh%bh%n_lrow,&
                     eh%bh%n_lcol,"ovlp_cmplx_den",caller)
          else
@@ -1371,7 +1371,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%ovlp_cmplx_den)) then
-         if(.not. eh%ph%ovlp_is_unit) then
+         if(.not. eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_den,eh%bh%n_lrow,&
                     eh%bh%n_lcol,"ovlp_cmplx_den",caller)
          else
@@ -1460,7 +1460,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
          if(.not. allocated(eh%row_ind_sp1)) then
             call elsi_siesta_to_pexsi_hs_dim(eh%ph,eh%bh,eh%col_ptr_sp2)
 
-            if(eh%ph%ovlp_is_unit) then
+            if(eh%ph%unit_ovlp) then
                call elsi_allocate(eh%bh,eh%ovlp_cmplx_csc,1,"ovlp_cmplx_csc",&
                        caller)
             else

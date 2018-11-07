@@ -29,12 +29,15 @@ module ELSI_MUTATOR
    private
 
    public :: elsi_set_output
-   public :: elsi_set_write_unit
+   public :: elsi_set_output_unit
+   public :: elsi_set_output_log
+   public :: elsi_set_output_tag
+   public :: elsi_set_uuid
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def
-   public :: elsi_set_sing_check
-   public :: elsi_set_sing_tol
-   public :: elsi_set_sing_stop
+   public :: elsi_set_illcond_check
+   public :: elsi_set_illcond_tol
+   public :: elsi_set_illcond_abort
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_cholesky
@@ -61,7 +64,8 @@ module ELSI_MUTATOR
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_buffer
    public :: elsi_set_sips_inertia_tol
-   public :: elsi_set_sips_interval
+   public :: elsi_set_sips_ev_min
+   public :: elsi_set_sips_ev_max
    public :: elsi_set_ntpoly_method
    public :: elsi_set_ntpoly_isr
    public :: elsi_set_ntpoly_tol
@@ -72,21 +76,46 @@ module ELSI_MUTATOR
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
    public :: elsi_set_mu_mp_order
-   public :: elsi_set_output_log
-   public :: elsi_set_log_tag
-   public :: elsi_set_uuid
-   public :: elsi_get_pexsi_mu_min
-   public :: elsi_get_pexsi_mu_max
    public :: elsi_get_initialized
    public :: elsi_get_version
    public :: elsi_get_datestamp
-   public :: elsi_get_n_sing
+   public :: elsi_get_n_illcond
+   public :: elsi_get_pexsi_mu_min
+   public :: elsi_get_pexsi_mu_max
    public :: elsi_get_mu
    public :: elsi_get_entropy
    public :: elsi_get_edm_real
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse
    public :: elsi_get_edm_complex_sparse
+
+   ! Deprecated
+   public :: elsi_set_write_unit
+   public :: elsi_set_sing_check
+   public :: elsi_set_sing_tol
+   public :: elsi_set_sing_stop
+   public :: elsi_set_sips_interval
+   public :: elsi_get_n_sing
+
+   interface elsi_set_write_unit
+      module procedure elsi_set_output_unit
+   end interface
+
+   interface elsi_set_sing_check
+      module procedure elsi_set_illcond_check
+   end interface
+
+   interface elsi_set_sing_tol
+      module procedure elsi_set_illcond_tol
+   end interface
+
+   interface elsi_set_sing_stop
+      module procedure elsi_set_illcond_abort
+   end interface
+
+   interface elsi_get_n_sing
+      module procedure elsi_get_n_illcond
+   end interface
 
 contains
 
@@ -135,18 +164,69 @@ end subroutine
 !>
 !! This routine sets the unit to be used by ELSI output.
 !!
-subroutine elsi_set_write_unit(eh,write_unit)
+subroutine elsi_set_output_unit(eh,print_unit)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: write_unit !< Unit
+   integer(kind=i4), intent(in) :: print_unit !< Unit
 
-   character(len=*), parameter :: caller = "elsi_set_write_unit"
+   character(len=*), parameter :: caller = "elsi_set_output_unit"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   eh%bh%print_unit = write_unit
+   eh%bh%print_unit = print_unit
+
+end subroutine
+
+!>
+!! This routine sets whether a log file should be output.
+!!
+subroutine elsi_set_output_log(eh,output_log)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: output_log !< Output log
+
+   character(len=*), parameter :: caller = "elsi_set_output_log"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%bh%print_json = output_log
+
+end subroutine
+
+!>
+!! This routine sets the user_tag for the log.
+!!
+subroutine elsi_set_output_tag(eh,output_tag)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   character(len=*), intent(in) :: output_tag !< Tag
+
+   character(len=*), parameter :: caller = "elsi_set_output_tag"
+
+   eh%bh%user_tag = output_tag
+
+end subroutine
+
+!>
+!! This routine sets the UUID.
+!!
+subroutine elsi_set_uuid(eh,uuid)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   character(len=*), intent(in) :: uuid !< UUID
+
+   character(len=*), parameter :: caller = "elsi_set_uuid"
+
+   eh%bh%uuid_ready = .true.
+   eh%bh%uuid = uuid
 
 end subroutine
 
@@ -165,9 +245,9 @@ subroutine elsi_set_unit_ovlp(eh,unit_ovlp)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(unit_ovlp == 0) then
-      eh%ph%ovlp_is_unit = .false.
+      eh%ph%unit_ovlp = .false.
    else
-      eh%ph%ovlp_is_unit = .true.
+      eh%ph%unit_ovlp = .true.
    end if
 
 end subroutine
@@ -191,65 +271,65 @@ subroutine elsi_set_zero_def(eh,zero_def)
 end subroutine
 
 !>
-!! This routine switches on/off the singularity check of the overlap matrix.
+!! This routine sets whether ill-conditioning should be checked.
 !!
-subroutine elsi_set_sing_check(eh,sing_check)
+subroutine elsi_set_illcond_check(eh,illcond_check)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: sing_check !< Check singularity?
+   integer(kind=i4), intent(in) :: illcond_check !< Check singularity?
 
-   character(len=*), parameter :: caller = "elsi_set_sing_check"
+   character(len=*), parameter :: caller = "elsi_set_illcond_check"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(sing_check == 0) then
-      eh%ph%check_sing = .false.
-      eh%ph%ovlp_is_sing = .false.
+   if(illcond_check == 0) then
+      eh%ph%ill_check = .false.
+      eh%ph%ill_ovlp = .false.
       eh%ph%n_good = eh%ph%n_basis
    else
-      eh%ph%check_sing = .true.
+      eh%ph%ill_check = .true.
    end if
 
 end subroutine
 
 !>
-!! This routine sets the tolerance of the singularity check.
+!! This routine sets the tolerance of ill-conditioning.
 !!
-subroutine elsi_set_sing_tol(eh,sing_tol)
+subroutine elsi_set_illcond_tol(eh,illcond_tol)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: sing_tol !< Singularity tolerance
+   real(kind=r8), intent(in) :: illcond_tol !< Singularity tolerance
 
-   character(len=*), parameter :: caller = "elsi_set_sing_tol"
+   character(len=*), parameter :: caller = "elsi_set_illcond_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   eh%ph%sing_tol = sing_tol
+   eh%ph%ill_tol = illcond_tol
 
 end subroutine
 
 !>
-!! This routine sets whether to stop in case of singular overlap matrix.
+!! This routine sets whether to abort in case of ill-conditioning.
 !!
-subroutine elsi_set_sing_stop(eh,sing_stop)
+subroutine elsi_set_illcond_abort(eh,illcond_abort)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: sing_stop !< Stop if overlap is singular
+   integer(kind=i4), intent(in) :: illcond_abort !< Abort if ill-conditioned
 
-   character(len=*), parameter :: caller = "elsi_set_sing_stop"
+   character(len=*), parameter :: caller = "elsi_set_illcond_abort"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(sing_stop == 0) then
-      eh%ph%stop_sing = .false.
+   if(illcond_abort == 0) then
+      eh%ph%ill_abort = .false.
    else
-      eh%ph%stop_sing = .true.
+      eh%ph%ill_abort = .true.
    end if
 
 end subroutine
@@ -823,6 +903,42 @@ subroutine elsi_set_sips_inertia_tol(eh,inertia_tol)
 end subroutine
 
 !>
+!! This routine sets the lower bound of the interval to be solved by SLEPc-SIPs.
+!!
+subroutine elsi_set_sips_ev_min(eh,ev_min)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(in) :: ev_min !< Lower bound
+
+   character(len=*), parameter :: caller = "elsi_set_sips_ev_min"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%ph%sips_interval(1) = ev_min
+
+end subroutine
+
+!>
+!! This routine sets the upper bound of the interval to be solved by SLEPc-SIPs.
+!!
+subroutine elsi_set_sips_ev_max(eh,ev_max)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(in) :: ev_max !< Upper bound
+
+   character(len=*), parameter :: caller = "elsi_set_sips_ev_max"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%ph%sips_interval(2) = ev_max
+
+end subroutine
+
+!>
 !! This routine sets the global interval to be solved by SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_interval(eh,lower,upper)
@@ -1065,57 +1181,6 @@ subroutine elsi_set_mu_mp_order(eh,mp_order)
 end subroutine
 
 !>
-!! This routine sets whether a log file should be output.
-!!
-subroutine elsi_set_output_log(eh,output_log)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: output_log !< Output log
-
-   character(len=*), parameter :: caller = "elsi_set_output_log"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   eh%bh%print_json = output_log
-
-end subroutine
-
-!>
-!! This routine sets the user_tag for the log.
-!!
-subroutine elsi_set_log_tag(eh,user_tag)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   character(len=*), intent(in) :: user_tag !< Tag
-
-   character(len=*), parameter :: caller = "elsi_set_log_tag"
-
-   eh%bh%user_tag = user_tag
-
-end subroutine
-
-!>
-!! This routine sets the UUID.
-!!
-subroutine elsi_set_uuid(eh,uuid)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   character(len=*), intent(in) :: uuid !< UUID
-
-   character(len=*), parameter :: caller = "elsi_set_uuid"
-
-   eh%bh%uuid_ready = .true.
-   eh%bh%uuid = uuid
-
-end subroutine
-
-!>
 !! This routine gets the lower bound of the chemical potential returned by the
 !! inertia counting in PEXSI.
 !!
@@ -1231,25 +1296,25 @@ end subroutine
 
 !>
 !! This routine gets the number of basis functions that are removed due to
-!! overlap singularity.
+!! ill-conditioning.
 !!
-subroutine elsi_get_n_sing(eh,n_sing)
+subroutine elsi_get_n_illcond(eh,n_illcond)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(out) :: n_sing !< Number of singular basis
+   integer(kind=i4), intent(out) :: n_illcond !< Number of removed functions
 
-   character(len=*), parameter :: caller = "elsi_get_n_sing"
+   character(len=*), parameter :: caller = "elsi_get_n_illcond"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   n_sing = eh%ph%n_basis-eh%ph%n_good
+   n_illcond = eh%ph%n_basis-eh%ph%n_good
 
 end subroutine
 
 !>
-!! This routine gets the chemical potential.
+!! This routine gets the Fermi level (chemical potential).
 !!
 subroutine elsi_get_mu(eh,mu)
 

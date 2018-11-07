@@ -183,7 +183,7 @@ subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
    call elsi_allocate(bh,dest,ph%pexsi_np_per_pole,"dest",caller)
    call elsi_allocate(bh,nnz,ph%pexsi_np_per_pole,"nnz",caller)
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -256,7 +256,7 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
    call elsi_allocate(bh,dest,ph%pexsi_np_per_pole,"dest",caller)
    call elsi_allocate(bh,nnz,ph%pexsi_np_per_pole,"nnz",caller)
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -386,7 +386,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    end do
 
    if(ph%first_blacs_to_pexsi) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call elsi_get_nnz(bh%def0,ovlp_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
          call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
@@ -402,7 +402,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    i_val = 0
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -498,7 +498,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_blacs_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_recv,nnz_l_aux,"s_val_recv",caller)
 
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,s_val_recv,&
@@ -516,7 +516,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
                   int(row_recv,kind=i8)
 
    ! Sort
-   if(ph%first_blacs_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(nnz_l_aux,global_id,h_val_recv,s_val_recv,row_recv,&
               col_recv)
    else
@@ -561,7 +561,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
       call elsi_deallocate(bh,col_recv,"col_recv")
 
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          ! Overlap value
          call MPI_Alltoallv(s_val_recv,send_count,send_displ,mpi_real8,&
                  ovlp_csc,recv_count,recv_displ,mpi_real8,bh%comm,ierr)
@@ -711,7 +711,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    end do
 
    if(ph%first_blacs_to_pexsi) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call elsi_get_nnz(bh%def0,ovlp_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
          call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
@@ -727,7 +727,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
 
    i_val = 0
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -823,7 +823,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_blacs_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_recv,nnz_l_aux,"s_val_recv",caller)
 
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
@@ -841,7 +841,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
                   int(row_recv,kind=i8)
 
    ! Sort
-   if(ph%first_blacs_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(nnz_l_aux,global_id,h_val_recv,s_val_recv,row_recv,&
               col_recv)
    else
@@ -886,7 +886,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
 
       call elsi_deallocate(bh,col_recv,"col_recv")
 
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          ! Overlap value
          call MPI_Alltoallv(s_val_recv,send_count,send_displ,mpi_complex16,&
                  ovlp_csc,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
@@ -1345,7 +1345,7 @@ subroutine elsi_blacs_to_sips_hs_dim_real(ph,bh,ham_den,ovlp_den)
    call elsi_allocate(bh,dest,bh%n_procs,"dest",caller)
    call elsi_allocate(bh,nnz,bh%n_procs,"nnz",caller)
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -1416,7 +1416,7 @@ subroutine elsi_blacs_to_sips_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
    call elsi_allocate(bh,dest,bh%n_procs,"dest",caller)
    call elsi_allocate(bh,nnz,bh%n_procs,"nnz",caller)
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -1507,7 +1507,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_get_time(t0)
 
    if(ph%first_blacs_to_sips) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call elsi_get_nnz(bh%def0,ovlp_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
          call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
@@ -1523,7 +1523,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    i_val = 0
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -1621,7 +1621,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_blacs_to_sips .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,ovlp_csc,&
               recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
@@ -1641,7 +1641,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
                   int(row_ind,kind=i8)
 
    ! Sort
-   if(ph%first_blacs_to_sips .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp,global_id,ham_csc,ovlp_csc,row_ind,&
               col_recv)
    else
@@ -1725,7 +1725,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_get_time(t0)
 
    if(ph%first_blacs_to_sips) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call elsi_get_nnz(bh%def0,ovlp_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
          call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
@@ -1741,7 +1741,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    i_val = 0
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -1839,7 +1839,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_blacs_to_sips .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
               ovlp_csc,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
@@ -1859,7 +1859,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
                   int(row_ind,kind=i8)
 
    ! Sort
-   if(ph%first_blacs_to_sips .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp,global_id,ham_csc,ovlp_csc,row_ind,&
               col_recv)
    else
@@ -1946,7 +1946,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t0)
 
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_send,bh%nnz_l_sp,"s_val_send",caller)
    end if
 
@@ -1970,7 +1970,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
       col_send(i_val) = i_col+bh%myid*(ph%n_basis/bh%n_procs)
       h_val_send(i_val) = ham_csc(i_val)
 
-      if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
          s_val_send(i_val) = ovlp_csc(i_val)
       end if
 
@@ -1984,7 +1984,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    end do
 
    ! Sort
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp,dest,h_val_send,s_val_send,row_send,&
               col_send)
    else
@@ -2042,7 +2042,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_recv,bh%nnz_l,"s_val_recv",caller)
 
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,s_val_recv,&
@@ -2057,7 +2057,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
    ! Unpack matrix
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       ham_den = 0.0_r8
       ovlp_den = 0.0_r8
 
@@ -2150,7 +2150,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t0)
 
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_send,bh%nnz_l_sp,"s_val_send",caller)
    end if
 
@@ -2174,7 +2174,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
       col_send(i_val) = i_col+bh%myid*(ph%n_basis/bh%n_procs)
       h_val_send(i_val) = ham_csc(i_val)
 
-      if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
          s_val_send(i_val) = ovlp_csc(i_val)
       end if
 
@@ -2188,7 +2188,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    end do
 
    ! Sort
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp,dest,h_val_send,s_val_send,row_send,&
               col_send)
    else
@@ -2246,7 +2246,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_recv,bh%nnz_l,"s_val_recv",caller)
 
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
@@ -2261,7 +2261,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
    ! Unpack matrix
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       ham_den = (0.0_r8,0.0_r8)
       ovlp_den = (0.0_r8,0.0_r8)
 
@@ -2834,7 +2834,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t0)
 
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_send,bh%nnz_l_sp,"s_val_send",caller)
    end if
 
@@ -2859,7 +2859,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
       row_send(i_val) = i_row
       h_val_send(i_val) = ham_csc(i_val)
 
-      if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
          s_val_send(i_val) = ovlp_csc(i_val)
       end if
 
@@ -2873,7 +2873,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    end do
 
    ! Sort
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp,dest,h_val_send,s_val_send,row_send,&
               col_send)
    else
@@ -2931,7 +2931,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_recv,bh%nnz_l,"s_val_recv",caller)
 
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,s_val_recv,&
@@ -2946,7 +2946,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
    ! Unpack matrix
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       ham_den = 0.0_r8
       ovlp_den = 0.0_r8
 
@@ -3039,7 +3039,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
 
    call elsi_get_time(t0)
 
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_send,bh%nnz_l_sp,"s_val_send",caller)
    end if
 
@@ -3064,7 +3064,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
       row_send(i_val) = i_row
       h_val_send(i_val) = ham_csc(i_val)
 
-      if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
          s_val_send(i_val) = ovlp_csc(i_val)
       end if
 
@@ -3078,7 +3078,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    end do
 
    ! Sort
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp,dest,h_val_send,s_val_send,row_send,&
               col_send)
    else
@@ -3136,7 +3136,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_recv,bh%nnz_l,"s_val_recv",caller)
 
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
@@ -3151,7 +3151,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
    ! Unpack matrix
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       ham_den = (0.0_r8,0.0_r8)
       ovlp_den = (0.0_r8,0.0_r8)
 
@@ -3609,7 +3609,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    n_lcol_aux = ph%n_basis/ph%pexsi_np_per_pole
 
-   if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_send,bh%nnz_l_sp2,"s_val_send",caller)
    end if
 
@@ -3633,7 +3633,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
       row_send(i_val) = i_row
       h_val_send(i_val) = ham_csc2(i_val)
 
-      if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
          s_val_send(i_val) = ovlp_csc2(i_val)
       end if
 
@@ -3689,7 +3689,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,ovlp_csc1,&
               recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
@@ -3709,7 +3709,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
                   int(row_ind1,kind=i8)
 
    ! Sort
-   if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_csc1,ovlp_csc1,row_ind1,&
               col_recv)
    else
@@ -3797,7 +3797,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    n_lcol_aux = ph%n_basis/ph%pexsi_np_per_pole
 
-   if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_send,bh%nnz_l_sp2,"s_val_send",caller)
    end if
 
@@ -3821,7 +3821,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
       row_send(i_val) = i_row
       h_val_send(i_val) = ham_csc2(i_val)
 
-      if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
          s_val_send(i_val) = ovlp_csc2(i_val)
       end if
 
@@ -3877,7 +3877,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
               ovlp_csc1,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
@@ -3897,7 +3897,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
                   int(row_ind1,kind=i8)
 
    ! Sort
-   if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_csc1,ovlp_csc1,row_ind1,&
               col_recv)
    else
@@ -4510,7 +4510,7 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    call elsi_get_time(t0)
 
    if(ph%first_blacs_to_ntpoly) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call ConstructEmptyMatrix(ovlp_nt,ph%n_basis,ph%nt_pgrid,.false.)
          call ConstructTripletList(ovlp_list)
       end if
@@ -4520,7 +4520,7 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
 
    call ConstructTripletList(ham_list)
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -4561,7 +4561,7 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    end if
 
    if(ph%first_blacs_to_ntpoly) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call MPI_Allreduce(ovlp_list%CurrentSize,bh%nnz_g,1,mpi_integer4,&
                  mpi_sum,bh%comm,ierr)
 
@@ -4624,7 +4624,7 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    call elsi_get_time(t0)
 
    if(ph%first_blacs_to_ntpoly) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call ConstructEmptyMatrix(ovlp_nt,ph%n_basis,ph%nt_pgrid,.true.)
          call ConstructTripletList(ovlp_list)
       end if
@@ -4634,7 +4634,7 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
 
    call ConstructTripletList(ham_list)
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -4675,7 +4675,7 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    end if
 
    if(ph%first_blacs_to_ntpoly) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call MPI_Allreduce(ovlp_list%CurrentSize,bh%nnz_g,1,mpi_integer4,&
                  mpi_sum,bh%comm,ierr)
 
@@ -5054,7 +5054,7 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_get_time(t0)
 
    if(ph%first_sips_to_ntpoly) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call ConstructEmptyMatrix(ovlp_nt,ph%n_basis,ph%nt_pgrid,.false.)
          call ConstructTripletList(ovlp_list)
       end if
@@ -5077,14 +5077,14 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
       call AppendToTripletList(ham_list,coo)
 
-      if(ph%first_sips_to_ntpoly .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_sips_to_ntpoly .and. .not. ph%unit_ovlp) then
          coo%point_value = ovlp_csc(i_val)
 
          call AppendToTripletList(ovlp_list,coo)
       end if
    end do
 
-   if(ph%first_sips_to_ntpoly .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_ntpoly .and. .not. ph%unit_ovlp) then
       call FillMatrixFromTripletList(ovlp_nt,ovlp_list)
       call DestructTripletList(ovlp_list)
    end if
@@ -5136,7 +5136,7 @@ subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_get_time(t0)
 
    if(ph%first_sips_to_ntpoly) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call ConstructEmptyMatrix(ovlp_nt,ph%n_basis,ph%nt_pgrid,.true.)
          call ConstructTripletList(ovlp_list)
       end if
@@ -5159,14 +5159,14 @@ subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
       call AppendToTripletList(ham_list,coo)
 
-      if(ph%first_sips_to_ntpoly .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_sips_to_ntpoly .and. .not. ph%unit_ovlp) then
          coo%point_value = ovlp_csc(i_val)
 
          call AppendToTripletList(ovlp_list,coo)
       end if
    end do
 
-   if(ph%first_sips_to_ntpoly .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_ntpoly .and. .not. ph%unit_ovlp) then
       call FillMatrixFromTripletList(ovlp_nt,ovlp_list)
       call DestructTripletList(ovlp_list)
    end if

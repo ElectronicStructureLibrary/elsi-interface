@@ -84,12 +84,12 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_calls_all ! Total number of calls
 
       ! Overlap
-      logical :: ovlp_is_unit
-      logical :: ovlp_is_sing
-      logical :: check_sing
-      real(kind=r8) :: sing_tol
-      logical :: stop_sing ! Always stop if overlap is singular?
-      integer(kind=i4) :: n_good ! Number of nonsingular basis functions
+      logical :: unit_ovlp
+      logical :: ill_ovlp
+      logical :: ill_check
+      real(kind=r8) :: ill_tol
+      logical :: ill_abort ! Always stop if overlap is ill-conditioned?
+      integer(kind=i4) :: n_good ! Number of non-ill-conditioned basis functions
 
       ! Physics
       real(kind=r8) :: n_electrons
@@ -108,7 +108,7 @@ module ELSI_DATATYPE
       logical :: edm_ready_cmplx = .false.
 
       ! Chemical potential
-      real(kind=r8) :: mu
+      real(kind=r8) :: mu ! Fermi level
       real(kind=r8) :: ts ! Entropy
       integer(kind=i4) :: mu_scheme
       real(kind=r8) :: mu_width

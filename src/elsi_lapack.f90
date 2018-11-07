@@ -57,14 +57,14 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
    integer(kind=i4), parameter :: nblk = 128
    character(len=*), parameter :: caller = "elsi_to_standard_evp_sp_real"
 
-   if(ph%check_sing) then
+   if(ph%ill_check) then
       call elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    end if
 
    if(ph%n_good == ph%n_basis) then ! Not singular
       call elsi_get_time(t0)
 
-      ph%ovlp_is_sing = .false.
+      ph%ill_ovlp = .false.
 
       ! Erase the lower triangle
       do i = 1,ph%n_basis
@@ -90,7 +90,7 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! H = U^(-T) H U^(-1)
-   if(ph%ovlp_is_sing) then
+   if(ph%ill_ovlp) then
       call dgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,1.0_r8,ham,ph%n_basis,&
               ovlp,ph%n_basis,0.0_r8,evec,ph%n_basis)
 
@@ -152,7 +152,7 @@ subroutine elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
 
    call elsi_get_time(t0)
 
-   if(ph%ovlp_is_sing) then
+   if(ph%ill_ovlp) then
       call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
       tmp = evec
 
@@ -200,7 +200,7 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
    character(len=*), parameter :: caller = "elsi_solve_lapack_real"
 
    ! Transform to standard form
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       call elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
    end if
 
@@ -241,7 +241,7 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
    call elsi_say(bh,msg)
 
    ! Back-transform eigenvectors
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       call elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
    end if
 
@@ -297,7 +297,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    eval = -eval
 
    do i = 1,ph%n_basis
-      if(eval(i) < ph%sing_tol) then
+      if(eval(i) < ph%ill_tol) then
          exit
       end if
    end do
@@ -320,7 +320,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    ph%n_states_solve = min(ph%n_good,ph%n_states)
 
    if(ph%n_good < ph%n_basis) then ! Singular
-      ph%ovlp_is_sing = .true.
+      ph%ill_ovlp = .true.
 
       write(msg,"(2X,A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
@@ -328,7 +328,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
          eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,msg)
 
-      if(ph%stop_sing) then
+      if(ph%ill_abort) then
          call elsi_stop(bh,"Overlap matrix is singular.",caller)
       end if
 
@@ -342,7 +342,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
          ovlp(:,i) = evec(:,i)/ev_sqrt
       end do
    else
-      ph%ovlp_is_sing = .false.
+      ph%ill_ovlp = .false.
 
       write(msg,"(2X,A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
@@ -387,14 +387,14 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
    integer(kind=i4), parameter :: nblk = 128
    character(len=*), parameter :: caller = "elsi_to_standard_evp_sp_cmplx"
 
-   if(ph%check_sing) then
+   if(ph%ill_check) then
       call elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    end if
 
    if(ph%n_good == ph%n_basis) then ! Not singular
       call elsi_get_time(t0)
 
-      ph%ovlp_is_sing = .false.
+      ph%ill_ovlp = .false.
 
       ! Erase the lower triangle
       do i = 1,ph%n_basis
@@ -420,7 +420,7 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! H = U^(-T) H U^(-1)
-   if(ph%ovlp_is_sing) then
+   if(ph%ill_ovlp) then
       call zgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ham,&
               ph%n_basis,ovlp,ph%n_basis,(0.0_r8,0.0_r8),evec,ph%n_basis)
 
@@ -484,7 +484,7 @@ subroutine elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
 
    call elsi_get_time(t0)
 
-   if(ph%ovlp_is_sing) then
+   if(ph%ill_ovlp) then
       call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
       tmp = evec
 
@@ -534,7 +534,7 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    character(len=*), parameter :: caller = "elsi_solve_lapack_cmplx"
 
    ! Transform to standard form
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       call elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
    end if
 
@@ -578,7 +578,7 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    call elsi_say(bh,msg)
 
    ! Back-transform eigenvectors
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       call elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
    end if
 
@@ -636,7 +636,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    eval = -eval
 
    do i = 1,ph%n_basis
-      if(eval(i) < ph%sing_tol) then
+      if(eval(i) < ph%ill_tol) then
          exit
       end if
    end do
@@ -660,7 +660,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    ph%n_states_solve = min(ph%n_good,ph%n_states)
 
    if(ph%n_good < ph%n_basis) then ! Singular
-      ph%ovlp_is_sing = .true.
+      ph%ill_ovlp = .true.
 
       write(msg,"(2X,A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
@@ -668,7 +668,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
          eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,msg)
 
-      if(ph%stop_sing) then
+      if(ph%ill_abort) then
          call elsi_stop(bh,"Overlap matrix is singular.",caller)
       end if
 
@@ -682,7 +682,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
          ovlp(:,i) = evec(:,i)/ev_sqrt
       end do
    else
-      ph%ovlp_is_sing = .false.
+      ph%ill_ovlp = .false.
 
       write(msg,"(2X,A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)

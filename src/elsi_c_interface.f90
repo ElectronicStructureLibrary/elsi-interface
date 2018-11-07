@@ -520,6 +520,22 @@ subroutine elsi_set_output_c_wrapper(handle_c,output)&
 
 end subroutine
 
+subroutine elsi_set_output_log_c_wrapper(handle_c,output_log)&
+   bind(C,name="c_elsi_set_output_log")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: output_log
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_output_log(handle_f,output_log)
+
+end subroutine
+
 subroutine elsi_set_unit_ovlp_c_wrapper(handle_c,unit_ovlp)&
    bind(C,name="c_elsi_set_unit_ovlp")
 
@@ -552,6 +568,54 @@ subroutine elsi_set_zero_def_c_wrapper(handle_c,zero_def)&
 
 end subroutine
 
+subroutine elsi_set_illcond_check_c_wrapper(handle_c,illcond_check)&
+   bind(C,name="c_elsi_set_illcond_check")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: illcond_check
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_illcond_check(handle_f,illcond_check)
+
+end subroutine
+
+subroutine elsi_set_illcond_tol_c_wrapper(handle_c,illcond_tol)&
+   bind(C,name="c_elsi_set_illcond_tol")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   real(kind=c_double), value, intent(in) :: illcond_tol
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_illcond_tol(handle_f,illcond_tol)
+
+end subroutine
+
+subroutine elsi_set_illcond_abort_c_wrapper(handle_c,illcond_abort)&
+   bind(C,name="c_elsi_set_illcond_abort")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   integer(kind=c_int), value, intent(in) :: illcond_abort
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_illcond_abort(handle_f,illcond_abort)
+
+end subroutine
+
 subroutine elsi_set_sing_check_c_wrapper(handle_c,sing_check)&
    bind(C,name="c_elsi_set_sing_check")
 
@@ -564,7 +628,7 @@ subroutine elsi_set_sing_check_c_wrapper(handle_c,sing_check)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sing_check(handle_f,sing_check)
+   call elsi_set_illcond_check(handle_f,sing_check)
 
 end subroutine
 
@@ -580,7 +644,7 @@ subroutine elsi_set_sing_tol_c_wrapper(handle_c,sing_tol)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sing_tol(handle_f,sing_tol)
+   call elsi_set_illcond_tol(handle_f,sing_tol)
 
 end subroutine
 
@@ -596,7 +660,7 @@ subroutine elsi_set_sing_stop_c_wrapper(handle_c,sing_stop)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sing_stop(handle_f,sing_stop)
+   call elsi_set_illcond_abort(handle_f,sing_stop)
 
 end subroutine
 
@@ -1000,6 +1064,38 @@ subroutine elsi_set_sips_inertia_tol_c_wrapper(handle_c,inertia_tol)&
 
 end subroutine
 
+subroutine elsi_set_sips_ev_min_c_wrapper(handle_c,ev_min)&
+   bind(C,name="c_elsi_set_sips_ev_min")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   real(kind=c_double), value, intent(in) :: ev_min
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_ev_min(handle_f,ev_min)
+
+end subroutine
+
+subroutine elsi_set_sips_ev_max_c_wrapper(handle_c,ev_max)&
+   bind(C,name="c_elsi_set_sips_ev_max")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   real(kind=c_double), value, intent(in) :: ev_max
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_set_sips_ev_max(handle_f,ev_max)
+
+end subroutine
+
 subroutine elsi_set_sips_interval_c_wrapper(handle_c,lower,upper)&
    bind(C,name="c_elsi_set_sips_interval")
 
@@ -1013,7 +1109,8 @@ subroutine elsi_set_sips_interval_c_wrapper(handle_c,lower,upper)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_set_sips_interval(handle_f,lower,upper)
+   call elsi_set_sips_ev_min(handle_f,lower)
+   call elsi_set_sips_ev_max(handle_f,upper)
 
 end subroutine
 
@@ -1177,54 +1274,6 @@ subroutine elsi_set_mu_mp_order_c_wrapper(handle_c,mp_order)&
 
 end subroutine
 
-subroutine elsi_set_output_log_c_wrapper(handle_c,output_log)&
-   bind(C,name="c_elsi_set_output_log")
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: handle_c
-   integer(kind=c_int), value, intent(in) :: output_log
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_set_output_log(handle_f,output_log)
-
-end subroutine
-
-subroutine elsi_get_pexsi_mu_min_c_wrapper(handle_c,mu_min)&
-   bind(C,name="c_elsi_get_pexsi_mu_min")
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: handle_c
-   real(kind=c_double), intent(out) :: mu_min
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_get_pexsi_mu_min(handle_f,mu_min)
-
-end subroutine
-
-subroutine elsi_get_pexsi_mu_max_c_wrapper(handle_c,mu_max)&
-   bind(C,name="c_elsi_get_pexsi_mu_max")
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: handle_c
-   real(kind=c_double), intent(out) :: mu_max
-
-   type(elsi_handle), pointer :: handle_f
-
-   call c_f_pointer(handle_c,handle_f)
-
-   call elsi_get_pexsi_mu_max(handle_f,mu_max)
-
-end subroutine
-
 subroutine elsi_get_initialized_c_wrapper(handle_c,initialized)&
    bind(C,name="c_elsi_get_initialized")
 
@@ -1265,6 +1314,22 @@ subroutine elsi_get_datestamp_c_wrapper(datestamp)&
 
 end subroutine
 
+subroutine elsi_get_n_illcond_c_wrapper(handle_c,n_illcond)&
+   bind(C,name="c_elsi_get_n_illcond")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   integer(kind=c_int), intent(out) :: n_illcond
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_get_n_illcond(handle_f,n_illcond)
+
+end subroutine
+
 subroutine elsi_get_n_sing_c_wrapper(handle_c,n_sing)&
    bind(C,name="c_elsi_get_n_sing")
 
@@ -1277,7 +1342,39 @@ subroutine elsi_get_n_sing_c_wrapper(handle_c,n_sing)&
 
    call c_f_pointer(handle_c,handle_f)
 
-   call elsi_get_n_sing(handle_f,n_sing)
+   call elsi_get_n_illcond(handle_f,n_sing)
+
+end subroutine
+
+subroutine elsi_get_pexsi_mu_min_c_wrapper(handle_c,mu_min)&
+   bind(C,name="c_elsi_get_pexsi_mu_min")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   real(kind=c_double), intent(out) :: mu_min
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_get_pexsi_mu_min(handle_f,mu_min)
+
+end subroutine
+
+subroutine elsi_get_pexsi_mu_max_c_wrapper(handle_c,mu_max)&
+   bind(C,name="c_elsi_get_pexsi_mu_max")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: handle_c
+   real(kind=c_double), intent(out) :: mu_max
+
+   type(elsi_handle), pointer :: handle_f
+
+   call c_f_pointer(handle_c,handle_f)
+
+   call elsi_get_pexsi_mu_max(handle_f,mu_max)
 
 end subroutine
 

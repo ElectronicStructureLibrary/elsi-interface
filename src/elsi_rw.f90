@@ -994,7 +994,7 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    call elsi_set_blacs(eh,rwh%bh%blacs_ctxt,rwh%bh%blk)
 
    eh%bh%def0 = rwh%bh%def0
-   eh%ph%ovlp_is_unit = .true.
+   eh%ph%unit_ovlp = .true.
    eh%bh%n_lcol_sp = rwh%n_basis/rwh%bh%n_procs
 
    if(rwh%bh%myid == rwh%bh%n_procs-1) then
@@ -1126,7 +1126,7 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    call elsi_set_blacs(eh,rwh%bh%blacs_ctxt,rwh%bh%blk)
 
    eh%bh%def0 = rwh%bh%def0
-   eh%ph%ovlp_is_unit = .true.
+   eh%ph%unit_ovlp = .true.
    eh%bh%n_lcol_sp = rwh%n_basis/rwh%bh%n_procs
 
    if(rwh%bh%myid == rwh%bh%n_procs-1) then

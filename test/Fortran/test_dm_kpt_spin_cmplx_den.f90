@@ -211,7 +211,7 @@ program test_dm_kpt_spin_cmplx_den
    if(my_group == 0) then ! Let one group talk
       call elsi_set_output(eh,2)
    end if
-   call elsi_set_sing_check(eh,0)
+   call elsi_set_illcond_check(eh,0)
    call elsi_set_mu_broaden_width(eh,1.0e-6_r8)
    call elsi_set_omm_n_elpa(eh,1)
    call elsi_set_pexsi_delta_e(eh,80.0_r8)

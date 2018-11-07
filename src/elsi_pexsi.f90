@@ -199,7 +199,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    character(len=*), parameter :: caller = "elsi_solve_pexsi_real"
 
    ! Load sparse matrices for PEXSI
-   if(ph%ovlp_is_unit) then
+   if(ph%unit_ovlp) then
       call f_ppexsi_load_real_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
               ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,&
               ham,1,ovlp,ierr)
@@ -729,7 +729,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    character(len=*), parameter :: caller = "elsi_solve_pexsi_cmplx"
 
    ! Load sparse matrices for PEXSI
-   if(ph%ovlp_is_unit) then
+   if(ph%unit_ovlp) then
       call f_ppexsi_load_complex_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
               ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,&
               ham,1,ovlp,ierr)

@@ -126,14 +126,14 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    character(len=*), parameter :: caller = "elsi_to_standard_evp_real"
 
    if(ph%elpa_first) then
-      if(ph%check_sing) then
+      if(ph%ill_check) then
          call elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
       end if
 
       if(ph%n_good == ph%n_basis) then ! Not singular
          call elsi_get_time(t0)
 
-         ph%ovlp_is_sing = .false.
+         ph%ill_ovlp = .false.
 
          ! S = U
          call elsi_elpa_cholesky(ph,bh,ovlp)
@@ -153,7 +153,7 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! H = U^(-T) H U^(-1)
-   if(ph%ovlp_is_sing) then
+   if(ph%ill_ovlp) then
       call pdgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,1.0_r8,ham,1,1,&
               bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,0.0_r8,evec,1,1,&
               bh%desc)
@@ -214,7 +214,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
    call elsi_elpa_evec(ph,bh,ovlp,eval,evec,.true.)
 
    if(ph%n_good < ph%n_basis) then ! Singular
-      ph%ovlp_is_sing = .true.
+      ph%ill_ovlp = .true.
 
       write(msg,"(2X,A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
@@ -222,7 +222,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
          eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,msg)
 
-      if(ph%stop_sing) then
+      if(ph%ill_abort) then
          call elsi_stop(bh,"Overlap matrix is singular.",caller)
       end if
 
@@ -239,7 +239,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
          end if
       end do
    else
-      ph%ovlp_is_sing = .false.
+      ph%ill_ovlp = .false.
 
       write(msg,"(2X,A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
@@ -285,7 +285,7 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
 
    tmp = evec
 
-   if(ph%ovlp_is_sing) then
+   if(ph%ill_ovlp) then
       call pdgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,1,&
               ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,bh%desc,0.0_r8,evec,1,1,&
               bh%desc)
@@ -342,7 +342,7 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    end if
 
    ! Transform to standard form
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       call elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    end if
 
@@ -364,7 +364,7 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    call elsi_say(bh,msg)
 
    ! Back-transform eigenvectors
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       call elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
    end if
 
@@ -453,14 +453,14 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    character(len=*), parameter :: caller = "elsi_to_standard_evp_cmplx"
 
    if(ph%elpa_first) then
-      if(ph%check_sing) then
+      if(ph%ill_check) then
          call elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
       end if
 
       if(ph%n_good == ph%n_basis) then ! Not singular
          call elsi_get_time(t0)
 
-         ph%ovlp_is_sing = .false.
+         ph%ill_ovlp = .false.
 
          ! S = U
          call elsi_elpa_cholesky(ph,bh,ovlp)
@@ -480,7 +480,7 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! H = U^(-T) H U^(-1)
-   if(ph%ovlp_is_sing) then
+   if(ph%ill_ovlp) then
       call pzgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ham,&
               1,1,bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,&
               (0.0_r8,0.0_r8),evec,1,1,bh%desc)
@@ -541,7 +541,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
    call elsi_elpa_evec(ph,bh,ovlp,eval,evec,.true.)
 
    if(ph%n_good < ph%n_basis) then ! Singular
-      ph%ovlp_is_sing = .true.
+      ph%ill_ovlp = .true.
 
       write(msg,"(2X,A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
@@ -549,7 +549,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
          eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,msg)
 
-      if(ph%stop_sing) then
+      if(ph%ill_abort) then
          call elsi_stop(bh,"Overlap matrix is singular.",caller)
       end if
 
@@ -566,7 +566,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
          end if
       end do
    else
-      ph%ovlp_is_sing = .false.
+      ph%ill_ovlp = .false.
 
       write(msg,"(2X,A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
@@ -612,7 +612,7 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
 
    tmp = evec
 
-   if(ph%ovlp_is_sing) then
+   if(ph%ill_ovlp) then
       call pzgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&
               (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,&
               bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
@@ -669,7 +669,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    end if
 
    ! Transform to standard form
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       call elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    end if
 
@@ -691,7 +691,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    call elsi_say(bh,msg)
 
    ! Back-transform eigenvectors
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       call elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
    end if
 
@@ -903,7 +903,7 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
       call elsi_deallocate(bh,copy,"copy")
 
       do i = 1,ph%n_basis
-         if(eval(i) < ph%sing_tol) then
+         if(eval(i) < ph%ill_tol) then
             ph%n_good = ph%n_good-1
          end if
       end do
@@ -999,7 +999,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
       call elsi_deallocate(bh,copy,"copy")
 
       do i = 1,ph%n_basis
-         if(eval(i) < ph%sing_tol) then
+         if(eval(i) < ph%ill_tol) then
             ph%n_good = ph%n_good-1
          end if
       end do

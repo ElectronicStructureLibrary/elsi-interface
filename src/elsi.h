@@ -109,11 +109,23 @@ void c_elsi_dm_complex_sparse(elsi_handle handle_c,
 void c_elsi_set_output(elsi_handle handle_c,
                        int output);
 
+void c_elsi_set_output_log(elsi_handle handle_c,
+                           int output_log);
+
 void c_elsi_set_unit_ovlp(elsi_handle handle_c,
                           int unit_ovlp);
 
 void c_elsi_set_zero_def(elsi_handle handle_c,
                          double zero_def);
+
+void c_elsi_set_illcond_check(elsi_handle handle_c,
+                              int illcond_check);
+
+void c_elsi_set_illcond_tol(elsi_handle handle_c,
+                            double illcond_tol);
+
+void c_elsi_set_illcond_abort(elsi_handle handle_c,
+                              int illcond_abort);
 
 void c_elsi_set_sing_check(elsi_handle handle_c,
                            int sing_check);
@@ -123,9 +135,6 @@ void c_elsi_set_sing_tol(elsi_handle handle_c,
 
 void c_elsi_set_sing_stop(elsi_handle handle_c,
                           int sing_stop);
-
-void c_elsi_set_uplo(elsi_handle handle_c,
-                     int uplo);
 
 void c_elsi_set_elpa_solver(elsi_handle handle_c,
                             int solver);
@@ -205,6 +214,12 @@ void c_elsi_set_sips_buffer(elsi_handle handle_c,
 void c_elsi_set_sips_inertia_tol(elsi_handle handle_c,
                                  double inertia_tol);
 
+void c_elsi_set_sips_ev_min(elsi_handle handle_c,
+                            double ev_min);
+
+void c_elsi_set_sips_ev_max(elsi_handle handle_c,
+                            double ev_max);
+
 void c_elsi_set_sips_interval(elsi_handle handle_c,
                               double lower,
                               double upper);
@@ -239,15 +254,6 @@ void c_elsi_set_mu_spin_degen(elsi_handle handle_c,
 void c_elsi_set_mu_mp_order(elsi_handle handle_c,
                             int mp_order);
 
-void c_elsi_set_output_log(elsi_handle handle_c,
-                           int output_log);
-
-void c_elsi_get_pexsi_mu_min(elsi_handle handle_c,
-                             double *mu_min);
-
-void c_elsi_get_pexsi_mu_max(elsi_handle handle_c,
-                             double *mu_max);
-
 void c_elsi_get_initialized(elsi_handle handle_c,
                             int *initialized);
 
@@ -257,8 +263,17 @@ void c_elsi_get_version(int *major,
 
 void c_elsi_get_datestamp(int *datestamp);
 
+void c_elsi_get_n_illcond(elsi_handle handle_c,
+                          int *n_illcond);
+
 void c_elsi_get_n_sing(elsi_handle handle_c,
                        int *n_sing);
+
+void c_elsi_get_pexsi_mu_min(elsi_handle handle_c,
+                             double *mu_min);
+
+void c_elsi_get_pexsi_mu_max(elsi_handle handle_c,
+                             double *mu_max);
 
 void c_elsi_get_mu(elsi_handle handle_c,
                    double *mu);
