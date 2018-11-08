@@ -58,12 +58,12 @@ subroutine elsi_init_omm(ph,bh)
 
    if(.not. ph%omm_started) then
       call ms_scalapack_setup(bh%comm,bh%n_prow,"r",bh%blk,&
-              icontxt=bh%blacs_ctxt)
+           icontxt=bh%blacs_ctxt)
 
       ph%omm_n_lrow = numroc(ph%omm_n_states,bh%blk,bh%my_prow,0,bh%n_prow)
 
       call descinit(ph%omm_desc,ph%omm_n_states,ph%n_basis,bh%blk,bh%blk,0,0,&
-              bh%blacs_ctxt,max(1,ph%omm_n_lrow),ierr)
+           bh%blacs_ctxt,max(1,ph%omm_n_lrow),ierr)
 
       ph%omm_started = .true.
    end if
@@ -154,8 +154,8 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
    call elsi_say(bh,msg)
 
    call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,new_ovlp,ph%ebs,dm_omm,&
-           .false.,0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,&
-           ph%omm_tol,ph%omm_output,.false.,"pddbc","lap")
+        .false.,0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,&
+        ph%omm_tol,ph%omm_output,.false.,"pddbc","lap")
 
    dm = ph%spin_degen*dm
 
@@ -205,8 +205,8 @@ subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
    call m_register_pdbc(edm_omm,edm,bh%desc)
 
    call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,.false.,ph%ebs,edm_omm,&
-           .true.,0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,&
-           ph%omm_tol,ph%omm_output,.false.,"pddbc","lap")
+        .true.,0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,ph%omm_tol,&
+        ph%omm_output,.false.,"pddbc","lap")
 
    edm = ph%spin_degen*edm
 
@@ -306,8 +306,8 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
    call elsi_say(bh,msg)
 
    call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,new_ovlp,ph%ebs,dm_omm,&
-           .false.,0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,&
-           ph%omm_tol,ph%omm_output,.false.,"pzdbc","lap")
+        .false.,0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,&
+        ph%omm_tol,ph%omm_output,.false.,"pzdbc","lap")
 
    dm = ph%spin_degen*dm
 
@@ -357,8 +357,8 @@ subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
    call m_register_pdbc(edm_omm,edm,bh%desc)
 
    call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,.false.,ph%ebs,edm_omm,&
-           .true.,0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,&
-           ph%omm_tol,ph%omm_output,.false.,"pzdbc","lap")
+        .true.,0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,ph%omm_tol,&
+        ph%omm_output,.false.,"pzdbc","lap")
 
    edm = ph%spin_degen*edm
 

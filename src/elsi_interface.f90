@@ -16,6 +16,7 @@ module ELSI
    use ELSI_RW
    use ELSI_SETUP
    use ELSI_SOLVER
+   use ELSI_TOOLS
 
    implicit none
 
@@ -115,6 +116,18 @@ module ELSI
    public :: elsi_dm_complex
    public :: elsi_dm_real_sparse
    public :: elsi_dm_complex_sparse
+
+   ! Auxiliary
+   public :: elsi_orthonormalize_ev_real
+   public :: elsi_orthonormalize_ev_complex
+   public :: elsi_extrapolate_dm_real
+   public :: elsi_extrapolate_dm_complex
+   public :: elsi_symmetrize_mat_real
+   public :: elsi_symmetrize_mat_complex
+   public :: elsi_construct_dm_real
+   public :: elsi_construct_dm_complex
+   public :: elsi_construct_edm_real
+   public :: elsi_construct_edm_complex
    public :: elsi_compute_mu_and_occ
    public :: elsi_compute_entropy
 

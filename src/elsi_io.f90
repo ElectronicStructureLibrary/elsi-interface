@@ -348,19 +348,19 @@ subroutine elsi_print_pexsi_settings(ph,jh)
    call fjson_write_name_value(jh,"pexsi_n_prow_pexsi",ph%pexsi_n_prow)
    call fjson_write_name_value(jh,"pexsi_n_pcol_pexsi",ph%pexsi_n_pcol)
    call fjson_write_name_value(jh,"pexsi_temperature",&
-           ph%pexsi_options%temperature)
+        ph%pexsi_options%temperature)
    call fjson_write_name_value(jh,"pexsi_delta_e",ph%pexsi_options%deltaE)
    call fjson_write_name_value(jh,"pexsi_gap",ph%pexsi_options%gap)
    call fjson_write_name_value(jh,"pexsi_mu_min",ph%pexsi_options%muMin0)
    call fjson_write_name_value(jh,"pexsi_mu_max",ph%pexsi_options%muMax0)
    call fjson_write_name_value(jh,"pexsi_do_inertia",&
-           ph%pexsi_options%isInertiaCount)
+        ph%pexsi_options%isInertiaCount)
    call fjson_write_name_value(jh,"pexsi_intertia_tol",&
-           ph%pexsi_options%muInertiaTolerance)
+        ph%pexsi_options%muInertiaTolerance)
    call fjson_write_name_value(jh,"pexsi_tol",&
-           ph%pexsi_options%numElectronPEXSITolerance)
+        ph%pexsi_options%numElectronPEXSITolerance)
    call fjson_write_name_value(jh,"pexsi_np_symbfact",&
-           ph%pexsi_options%npSymbFact)
+        ph%pexsi_options%npSymbFact)
    call fjson_write_name_value(jh,"pexsi_reordering",ph%pexsi_options%ordering)
    call fjson_finish_object(jh)
 
@@ -631,8 +631,8 @@ subroutine elsi_get_time(wtime)
    read(ctime(8:10),"(I3)") val
    millisecond = real(val,kind=r8)
 
-   wtime = day*24.0_r8*3600.0_r8+hour*3600.0_r8+minute*60.0_r8+second+&
-              millisecond*0.001_r8
+   wtime = day*86400.0_r8+hour*3600.0_r8+minute*60.0_r8+second&
+      +millisecond*0.001_r8
 
 end subroutine
 
@@ -713,6 +713,7 @@ subroutine elsi_init_random_seed()
 
    implicit none
 
+   real(kind=r8) :: wtime
    integer(kind=i4) :: i
    integer(kind=i4) :: n
    integer(kind=i4) :: dt(8)
@@ -722,15 +723,14 @@ subroutine elsi_init_random_seed()
 
    character(len=*), parameter :: caller = "elsi_init_random_seed"
 
-   call random_seed(size=n)
-   call date_and_time(values=dt)
+   call elsi_get_time(wtime)
 
-   t = (dt(1)-1970)*365*24*60*60*1000+dt(2)*31*24*60*60*1000+&
-          dt(3)*24*60*60*1000+dt(5)*60*60*1000+dt(6)*60*1000+dt(7)*1000+dt(8)
+   t = int(wtime*1000.0_r8,kind=i8)
+
+   call random_seed(size=n)
 
    allocate(seed(n))
 
-   ! Writting the array with seeds
    do i = 1,n
       seed(i) = lcg(t)
    end do

@@ -104,7 +104,7 @@ subroutine elsi_reset_param(ph)
    ph%n_states_solve = UNSET
    ph%i_spin = 1
    ph%i_kpt = 1
-   ph%i_weight = 1.0_r8
+   ph%i_wt = 1.0_r8
    ph%spin_degen = 0.0_r8
    ph%spin_is_set = .false.
    ph%ebs = 0.0_r8
@@ -259,13 +259,13 @@ subroutine elsi_check(ph,bh,caller)
    ! Spin
    if(ph%n_spins > 1 .and. .not. bh%mpi_all_ready) then
       call elsi_stop(bh,"Calculations with two spin channels require a"//&
-              " global MPI communicator.",caller)
+           " global MPI communicator.",caller)
    end if
 
    ! k-point
    if(ph%n_kpts > 1 .and. .not. bh%mpi_all_ready) then
       call elsi_stop(bh,"Calculations with multiple k-points require a"//&
-              " global MPI communicator.",caller)
+           " global MPI communicator.",caller)
    end if
 
    if(.not. ph%spin_is_set) then
@@ -305,22 +305,22 @@ subroutine elsi_check(ph,bh,caller)
    else if(ph%matrix_format == SIESTA_CSC) then
       if(.not. bh%siesta_csc_ready) then
          call elsi_stop(bh,"SIESTA_CSC matrix format not properly set up.",&
-                 caller)
+              caller)
       end if
 
       if(bh%blk_sp2 == UNSET) then
          call elsi_stop(bh,"Block size should be set for SIESTA_CSC matrix"//&
-                 " format.",caller)
+              " format.",caller)
       end if
    else if(ph%matrix_format == PEXSI_CSC) then
       if(.not. bh%pexsi_csc_ready) then
          call elsi_stop(bh,"PEXSI_CSC matrix format not properly set up.",&
-                 caller)
+              caller)
       end if
 
       if(ph%solver == PEXSI_SOLVER .and. ph%pexsi_np_per_pole == UNSET) then
          call elsi_stop(bh,"Number of MPI tasks per pole should be set for"//&
-                 " PEXSI_CSC matrix format and PEXSI solver.",caller)
+              " PEXSI_CSC matrix format and PEXSI solver.",caller)
       end if
    end if
 
@@ -339,42 +339,42 @@ subroutine elsi_check(ph,bh,caller)
 
       if(mod(bh%n_procs,ph%pexsi_options%nPoints) /= 0) then
          call elsi_stop(bh,"To use PEXSI, number of mu points must be a"//&
-                 " divisor of number of MPI tasks.",caller)
+              " divisor of number of MPI tasks.",caller)
       end if
 
       if(ph%pexsi_np_per_pole /= UNSET) then
-         if(mod(bh%n_procs,ph%pexsi_np_per_pole*&
-            ph%pexsi_options%nPoints) /= 0) then
+         if(mod(bh%n_procs,ph%pexsi_np_per_pole*ph%pexsi_options%nPoints)&
+            /= 0) then
             call elsi_stop(bh,"To use PEXSI, specified number of MPI tasks"//&
-                    " per pole times number of mu points must be a divisor"//&
-                    " of number of MPI tasks.",caller)
+                 " per pole times number of mu points must be a divisor of"//&
+                 " number of MPI tasks.",caller)
          end if
 
-         if(ph%pexsi_np_per_pole*ph%pexsi_options%numPole*&
-            ph%pexsi_options%nPoints < bh%n_procs) then
+         if(ph%pexsi_np_per_pole*ph%pexsi_options%numPole&
+            *ph%pexsi_options%nPoints < bh%n_procs) then
             call elsi_stop(bh,"Specified number of MPI tasks per pole too"//&
-                    " small for this number of MPI tasks.",caller)
+                 " small for this number of MPI tasks.",caller)
          end if
       end if
    case(SIPS_SOLVER)
       if(ph%n_basis < bh%n_procs) then
          call elsi_stop(bh,"Matrix size too small to use SLEPc-SIPs with"//&
-                 " this number of MPI tasks.",caller)
+              " this number of MPI tasks.",caller)
       end if
 
       if(ph%parallel_mode /= MULTI_PROC) then
          call elsi_stop(bh,"SLEPc-SIPs requires MULTI_PROC parallel mode.",&
-                 caller)
+              caller)
       end if
 
       if(ph%n_spins > 1) then
          call elsi_stop(bh,"Calculations with two spin channels not yet"//&
-                 " supported with SLEPc-SIPs.",caller)
+              " supported with SLEPc-SIPs.",caller)
       end if
 
       if(ph%n_kpts > 1) then
          call elsi_stop(bh,"Calculations with multiple k-points not yet"//&
-                 " supported with SLEPc-SIPs.",caller)
+              " supported with SLEPc-SIPs.",caller)
       end if
    case(NTPOLY_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
@@ -651,7 +651,7 @@ subroutine elsi_set_full_mat_real(ph,bh,uplo,row_map,col_map,mat)
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp",caller)
 
    call pdtran(ph%n_basis,ph%n_basis,1.0_r8,mat,1,1,bh%desc,0.0_r8,tmp,1,1,&
-           bh%desc)
+        bh%desc)
 
    if(uplo == UT_MAT) then
       do j = 1,ph%n_basis-1
@@ -704,7 +704,7 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,row_map,col_map,mat)
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp",caller)
 
    call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),mat,1,1,bh%desc,&
-           (0.0_r8,0.0_r8),tmp,1,1,bh%desc)
+        (0.0_r8,0.0_r8),tmp,1,1,bh%desc)
 
    if(uplo == UT_MAT) then
       do j = 1,ph%n_basis-1
@@ -740,9 +740,10 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,row_map,col_map,mat)
 end subroutine
 
 !>
-!! This routine constructs the density matrix.
+!! This routine constructs the density matrix from occupation numbers and
+!! eigenvectors.
 !!
-subroutine elsi_build_dm_real(ph,bh,row_map,col_map,evec,occ,dm)
+subroutine elsi_build_dm_real(ph,bh,row_map,col_map,occ,evec,dm)
 
    implicit none
 
@@ -750,8 +751,8 @@ subroutine elsi_build_dm_real(ph,bh,row_map,col_map,evec,occ,dm)
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_map(ph%n_basis)
    integer(kind=i4), intent(in) :: col_map(ph%n_basis)
-   real(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: occ(ph%n_states)
+   real(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: dm(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
@@ -795,7 +796,7 @@ subroutine elsi_build_dm_real(ph,bh,row_map,col_map,evec,occ,dm)
 
    ! Compute density matrix
    call pdsyrk("U","N",ph%n_basis,max_state,1.0_r8,tmp,1,1,bh%desc,0.0_r8,dm,1,&
-           1,bh%desc)
+        1,bh%desc)
 
    call elsi_deallocate(bh,factor,"factor")
    call elsi_deallocate(bh,tmp,"tmp")
@@ -812,9 +813,10 @@ subroutine elsi_build_dm_real(ph,bh,row_map,col_map,evec,occ,dm)
 end subroutine
 
 !>
-!! This routine constructs the density matrix.
+!! This routine constructs the density matrix from occupation numbers and
+!! eigenvectors.
 !!
-subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,evec,occ,dm)
+subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,occ,evec,dm)
 
    implicit none
 
@@ -822,8 +824,8 @@ subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,evec,occ,dm)
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_map(ph%n_basis)
    integer(kind=i4), intent(in) :: col_map(ph%n_basis)
-   complex(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: occ(ph%n_states)
+   complex(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: dm(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
@@ -867,7 +869,7 @@ subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,evec,occ,dm)
 
    ! Compute density matrix
    call pzherk("U","N",ph%n_basis,max_state,(1.0_r8,0.0_r8),tmp,1,1,bh%desc,&
-           (0.0_r8,0.0_r8),dm,1,1,bh%desc)
+        (0.0_r8,0.0_r8),dm,1,1,bh%desc)
 
    call elsi_deallocate(bh,factor,"factor")
    call elsi_deallocate(bh,tmp,"tmp")
@@ -884,9 +886,10 @@ subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,evec,occ,dm)
 end subroutine
 
 !>
-!! This routine constructs the energy-weighted density matrix.
+!! This routine constructs the energy-weighted density matrix from occupation
+!! numbers, eigenvalues, and eigenvectors.
 !!
-subroutine elsi_build_edm_real(ph,bh,row_map,col_map,eval,evec,occ,edm)
+subroutine elsi_build_edm_real(ph,bh,row_map,col_map,occ,eval,evec,edm)
 
    implicit none
 
@@ -894,9 +897,9 @@ subroutine elsi_build_edm_real(ph,bh,row_map,col_map,eval,evec,occ,edm)
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_map(ph%n_basis)
    integer(kind=i4), intent(in) :: col_map(ph%n_basis)
+   real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(in) :: eval(ph%n_states)
    real(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(out) :: edm(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
@@ -943,7 +946,7 @@ subroutine elsi_build_edm_real(ph,bh,row_map,col_map,eval,evec,occ,edm)
 
    ! Compute density matrix
    call pdsyrk("U","N",ph%n_basis,max_state,-1.0_r8,tmp,1,1,bh%desc,0.0_r8,edm,&
-           1,1,bh%desc)
+        1,1,bh%desc)
 
    call elsi_deallocate(bh,factor,"factor")
    call elsi_deallocate(bh,tmp,"tmp")
@@ -960,9 +963,10 @@ subroutine elsi_build_edm_real(ph,bh,row_map,col_map,eval,evec,occ,edm)
 end subroutine
 
 !>
-!! This routine constructs the energy-weighted density matrix.
+!! This routine constructs the energy-weighted density matrix from occupation
+!! numbers, eigenvalues, and eigenvectors.
 !!
-subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm)
+subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,occ,eval,evec,edm)
 
    implicit none
 
@@ -970,9 +974,9 @@ subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm)
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_map(ph%n_basis)
    integer(kind=i4), intent(in) :: col_map(ph%n_basis)
+   real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(in) :: eval(ph%n_states)
    complex(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(in) :: occ(ph%n_states)
    complex(kind=r8), intent(out) :: edm(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
@@ -1019,7 +1023,7 @@ subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,eval,evec,occ,edm)
 
    ! Compute density matrix
    call pzherk("U","N",ph%n_basis,max_state,(-1.0_r8,0.0_r8),tmp,1,1,bh%desc,&
-           (0.0_r8,0.0_r8),edm,1,1,bh%desc)
+        (0.0_r8,0.0_r8),edm,1,1,bh%desc)
 
    call elsi_deallocate(bh,factor,"factor")
    call elsi_deallocate(bh,tmp,"tmp")
@@ -1072,7 +1076,7 @@ subroutine elsi_gram_schmidt_real(ph,bh,col_map,ovlp,evec)
    call elsi_allocate(bh,tmp3,bh%n_lrow,bh%n_lcol,"tmp3",caller)
 
    call pdsymm("L","U",ph%n_basis,ph%n_states,1.0_r8,ovlp,1,1,bh%desc,evec,1,1,&
-           bh%desc,0.0_r8,tmp2,1,1,bh%desc)
+        bh%desc,0.0_r8,tmp2,1,1,bh%desc)
 
    i_done = 0
 
@@ -1080,14 +1084,14 @@ subroutine elsi_gram_schmidt_real(ph,bh,col_map,ovlp,evec)
       if(j > i_done+1) then
          ! Dot product of evec(j) with evec(i_done+1..j-1)
          call pdgemv("T",ph%n_basis,j-1-i_done,1.0_r8,tmp2,1,i_done+1,bh%desc,&
-                 evec,1,j,bh%desc,1,0.0_r8,tmp1,1,1,bh%desc,1)
+              evec,1,j,bh%desc,1,0.0_r8,tmp1,1,1,bh%desc,1)
 
          ! Orthogonalize
          call pdgemv("N",ph%n_basis,j-1-i_done,-1.0_r8,evec,1,i_done+1,bh%desc,&
-                 tmp1,1,1,bh%desc,1,1.0_r8,evec,1,j,bh%desc,1)
+              tmp1,1,1,bh%desc,1,1.0_r8,evec,1,j,bh%desc,1)
 
          call pdgemv("N",ph%n_basis,j-1-i_done,-1.0_r8,tmp2,1,i_done+1,bh%desc,&
-                 tmp1,1,1,bh%desc,1,1.0_r8,tmp2,1,j,bh%desc,1)
+              tmp1,1,1,bh%desc,1,1.0_r8,tmp2,1,j,bh%desc,1)
       end if
 
       ! Normalize
@@ -1103,11 +1107,11 @@ subroutine elsi_gram_schmidt_real(ph,bh,col_map,ovlp,evec)
       if(j-i_done == n_block .and. j < ph%n_states) then
          ! Dot product of evec(i_done+1..j) with evec(j+1..n_states)
          call pdgemm("T","N",n_block,ph%n_states-j,ph%n_basis,1.0_r8,tmp2,1,&
-                 i_done+1,bh%desc,evec,1,j+1,bh%desc,0.0_r8,tmp3,1,j+1,bh%desc)
+              i_done+1,bh%desc,evec,1,j+1,bh%desc,0.0_r8,tmp3,1,j+1,bh%desc)
 
          ! Orthogonalize
          call pdgemm("N","N",ph%n_basis,ph%n_states-j,n_block,-1.0_r8,evec,1,&
-                 i_done+1,bh%desc,tmp3,1,j+1,bh%desc,1.0_r8,evec,1,j+1,bh%desc)
+              i_done+1,bh%desc,tmp3,1,j+1,bh%desc,1.0_r8,evec,1,j+1,bh%desc)
 
          i_done = i_done+n_block
       end if
@@ -1163,7 +1167,7 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,col_map,ovlp,evec)
    call elsi_allocate(bh,tmp3,bh%n_lrow,bh%n_lcol,"tmp3",caller)
 
    call pzhemm("L","U",ph%n_basis,ph%n_states,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
-           evec,1,1,bh%desc,(0.0_r8,0.0_r8),tmp2,1,1,bh%desc)
+        evec,1,1,bh%desc,(0.0_r8,0.0_r8),tmp2,1,1,bh%desc)
 
    i_done = 0
 
@@ -1171,16 +1175,16 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,col_map,ovlp,evec)
       if(j > i_done+1) then
          ! Dot product of evec(j) with evec(i_done+1..j-1)
          call pzgemv("T",ph%n_basis,j-1-i_done,(1.0_r8,0.0_r8),tmp2,1,i_done+1,&
-                 bh%desc,evec,1,j,bh%desc,1,(0.0_r8,0.0_r8),tmp1,1,1,bh%desc,1)
+              bh%desc,evec,1,j,bh%desc,1,(0.0_r8,0.0_r8),tmp1,1,1,bh%desc,1)
 
          ! Orthogonalize
          call pzgemv("N",ph%n_basis,j-1-i_done,(-1.0_r8,0.0_r8),evec,1,&
-                 i_done+1,bh%desc,tmp1,1,1,bh%desc,1,(1.0_r8,0.0_r8),evec,1,j,&
-                 bh%desc,1)
+              i_done+1,bh%desc,tmp1,1,1,bh%desc,1,(1.0_r8,0.0_r8),evec,1,j,&
+              bh%desc,1)
 
          call pzgemv("N",ph%n_basis,j-1-i_done,(-1.0_r8,0.0_r8),tmp2,1,&
-                 i_done+1,bh%desc,tmp1,1,1,bh%desc,1,(1.0_r8,0.0_r8),tmp2,1,j,&
-                 bh%desc,1)
+              i_done+1,bh%desc,tmp1,1,1,bh%desc,1,(1.0_r8,0.0_r8),tmp2,1,j,&
+              bh%desc,1)
       end if
 
       ! Normalize
@@ -1196,13 +1200,13 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,col_map,ovlp,evec)
       if(j-i_done == n_block .and. j < ph%n_states) then
          ! Dot product of evec(i_done+1..j) with evec(j+1..n_states)
          call pzgemm("C","N",n_block,ph%n_states-j,ph%n_basis,(1.0_r8,0.0_r8),&
-                 tmp2,1,i_done+1,bh%desc,evec,1,j+1,bh%desc,(0.0_r8,0.0_r8),&
-                 tmp3,1,j+1,bh%desc)
+              tmp2,1,i_done+1,bh%desc,evec,1,j+1,bh%desc,(0.0_r8,0.0_r8),tmp3,&
+              1,j+1,bh%desc)
 
          ! Orthogonalize
          call pzgemm("N","N",ph%n_basis,ph%n_states-j,n_block,(-1.0_r8,0.0_r8),&
-                 evec,1,i_done+1,bh%desc,tmp3,1,j+1,bh%desc,(1.0_r8,0.0_r8),&
-                 evec,1,j+1,bh%desc)
+              evec,1,i_done+1,bh%desc,tmp3,1,j+1,bh%desc,(1.0_r8,0.0_r8),evec,&
+              1,j+1,bh%desc)
 
          i_done = i_done+n_block
       end if

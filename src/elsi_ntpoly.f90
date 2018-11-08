@@ -77,7 +77,7 @@ subroutine elsi_init_ntpoly(ph,bh)
       n_pcol = np_per_group/n_prow
 
       call ConstructNewProcessGrid(ph%nt_pgrid,bh%comm,n_prow,n_pcol,&
-              ph%nt_n_group)
+           ph%nt_n_group)
 
       call MPI_Bcast(ph%nt_output,1,mpi_logical,0,bh%comm,ierr)
 
@@ -120,7 +120,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
       call ConstructRandomPermutation(ph%nt_perm,ovlp%logical_matrix_dimension)
 
       ph%nt_options = SolverParameters_t(ph%nt_tol,ph%nt_filter,ph%nt_max_iter,&
-                         ph%nt_output,ph%nt_perm)
+         ph%nt_output,ph%nt_perm)
 
       ! Overlap seems more difficult to converge
       ph%nt_options%threshold = max(0.01_r8*ph%nt_filter,1.0e-15_r8)

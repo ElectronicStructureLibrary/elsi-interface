@@ -830,7 +830,7 @@ subroutine elsi_set_sips_n_slice(eh,n_slice)
       eh%ph%sips_np_per_slice = eh%bh%n_procs/n_slice
    else
       call elsi_stop(eh%bh,"Input value should be a divisor of total number"//&
-              " of MPI tasks.",caller)
+           " of MPI tasks.",caller)
    end if
 
 end subroutine
@@ -955,7 +955,7 @@ subroutine elsi_set_sips_interval(eh,lower,upper)
 
    if(lower > upper) then
       call elsi_stop(eh%bh,"Lower bound should not be larger than upper"//&
-              " bound.",caller)
+           " bound.",caller)
    end if
 
    eh%ph%sips_interval(1) = lower
@@ -1381,19 +1381,19 @@ subroutine elsi_get_edm_real(eh,edm)
       select case(eh%ph%solver)
       case(ELPA_SOLVER)
          call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-                 eh%eval(1:eh%ph%n_states),eh%evec_real,&
-                 eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),edm)
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%eval(1:eh%ph%n_states),&
+              eh%evec_real,edm)
       case(OMM_SOLVER)
          call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_real,edm)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,eh%dm_real_csc)
          call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 eh%dm_real_csc,edm)
+              eh%dm_real_csc,edm)
       case(SIPS_SOLVER)
          call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_csc)
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_csc)
          call elsi_sips_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 eh%dm_real_csc,edm)
+              eh%dm_real_csc,edm)
       case(NTPOLY_SOLVER)
          call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
          call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,edm)
@@ -1404,7 +1404,7 @@ subroutine elsi_get_edm_real(eh,edm)
       eh%ph%edm_ready_real = .false.
    else
       call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
-              " computed before density matrix.",caller)
+           " computed before density matrix.",caller)
    end if
 
    eh%ph%solver = solver_save
@@ -1443,16 +1443,16 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
       select case(eh%ph%solver)
       case(ELPA_SOLVER)
          call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-                 eh%eval(1:eh%ph%n_states),eh%evec_real,&
-                 eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_den)
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%eval(1:eh%ph%n_states),&
+              eh%evec_real,eh%dm_real_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_real_den,edm)
+                 eh%col_ptr_sp1,eh%dm_real_den,edm)
          case(SIESTA_CSC)
             call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                    eh%dm_real_den,edm)
+                 eh%dm_real_den,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1462,10 +1462,10 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_real_den,edm)
+                 eh%col_ptr_sp1,eh%dm_real_den,edm)
          case(SIESTA_CSC)
             call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                    eh%dm_real_den,edm)
+                 eh%dm_real_den,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1475,10 +1475,10 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
             call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,edm)
          case(SIESTA_CSC)
             call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,&
-                    eh%dm_real_csc)
+                 eh%dm_real_csc)
             call elsi_pexsi_to_siesta_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,&
-                    eh%col_ptr_sp2,edm)
+                 eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                 edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1486,13 +1486,13 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                    eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),edm)
+                 eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),edm)
          case(SIESTA_CSC)
             call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                    eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_csc)
+                 eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_csc)
             call elsi_sips_to_siesta_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,&
-                    eh%col_ptr_sp2,edm)
+                 eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                 edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1502,10 +1502,10 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%ph%nt_dm,edm)
+                 eh%col_ptr_sp1,eh%ph%nt_dm,edm)
          case(SIESTA_CSC)
             call elsi_ntpoly_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                    eh%ph%nt_dm,edm)
+                 eh%ph%nt_dm,edm)
          end select
       case default
          call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
@@ -1514,7 +1514,7 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
       eh%ph%edm_ready_real = .false.
    else
       call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
-              " computed before density matrix.",caller)
+           " computed before density matrix.",caller)
    end if
 
    eh%ph%solver = solver_save
@@ -1548,15 +1548,15 @@ subroutine elsi_get_edm_complex(eh,edm)
       select case(eh%ph%solver)
       case(ELPA_SOLVER)
          call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-                 eh%eval(1:eh%ph%n_states),eh%evec_cmplx,&
-                 eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),edm)
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%eval(1:eh%ph%n_states),&
+              eh%evec_cmplx,edm)
       case(OMM_SOLVER)
          call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_cmplx,edm)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,&
-                 eh%dm_cmplx_csc)
+              eh%dm_cmplx_csc)
          call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 eh%dm_cmplx_csc,edm)
+              eh%dm_cmplx_csc,edm)
       case(NTPOLY_SOLVER)
          call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
          call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,edm)
@@ -1567,7 +1567,7 @@ subroutine elsi_get_edm_complex(eh,edm)
       eh%ph%edm_ready_cmplx = .false.
    else
       call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
-              " computed before density matrix.",caller)
+           " computed before density matrix.",caller)
    end if
 
    eh%ph%solver = solver_save
@@ -1601,16 +1601,16 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
       select case(eh%ph%solver)
       case(ELPA_SOLVER)
          call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-                 eh%eval(1:eh%ph%n_states),eh%evec_cmplx,&
-                 eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_cmplx_den)
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%eval(1:eh%ph%n_states),&
+              eh%evec_cmplx,eh%dm_cmplx_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_cmplx_den,edm)
+                 eh%col_ptr_sp1,eh%dm_cmplx_den,edm)
          case(SIESTA_CSC)
             call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                    eh%dm_cmplx_den,edm)
+                 eh%dm_cmplx_den,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1620,10 +1620,10 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_cmplx_den,edm)
+                 eh%col_ptr_sp1,eh%dm_cmplx_den,edm)
          case(SIESTA_CSC)
             call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                    eh%dm_cmplx_den,edm)
+                 eh%dm_cmplx_den,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1633,10 +1633,10 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
             call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,edm)
          case(SIESTA_CSC)
             call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,&
-                    eh%dm_cmplx_csc)
+                 eh%dm_cmplx_csc)
             call elsi_pexsi_to_siesta_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_cmplx_csc,eh%row_ind_sp2,&
-                    eh%col_ptr_sp2,edm)
+                 eh%col_ptr_sp1,eh%dm_cmplx_csc,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                 edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1646,10 +1646,10 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%ph%nt_dm,edm)
+                 eh%col_ptr_sp1,eh%ph%nt_dm,edm)
          case(SIESTA_CSC)
             call elsi_ntpoly_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                    eh%ph%nt_dm,edm)
+                 eh%ph%nt_dm,edm)
          end select
       case default
          call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
@@ -1658,7 +1658,7 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
       eh%ph%edm_ready_cmplx = .false.
    else
       call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
-              " computed before density matrix.",caller)
+           " computed before density matrix.",caller)
    end if
 
    eh%ph%solver = solver_save

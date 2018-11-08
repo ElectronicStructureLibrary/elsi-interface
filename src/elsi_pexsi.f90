@@ -106,17 +106,17 @@ subroutine elsi_init_pexsi(ph,bh)
 
       ! PEXSI MPI communicators
       call MPI_Comm_split(bh%comm,ph%pexsi_my_prow,ph%pexsi_my_pcol,&
-              ph%pexsi_comm_intra_pole,ierr)
+           ph%pexsi_comm_intra_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
 
       call MPI_Comm_split(bh%comm,ph%pexsi_my_pcol,ph%pexsi_my_prow,&
-              ph%pexsi_comm_inter_pole,ierr)
+           ph%pexsi_comm_inter_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
 
       call MPI_Comm_split(bh%comm,ph%pexsi_myid_point,ph%pexsi_my_point,&
-              ph%pexsi_comm_inter_point,ierr)
+           ph%pexsi_comm_inter_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
 
@@ -138,7 +138,7 @@ subroutine elsi_init_pexsi(ph,bh)
       end if
 
       ph%pexsi_plan = f_ppexsi_plan_initialize(bh%comm,ph%pexsi_n_prow,&
-                         ph%pexsi_n_pcol,log_id,ierr)
+         ph%pexsi_n_pcol,log_id,ierr)
 
       if(ierr /= 0) then
          call elsi_stop(bh,"Initialization failed.",caller)
@@ -177,7 +177,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    real(kind=r8) :: factor_max
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: n_iner_steps
+   integer(kind=i4) :: i_step
    integer(kind=i4) :: n_shift
    integer(kind=i4) :: aux_min
    integer(kind=i4) :: aux_max
@@ -201,12 +201,12 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    ! Load sparse matrices for PEXSI
    if(ph%unit_ovlp) then
       call f_ppexsi_load_real_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
-              ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,&
-              ham,1,ovlp,ierr)
+           ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,ham,&
+           1,ovlp,ierr)
    else
       call f_ppexsi_load_real_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
-              ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,&
-              ham,0,ovlp,ierr)
+           ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,ham,&
+           0,ovlp,ierr)
    end if
 
    if(ierr /= 0) then
@@ -221,10 +221,10 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_get_time(t0)
 
       call f_ppexsi_symbolic_factorize_real_symmetric_matrix(ph%pexsi_plan,&
-              ph%pexsi_options,ierr)
+           ph%pexsi_options,ierr)
 
       call f_ppexsi_symbolic_factorize_complex_symmetric_matrix(ph%pexsi_plan,&
-              ph%pexsi_options,ierr)
+           ph%pexsi_options,ierr)
 
       call elsi_get_time(t1)
 
@@ -244,7 +244,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    if(mu_range > ph%pexsi_options%muInertiaTolerance) then
       call elsi_get_time(t0)
 
-      n_iner_steps = 0
+      i_step = 0
       n_shift = max(10,bh%n_procs/ph%pexsi_np_per_pole)
 
       call elsi_allocate(bh,shifts,n_shift,"shifts",caller)
@@ -252,9 +252,8 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_allocate(bh,ne_lower,n_shift,"ne_lower",caller)
       call elsi_allocate(bh,ne_upper,n_shift,"ne_upper",caller)
 
-      do while(n_iner_steps < 10 .and.&
-               mu_range > ph%pexsi_options%muInertiaTolerance)
-         n_iner_steps = n_iner_steps+1
+      do while(i_step < 10 .and. mu_range > ph%pexsi_options%muInertiaTolerance)
+         i_step = i_step+1
          shift_width = mu_range/(n_shift-1)
          ne_lower = 0.0_r8
          ne_upper = ph%n_basis*ph%spin_degen
@@ -264,9 +263,9 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          end do
 
          call f_ppexsi_inertia_count_real_matrix(ph%pexsi_plan,&
-                 ph%pexsi_options,n_shift,shifts,inertias,ierr)
+              ph%pexsi_options,n_shift,shifts,inertias,ierr)
 
-         inertias = inertias*ph%spin_degen*ph%i_weight
+         inertias = inertias*ph%spin_degen*ph%i_wt
 
          ! Get global inertias
          if(ph%n_spins*ph%n_kpts > 1) then
@@ -279,7 +278,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
             end if
 
             call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
-                    bh%comm_all,ierr)
+                 bh%comm_all,ierr)
 
             call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -297,13 +296,13 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          aux_max = n_shift
 
          do i = 2,n_shift-1
-            if(ne_upper(i) < ph%n_electrons .and.&
-               ne_upper(i+1) >= ph%n_electrons) then
+            if(ne_upper(i) < ph%n_electrons&
+               .and. ne_upper(i+1) >= ph%n_electrons) then
                aux_min = i
             end if
 
-            if(ne_lower(i) > ph%n_electrons .and.&
-               ne_lower(i-1) <= ph%n_electrons) then
+            if(ne_lower(i) > ph%n_electrons&
+               .and. ne_lower(i-1) <= ph%n_electrons) then
                aux_max = i
             end if
          end do
@@ -351,16 +350,16 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
       if(ph%pexsi_my_point == i-1) then
          call f_ppexsi_calculate_fermi_operator_real3(ph%pexsi_plan,&
-                 ph%pexsi_options,ph%mu,ph%n_electrons,ph%pexsi_ne,ierr)
+              ph%pexsi_options,ph%mu,ph%n_electrons,ph%pexsi_ne,ierr)
       end if
    end do
 
    call elsi_allocate(bh,send_buf,ph%pexsi_options%nPoints,"send_buf",caller)
 
-   send_buf(ph%pexsi_my_point+1) = ph%pexsi_ne*ph%i_weight
+   send_buf(ph%pexsi_my_point+1) = ph%pexsi_ne*ph%i_wt
 
    call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,mpi_real8,&
-           mpi_sum,ph%pexsi_comm_inter_point,ierr)
+        mpi_sum,ph%pexsi_comm_inter_point,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -373,7 +372,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       end if
 
       call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,mpi_real8,&
-              mpi_sum,bh%comm_all,ierr)
+           mpi_sum,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    end if
@@ -408,16 +407,16 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    aux_max = ph%pexsi_options%nPoints+1
 
    do i = 1,ph%pexsi_options%nPoints
-      if(ne_vec(i) <&
-         ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
+      if(ne_vec(i)&
+         < ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMin0 = shifts(i)
          aux_min = i
       end if
    end do
 
    do i = ph%pexsi_options%nPoints,1,-1
-      if(ne_vec(i) >&
-         ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
+      if(ne_vec(i)&
+         > ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMax0 = shifts(i)
          aux_max = i
       end if
@@ -447,13 +446,13 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       end if
 
       do i = aux_min,aux_max
-         if(abs(ne_vec(i)-ph%n_electrons) <&
-            ph%pexsi_options%numElectronPEXSITolerance) then
+         if(abs(ne_vec(i)-ph%n_electrons)&
+            < ph%pexsi_options%numElectronPEXSITolerance) then
             ph%mu = shifts(i)
             converged = .true.
 
             call MPI_Bcast(tmp,bh%nnz_l_sp1,mpi_real8,i-1,&
-                    ph%pexsi_comm_inter_point,ierr)
+                 ph%pexsi_comm_inter_point,ierr)
 
             call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
@@ -465,15 +464,14 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    ! Adjust to exact number of electrons
    if(.not. converged) then
       ! Chemical potential
-      ph%mu = shifts(aux_min)+(ph%n_electrons-ne_vec(aux_min))/&
-                 (ne_vec(aux_max)-ne_vec(aux_min))*&
-                 (shifts(aux_max)-shifts(aux_min))
+      ph%mu = shifts(aux_min)+(ph%n_electrons-ne_vec(aux_min))&
+         /(ne_vec(aux_max)-ne_vec(aux_min))*(shifts(aux_max)-shifts(aux_min))
 
       ! Density matrix
-      factor_min = (ne_vec(aux_max)-ph%n_electrons)/&
-                      (ne_vec(aux_max)-ne_vec(aux_min))
-      factor_max = (ph%n_electrons-ne_vec(aux_min))/&
-                      (ne_vec(aux_max)-ne_vec(aux_min))
+      factor_min = (ne_vec(aux_max)-ph%n_electrons)&
+         /(ne_vec(aux_max)-ne_vec(aux_min))
+      factor_max = (ph%n_electrons-ne_vec(aux_min))&
+         /(ne_vec(aux_max)-ne_vec(aux_min))
 
       call elsi_allocate(bh,send_buf,bh%nnz_l_sp1,"send_buf",caller)
 
@@ -484,7 +482,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       end if
 
       call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,mpi_real8,mpi_sum,&
-              ph%pexsi_comm_inter_point,ierr)
+           ph%pexsi_comm_inter_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -503,7 +501,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       local_energy = ddot(bh%nnz_l_sp1,ham,1,dm,1)
 
       call MPI_Reduce(local_energy,ph%ebs,1,mpi_real8,mpi_sum,0,&
-              ph%pexsi_comm_intra_pole,ierr)
+           ph%pexsi_comm_intra_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Reduce",ierr,caller)
    end if
@@ -558,7 +556,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    call elsi_get_time(t0)
 
    call f_ppexsi_calculate_edm_correction_real(ph%pexsi_plan,ph%pexsi_options,&
-           ierr)
+        ierr)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Energy density matrix correction failed.",caller)
@@ -587,16 +585,16 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    end do
 
    do i = 1,ph%pexsi_options%nPoints
-      if(ne_vec(i) <&
-         ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
+      if(ne_vec(i)&
+         < ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMin0 = shifts(i)
          aux_min = i
       end if
    end do
 
    do i = ph%pexsi_options%nPoints,1,-1
-      if(ne_vec(i) >&
-         ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
+      if(ne_vec(i)&
+         > ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMax0 = shifts(i)
          aux_max = i
       end if
@@ -626,13 +624,13 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
       end if
 
       do i = aux_min,aux_max
-         if(abs(ne_vec(i)-ph%n_electrons) <&
-            ph%pexsi_options%numElectronPEXSITolerance) then
+         if(abs(ne_vec(i)-ph%n_electrons)&
+            < ph%pexsi_options%numElectronPEXSITolerance) then
             ph%mu = shifts(i)
             converged = .true.
 
             call MPI_Bcast(tmp,bh%nnz_l_sp1,mpi_real8,i-1,&
-                    ph%pexsi_comm_inter_point,ierr)
+                 ph%pexsi_comm_inter_point,ierr)
 
             call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
@@ -644,10 +642,10 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    ! Adjust to exact number of electrons
    if(.not. converged) then
       ! Energy density matrix
-      factor_min = (ne_vec(aux_max)-ph%n_electrons)/&
-                      (ne_vec(aux_max)-ne_vec(aux_min))
-      factor_max = (ph%n_electrons-ne_vec(aux_min))/&
-                      (ne_vec(aux_max)-ne_vec(aux_min))
+      factor_min = (ne_vec(aux_max)-ph%n_electrons)&
+         /(ne_vec(aux_max)-ne_vec(aux_min))
+      factor_max = (ph%n_electrons-ne_vec(aux_min))&
+         /(ne_vec(aux_max)-ne_vec(aux_min))
 
       call elsi_allocate(bh,send_buf,bh%nnz_l_sp1,"send_buf",caller)
 
@@ -658,7 +656,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
       end if
 
       call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,mpi_real8,mpi_sum,&
-              ph%pexsi_comm_inter_point,ierr)
+           ph%pexsi_comm_inter_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -706,7 +704,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    complex(kind=r8) :: local_cmplx
-   integer(kind=i4) :: n_iner_steps
+   integer(kind=i4) :: i_step
    integer(kind=i4) :: n_shift
    integer(kind=i4) :: aux_min
    integer(kind=i4) :: aux_max
@@ -731,12 +729,12 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    ! Load sparse matrices for PEXSI
    if(ph%unit_ovlp) then
       call f_ppexsi_load_complex_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
-              ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,&
-              ham,1,ovlp,ierr)
+           ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,ham,&
+           1,ovlp,ierr)
    else
       call f_ppexsi_load_complex_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
-              ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,&
-              ham,0,ovlp,ierr)
+           ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,ham,&
+           0,ovlp,ierr)
    end if
 
    if(ierr /= 0) then
@@ -751,10 +749,10 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_get_time(t0)
 
       call f_ppexsi_symbolic_factorize_complex_symmetric_matrix(ph%pexsi_plan,&
-              ph%pexsi_options,ierr)
+           ph%pexsi_options,ierr)
 
       call f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(&
-              ph%pexsi_plan,ph%pexsi_options,ovlp,ierr)
+           ph%pexsi_plan,ph%pexsi_options,ovlp,ierr)
 
       call elsi_get_time(t1)
 
@@ -774,7 +772,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    if(mu_range > ph%pexsi_options%muInertiaTolerance) then
       call elsi_get_time(t0)
 
-      n_iner_steps = 0
+      i_step = 0
       n_shift = max(10,bh%n_procs/ph%pexsi_np_per_pole)
 
       call elsi_allocate(bh,shifts,n_shift,"shifts",caller)
@@ -782,9 +780,8 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_allocate(bh,ne_lower,n_shift,"ne_lower",caller)
       call elsi_allocate(bh,ne_upper,n_shift,"ne_upper",caller)
 
-      do while(n_iner_steps < 10 .and.&
-               mu_range > ph%pexsi_options%muInertiaTolerance)
-         n_iner_steps = n_iner_steps+1
+      do while(i_step < 10 .and. mu_range > ph%pexsi_options%muInertiaTolerance)
+         i_step = i_step+1
          shift_width = mu_range/(n_shift-1)
          ne_lower = 0.0_r8
          ne_upper = ph%n_basis*ph%spin_degen
@@ -794,9 +791,9 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          end do
 
          call f_ppexsi_inertia_count_complex_matrix(ph%pexsi_plan,&
-                 ph%pexsi_options,n_shift,shifts,inertias,ierr)
+              ph%pexsi_options,n_shift,shifts,inertias,ierr)
 
-         inertias = inertias*ph%spin_degen*ph%i_weight
+         inertias = inertias*ph%spin_degen*ph%i_wt
 
          ! Get global inertias
          if(ph%n_spins*ph%n_kpts > 1) then
@@ -809,7 +806,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
             end if
 
             call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
-                    bh%comm_all,ierr)
+                 bh%comm_all,ierr)
 
             call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -827,13 +824,13 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          aux_max = n_shift
 
          do i = 2,n_shift-1
-            if(ne_upper(i) < ph%n_electrons .and.&
-               ne_upper(i+1) >= ph%n_electrons) then
+            if(ne_upper(i) < ph%n_electrons&
+               .and. ne_upper(i+1) >= ph%n_electrons) then
                aux_min = i
             end if
 
-            if(ne_lower(i) > ph%n_electrons .and.&
-               ne_lower(i-1) <= ph%n_electrons) then
+            if(ne_lower(i) > ph%n_electrons&
+               .and. ne_lower(i-1) <= ph%n_electrons) then
                aux_max = i
             end if
          end do
@@ -881,16 +878,16 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
       if(ph%pexsi_my_point == i-1) then
          call f_ppexsi_calculate_fermi_operator_complex(ph%pexsi_plan,&
-                 ph%pexsi_options,ph%mu,ph%n_electrons,ph%pexsi_ne,ne_drv,ierr)
+              ph%pexsi_options,ph%mu,ph%n_electrons,ph%pexsi_ne,ne_drv,ierr)
       end if
    end do
 
    call elsi_allocate(bh,send_buf,ph%pexsi_options%nPoints,"send_buf",caller)
 
-   send_buf(ph%pexsi_my_point+1) = ph%pexsi_ne*ph%i_weight
+   send_buf(ph%pexsi_my_point+1) = ph%pexsi_ne*ph%i_wt
 
    call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,mpi_real8,&
-           mpi_sum,ph%pexsi_comm_inter_point,ierr)
+        mpi_sum,ph%pexsi_comm_inter_point,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -903,7 +900,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       end if
 
       call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,mpi_real8,&
-              mpi_sum,bh%comm_all,ierr)
+           mpi_sum,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    end if
@@ -938,16 +935,16 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    aux_max = ph%pexsi_options%nPoints+1
 
    do i = 1,ph%pexsi_options%nPoints
-      if(ne_vec(i) <&
-         ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
+      if(ne_vec(i)&
+         < ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMin0 = shifts(i)
          aux_min = i
       end if
    end do
 
    do i = ph%pexsi_options%nPoints,1,-1
-      if(ne_vec(i) >&
-         ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
+      if(ne_vec(i)&
+         > ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMax0 = shifts(i)
          aux_max = i
       end if
@@ -977,13 +974,13 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       end if
 
       do i = aux_min,aux_max
-         if(abs(ne_vec(i)-ph%n_electrons) <&
-            ph%pexsi_options%numElectronPEXSITolerance) then
+         if(abs(ne_vec(i)-ph%n_electrons)&
+            < ph%pexsi_options%numElectronPEXSITolerance) then
             ph%mu = shifts(i)
             converged = .true.
 
             call MPI_Bcast(tmp,bh%nnz_l_sp1,mpi_complex16,i-1,&
-                    ph%pexsi_comm_inter_point,ierr)
+                 ph%pexsi_comm_inter_point,ierr)
 
             call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
@@ -995,15 +992,14 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    ! Adjust to exact number of electrons
    if(.not. converged) then
       ! Chemical potential
-      ph%mu = shifts(aux_min)+(ph%n_electrons-ne_vec(aux_min))/&
-                 (ne_vec(aux_max)-ne_vec(aux_min))*&
-                 (shifts(aux_max)-shifts(aux_min))
+      ph%mu = shifts(aux_min)+(ph%n_electrons-ne_vec(aux_min))&
+         /(ne_vec(aux_max)-ne_vec(aux_min))*(shifts(aux_max)-shifts(aux_min))
 
       ! Density matrix
-      factor_min = (ne_vec(aux_max)-ph%n_electrons)/&
-                      (ne_vec(aux_max)-ne_vec(aux_min))
-      factor_max = (ph%n_electrons-ne_vec(aux_min))/&
-                      (ne_vec(aux_max)-ne_vec(aux_min))
+      factor_min = (ne_vec(aux_max)-ph%n_electrons)&
+         /(ne_vec(aux_max)-ne_vec(aux_min))
+      factor_max = (ph%n_electrons-ne_vec(aux_min))&
+         /(ne_vec(aux_max)-ne_vec(aux_min))
 
       call elsi_allocate(bh,send_buf_cmplx,bh%nnz_l_sp1,"send_buf_cmplx",caller)
 
@@ -1014,7 +1010,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       end if
 
       call MPI_Allreduce(send_buf_cmplx,tmp,bh%nnz_l_sp1,mpi_complex16,mpi_sum,&
-              ph%pexsi_comm_inter_point,ierr)
+           ph%pexsi_comm_inter_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -1034,7 +1030,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       local_energy = real(local_cmplx,kind=r8)
 
       call MPI_Reduce(local_energy,ph%ebs,1,mpi_real8,mpi_sum,0,&
-              ph%pexsi_comm_intra_pole,ierr)
+           ph%pexsi_comm_intra_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Reduce",ierr,caller)
    end if
@@ -1089,7 +1085,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    call elsi_get_time(t0)
 
    call f_ppexsi_calculate_edm_correction_complex(ph%pexsi_plan,&
-           ph%pexsi_options,ierr)
+        ph%pexsi_options,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Energy density matrix correction failed.",caller)
@@ -1118,16 +1114,16 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    end do
 
    do i = 1,ph%pexsi_options%nPoints
-      if(ne_vec(i) <&
-         ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
+      if(ne_vec(i)&
+         < ph%n_electrons-ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMin0 = shifts(i)
          aux_min = i
       end if
    end do
 
    do i = ph%pexsi_options%nPoints,1,-1
-      if(ne_vec(i) >&
-         ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
+      if(ne_vec(i)&
+         > ph%n_electrons+ph%pexsi_options%numElectronPEXSITolerance) then
          ph%pexsi_options%muMax0 = shifts(i)
          aux_max = i
       end if
@@ -1157,13 +1153,13 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
       end if
 
       do i = aux_min,aux_max
-         if(abs(ne_vec(i)-ph%n_electrons) <&
-            ph%pexsi_options%numElectronPEXSITolerance) then
+         if(abs(ne_vec(i)-ph%n_electrons)&
+            < ph%pexsi_options%numElectronPEXSITolerance) then
             ph%mu = shifts(i)
             converged = .true.
 
             call MPI_Bcast(tmp,bh%nnz_l_sp1,mpi_complex16,i-1,&
-                    ph%pexsi_comm_inter_point,ierr)
+                 ph%pexsi_comm_inter_point,ierr)
 
             call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
@@ -1175,10 +1171,10 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    ! Adjust to exact number of electrons
    if(.not. converged) then
       ! Energy density matrix
-      factor_min = (ne_vec(aux_max)-ph%n_electrons)/&
-                      (ne_vec(aux_max)-ne_vec(aux_min))
-      factor_max = (ph%n_electrons-ne_vec(aux_min))/&
-                      (ne_vec(aux_max)-ne_vec(aux_min))
+      factor_min = (ne_vec(aux_max)-ph%n_electrons)&
+         /(ne_vec(aux_max)-ne_vec(aux_min))
+      factor_max = (ph%n_electrons-ne_vec(aux_min))&
+         /(ne_vec(aux_max)-ne_vec(aux_min))
 
       call elsi_allocate(bh,send_buf_cmplx,bh%nnz_l_sp1,"send_buf_cmplx",caller)
 
@@ -1189,7 +1185,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
       end if
 
       call MPI_Allreduce(send_buf_cmplx,tmp,bh%nnz_l_sp1,mpi_complex16,mpi_sum,&
-              ph%pexsi_comm_inter_point,ierr)
+           ph%pexsi_comm_inter_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 

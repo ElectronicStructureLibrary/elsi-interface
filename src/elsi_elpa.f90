@@ -168,17 +168,17 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    ! H = U^(-T) H U^(-1)
    if(ph%ill_ovlp) then
       call pdgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,1.0_r8,ham,1,1,&
-              bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,0.0_r8,evec,1,1,&
-              bh%desc)
+           bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,0.0_r8,evec,1,1,&
+           bh%desc)
 
       call pdgemm("T","N",ph%n_good,ph%n_good,ph%n_basis,1.0_r8,ovlp,1,&
-              ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
-              bh%desc)
+           ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
+           bh%desc)
    else
       call elsi_elpa_multiply(ph,bh,"U","L",ph%n_basis,ovlp,ham,evec)
 
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
-              bh%desc)
+           bh%desc)
 
       evec = ham
 
@@ -300,11 +300,11 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
 
    if(ph%ill_ovlp) then
       call pdgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,1,&
-              ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,bh%desc,0.0_r8,evec,1,1,&
-              bh%desc)
+           ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,bh%desc,0.0_r8,evec,1,1,&
+           bh%desc)
    else
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp,1,1,bh%desc,0.0_r8,ham,1,1,&
-              bh%desc)
+           bh%desc)
 
       call elsi_elpa_multiply(ph,bh,"L","N",ph%n_states,ham,tmp,evec)
    end if
@@ -424,11 +424,11 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm)
 
    ! tmp = U_1^T U_0^(-T) P_0 U_0^(-1)
    call pdgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,dm,1,1,bh%desc,&
-           ovlp0,1,1,bh%desc,0.0_r8,tmp,1,1,bh%desc)
+        ovlp0,1,1,bh%desc,0.0_r8,tmp,1,1,bh%desc)
 
    ! dm = U_1^T U_0^(-T) P_0 U_0^(-1) U_1
    call pdgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,tmp,1,1,bh%desc,&
-           ovlp1,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
+        ovlp1,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
 
    call elsi_deallocate(bh,tmp,"tmp")
 
@@ -497,17 +497,17 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    ! H = U^(-T) H U^(-1)
    if(ph%ill_ovlp) then
       call pzgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ham,&
-              1,1,bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,&
-              (0.0_r8,0.0_r8),evec,1,1,bh%desc)
+           1,1,bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,(0.0_r8,0.0_r8),&
+           evec,1,1,bh%desc)
 
       call pzgemm("C","N",ph%n_good,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ovlp,&
-              1,ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,&
-              (0.0_r8,0.0_r8),ham,1,1,bh%desc)
+           1,ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),&
+           ham,1,1,bh%desc)
    else
       call elsi_elpa_multiply(ph,bh,"U","L",ph%n_basis,ovlp,ham,evec)
 
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),evec,1,1,bh%desc,&
-              (0.0_r8,0.0_r8),ham,1,1,bh%desc)
+           (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
       evec = ham
 
@@ -629,11 +629,11 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
 
    if(ph%ill_ovlp) then
       call pzgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&
-              (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,&
-              bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
+           (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,&
+           bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
    else
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
-              (0.0_r8,0.0_r8),ham,1,1,bh%desc)
+           (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
       call elsi_elpa_multiply(ph,bh,"L","N",ph%n_states,ham,tmp,evec)
    end if
@@ -753,11 +753,11 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm)
 
    ! tmp = U_1^T U_0^(-T) P_0 U_0^(-1)
    call pzgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,dm,1,1,bh%desc,&
-           ovlp0,1,1,bh%desc,0.0_r8,tmp,1,1,bh%desc)
+        ovlp0,1,1,bh%desc,0.0_r8,tmp,1,1,bh%desc)
 
    ! dm = U_1^T U_0^(-T) P_0 U_0^(-1) U_1
    call pzgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,tmp,1,1,bh%desc,&
-           ovlp1,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
+        ovlp1,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
 
    call elsi_deallocate(bh,tmp,"tmp")
 
@@ -801,8 +801,8 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
 
       ! Use modified ELPA2, which computes eigenvectors only for singular matrix
       ok = elpa_check_singularity_real_double(ph%n_basis,ph%n_basis,copy,&
-              bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
-              ph%elpa_comm_col,bh%comm,ph%ill_tol,ph%n_good)
+         bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
+         ph%elpa_comm_col,bh%comm,ph%ill_tol,ph%n_good)
 
       if(.not. ok) then
          call elsi_stop(bh,"Singularity check failed.",caller)
@@ -817,12 +817,12 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
 
       if(ph%elpa_solver == 2) then
          ok = elpa_solve_evp_real_2stage_double(ph%n_good,ph%n_states_solve,&
-                 mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-                 ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+            mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
+            ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
       else
          ok = elpa_solve_evp_real_1stage_double(ph%n_good,ph%n_states_solve,&
-                 mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-                 ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+            mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
+            ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
       end if
 
       if(.not. ok) then
@@ -860,8 +860,8 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
 
       ! Use modified ELPA2, which computes eigenvectors only for singular matrix
       ok = elpa_check_singularity_complex_double(ph%n_basis,ph%n_basis,copy,&
-              bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
-              ph%elpa_comm_col,bh%comm,ph%ill_tol,ph%n_good)
+         bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
+         ph%elpa_comm_col,bh%comm,ph%ill_tol,ph%n_good)
 
       if(.not. ok) then
          call elsi_stop(bh,"Singularity check failed.",caller)
@@ -876,12 +876,12 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
 
       if(ph%elpa_solver == 2) then
          ok = elpa_solve_evp_complex_2stage_double(ph%n_good,ph%n_states_solve,&
-                 mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-                 ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+            mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
+            ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
       else
          ok = elpa_solve_evp_complex_1stage_double(ph%n_good,ph%n_states_solve,&
-                 mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-                 ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+            mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
+            ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
       end if
 
       if(.not. ok) then
@@ -907,7 +907,7 @@ subroutine elsi_elpa_cholesky_real(ph,bh,mat)
    character(len=*), parameter :: caller = "elsi_elpa_cholesky_real"
 
    ok = elpa_cholesky_real_double(ph%n_basis,mat,bh%n_lrow,bh%blk,bh%n_lcol,&
-           ph%elpa_comm_row,ph%elpa_comm_col,.false.)
+      ph%elpa_comm_row,ph%elpa_comm_col,.false.)
 
    if(.not. ok) then
       call elsi_stop(bh,"Cholesky failed.",caller)
@@ -931,7 +931,7 @@ subroutine elsi_elpa_cholesky_cmplx(ph,bh,mat)
    character(len=*), parameter :: caller = "elsi_elpa_cholesky_cmplx"
 
    ok = elpa_cholesky_complex_double(ph%n_basis,mat,bh%n_lrow,bh%blk,bh%n_lcol,&
-           ph%elpa_comm_row,ph%elpa_comm_col,.false.)
+      ph%elpa_comm_row,ph%elpa_comm_col,.false.)
 
    if(.not. ok) then
       call elsi_stop(bh,"Cholesky failed.",caller)
@@ -955,7 +955,7 @@ subroutine elsi_elpa_invert_real(ph,bh,mat)
    character(len=*), parameter :: caller = "elsi_elpa_invert_real"
 
    ok = elpa_invert_trm_real_double(ph%n_basis,mat,bh%n_lrow,bh%blk,bh%n_lcol,&
-           ph%elpa_comm_row,ph%elpa_comm_col,.false.)
+      ph%elpa_comm_row,ph%elpa_comm_col,.false.)
 
    if(.not. ok) then
       call elsi_stop(bh,"Matrix inversion failed.",caller)
@@ -979,7 +979,7 @@ subroutine elsi_elpa_invert_cmplx(ph,bh,mat)
    character(len=*), parameter :: caller = "elsi_elpa_invert_cmplx"
 
    ok = elpa_invert_trm_complex_double(ph%n_basis,mat,bh%n_lrow,bh%blk,&
-           bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,.false.)
+      bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,.false.)
 
    if(.not. ok) then
       call elsi_stop(bh,"Matrix inversion failed.",caller)
@@ -1008,8 +1008,8 @@ subroutine elsi_elpa_multiply_real(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
    character(len=*), parameter :: caller = "elsi_elpa_multiply_real"
 
    ok = elpa_mult_at_b_real_double(uplo_a,uplo_c,ph%n_basis,n,mat_a,bh%n_lrow,&
-           bh%n_lcol,mat_b,bh%n_lrow,bh%n_lcol,bh%blk,ph%elpa_comm_row,&
-           ph%elpa_comm_col,mat_c,bh%n_lrow,bh%n_lcol)
+      bh%n_lcol,mat_b,bh%n_lrow,bh%n_lcol,bh%blk,ph%elpa_comm_row,&
+      ph%elpa_comm_col,mat_c,bh%n_lrow,bh%n_lcol)
 
    if(.not. ok) then
       call elsi_stop(bh,"Matrix multiplication failed.",caller)
@@ -1038,8 +1038,8 @@ subroutine elsi_elpa_multiply_cmplx(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
    character(len=*), parameter :: caller = "elsi_elpa_multiply_cmplx"
 
    ok = elpa_mult_ah_b_complex_double(uplo_a,uplo_c,ph%n_basis,n,mat_a,&
-           bh%n_lrow,bh%n_lcol,mat_b,bh%n_lrow,bh%n_lcol,bh%blk,&
-           ph%elpa_comm_row,ph%elpa_comm_col,mat_c,bh%n_lrow,bh%n_lcol)
+      bh%n_lrow,bh%n_lcol,mat_b,bh%n_lrow,bh%n_lcol,bh%blk,ph%elpa_comm_row,&
+      ph%elpa_comm_col,mat_c,bh%n_lrow,bh%n_lcol)
 
    if(.not. ok) then
       call elsi_stop(bh,"Matrix multiplication failed.",caller)
@@ -1067,10 +1067,10 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
 
    if(sing_check) then
       ok = elpa_solve_tridi_double(ph%n_basis,ph%n_basis,d,e,q,ph%n_basis,&
-              bh%blk,ph%n_basis,mpi_comm_self,mpi_comm_self,.false.)
+         bh%blk,ph%n_basis,mpi_comm_self,mpi_comm_self,.false.)
    else
       ok = elpa_solve_tridi_double(ph%n_good,ph%n_states_solve,d,e,q,&
-              ph%n_basis,bh%blk,ph%n_basis,mpi_comm_self,mpi_comm_self,.false.)
+         ph%n_basis,bh%blk,ph%n_basis,mpi_comm_self,mpi_comm_self,.false.)
    end if
 
    if(.not. ok) then

@@ -98,9 +98,9 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_kpts
       integer(kind=i4) :: n_states
       integer(kind=i4) :: n_states_solve
-      integer(kind=i4) :: i_spin
-      integer(kind=i4) :: i_kpt
-      real(kind=r8) :: i_weight
+      integer(kind=i4) :: i_spin ! Local spin index
+      integer(kind=i4) :: i_kpt ! Local k-point index
+      real(kind=r8) :: i_wt ! Weight of local k-point
       real(kind=r8) :: spin_degen
       logical :: spin_is_set = .false.
       real(kind=r8) :: ebs ! Band structure energy
