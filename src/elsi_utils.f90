@@ -1069,7 +1069,7 @@ subroutine elsi_gram_schmidt_real(ph,bh,col_map,ovlp,evec)
 
    call elsi_get_time(t0)
 
-   n_block = bh%n_lcol*bh%blk
+   n_block = bh%n_pcol*bh%blk
 
    call elsi_allocate(bh,tmp1,bh%n_lrow,"tmp1",caller)
    call elsi_allocate(bh,tmp2,bh%n_lrow,bh%n_lcol,"tmp2",caller)
@@ -1160,7 +1160,7 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,col_map,ovlp,evec)
 
    call elsi_get_time(t0)
 
-   n_block = bh%n_lcol*bh%blk
+   n_block = bh%n_pcol*bh%blk
 
    call elsi_allocate(bh,tmp1,bh%n_lrow,"tmp1",caller)
    call elsi_allocate(bh,tmp2,bh%n_lrow,bh%n_lcol,"tmp2",caller)
@@ -1174,7 +1174,7 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,col_map,ovlp,evec)
    do j = 1,ph%n_states
       if(j > i_done+1) then
          ! Dot product of evec(j) with evec(i_done+1..j-1)
-         call pzgemv("T",ph%n_basis,j-1-i_done,(1.0_r8,0.0_r8),tmp2,1,i_done+1,&
+         call pzgemv("C",ph%n_basis,j-1-i_done,(1.0_r8,0.0_r8),tmp2,1,i_done+1,&
               bh%desc,evec,1,j,bh%desc,1,(0.0_r8,0.0_r8),tmp1,1,1,bh%desc,1)
 
          ! Orthogonalize
