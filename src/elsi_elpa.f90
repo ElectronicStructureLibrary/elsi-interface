@@ -397,7 +397,7 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm)
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(in) :: ovlp0(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: ovlp0(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp1(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
 
@@ -414,26 +414,50 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm)
    ! S_1 = U_1
    call elsi_elpa_cholesky(ph,bh,ovlp1)
 
+   ! S_1 = U_1^(-1)
+   call elsi_elpa_invert(ph,bh,ovlp1)
+
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   ! tmp = U_0^(-T) P_0
-   call elsi_elpa_multiply(ph,bh,"U","N",ph%n_basis,ovlp0,dm,tmp)
+   ! tmp = U_1^(-T)
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,tmp,1,1,&
+        bh%desc)
 
-   ! dm = U_1^T U_0^(-T) P_0
-   call elsi_elpa_multiply(ph,bh,"U","N",ph%n_basis,ovlp1,tmp,dm)
+   ! S_1 = U_1^(-T)
+   ovlp1 = tmp
 
-   ! tmp = U_1^T U_0^(-T) P_0 U_0^(-1)
+   ! S_0 = U_0
+   call elsi_elpa_invert(ph,bh,ovlp0)
+
+   ! tmp = U_0^T
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp0,1,1,bh%desc,0.0_r8,tmp,1,1,&
+        bh%desc)
+
+   ! S_0 = U_0^T
+   ovlp0 = tmp
+
+   ! tmp = U_0 P_0
+   call elsi_elpa_multiply(ph,bh,"L","N",ph%n_basis,ovlp0,dm,tmp)
+
+   ! dm = U_1^(-1) U_0 P_0
+   call elsi_elpa_multiply(ph,bh,"L","N",ph%n_basis,ovlp1,tmp,dm)
+
+   ! tmp = U_1^(-1) U_0 P_0 U_0^T
    call pdgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,dm,1,1,bh%desc,&
         ovlp0,1,1,bh%desc,0.0_r8,tmp,1,1,bh%desc)
 
-   ! dm = U_1^T U_0^(-T) P_0 U_0^(-1) U_1
+   ! dm = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
    call pdgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,tmp,1,1,bh%desc,&
         ovlp1,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
 
-   call elsi_deallocate(bh,tmp,"tmp")
+   ! tmp = U_1^(-1)
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp0,1,1,bh%desc,0.0_r8,tmp,1,1,&
+        bh%desc)
 
    ! S_1 = U_1^(-1)
-   call elsi_elpa_invert(ph,bh,ovlp1)
+   ovlp1 = tmp
+
+   call elsi_deallocate(bh,tmp,"tmp")
 
    call elsi_get_time(t1)
 
@@ -726,7 +750,7 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm)
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   complex(kind=r8), intent(in) :: ovlp0(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ovlp0(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp1(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
 
@@ -743,26 +767,50 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm)
    ! S_1 = U_1
    call elsi_elpa_cholesky(ph,bh,ovlp1)
 
-   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
-
-   ! tmp = U_0^(-T) P_0
-   call elsi_elpa_multiply(ph,bh,"U","N",ph%n_basis,ovlp0,dm,tmp)
-
-   ! dm = U_1^T U_0^(-T) P_0
-   call elsi_elpa_multiply(ph,bh,"U","N",ph%n_basis,ovlp1,tmp,dm)
-
-   ! tmp = U_1^T U_0^(-T) P_0 U_0^(-1)
-   call pzgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,dm,1,1,bh%desc,&
-        ovlp0,1,1,bh%desc,0.0_r8,tmp,1,1,bh%desc)
-
-   ! dm = U_1^T U_0^(-T) P_0 U_0^(-1) U_1
-   call pzgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,1.0_r8,tmp,1,1,bh%desc,&
-        ovlp1,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
-
-   call elsi_deallocate(bh,tmp,"tmp")
-
    ! S_1 = U_1^(-1)
    call elsi_elpa_invert(ph,bh,ovlp1)
+
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
+
+   ! tmp = U_1^(-T)
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
+        (0.0_r8,0.0_r8),tmp,1,1,bh%desc)
+
+   ! S_1 = U_1^(-T)
+   ovlp1 = tmp
+
+   ! S_0 = U_0
+   call elsi_elpa_invert(ph,bh,ovlp0)
+
+   ! tmp = U_0^T
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp0,1,1,bh%desc,&
+        (0.0_r8,0.0_r8),tmp,1,1,bh%desc)
+
+   ! S_0 = U_0^T
+   ovlp0 = tmp
+
+   ! tmp = U_0 P_0
+   call elsi_elpa_multiply(ph,bh,"L","N",ph%n_basis,ovlp0,dm,tmp)
+
+   ! dm = U_1^(-1) U_0 P_0
+   call elsi_elpa_multiply(ph,bh,"L","N",ph%n_basis,ovlp1,tmp,dm)
+
+   ! tmp = U_1^(-1) U_0 P_0 U_0^T
+   call pzgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),dm,1,1,&
+        bh%desc,ovlp0,1,1,bh%desc,(0.0_r8,0.0_r8),tmp,1,1,bh%desc)
+
+   ! dm = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
+   call pzgemm("N","N",ph%n_basis,ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),tmp,1,&
+        1,bh%desc,ovlp1,1,1,bh%desc,(0.0_r8,0.0_r8),dm,1,1,bh%desc)
+
+   ! tmp = U_1^(-1)
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp0,1,1,bh%desc,&
+        (0.0_r8,0.0_r8),tmp,1,1,bh%desc)
+
+   ! S_1 = U_1^(-1)
+   ovlp1 = tmp
+
+   call elsi_deallocate(bh,tmp,"tmp")
 
    call elsi_get_time(t1)
 

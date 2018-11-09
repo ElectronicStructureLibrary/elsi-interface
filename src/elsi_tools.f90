@@ -82,7 +82,7 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp0,ovlp1,dm)
    implicit none
 
    type(elsi_handle), intent(in) :: eh !< Handle
-   real(kind=r8), intent(in) :: ovlp0(eh%bh%n_lrow,eh%bh%n_lcol) !< Old overlap
+   real(kind=r8), intent(inout) :: ovlp0(eh%bh%n_lrow,eh%bh%n_lcol) !< Old overlap
    real(kind=r8), intent(inout) :: ovlp1(eh%bh%n_lrow,eh%bh%n_lcol) !< New overlap
    real(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
 
@@ -102,7 +102,7 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp0,ovlp1,dm)
    implicit none
 
    type(elsi_handle), intent(in) :: eh !< Handle
-   complex(kind=r8), intent(in) :: ovlp0(eh%bh%n_lrow,eh%bh%n_lcol) !< Old overlap
+   complex(kind=r8), intent(inout) :: ovlp0(eh%bh%n_lrow,eh%bh%n_lcol) !< Old overlap
    complex(kind=r8), intent(inout) :: ovlp1(eh%bh%n_lrow,eh%bh%n_lcol) !< New overlap
    complex(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
 
