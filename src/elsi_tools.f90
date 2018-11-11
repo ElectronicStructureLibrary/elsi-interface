@@ -25,8 +25,6 @@ module ELSI_TOOLS
    public :: elsi_orthonormalize_ev_complex
    public :: elsi_extrapolate_dm_real
    public :: elsi_extrapolate_dm_complex
-   public :: elsi_symmetrize_mat_real
-   public :: elsi_symmetrize_mat_complex
    public :: elsi_construct_dm_real
    public :: elsi_construct_dm_complex
    public :: elsi_construct_edm_real
@@ -111,44 +109,6 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp0,ovlp1,dm)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    call elsi_update_dm_elpa(eh%ph,eh%bh,ovlp0,ovlp1,dm)
-
-end subroutine
-
-!>
-!! This routine symmetrizes an upper or lower triangular matrix.
-!!
-subroutine elsi_symmetrize_mat_real(eh,uplo,mat)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   integer(kind=i4), intent(in) :: uplo !< Upper or lower input
-   real(kind=r8), intent(inout) :: mat(eh%bh%n_lrow,eh%bh%n_lcol) !< Matrix
-
-   character(len=*), parameter :: caller = "elsi_symmetrize_mat_real"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_set_full_mat(eh%ph,eh%bh,uplo,eh%row_map,eh%col_map,mat)
-
-end subroutine
-
-!>
-!! This routine symmetrizes an upper or lower triangular matrix.
-!!
-subroutine elsi_symmetrize_mat_complex(eh,uplo,mat)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   integer(kind=i4), intent(in) :: uplo !< Upper or lower input
-   complex(kind=r8), intent(inout) :: mat(eh%bh%n_lrow,eh%bh%n_lcol) !< Matrix
-
-   character(len=*), parameter :: caller = "elsi_symmetrize_mat_complex"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_set_full_mat(eh%ph,eh%bh,uplo,eh%row_map,eh%col_map,mat)
 
 end subroutine
 

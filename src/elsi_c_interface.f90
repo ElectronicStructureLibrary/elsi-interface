@@ -1505,6 +1505,262 @@ subroutine elsi_get_edm_complex_sparse_c_wrapper(h_c,edm_c)&
 
 end subroutine
 
+subroutine elsi_orthonormalize_ev_real_c_wrapper(h_c,ovlp_c,evec_c)&
+   bind(C,name="c_elsi_orthonormalize_ev_real")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: ovlp_c
+   type(c_ptr), value, intent(in) :: evec_c
+
+   type(elsi_handle), pointer :: h_f
+   real(kind=c_double), pointer :: ovlp_f(:,:)
+   real(kind=c_double), pointer :: evec_f(:,:)
+
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(h_c,h_f)
+
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
+
+   call elsi_orthonormalize_ev_real(h_f,ovlp_f,evec_f)
+
+end subroutine
+
+subroutine elsi_orthonormalize_ev_complex_c_wrapper(h_c,ovlp_c,evec_c)&
+   bind(C,name="c_elsi_orthonormalize_ev_complex")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: ovlp_c
+   type(c_ptr), value, intent(in) :: evec_c
+
+   type(elsi_handle), pointer :: h_f
+   complex(kind=c_double), pointer :: ovlp_f(:,:)
+   complex(kind=c_double), pointer :: evec_f(:,:)
+
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(h_c,h_f)
+
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
+
+   call elsi_orthonormalize_ev_complex(h_f,ovlp_f,evec_f)
+
+end subroutine
+
+subroutine elsi_extrapolate_dm_real_c_wrapper(h_c,ovlp0_c,ovlp1_c,dm_c)&
+   bind(C,name="c_elsi_extrapolate_dm_real")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: ovlp0_c
+   type(c_ptr), value, intent(in) :: ovlp1_c
+   type(c_ptr), value, intent(in) :: dm_c
+
+   type(elsi_handle), pointer :: h_f
+   real(kind=c_double), pointer :: ovlp0_f(:,:)
+   real(kind=c_double), pointer :: ovlp1_f(:,:)
+   real(kind=c_double), pointer :: dm_f(:,:)
+
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(h_c,h_f)
+
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+
+   call c_f_pointer(ovlp0_c,ovlp0_f,shape=[lrow,lcol])
+   call c_f_pointer(ovlp1_c,ovlp1_f,shape=[lrow,lcol])
+   call c_f_pointer(dm_c,dm_f,shape=[lrow,lcol])
+
+   call elsi_extrapolate_dm_real(h_f,ovlp0_f,ovlp1_f,dm_f)
+
+end subroutine
+
+subroutine elsi_extrapolate_dm_complex_c_wrapper(h_c,ovlp0_c,ovlp1_c,dm_c)&
+   bind(C,name="c_elsi_extrapolate_dm_complex")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: ovlp0_c
+   type(c_ptr), value, intent(in) :: ovlp1_c
+   type(c_ptr), value, intent(in) :: dm_c
+
+   type(elsi_handle), pointer :: h_f
+   complex(kind=c_double), pointer :: ovlp0_f(:,:)
+   complex(kind=c_double), pointer :: ovlp1_f(:,:)
+   complex(kind=c_double), pointer :: dm_f(:,:)
+
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(h_c,h_f)
+
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+
+   call c_f_pointer(ovlp0_c,ovlp0_f,shape=[lrow,lcol])
+   call c_f_pointer(ovlp1_c,ovlp1_f,shape=[lrow,lcol])
+   call c_f_pointer(dm_c,dm_f,shape=[lrow,lcol])
+
+   call elsi_extrapolate_dm_complex(h_f,ovlp0_f,ovlp1_f,dm_f)
+
+end subroutine
+
+subroutine elsi_construct_dm_real_c_wrapper(h_c,occ_c,evec_c,dm_c)&
+   bind(C,name="c_elsi_construct_dm_real")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: occ_c
+   type(c_ptr), value, intent(in) :: evec_c
+   type(c_ptr), value, intent(in) :: dm_c
+
+   type(elsi_handle), pointer :: h_f
+   real(kind=c_double), pointer :: occ_f(:)
+   real(kind=c_double), pointer :: evec_f(:,:)
+   real(kind=c_double), pointer :: dm_f(:,:)
+
+   integer(kind=c_int) :: n_state
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(h_c,h_f)
+
+   n_state = h_f%ph%n_states
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+
+   call c_f_pointer(occ_c,occ_f,shape=[n_state])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
+   call c_f_pointer(dm_c,dm_f,shape=[lrow,lcol])
+
+   call elsi_construct_dm_real(h_f,occ_f,evec_f,dm_f)
+
+end subroutine
+
+subroutine elsi_construct_dm_complex_c_wrapper(h_c,occ_c,evec_c,dm_c)&
+   bind(C,name="c_elsi_construct_dm_complex")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: occ_c
+   type(c_ptr), value, intent(in) :: evec_c
+   type(c_ptr), value, intent(in) :: dm_c
+
+   type(elsi_handle), pointer :: h_f
+   real(kind=c_double), pointer :: occ_f(:)
+   complex(kind=c_double), pointer :: evec_f(:,:)
+   complex(kind=c_double), pointer :: dm_f(:,:)
+
+   integer(kind=c_int) :: n_state
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(h_c,h_f)
+
+   n_state = h_f%ph%n_states
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+
+   call c_f_pointer(occ_c,occ_f,shape=[n_state])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
+   call c_f_pointer(dm_c,dm_f,shape=[lrow,lcol])
+
+   call elsi_construct_dm_complex(h_f,occ_f,evec_f,dm_f)
+
+end subroutine
+
+subroutine elsi_construct_edm_real_c_wrapper(h_c,occ_c,eval_c,evec_c,edm_c)&
+   bind(C,name="c_elsi_construct_edm_real")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: occ_c
+   type(c_ptr), value, intent(in) :: eval_c
+   type(c_ptr), value, intent(in) :: evec_c
+   type(c_ptr), value, intent(in) :: edm_c
+
+   type(elsi_handle), pointer :: h_f
+   real(kind=c_double), pointer :: occ_f(:)
+   real(kind=c_double), pointer :: eval_f(:)
+   real(kind=c_double), pointer :: evec_f(:,:)
+   real(kind=c_double), pointer :: edm_f(:,:)
+
+   integer(kind=c_int) :: n_state
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(h_c,h_f)
+
+   n_state = h_f%ph%n_states
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+
+   call c_f_pointer(occ_c,occ_f,shape=[n_state])
+   call c_f_pointer(eval_c,eval_f,shape=[n_state])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
+   call c_f_pointer(edm_c,edm_f,shape=[lrow,lcol])
+
+   call elsi_construct_edm_real(h_f,occ_f,eval_f,evec_f,edm_f)
+
+end subroutine
+
+subroutine elsi_construct_edm_complex_c_wrapper(h_c,occ_c,eval_c,evec_c,edm_c)&
+   bind(C,name="c_elsi_construct_edm_complex")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: occ_c
+   type(c_ptr), value, intent(in) :: eval_c
+   type(c_ptr), value, intent(in) :: evec_c
+   type(c_ptr), value, intent(in) :: edm_c
+
+   type(elsi_handle), pointer :: h_f
+   real(kind=c_double), pointer :: occ_f(:)
+   real(kind=c_double), pointer :: eval_f(:)
+   complex(kind=c_double), pointer :: evec_f(:,:)
+   complex(kind=c_double), pointer :: edm_f(:,:)
+
+   integer(kind=c_int) :: n_state
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(h_c,h_f)
+
+   n_state = h_f%ph%n_states
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+
+   call c_f_pointer(occ_c,occ_f,shape=[n_state])
+   call c_f_pointer(eval_c,eval_f,shape=[n_state])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
+   call c_f_pointer(edm_c,edm_f,shape=[lrow,lcol])
+
+   call elsi_construct_edm_complex(h_f,occ_f,eval_f,evec_f,edm_f)
+
+end subroutine
+
 subroutine elsi_init_rw_c_wrapper(h_c,rw_task,parallel_mode,n_basis,n_electron)&
    bind(C,name="c_elsi_init_rw")
 
