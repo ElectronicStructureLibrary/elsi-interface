@@ -88,7 +88,7 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp0,ovlp1,dm)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   call elsi_update_dm_elpa(eh%ph,eh%bh,ovlp0,ovlp1,dm)
+   call elsi_update_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ovlp0,ovlp1,dm)
 
 end subroutine
 
@@ -108,7 +108,7 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp0,ovlp1,dm)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   call elsi_update_dm_elpa(eh%ph,eh%bh,ovlp0,ovlp1,dm)
+   call elsi_update_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ovlp0,ovlp1,dm)
 
 end subroutine
 
