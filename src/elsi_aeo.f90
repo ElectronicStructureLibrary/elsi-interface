@@ -398,37 +398,46 @@ subroutine elsi_update_dm_elpa_real(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
 
    call elsi_get_time(t0)
 
-   ! S_1 = U_1
+   ! ovlp1 = U_1
    call elsi_elpa_cholesky(ph,bh,ovlp1)
 
-   ! S_1 = U_1^(-1)
+   ! ovlp1 = U_1^(-1)
    call elsi_elpa_invert(ph,bh,ovlp1)
-
-   ! S_0 = U_0
-   call elsi_elpa_invert(ph,bh,ovlp0)
 
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   ! tmp = U_1^(-1) U_0
-   call elsi_elpa_multiply(ph,bh,"U","U",ph%n_basis,ovlp1,ovlp0,tmp)
+   ! tmp = U_1^(-T)
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,tmp,1,1,&
+        bh%desc)
+
+   ! ovlp0 = U_0
+   call elsi_elpa_invert(ph,bh,ovlp0)
+
+   ! ovlp1 = U_1^(-1) U_0
+   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,tmp,ovlp0,ovlp1)
 
    ! ovlp0 = U_0^T U_1^(-T)
-   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,tmp,1,1,bh%desc,0.0_r8,ovlp0,1,1,&
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,ovlp0,1,1,&
         bh%desc)
 
-   ! tmp =  U_1^(-1) U_0 P_0
-   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,ovlp0,dm,tmp)
+   ! ovlp1 = U_1^(-1) U_0 P_0
+   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,ovlp0,dm,ovlp1)
 
    ! dm = P_0 U_0^T U_1^(-T)
-   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,tmp,1,1,bh%desc,0.0_r8,dm,1,1,&
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,dm,1,1,&
         bh%desc)
 
-   ! tmp = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
-   call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm,tmp)
+   ! ovlp1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
+   call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm,ovlp1)
 
-   call elsi_set_full_mat(ph,bh,LT_MAT,row_map,col_map,tmp)
+   call elsi_set_full_mat(ph,bh,LT_MAT,row_map,col_map,ovlp1)
 
-   dm = tmp
+   ! dm = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
+   dm = ovlp1
+
+   ! ovlp1 = U_1^(-1)
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,tmp,1,1,bh%desc,0.0_r8,ovlp1,1,1,&
+        bh%desc)
 
    call elsi_deallocate(bh,tmp,"tmp")
 
@@ -737,37 +746,46 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
 
    call elsi_get_time(t0)
 
-   ! S_1 = U_1
+   ! ovlp1 = U_1
    call elsi_elpa_cholesky(ph,bh,ovlp1)
 
-   ! S_1 = U_1^(-1)
+   ! ovlp1 = U_1^(-1)
    call elsi_elpa_invert(ph,bh,ovlp1)
-
-   ! S_0 = U_0
-   call elsi_elpa_invert(ph,bh,ovlp0)
 
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   ! tmp = U_1^(-1) U_0
-   call elsi_elpa_multiply(ph,bh,"U","U",ph%n_basis,ovlp1,ovlp0,tmp)
+   ! tmp = U_1^(-T)
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
+        (0.0_r8,0.0_r8),tmp,1,1,bh%desc)
+
+   ! ovlp0 = U_0
+   call elsi_elpa_invert(ph,bh,ovlp0)
+
+   ! ovlp1 = U_1^(-1) U_0
+   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,tmp,ovlp0,ovlp1)
 
    ! ovlp0 = U_0^T U_1^(-T)
-   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),tmp,1,1,bh%desc,&
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
         (0.0_r8,0.0_r8),ovlp0,1,1,bh%desc)
 
-   ! tmp =  U_1^(-1) U_0 P_0
-   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,ovlp0,dm,tmp)
+   ! ovlp1 = U_1^(-1) U_0 P_0
+   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,ovlp0,dm,ovlp1)
 
    ! dm = P_0 U_0^T U_1^(-T)
-   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),tmp,1,1,bh%desc,&
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
         (0.0_r8,0.0_r8),dm,1,1,bh%desc)
 
-   ! tmp = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
-   call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm,tmp)
+   ! ovlp1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
+   call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm,ovlp1)
 
-   call elsi_set_full_mat(ph,bh,LT_MAT,row_map,col_map,tmp)
+   call elsi_set_full_mat(ph,bh,LT_MAT,row_map,col_map,ovlp1)
 
-   dm = tmp
+   ! dm = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
+   dm = ovlp1
+
+   ! ovlp1 = U_1^(-1)
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),tmp,1,1,bh%desc,&
+        (0.0_r8,0.0_r8),ovlp1,1,1,bh%desc)
 
    call elsi_deallocate(bh,tmp,"tmp")
 
