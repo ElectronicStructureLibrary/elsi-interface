@@ -40,7 +40,6 @@ module ELSI_MUTATOR
    public :: elsi_set_illcond_abort
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
-   public :: elsi_set_elpa_cholesky
    public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
    public :: elsi_set_elpa_gpu_kernels
@@ -371,29 +370,6 @@ subroutine elsi_set_elpa_solver(eh,solver)
    end if
 
    eh%ph%elpa_solver = solver
-
-end subroutine
-
-!>
-!! This routine sets whether the Cholesky factorization step in ELPA has been
-!! performed externally or should be performed internally.
-!!
-subroutine elsi_set_elpa_cholesky(eh,cholesky)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: cholesky !< Cholesky factorized?
-
-   character(len=*), parameter :: caller = "elsi_set_elpa_cholesky"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   if(cholesky == 0) then
-      eh%ph%elpa_first = .true.
-   else
-      eh%ph%elpa_first = .false.
-   end if
 
 end subroutine
 

@@ -50,7 +50,6 @@ module ELSI
    public :: elsi_set_illcond_abort
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
-   public :: elsi_set_elpa_cholesky
    public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
    public :: elsi_set_elpa_gpu_kernels

@@ -679,22 +679,6 @@ subroutine elsi_set_elpa_solver_c_wrapper(h_c,solver)&
 
 end subroutine
 
-subroutine elsi_set_elpa_cholesky_c_wrapper(h_c,cholesky)&
-   bind(C,name="c_elsi_set_elpa_cholesky")
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), value, intent(in) :: cholesky
-
-   type(elsi_handle), pointer :: h_f
-
-   call c_f_pointer(h_c,h_f)
-
-   call elsi_set_elpa_cholesky(h_f,cholesky)
-
-end subroutine
-
 subroutine elsi_set_elpa_n_single_c_wrapper(h_c,n_single)&
    bind(C,name="c_elsi_set_elpa_n_single")
 
