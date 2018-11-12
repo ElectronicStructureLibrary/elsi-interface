@@ -548,7 +548,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%occ)) then
-         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_states,eh%ph%n_spins,&
               eh%ph%n_kpts,"occ",caller)
       end if
 
@@ -677,7 +677,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%occ)) then
-         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_states,eh%ph%n_spins,&
               eh%ph%n_kpts,"occ",caller)
       end if
 
@@ -771,7 +771,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%occ)) then
-         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_states,eh%ph%n_spins,&
               eh%ph%n_kpts,"occ",caller)
       end if
 
@@ -962,7 +962,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%occ)) then
-         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_states,eh%ph%n_spins,&
               eh%ph%n_kpts,"occ",caller)
       end if
 
@@ -1144,7 +1144,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%occ)) then
-         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_states,eh%ph%n_spins,&
               eh%ph%n_kpts,"occ",caller)
       end if
 
@@ -1325,7 +1325,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
       end if
 
       if(.not. allocated(eh%occ)) then
-         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_basis,eh%ph%n_spins,&
+         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_states,eh%ph%n_spins,&
               eh%ph%n_kpts,"occ",caller)
       end if
 
