@@ -380,7 +380,7 @@ subroutine elsi_update_dm_elpa_real(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
+   type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_map(ph%n_basis)
    integer(kind=i4), intent(in) :: col_map(ph%n_basis)
@@ -398,11 +398,13 @@ subroutine elsi_update_dm_elpa_real(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
 
    call elsi_get_time(t0)
 
-   ! ovlp1 = U_1
-   call elsi_elpa_cholesky(ph,bh,ovlp1)
+   if(ph%elpa_first) then
+      ! ovlp1 = U_1
+      call elsi_elpa_cholesky(ph,bh,ovlp1)
 
-   ! ovlp1 = U_1^(-1)
-   call elsi_elpa_invert(ph,bh,ovlp1)
+      ! ovlp1 = U_1^(-1)
+      call elsi_elpa_invert(ph,bh,ovlp1)
+   end if
 
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
@@ -447,6 +449,8 @@ subroutine elsi_update_dm_elpa_real(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
    call elsi_say(bh,msg)
    write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
+
+   ph%elpa_first = .false.
 
 end subroutine
 
@@ -728,7 +732,7 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
+   type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_map(ph%n_basis)
    integer(kind=i4), intent(in) :: col_map(ph%n_basis)
@@ -746,11 +750,13 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
 
    call elsi_get_time(t0)
 
-   ! ovlp1 = U_1
-   call elsi_elpa_cholesky(ph,bh,ovlp1)
+   if(ph%elpa_first) then
+      ! ovlp1 = U_1
+      call elsi_elpa_cholesky(ph,bh,ovlp1)
 
-   ! ovlp1 = U_1^(-1)
-   call elsi_elpa_invert(ph,bh,ovlp1)
+      ! ovlp1 = U_1^(-1)
+      call elsi_elpa_invert(ph,bh,ovlp1)
+   end if
 
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
@@ -795,6 +801,8 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
    call elsi_say(bh,msg)
    write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
+
+   ph%elpa_first = .false.
 
 end subroutine
 
