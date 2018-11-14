@@ -97,6 +97,8 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp0,ovlp1,dm)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
+   solver_save = eh%ph%solver
+
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%sips_n_elpa > 0) then
       solver_save = SIPS_SOLVER
       eh%ph%solver = ELPA_SOLVER
@@ -156,6 +158,8 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp0,ovlp1,dm)
    character(len=*), parameter :: caller = "elsi_extrapolate_dm_complex"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   solver_save = eh%ph%solver
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%omm_n_elpa > 0) then
       solver_save = OMM_SOLVER
