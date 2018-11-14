@@ -17,12 +17,11 @@ module ELSI_NTPOLY
    use ELSI_PRECISION, only: r8,i4
    use NTPOLY, only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,Matrix_ps,&
        ConstructEmptyMatrix,DestructMatrix,CopyMatrix,ScaleMatrix,&
-       FillMatrixFromTripletList,GetMatrixTripletList,FilterMatrix,&
-       ProcessGrid_t,ConstructNewProcessGrid,DestructProcessGrid,&
-       ConstructRandomPermutation,DestructPermutation,InverseSquareRoot,&
-       SolverParameters_t,Triplet_r,Triplet_c,TripletList_r,TripletList_c,&
-       ConstructTripletList,AppendToTripletList,DestructTripletList,&
-       ActivateLogger,DeactivateLogger
+       FillMatrixFromTripletList,GetMatrixTripletList,ProcessGrid_t,&
+       ConstructNewProcessGrid,DestructProcessGrid,ConstructRandomPermutation,&
+       DestructPermutation,InverseSquareRoot,SolverParameters_t,Triplet_r,&
+       Triplet_c,TripletList_r,TripletList_c,ConstructTripletList,&
+       AppendToTripletList,DestructTripletList,ActivateLogger,DeactivateLogger
 
    implicit none
 
@@ -82,6 +81,8 @@ subroutine elsi_init_ntpoly(ph,bh)
       call MPI_Bcast(ph%nt_output,1,mpi_logical,0,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
+
+      ph%nt_filter = max(ph%nt_filter,bh%def0)
 
       if(ph%nt_output .and. bh%myid_all == 0) then
          call ActivateLogger()
@@ -158,10 +159,6 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 
    call ScaleMatrix(dm,ph%spin_degen)
 
-   if(ph%nt_filter < bh%def0) then
-      call FilterMatrix(dm,bh%def0)
-   end if
-
    call elsi_get_time(t1)
 
    write(msg,"(2X,A)") "Finished density matrix purification"
@@ -203,10 +200,6 @@ subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
    call EnergyDensityMatrix(ham,tmp,edm,ph%nt_filter)
    call DestructMatrix(tmp)
    call ScaleMatrix(edm,factor)
-
-   if(ph%nt_filter < bh%def0) then
-      call FilterMatrix(edm,bh%def0)
-   end if
 
    call elsi_get_time(t1)
 
