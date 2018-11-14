@@ -104,6 +104,7 @@ module ELSI
    public :: elsi_set_sing_tol
    public :: elsi_set_sing_stop
    public :: elsi_set_sips_interval
+   public :: elsi_set_log_tag
    public :: elsi_get_n_sing
 
    ! Solver

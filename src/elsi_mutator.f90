@@ -94,6 +94,7 @@ module ELSI_MUTATOR
    public :: elsi_set_sing_tol
    public :: elsi_set_sing_stop
    public :: elsi_set_sips_interval
+   public :: elsi_set_log_tag
    public :: elsi_get_n_sing
 
    interface elsi_set_write_unit
@@ -110,6 +111,10 @@ module ELSI_MUTATOR
 
    interface elsi_set_sing_stop
       module procedure elsi_set_illcond_abort
+   end interface
+
+   interface elsi_set_log_tag
+      module procedure elsi_set_output_tag
    end interface
 
    interface elsi_get_n_sing
