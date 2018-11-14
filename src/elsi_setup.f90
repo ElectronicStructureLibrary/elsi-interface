@@ -46,7 +46,7 @@ contains
 !! number of electrons, and number of states.
 !!
 subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
-              n_state)
+   n_state)
 
    implicit none
 
@@ -166,18 +166,18 @@ end subroutine
 !>
 !! This routine sets the k-point information.
 !!
-subroutine elsi_set_kpoint(eh,n_kpt,i_kpt,weight)
+subroutine elsi_set_kpoint(eh,n_kpt,i_kpt,i_wt)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: n_kpt !< Number of k-points
    integer(kind=i4), intent(in) :: i_kpt !< K-point index
-   real(kind=r8), intent(in) :: weight !< Weight
+   real(kind=r8), intent(in) :: i_wt !< Weight
 
    eh%ph%n_kpts = n_kpt
    eh%ph%i_kpt = i_kpt
-   eh%ph%i_weight = weight
+   eh%ph%i_wt = i_wt
 
 end subroutine
 
@@ -209,17 +209,17 @@ subroutine elsi_set_blacs(eh,blacs_ctxt,block_size)
 
       ! Get processor grid information
       call BLACS_Gridinfo(blacs_ctxt,eh%bh%n_prow,eh%bh%n_pcol,eh%bh%my_prow,&
-              eh%bh%my_pcol)
+           eh%bh%my_pcol)
 
       ! Get local size of matrix
       eh%bh%n_lrow = numroc(eh%ph%n_basis,eh%bh%blk,eh%bh%my_prow,0,&
-                        eh%bh%n_prow)
+         eh%bh%n_prow)
       eh%bh%n_lcol = numroc(eh%ph%n_basis,eh%bh%blk,eh%bh%my_pcol,0,&
-                        eh%bh%n_pcol)
+         eh%bh%n_pcol)
 
       ! Get BLACS descriptor
       call descinit(eh%bh%desc,eh%ph%n_basis,eh%ph%n_basis,eh%bh%blk,eh%bh%blk,&
-              0,0,eh%bh%blacs_ctxt,max(1,eh%bh%n_lrow),ierr)
+           0,0,eh%bh%blacs_ctxt,max(1,eh%bh%n_lrow),ierr)
 
       ! Create global-local mapping
       call elsi_allocate(eh%bh,eh%row_map,eh%ph%n_basis,"row_map",caller)
@@ -333,7 +333,7 @@ subroutine elsi_reinit(eh)
       eh%bh%siesta_csc_ready = .false.
       eh%ph%n_calls_all = eh%ph%n_calls_all+eh%ph%n_calls
       eh%ph%n_calls = 0
-      eh%ph%ovlp_is_sing = .false.
+      eh%ph%ill_ovlp = .false.
       eh%ph%n_good = eh%ph%n_basis
       eh%ph%n_states_solve = eh%ph%n_states
       eh%ph%first_blacs_to_ntpoly = .true.

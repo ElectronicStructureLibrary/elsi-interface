@@ -9,7 +9,7 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANTS, only: UT_MAT,UNSET
+   use ELSI_CONSTANTS, only: LT_MAT,UT_MAT,UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
@@ -29,6 +29,7 @@ module ELSI_ELPA
    public :: elsi_init_elpa
    public :: elsi_cleanup_elpa
    public :: elsi_solve_elpa
+   public :: elsi_update_dm_elpa
    public :: elsi_elpa_cholesky
    public :: elsi_elpa_invert
    public :: elsi_elpa_tridiag
@@ -36,6 +37,11 @@ module ELSI_ELPA
    interface elsi_solve_elpa
       module procedure elsi_solve_elpa_real
       module procedure elsi_solve_elpa_cmplx
+   end interface
+
+   interface elsi_update_dm_elpa
+      module procedure elsi_update_dm_elpa_real
+      module procedure elsi_update_dm_elpa_cmplx
    end interface
 
    interface elsi_elpa_evec
@@ -120,14 +126,14 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    character(len=*), parameter :: caller = "elsi_to_standard_evp_real"
 
    if(ph%elpa_first) then
-      if(ph%check_sing) then
+      if(ph%ill_check) then
          call elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
       end if
 
       if(ph%n_good == ph%n_basis) then ! Not singular
          call elsi_get_time(t0)
 
-         ph%ovlp_is_sing = .false.
+         ph%ill_ovlp = .false.
 
          ! S = U
          call elsi_elpa_cholesky(ph,bh,ovlp)
@@ -147,19 +153,19 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! H = U^(-T) H U^(-1)
-   if(ph%ovlp_is_sing) then
+   if(ph%ill_ovlp) then
       call pdgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,1.0_r8,ham,1,1,&
-              bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,0.0_r8,evec,1,1,&
-              bh%desc)
+           bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,0.0_r8,evec,1,1,&
+           bh%desc)
 
       call pdgemm("T","N",ph%n_good,ph%n_good,ph%n_basis,1.0_r8,ovlp,1,&
-              ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
-              bh%desc)
+           ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
+           bh%desc)
    else
       call elsi_elpa_multiply(ph,bh,"U","L",ph%n_basis,ovlp,ham,evec)
 
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
-              bh%desc)
+           bh%desc)
 
       evec = ham
 
@@ -208,7 +214,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
    call elsi_elpa_evec(ph,bh,ovlp,eval,evec,.true.)
 
    if(ph%n_good < ph%n_basis) then ! Singular
-      ph%ovlp_is_sing = .true.
+      ph%ill_ovlp = .true.
 
       write(msg,"(2X,A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
@@ -216,7 +222,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
          eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,msg)
 
-      if(ph%stop_sing) then
+      if(ph%ill_abort) then
          call elsi_stop(bh,"Overlap matrix is singular.",caller)
       end if
 
@@ -233,7 +239,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
          end if
       end do
    else
-      ph%ovlp_is_sing = .false.
+      ph%ill_ovlp = .false.
 
       write(msg,"(2X,A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
@@ -279,13 +285,13 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
 
    tmp = evec
 
-   if(ph%ovlp_is_sing) then
+   if(ph%ill_ovlp) then
       call pdgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,1,&
-              ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,bh%desc,0.0_r8,evec,1,1,&
-              bh%desc)
+           ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,bh%desc,0.0_r8,evec,1,1,&
+           bh%desc)
    else
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp,1,1,bh%desc,0.0_r8,ham,1,1,&
-              bh%desc)
+           bh%desc)
 
       call elsi_elpa_multiply(ph,bh,"L","N",ph%n_states,ham,tmp,evec)
    end if
@@ -336,7 +342,7 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    end if
 
    ! Transform to standard form
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       call elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    end if
 
@@ -358,9 +364,91 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    call elsi_say(bh,msg)
 
    ! Back-transform eigenvectors
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       call elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
    end if
+
+   ph%elpa_first = .false.
+
+end subroutine
+
+!>
+!! This routine extrapolates density matrix using Cholesky decomposition of the
+!! old and new overlap matrices.
+!!
+subroutine elsi_update_dm_elpa_real(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
+   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
+   real(kind=r8), intent(inout) :: ovlp0(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: ovlp1(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
+
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
+   real(kind=r8), allocatable :: tmp(:,:)
+
+   character(len=*), parameter :: caller = "elsi_update_dm_elpa_real"
+
+   call elsi_get_time(t0)
+
+   if(ph%elpa_first) then
+      ! ovlp1 = U_1
+      call elsi_elpa_cholesky(ph,bh,ovlp1)
+
+      ! ovlp1 = U_1^(-1)
+      call elsi_elpa_invert(ph,bh,ovlp1)
+   end if
+
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
+
+   ! tmp = U_1^(-T)
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,tmp,1,1,&
+        bh%desc)
+
+   ! ovlp0 = U_0
+   call elsi_elpa_invert(ph,bh,ovlp0)
+
+   ! ovlp1 = U_1^(-1) U_0
+   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,tmp,ovlp0,ovlp1)
+
+   ! ovlp0 = U_0^T U_1^(-T)
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,ovlp0,1,1,&
+        bh%desc)
+
+   ! ovlp1 = U_1^(-1) U_0 P_0
+   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,ovlp0,dm,ovlp1)
+
+   ! dm = P_0 U_0^T U_1^(-T)
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,dm,1,1,&
+        bh%desc)
+
+   ! ovlp1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
+   call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm,ovlp1)
+
+   call elsi_set_full_mat(ph,bh,LT_MAT,row_map,col_map,ovlp1)
+
+   ! dm = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
+   dm = ovlp1
+
+   ! ovlp1 = U_1^(-1)
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,tmp,1,1,bh%desc,0.0_r8,ovlp1,1,1,&
+        bh%desc)
+
+   call elsi_deallocate(bh,tmp,"tmp")
+
+   call elsi_get_time(t1)
+
+   write(msg,"(2X,A)") "Finished density matrix extrapolation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%elpa_first = .false.
 
@@ -390,14 +478,14 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    character(len=*), parameter :: caller = "elsi_to_standard_evp_cmplx"
 
    if(ph%elpa_first) then
-      if(ph%check_sing) then
+      if(ph%ill_check) then
          call elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
       end if
 
       if(ph%n_good == ph%n_basis) then ! Not singular
          call elsi_get_time(t0)
 
-         ph%ovlp_is_sing = .false.
+         ph%ill_ovlp = .false.
 
          ! S = U
          call elsi_elpa_cholesky(ph,bh,ovlp)
@@ -417,19 +505,19 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! H = U^(-T) H U^(-1)
-   if(ph%ovlp_is_sing) then
+   if(ph%ill_ovlp) then
       call pzgemm("N","N",ph%n_basis,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ham,&
-              1,1,bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,&
-              (0.0_r8,0.0_r8),evec,1,1,bh%desc)
+           1,1,bh%desc,ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,(0.0_r8,0.0_r8),&
+           evec,1,1,bh%desc)
 
       call pzgemm("C","N",ph%n_good,ph%n_good,ph%n_basis,(1.0_r8,0.0_r8),ovlp,&
-              1,ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,&
-              (0.0_r8,0.0_r8),ham,1,1,bh%desc)
+           1,ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),&
+           ham,1,1,bh%desc)
    else
       call elsi_elpa_multiply(ph,bh,"U","L",ph%n_basis,ovlp,ham,evec)
 
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),evec,1,1,bh%desc,&
-              (0.0_r8,0.0_r8),ham,1,1,bh%desc)
+           (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
       evec = ham
 
@@ -478,7 +566,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
    call elsi_elpa_evec(ph,bh,ovlp,eval,evec,.true.)
 
    if(ph%n_good < ph%n_basis) then ! Singular
-      ph%ovlp_is_sing = .true.
+      ph%ill_ovlp = .true.
 
       write(msg,"(2X,A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
@@ -486,7 +574,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
          eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,msg)
 
-      if(ph%stop_sing) then
+      if(ph%ill_abort) then
          call elsi_stop(bh,"Overlap matrix is singular.",caller)
       end if
 
@@ -503,7 +591,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
          end if
       end do
    else
-      ph%ovlp_is_sing = .false.
+      ph%ill_ovlp = .false.
 
       write(msg,"(2X,A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
@@ -549,13 +637,13 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
 
    tmp = evec
 
-   if(ph%ovlp_is_sing) then
+   if(ph%ill_ovlp) then
       call pzgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&
-              (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,&
-              bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
+           (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,&
+           bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
    else
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
-              (0.0_r8,0.0_r8),ham,1,1,bh%desc)
+           (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
       call elsi_elpa_multiply(ph,bh,"L","N",ph%n_states,ham,tmp,evec)
    end if
@@ -606,7 +694,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    end if
 
    ! Transform to standard form
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       call elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    end if
 
@@ -628,9 +716,91 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    call elsi_say(bh,msg)
 
    ! Back-transform eigenvectors
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       call elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
    end if
+
+   ph%elpa_first = .false.
+
+end subroutine
+
+!>
+!! This routine extrapolates density matrix using Cholesky decomposition of the
+!! old and new overlap matrices.
+!!
+subroutine elsi_update_dm_elpa_cmplx(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
+   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
+   complex(kind=r8), intent(inout) :: ovlp0(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ovlp1(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
+
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
+   complex(kind=r8), allocatable :: tmp(:,:)
+
+   character(len=*), parameter :: caller = "elsi_update_dm_elpa_cmplx"
+
+   call elsi_get_time(t0)
+
+   if(ph%elpa_first) then
+      ! ovlp1 = U_1
+      call elsi_elpa_cholesky(ph,bh,ovlp1)
+
+      ! ovlp1 = U_1^(-1)
+      call elsi_elpa_invert(ph,bh,ovlp1)
+   end if
+
+   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
+
+   ! tmp = U_1^(-T)
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
+        (0.0_r8,0.0_r8),tmp,1,1,bh%desc)
+
+   ! ovlp0 = U_0
+   call elsi_elpa_invert(ph,bh,ovlp0)
+
+   ! ovlp1 = U_1^(-1) U_0
+   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,tmp,ovlp0,ovlp1)
+
+   ! ovlp0 = U_0^T U_1^(-T)
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
+        (0.0_r8,0.0_r8),ovlp0,1,1,bh%desc)
+
+   ! ovlp1 = U_1^(-1) U_0 P_0
+   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,ovlp0,dm,ovlp1)
+
+   ! dm = P_0 U_0^T U_1^(-T)
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
+        (0.0_r8,0.0_r8),dm,1,1,bh%desc)
+
+   ! ovlp1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
+   call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm,ovlp1)
+
+   call elsi_set_full_mat(ph,bh,LT_MAT,row_map,col_map,ovlp1)
+
+   ! dm = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
+   dm = ovlp1
+
+   ! ovlp1 = U_1^(-1)
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),tmp,1,1,bh%desc,&
+        (0.0_r8,0.0_r8),ovlp1,1,1,bh%desc)
+
+   call elsi_deallocate(bh,tmp,"tmp")
+
+   call elsi_get_time(t1)
+
+   write(msg,"(2X,A)") "Finished density matrix extrapolation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
    ph%elpa_first = .false.
 
@@ -719,13 +889,13 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
          if(ph%elpa_solver == 2) then
             call ph%elpa_solve%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
             call ph%elpa_solve%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,&
-                    ierr2)
+                 ierr2)
 
             if(ierr /= 0 .or. ierr2 /= 0) then
                call ph%elpa_solve%set("real_kernel",ELPA_2STAGE_REAL_DEFAULT,&
-                       ierr)
+                    ierr)
                call ph%elpa_solve%set("complex_kernel",&
-                       ELPA_2STAGE_COMPLEX_DEFAULT,ierr)
+                    ELPA_2STAGE_COMPLEX_DEFAULT,ierr)
 
                ph%elpa_gpu_kernels = .false.
 
@@ -783,7 +953,7 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
       call elsi_deallocate(bh,copy,"copy")
 
       do i = 1,ph%n_basis
-         if(eval(i) < ph%sing_tol) then
+         if(eval(i) < ph%ill_tol) then
             ph%n_good = ph%n_good-1
          end if
       end do
@@ -819,7 +989,7 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
          if(ph%elpa_autotune) then
             if(.not. associated(ph%elpa_tune)) then
                ph%elpa_tune => ph%elpa_solve%autotune_setup(ELPA_AUTOTUNE_FAST,&
-                                  ELPA_AUTOTUNE_DOMAIN_REAL,ierr)
+                  ELPA_AUTOTUNE_DOMAIN_REAL,ierr)
             end if
 
             if(.not. ph%elpa_solve%autotune_step(ph%elpa_tune)) then
@@ -879,7 +1049,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
       call elsi_deallocate(bh,copy,"copy")
 
       do i = 1,ph%n_basis
-         if(eval(i) < ph%sing_tol) then
+         if(eval(i) < ph%ill_tol) then
             ph%n_good = ph%n_good-1
          end if
       end do
@@ -915,7 +1085,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
          if(ph%elpa_autotune) then
             if(.not. associated(ph%elpa_tune)) then
                ph%elpa_tune => ph%elpa_solve%autotune_setup(ELPA_AUTOTUNE_FAST,&
-                                  ELPA_AUTOTUNE_DOMAIN_COMPLEX,ierr)
+                  ELPA_AUTOTUNE_DOMAIN_COMPLEX,ierr)
             end if
 
             if(.not. ph%elpa_solve%autotune_step(ph%elpa_tune)) then
@@ -1049,7 +1219,7 @@ subroutine elsi_elpa_multiply_real(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
    character(len=*), parameter :: caller = "elsi_elpa_multiply_real"
 
    call ph%elpa_aux%hermitian_multiply(uplo_a,uplo_c,n,mat_a,mat_b,bh%n_lrow,&
-           bh%n_lcol,mat_c,bh%n_lrow,bh%n_lcol,ierr)
+        bh%n_lcol,mat_c,bh%n_lrow,bh%n_lcol,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Matrix multiplication failed.",caller)
@@ -1078,7 +1248,7 @@ subroutine elsi_elpa_multiply_cmplx(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
    character(len=*), parameter :: caller = "elsi_elpa_multiply_cmplx"
 
    call ph%elpa_aux%hermitian_multiply(uplo_a,uplo_c,n,mat_a,mat_b,bh%n_lrow,&
-           bh%n_lcol,mat_c,bh%n_lrow,bh%n_lcol,ierr)
+        bh%n_lcol,mat_c,bh%n_lrow,bh%n_lcol,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Matrix multiplication failed.",caller)

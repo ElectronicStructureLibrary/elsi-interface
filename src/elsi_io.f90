@@ -67,7 +67,6 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
 
    integer(kind=i4) :: solver_use
    real(kind=r8) :: t1
-   real(kind=r8) :: t_total
    character(len=20) :: solver_tag
    character(len=29) :: dt_record
 
@@ -118,11 +117,10 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
          solver_use = 6
       end select
 
-      t_total = t1-t0
-
       call fjson_start_object(jh)
       call elsi_print_versioning(bh%uuid,jh)
-      call fjson_write_name_value(jh,"iteration",ph%n_calls+ph%n_calls_all)
+      call fjson_write_name_value(jh,"step",ph%n_calls)
+      call fjson_write_name_value(jh,"total_step",ph%n_calls+ph%n_calls_all)
 
       if(caller(6:6) == "e") then
          call fjson_write_name_value(jh,"output_type","EIGENSOLUTION")
@@ -140,7 +138,7 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       call fjson_write_name_value(jh,"user_tag",trim(bh%user_tag))
       call fjson_write_name_value(jh,"start_datetime",dt0)
       call fjson_write_name_value(jh,"record_datetime",dt_record)
-      call fjson_write_name_value(jh,"total_time",t_total)
+      call fjson_write_name_value(jh,"total_time",t1-t0)
       call elsi_print_handle_summary(ph,bh,jh)
       call fjson_write_name_value(jh,"solver_used",trim(solver_tag))
 
@@ -212,12 +210,11 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
 
    if(ph%parallel_mode == MULTI_PROC) then
       call fjson_write_name_value(jh,"parallel_mode","MULTI_PROC")
+      call fjson_write_name_value(jh,"n_procs",bh%n_procs)
+      call fjson_write_name_value(jh,"n_procs_all",bh%n_procs_all)
    else if(ph%parallel_mode == SINGLE_PROC) then
       call fjson_write_name_value(jh,"parallel_mode","SINGLE_PROC")
    end if
-
-   call fjson_write_name_value(jh,"n_procs",bh%n_procs)
-   call fjson_write_name_value(jh,"n_procs_all",bh%n_procs_all)
 
    if(ph%solver == ELPA_SOLVER) then
       call fjson_write_name_value(jh,"solver_chosen","ELPA")
@@ -348,19 +345,19 @@ subroutine elsi_print_pexsi_settings(ph,jh)
    call fjson_write_name_value(jh,"pexsi_n_prow_pexsi",ph%pexsi_n_prow)
    call fjson_write_name_value(jh,"pexsi_n_pcol_pexsi",ph%pexsi_n_pcol)
    call fjson_write_name_value(jh,"pexsi_temperature",&
-           ph%pexsi_options%temperature)
+        ph%pexsi_options%temperature)
    call fjson_write_name_value(jh,"pexsi_delta_e",ph%pexsi_options%deltaE)
    call fjson_write_name_value(jh,"pexsi_gap",ph%pexsi_options%gap)
    call fjson_write_name_value(jh,"pexsi_mu_min",ph%pexsi_options%muMin0)
    call fjson_write_name_value(jh,"pexsi_mu_max",ph%pexsi_options%muMax0)
    call fjson_write_name_value(jh,"pexsi_do_inertia",&
-           ph%pexsi_options%isInertiaCount)
+        ph%pexsi_options%isInertiaCount)
    call fjson_write_name_value(jh,"pexsi_intertia_tol",&
-           ph%pexsi_options%muInertiaTolerance)
+        ph%pexsi_options%muInertiaTolerance)
    call fjson_write_name_value(jh,"pexsi_tol",&
-           ph%pexsi_options%numElectronPEXSITolerance)
+        ph%pexsi_options%numElectronPEXSITolerance)
    call fjson_write_name_value(jh,"pexsi_np_symbfact",&
-           ph%pexsi_options%npSymbFact)
+        ph%pexsi_options%npSymbFact)
    call fjson_write_name_value(jh,"pexsi_reordering",ph%pexsi_options%ordering)
    call fjson_finish_object(jh)
 
@@ -485,13 +482,14 @@ subroutine elsi_final_print(ph,bh)
 
    if(ph%matrix_format == BLACS_DENSE) then
       write(msg,"(2X,A,A22)") "|   Matrix format             :","BLACS_DENSE"
+      call elsi_say(bh,msg)
    else if(ph%matrix_format == PEXSI_CSC) then
       write(msg,"(2X,A,A22)") "|   Matrix format             :","PEXSI_CSC"
+      call elsi_say(bh,msg)
    else if(ph%matrix_format == SIESTA_CSC) then
       write(msg,"(2X,A,A22)") "|   Matrix format             :","SIESTA_CSC"
+      call elsi_say(bh,msg)
    end if
-
-   call elsi_say(bh,msg)
 
    write(msg,"(2X,A,I22)") "|   Number of basis functions :",ph%n_basis
    call elsi_say(bh,msg)
@@ -511,28 +509,31 @@ subroutine elsi_final_print(ph,bh)
 
    if(ph%parallel_mode == MULTI_PROC) then
       write(msg,"(2X,A,A22)") "|   Parallel mode             :","MULTI_PROC"
+      call elsi_say(bh,msg)
+
+      write(msg,"(2X,A,I22)") "|   Number of MPI tasks       :",bh%n_procs_all
+      call elsi_say(bh,msg)
    else if(ph%parallel_mode == SINGLE_PROC) then
       write(msg,"(2X,A,A22)") "|   Parallel mode             :","SINGLE_PROC"
+      call elsi_say(bh,msg)
    end if
-
-   call elsi_say(bh,msg)
-
-   write(msg,"(2X,A,I22)") "|   Number of MPI tasks       :",bh%n_procs_all
-   call elsi_say(bh,msg)
 
    if(ph%solver == ELPA_SOLVER) then
       write(msg,"(2X,A,A22)") "|   Solver requested          :","ELPA"
+      call elsi_say(bh,msg)
    else if(ph%solver == OMM_SOLVER) then
       write(msg,"(2X,A,A22)") "|   Solver requested          :","libOMM"
+      call elsi_say(bh,msg)
    else if(ph%solver == PEXSI_SOLVER) then
       write(msg,"(2X,A,A22)") "|   Solver requested          :","PEXSI"
+      call elsi_say(bh,msg)
    else if(ph%solver == SIPS_SOLVER) then
       write(msg,"(2X,A,A22)") "|   Solver requested          :","SLEPc-SIPs"
+      call elsi_say(bh,msg)
    else if(ph%solver == NTPOLY_SOLVER) then
       write(msg,"(2X,A,A22)") "|   Solver requested          :","NTPoly"
+      call elsi_say(bh,msg)
    end if
-
-   call elsi_say(bh,msg)
 
    write(msg,"(2X,A,I22)") "|   Number of ELSI calls      :",ph%n_calls_all
    call elsi_say(bh,msg)
@@ -631,8 +632,8 @@ subroutine elsi_get_time(wtime)
    read(ctime(8:10),"(I3)") val
    millisecond = real(val,kind=r8)
 
-   wtime = day*24.0_r8*3600.0_r8+hour*3600.0_r8+minute*60.0_r8+second+&
-              millisecond*0.001_r8
+   wtime = day*86400.0_r8+hour*3600.0_r8+minute*60.0_r8+second&
+      +millisecond*0.001_r8
 
 end subroutine
 
@@ -713,6 +714,7 @@ subroutine elsi_init_random_seed()
 
    implicit none
 
+   real(kind=r8) :: wtime
    integer(kind=i4) :: i
    integer(kind=i4) :: n
    integer(kind=i4) :: dt(8)
@@ -722,15 +724,14 @@ subroutine elsi_init_random_seed()
 
    character(len=*), parameter :: caller = "elsi_init_random_seed"
 
-   call random_seed(size=n)
-   call date_and_time(values=dt)
+   call elsi_get_time(wtime)
 
-   t = (dt(1)-1970)*365*24*60*60*1000+dt(2)*31*24*60*60*1000+&
-          dt(3)*24*60*60*1000+dt(5)*60*60*1000+dt(6)*60*1000+dt(7)*1000+dt(8)
+   t = int(wtime*1000.0_r8,kind=i8)
+
+   call random_seed(size=n)
 
    allocate(seed(n))
 
-   ! Writting the array with seeds
    do i = 1,n
       seed(i) = lcg(t)
    end do

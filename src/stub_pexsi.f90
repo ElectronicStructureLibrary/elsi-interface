@@ -99,8 +99,7 @@ function f_ppexsi_plan_initialize(fcomm,numProcRow,numProcCol,outputFileIndex,in
 end function
 
 subroutine f_ppexsi_load_real_hs_matrix(plan,options,nrows,nnz,nnzLocal,&
-              numColLocal,colptrLocal,rowindLocal,HnzvalLocal,isSIdentity,&
-              SnzvalLocal,info)
+   numColLocal,colptrLocal,rowindLocal,HnzvalLocal,isSIdentity,SnzvalLocal,info)
 
    implicit none
 
@@ -123,8 +122,7 @@ subroutine f_ppexsi_load_real_hs_matrix(plan,options,nrows,nnz,nnzLocal,&
 end subroutine
 
 subroutine f_ppexsi_load_complex_hs_matrix(plan,options,nrows,nnz,nnzLocal,&
-              numColLocal,colptrLocal,rowindLocal,HnzvalLocal,isSIdentity,&
-              SnzvalLocal,info)
+   numColLocal,colptrLocal,rowindLocal,HnzvalLocal,isSIdentity,SnzvalLocal,info)
 
    implicit none
 
@@ -160,7 +158,7 @@ subroutine f_ppexsi_symbolic_factorize_real_symmetric_matrix(plan,options,info)
 end subroutine
 
 subroutine f_ppexsi_symbolic_factorize_complex_symmetric_matrix(plan,options,&
-              info)
+   info)
 
    implicit none
 
@@ -174,7 +172,7 @@ subroutine f_ppexsi_symbolic_factorize_complex_symmetric_matrix(plan,options,&
 end subroutine
 
 subroutine f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(plan,options,&
-              AnzvalLocal,info)
+   AnzvalLocal,info)
 
    implicit none
 
@@ -189,7 +187,7 @@ subroutine f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(plan,options,&
 end subroutine
 
 subroutine f_ppexsi_inertia_count_real_matrix(plan,options,numShift,shiftList,&
-              inertiaList,info)
+   inertiaList,info)
 
    implicit none
 
@@ -206,7 +204,7 @@ subroutine f_ppexsi_inertia_count_real_matrix(plan,options,numShift,shiftList,&
 end subroutine
 
 subroutine f_ppexsi_inertia_count_complex_matrix(plan,options,numShift,&
-              shiftList,inertiaList,info)
+   shiftList,inertiaList,info)
 
    implicit none
 
@@ -223,7 +221,7 @@ subroutine f_ppexsi_inertia_count_complex_matrix(plan,options,numShift,&
 end subroutine
 
 subroutine f_ppexsi_calculate_fermi_operator_real3(plan,options,mu,&
-              numElectronExact,numElectronPEXSI,info)
+   numElectronExact,numElectronPEXSI,info)
 
    implicit none
 
@@ -240,7 +238,7 @@ subroutine f_ppexsi_calculate_fermi_operator_real3(plan,options,mu,&
 end subroutine
 
 subroutine f_ppexsi_calculate_fermi_operator_complex(plan,options,mu,&
-              numElectronExact,numElectronPEXSI,numElectronDrvMuPEXSI,info)
+   numElectronExact,numElectronPEXSI,numElectronDrvMuPEXSI,info)
 
    implicit none
 

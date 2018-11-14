@@ -107,13 +107,25 @@ void c_elsi_dm_complex_sparse(elsi_handle handle_c,
                               double *energy);
 
 void c_elsi_set_output(elsi_handle handle_c,
-                       int out_level);
+                       int output);
+
+void c_elsi_set_output_log(elsi_handle handle_c,
+                           int output_log);
 
 void c_elsi_set_unit_ovlp(elsi_handle handle_c,
                           int unit_ovlp);
 
 void c_elsi_set_zero_def(elsi_handle handle_c,
                          double zero_def);
+
+void c_elsi_set_illcond_check(elsi_handle handle_c,
+                              int illcond_check);
+
+void c_elsi_set_illcond_tol(elsi_handle handle_c,
+                            double illcond_tol);
+
+void c_elsi_set_illcond_abort(elsi_handle handle_c,
+                              int illcond_abort);
 
 void c_elsi_set_sing_check(elsi_handle handle_c,
                            int sing_check);
@@ -124,32 +136,32 @@ void c_elsi_set_sing_tol(elsi_handle handle_c,
 void c_elsi_set_sing_stop(elsi_handle handle_c,
                           int sing_stop);
 
-void c_elsi_set_uplo(elsi_handle handle_c,
-                     int uplo);
-
 void c_elsi_set_elpa_solver(elsi_handle handle_c,
-                            int elpa_solver);
+                            int solver);
+
+void c_elsi_set_elpa_cholesky(elsi_handle handle_c,
+                              int cholesky);
 
 void c_elsi_set_elpa_n_single(elsi_handle handle_c,
                               int n_single);
 
 void c_elsi_set_elpa_gpu(elsi_handle handle_c,
-                         int use_gpu);
+                         int gpu);
 
 void c_elsi_set_elpa_gpu_kernels(elsi_handle handle_c,
-                                 int use_gpu_kernels);
+                                 int gpu_kernels);
 
 void c_elsi_set_elpa_autotune(elsi_handle handle_c,
-                              int use_autotune);
+                              int autotune);
 
 void c_elsi_set_omm_flavor(elsi_handle handle_c,
-                           int omm_flavor);
+                           int flavor);
 
 void c_elsi_set_omm_n_elpa(elsi_handle handle_c,
                            int n_elpa);
 
 void c_elsi_set_omm_tol(elsi_handle handle_c,
-                        double omm_tol);
+                        double tol);
 
 void c_elsi_set_pexsi_n_mu(elsi_handle handle_c,
                            int n_mu);
@@ -202,18 +214,24 @@ void c_elsi_set_sips_buffer(elsi_handle handle_c,
 void c_elsi_set_sips_inertia_tol(elsi_handle handle_c,
                                  double inertia_tol);
 
+void c_elsi_set_sips_ev_min(elsi_handle handle_c,
+                            double ev_min);
+
+void c_elsi_set_sips_ev_max(elsi_handle handle_c,
+                            double ev_max);
+
 void c_elsi_set_sips_interval(elsi_handle handle_c,
                               double lower,
                               double upper);
 
 void c_elsi_set_ntpoly_method(elsi_handle handle_c,
-                              int nt_method);
+                              int method);
 
 void c_elsi_set_ntpoly_isr(elsi_handle handle_c,
-                           int nt_isr);
+                           int isr);
 
 void c_elsi_set_ntpoly_tol(elsi_handle handle_c,
-                           double nt_tol);
+                           double tol);
 
 void c_elsi_set_ntpoly_filter(elsi_handle handle_c,
                               double filter);
@@ -228,7 +246,7 @@ void c_elsi_set_mu_broaden_width(elsi_handle handle_c,
                                  double broaden_width);
 
 void c_elsi_set_mu_tol(elsi_handle handle_c,
-                       double mu_tol);
+                       double tol);
 
 void c_elsi_set_mu_spin_degen(elsi_handle handle_c,
                               double spin_degen);
@@ -236,17 +254,8 @@ void c_elsi_set_mu_spin_degen(elsi_handle handle_c,
 void c_elsi_set_mu_mp_order(elsi_handle handle_c,
                             int mp_order);
 
-void c_elsi_set_output_log(elsi_handle handle_c,
-                           int out_log);
-
-void c_elsi_get_pexsi_mu_min(elsi_handle handle_c,
-                             double *mu_min);
-
-void c_elsi_get_pexsi_mu_max(elsi_handle handle_c,
-                             double *mu_max);
-
 void c_elsi_get_initialized(elsi_handle handle_c,
-                            int *handle_init);
+                            int *initialized);
 
 void c_elsi_get_version(int *major,
                         int *minor,
@@ -254,11 +263,23 @@ void c_elsi_get_version(int *major,
 
 void c_elsi_get_datestamp(int *datestamp);
 
+void c_elsi_get_n_illcond(elsi_handle handle_c,
+                          int *n_illcond);
+
 void c_elsi_get_n_sing(elsi_handle handle_c,
                        int *n_sing);
 
+void c_elsi_get_pexsi_mu_min(elsi_handle handle_c,
+                             double *mu_min);
+
+void c_elsi_get_pexsi_mu_max(elsi_handle handle_c,
+                             double *mu_max);
+
 void c_elsi_get_mu(elsi_handle handle_c,
                    double *mu);
+
+void c_elsi_get_entropy(elsi_handle handle_c,
+                        double *entropy);
 
 void c_elsi_get_edm_real(elsi_handle handle_c,
                          double *edm);
@@ -271,6 +292,46 @@ void c_elsi_get_edm_real_sparse(elsi_handle handle_c,
 
 void c_elsi_get_edm_complex_sparse(elsi_handle handle_c,
                                    double _Complex *edm);
+
+void c_elsi_orthonormalize_ev_real(elsi_handle handle_c,
+                                   double *ovlp,
+                                   double *evec);
+
+void c_elsi_orthonormalize_ev_complex(elsi_handle handle_c,
+                                      double _Complex *ovlp,
+                                      double _Complex *evec);
+
+void c_elsi_extrapolate_dm_real(elsi_handle handle_c,
+                                double *ovlp0,
+                                double *ovlp1,
+                                double *dm);
+
+void c_elsi_extrapolate_dm_complex(elsi_handle handle_c,
+                                   double _Complex *ovlp0,
+                                   double _Complex *ovlp1,
+                                   double _Complex *dm);
+
+void c_elsi_construct_dm_real(elsi_handle handle_c,
+                              double *occ,
+                              double *evec,
+                              double *dm);
+
+void c_elsi_construct_dm_complex(elsi_handle handle_c,
+                                 double *occ,
+                                 double _Complex *evec,
+                                 double _Complex *dm);
+
+void c_elsi_construct_edm_real(elsi_handle handle_c,
+                               double *occ,
+                               double *eval,
+                               double *evec,
+                               double *edm);
+
+void c_elsi_construct_edm_complex(elsi_handle handle_c,
+                                  double *occ,
+                                  double *eval,
+                                  double _Complex *evec,
+                                  double _Complex *edm);
 
 void c_elsi_init_rw(elsi_rw_handle *handle_c,
                     int rw_task,

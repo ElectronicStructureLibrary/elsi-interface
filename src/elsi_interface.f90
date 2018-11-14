@@ -16,6 +16,7 @@ module ELSI
    use ELSI_RW
    use ELSI_SETUP
    use ELSI_SOLVER
+   use ELSI_TOOLS
 
    implicit none
 
@@ -38,12 +39,15 @@ module ELSI
 
    ! Mutator
    public :: elsi_set_output
-   public :: elsi_set_write_unit
+   public :: elsi_set_output_unit
+   public :: elsi_set_output_log
+   public :: elsi_set_output_tag
+   public :: elsi_set_uuid
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def
-   public :: elsi_set_sing_check
-   public :: elsi_set_sing_tol
-   public :: elsi_set_sing_stop
+   public :: elsi_set_illcond_check
+   public :: elsi_set_illcond_tol
+   public :: elsi_set_illcond_abort
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_n_single
@@ -69,8 +73,8 @@ module ELSI
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_buffer
    public :: elsi_set_sips_inertia_tol
-   public :: elsi_set_sips_interval
-   public :: elsi_set_sips_first_ev
+   public :: elsi_set_sips_ev_min
+   public :: elsi_set_sips_ev_max
    public :: elsi_set_ntpoly_method
    public :: elsi_set_ntpoly_isr
    public :: elsi_set_ntpoly_tol
@@ -81,21 +85,27 @@ module ELSI
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
    public :: elsi_set_mu_mp_order
-   public :: elsi_set_output_log
-   public :: elsi_set_log_tag
-   public :: elsi_set_uuid
-   public :: elsi_get_pexsi_mu_min
-   public :: elsi_get_pexsi_mu_max
    public :: elsi_get_initialized
    public :: elsi_get_version
    public :: elsi_get_datestamp
-   public :: elsi_get_n_sing
+   public :: elsi_get_n_illcond
+   public :: elsi_get_pexsi_mu_min
+   public :: elsi_get_pexsi_mu_max
    public :: elsi_get_mu
    public :: elsi_get_entropy
    public :: elsi_get_edm_real
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse
    public :: elsi_get_edm_complex_sparse
+
+   ! Deprecated
+   public :: elsi_set_write_unit
+   public :: elsi_set_sing_check
+   public :: elsi_set_sing_tol
+   public :: elsi_set_sing_stop
+   public :: elsi_set_sips_interval
+   public :: elsi_set_log_tag
+   public :: elsi_get_n_sing
 
    ! Solver
    public :: elsi_ev_real
@@ -106,6 +116,16 @@ module ELSI
    public :: elsi_dm_complex
    public :: elsi_dm_real_sparse
    public :: elsi_dm_complex_sparse
+
+   ! Auxiliary
+   public :: elsi_orthonormalize_ev_real
+   public :: elsi_orthonormalize_ev_complex
+   public :: elsi_extrapolate_dm_real
+   public :: elsi_extrapolate_dm_complex
+   public :: elsi_construct_dm_real
+   public :: elsi_construct_dm_complex
+   public :: elsi_construct_edm_real
+   public :: elsi_construct_edm_complex
    public :: elsi_compute_mu_and_occ
    public :: elsi_compute_entropy
 

@@ -120,23 +120,23 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    if(ph%sips_first) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          ! Load H and S
          call sips_load_ham_ovlp(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,&
-                 col_ptr,ham,ovlp)
+              col_ptr,ham,ovlp)
 
          call sips_set_eps(0)
       else
          ! Load H
          call sips_load_ham(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,&
-                 col_ptr,ham)
+              col_ptr,ham)
 
          call sips_set_eps(1)
       end if
    else
       ! Update H matrix
       call sips_update_ham(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,&
-              col_ptr,ham)
+           col_ptr,ham)
 
       call sips_update_eps(ph%sips_n_slices)
    end if
@@ -168,16 +168,16 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
          inertia_ok = .true.
 
          call sips_get_slices(0,ph%n_states,ph%sips_n_slices,0.0_r8,1.0e-5_r8,&
-                 eval,slices)
+              eval,slices)
 
          call sips_get_inertias(ph%sips_n_slices,slices,inertias)
 
-         if(inertias(1) > ph%sips_first_ev-1) then
+         if(inertias(1) > 0) then
             eval(1) = eval(1)-ph%sips_buffer
             inertia_ok = .false.
          else
             do i = 1,ph%sips_n_slices
-               if(inertias(i+1) > ph%sips_first_ev-1) then
+               if(inertias(i+1) > 0) then
                   eval(1) = slices(i)
 
                   if(i > 1) then
@@ -187,20 +187,14 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
                   exit
                end if
             end do
-
-            if(inertias(i) < ph%sips_first_ev-1) then
-               eval(1) = eval(1)+ph%sips_buffer
-               inertia_ok = .false.
-            end if
          end if
 
-         if(inertias(ph%sips_n_slices+1) <&
-            ph%n_states+ph%sips_first_ev-1) then
+         if(inertias(ph%sips_n_slices+1) < ph%n_states) then
             eval(ph%n_states) = eval(ph%n_states)+ph%sips_buffer
             inertia_ok = .false.
          else
             do i = ph%sips_n_slices+1,2,-1
-               if(inertias(i-1) < ph%n_states+ph%sips_first_ev-1) then
+               if(inertias(i-1) < ph%n_states) then
                   eval(ph%n_states) = slices(i)
 
                   if(i < ph%sips_n_slices+1) then
@@ -214,7 +208,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
       end do
 
       call sips_get_slices_from_inertias(ph%n_states,ph%sips_n_slices,inertias,&
-              slices)
+           slices)
 
       call elsi_deallocate(bh,inertias,"inertias")
 
@@ -226,7 +220,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
       call elsi_say(bh,msg)
    else
       call sips_get_slices(ph%sips_slice_type,ph%n_states,ph%sips_n_slices,&
-              ph%sips_inertia_tol*2,1.0e-5_r8,eval,slices)
+           ph%sips_inertia_tol*2,1.0e-5_r8,eval,slices)
    end if
 
    call sips_set_slices(ph%sips_n_slices,slices)
@@ -290,7 +284,7 @@ subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
-   real(kind=r8), intent(in) :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(out) :: dm(bh%nnz_l_sp1)
 
    real(kind=r8) :: t0
@@ -301,8 +295,8 @@ subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 
    call elsi_get_time(t0)
 
-   call sips_get_dm(bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,col_ptr,ph%n_states,&
-           occ(:,1,1),dm)
+   call sips_get_dm(bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,col_ptr,ph%n_states,occ,&
+        dm)
 
    call elsi_get_time(t1)
 
@@ -324,7 +318,7 @@ subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
-   real(kind=r8), intent(in) :: occ(ph%n_states,ph%n_spins,ph%n_kpts)
+   real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(out) :: edm(bh%nnz_l_sp1)
 
    real(kind=r8) :: t0
@@ -336,7 +330,7 @@ subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
    call elsi_get_time(t0)
 
    call sips_get_edm(bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,col_ptr,ph%n_states,&
-           occ(:,1,1),edm)
+        occ,edm)
 
    call elsi_get_time(t1)
 

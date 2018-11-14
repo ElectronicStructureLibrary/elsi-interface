@@ -183,7 +183,7 @@ subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
    call elsi_allocate(bh,dest,ph%pexsi_np_per_pole,"dest",caller)
    call elsi_allocate(bh,nnz,ph%pexsi_np_per_pole,"nnz",caller)
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -212,7 +212,7 @@ subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
    end if
 
    call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,mpi_integer4,mpi_sum,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -220,7 +220,7 @@ subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
    bh%nnz_l_sp1 = bh%nnz_l_sp
 
    call MPI_Allreduce(bh%nnz_l_sp,bh%nnz_g,1,mpi_integer4,mpi_sum,&
-           ph%pexsi_comm_intra_pole,ierr)
+        ph%pexsi_comm_intra_pole,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -256,7 +256,7 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
    call elsi_allocate(bh,dest,ph%pexsi_np_per_pole,"dest",caller)
    call elsi_allocate(bh,nnz,ph%pexsi_np_per_pole,"nnz",caller)
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -285,7 +285,7 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
    end if
 
    call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,mpi_integer4,mpi_sum,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -293,7 +293,7 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
    bh%nnz_l_sp1 = bh%nnz_l_sp
 
    call MPI_Allreduce(bh%nnz_l_sp,bh%nnz_g,1,mpi_integer4,mpi_sum,&
-           ph%pexsi_comm_intra_pole,ierr)
+        ph%pexsi_comm_intra_pole,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -307,7 +307,7 @@ end subroutine
 !! cyclic dense format to 1D block CSC format.
 !!
 subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
-              row_ind,col_ptr)
+   row_ind,col_ptr)
 
    implicit none
 
@@ -386,7 +386,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    end do
 
    if(ph%first_blacs_to_pexsi) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call elsi_get_nnz(bh%def0,ovlp_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
          call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
@@ -402,7 +402,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    i_val = 0
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -453,7 +453,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -471,7 +471,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -481,7 +481,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -491,18 +491,18 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,h_val_recv,nnz_l_aux,"h_val_recv",caller)
 
    call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_real8,h_val_recv,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_blacs_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_recv,nnz_l_aux,"s_val_recv",caller)
 
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,s_val_recv,&
-              recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -512,13 +512,13 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,global_id,nnz_l_aux,"global_id",caller)
 
    ! Compute global 1D id
-   global_id = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+&
-                  int(row_recv,kind=i8)
+   global_id = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_recv,kind=i8)
 
    ! Sort
-   if(ph%first_blacs_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(nnz_l_aux,global_id,h_val_recv,s_val_recv,row_recv,&
-              col_recv)
+           col_recv)
    else
       call elsi_heapsort(nnz_l_aux,global_id,h_val_recv,row_recv,col_recv)
    end if
@@ -531,7 +531,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -545,7 +545,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    if(ph%first_blacs_to_pexsi) then
       ! Row id
       call MPI_Alltoallv(row_recv,send_count,send_displ,mpi_integer4,row_ind,&
-              recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -555,16 +555,16 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
       call elsi_allocate(bh,col_send,bh%nnz_l_sp,"col_send",caller)
 
       call MPI_Alltoallv(col_recv,send_count,send_displ,mpi_integer4,col_send,&
-              recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
       call elsi_deallocate(bh,col_recv,"col_recv")
 
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          ! Overlap value
          call MPI_Alltoallv(s_val_recv,send_count,send_displ,mpi_real8,&
-                 ovlp_csc,recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+              ovlp_csc,recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
          call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -577,7 +577,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    ! Hamiltonian value
    call MPI_Alltoallv(h_val_recv,send_count,send_displ,mpi_real8,ham_csc,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -606,12 +606,12 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
       call elsi_deallocate(bh,col_send,"col_send")
 
       call MPI_Bcast(row_ind,bh%nnz_l_sp,mpi_integer4,0,&
-              ph%pexsi_comm_inter_pole,ierr)
+           ph%pexsi_comm_inter_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
       call MPI_Bcast(col_ptr,bh%n_lcol_sp+1,mpi_integer4,0,&
-              ph%pexsi_comm_inter_pole,ierr)
+           ph%pexsi_comm_inter_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
    end if
@@ -632,7 +632,7 @@ end subroutine
 !! cyclic dense format to 1D block CSC format.
 !!
 subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
-              ovlp_csc,row_ind,col_ptr)
+   ovlp_csc,row_ind,col_ptr)
 
    implicit none
 
@@ -711,7 +711,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    end do
 
    if(ph%first_blacs_to_pexsi) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call elsi_get_nnz(bh%def0,ovlp_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
          call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
@@ -727,7 +727,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
 
    i_val = 0
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -778,7 +778,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -796,7 +796,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -806,7 +806,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -816,18 +816,18 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    call elsi_allocate(bh,h_val_recv,nnz_l_aux,"h_val_recv",caller)
 
    call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_complex16,&
-           h_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        h_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_blacs_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_recv,nnz_l_aux,"s_val_recv",caller)
 
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
-              s_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+           s_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -837,13 +837,13 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    call elsi_allocate(bh,global_id,nnz_l_aux,"global_id",caller)
 
    ! Compute global 1D id
-   global_id = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+&
-                  int(row_recv,kind=i8)
+   global_id = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_recv,kind=i8)
 
    ! Sort
-   if(ph%first_blacs_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(nnz_l_aux,global_id,h_val_recv,s_val_recv,row_recv,&
-              col_recv)
+           col_recv)
    else
       call elsi_heapsort(nnz_l_aux,global_id,h_val_recv,row_recv,col_recv)
    end if
@@ -856,7 +856,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -870,7 +870,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    if(ph%first_blacs_to_pexsi) then
       ! Row id
       call MPI_Alltoallv(row_recv,send_count,send_displ,mpi_integer4,row_ind,&
-              recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -880,16 +880,16 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
       call elsi_allocate(bh,col_send,bh%nnz_l_sp,"col_send",caller)
 
       call MPI_Alltoallv(col_recv,send_count,send_displ,mpi_integer4,col_send,&
-              recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
       call elsi_deallocate(bh,col_recv,"col_recv")
 
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          ! Overlap value
          call MPI_Alltoallv(s_val_recv,send_count,send_displ,mpi_complex16,&
-                 ovlp_csc,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+              ovlp_csc,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
          call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -902,7 +902,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
 
    ! Hamiltonian value
    call MPI_Alltoallv(h_val_recv,send_count,send_displ,mpi_complex16,ham_csc,&
-           recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -931,12 +931,12 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
       call elsi_deallocate(bh,col_send,"col_send")
 
       call MPI_Bcast(row_ind,bh%nnz_l_sp,mpi_integer4,0,&
-              ph%pexsi_comm_inter_pole,ierr)
+           ph%pexsi_comm_inter_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
       call MPI_Bcast(col_ptr,bh%n_lcol_sp+1,mpi_integer4,0,&
-              ph%pexsi_comm_inter_pole,ierr)
+           ph%pexsi_comm_inter_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
    end if
@@ -1039,8 +1039,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
 
          ! Compute global id
          row_send(j_val) = i_row
-         col_send(j_val) = i_col+ph%pexsi_my_pcol*&
-                              (ph%n_basis/ph%pexsi_np_per_pole)
+         col_send(j_val) = i_col+ph%pexsi_my_pcol&
+            *(ph%n_basis/ph%pexsi_np_per_pole)
          val_send(j_val) = dm_csc(i_val)
 
          ! Compute destination
@@ -1063,7 +1063,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -1080,7 +1080,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    call elsi_allocate(bh,val_recv,bh%nnz_l,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_real8,val_recv,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1090,7 +1090,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    call elsi_allocate(bh,row_recv,bh%nnz_l,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1100,7 +1100,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    call elsi_allocate(bh,col_recv,bh%nnz_l,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1222,8 +1222,8 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
 
          ! Compute global id
          row_send(j_val) = i_row
-         col_send(j_val) = i_col+ph%pexsi_my_pcol*&
-                              (ph%n_basis/ph%pexsi_np_per_pole)
+         col_send(j_val) = i_col+ph%pexsi_my_pcol&
+            *(ph%n_basis/ph%pexsi_np_per_pole)
          val_send(j_val) = dm_csc(i_val)
 
          ! Compute destination
@@ -1246,7 +1246,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -1263,7 +1263,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    call elsi_allocate(bh,val_recv,bh%nnz_l,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_complex16,val_recv,&
-           recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1273,7 +1273,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    call elsi_allocate(bh,row_recv,bh%nnz_l,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1283,7 +1283,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    call elsi_allocate(bh,col_recv,bh%nnz_l,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1345,7 +1345,7 @@ subroutine elsi_blacs_to_sips_hs_dim_real(ph,bh,ham_den,ovlp_den)
    call elsi_allocate(bh,dest,bh%n_procs,"dest",caller)
    call elsi_allocate(bh,nnz,bh%n_procs,"nnz",caller)
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -1416,7 +1416,7 @@ subroutine elsi_blacs_to_sips_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
    call elsi_allocate(bh,dest,bh%n_procs,"dest",caller)
    call elsi_allocate(bh,nnz,bh%n_procs,"nnz",caller)
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -1465,7 +1465,7 @@ end subroutine
 !! cyclic dense format to 1D block CSC format.
 !!
 subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
-              row_ind,col_ptr)
+   row_ind,col_ptr)
 
    implicit none
 
@@ -1507,7 +1507,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_get_time(t0)
 
    if(ph%first_blacs_to_sips) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call elsi_get_nnz(bh%def0,ovlp_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
          call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
@@ -1523,7 +1523,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    i_val = 0
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -1583,7 +1583,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -1596,7 +1596,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    ! Redistribute packed data
    ! Row id
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_ind,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1606,7 +1606,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,col_recv,bh%nnz_l_sp,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1614,16 +1614,16 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    ! Hamiltonian value
    call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_real8,ham_csc,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_blacs_to_sips .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,ovlp_csc,&
-              recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1637,13 +1637,13 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,global_id,bh%nnz_l_sp,"global_id",caller)
 
    ! Compute global 1D id
-   global_id = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+&
-                  int(row_ind,kind=i8)
+   global_id = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_ind,kind=i8)
 
    ! Sort
-   if(ph%first_blacs_to_sips .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp,global_id,ham_csc,ovlp_csc,row_ind,&
-              col_recv)
+           col_recv)
    else
       call elsi_heapsort(bh%nnz_l_sp,global_id,ham_csc,row_ind,col_recv)
    end if
@@ -1683,7 +1683,7 @@ end subroutine
 !! cyclic dense format to 1D block CSC format.
 !!
 subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
-              row_ind,col_ptr)
+   row_ind,col_ptr)
 
    implicit none
 
@@ -1725,7 +1725,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_get_time(t0)
 
    if(ph%first_blacs_to_sips) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call elsi_get_nnz(bh%def0,ovlp_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
 
          call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
@@ -1741,7 +1741,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    i_val = 0
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -1801,7 +1801,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -1814,7 +1814,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    ! Redistribute packed data
    ! Row id
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_ind,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1824,7 +1824,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,col_recv,bh%nnz_l_sp,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1832,16 +1832,16 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    ! Hamiltonian value
    call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_complex16,ham_csc,&
-           recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_blacs_to_sips .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
-              ovlp_csc,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+           ovlp_csc,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1855,13 +1855,13 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,global_id,bh%nnz_l_sp,"global_id",caller)
 
    ! Compute global 1D id
-   global_id = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+&
-                  int(row_ind,kind=i8)
+   global_id = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_ind,kind=i8)
 
    ! Sort
-   if(ph%first_blacs_to_sips .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp,global_id,ham_csc,ovlp_csc,row_ind,&
-              col_recv)
+           col_recv)
    else
       call elsi_heapsort(bh%nnz_l_sp,global_id,ham_csc,row_ind,col_recv)
    end if
@@ -1901,7 +1901,7 @@ end subroutine
 !! format to 2D block-cyclic dense format.
 !!
 subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
-              ham_den,ovlp_den)
+   ham_den,ovlp_den)
 
    implicit none
 
@@ -1946,7 +1946,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t0)
 
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_send,bh%nnz_l_sp,"s_val_send",caller)
    end if
 
@@ -1970,7 +1970,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
       col_send(i_val) = i_col+bh%myid*(ph%n_basis/bh%n_procs)
       h_val_send(i_val) = ham_csc(i_val)
 
-      if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
          s_val_send(i_val) = ovlp_csc(i_val)
       end if
 
@@ -1984,9 +1984,9 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    end do
 
    ! Sort
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp,dest,h_val_send,s_val_send,row_send,&
-              col_send)
+           col_send)
    else
       call elsi_heapsort(bh%nnz_l_sp,dest,h_val_send,row_send,col_send)
    end if
@@ -1998,7 +1998,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -2015,7 +2015,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,row_recv,bh%nnz_l,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2025,7 +2025,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,col_recv,bh%nnz_l,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2035,18 +2035,18 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,h_val_recv,bh%nnz_l,"h_val_recv",caller)
 
    call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_real8,h_val_recv,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_recv,bh%nnz_l,"s_val_recv",caller)
 
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,s_val_recv,&
-              recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
    end if
@@ -2057,7 +2057,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
    ! Unpack matrix
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       ham_den = 0.0_r8
       ovlp_den = 0.0_r8
 
@@ -2105,7 +2105,7 @@ end subroutine
 !! format to 2D block-cyclic dense format.
 !!
 subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
-              ham_den,ovlp_den)
+   ham_den,ovlp_den)
 
    implicit none
 
@@ -2150,7 +2150,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t0)
 
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_send,bh%nnz_l_sp,"s_val_send",caller)
    end if
 
@@ -2174,7 +2174,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
       col_send(i_val) = i_col+bh%myid*(ph%n_basis/bh%n_procs)
       h_val_send(i_val) = ham_csc(i_val)
 
-      if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
          s_val_send(i_val) = ovlp_csc(i_val)
       end if
 
@@ -2188,9 +2188,9 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    end do
 
    ! Sort
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp,dest,h_val_send,s_val_send,row_send,&
-              col_send)
+           col_send)
    else
       call elsi_heapsort(bh%nnz_l_sp,dest,h_val_send,row_send,col_send)
    end if
@@ -2202,7 +2202,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -2219,7 +2219,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,row_recv,bh%nnz_l,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2229,7 +2229,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,col_recv,bh%nnz_l,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2239,18 +2239,18 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,h_val_recv,bh%nnz_l,"h_val_recv",caller)
 
    call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_complex16,&
-           h_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        h_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_recv,bh%nnz_l,"s_val_recv",caller)
 
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
-              s_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+           s_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
    end if
@@ -2261,7 +2261,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
    ! Unpack matrix
-   if(ph%first_sips_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
       ham_den = (0.0_r8,0.0_r8)
       ovlp_den = (0.0_r8,0.0_r8)
 
@@ -2375,7 +2375,7 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
             i_val = i_val+1
 
             ! Compute global id
-            col_send(i_val) = i_col+ph%sips_first_ev-1
+            col_send(i_val) = i_col
             row_send(i_val) = bh%myid*n_lrow_aux+i_row
             val_send(i_val) = evec_sips(i_row,i_col)
 
@@ -2400,7 +2400,7 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -2417,7 +2417,7 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
    call elsi_allocate(bh,val_recv,nnz_after,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_real8,val_recv,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2427,7 +2427,7 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
    call elsi_allocate(bh,row_recv,nnz_after,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2437,7 +2437,7 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
    call elsi_allocate(bh,col_recv,nnz_after,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2553,7 +2553,7 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -2571,7 +2571,7 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2581,7 +2581,7 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2591,7 +2591,7 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_allocate(bh,val_recv,nnz_l_aux,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_real8,val_recv,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2709,7 +2709,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -2727,7 +2727,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2737,7 +2737,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2747,7 +2747,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_allocate(bh,val_recv,nnz_l_aux,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_complex16,val_recv,&
-           recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2789,7 +2789,7 @@ end subroutine
 !! cyclic CSC format to 2D block-cyclic dense format.
 !!
 subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
-              ham_den,ovlp_den)
+   ham_den,ovlp_den)
 
    implicit none
 
@@ -2834,7 +2834,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    call elsi_get_time(t0)
 
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_send,bh%nnz_l_sp,"s_val_send",caller)
    end if
 
@@ -2859,7 +2859,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
       row_send(i_val) = i_row
       h_val_send(i_val) = ham_csc(i_val)
 
-      if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
          s_val_send(i_val) = ovlp_csc(i_val)
       end if
 
@@ -2873,9 +2873,9 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    end do
 
    ! Sort
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp,dest,h_val_send,s_val_send,row_send,&
-              col_send)
+           col_send)
    else
       call elsi_heapsort(bh%nnz_l_sp,dest,h_val_send,row_send,col_send)
    end if
@@ -2887,7 +2887,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -2904,7 +2904,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,row_recv,bh%nnz_l,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2914,7 +2914,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,col_recv,bh%nnz_l,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -2924,18 +2924,18 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_allocate(bh,h_val_recv,bh%nnz_l,"h_val_recv",caller)
 
    call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_real8,h_val_recv,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_recv,bh%nnz_l,"s_val_recv",caller)
 
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,s_val_recv,&
-              recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
    end if
@@ -2946,7 +2946,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
    ! Unpack matrix
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       ham_den = 0.0_r8
       ovlp_den = 0.0_r8
 
@@ -2994,7 +2994,7 @@ end subroutine
 !! cyclic CSC format to 2D block-cyclic dense format.
 !!
 subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
-              ovlp_csc,ham_den,ovlp_den)
+   ovlp_csc,ham_den,ovlp_den)
 
    implicit none
 
@@ -3039,7 +3039,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
 
    call elsi_get_time(t0)
 
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_send,bh%nnz_l_sp,"s_val_send",caller)
    end if
 
@@ -3064,7 +3064,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
       row_send(i_val) = i_row
       h_val_send(i_val) = ham_csc(i_val)
 
-      if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
          s_val_send(i_val) = ovlp_csc(i_val)
       end if
 
@@ -3078,9 +3078,9 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    end do
 
    ! Sort
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp,dest,h_val_send,s_val_send,row_send,&
-              col_send)
+           col_send)
    else
       call elsi_heapsort(bh%nnz_l_sp,dest,h_val_send,row_send,col_send)
    end if
@@ -3092,7 +3092,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -3109,7 +3109,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    call elsi_allocate(bh,row_recv,bh%nnz_l,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3119,7 +3119,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    call elsi_allocate(bh,col_recv,bh%nnz_l,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3129,18 +3129,18 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    call elsi_allocate(bh,h_val_recv,bh%nnz_l,"h_val_recv",caller)
 
    call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_complex16,&
-           h_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        h_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_recv,bh%nnz_l,"s_val_recv",caller)
 
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
-              s_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+           s_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
    end if
@@ -3151,7 +3151,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
    ! Unpack matrix
-   if(ph%first_siesta_to_blacs .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
       ham_den = (0.0_r8,0.0_r8)
       ovlp_den = (0.0_r8,0.0_r8)
 
@@ -3278,7 +3278,7 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,row_ind,col_ptr,dm_den,dm_csc)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -3296,7 +3296,7 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3306,7 +3306,7 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3316,7 +3316,7 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_allocate(bh,val_recv,nnz_l_aux,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_real8,val_recv,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3438,7 +3438,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_den,dm_csc)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -3456,7 +3456,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3466,7 +3466,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3476,7 +3476,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_allocate(bh,val_recv,nnz_l_aux,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_complex16,val_recv,&
-           recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3549,7 +3549,7 @@ subroutine elsi_siesta_to_pexsi_hs_dim(ph,bh,col_ptr2)
    end do
 
    call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,mpi_integer4,mpi_sum,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -3565,7 +3565,7 @@ end subroutine
 !! cyclic CSC format to 1D block CSC format.
 !!
 subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
-              col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
+   col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
 
    implicit none
 
@@ -3609,7 +3609,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    n_lcol_aux = ph%n_basis/ph%pexsi_np_per_pole
 
-   if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_send,bh%nnz_l_sp2,"s_val_send",caller)
    end if
 
@@ -3633,7 +3633,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
       row_send(i_val) = i_row
       h_val_send(i_val) = ham_csc2(i_val)
 
-      if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
          s_val_send(i_val) = ovlp_csc2(i_val)
       end if
 
@@ -3651,7 +3651,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -3664,7 +3664,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    ! Redistribute packed data
    ! Row index
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_ind1,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3674,7 +3674,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    call elsi_allocate(bh,col_recv,bh%nnz_l_sp1,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3682,16 +3682,16 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    ! Hamiltonian Value
    call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_real8,ham_csc1,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,ovlp_csc1,&
-              recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3705,13 +3705,13 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    call elsi_allocate(bh,global_id,bh%nnz_l_sp1,"global_id",caller)
 
    ! Compute global 1D id
-   global_id = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+&
-                  int(row_ind1,kind=i8)
+   global_id = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_ind1,kind=i8)
 
    ! Sort
-   if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_csc1,ovlp_csc1,row_ind1,&
-              col_recv)
+           col_recv)
    else
       call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_csc1,row_ind1,col_recv)
    end if
@@ -3753,7 +3753,7 @@ end subroutine
 !! cyclic CSC format to 1D block CSC format.
 !!
 subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
-              col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
+   col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
 
    implicit none
 
@@ -3797,7 +3797,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    n_lcol_aux = ph%n_basis/ph%pexsi_np_per_pole
 
-   if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_allocate(bh,s_val_send,bh%nnz_l_sp2,"s_val_send",caller)
    end if
 
@@ -3821,7 +3821,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
       row_send(i_val) = i_row
       h_val_send(i_val) = ham_csc2(i_val)
 
-      if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
          s_val_send(i_val) = ovlp_csc2(i_val)
       end if
 
@@ -3839,7 +3839,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -3852,7 +3852,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    ! Redistribute packed data
    ! Row index
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_ind1,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3862,7 +3862,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    call elsi_allocate(bh,col_recv,bh%nnz_l_sp1,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3870,16 +3870,16 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    ! Hamiltonian Value
    call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_complex16,ham_csc1,&
-           recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
    call elsi_deallocate(bh,h_val_send,"h_val_send")
 
    ! Overlap value
-   if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
-              ovlp_csc1,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+           ovlp_csc1,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3893,13 +3893,13 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    call elsi_allocate(bh,global_id,bh%nnz_l_sp1,"global_id",caller)
 
    ! Compute global 1D id
-   global_id = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+&
-                  int(row_ind1,kind=i8)
+   global_id = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_ind1,kind=i8)
 
    ! Sort
-   if(ph%first_siesta_to_pexsi .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_csc1,ovlp_csc1,row_ind1,&
-              col_recv)
+           col_recv)
    else
       call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_csc1,row_ind1,col_recv)
    end if
@@ -3941,7 +3941,7 @@ end subroutine
 !! CSC format to 1D block-cyclic CSC format.
 !!
 subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
-              row_ind2,col_ptr2,dm_csc2)
+   row_ind2,col_ptr2,dm_csc2)
 
    implicit none
 
@@ -4024,7 +4024,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -4041,7 +4041,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    call elsi_allocate(bh,val_recv,bh%nnz_l_sp2,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_real8,val_recv,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -4051,7 +4051,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    call elsi_allocate(bh,row_recv,bh%nnz_l_sp2,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -4061,7 +4061,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    call elsi_allocate(bh,col_recv,bh%nnz_l_sp2,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -4104,7 +4104,7 @@ end subroutine
 !! CSC format to 1D block-cyclic CSC format.
 !!
 subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
-              row_ind2,col_ptr2,dm_csc2)
+   row_ind2,col_ptr2,dm_csc2)
 
    implicit none
 
@@ -4187,7 +4187,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -4204,7 +4204,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    call elsi_allocate(bh,val_recv,bh%nnz_l_sp2,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_complex16,val_recv,&
-           recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -4214,7 +4214,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    call elsi_allocate(bh,row_recv,bh%nnz_l_sp2,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -4224,7 +4224,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    call elsi_allocate(bh,col_recv,bh%nnz_l_sp2,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -4317,7 +4317,7 @@ end subroutine
 !! block CSC format to 1D block-cyclic CSC format.
 !!
 subroutine elsi_sips_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
-              row_ind2,col_ptr2,dm_csc2)
+   row_ind2,col_ptr2,dm_csc2)
 
    implicit none
 
@@ -4337,7 +4337,7 @@ subroutine elsi_sips_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    ph%pexsi_np_per_pole = bh%n_procs
 
    call elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,row_ind2,&
-           col_ptr2,dm_csc2)
+        col_ptr2,dm_csc2)
 
 end subroutine
 
@@ -4346,7 +4346,7 @@ end subroutine
 !! block CSC format to 1D block-cyclic CSC format.
 !!
 subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
-              row_ind2,col_ptr2,dm_csc2)
+   row_ind2,col_ptr2,dm_csc2)
 
    implicit none
 
@@ -4366,7 +4366,7 @@ subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    ph%pexsi_np_per_pole = bh%n_procs
 
    call elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,row_ind2,&
-           col_ptr2,dm_csc2)
+        col_ptr2,dm_csc2)
 
 end subroutine
 
@@ -4420,7 +4420,7 @@ end subroutine
 !! cyclic CSC format to 1D block CSC format.
 !!
 subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
-              col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
+   col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
 
    implicit none
 
@@ -4442,7 +4442,7 @@ subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    ph%pexsi_np_per_pole = bh%n_procs
 
    call elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
-           col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
+        col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
 
 end subroutine
 
@@ -4451,7 +4451,7 @@ end subroutine
 !! cyclic CSC format to 1D block CSC format.
 !!
 subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
-              col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
+   col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
 
    implicit none
 
@@ -4473,7 +4473,7 @@ subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    ph%pexsi_np_per_pole = bh%n_procs
 
    call elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
-           col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
+        col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
 
 end subroutine
 
@@ -4510,7 +4510,7 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    call elsi_get_time(t0)
 
    if(ph%first_blacs_to_ntpoly) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call ConstructEmptyMatrix(ovlp_nt,ph%n_basis,ph%nt_pgrid,.false.)
          call ConstructTripletList(ovlp_list)
       end if
@@ -4520,7 +4520,7 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
 
    call ConstructTripletList(ham_list)
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -4561,9 +4561,9 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    end if
 
    if(ph%first_blacs_to_ntpoly) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call MPI_Allreduce(ovlp_list%CurrentSize,bh%nnz_g,1,mpi_integer4,&
-                 mpi_sum,bh%comm,ierr)
+              mpi_sum,bh%comm,ierr)
 
          call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -4571,7 +4571,7 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
          call DestructTripletList(ovlp_list)
       else
          call MPI_Allreduce(ham_list%CurrentSize,bh%nnz_g,1,mpi_integer4,&
-                 mpi_sum,bh%comm,ierr)
+              mpi_sum,bh%comm,ierr)
 
          call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
       end if
@@ -4624,7 +4624,7 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    call elsi_get_time(t0)
 
    if(ph%first_blacs_to_ntpoly) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call ConstructEmptyMatrix(ovlp_nt,ph%n_basis,ph%nt_pgrid,.true.)
          call ConstructTripletList(ovlp_list)
       end if
@@ -4634,7 +4634,7 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
 
    call ConstructTripletList(ham_list)
 
-   if(.not. ph%ovlp_is_unit) then
+   if(.not. ph%unit_ovlp) then
       do i_col = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
@@ -4675,9 +4675,9 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    end if
 
    if(ph%first_blacs_to_ntpoly) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call MPI_Allreduce(ovlp_list%CurrentSize,bh%nnz_g,1,mpi_integer4,&
-                 mpi_sum,bh%comm,ierr)
+              mpi_sum,bh%comm,ierr)
 
          call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -4685,7 +4685,7 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
          call DestructTripletList(ovlp_list)
       else
          call MPI_Allreduce(ham_list%CurrentSize,bh%nnz_g,1,mpi_integer4,&
-                 mpi_sum,bh%comm,ierr)
+              mpi_sum,bh%comm,ierr)
 
          call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
       end if
@@ -4790,7 +4790,7 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -4808,7 +4808,7 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
    call elsi_allocate(bh,val_recv,nnz_l_aux,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_real8,val_recv,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -4818,7 +4818,7 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
    call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -4828,7 +4828,7 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
    call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -4948,7 +4948,7 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -4966,7 +4966,7 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
    call elsi_allocate(bh,val_recv,nnz_l_aux,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_complex16,val_recv,&
-           recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -4976,7 +4976,7 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
    call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -4986,7 +4986,7 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
    call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -5026,7 +5026,7 @@ end subroutine
 !! from matrices stored in 1D block CSC format.
 !!
 subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
-              ham_nt,ovlp_nt)
+   ham_nt,ovlp_nt)
 
    implicit none
 
@@ -5054,7 +5054,7 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_get_time(t0)
 
    if(ph%first_sips_to_ntpoly) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call ConstructEmptyMatrix(ovlp_nt,ph%n_basis,ph%nt_pgrid,.false.)
          call ConstructTripletList(ovlp_list)
       end if
@@ -5077,14 +5077,14 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
       call AppendToTripletList(ham_list,coo)
 
-      if(ph%first_sips_to_ntpoly .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_sips_to_ntpoly .and. .not. ph%unit_ovlp) then
          coo%point_value = ovlp_csc(i_val)
 
          call AppendToTripletList(ovlp_list,coo)
       end if
    end do
 
-   if(ph%first_sips_to_ntpoly .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_ntpoly .and. .not. ph%unit_ovlp) then
       call FillMatrixFromTripletList(ovlp_nt,ovlp_list)
       call DestructTripletList(ovlp_list)
    end if
@@ -5108,7 +5108,7 @@ end subroutine
 !! from matrices stored in 1D block CSC format.
 !!
 subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
-              ham_nt,ovlp_nt)
+   ham_nt,ovlp_nt)
 
    implicit none
 
@@ -5136,7 +5136,7 @@ subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    call elsi_get_time(t0)
 
    if(ph%first_sips_to_ntpoly) then
-      if(.not. ph%ovlp_is_unit) then
+      if(.not. ph%unit_ovlp) then
          call ConstructEmptyMatrix(ovlp_nt,ph%n_basis,ph%nt_pgrid,.true.)
          call ConstructTripletList(ovlp_list)
       end if
@@ -5159,14 +5159,14 @@ subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
 
       call AppendToTripletList(ham_list,coo)
 
-      if(ph%first_sips_to_ntpoly .and. .not. ph%ovlp_is_unit) then
+      if(ph%first_sips_to_ntpoly .and. .not. ph%unit_ovlp) then
          coo%point_value = ovlp_csc(i_val)
 
          call AppendToTripletList(ovlp_list,coo)
       end if
    end do
 
-   if(ph%first_sips_to_ntpoly .and. .not. ph%ovlp_is_unit) then
+   if(ph%first_sips_to_ntpoly .and. .not. ph%unit_ovlp) then
       call FillMatrixFromTripletList(ovlp_nt,ovlp_list)
       call DestructTripletList(ovlp_list)
    end if
@@ -5263,7 +5263,7 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -5281,7 +5281,7 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_allocate(bh,val_recv,nnz_l_aux,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_real8,val_recv,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -5291,7 +5291,7 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -5301,7 +5301,7 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -5416,7 +5416,7 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -5434,7 +5434,7 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_allocate(bh,val_recv,nnz_l_aux,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_complex16,val_recv,&
-           recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -5444,7 +5444,7 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -5454,7 +5454,7 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -5496,7 +5496,7 @@ end subroutine
 !! from matrices stored in 1D block-cyclic CSC format.
 !!
 subroutine elsi_siesta_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,&
-              ovlp_csc,ham_nt,ovlp_nt)
+   ovlp_csc,ham_nt,ovlp_nt)
 
    implicit none
 
@@ -5512,7 +5512,7 @@ subroutine elsi_siesta_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,&
    character(len=*), parameter :: caller = "elsi_siesta_to_ntpoly_hs_real"
 
    call elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
-           ham_nt,ovlp_nt)
+        ham_nt,ovlp_nt)
 
 end subroutine
 
@@ -5521,7 +5521,7 @@ end subroutine
 !! from matrices stored in 1D block-cyclic CSC format.
 !!
 subroutine elsi_siesta_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
-              ovlp_csc,ham_nt,ovlp_nt)
+   ovlp_csc,ham_nt,ovlp_nt)
 
    implicit none
 
@@ -5537,7 +5537,7 @@ subroutine elsi_siesta_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    character(len=*), parameter :: caller = "elsi_siesta_to_ntpoly_hs_cmplx"
 
    call elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
-           ham_nt,ovlp_nt)
+        ham_nt,ovlp_nt)
 
 end subroutine
 
@@ -5622,7 +5622,7 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_csc)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -5640,7 +5640,7 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_allocate(bh,val_recv,nnz_l_aux,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_real8,val_recv,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -5650,7 +5650,7 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -5660,7 +5660,7 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -5779,7 +5779,7 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_nt,dm_csc)
 
    ! Set recv_count
    call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-           bh%comm,ierr)
+        bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
@@ -5797,7 +5797,7 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_allocate(bh,val_recv,nnz_l_aux,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_complex16,val_recv,&
-           recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -5807,7 +5807,7 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
 
    call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -5817,7 +5817,7 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
+        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 

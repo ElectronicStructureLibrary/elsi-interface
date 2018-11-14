@@ -12,7 +12,6 @@ module ELSI_MUTATOR
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
        NTPOLY_SOLVER,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE, only: elsi_handle
-   use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop
    use ELSI_NTPOLY, only: elsi_compute_edm_ntpoly
    use ELSI_OMM, only: elsi_compute_edm_omm
@@ -30,12 +29,15 @@ module ELSI_MUTATOR
    private
 
    public :: elsi_set_output
-   public :: elsi_set_write_unit
+   public :: elsi_set_output_unit
+   public :: elsi_set_output_log
+   public :: elsi_set_output_tag
+   public :: elsi_set_uuid
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def
-   public :: elsi_set_sing_check
-   public :: elsi_set_sing_tol
-   public :: elsi_set_sing_stop
+   public :: elsi_set_illcond_check
+   public :: elsi_set_illcond_tol
+   public :: elsi_set_illcond_abort
    public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_n_single
@@ -61,8 +63,8 @@ module ELSI_MUTATOR
    public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_buffer
    public :: elsi_set_sips_inertia_tol
-   public :: elsi_set_sips_interval
-   public :: elsi_set_sips_first_ev
+   public :: elsi_set_sips_ev_min
+   public :: elsi_set_sips_ev_max
    public :: elsi_set_ntpoly_method
    public :: elsi_set_ntpoly_isr
    public :: elsi_set_ntpoly_tol
@@ -73,15 +75,12 @@ module ELSI_MUTATOR
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
    public :: elsi_set_mu_mp_order
-   public :: elsi_set_output_log
-   public :: elsi_set_log_tag
-   public :: elsi_set_uuid
-   public :: elsi_get_pexsi_mu_min
-   public :: elsi_get_pexsi_mu_max
    public :: elsi_get_initialized
    public :: elsi_get_version
    public :: elsi_get_datestamp
-   public :: elsi_get_n_sing
+   public :: elsi_get_n_illcond
+   public :: elsi_get_pexsi_mu_min
+   public :: elsi_get_pexsi_mu_max
    public :: elsi_get_mu
    public :: elsi_get_entropy
    public :: elsi_get_edm_real
@@ -89,35 +88,68 @@ module ELSI_MUTATOR
    public :: elsi_get_edm_real_sparse
    public :: elsi_get_edm_complex_sparse
 
+   ! Deprecated
+   public :: elsi_set_write_unit
+   public :: elsi_set_sing_check
+   public :: elsi_set_sing_tol
+   public :: elsi_set_sing_stop
+   public :: elsi_set_sips_interval
+   public :: elsi_set_log_tag
+   public :: elsi_get_n_sing
+
+   interface elsi_set_write_unit
+      module procedure elsi_set_output_unit
+   end interface
+
+   interface elsi_set_sing_check
+      module procedure elsi_set_illcond_check
+   end interface
+
+   interface elsi_set_sing_tol
+      module procedure elsi_set_illcond_tol
+   end interface
+
+   interface elsi_set_sing_stop
+      module procedure elsi_set_illcond_abort
+   end interface
+
+   interface elsi_set_log_tag
+      module procedure elsi_set_output_tag
+   end interface
+
+   interface elsi_get_n_sing
+      module procedure elsi_get_n_illcond
+   end interface
+
 contains
 
 !>
 !! This routine sets ELSI output level.
 !!
-subroutine elsi_set_output(eh,out_level)
+subroutine elsi_set_output(eh,output)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: out_level !< Output level
+   integer(kind=i4), intent(in) :: output !< Output level
 
    character(len=*), parameter :: caller = "elsi_set_output"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(out_level <= 0) then
+   if(output <= 0) then
       eh%bh%print_info = 0
       eh%ph%omm_output = .false.
       eh%ph%pexsi_options%verbosity = 1
       eh%ph%elpa_output = .false.
       eh%ph%nt_output = .false.
-   else if(out_level == 1) then
+   else if(output == 1) then
       eh%bh%print_info = 1
       eh%ph%omm_output = .false.
       eh%ph%pexsi_options%verbosity = 1
       eh%ph%elpa_output = .false.
       eh%ph%nt_output = .false.
-   else if(out_level == 2) then
+   else if(output == 2) then
       eh%bh%print_info = 2
       eh%ph%omm_output = .true.
       eh%ph%pexsi_options%verbosity = 2
@@ -136,18 +168,69 @@ end subroutine
 !>
 !! This routine sets the unit to be used by ELSI output.
 !!
-subroutine elsi_set_write_unit(eh,write_unit)
+subroutine elsi_set_output_unit(eh,print_unit)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: write_unit !< Unit
+   integer(kind=i4), intent(in) :: print_unit !< Unit
 
-   character(len=*), parameter :: caller = "elsi_set_write_unit"
+   character(len=*), parameter :: caller = "elsi_set_output_unit"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   eh%bh%print_unit = write_unit
+   eh%bh%print_unit = print_unit
+
+end subroutine
+
+!>
+!! This routine sets whether a log file should be output.
+!!
+subroutine elsi_set_output_log(eh,output_log)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: output_log !< Output log
+
+   character(len=*), parameter :: caller = "elsi_set_output_log"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%bh%print_json = output_log
+
+end subroutine
+
+!>
+!! This routine sets the user_tag for the log.
+!!
+subroutine elsi_set_output_tag(eh,output_tag)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   character(len=*), intent(in) :: output_tag !< Tag
+
+   character(len=*), parameter :: caller = "elsi_set_output_tag"
+
+   eh%bh%user_tag = output_tag
+
+end subroutine
+
+!>
+!! This routine sets the UUID.
+!!
+subroutine elsi_set_uuid(eh,uuid)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   character(len=*), intent(in) :: uuid !< UUID
+
+   character(len=*), parameter :: caller = "elsi_set_uuid"
+
+   eh%bh%uuid_ready = .true.
+   eh%bh%uuid = uuid
 
 end subroutine
 
@@ -166,9 +249,9 @@ subroutine elsi_set_unit_ovlp(eh,unit_ovlp)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(unit_ovlp == 0) then
-      eh%ph%ovlp_is_unit = .false.
+      eh%ph%unit_ovlp = .false.
    else
-      eh%ph%ovlp_is_unit = .true.
+      eh%ph%unit_ovlp = .true.
    end if
 
 end subroutine
@@ -192,65 +275,65 @@ subroutine elsi_set_zero_def(eh,zero_def)
 end subroutine
 
 !>
-!! This routine switches on/off the singularity check of the overlap matrix.
+!! This routine sets whether ill-conditioning should be checked.
 !!
-subroutine elsi_set_sing_check(eh,sing_check)
+subroutine elsi_set_illcond_check(eh,illcond_check)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: sing_check !< Check singularity?
+   integer(kind=i4), intent(in) :: illcond_check !< Check singularity?
 
-   character(len=*), parameter :: caller = "elsi_set_sing_check"
+   character(len=*), parameter :: caller = "elsi_set_illcond_check"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(sing_check == 0) then
-      eh%ph%check_sing = .false.
-      eh%ph%ovlp_is_sing = .false.
+   if(illcond_check == 0) then
+      eh%ph%ill_check = .false.
+      eh%ph%ill_ovlp = .false.
       eh%ph%n_good = eh%ph%n_basis
    else
-      eh%ph%check_sing = .true.
+      eh%ph%ill_check = .true.
    end if
 
 end subroutine
 
 !>
-!! This routine sets the tolerance of the singularity check.
+!! This routine sets the tolerance of ill-conditioning.
 !!
-subroutine elsi_set_sing_tol(eh,sing_tol)
+subroutine elsi_set_illcond_tol(eh,illcond_tol)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: sing_tol !< Singularity tolerance
+   real(kind=r8), intent(in) :: illcond_tol !< Singularity tolerance
 
-   character(len=*), parameter :: caller = "elsi_set_sing_tol"
+   character(len=*), parameter :: caller = "elsi_set_illcond_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   eh%ph%sing_tol = sing_tol
+   eh%ph%ill_tol = illcond_tol
 
 end subroutine
 
 !>
-!! This routine sets whether to stop in case of singular overlap matrix.
+!! This routine sets whether to abort in case of ill-conditioning.
 !!
-subroutine elsi_set_sing_stop(eh,sing_stop)
+subroutine elsi_set_illcond_abort(eh,illcond_abort)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: sing_stop !< Stop if overlap is singular
+   integer(kind=i4), intent(in) :: illcond_abort !< Abort if ill-conditioned
 
-   character(len=*), parameter :: caller = "elsi_set_sing_stop"
+   character(len=*), parameter :: caller = "elsi_set_illcond_abort"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(sing_stop == 0) then
-      eh%ph%stop_sing = .false.
+   if(illcond_abort == 0) then
+      eh%ph%ill_abort = .false.
    else
-      eh%ph%stop_sing = .true.
+      eh%ph%ill_abort = .true.
    end if
 
 end subroutine
@@ -276,22 +359,22 @@ end subroutine
 !>
 !! This routine sets the ELPA solver.
 !!
-subroutine elsi_set_elpa_solver(eh,elpa_solver)
+subroutine elsi_set_elpa_solver(eh,solver)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: elpa_solver !< ELPA solver
+   integer(kind=i4), intent(in) :: solver !< ELPA solver
 
    character(len=*), parameter :: caller = "elsi_set_elpa_solver"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(elpa_solver < 1 .or. elpa_solver > 2) then
+   if(solver < 1 .or. solver > 2) then
       call elsi_stop(eh%bh,"Invalid choice.",caller)
    end if
 
-   eh%ph%elpa_solver = elpa_solver
+   eh%ph%elpa_solver = solver
 
 end subroutine
 
@@ -302,8 +385,8 @@ subroutine elsi_set_elpa_n_single(eh,n_single)
 
    implicit none
 
-   type(elsi_handle), intent(inout) :: eh
-   integer(kind=i4), intent(in) :: n_single
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: n_single !< Single-precision steps
 
    character(len=*), parameter :: caller = "elsi_set_elpa_n_single"
 
@@ -322,18 +405,18 @@ end subroutine
 !! back-transforming eigenvectors) should be enabled in ELPA. No effect if no
 !! GPU acceleration available.
 !!
-subroutine elsi_set_elpa_gpu(eh,use_gpu)
+subroutine elsi_set_elpa_gpu(eh,gpu)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: use_gpu !< Use GPU acceleration?
+   integer(kind=i4), intent(in) :: gpu !< Use GPU acceleration?
 
    character(len=*), parameter :: caller = "elsi_set_elpa_gpu"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(use_gpu == 0) then
+   if(gpu == 0) then
       eh%ph%elpa_gpu = .false.
    else
       eh%ph%elpa_gpu = .true.
@@ -346,18 +429,18 @@ end subroutine
 !! transforming eigenvectors) should be enabled in ELPA. No effect if no GPU
 !! acceleration available.
 !!
-subroutine elsi_set_elpa_gpu_kernels(eh,use_gpu_kernels)
+subroutine elsi_set_elpa_gpu_kernels(eh,gpu_kernels)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: use_gpu_kernels !< Use GPU kernels?
+   integer(kind=i4), intent(in) :: gpu_kernels !< Use GPU kernels?
 
    character(len=*), parameter :: caller = "elsi_set_elpa_gpu_kernels"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(use_gpu_kernels == 0) then
+   if(gpu_kernels == 0) then
       eh%ph%elpa_gpu_kernels = .false.
    else
       call elsi_set_elpa_gpu(eh,1)
@@ -371,18 +454,18 @@ end subroutine
 !! This routine sets whether auto-tuning should be enabled in ELPA. No effect if
 !! no auto-tuning available.
 !!
-subroutine elsi_set_elpa_autotune(eh,use_autotune)
+subroutine elsi_set_elpa_autotune(eh,autotune)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: use_autotune !< Use auto-tuning?
+   integer(kind=i4), intent(in) :: autotune !< Use auto-tuning?
 
    character(len=*), parameter :: caller = "elsi_set_elpa_autotune"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(use_autotune == 0) then
+   if(autotune == 0) then
       eh%ph%elpa_autotune = .false.
    else
       eh%ph%elpa_autotune = .true.
@@ -393,22 +476,22 @@ end subroutine
 !>
 !! This routine sets the flavor of libOMM.
 !!
-subroutine elsi_set_omm_flavor(eh,omm_flavor)
+subroutine elsi_set_omm_flavor(eh,flavor)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: omm_flavor !< libOMM flavor
+   integer(kind=i4), intent(in) :: flavor !< libOMM flavor
 
    character(len=*), parameter :: caller = "elsi_set_omm_flavor"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(omm_flavor /= 0 .and. omm_flavor /= 2) then
+   if(flavor /= 0 .and. flavor /= 2) then
       call elsi_stop(eh%bh,"Invalid choice.",caller)
    end if
 
-   eh%ph%omm_flavor = omm_flavor
+   eh%ph%omm_flavor = flavor
 
 end subroutine
 
@@ -437,22 +520,22 @@ end subroutine
 !>
 !! This routine sets the tolerance of OMM minimization.
 !!
-subroutine elsi_set_omm_tol(eh,min_tol)
+subroutine elsi_set_omm_tol(eh,tol)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: min_tol !< Tolerance of OMM minimization
+   real(kind=r8), intent(in) :: tol !< Tolerance of OMM minimization
 
    character(len=*), parameter :: caller = "elsi_set_omm_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(min_tol <= 0.0_r8) then
+   if(tol <= 0.0_r8) then
       call elsi_stop(eh%bh,"Input value should be positive.",caller)
    end if
 
-   eh%ph%omm_tol = min_tol
+   eh%ph%omm_tol = tol
 
 end subroutine
 
@@ -563,7 +646,7 @@ subroutine elsi_set_pexsi_ordering(eh,ordering)
 end subroutine
 
 !>
-!! This routine sets the temperature parameter in PEXSI.
+!! This routine sets the electronic temperature in PEXSI.
 !!
 subroutine elsi_set_pexsi_temp(eh,temp)
 
@@ -728,7 +811,7 @@ subroutine elsi_set_sips_n_slice(eh,n_slice)
       eh%ph%sips_np_per_slice = eh%bh%n_procs/n_slice
    else
       call elsi_stop(eh%bh,"Input value should be a divisor of total number"//&
-              " of MPI tasks.",caller)
+           " of MPI tasks.",caller)
    end if
 
 end subroutine
@@ -801,6 +884,42 @@ subroutine elsi_set_sips_inertia_tol(eh,inertia_tol)
 end subroutine
 
 !>
+!! This routine sets the lower bound of the interval to be solved by SLEPc-SIPs.
+!!
+subroutine elsi_set_sips_ev_min(eh,ev_min)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(in) :: ev_min !< Lower bound
+
+   character(len=*), parameter :: caller = "elsi_set_sips_ev_min"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%ph%sips_interval(1) = ev_min
+
+end subroutine
+
+!>
+!! This routine sets the upper bound of the interval to be solved by SLEPc-SIPs.
+!!
+subroutine elsi_set_sips_ev_max(eh,ev_max)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(in) :: ev_max !< Upper bound
+
+   character(len=*), parameter :: caller = "elsi_set_sips_ev_max"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%ph%sips_interval(2) = ev_max
+
+end subroutine
+
+!>
 !! This routine sets the global interval to be solved by SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_interval(eh,lower,upper)
@@ -817,7 +936,7 @@ subroutine elsi_set_sips_interval(eh,lower,upper)
 
    if(lower > upper) then
       call elsi_stop(eh%bh,"Lower bound should not be larger than upper"//&
-              " bound.",caller)
+           " bound.",caller)
    end if
 
    eh%ph%sips_interval(1) = lower
@@ -826,92 +945,68 @@ subroutine elsi_set_sips_interval(eh,lower,upper)
 end subroutine
 
 !>
-!! This routine sets the index of the first eigensolution to be solved.
-!!
-subroutine elsi_set_sips_first_ev(eh,first_ev)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: first_ev !< Index of first eigensolution
-
-   character(len=*), parameter :: caller = "elsi_set_sips_first_ev"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   if(first_ev < 1) then
-      eh%ph%sips_first_ev = 1
-   else if(first_ev > eh%ph%n_basis-eh%ph%n_states+1) then
-      eh%ph%sips_first_ev = eh%ph%n_basis-eh%ph%n_states+1
-   else
-      eh%ph%sips_first_ev = first_ev
-   end if
-
-end subroutine
-
-!>
 !! This routine sets the density matrix purification method in NTPoly.
 !!
-subroutine elsi_set_ntpoly_method(eh,nt_method)
+subroutine elsi_set_ntpoly_method(eh,method)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: nt_method !< Purification method
+   integer(kind=i4), intent(in) :: method !< Purification method
 
    character(len=*), parameter :: caller = "elsi_set_ntpoly_method"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(nt_method < 0 .or. nt_method > 3) then
+   if(method < 0 .or. method > 3) then
       call elsi_stop(eh%bh,"Invalid choice.",caller)
    end if
 
-   eh%ph%nt_method = nt_method
+   eh%ph%nt_method = method
 
 end subroutine
 
 !>
 !! This routine sets the inverse square root method in NTPoly.
 !!
-subroutine elsi_set_ntpoly_isr(eh,nt_isr)
+subroutine elsi_set_ntpoly_isr(eh,isr)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: nt_isr !< Inverse square root method
+   integer(kind=i4), intent(in) :: isr !< Inverse square root method
 
    character(len=*), parameter :: caller = "elsi_set_ntpoly_isr"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(nt_isr /= 2 .and. nt_isr /= 3 .and. nt_isr /= 5) then
+   if(isr /= 2 .and. isr /= 3 .and. isr /= 5) then
       call elsi_stop(eh%bh,"Invalid choice.",caller)
    end if
 
-   eh%ph%nt_isr = nt_isr
+   eh%ph%nt_isr = isr
 
 end subroutine
 
 !>
 !! This routine sets the tolerance of the density matrix purification.
 !!
-subroutine elsi_set_ntpoly_tol(eh,nt_tol)
+subroutine elsi_set_ntpoly_tol(eh,tol)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: nt_tol !< Tolerance
+   real(kind=r8), intent(in) :: tol !< Tolerance
 
    character(len=*), parameter :: caller = "elsi_set_ntpoly_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(nt_tol <= 0.0_r8) then
+   if(tol <= 0.0_r8) then
       call elsi_stop(eh%bh,"Input value should be positive.",caller)
    end if
 
-   eh%ph%nt_tol = nt_tol
+   eh%ph%nt_tol = tol
 
 end subroutine
 
@@ -941,7 +1036,7 @@ subroutine elsi_set_ntpoly_max_iter(eh,max_iter)
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: max_iter !< Maximum number of iterations
+   integer(kind=i4), intent(in) :: max_iter !< Number of iterations
 
    character(len=*), parameter :: caller = "elsi_set_ntpoly_max_iter"
 
@@ -970,7 +1065,7 @@ subroutine elsi_set_mu_broaden_scheme(eh,broaden_scheme)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(elpa_solver < 0 .or. elpa_solver > 4) then
+   if(broaden_scheme < 0 .or. broaden_scheme > 4) then
       call elsi_stop(eh%bh,"Invalid choice.",caller)
    end if
 
@@ -1005,22 +1100,22 @@ end subroutine
 !! This routine sets the desired accuracy of the determination of the chemical
 !! potential and the occupation numbers.
 !!
-subroutine elsi_set_mu_tol(eh,mu_tol)
+subroutine elsi_set_mu_tol(eh,tol)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: mu_tol !< Accuracy of mu
+   real(kind=r8), intent(in) :: tol !< Accuracy of mu
 
    character(len=*), parameter :: caller = "elsi_set_mu_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(mu_tol < 0.0_r8) then
+   if(tol < 0.0_r8) then
       call elsi_stop(eh%bh,"Input value should not be negative.",caller)
    end if
 
-   eh%ph%mu_tol = mu_tol
+   eh%ph%mu_tol = tol
 
 end subroutine
 
@@ -1067,57 +1162,6 @@ subroutine elsi_set_mu_mp_order(eh,mp_order)
 end subroutine
 
 !>
-!! This routine sets whether a log file should be output.
-!!
-subroutine elsi_set_output_log(eh,output_log)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: output_log !< Output log
-
-   character(len=*), parameter :: caller = "elsi_set_output_log"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   eh%bh%print_json = output_log
-
-end subroutine
-
-!>
-!! This routine sets the user_tag for the log.
-!!
-subroutine elsi_set_log_tag(eh,user_tag)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   character(len=*), intent(in) :: user_tag !< Tag
-
-   character(len=*), parameter :: caller = "elsi_set_log_tag"
-
-   eh%bh%user_tag = user_tag
-
-end subroutine
-
-!>
-!! This routine sets the UUID.
-!!
-subroutine elsi_set_uuid(eh,uuid)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   character(len=*), intent(in) :: uuid !< UUID
-
-   character(len=*), parameter :: caller = "elsi_set_uuid"
-
-   eh%bh%uuid_ready = .true.
-   eh%bh%uuid = uuid
-
-end subroutine
-
-!>
 !! This routine gets the lower bound of the chemical potential returned by the
 !! inertia counting in PEXSI.
 !!
@@ -1159,19 +1203,19 @@ end subroutine
 !! This routine returns 0 if the input handle has not been initialized; returns
 !! 1 if it has been initialized.
 !!
-subroutine elsi_get_initialized(eh,handle_init)
+subroutine elsi_get_initialized(eh,initialized)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(out) :: handle_init !< Handle initialized?
+   integer(kind=i4), intent(out) :: initialized !< Handle initialized?
 
    character(len=*), parameter :: caller = "elsi_get_initialized"
 
    if(eh%handle_init) then
-      handle_init = 1
+      initialized = 1
    else
-      handle_init = 0
+      initialized = 0
    end if
 
 end subroutine
@@ -1233,25 +1277,25 @@ end subroutine
 
 !>
 !! This routine gets the number of basis functions that are removed due to
-!! overlap singularity.
+!! ill-conditioning.
 !!
-subroutine elsi_get_n_sing(eh,n_sing)
+subroutine elsi_get_n_illcond(eh,n_illcond)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(out) :: n_sing !< Number of singular basis
+   integer(kind=i4), intent(out) :: n_illcond !< Number of removed functions
 
-   character(len=*), parameter :: caller = "elsi_get_n_sing"
+   character(len=*), parameter :: caller = "elsi_get_n_illcond"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   n_sing = eh%ph%n_basis-eh%ph%n_good
+   n_illcond = eh%ph%n_basis-eh%ph%n_good
 
 end subroutine
 
 !>
-!! This routine gets the chemical potential.
+!! This routine gets the Fermi level (chemical potential).
 !!
 subroutine elsi_get_mu(eh,mu)
 
@@ -1271,18 +1315,18 @@ end subroutine
 !>
 !! This routine gets the entropy.
 !!
-subroutine elsi_get_entropy(eh,ts)
+subroutine elsi_get_entropy(eh,entropy)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(out) :: ts !< Entropy
+   real(kind=r8), intent(out) :: entropy !< Entropy
 
    character(len=*), parameter :: caller = "elsi_get_entropy"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   ts = eh%ph%ts
+   entropy = eh%ph%ts
 
 end subroutine
 
@@ -1297,8 +1341,6 @@ subroutine elsi_get_edm_real(eh,edm)
    real(kind=r8), intent(out) :: edm(eh%bh%n_lrow,eh%bh%n_lcol) !< Energy density matrix
 
    integer(kind=i4) :: solver_save
-
-   real(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_get_edm_real"
 
@@ -1319,23 +1361,20 @@ subroutine elsi_get_edm_real(eh,edm)
    if(eh%ph%edm_ready_real) then
       select case(eh%ph%solver)
       case(ELPA_SOLVER)
-         call elsi_allocate(eh%bh,tmp,eh%bh%n_lrow,eh%bh%n_lcol,"tmp",caller)
-
-         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
-                 eh%evec_real,eh%occ,edm,tmp)
-
-         call elsi_deallocate(eh%bh,tmp,"tmp")
+         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%eval(1:eh%ph%n_states),&
+              eh%evec_real,edm)
       case(OMM_SOLVER)
          call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_real,edm)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,eh%dm_real_csc)
          call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 eh%dm_real_csc,edm)
+              eh%dm_real_csc,edm)
       case(SIPS_SOLVER)
          call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 eh%occ,eh%dm_real_csc)
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_csc)
          call elsi_sips_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 eh%dm_real_csc,edm)
+              eh%dm_real_csc,edm)
       case(NTPOLY_SOLVER)
          call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
          call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,edm)
@@ -1346,7 +1385,7 @@ subroutine elsi_get_edm_real(eh,edm)
       eh%ph%edm_ready_real = .false.
    else
       call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
-              " computed before density matrix.",caller)
+           " computed before density matrix.",caller)
    end if
 
    eh%ph%solver = solver_save
@@ -1364,8 +1403,6 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
    real(kind=r8), intent(out) :: edm(eh%bh%nnz_l_sp) !< Energy density matrix
 
    integer(kind=i4) :: solver_save
-
-   real(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_get_edm_real_sparse"
 
@@ -1386,20 +1423,17 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
    if(eh%ph%edm_ready_real) then
       select case(eh%ph%solver)
       case(ELPA_SOLVER)
-         call elsi_allocate(eh%bh,tmp,eh%bh%n_lrow,eh%bh%n_lcol,"tmp",caller)
-
-         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
-                 eh%evec_real,eh%occ,eh%dm_real_den,tmp)
-
-         call elsi_deallocate(eh%bh,tmp,"tmp")
+         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%eval(1:eh%ph%n_states),&
+              eh%evec_real,eh%dm_real_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_real_den,edm)
+                 eh%col_ptr_sp1,eh%dm_real_den,edm)
          case(SIESTA_CSC)
             call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                    eh%dm_real_den,edm)
+                 eh%dm_real_den,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1409,10 +1443,10 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_real_den,edm)
+                 eh%col_ptr_sp1,eh%dm_real_den,edm)
          case(SIESTA_CSC)
             call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                    eh%dm_real_den,edm)
+                 eh%dm_real_den,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1422,10 +1456,10 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
             call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,edm)
          case(SIESTA_CSC)
             call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,&
-                    eh%dm_real_csc)
+                 eh%dm_real_csc)
             call elsi_pexsi_to_siesta_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,&
-                    eh%col_ptr_sp2,edm)
+                 eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                 edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1433,13 +1467,13 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                    eh%occ,edm)
+                 eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),edm)
          case(SIESTA_CSC)
             call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                    eh%occ,eh%dm_real_csc)
+                 eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_csc)
             call elsi_sips_to_siesta_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,&
-                    eh%col_ptr_sp2,edm)
+                 eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                 edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1449,10 +1483,10 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%ph%nt_dm,edm)
+                 eh%col_ptr_sp1,eh%ph%nt_dm,edm)
          case(SIESTA_CSC)
             call elsi_ntpoly_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                    eh%ph%nt_dm,edm)
+                 eh%ph%nt_dm,edm)
          end select
       case default
          call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
@@ -1461,7 +1495,7 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
       eh%ph%edm_ready_real = .false.
    else
       call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
-              " computed before density matrix.",caller)
+           " computed before density matrix.",caller)
    end if
 
    eh%ph%solver = solver_save
@@ -1480,8 +1514,6 @@ subroutine elsi_get_edm_complex(eh,edm)
 
    integer(kind=i4) :: solver_save
 
-   complex(kind=r8), allocatable :: tmp(:,:)
-
    character(len=*), parameter :: caller = "elsi_get_edm_complex"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -1496,19 +1528,16 @@ subroutine elsi_get_edm_complex(eh,edm)
    if(eh%ph%edm_ready_cmplx) then
       select case(eh%ph%solver)
       case(ELPA_SOLVER)
-         call elsi_allocate(eh%bh,tmp,eh%bh%n_lrow,eh%bh%n_lcol,"tmp",caller)
-
-         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
-                 eh%evec_cmplx,eh%occ,edm,tmp)
-
-         call elsi_deallocate(eh%bh,tmp,"tmp")
+         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%eval(1:eh%ph%n_states),&
+              eh%evec_cmplx,edm)
       case(OMM_SOLVER)
          call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_cmplx,edm)
       case(PEXSI_SOLVER)
          call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,&
-                 eh%dm_cmplx_csc)
+              eh%dm_cmplx_csc)
          call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-                 eh%dm_cmplx_csc,edm)
+              eh%dm_cmplx_csc,edm)
       case(NTPOLY_SOLVER)
          call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
          call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,edm)
@@ -1519,7 +1548,7 @@ subroutine elsi_get_edm_complex(eh,edm)
       eh%ph%edm_ready_cmplx = .false.
    else
       call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
-              " computed before density matrix.",caller)
+           " computed before density matrix.",caller)
    end if
 
    eh%ph%solver = solver_save
@@ -1538,8 +1567,6 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
 
    integer(kind=i4) :: solver_save
 
-   complex(kind=r8), allocatable :: tmp(:,:)
-
    character(len=*), parameter :: caller = "elsi_get_edm_complex_sparse"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -1554,20 +1581,17 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
    if(eh%ph%edm_ready_cmplx) then
       select case(eh%ph%solver)
       case(ELPA_SOLVER)
-         call elsi_allocate(eh%bh,tmp,eh%bh%n_lrow,eh%bh%n_lcol,"tmp",caller)
-
-         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%eval,&
-                 eh%evec_cmplx,eh%occ,eh%dm_cmplx_den,tmp)
-
-         call elsi_deallocate(eh%bh,tmp,"tmp")
+         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%eval(1:eh%ph%n_states),&
+              eh%evec_cmplx,eh%dm_cmplx_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_cmplx_den,edm)
+                 eh%col_ptr_sp1,eh%dm_cmplx_den,edm)
          case(SIESTA_CSC)
             call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                    eh%dm_cmplx_den,edm)
+                 eh%dm_cmplx_den,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1577,10 +1601,10 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_cmplx_den,edm)
+                 eh%col_ptr_sp1,eh%dm_cmplx_den,edm)
          case(SIESTA_CSC)
             call elsi_blacs_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                    eh%dm_cmplx_den,edm)
+                 eh%dm_cmplx_den,edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1590,10 +1614,10 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
             call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,edm)
          case(SIESTA_CSC)
             call elsi_compute_edm_pexsi(eh%ph,eh%bh,eh%pexsi_ne_vec,&
-                    eh%dm_cmplx_csc)
+                 eh%dm_cmplx_csc)
             call elsi_pexsi_to_siesta_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%dm_cmplx_csc,eh%row_ind_sp2,&
-                    eh%col_ptr_sp2,edm)
+                 eh%col_ptr_sp1,eh%dm_cmplx_csc,eh%row_ind_sp2,eh%col_ptr_sp2,&
+                 edm)
          case default
             call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
          end select
@@ -1603,10 +1627,10 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%ph%nt_dm,edm)
+                 eh%col_ptr_sp1,eh%ph%nt_dm,edm)
          case(SIESTA_CSC)
             call elsi_ntpoly_to_siesta_dm(eh%bh,eh%row_ind_sp2,eh%col_ptr_sp2,&
-                    eh%ph%nt_dm,edm)
+                 eh%ph%nt_dm,edm)
          end select
       case default
          call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
@@ -1615,7 +1639,7 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
       eh%ph%edm_ready_cmplx = .false.
    else
       call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
-              " computed before density matrix.",caller)
+           " computed before density matrix.",caller)
    end if
 
    eh%ph%solver = solver_save

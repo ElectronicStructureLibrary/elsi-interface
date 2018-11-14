@@ -31,6 +31,7 @@ LIST(APPEND elsi_src
   elsi_sips.f90
   elsi_solver.f90
   elsi_sort.f90
+  elsi_tools.f90
   elsi_utils.f90)
 
 SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/elsi_version.f90
