@@ -400,6 +400,14 @@ subroutine elsi_reinit(eh)
       if(allocated(eh%col_ptr_sp2)) then
          call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ptr_sp2")
       end if
+
+      if(allocated(eh%ovlp_real_copy)) then
+         call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
+      end if
+
+      if(allocated(eh%ovlp_cmplx_copy)) then
+         call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
+      end if
    end if
 
 end subroutine

@@ -154,6 +154,7 @@ subroutine elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
 
    if(ph%ill_ovlp) then
       call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
+
       tmp = evec
 
       call dgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,&
@@ -485,6 +486,7 @@ subroutine elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
 
    if(ph%ill_ovlp) then
       call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
+
       tmp = evec
 
       call zgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&

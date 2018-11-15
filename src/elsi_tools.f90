@@ -102,11 +102,29 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp0,ovlp1,dm)
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%sips_n_elpa > 0) then
       solver_save = SIPS_SOLVER
       eh%ph%solver = ELPA_SOLVER
+
+      ! Overlap will be destroyed by Cholesky
+      if(.not. allocated(eh%ovlp_real_copy)) then
+         call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
+              "ovlp_real_copy",caller)
+
+         eh%ovlp_real_copy = ovlp1
+      end if
    end if
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%omm_n_elpa > 0) then
       solver_save = OMM_SOLVER
       eh%ph%solver = ELPA_SOLVER
+
+      if(eh%ph%omm_flavor == 0) then
+         ! Overlap will be destroyed by Cholesky
+         if(.not. allocated(eh%ovlp_real_copy)) then
+            call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
+                 eh%bh%n_lcol,"ovlp_real_copy",caller)
+
+            eh%ovlp_real_copy = ovlp1
+         end if
+      end if
    end if
 
    select case(eh%ph%solver)
@@ -164,6 +182,16 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp0,ovlp1,dm)
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%omm_n_elpa > 0) then
       solver_save = OMM_SOLVER
       eh%ph%solver = ELPA_SOLVER
+
+      if(eh%ph%omm_flavor == 0) then
+         ! Overlap will be destroyed by Cholesky
+         if(.not. allocated(eh%ovlp_cmplx_copy)) then
+            call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
+                 eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
+
+            eh%ovlp_cmplx_copy = ovlp1
+         end if
+      end if
    end if
 
    select case(eh%ph%solver)

@@ -186,6 +186,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
       if(.not. allocated(eh%ovlp_real_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_real_copy",caller)
+
          eh%ovlp_real_copy = ovlp
       end if
    end if
@@ -205,6 +206,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
       if(allocated(eh%ovlp_real_copy)) then
          ! Restore overlap
          ovlp = eh%ovlp_real_copy
+
          call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
       end if
 
@@ -516,6 +518,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       if(.not. allocated(eh%ovlp_real_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_real_copy",caller)
+
          eh%ovlp_real_copy = ovlp
       end if
    end if
@@ -529,6 +532,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
          if(.not. allocated(eh%ovlp_real_copy)) then
             call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_real_copy",caller)
+
             eh%ovlp_real_copy = ovlp
          end if
       end if
@@ -565,6 +569,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       if(allocated(eh%ovlp_real_copy)) then
          ! Retrieve overlap matrix that has been destroyed by Cholesky
          ovlp = eh%ovlp_real_copy
+
          call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
       end if
 
@@ -640,6 +645,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       if(allocated(eh%ovlp_real_copy)) then
          ! Restore overlap
          ovlp = eh%ovlp_real_copy
+
          call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
          call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
       end if
@@ -752,6 +758,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
          if(.not. allocated(eh%ovlp_cmplx_copy)) then
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
+
             eh%ovlp_cmplx_copy = ovlp
          end if
       end if
@@ -788,6 +795,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
       if(allocated(eh%ovlp_cmplx_copy)) then
          ! Restore overlap
          ovlp = eh%ovlp_cmplx_copy
+
          call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
       end if
 
@@ -971,6 +979,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_real_copy",caller)
+
             eh%ovlp_real_copy = eh%ovlp_real_den
          end if
       end if
@@ -1058,6 +1067,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
       if(allocated(eh%ovlp_real_copy)) then
          ! Restore overlap
          eh%ovlp_real_den = eh%ovlp_real_copy
+
          call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
       end if
 
@@ -1334,6 +1344,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
             ! Overlap will be destroyed by Cholesky
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
+
             eh%ovlp_cmplx_copy = eh%ovlp_cmplx_den
          end if
       end if
@@ -1422,6 +1433,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
       if(allocated(eh%ovlp_cmplx_copy)) then
          ! Restore overlap
          eh%ovlp_cmplx_den = eh%ovlp_cmplx_copy
+
          call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
       end if
 
