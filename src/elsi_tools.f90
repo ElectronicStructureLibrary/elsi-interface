@@ -13,7 +13,7 @@ module ELSI_TOOLS
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,SIPS_SOLVER
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_update_dm_elpa
-   use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
+   use ELSI_MALLOC, only: elsi_allocate
    use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_solve_ntpoly
    use ELSI_OCC, only: elsi_mu_and_occ,elsi_entropy
    use ELSI_PRECISION, only: i4,r8
@@ -89,9 +89,8 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp0,ovlp1,dm)
    real(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
 
    integer(kind=i4) :: solver_save
+   real(kind=r8) :: dummy(1,1)
    logical :: unit_ovlp_save
-
-   real(kind=r8), allocatable :: dummy(:,:)
 
    character(len=*), parameter :: caller = "elsi_extrapolate_dm_real"
 
@@ -136,7 +135,6 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp0,ovlp1,dm)
       unit_ovlp_save = eh%ph%unit_ovlp
       eh%ph%unit_ovlp = .true.
 
-      call elsi_allocate(eh%bh,dummy,1,1,"dummy",caller)
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,dummy,eh%ph%nt_ham,&
            eh%ph%nt_dm)
 
@@ -144,7 +142,6 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp0,ovlp1,dm)
 
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp1,dummy,eh%ph%nt_ovlp,&
            eh%ph%nt_dm)
-      call elsi_deallocate(eh%bh,dummy,"dummy")
 
       eh%ph%unit_ovlp = unit_ovlp_save
 
@@ -169,9 +166,8 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp0,ovlp1,dm)
    complex(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
 
    integer(kind=i4) :: solver_save
+   complex(kind=r8) :: dummy(1,1)
    logical :: unit_ovlp_save
-
-   complex(kind=r8), allocatable :: dummy(:,:)
 
    character(len=*), parameter :: caller = "elsi_extrapolate_dm_complex"
 
@@ -203,7 +199,6 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp0,ovlp1,dm)
       unit_ovlp_save = eh%ph%unit_ovlp
       eh%ph%unit_ovlp = .true.
 
-      call elsi_allocate(eh%bh,dummy,1,1,"dummy",caller)
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,dummy,eh%ph%nt_ham,&
            eh%ph%nt_dm)
 
@@ -211,7 +206,6 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp0,ovlp1,dm)
 
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp1,dummy,eh%ph%nt_ovlp,&
            eh%ph%nt_dm)
-      call elsi_deallocate(eh%bh,dummy,"dummy")
 
       eh%ph%unit_ovlp = unit_ovlp_save
 

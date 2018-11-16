@@ -118,6 +118,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
    if(ph%nt_first) then
       call elsi_get_time(t0)
 
+      call DestructPermutation(ph%nt_perm)
       call ConstructRandomPermutation(ph%nt_perm,ovlp%logical_matrix_dimension)
 
       ph%nt_options = SolverParameters_t(ph%nt_tol,ph%nt_filter,ph%nt_max_iter,&
@@ -141,8 +142,6 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
    end if
 
    call elsi_get_time(t0)
-
-   call ConstructEmptyMatrix(dm,ham)
 
    ne = int(ph%n_electrons,kind=i4)
 
@@ -195,7 +194,6 @@ subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
 
    factor = 1.0_r8/ph%spin_degen
 
-   call ConstructEmptyMatrix(tmp,ham)
    call CopyMatrix(edm,tmp)
    call EnergyDensityMatrix(ham,tmp,edm,ph%nt_filter)
    call DestructMatrix(tmp)
