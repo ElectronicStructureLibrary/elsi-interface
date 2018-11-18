@@ -1,6 +1,7 @@
 MODULE NTPoly
 
    USE DensityMatrixSolversModule
+   USE GeometryOptimizationModule
    USE LoggingModule
    USE PermutationModule
    USE PMatrixMemoryPoolModule

@@ -10,11 +10,12 @@
 !!
 module ELSI_TOOLS
 
-   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,SIPS_SOLVER
+   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_update_dm_elpa
    use ELSI_MALLOC, only: elsi_allocate
-   use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_solve_ntpoly
+   use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_update_dm_ntpoly,Matrix_ps,&
+       CopyMatrix,DestructMatrix
    use ELSI_OCC, only: elsi_mu_and_occ,elsi_entropy
    use ELSI_PRECISION, only: i4,r8
    use ELSI_REDIST, only: elsi_blacs_to_ntpoly_hs,elsi_ntpoly_to_blacs_dm
@@ -92,6 +93,8 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp0,ovlp1,dm)
    real(kind=r8) :: dummy(1,1)
    logical :: unit_ovlp_save
 
+   type(Matrix_ps) :: nt_ovlp0
+
    character(len=*), parameter :: caller = "elsi_extrapolate_dm_real"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -130,14 +133,21 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp0,ovlp1,dm)
    case(ELPA_SOLVER)
       call elsi_update_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ovlp0,ovlp1,dm)
    case default
-      call elsi_init_ntpoly(eh%ph,eh%bh)
+      if(eh%ph%solver == NTPOLY_SOLVER) then
+         unit_ovlp_save = eh%ph%unit_ovlp
+         eh%ph%unit_ovlp = .true.
+
+         call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp0,dummy,nt_ovlp0,&
+              eh%ph%nt_dm)
+
+         eh%ph%unit_ovlp = unit_ovlp_save
+      else
+         call elsi_init_ntpoly(eh%ph,eh%bh)
+         call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp0,eh%ph%nt_dm,nt_ovlp0)
+      end if
 
       unit_ovlp_save = eh%ph%unit_ovlp
       eh%ph%unit_ovlp = .true.
-
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,dummy,eh%ph%nt_ham,&
-           eh%ph%nt_dm)
-
       eh%ph%first_blacs_to_ntpoly = .true.
 
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp1,dummy,eh%ph%nt_ovlp,&
@@ -145,8 +155,14 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp0,ovlp1,dm)
 
       eh%ph%unit_ovlp = unit_ovlp_save
 
-      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
-      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
+      call elsi_update_dm_ntpoly(eh%ph,eh%bh,nt_ovlp0,eh%ph%nt_ovlp,&
+           eh%ph%nt_dm,eh%ph%nt_ham)
+
+      if(eh%ph%solver == NTPOLY_SOLVER) then
+         call DestructMatrix(nt_ovlp0)
+      end if
+
+      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_ham,dm)
    end select
 
    eh%ph%solver = solver_save
@@ -168,6 +184,8 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp0,ovlp1,dm)
    integer(kind=i4) :: solver_save
    complex(kind=r8) :: dummy(1,1)
    logical :: unit_ovlp_save
+
+   type(Matrix_ps) :: nt_ovlp0
 
    character(len=*), parameter :: caller = "elsi_extrapolate_dm_complex"
 
@@ -194,14 +212,21 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp0,ovlp1,dm)
    case(ELPA_SOLVER)
       call elsi_update_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ovlp0,ovlp1,dm)
    case default
-      call elsi_init_ntpoly(eh%ph,eh%bh)
+      if(eh%ph%solver == NTPOLY_SOLVER) then
+         unit_ovlp_save = eh%ph%unit_ovlp
+         eh%ph%unit_ovlp = .true.
+
+         call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp0,dummy,nt_ovlp0,&
+              eh%ph%nt_dm)
+
+         eh%ph%unit_ovlp = unit_ovlp_save
+      else
+         call elsi_init_ntpoly(eh%ph,eh%bh)
+         call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp0,eh%ph%nt_dm,nt_ovlp0)
+      end if
 
       unit_ovlp_save = eh%ph%unit_ovlp
       eh%ph%unit_ovlp = .true.
-
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,dummy,eh%ph%nt_ham,&
-           eh%ph%nt_dm)
-
       eh%ph%first_blacs_to_ntpoly = .true.
 
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp1,dummy,eh%ph%nt_ovlp,&
@@ -209,8 +234,14 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp0,ovlp1,dm)
 
       eh%ph%unit_ovlp = unit_ovlp_save
 
-      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
-      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
+      call elsi_update_dm_ntpoly(eh%ph,eh%bh,nt_ovlp0,eh%ph%nt_ovlp,&
+           eh%ph%nt_dm,eh%ph%nt_ham)
+
+      if(eh%ph%solver == NTPOLY_SOLVER) then
+         call DestructMatrix(nt_ovlp0)
+      end if
+
+      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_ham,dm)
    end select
 
    eh%ph%solver = solver_save
