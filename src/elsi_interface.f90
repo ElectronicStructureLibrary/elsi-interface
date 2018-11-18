@@ -43,6 +43,7 @@ module ELSI
    public :: elsi_set_output_log
    public :: elsi_set_output_tag
    public :: elsi_set_uuid
+   public :: elsi_set_save_ovlp
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def
    public :: elsi_set_illcond_check

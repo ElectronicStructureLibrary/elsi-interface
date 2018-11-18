@@ -90,6 +90,7 @@ subroutine elsi_reset_param(ph)
    ph%parallel_mode = UNSET
    ph%n_calls = 0
    ph%n_calls_all = 0
+   ph%save_ovlp = .false.
    ph%unit_ovlp = .false.
    ph%ill_ovlp = .false.
    ph%ill_check = .true.

@@ -33,6 +33,7 @@ module ELSI_MUTATOR
    public :: elsi_set_output_log
    public :: elsi_set_output_tag
    public :: elsi_set_uuid
+   public :: elsi_set_save_ovlp
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def
    public :: elsi_set_illcond_check
@@ -231,6 +232,29 @@ subroutine elsi_set_uuid(eh,uuid)
 
    eh%bh%uuid_ready = .true.
    eh%bh%uuid = uuid
+
+end subroutine
+
+!>
+!! This routine sets whether to save the overlap matrix or its Cholesky factor
+!! for density matrix extrapolation.
+!!
+subroutine elsi_set_save_ovlp(eh,save_ovlp)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: save_ovlp !< Save overlap?
+
+   character(len=*), parameter :: caller = "elsi_set_save_ovlp"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(save_ovlp == 0) then
+      eh%ph%save_ovlp = .false.
+   else
+      eh%ph%save_ovlp = .true.
+   end if
 
 end subroutine
 

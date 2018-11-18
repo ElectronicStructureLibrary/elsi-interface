@@ -508,6 +508,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
    call fjson_get_datetime_rfc3339(dt0)
 
    eh%ph%n_calls = eh%ph%n_calls+1
+   eh%ph%ill_check = .false.
    solver_save = eh%ph%solver
 
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
@@ -747,6 +748,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
    call fjson_get_datetime_rfc3339(dt0)
 
    eh%ph%n_calls = eh%ph%n_calls+1
+   eh%ph%ill_check = .false.
    solver_save = eh%ph%solver
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
@@ -912,6 +914,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
    call fjson_get_datetime_rfc3339(dt0)
 
    eh%ph%n_calls = eh%ph%n_calls+1
+   eh%ph%ill_check = .false.
    solver_save = eh%ph%solver
 
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
@@ -1282,6 +1285,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
    call fjson_get_datetime_rfc3339(dt0)
 
    eh%ph%n_calls = eh%ph%n_calls+1
+   eh%ph%ill_check = .false.
    solver_save = eh%ph%solver
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
