@@ -9,8 +9,8 @@
 !!
 module ELSI_SETUP
 
-   use ELSI_CONSTANTS, only: PEXSI_SOLVER,SINGLE_PROC,MULTI_PROC,PEXSI_CSC,&
-       SIESTA_CSC,UNSET
+   use ELSI_CONSTANTS, only: ELPA_SOLVER,PEXSI_SOLVER,SINGLE_PROC,MULTI_PROC,&
+       PEXSI_CSC,SIESTA_CSC,UNSET
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_ELPA, only: elsi_cleanup_elpa
    use ELSI_IO, only: elsi_say,elsi_final_print,fjson_close_file,&
@@ -400,12 +400,14 @@ subroutine elsi_reinit(eh)
          call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ptr_sp2")
       end if
 
-      if(allocated(eh%ovlp_real_copy)) then
-         call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
-      end if
+      if(.not. eh%ph%solver == ELPA_SOLVER) then
+         if(allocated(eh%ovlp_real_copy)) then
+            call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
+         end if
 
-      if(allocated(eh%ovlp_cmplx_copy)) then
-         call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
+         if(allocated(eh%ovlp_cmplx_copy)) then
+            call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
+         end if
       end if
    end if
 

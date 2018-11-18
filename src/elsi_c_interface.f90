@@ -1545,19 +1545,17 @@ subroutine elsi_orthonormalize_ev_complex_c_wrapper(h_c,ovlp_c,evec_c)&
 
 end subroutine
 
-subroutine elsi_extrapolate_dm_real_c_wrapper(h_c,ovlp0_c,ovlp1_c,dm_c)&
+subroutine elsi_extrapolate_dm_real_c_wrapper(h_c,ovlp_c,dm_c)&
    bind(C,name="c_elsi_extrapolate_dm_real")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   type(c_ptr), value, intent(in) :: ovlp0_c
-   type(c_ptr), value, intent(in) :: ovlp1_c
+   type(c_ptr), value, intent(in) :: ovlp_c
    type(c_ptr), value, intent(in) :: dm_c
 
    type(elsi_handle), pointer :: h_f
-   real(kind=c_double), pointer :: ovlp0_f(:,:)
-   real(kind=c_double), pointer :: ovlp1_f(:,:)
+   real(kind=c_double), pointer :: ovlp_f(:,:)
    real(kind=c_double), pointer :: dm_f(:,:)
 
    integer(kind=c_int) :: lrow
@@ -1568,27 +1566,24 @@ subroutine elsi_extrapolate_dm_real_c_wrapper(h_c,ovlp0_c,ovlp1_c,dm_c)&
    lrow = h_f%bh%n_lrow
    lcol = h_f%bh%n_lcol
 
-   call c_f_pointer(ovlp0_c,ovlp0_f,shape=[lrow,lcol])
-   call c_f_pointer(ovlp1_c,ovlp1_f,shape=[lrow,lcol])
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
    call c_f_pointer(dm_c,dm_f,shape=[lrow,lcol])
 
-   call elsi_extrapolate_dm_real(h_f,ovlp0_f,ovlp1_f,dm_f)
+   call elsi_extrapolate_dm_real(h_f,ovlp_f,dm_f)
 
 end subroutine
 
-subroutine elsi_extrapolate_dm_complex_c_wrapper(h_c,ovlp0_c,ovlp1_c,dm_c)&
+subroutine elsi_extrapolate_dm_complex_c_wrapper(h_c,ovlp_c,dm_c)&
    bind(C,name="c_elsi_extrapolate_dm_complex")
 
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   type(c_ptr), value, intent(in) :: ovlp0_c
-   type(c_ptr), value, intent(in) :: ovlp1_c
+   type(c_ptr), value, intent(in) :: ovlp_c
    type(c_ptr), value, intent(in) :: dm_c
 
    type(elsi_handle), pointer :: h_f
-   complex(kind=c_double), pointer :: ovlp0_f(:,:)
-   complex(kind=c_double), pointer :: ovlp1_f(:,:)
+   complex(kind=c_double), pointer :: ovlp_f(:,:)
    complex(kind=c_double), pointer :: dm_f(:,:)
 
    integer(kind=c_int) :: lrow
@@ -1599,11 +1594,10 @@ subroutine elsi_extrapolate_dm_complex_c_wrapper(h_c,ovlp0_c,ovlp1_c,dm_c)&
    lrow = h_f%bh%n_lrow
    lcol = h_f%bh%n_lcol
 
-   call c_f_pointer(ovlp0_c,ovlp0_f,shape=[lrow,lcol])
-   call c_f_pointer(ovlp1_c,ovlp1_f,shape=[lrow,lcol])
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[lrow,lcol])
    call c_f_pointer(dm_c,dm_f,shape=[lrow,lcol])
 
-   call elsi_extrapolate_dm_complex(h_f,ovlp0_f,ovlp1_f,dm_f)
+   call elsi_extrapolate_dm_complex(h_f,ovlp_f,dm_f)
 
 end subroutine
 

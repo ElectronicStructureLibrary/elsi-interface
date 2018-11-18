@@ -53,41 +53,41 @@ module ELSI_SOLVER
 contains
 
 !>
-!! This routine gets the energy.
+!! This routine gets the band structure energy.
 !!
-subroutine elsi_get_energy(ph,bh,energy,solver)
+subroutine elsi_get_band_energy(ph,bh,ebs,solver)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: solver
-   real(kind=r8), intent(out) :: energy
+   real(kind=r8), intent(out) :: ebs
 
    real(kind=r8) :: tmp
    integer(kind=i4) :: ierr
 
-   character(len=*), parameter :: caller = "elsi_get_energy"
+   character(len=*), parameter :: caller = "elsi_get_band_energy"
 
-   energy = ph%ebs*ph%i_wt
+   ebs = ph%ebs*ph%i_wt
 
    ! Handle different conventions
    if(solver == OMM_SOLVER) then
-      energy = ph%spin_degen*energy
+      ebs = ph%spin_degen*ebs
    else if(solver == NTPOLY_SOLVER) then
-      energy = ph%spin_degen*energy/2.0_r8
+      ebs = ph%spin_degen*ebs/2.0_r8
    end if
 
    if(ph%n_spins*ph%n_kpts > 1) then
       if(bh%myid /= 0) then
-         energy = 0.0_r8
+         ebs = 0.0_r8
       end if
 
-      call MPI_Allreduce(energy,tmp,1,mpi_real8,mpi_sum,bh%comm_all,ierr)
+      call MPI_Allreduce(ebs,tmp,1,mpi_real8,mpi_sum,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-      energy = tmp
+      ebs = tmp
    end if
 
 end subroutine
@@ -164,7 +164,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    real(kind=r8), intent(inout) :: eval(eh%ph%n_basis) !< Eigenvalues
    real(kind=r8), intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
-   integer(kind=i4) :: solver_save
+   integer(kind=i4) :: solver
    real(kind=r8) :: t0
    character(len=29) :: dt0
 
@@ -176,13 +176,12 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    call fjson_get_datetime_rfc3339(dt0)
 
    eh%ph%n_calls = eh%ph%n_calls+1
-   solver_save = eh%ph%solver
+   solver = eh%ph%solver
 
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
-      solver_save = SIPS_SOLVER
-      eh%ph%solver = ELPA_SOLVER
+      solver = ELPA_SOLVER
 
-      ! Overlap will be destroyed by Cholesky
+      ! Save overlap
       if(.not. allocated(eh%ovlp_real_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_real_copy",caller)
@@ -191,7 +190,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
       end if
    end if
 
-   select case(eh%ph%solver)
+   select case(solver)
    case(ELPA_SOLVER)
       if(eh%ph%parallel_mode == SINGLE_PROC) then
          call elsi_solve_lapack(eh%ph,eh%bh,ham,ovlp,eval,evec)
@@ -240,8 +239,6 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    end select
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
-
-   eh%ph%solver = solver_save
 
 end subroutine
 
@@ -304,7 +301,7 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
    real(kind=r8), intent(inout) :: eval(eh%ph%n_basis) !< Eigenvalues
    real(kind=r8), intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
-   integer(kind=i4) :: solver_save
+   integer(kind=i4) :: solver
    real(kind=r8) :: t0
    character(len=29) :: dt0
 
@@ -316,14 +313,13 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
    call fjson_get_datetime_rfc3339(dt0)
 
    eh%ph%n_calls = eh%ph%n_calls+1
-   solver_save = eh%ph%solver
+   solver = eh%ph%solver
 
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
-      solver_save = SIPS_SOLVER
-      eh%ph%solver = ELPA_SOLVER
+      solver = ELPA_SOLVER
    end if
 
-   select case(eh%ph%solver)
+   select case(solver)
    case(ELPA_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
 
@@ -411,8 +407,6 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
 
-   eh%ph%solver = solver_save
-
 end subroutine
 
 !>
@@ -486,7 +480,7 @@ end subroutine
 !! This routine computes the density matrix. Note the intent(inout) - it is
 !! because everything has the potential to be reused in the next call.
 !!
-subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
+subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
 
    implicit none
 
@@ -494,10 +488,11 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
    real(kind=r8), intent(inout) :: ham(eh%bh%n_lrow,eh%bh%n_lcol) !< Hamiltonian
    real(kind=r8), intent(inout) :: ovlp(eh%bh%n_lrow,eh%bh%n_lcol) !< Overlap
    real(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
-   real(kind=r8), intent(inout) :: energy !< Energy
+   real(kind=r8), intent(inout) :: ebs !< Band structure energy
 
-   integer(kind=i4) :: solver_save
+   integer(kind=i4) :: solver
    real(kind=r8) :: t0
+   logical :: unit_ovlp_save
    character(len=29) :: dt0
 
    character(len=*), parameter :: caller = "elsi_dm_real"
@@ -509,13 +504,12 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
 
    eh%ph%n_calls = eh%ph%n_calls+1
    eh%ph%ill_check = .false.
-   solver_save = eh%ph%solver
+   solver = eh%ph%solver
 
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
-      solver_save = SIPS_SOLVER
-      eh%ph%solver = ELPA_SOLVER
+      solver = ELPA_SOLVER
 
-      ! Overlap will be destroyed by Cholesky
+      ! Save overlap
       if(.not. allocated(eh%ovlp_real_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_real_copy",caller)
@@ -525,11 +519,10 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
    end if
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-      solver_save = OMM_SOLVER
-      eh%ph%solver = ELPA_SOLVER
+      solver = ELPA_SOLVER
 
       if(eh%ph%omm_flavor == 0) then
-         ! Overlap will be destroyed by Cholesky
+         ! Save overlap
          if(.not. allocated(eh%ovlp_real_copy)) then
             call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_real_copy",caller)
@@ -539,7 +532,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       end if
    end if
 
-   select case(eh%ph%solver)
+   select case(solver)
    case(ELPA_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
 
@@ -562,13 +555,13 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
            eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%evec_real,dm)
-      call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
    case(OMM_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_init_omm(eh%ph,eh%bh)
 
       if(allocated(eh%ovlp_real_copy)) then
-         ! Retrieve overlap matrix that has been destroyed by Cholesky
+         ! Restore overlap
          ovlp = eh%ovlp_real_copy
 
          call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
@@ -600,7 +593,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
       end if
 
       call elsi_solve_omm(eh%ph,eh%bh,ham,ovlp,eh%omm_c_real,dm)
-      call elsi_get_energy(eh%ph,eh%bh,energy,OMM_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,OMM_SOLVER)
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
@@ -641,7 +634,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
            eh%pexsi_ne_vec,eh%ham_real_csc,eh%ovlp_real_csc,eh%dm_real_csc)
       call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
            eh%dm_real_csc,dm)
-      call elsi_get_energy(eh%ph,eh%bh,energy,PEXSI_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,PEXSI_SOLVER)
    case(SIPS_SOLVER)
       if(allocated(eh%ovlp_real_copy)) then
          ! Restore overlap
@@ -702,23 +695,51 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,energy)
            eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_csc)
       call elsi_sips_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
            eh%dm_real_csc,dm)
-      call elsi_get_energy(eh%ph,eh%bh,energy,SIPS_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,SIPS_SOLVER)
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%ph%nt_ham,&
            eh%ph%nt_ovlp)
       call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
       call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
-      call elsi_get_energy(eh%ph,eh%bh,energy,NTPOLY_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
    case default
       call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
    end select
 
-   call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
-
    eh%ph%edm_ready_real = .true.
 
-   eh%ph%solver = solver_save
+   ! Save information for density matrix extrapolation
+   if(eh%ph%save_ovlp .and. eh%ph%n_calls == 1) then
+      if(eh%ph%solver == ELPA_SOLVER) then
+         if(.not. allocated(eh%ovlp_real_copy)) then
+            call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
+                 eh%bh%n_lcol,"ovlp_real_copy",caller)
+
+            eh%ovlp_real_copy = ovlp
+         end if
+      else
+         if(.not. allocated(eh%ph%nt_ovlp_copy%local_data_r)) then
+            call elsi_init_ntpoly(eh%ph,eh%bh)
+
+            unit_ovlp_save = eh%ph%unit_ovlp
+            eh%ph%unit_ovlp = .true.
+            eh%ph%first_blacs_to_ntpoly = .true.
+
+            if(allocated(eh%ovlp_real_copy)) then
+               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,eh%ovlp_real_copy,ham,&
+                    eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+            else
+               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
+                    eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+            end if
+
+            eh%ph%unit_ovlp = unit_ovlp_save
+         end if
+      end if
+   end if
+
+   call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
 
 end subroutine
 
@@ -726,7 +747,7 @@ end subroutine
 !! This routine computes the density matrix. Note the intent(inout) - it is
 !! because everything has the potential to be reused in the next call.
 !!
-subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
+subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
 
    implicit none
 
@@ -734,10 +755,11 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
    complex(kind=r8), intent(inout) :: ham(eh%bh%n_lrow,eh%bh%n_lcol) !< Hamiltonian
    complex(kind=r8), intent(inout) :: ovlp(eh%bh%n_lrow,eh%bh%n_lcol) !< Overlap
    complex(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
-   real(kind=r8), intent(inout) :: energy !< Energy
+   real(kind=r8), intent(inout) :: ebs !< Band structure energy
 
-   integer(kind=i4) :: solver_save
+   integer(kind=i4) :: solver
    real(kind=r8) :: t0
+   logical :: unit_ovlp_save
    character(len=29) :: dt0
 
    character(len=*), parameter :: caller = "elsi_dm_complex"
@@ -749,14 +771,13 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
 
    eh%ph%n_calls = eh%ph%n_calls+1
    eh%ph%ill_check = .false.
-   solver_save = eh%ph%solver
+   solver = eh%ph%solver
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-      solver_save = OMM_SOLVER
-      eh%ph%solver = ELPA_SOLVER
+      solver = ELPA_SOLVER
 
       if(eh%ph%omm_flavor == 0) then
-         ! Overlap will be destroyed by Cholesky
+         ! Save overlap
          if(.not. allocated(eh%ovlp_cmplx_copy)) then
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
@@ -766,7 +787,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
       end if
    end if
 
-   select case(eh%ph%solver)
+   select case(solver)
    case(ELPA_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
 
@@ -789,7 +810,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
            eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%evec_cmplx,dm)
-      call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
    case(OMM_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_init_omm(eh%ph,eh%bh)
@@ -827,7 +848,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
       end if
 
       call elsi_solve_omm(eh%ph,eh%bh,ham,ovlp,eh%omm_c_cmplx,dm)
-      call elsi_get_energy(eh%ph,eh%bh,energy,OMM_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,OMM_SOLVER)
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
@@ -869,22 +890,51 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,energy)
            eh%pexsi_ne_vec,eh%ham_cmplx_csc,eh%ovlp_cmplx_csc,eh%dm_cmplx_csc)
       call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
            eh%dm_cmplx_csc,dm)
-      call elsi_get_energy(eh%ph,eh%bh,energy,PEXSI_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,PEXSI_SOLVER)
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%ph%nt_ham,&
            eh%ph%nt_ovlp)
       call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
       call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
-      call elsi_get_energy(eh%ph,eh%bh,energy,NTPOLY_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
    case default
       call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
    end select
 
-   call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
-
    eh%ph%edm_ready_cmplx = .true.
-   eh%ph%solver = solver_save
+
+   ! Save information for density matrix extrapolation
+   if(eh%ph%save_ovlp .and. eh%ph%n_calls == 1) then
+      if(eh%ph%solver == ELPA_SOLVER) then
+         if(.not. allocated(eh%ovlp_cmplx_copy)) then
+            call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
+                 eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
+
+            eh%ovlp_cmplx_copy = ovlp
+         end if
+      else
+         if(.not. allocated(eh%ph%nt_ovlp_copy%local_data_c)) then
+            call elsi_init_ntpoly(eh%ph,eh%bh)
+
+            unit_ovlp_save = eh%ph%unit_ovlp
+            eh%ph%unit_ovlp = .true.
+            eh%ph%first_blacs_to_ntpoly = .true.
+
+            if(allocated(eh%ovlp_cmplx_copy)) then
+               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,eh%ovlp_cmplx_copy,ham,&
+                    eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+            else
+               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
+                    eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+            end if
+
+            eh%ph%unit_ovlp = unit_ovlp_save
+         end if
+      end if
+   end if
+
+   call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
 
 end subroutine
 
@@ -892,7 +942,7 @@ end subroutine
 !! This routine computes the density matrix. Note the intent(inout) - it is
 !! because everything has the potential to be reused in the next call.
 !!
-subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
+subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
 
    implicit none
 
@@ -900,9 +950,9 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
    real(kind=r8), intent(inout) :: ham(eh%bh%nnz_l_sp) !< Hamiltonian
    real(kind=r8), intent(inout) :: ovlp(eh%bh%nnz_l_sp) !< Overlap
    real(kind=r8), intent(inout) :: dm(eh%bh%nnz_l_sp) !< Density matrix
-   real(kind=r8), intent(inout) :: energy !< Energy
+   real(kind=r8), intent(inout) :: ebs !< Band structure energy
 
-   integer(kind=i4) :: solver_save
+   integer(kind=i4) :: solver
    real(kind=r8) :: t0
    character(len=29) :: dt0
 
@@ -915,19 +965,17 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
 
    eh%ph%n_calls = eh%ph%n_calls+1
    eh%ph%ill_check = .false.
-   solver_save = eh%ph%solver
+   solver = eh%ph%solver
 
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
-      solver_save = SIPS_SOLVER
-      eh%ph%solver = ELPA_SOLVER
+      solver = ELPA_SOLVER
    end if
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-      solver_save = OMM_SOLVER
-      eh%ph%solver = ELPA_SOLVER
+      solver = ELPA_SOLVER
    end if
 
-   select case(eh%ph%solver)
+   select case(solver)
    case(ELPA_SOLVER)
       call elsi_init_blacs(eh)
       call elsi_init_elpa(eh%ph,eh%bh)
@@ -977,9 +1025,9 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
               eh%ph%n_kpts,"occ",caller)
       end if
 
-      if(solver_save == OMM_SOLVER .and. eh%ph%omm_flavor == 0) then
+      if(eh%ph%solver == OMM_SOLVER .and. eh%ph%omm_flavor == 0) then
          if(.not. allocated(eh%ovlp_real_copy)) then
-            ! Overlap will be destroyed by Cholesky
+            ! Save Overlap
             call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_real_copy",caller)
 
@@ -1004,7 +1052,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
    case(OMM_SOLVER)
       call elsi_init_blacs(eh)
       call elsi_init_elpa(eh%ph,eh%bh)
@@ -1088,7 +1136,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      call elsi_get_energy(eh%ph,eh%bh,energy,OMM_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,OMM_SOLVER)
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
@@ -1140,7 +1188,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      call elsi_get_energy(eh%ph,eh%bh,energy,PEXSI_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,PEXSI_SOLVER)
    case(SIPS_SOLVER)
       call elsi_init_sips(eh%ph,eh%bh)
 
@@ -1177,7 +1225,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
          call elsi_build_dm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
               eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),dm)
-         call elsi_get_energy(eh%ph,eh%bh,energy,SIPS_SOLVER)
+         call elsi_get_band_energy(eh%ph,eh%bh,ebs,SIPS_SOLVER)
       case(SIESTA_CSC)
          if(.not. allocated(eh%row_ind_sp1)) then
             call elsi_siesta_to_sips_hs_dim(eh%ph,eh%bh,eh%col_ptr_sp2)
@@ -1216,7 +1264,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
               eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_csc)
          call elsi_sips_to_siesta_dm(eh%ph,eh%bh,eh%row_ind_sp1,&
               eh%col_ptr_sp1,eh%dm_real_csc,eh%row_ind_sp2,eh%col_ptr_sp2,dm)
-         call elsi_get_energy(eh%ph,eh%bh,energy,SIPS_SOLVER)
+         call elsi_get_band_energy(eh%ph,eh%bh,ebs,SIPS_SOLVER)
       case default
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
@@ -1247,15 +1295,14 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      call elsi_get_energy(eh%ph,eh%bh,energy,NTPOLY_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
    case default
       call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
    end select
 
-   call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
-
    eh%ph%edm_ready_real = .true.
-   eh%ph%solver = solver_save
+
+   call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
 
 end subroutine
 
@@ -1263,7 +1310,7 @@ end subroutine
 !! This routine computes the density matrix. Note the intent(inout) - it is
 !! because everything has the potential to be reused in the next call.
 !!
-subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
+subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
 
    implicit none
 
@@ -1271,9 +1318,9 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
    complex(kind=r8), intent(inout) :: ham(eh%bh%nnz_l_sp) !< Hamiltonian
    complex(kind=r8), intent(inout) :: ovlp(eh%bh%nnz_l_sp) !< Overlap
    complex(kind=r8), intent(inout) :: dm(eh%bh%nnz_l_sp) !< Density matrix
-   real(kind=r8), intent(inout) :: energy !< Energy
+   real(kind=r8), intent(inout) :: ebs !< Band structure energy
 
-   integer(kind=i4) :: solver_save
+   integer(kind=i4) :: solver
    real(kind=r8) :: t0
    character(len=29) :: dt0
 
@@ -1286,14 +1333,13 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
 
    eh%ph%n_calls = eh%ph%n_calls+1
    eh%ph%ill_check = .false.
-   solver_save = eh%ph%solver
+   solver = eh%ph%solver
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-      solver_save = OMM_SOLVER
-      eh%ph%solver = ELPA_SOLVER
+      solver = ELPA_SOLVER
    end if
 
-   select case(eh%ph%solver)
+   select case(solver)
    case(ELPA_SOLVER)
       call elsi_init_blacs(eh)
       call elsi_init_elpa(eh%ph,eh%bh)
@@ -1343,9 +1389,9 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
               eh%ph%n_kpts,"occ",caller)
       end if
 
-      if(solver_save == OMM_SOLVER .and. eh%ph%omm_flavor == 0) then
+      if(eh%ph%solver == OMM_SOLVER .and. eh%ph%omm_flavor == 0) then
          if(.not. allocated(eh%ovlp_cmplx_copy)) then
-            ! Overlap will be destroyed by Cholesky
+            ! Save overlap
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
 
@@ -1370,7 +1416,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      call elsi_get_energy(eh%ph,eh%bh,energy,ELPA_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
    case(OMM_SOLVER)
       call elsi_init_blacs(eh)
       call elsi_init_elpa(eh%ph,eh%bh)
@@ -1455,7 +1501,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      call elsi_get_energy(eh%ph,eh%bh,energy,OMM_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,OMM_SOLVER)
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
@@ -1508,7 +1554,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      call elsi_get_energy(eh%ph,eh%bh,energy,PEXSI_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,PEXSI_SOLVER)
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
 
@@ -1536,15 +1582,14 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,energy)
          call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
       end select
 
-      call elsi_get_energy(eh%ph,eh%bh,energy,NTPOLY_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
    case default
       call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
    end select
 
-   call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
-
    eh%ph%edm_ready_cmplx = .true.
-   eh%ph%solver = solver_save
+
+   call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
 
 end subroutine
 
