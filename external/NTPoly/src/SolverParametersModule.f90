@@ -6,7 +6,7 @@ MODULE SolverParametersModule
   USE DataTypesModule, ONLY : NTREAL
   USE LoggingModule, ONLY : EnterSubLog, ExitSubLog, WriteElement, &
        & WriteHeader
-  USE PermutationModule, ONLY : Permutation_t
+  USE PermutationModule, ONLY : Permutation_t, DestructPermutation
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -36,6 +36,7 @@ MODULE SolverParametersModule
   PUBLIC :: SetParametersBeVerbose
   PUBLIC :: SetParametersLoadBalance
   PUBLIC :: PrintParameters
+  PUBLIC :: DestructSolverParameters
   PUBLIC :: SolverParameters_init
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> The default convergence difference.
@@ -146,16 +147,20 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     CALL WriteHeader("Solver Parameters")
     CALL EnterSubLog
-    CALL WriteElement(key="be_verbose",bool_value_in=this%be_verbose)
-    CALL WriteElement(key="do_load_balancing", &
-         & bool_value_in=this%do_load_balancing)
-    CALL WriteElement(key="converge_diff", &
-         & float_value_in=this%converge_diff)
-    CALL WriteElement(key="threshold", &
-         & float_value_in=this%threshold)
-    CALL WriteElement(key="max_iterations", &
-         & int_value_in=this%max_iterations)
+    CALL WriteElement(key="be_verbose", value=this%be_verbose)
+    CALL WriteElement(key="do_load_balancing", value=this%do_load_balancing)
+    CALL WriteElement(key="converge_diff", value=this%converge_diff)
+    CALL WriteElement(key="threshold", value=this%threshold)
+    CALL WriteElement(key="max_iterations", value=this%max_iterations)
     CALL ExitSubLog
   END SUBROUTINE PrintParameters
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> Cleanup the solver parameters datastructure.
+  PURE SUBROUTINE DestructSolverParameters(this)
+    !> The parameter object.
+    TYPE(SolverParameters_t), INTENT(INOUT) :: this
+
+    CALL DestructPermutation(this%BalancePermutation)
+  END SUBROUTINE DestructSolverParameters
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE SolverParametersModule

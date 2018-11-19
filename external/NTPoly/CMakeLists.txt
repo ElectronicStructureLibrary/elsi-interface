@@ -15,6 +15,7 @@ LIST(APPEND ntpoly_src
   src/LinearSolversModule.f90
   src/LoadBalancerModule.f90
   src/LoggingModule.f90
+  src/MatrixMapsModule.f90
   src/MatrixMarketModule.f90
   src/MatrixMemoryPoolModule.f90
   src/NTMPIModule.f90
