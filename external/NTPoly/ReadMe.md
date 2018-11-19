@@ -17,11 +17,13 @@ repository. We of course recommend that you download a
 to get started.
 
 Installing NTPoly requires the following software:
+
 * A Fortran Compiler.
 * An MPI Installation (MPI-3 Standard+).
 * CMake (Version 3.2+).
 
 The following optional software can greatly enhance the NTPoly experience:
+
 * BLAS: for multiplying dense matrices, if they emerge in the calculation.
 * A C++ Compiler for building C++ bindings.
 * Doxygen: for building documentation.
@@ -113,7 +115,6 @@ The following features and methods have been implemented in NTPoly:
     * Square Root and Inverse Square Root
     * Matrix *p* th Root
 * Quantum Chemistry
-    * Density Matrix Minimization
     * Density Matrix Purification
     * Chemical Potential Calculation
     * Geometry Optimization
@@ -126,7 +127,7 @@ The following features and methods have been implemented in NTPoly:
 Citation
 --------------------------------------------------------------------------------
 A description of the techniques used in NTPoly can be found in the following
-Computer Phyics Communications paper:
+Computer Physics Communications paper:
 
 > Dawson, William, and Takahito Nakajima. "Massively parallel sparse matrix
 > function calculations with NTPoly." Computer Physics Communications (2017).

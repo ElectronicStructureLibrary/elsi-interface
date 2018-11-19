@@ -3,8 +3,16 @@
 ==================
 
    ELSI:
+   * Added utility subroutines for geometry optimization and molecular
+     dynamics calculations, including reinitialization of ELSI between
+     geometry steps, density matrix extrapolation, and Gram-Schmidt
+     orthogonalization of eigenvectors.
+   * Extended the test suite to increase code coverage.
    * Fixed single precision calculations with an externally linked ELPA.
    * Fixed libOMM Cholesky flavor with random initial guess.
+
+   NTPoly:
+   * Updated redistributed NTPoly source code to version 2.1.
 
 ============================
    ELSI May 2018 (v2.1.0)
