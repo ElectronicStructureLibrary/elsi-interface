@@ -10,11 +10,11 @@
 !!
 module ELSI_TOOLS
 
-   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,SIPS_SOLVER
+   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_update_dm_elpa
-   use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_solve_ntpoly
+   use ELSI_MALLOC, only: elsi_allocate
+   use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_update_dm_ntpoly,CopyMatrix
    use ELSI_OCC, only: elsi_mu_and_occ,elsi_entropy
    use ELSI_PRECISION, only: i4,r8
    use ELSI_REDIST, only: elsi_blacs_to_ntpoly_hs,elsi_ntpoly_to_blacs_dm
@@ -79,119 +79,88 @@ end subroutine
 !>
 !! This routine extrapolates density matrix for a new overlap.
 !!
-subroutine elsi_extrapolate_dm_real(eh,ovlp0,ovlp1,dm)
+subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(inout) :: ovlp0(eh%bh%n_lrow,eh%bh%n_lcol) !< Old overlap
-   real(kind=r8), intent(inout) :: ovlp1(eh%bh%n_lrow,eh%bh%n_lcol) !< New overlap
+   real(kind=r8), intent(inout) :: ovlp(eh%bh%n_lrow,eh%bh%n_lcol) !< New overlap
    real(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
 
-   integer(kind=i4) :: solver_save
    logical :: unit_ovlp_save
-
-   real(kind=r8), allocatable :: dummy(:,:)
 
    character(len=*), parameter :: caller = "elsi_extrapolate_dm_real"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   solver_save = eh%ph%solver
-
-   if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%sips_n_elpa > 0) then
-      solver_save = SIPS_SOLVER
-      eh%ph%solver = ELPA_SOLVER
-   end if
-
-   if(eh%ph%solver == OMM_SOLVER .and. eh%ph%omm_n_elpa > 0) then
-      solver_save = OMM_SOLVER
-      eh%ph%solver = ELPA_SOLVER
-   end if
-
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      call elsi_update_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ovlp0,ovlp1,dm)
-   case default
-      call elsi_init_ntpoly(eh%ph,eh%bh)
+      call elsi_update_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+           eh%ovlp_real_copy,ovlp,dm)
 
+      eh%ovlp_real_copy = ovlp
+   case default
       unit_ovlp_save = eh%ph%unit_ovlp
       eh%ph%unit_ovlp = .true.
 
-      call elsi_allocate(eh%bh,dummy,1,1,"dummy",caller)
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,dummy,eh%ph%nt_ham,&
-           eh%ph%nt_dm)
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%ph%nt_ham,eh%ph%nt_dm)
 
       eh%ph%first_blacs_to_ntpoly = .true.
 
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp1,dummy,eh%ph%nt_ovlp,&
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,dm,eh%ph%nt_ovlp,&
            eh%ph%nt_dm)
-      call elsi_deallocate(eh%bh,dummy,"dummy")
 
       eh%ph%unit_ovlp = unit_ovlp_save
 
-      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
+      call elsi_update_dm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ovlp_copy,eh%ph%nt_ovlp,&
+           eh%ph%nt_ham,eh%ph%nt_dm)
       call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
+      call CopyMatrix(eh%ph%nt_ovlp,eh%ph%nt_ovlp_copy)
    end select
-
-   eh%ph%solver = solver_save
 
 end subroutine
 
 !>
 !! This routine extrapolates density matrix for a new overlap.
 !!
-subroutine elsi_extrapolate_dm_complex(eh,ovlp0,ovlp1,dm)
+subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   complex(kind=r8), intent(inout) :: ovlp0(eh%bh%n_lrow,eh%bh%n_lcol) !< Old overlap
-   complex(kind=r8), intent(inout) :: ovlp1(eh%bh%n_lrow,eh%bh%n_lcol) !< New overlap
+   complex(kind=r8), intent(inout) :: ovlp(eh%bh%n_lrow,eh%bh%n_lcol) !< New overlap
    complex(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
 
-   integer(kind=i4) :: solver_save
    logical :: unit_ovlp_save
-
-   complex(kind=r8), allocatable :: dummy(:,:)
 
    character(len=*), parameter :: caller = "elsi_extrapolate_dm_complex"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   solver_save = eh%ph%solver
-
-   if(eh%ph%solver == OMM_SOLVER .and. eh%ph%omm_n_elpa > 0) then
-      solver_save = OMM_SOLVER
-      eh%ph%solver = ELPA_SOLVER
-   end if
-
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      call elsi_update_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ovlp0,ovlp1,dm)
-   case default
-      call elsi_init_ntpoly(eh%ph,eh%bh)
+      call elsi_update_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,&
+           eh%ovlp_cmplx_copy,ovlp,dm)
 
+      eh%ovlp_cmplx_copy = ovlp
+   case default
       unit_ovlp_save = eh%ph%unit_ovlp
       eh%ph%unit_ovlp = .true.
 
-      call elsi_allocate(eh%bh,dummy,1,1,"dummy",caller)
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,dummy,eh%ph%nt_ham,&
-           eh%ph%nt_dm)
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%ph%nt_ham,eh%ph%nt_dm)
 
       eh%ph%first_blacs_to_ntpoly = .true.
 
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp1,dummy,eh%ph%nt_ovlp,&
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,dm,eh%ph%nt_ovlp,&
            eh%ph%nt_dm)
-      call elsi_deallocate(eh%bh,dummy,"dummy")
 
       eh%ph%unit_ovlp = unit_ovlp_save
 
-      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
+      call elsi_update_dm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ovlp_copy,eh%ph%nt_ovlp,&
+           eh%ph%nt_ham,eh%ph%nt_dm)
       call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
+      call CopyMatrix(eh%ph%nt_ovlp,eh%ph%nt_ovlp_copy)
    end select
-
-   eh%ph%solver = solver_save
 
 end subroutine
 

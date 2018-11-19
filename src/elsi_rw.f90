@@ -977,9 +977,9 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    integer(kind=i4) :: n_lcol0
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
+   real(kind=r8) :: dummy1(1,1)
+   real(kind=r8) :: dummy2(1)
 
-   real(kind=r8), allocatable :: dummy1(:,:)
-   real(kind=r8), allocatable :: dummy2(:)
    real(kind=r8), allocatable :: mat_csc(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
@@ -1001,20 +1001,14 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
       eh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*eh%bh%n_lcol_sp
    end if
 
-   call elsi_allocate(rwh%bh,dummy1,1,1,"dummy1",caller)
-
    call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,mat,dummy1)
 
    call elsi_allocate(rwh%bh,mat_csc,eh%bh%nnz_l_sp,"mat_csc",caller)
-   call elsi_allocate(rwh%bh,dummy2,1,"dummy2",caller)
    call elsi_allocate(rwh%bh,row_ind,eh%bh%nnz_l_sp,"row_ind",caller)
    call elsi_allocate(rwh%bh,col_ptr,eh%bh%n_lcol_sp+1,"col_ptr",caller)
 
    call elsi_blacs_to_sips_hs(eh%ph,eh%bh,mat,dummy1,mat_csc,dummy2,row_ind,&
         col_ptr)
-
-   call elsi_deallocate(rwh%bh,dummy1,"dummy1")
-   call elsi_deallocate(rwh%bh,dummy2,"dummy2")
 
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create
@@ -1109,9 +1103,9 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    integer(kind=i4) :: n_lcol0
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
+   complex(kind=r8) :: dummy1(1,1)
+   complex(kind=r8) :: dummy2(1)
 
-   complex(kind=r8), allocatable :: dummy1(:,:)
-   complex(kind=r8), allocatable :: dummy2(:)
    complex(kind=r8), allocatable :: mat_csc(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
@@ -1133,20 +1127,14 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
       eh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*eh%bh%n_lcol_sp
    end if
 
-   call elsi_allocate(rwh%bh,dummy1,1,1,"dummy1",caller)
-
    call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,mat,dummy1)
 
    call elsi_allocate(rwh%bh,mat_csc,eh%bh%nnz_l_sp,"mat_csc",caller)
-   call elsi_allocate(rwh%bh,dummy2,1,"dummy2",caller)
    call elsi_allocate(rwh%bh,row_ind,eh%bh%nnz_l_sp,"row_ind",caller)
    call elsi_allocate(rwh%bh,col_ptr,eh%bh%n_lcol_sp+1,"col_ptr",caller)
 
    call elsi_blacs_to_sips_hs(eh%ph,eh%bh,mat,dummy1,mat_csc,dummy2,row_ind,&
         col_ptr)
-
-   call elsi_deallocate(rwh%bh,dummy1,"dummy1")
-   call elsi_deallocate(rwh%bh,dummy2,"dummy2")
 
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create

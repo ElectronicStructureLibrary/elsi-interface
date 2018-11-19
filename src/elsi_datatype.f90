@@ -84,6 +84,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: n_calls_all ! Total number of calls
 
       ! Overlap
+      logical :: save_ovlp
       logical :: unit_ovlp
       logical :: ill_ovlp
       logical :: ill_check
@@ -193,6 +194,7 @@ module ELSI_DATATYPE
       logical :: nt_started = .false.
       type(Matrix_ps) :: nt_ham
       type(Matrix_ps) :: nt_ovlp
+      type(Matrix_ps) :: nt_ovlp_copy
       type(Matrix_ps) :: nt_dm
       type(SolverParameters_t) :: nt_options
       type(Permutation_t) :: nt_perm

@@ -9,15 +9,16 @@
 !!
 module ELSI_NTPOLY
 
-   use ELSI_CONSTANTS, only: NTPOLY_PM,NTPOLY_TC2,NTPOLY_TRS4,NTPOLY_HPCP
+   use ELSI_CONSTANTS, only: NTPOLY_SOLVER,NTPOLY_PM,NTPOLY_TC2,NTPOLY_TRS4,&
+       NTPOLY_HPCP
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_check_mpi,mpi_logical
    use ELSI_PRECISION, only: r8,i4
-   use NTPOLY, only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,Matrix_ps,&
-       ConstructEmptyMatrix,DestructMatrix,CopyMatrix,ScaleMatrix,&
-       FillMatrixFromTripletList,GetMatrixTripletList,FilterMatrix,&
+   use NTPOLY, only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,LowdinExtrapolate,&
+       PurificationExtrapolate,Matrix_ps,ConstructEmptyMatrix,DestructMatrix,&
+       CopyMatrix,ScaleMatrix,FillMatrixFromTripletList,GetMatrixTripletList,&
        ProcessGrid_t,ConstructNewProcessGrid,DestructProcessGrid,&
        ConstructRandomPermutation,DestructPermutation,InverseSquareRoot,&
        SolverParameters_t,Triplet_r,Triplet_c,TripletList_r,TripletList_c,&
@@ -32,8 +33,11 @@ module ELSI_NTPOLY
    public :: elsi_cleanup_ntpoly
    public :: elsi_solve_ntpoly
    public :: elsi_compute_edm_ntpoly
+   public :: elsi_update_dm_ntpoly
    public :: Matrix_ps
    public :: ConstructEmptyMatrix
+   public :: CopyMatrix
+   public :: DestructMatrix
    public :: FillMatrixFromTripletList
    public :: GetMatrixTripletList
    public :: TripletList_r
@@ -83,6 +87,8 @@ subroutine elsi_init_ntpoly(ph,bh)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
+      ph%nt_filter = max(ph%nt_filter,bh%def0)
+
       if(ph%nt_output .and. bh%myid_all == 0) then
          call ActivateLogger()
       end if
@@ -117,6 +123,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
    if(ph%nt_first) then
       call elsi_get_time(t0)
 
+      call DestructPermutation(ph%nt_perm)
       call ConstructRandomPermutation(ph%nt_perm,ovlp%logical_matrix_dimension)
 
       ph%nt_options = SolverParameters_t(ph%nt_tol,ph%nt_filter,ph%nt_max_iter,&
@@ -141,8 +148,6 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 
    call elsi_get_time(t0)
 
-   call ConstructEmptyMatrix(dm,ham)
-
    ne = int(ph%n_electrons,kind=i4)
 
    select case(ph%nt_method)
@@ -157,10 +162,6 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
    end select
 
    call ScaleMatrix(dm,ph%spin_degen)
-
-   if(ph%nt_filter < bh%def0) then
-      call FilterMatrix(dm,bh%def0)
-   end if
 
    call elsi_get_time(t1)
 
@@ -198,19 +199,55 @@ subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
 
    factor = 1.0_r8/ph%spin_degen
 
-   call ConstructEmptyMatrix(tmp,ham)
    call CopyMatrix(edm,tmp)
    call EnergyDensityMatrix(ham,tmp,edm,ph%nt_filter)
    call DestructMatrix(tmp)
    call ScaleMatrix(edm,factor)
 
-   if(ph%nt_filter < bh%def0) then
-      call FilterMatrix(edm,bh%def0)
+   call elsi_get_time(t1)
+
+   write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
+end subroutine
+
+!>
+!! This routine extrapolates density matrix using Lowdin decomposition of the
+!! old and new overlap matrices or 2nd order trace resetting purification.
+!!
+subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   type(Matrix_ps), intent(inout) :: ovlp0
+   type(Matrix_ps), intent(inout) :: ovlp1
+   type(Matrix_ps), intent(inout) :: dm0
+   type(Matrix_ps), intent(inout) :: dm1
+
+   integer(kind=i4) :: ne
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_update_dm_ntpoly"
+
+   call elsi_get_time(t0)
+
+   ne = int(ph%n_electrons,kind=i4)
+
+   if(ph%solver /= NTPOLY_SOLVER) then
+      call PurificationExtrapolate(dm0,ovlp1,ne,dm1,ph%nt_options)
+   else
+      call LowdinExtrapolate(dm0,ovlp0,ovlp1,dm1,ph%nt_options)
    end if
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   write(msg,"(2X,A)") "Finished density matrix extrapolation"
    call elsi_say(bh,msg)
    write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
@@ -232,6 +269,7 @@ subroutine elsi_cleanup_ntpoly(ph)
       call DeactivateLogger()
       call DestructMatrix(ph%nt_ham)
       call DestructMatrix(ph%nt_ovlp)
+      call DestructMatrix(ph%nt_ovlp_copy)
       call DestructMatrix(ph%nt_dm)
       call DestructPermutation(ph%nt_perm)
       call DestructProcessGrid(ph%nt_pgrid)

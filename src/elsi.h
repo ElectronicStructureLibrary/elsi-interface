@@ -302,13 +302,11 @@ void c_elsi_orthonormalize_ev_complex(elsi_handle handle_c,
                                       double _Complex *evec);
 
 void c_elsi_extrapolate_dm_real(elsi_handle handle_c,
-                                double *ovlp0,
-                                double *ovlp1,
+                                double *ovlp,
                                 double *dm);
 
 void c_elsi_extrapolate_dm_complex(elsi_handle handle_c,
-                                   double _Complex *ovlp0,
-                                   double _Complex *ovlp1,
+                                   double _Complex *ovlp,
                                    double _Complex *dm);
 
 void c_elsi_construct_dm_real(elsi_handle handle_c,
