@@ -180,7 +180,9 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
 
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
       solver = ELPA_SOLVER
+   end if
 
+   if(eh%ph%solver /= solver) then
       ! Save overlap
       if(.not. allocated(eh%ovlp_real_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
@@ -508,27 +510,19 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
 
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
       solver = ELPA_SOLVER
+   end if
 
+   if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
+      solver = ELPA_SOLVER
+   end if
+
+   if(eh%ph%solver /= solver) then
       ! Save overlap
       if(.not. allocated(eh%ovlp_real_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_real_copy",caller)
 
          eh%ovlp_real_copy = ovlp
-      end if
-   end if
-
-   if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
-      solver = ELPA_SOLVER
-
-      if(eh%ph%omm_flavor == 0) then
-         ! Save overlap
-         if(.not. allocated(eh%ovlp_real_copy)) then
-            call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
-                 eh%bh%n_lcol,"ovlp_real_copy",caller)
-
-            eh%ovlp_real_copy = ovlp
-         end if
       end if
    end if
 
@@ -561,8 +555,10 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_init_omm(eh%ph,eh%bh)
 
       if(allocated(eh%ovlp_real_copy)) then
-         ! Restore overlap
-         ovlp = eh%ovlp_real_copy
+         if(eh%ph%omm_flavor == 0) then
+            ! Restore overlap
+            ovlp = eh%ovlp_real_copy
+         end if
 
          call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
       end if
@@ -572,23 +568,21 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
               "omm_c_real",caller)
 
          ! Initialize coefficient matrix with ELPA eigenvectors
-         if(eh%ph%omm_n_elpa > 0) then
-            call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real,1,1,&
-                 eh%bh%desc,0.0_r8,dm,1,1,eh%bh%desc)
+         call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real,1,1,&
+              eh%bh%desc,0.0_r8,dm,1,1,eh%bh%desc)
 
-            eh%omm_c_real(1:eh%ph%omm_n_lrow,:) = dm(1:eh%ph%omm_n_lrow,:)
+         eh%omm_c_real(1:eh%ph%omm_n_lrow,:) = dm(1:eh%ph%omm_n_lrow,:)
 
-            if(allocated(eh%evec_real)) then
-               call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
-            end if
+         if(allocated(eh%evec_real)) then
+            call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
+         end if
 
-            if(allocated(eh%eval)) then
-               call elsi_deallocate(eh%bh,eh%eval,"eval")
-            end if
+         if(allocated(eh%eval)) then
+            call elsi_deallocate(eh%bh,eh%eval,"eval")
+         end if
 
-            if(allocated(eh%occ)) then
-               call elsi_deallocate(eh%bh,eh%occ,"occ")
-            end if
+         if(allocated(eh%occ)) then
+            call elsi_deallocate(eh%bh,eh%occ,"occ")
          end if
       end if
 
@@ -710,7 +704,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
    eh%ph%edm_ready_real = .true.
 
    ! Save information for density matrix extrapolation
-   if(eh%ph%save_ovlp .and. eh%ph%n_calls == 1) then
+   if(eh%ph%save_ovlp) then
       if(eh%ph%solver == ELPA_SOLVER) then
          if(.not. allocated(eh%ovlp_real_copy)) then
             call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
@@ -775,15 +769,15 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
       solver = ELPA_SOLVER
+   end if
 
-      if(eh%ph%omm_flavor == 0) then
-         ! Save overlap
-         if(.not. allocated(eh%ovlp_cmplx_copy)) then
-            call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
-                 eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
+   if(eh%ph%solver /= solver) then
+      ! Save overlap
+      if(.not. allocated(eh%ovlp_cmplx_copy)) then
+         call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
+              "ovlp_cmplx_copy",caller)
 
-            eh%ovlp_cmplx_copy = ovlp
-         end if
+         eh%ovlp_cmplx_copy = ovlp
       end if
    end if
 
@@ -816,8 +810,10 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_init_omm(eh%ph,eh%bh)
 
       if(allocated(eh%ovlp_cmplx_copy)) then
-         ! Restore overlap
-         ovlp = eh%ovlp_cmplx_copy
+         if(eh%ph%omm_flavor == 0) then
+            ! Restore overlap
+            ovlp = eh%ovlp_cmplx_copy
+         end if
 
          call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
       end if
@@ -827,23 +823,21 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
               "omm_c_cmplx",caller)
 
          ! Initialize coefficient matrix with ELPA eigenvectors
-         if(eh%ph%omm_n_elpa > 0) then
-            call pztranc(eh%ph%n_basis,eh%ph%n_basis,(1.0_r8,0.0_r8),&
-                 eh%evec_cmplx,1,1,eh%bh%desc,(0.0_r8,0.0_r8),dm,1,1,eh%bh%desc)
+         call pztranc(eh%ph%n_basis,eh%ph%n_basis,(1.0_r8,0.0_r8),&
+              eh%evec_cmplx,1,1,eh%bh%desc,(0.0_r8,0.0_r8),dm,1,1,eh%bh%desc)
 
-            eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:) = dm(1:eh%ph%omm_n_lrow,:)
+         eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:) = dm(1:eh%ph%omm_n_lrow,:)
 
-            if(allocated(eh%evec_cmplx)) then
-               call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
-            end if
+         if(allocated(eh%evec_cmplx)) then
+            call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
+         end if
 
-            if(allocated(eh%eval)) then
-               call elsi_deallocate(eh%bh,eh%eval,"eval")
-            end if
+         if(allocated(eh%eval)) then
+            call elsi_deallocate(eh%bh,eh%eval,"eval")
+         end if
 
-            if(allocated(eh%occ)) then
-               call elsi_deallocate(eh%bh,eh%occ,"occ")
-            end if
+         if(allocated(eh%occ)) then
+            call elsi_deallocate(eh%bh,eh%occ,"occ")
          end if
       end if
 
@@ -905,7 +899,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
    eh%ph%edm_ready_cmplx = .true.
 
    ! Save information for density matrix extrapolation
-   if(eh%ph%save_ovlp .and. eh%ph%n_calls == 1) then
+   if(eh%ph%save_ovlp) then
       if(eh%ph%solver == ELPA_SOLVER) then
          if(.not. allocated(eh%ovlp_cmplx_copy)) then
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
@@ -1083,24 +1077,22 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
               "omm_c_real",caller)
 
          ! Initialize coefficient matrix with ELPA eigenvectors
-         if(eh%ph%omm_n_elpa > 0) then
-            call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real,1,1,&
-                 eh%bh%desc,0.0_r8,eh%dm_real_den,1,1,eh%bh%desc)
+         call pdtran(eh%ph%n_basis,eh%ph%n_basis,1.0_r8,eh%evec_real,1,1,&
+              eh%bh%desc,0.0_r8,eh%dm_real_den,1,1,eh%bh%desc)
 
-            eh%omm_c_real(1:eh%ph%omm_n_lrow,:)&
-               = eh%dm_real_den(1:eh%ph%omm_n_lrow,:)
+         eh%omm_c_real(1:eh%ph%omm_n_lrow,:)&
+            = eh%dm_real_den(1:eh%ph%omm_n_lrow,:)
 
-            if(allocated(eh%evec_real)) then
-               call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
-            end if
+         if(allocated(eh%evec_real)) then
+            call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
+         end if
 
-            if(allocated(eh%eval)) then
-               call elsi_deallocate(eh%bh,eh%eval,"eval")
-            end if
+         if(allocated(eh%eval)) then
+            call elsi_deallocate(eh%bh,eh%eval,"eval")
+         end if
 
-            if(allocated(eh%occ)) then
-               call elsi_deallocate(eh%bh,eh%occ,"occ")
-            end if
+         if(allocated(eh%occ)) then
+            call elsi_deallocate(eh%bh,eh%occ,"occ")
          end if
       end if
 
@@ -1447,25 +1439,23 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
               "omm_c_cmplx",caller)
 
          ! Initialize coefficient matrix with ELPA eigenvectors
-         if(eh%ph%omm_n_elpa > 0) then
-            call pztranc(eh%ph%n_basis,eh%ph%n_basis,(1.0_r8,0.0_r8),&
-                 eh%evec_cmplx,1,1,eh%bh%desc,(0.0_r8,0.0_r8),eh%dm_cmplx_den,&
-                 1,1,eh%bh%desc)
+         call pztranc(eh%ph%n_basis,eh%ph%n_basis,(1.0_r8,0.0_r8),&
+              eh%evec_cmplx,1,1,eh%bh%desc,(0.0_r8,0.0_r8),eh%dm_cmplx_den,&
+              1,1,eh%bh%desc)
 
-            eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:)&
-               = eh%dm_cmplx_den(1:eh%ph%omm_n_lrow,:)
+         eh%omm_c_cmplx(1:eh%ph%omm_n_lrow,:)&
+            = eh%dm_cmplx_den(1:eh%ph%omm_n_lrow,:)
 
-            if(allocated(eh%evec_cmplx)) then
-               call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
-            end if
+         if(allocated(eh%evec_cmplx)) then
+            call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
+         end if
 
-            if(allocated(eh%eval)) then
-               call elsi_deallocate(eh%bh,eh%eval,"eval")
-            end if
+         if(allocated(eh%eval)) then
+            call elsi_deallocate(eh%bh,eh%eval,"eval")
+         end if
 
-            if(allocated(eh%occ)) then
-               call elsi_deallocate(eh%bh,eh%occ,"occ")
-            end if
+         if(allocated(eh%occ)) then
+            call elsi_deallocate(eh%bh,eh%occ,"occ")
          end if
       end if
 

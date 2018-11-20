@@ -535,6 +535,22 @@ subroutine elsi_set_output_log_c_wrapper(h_c,output_log)&
 
 end subroutine
 
+subroutine elsi_set_save_ovlp_c_wrapper(h_c,save_ovlp)&
+   bind(C,name="c_elsi_set_save_ovlp")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: save_ovlp
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_save_ovlp(h_f,save_ovlp)
+
+end subroutine
+
 subroutine elsi_set_unit_ovlp_c_wrapper(h_c,unit_ovlp)&
    bind(C,name="c_elsi_set_unit_ovlp")
 

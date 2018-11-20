@@ -533,8 +533,8 @@ subroutine elsi_set_omm_n_elpa(eh,n_elpa)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(n_elpa < 0) then
-      eh%ph%omm_n_elpa = 0
+   if(n_elpa < 1) then
+      eh%ph%omm_n_elpa = 1
    else
       eh%ph%omm_n_elpa = n_elpa
    end if
