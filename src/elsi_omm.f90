@@ -130,7 +130,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
             call elsi_say(bh,msg)
          end if
 
-         if(ph%omm_first .and. ph%omm_n_elpa > 0) then
+         if(ph%omm_first) then
             call elsi_elpa_invert(ph,bh,ovlp)
          end if
       end if
@@ -282,7 +282,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
             call elsi_say(bh,msg)
          end if
 
-         if(ph%omm_first .and. ph%omm_n_elpa > 0) then
+         if(ph%omm_first) then
             call elsi_elpa_invert(ph,bh,ovlp)
          end if
       end if

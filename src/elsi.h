@@ -112,6 +112,9 @@ void c_elsi_set_output(elsi_handle handle_c,
 void c_elsi_set_output_log(elsi_handle handle_c,
                            int output_log);
 
+void c_elsi_set_save_ovlp(elsi_handle handle_c,
+                          int save_ovlp);
+
 void c_elsi_set_unit_ovlp(elsi_handle handle_c,
                           int unit_ovlp);
 

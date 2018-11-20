@@ -17,13 +17,12 @@ module ELSI_NTPOLY
    use ELSI_MPI, only: elsi_check_mpi,mpi_logical
    use ELSI_PRECISION, only: r8,i4
    use NTPOLY, only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,LowdinExtrapolate,&
-       PurificationExtrapolate,Matrix_ps,ConstructEmptyMatrix,DestructMatrix,&
-       CopyMatrix,ScaleMatrix,FillMatrixFromTripletList,GetMatrixTripletList,&
-       ProcessGrid_t,ConstructNewProcessGrid,DestructProcessGrid,&
-       ConstructRandomPermutation,DestructPermutation,InverseSquareRoot,&
-       SolverParameters_t,Triplet_r,Triplet_c,TripletList_r,TripletList_c,&
-       ConstructTripletList,AppendToTripletList,DestructTripletList,&
-       ActivateLogger,DeactivateLogger
+       Matrix_ps,ConstructEmptyMatrix,DestructMatrix,CopyMatrix,ScaleMatrix,&
+       FillMatrixFromTripletList,GetMatrixTripletList,ProcessGrid_t,&
+       ConstructNewProcessGrid,DestructProcessGrid,ConstructRandomPermutation,&
+       DestructPermutation,InverseSquareRoot,SolverParameters_t,Triplet_r,&
+       Triplet_c,TripletList_r,TripletList_c,ConstructTripletList,&
+       AppendToTripletList,DestructTripletList,ActivateLogger,DeactivateLogger
 
    implicit none
 
@@ -240,10 +239,14 @@ subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
    ne = int(ph%n_electrons,kind=i4)
 
    if(ph%solver /= NTPOLY_SOLVER) then
-      call PurificationExtrapolate(dm0,ovlp1,ne,dm1,ph%nt_options)
-   else
-      call LowdinExtrapolate(dm0,ovlp0,ovlp1,dm1,ph%nt_options)
+      call DestructPermutation(ph%nt_perm)
+      call ConstructRandomPermutation(ph%nt_perm,ovlp0%logical_matrix_dimension)
+
+      ph%nt_options = SolverParameters_t(ph%nt_tol,ph%nt_filter,ph%nt_max_iter,&
+         ph%nt_output,ph%nt_perm)
    end if
+
+   call LowdinExtrapolate(dm0,ovlp0,ovlp1,dm1,ph%nt_options)
 
    call elsi_get_time(t1)
 
