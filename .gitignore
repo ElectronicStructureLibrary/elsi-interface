@@ -1,4 +1,5 @@
 .Rhistory
+.tags
 *.[oaxd]
 *.err
 *.json
@@ -6,10 +7,9 @@
 *.mod
 *.swp
 *.tmp
-elsi_version.f90
 initial_cache.cmake
 logPEXSI*
-make.sys*
+tags
 /doc/html/
 /doc/latex/
 /bin/
