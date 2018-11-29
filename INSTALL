@@ -31,7 +31,7 @@ A) PREREQUISITES
      - ELPA          [2018.05.001 or newer]
      - libOMM
      - MatrixSwitch
-     - NTPoly        [2.0]
+     - NTPoly        [2.0 or newer]
      - PT-SCOTCH     [6.0.0]
      - SuperLU_DIST  [5.3.0]
 
