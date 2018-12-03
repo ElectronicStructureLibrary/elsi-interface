@@ -391,6 +391,9 @@ subroutine elsi_reinit(eh)
       eh%ph%first_blacs_to_ntpoly = .true.
       eh%ph%first_blacs_to_pexsi = .true.
       eh%ph%first_blacs_to_sips = .true.
+      eh%ph%first_generic_to_blacs = .true.
+      eh%ph%first_generic_to_ntpoly = .true.
+      eh%ph%first_generic_to_pexsi = .true.
       eh%ph%first_siesta_to_blacs = .true.
       eh%ph%first_siesta_to_pexsi = .true.
       eh%ph%first_sips_to_blacs = .true.

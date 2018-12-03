@@ -724,7 +724,6 @@ subroutine elsi_init_random_seed()
    real(kind=r8) :: wtime
    integer(kind=i4) :: i
    integer(kind=i4) :: n
-   integer(kind=i4) :: dt(8)
    integer(kind=i8) :: t
 
    integer(kind=i4), allocatable :: seed(:)

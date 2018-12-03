@@ -125,6 +125,9 @@ module ELSI_DATATYPE
       logical :: first_blacs_to_ntpoly
       logical :: first_blacs_to_pexsi
       logical :: first_blacs_to_sips
+      logical :: first_generic_to_blacs
+      logical :: first_generic_to_ntpoly
+      logical :: first_generic_to_pexsi
       logical :: first_siesta_to_blacs
       logical :: first_siesta_to_pexsi
       logical :: first_sips_to_blacs
