@@ -54,6 +54,12 @@ void c_elsi_set_csc(elsi_handle handle_c,
                     int *row_ind,
                     int *col_ptr);
 
+void c_elsi_set_coo(elsi_handle handle_c,
+                    int nnz,
+                    int nnz_l,
+                    int *row_ind,
+                    int *col_ind);
+
 void c_elsi_reinit(elsi_handle handle_c);
 
 void c_elsi_finalize(elsi_handle handle_c);

@@ -34,6 +34,7 @@ module ELSI
    public :: elsi_set_kpoint
    public :: elsi_set_blacs
    public :: elsi_set_csc
+   public :: elsi_set_coo
    public :: elsi_reinit
    public :: elsi_finalize
 

@@ -34,6 +34,7 @@ module ELSI_SETUP
    public :: elsi_set_kpoint
    public :: elsi_set_blacs
    public :: elsi_set_csc
+   public :: elsi_set_coo
    public :: elsi_reinit
    public :: elsi_finalize
    public :: elsi_cleanup
@@ -41,9 +42,9 @@ module ELSI_SETUP
 contains
 
 !>
-!! This routine initializes ELSI with the solver, parallel mode, matrix storage
-!! format, number of basis functions (global size of the Hamiltonian matrix),
-!! number of electrons, and number of states.
+!! This routine initializes ELSI with user's choice of solver, parallel mode,
+!! matrix format, number of basis functions (global size of Hamiltonian), number
+!! of electrons, and number of states.
 !!
 subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    n_state)
@@ -94,7 +95,8 @@ subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
 end subroutine
 
 !>
-!! This routine sets the unit MPI communicator.
+!! This routine sets the MPI communicator to be used to solve one eigenproblem
+!! (i.e., one spin channel, one k-point).
 !!
 subroutine elsi_set_mpi(eh,comm)
 
@@ -121,7 +123,8 @@ subroutine elsi_set_mpi(eh,comm)
 end subroutine
 
 !>
-!! This routine sets the global MPI communicator.
+!! This routine sets the global MPI communicator to be used to exchange
+!! information across all spin channels and k-points.
 !!
 subroutine elsi_set_mpi_global(eh,comm_all)
 
@@ -148,7 +151,8 @@ subroutine elsi_set_mpi_global(eh,comm_all)
 end subroutine
 
 !>
-!! This routine sets the spin information.
+!! This routine sets the number of spin channels and the index of the spin
+!! channel the calling process is solving.
 !!
 subroutine elsi_set_spin(eh,n_spin,i_spin)
 
@@ -164,7 +168,8 @@ subroutine elsi_set_spin(eh,n_spin,i_spin)
 end subroutine
 
 !>
-!! This routine sets the k-point information.
+!! This routine sets the number of k-points, and the index and weight of the
+!! k-point the calling process is solving.
 !!
 subroutine elsi_set_kpoint(eh,n_kpt,i_kpt,i_wt)
 
@@ -182,7 +187,8 @@ subroutine elsi_set_kpoint(eh,n_kpt,i_kpt,i_wt)
 end subroutine
 
 !>
-!! This routine sets the BLACS context and the block size.
+!! This routine sets the BLACS context and block size, necessary for the
+!! BLACS_DENSE matrix format.
 !!
 subroutine elsi_set_blacs(eh,blacs_ctxt,block_size)
 
@@ -246,7 +252,11 @@ subroutine elsi_set_blacs(eh,blacs_ctxt,block_size)
 end subroutine
 
 !>
-!! This routine sets the sparsity pattern.
+!! This routine sets the global number of non-zero matrix elements, local number
+!! of non-zeros matrix elements, local number of matrix columns, row index
+!! array, and column pointer array. These variables are collectively referred to
+!! as CSC sparsity pattern, necessary for the PEXSI_CSC and SIESTA_CSC matrix
+!! formats.
 !!
 subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
@@ -307,6 +317,48 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
       eh%bh%siesta_csc_ready = .true.
    end select
+
+end subroutine
+
+!>
+!! This routine sets the global number of non-zero matrix elements, local number
+!! of non-zeros matrix elements, row index array, and column index array. These
+!! variables are collectively referred to as COO sparsity pattern, necessary for
+!! the GENERIC_COO matrix format.
+!!
+subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: nnz_g !< Global number of nonzeros
+   integer(kind=i4), intent(in) :: nnz_l !< Local number of nonzeros
+   integer(kind=i4), intent(in) :: row_ind(nnz_l) !< Row index
+   integer(kind=i4), intent(in) :: col_ind(nnz_l) !< Column index
+
+   character(len=*), parameter :: caller = "elsi_set_coo"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%bh%nnz_g = nnz_g
+   eh%bh%nnz_l_sp = nnz_l
+   eh%bh%nnz_l_sp3 = nnz_l
+
+   if(allocated(eh%row_ind_sp3)) then
+      call elsi_deallocate(eh%bh,eh%row_ind_sp3,"row_ind_sp3")
+   end if
+
+   if(allocated(eh%col_ind_sp3)) then
+      call elsi_deallocate(eh%bh,eh%col_ind_sp3,"col_ind_sp3")
+   end if
+
+   call elsi_allocate(eh%bh,eh%row_ind_sp3,nnz_l,"row_ind_sp3",caller)
+   call elsi_allocate(eh%bh,eh%col_ind_sp3,nnz_l,"col_ind_sp3",caller)
+
+   eh%row_ind_sp3 = row_ind
+   eh%col_ind_sp3 = col_ind
+
+   eh%bh%generic_coo_ready = .true.
 
 end subroutine
 

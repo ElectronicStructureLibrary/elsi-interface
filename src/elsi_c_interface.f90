@@ -197,6 +197,25 @@ subroutine elsi_set_csc_c_wrapper(h_c,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)&
 
 end subroutine
 
+subroutine elsi_set_coo_c_wrapper(h_c,nnz_g,nnz_l,row_ind,col_ind)&
+   bind(C,name="c_elsi_set_coo")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: nnz_g
+   integer(kind=c_int), value, intent(in) :: nnz_l
+   integer(kind=c_int), intent(in) :: row_ind(nnz_l)
+   integer(kind=c_int), intent(in) :: col_ind(nnz_l)
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_coo(h_f,nnz_g,nnz_l,row_ind,col_ind)
+
+end subroutine
+
 subroutine elsi_reinit_c_wrapper(h_c)&
    bind(C,name="c_elsi_reinit")
 

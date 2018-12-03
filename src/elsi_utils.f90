@@ -333,6 +333,10 @@ subroutine elsi_check(ph,bh,caller)
       end if
    end if
 
+   if(ph%unit_ovlp) then
+      ph%save_ovlp = .false.
+   end if
+
    ! Specific check for each solver
    select case(ph%solver)
    case(ELPA_SOLVER)

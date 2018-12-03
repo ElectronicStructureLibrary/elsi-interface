@@ -493,7 +493,6 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
 
    integer(kind=i4) :: solver
    real(kind=r8) :: t0
-   logical :: unit_ovlp_save
    character(len=29) :: dt0
 
    character(len=*), parameter :: caller = "elsi_dm_real"
@@ -715,7 +714,6 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
          if(.not. allocated(eh%ph%nt_ovlp_copy%local_data_r)) then
             call elsi_init_ntpoly(eh%ph,eh%bh)
 
-            unit_ovlp_save = eh%ph%unit_ovlp
             eh%ph%unit_ovlp = .true.
             eh%ph%first_blacs_to_ntpoly = .true.
 
@@ -727,7 +725,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
                     eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
             end if
 
-            eh%ph%unit_ovlp = unit_ovlp_save
+            eh%ph%unit_ovlp = .false.
          end if
       end if
    end if
@@ -752,7 +750,6 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
 
    integer(kind=i4) :: solver
    real(kind=r8) :: t0
-   logical :: unit_ovlp_save
    character(len=29) :: dt0
 
    character(len=*), parameter :: caller = "elsi_dm_complex"
@@ -909,7 +906,6 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
          if(.not. allocated(eh%ph%nt_ovlp_copy%local_data_c)) then
             call elsi_init_ntpoly(eh%ph,eh%bh)
 
-            unit_ovlp_save = eh%ph%unit_ovlp
             eh%ph%unit_ovlp = .true.
             eh%ph%first_blacs_to_ntpoly = .true.
 
@@ -921,7 +917,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
                     eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
             end if
 
-            eh%ph%unit_ovlp = unit_ovlp_save
+            eh%ph%unit_ovlp = .false.
          end if
       end if
    end if
