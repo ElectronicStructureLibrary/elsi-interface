@@ -360,28 +360,28 @@ subroutine elsi_reinit(eh)
          call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
       end if
 
-      if(allocated(eh%ham_real_csc)) then
-         call elsi_deallocate(eh%bh,eh%ham_real_csc,"ham_real_csc")
+      if(allocated(eh%ham_real_sp)) then
+         call elsi_deallocate(eh%bh,eh%ham_real_sp,"ham_real_sp")
       end if
 
-      if(allocated(eh%ham_cmplx_csc)) then
-         call elsi_deallocate(eh%bh,eh%ham_cmplx_csc,"ham_cmplx_csc")
+      if(allocated(eh%ham_cmplx_sp)) then
+         call elsi_deallocate(eh%bh,eh%ham_cmplx_sp,"ham_cmplx_sp")
       end if
 
-      if(allocated(eh%ovlp_real_csc)) then
-         call elsi_deallocate(eh%bh,eh%ovlp_real_csc,"ovlp_real_csc")
+      if(allocated(eh%ovlp_real_sp)) then
+         call elsi_deallocate(eh%bh,eh%ovlp_real_sp,"ovlp_real_sp")
       end if
 
-      if(allocated(eh%ovlp_cmplx_csc)) then
-         call elsi_deallocate(eh%bh,eh%ovlp_cmplx_csc,"ovlp_cmplx_csc")
+      if(allocated(eh%ovlp_cmplx_sp)) then
+         call elsi_deallocate(eh%bh,eh%ovlp_cmplx_sp,"ovlp_cmplx_sp")
       end if
 
-      if(allocated(eh%dm_real_csc)) then
-         call elsi_deallocate(eh%bh,eh%dm_real_csc,"dm_real_csc")
+      if(allocated(eh%dm_real_sp)) then
+         call elsi_deallocate(eh%bh,eh%dm_real_sp,"dm_real_sp")
       end if
 
-      if(allocated(eh%dm_cmplx_csc)) then
-         call elsi_deallocate(eh%bh,eh%dm_cmplx_csc,"dm_cmplx_csc")
+      if(allocated(eh%dm_cmplx_sp)) then
+         call elsi_deallocate(eh%bh,eh%dm_cmplx_sp,"dm_cmplx_sp")
       end if
 
       if(allocated(eh%row_ind_sp1)) then
@@ -398,6 +398,14 @@ subroutine elsi_reinit(eh)
 
       if(allocated(eh%col_ptr_sp2)) then
          call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ptr_sp2")
+      end if
+
+      if(allocated(eh%row_ind_sp3)) then
+         call elsi_deallocate(eh%bh,eh%row_ind_sp2,"row_ind_sp3")
+      end if
+
+      if(allocated(eh%col_ind_sp3)) then
+         call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ind_sp3")
       end if
 
       if(.not. eh%ph%solver == ELPA_SOLVER) then
@@ -487,28 +495,28 @@ subroutine elsi_cleanup(eh)
    end if
 
    ! Sparse arrays
-   if(allocated(eh%ham_real_csc)) then
-      call elsi_deallocate(eh%bh,eh%ham_real_csc,"ham_real_csc")
+   if(allocated(eh%ham_real_sp)) then
+      call elsi_deallocate(eh%bh,eh%ham_real_sp,"ham_real_sp")
    end if
 
-   if(allocated(eh%ham_cmplx_csc)) then
-      call elsi_deallocate(eh%bh,eh%ham_cmplx_csc,"ham_cmplx_csc")
+   if(allocated(eh%ham_cmplx_sp)) then
+      call elsi_deallocate(eh%bh,eh%ham_cmplx_sp,"ham_cmplx_sp")
    end if
 
-   if(allocated(eh%ovlp_real_csc)) then
-      call elsi_deallocate(eh%bh,eh%ovlp_real_csc,"ovlp_real_csc")
+   if(allocated(eh%ovlp_real_sp)) then
+      call elsi_deallocate(eh%bh,eh%ovlp_real_sp,"ovlp_real_sp")
    end if
 
-   if(allocated(eh%ovlp_cmplx_csc)) then
-      call elsi_deallocate(eh%bh,eh%ovlp_cmplx_csc,"ovlp_cmplx_csc")
+   if(allocated(eh%ovlp_cmplx_sp)) then
+      call elsi_deallocate(eh%bh,eh%ovlp_cmplx_sp,"ovlp_cmplx_sp")
    end if
 
-   if(allocated(eh%dm_real_csc)) then
-      call elsi_deallocate(eh%bh,eh%dm_real_csc,"dm_real_csc")
+   if(allocated(eh%dm_real_sp)) then
+      call elsi_deallocate(eh%bh,eh%dm_real_sp,"dm_real_sp")
    end if
 
-   if(allocated(eh%dm_cmplx_csc)) then
-      call elsi_deallocate(eh%bh,eh%dm_cmplx_csc,"dm_cmplx_csc")
+   if(allocated(eh%dm_cmplx_sp)) then
+      call elsi_deallocate(eh%bh,eh%dm_cmplx_sp,"dm_cmplx_sp")
    end if
 
    if(allocated(eh%row_ind_sp1)) then
@@ -525,6 +533,14 @@ subroutine elsi_cleanup(eh)
 
    if(allocated(eh%col_ptr_sp2)) then
       call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ptr_sp2")
+   end if
+
+   if(allocated(eh%row_ind_sp3)) then
+      call elsi_deallocate(eh%bh,eh%row_ind_sp2,"row_ind_sp3")
+   end if
+
+   if(allocated(eh%col_ind_sp3)) then
+      call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ind_sp3")
    end if
 
    ! Auxiliary arrays

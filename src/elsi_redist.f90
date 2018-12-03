@@ -306,7 +306,7 @@ end subroutine
 !! This routine converts Halmitonian and overlap matrices stored in 2D block-
 !! cyclic dense format to 1D block CSC format.
 !!
-subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
+subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    row_ind,col_ptr)
 
    implicit none
@@ -315,8 +315,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: ham_csc(bh%nnz_l_sp)
-   real(kind=r8), intent(inout) :: ovlp_csc(bh%nnz_l_sp)
+   real(kind=r8), intent(out) :: ham_sp(bh%nnz_l_sp)
+   real(kind=r8), intent(inout) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
@@ -563,8 +563,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
       if(.not. ph%unit_ovlp) then
          ! Overlap value
-         call MPI_Alltoallv(s_val_recv,send_count,send_displ,mpi_real8,&
-              ovlp_csc,recv_count,recv_displ,mpi_real8,bh%comm,ierr)
+         call MPI_Alltoallv(s_val_recv,send_count,send_displ,mpi_real8,ovlp_sp,&
+              recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
          call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -576,7 +576,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    end if
 
    ! Hamiltonian value
-   call MPI_Alltoallv(h_val_recv,send_count,send_displ,mpi_real8,ham_csc,&
+   call MPI_Alltoallv(h_val_recv,send_count,send_displ,mpi_real8,ham_sp,&
         recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -631,8 +631,8 @@ end subroutine
 !! This routine converts Halmitonian and overlap matrices stored in 2D block-
 !! cyclic dense format to 1D block CSC format.
 !!
-subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
-   ovlp_csc,row_ind,col_ptr)
+subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
+   row_ind,col_ptr)
 
    implicit none
 
@@ -640,8 +640,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: ham_csc(bh%nnz_l_sp)
-   complex(kind=r8), intent(inout) :: ovlp_csc(bh%nnz_l_sp)
+   complex(kind=r8), intent(out) :: ham_sp(bh%nnz_l_sp)
+   complex(kind=r8), intent(inout) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
@@ -889,7 +889,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
       if(.not. ph%unit_ovlp) then
          ! Overlap value
          call MPI_Alltoallv(s_val_recv,send_count,send_displ,mpi_complex16,&
-              ovlp_csc,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+              ovlp_sp,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
          call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -901,7 +901,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,&
    end if
 
    ! Hamiltonian value
-   call MPI_Alltoallv(h_val_recv,send_count,send_displ,mpi_complex16,ham_csc,&
+   call MPI_Alltoallv(h_val_recv,send_count,send_displ,mpi_complex16,ham_sp,&
         recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -956,7 +956,7 @@ end subroutine
 !! This routine converts density matrix computed by PEXSI, stored in 1D block
 !! CSC format to 2D block-cyclic dense format.
 !!
-subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
+subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_sp,dm_den)
 
    implicit none
 
@@ -964,7 +964,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
-   real(kind=r8), intent(in) :: dm_csc(bh%nnz_l_sp)
+   real(kind=r8), intent(in) :: dm_sp(bh%nnz_l_sp)
    real(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: n_group
@@ -1041,7 +1041,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
          row_send(j_val) = i_row
          col_send(j_val) = i_col+ph%pexsi_my_pcol&
             *(ph%n_basis/ph%pexsi_np_per_pole)
-         val_send(j_val) = dm_csc(i_val)
+         val_send(j_val) = dm_sp(i_val)
 
          ! Compute destination
          p_row = mod((row_send(j_val)-1)/bh%blk,bh%n_prow)
@@ -1139,7 +1139,7 @@ end subroutine
 !! This routine converts density matrix computed by PEXSI, stored in 1D block
 !! CSC format to 2D block-cyclic dense format.
 !!
-subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
+subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_sp,dm_den)
 
    implicit none
 
@@ -1147,7 +1147,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
-   complex(kind=r8), intent(in) :: dm_csc(bh%nnz_l_sp)
+   complex(kind=r8), intent(in) :: dm_sp(bh%nnz_l_sp)
    complex(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: n_group
@@ -1224,7 +1224,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
          row_send(j_val) = i_row
          col_send(j_val) = i_col+ph%pexsi_my_pcol&
             *(ph%n_basis/ph%pexsi_np_per_pole)
-         val_send(j_val) = dm_csc(i_val)
+         val_send(j_val) = dm_sp(i_val)
 
          ! Compute destination
          p_row = mod((row_send(j_val)-1)/bh%blk,bh%n_prow)
@@ -1464,7 +1464,7 @@ end subroutine
 !! This routine converts Halmitonian and overlap matrices stored in 2D block-
 !! cyclic dense format to 1D block CSC format.
 !!
-subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
+subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    row_ind,col_ptr)
 
    implicit none
@@ -1473,8 +1473,8 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: ham_csc(bh%nnz_l_sp)
-   real(kind=r8), intent(inout) :: ovlp_csc(bh%nnz_l_sp)
+   real(kind=r8), intent(out) :: ham_sp(bh%nnz_l_sp)
+   real(kind=r8), intent(inout) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
@@ -1613,7 +1613,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,col_send,"col_send")
 
    ! Hamiltonian value
-   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_real8,ham_csc,&
+   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_real8,ham_sp,&
         recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -1622,7 +1622,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    ! Overlap value
    if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
-      call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,ovlp_csc,&
+      call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,ovlp_sp,&
            recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -1642,10 +1642,9 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    ! Sort
    if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
-      call elsi_heapsort(bh%nnz_l_sp,global_id,ham_csc,ovlp_csc,row_ind,&
-           col_recv)
+      call elsi_heapsort(bh%nnz_l_sp,global_id,ham_sp,ovlp_sp,row_ind,col_recv)
    else
-      call elsi_heapsort(bh%nnz_l_sp,global_id,ham_csc,row_ind,col_recv)
+      call elsi_heapsort(bh%nnz_l_sp,global_id,ham_sp,row_ind,col_recv)
    end if
 
    call elsi_deallocate(bh,global_id,"global_id")
@@ -1682,7 +1681,7 @@ end subroutine
 !! This routine converts Halmitonian and overlap matrices stored in 2D block-
 !! cyclic dense format to 1D block CSC format.
 !!
-subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
+subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    row_ind,col_ptr)
 
    implicit none
@@ -1691,8 +1690,8 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: ham_csc(bh%nnz_l_sp)
-   complex(kind=r8), intent(inout) :: ovlp_csc(bh%nnz_l_sp)
+   complex(kind=r8), intent(out) :: ham_sp(bh%nnz_l_sp)
+   complex(kind=r8), intent(inout) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
@@ -1831,7 +1830,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    call elsi_deallocate(bh,col_send,"col_send")
 
    ! Hamiltonian value
-   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_complex16,ham_csc,&
+   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_complex16,ham_sp,&
         recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -1841,7 +1840,7 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
    ! Overlap value
    if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
-           ovlp_csc,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+           ovlp_sp,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -1860,10 +1859,9 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_csc,ovlp_csc,&
 
    ! Sort
    if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
-      call elsi_heapsort(bh%nnz_l_sp,global_id,ham_csc,ovlp_csc,row_ind,&
-           col_recv)
+      call elsi_heapsort(bh%nnz_l_sp,global_id,ham_sp,ovlp_sp,row_ind,col_recv)
    else
-      call elsi_heapsort(bh%nnz_l_sp,global_id,ham_csc,row_ind,col_recv)
+      call elsi_heapsort(bh%nnz_l_sp,global_id,ham_sp,row_ind,col_recv)
    end if
 
    call elsi_deallocate(bh,global_id,"global_id")
@@ -1900,7 +1898,7 @@ end subroutine
 !! This routine converts Halmitonian and overlap matrices stored in 1D block CSC
 !! format to 2D block-cyclic dense format.
 !!
-subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
+subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_sp,ovlp_sp,&
    ham_den,ovlp_den)
 
    implicit none
@@ -1909,8 +1907,8 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
-   real(kind=r8), intent(in) :: ham_csc(bh%nnz_l_sp)
-   real(kind=r8), intent(in) :: ovlp_csc(bh%nnz_l_sp)
+   real(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
+   real(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    real(kind=r8), intent(out) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
 
@@ -1968,10 +1966,10 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
       ! Compute global id
       row_send(i_val) = i_row
       col_send(i_val) = i_col+bh%myid*(ph%n_basis/bh%n_procs)
-      h_val_send(i_val) = ham_csc(i_val)
+      h_val_send(i_val) = ham_sp(i_val)
 
       if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
-         s_val_send(i_val) = ovlp_csc(i_val)
+         s_val_send(i_val) = ovlp_sp(i_val)
       end if
 
       ! Compute destination
@@ -2104,7 +2102,7 @@ end subroutine
 !! This routine converts Halmitonian and overlap matrices stored in 1D block CSC
 !! format to 2D block-cyclic dense format.
 !!
-subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
+subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_sp,ovlp_sp,&
    ham_den,ovlp_den)
 
    implicit none
@@ -2113,8 +2111,8 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
-   complex(kind=r8), intent(in) :: ham_csc(bh%nnz_l_sp)
-   complex(kind=r8), intent(in) :: ovlp_csc(bh%nnz_l_sp)
+   complex(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
+   complex(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    complex(kind=r8), intent(out) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
 
@@ -2172,10 +2170,10 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
       ! Compute global id
       row_send(i_val) = i_row
       col_send(i_val) = i_col+bh%myid*(ph%n_basis/bh%n_procs)
-      h_val_send(i_val) = ham_csc(i_val)
+      h_val_send(i_val) = ham_sp(i_val)
 
       if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
-         s_val_send(i_val) = ovlp_csc(i_val)
+         s_val_send(i_val) = ovlp_sp(i_val)
       end if
 
       ! Compute destination
@@ -2476,7 +2474,7 @@ end subroutine
 !! This routine converts density matrix in 2D block-cyclic dense format to 1D
 !! block CSC format.
 !!
-subroutine elsi_blacs_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
+subroutine elsi_blacs_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_den,dm_sp)
 
    implicit none
 
@@ -2485,7 +2483,7 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    real(kind=r8), intent(in) :: dm_den(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: dm_csc(bh%nnz_l_sp)
+   real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
@@ -2601,7 +2599,7 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_csc = 0.0_r8
+   dm_sp = 0.0_r8
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
@@ -2610,7 +2608,7 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
 
       do j_val = col_ptr(l_col),col_ptr(l_col+1)-1
          if(row_ind(j_val) == l_row) then
-            dm_csc(j_val) = val_recv(i_val)
+            dm_sp(j_val) = val_recv(i_val)
          end if
       end do
    end do
@@ -2632,7 +2630,7 @@ end subroutine
 !! This routine converts density matrix in 2D block-cyclic dense format to 1D
 !! block CSC format.
 !!
-subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
+subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_den,dm_sp)
 
    implicit none
 
@@ -2641,7 +2639,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    complex(kind=r8), intent(in) :: dm_den(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: dm_csc(bh%nnz_l_sp)
+   complex(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
@@ -2757,7 +2755,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_csc = (0.0_r8,0.0_r8)
+   dm_sp = (0.0_r8,0.0_r8)
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
@@ -2766,7 +2764,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_den,dm_csc)
 
       do j_val = col_ptr(l_col),col_ptr(l_col+1)-1
          if(row_ind(j_val) == l_row) then
-            dm_csc(j_val) = val_recv(i_val)
+            dm_sp(j_val) = val_recv(i_val)
          end if
       end do
    end do
@@ -2788,7 +2786,7 @@ end subroutine
 !! This routine converts Halmitonian and overlap matrices stored in 1D block-
 !! cyclic CSC format to 2D block-cyclic dense format.
 !!
-subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
+subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_sp,ovlp_sp,&
    ham_den,ovlp_den)
 
    implicit none
@@ -2797,8 +2795,8 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
-   real(kind=r8), intent(in) :: ham_csc(bh%nnz_l_sp)
-   real(kind=r8), intent(in) :: ovlp_csc(bh%nnz_l_sp)
+   real(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
+   real(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    real(kind=r8), intent(out) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
 
@@ -2857,10 +2855,10 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
       call elsi_get_gid(bh%myid,bh%n_procs,bh%blk_sp2,i_col,col_send(i_val))
 
       row_send(i_val) = i_row
-      h_val_send(i_val) = ham_csc(i_val)
+      h_val_send(i_val) = ham_sp(i_val)
 
       if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
-         s_val_send(i_val) = ovlp_csc(i_val)
+         s_val_send(i_val) = ovlp_sp(i_val)
       end if
 
       ! Compute destination
@@ -2993,8 +2991,8 @@ end subroutine
 !! This routine converts Halmitonian and overlap matrices stored in 1D block-
 !! cyclic CSC format to 2D block-cyclic dense format.
 !!
-subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
-   ovlp_csc,ham_den,ovlp_den)
+subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_sp,ovlp_sp,&
+   ham_den,ovlp_den)
 
    implicit none
 
@@ -3002,8 +3000,8 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
-   complex(kind=r8), intent(in) :: ham_csc(bh%nnz_l_sp)
-   complex(kind=r8), intent(in) :: ovlp_csc(bh%nnz_l_sp)
+   complex(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
+   complex(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    complex(kind=r8), intent(out) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
 
@@ -3062,10 +3060,10 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
       call elsi_get_gid(bh%myid,bh%n_procs,bh%blk_sp2,i_col,col_send(i_val))
 
       row_send(i_val) = i_row
-      h_val_send(i_val) = ham_csc(i_val)
+      h_val_send(i_val) = ham_sp(i_val)
 
       if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
-         s_val_send(i_val) = ovlp_csc(i_val)
+         s_val_send(i_val) = ovlp_sp(i_val)
       end if
 
       ! Compute destination
@@ -3198,7 +3196,7 @@ end subroutine
 !! This routine converts density matrix in 2D block-cyclic dense format to 1D
 !! block-cyclic CSC format.
 !!
-subroutine elsi_blacs_to_siesta_dm_real(bh,row_ind,col_ptr,dm_den,dm_csc)
+subroutine elsi_blacs_to_siesta_dm_real(bh,row_ind,col_ptr,dm_den,dm_sp)
 
    implicit none
 
@@ -3206,7 +3204,7 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,row_ind,col_ptr,dm_den,dm_csc)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    real(kind=r8), intent(in) :: dm_den(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: dm_csc(bh%nnz_l_sp)
+   real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
@@ -3326,7 +3324,7 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_csc = 0.0_r8
+   dm_sp = 0.0_r8
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
@@ -3336,7 +3334,7 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,row_ind,col_ptr,dm_den,dm_csc)
 
       do j_val = col_ptr(l_col),col_ptr(l_col+1)-1
          if(row_ind(j_val) == l_row) then
-            dm_csc(j_val) = val_recv(i_val)
+            dm_sp(j_val) = val_recv(i_val)
          end if
       end do
    end do
@@ -3358,7 +3356,7 @@ end subroutine
 !! This routine converts density matrix in 2D block-cyclic dense format to 1D
 !! block-cyclic CSC format.
 !!
-subroutine elsi_blacs_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_den,dm_csc)
+subroutine elsi_blacs_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_den,dm_sp)
 
    implicit none
 
@@ -3366,7 +3364,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_den,dm_csc)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    complex(kind=r8), intent(in) :: dm_den(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: dm_csc(bh%nnz_l_sp)
+   complex(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
@@ -3486,7 +3484,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_den,dm_csc)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_csc = (0.0_r8,0.0_r8)
+   dm_sp = (0.0_r8,0.0_r8)
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
@@ -3496,7 +3494,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_den,dm_csc)
 
       do j_val = col_ptr(l_col),col_ptr(l_col+1)-1
          if(row_ind(j_val) == l_row) then
-            dm_csc(j_val) = val_recv(i_val)
+            dm_sp(j_val) = val_recv(i_val)
          end if
       end do
    end do
@@ -3564,19 +3562,19 @@ end subroutine
 !! This routine converts Halmitonian and overlap matrices stored in 1D block-
 !! cyclic CSC format to 1D block CSC format.
 !!
-subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
-   col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
+subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
+   col_ptr2,ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   real(kind=r8), intent(in) :: ham_csc2(bh%nnz_l_sp2)
-   real(kind=r8), intent(in) :: ovlp_csc2(bh%nnz_l_sp2)
+   real(kind=r8), intent(in) :: ham_sp2(bh%nnz_l_sp2)
+   real(kind=r8), intent(in) :: ovlp_sp2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
-   real(kind=r8), intent(out) :: ham_csc1(bh%nnz_l_sp1)
-   real(kind=r8), intent(inout) :: ovlp_csc1(bh%nnz_l_sp1)
+   real(kind=r8), intent(out) :: ham_sp1(bh%nnz_l_sp1)
+   real(kind=r8), intent(inout) :: ovlp_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
 
@@ -3631,10 +3629,10 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
       call elsi_get_gid(bh%myid,bh%n_procs,bh%blk_sp2,i_col,col_send(i_val))
 
       row_send(i_val) = i_row
-      h_val_send(i_val) = ham_csc2(i_val)
+      h_val_send(i_val) = ham_sp2(i_val)
 
       if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
-         s_val_send(i_val) = ovlp_csc2(i_val)
+         s_val_send(i_val) = ovlp_sp2(i_val)
       end if
 
       ! Compute destination
@@ -3681,7 +3679,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    call elsi_deallocate(bh,col_send,"col_send")
 
    ! Hamiltonian Value
-   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_real8,ham_csc1,&
+   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_real8,ham_sp1,&
         recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -3690,7 +3688,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    ! Overlap value
    if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
-      call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,ovlp_csc1,&
+      call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,ovlp_sp1,&
            recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -3710,10 +3708,10 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    ! Sort
    if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
-      call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_csc1,ovlp_csc1,row_ind1,&
+      call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_sp1,ovlp_sp1,row_ind1,&
            col_recv)
    else
-      call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_csc1,row_ind1,col_recv)
+      call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_sp1,row_ind1,col_recv)
    end if
 
    call elsi_deallocate(bh,global_id,"global_id")
@@ -3752,19 +3750,19 @@ end subroutine
 !! This routine converts Halmitonian and overlap matrices stored in 1D block-
 !! cyclic CSC format to 1D block CSC format.
 !!
-subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
-   col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
+subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
+   col_ptr2,ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   complex(kind=r8), intent(in) :: ham_csc2(bh%nnz_l_sp2)
-   complex(kind=r8), intent(in) :: ovlp_csc2(bh%nnz_l_sp2)
+   complex(kind=r8), intent(in) :: ham_sp2(bh%nnz_l_sp2)
+   complex(kind=r8), intent(in) :: ovlp_sp2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
-   complex(kind=r8), intent(out) :: ham_csc1(bh%nnz_l_sp1)
-   complex(kind=r8), intent(inout) :: ovlp_csc1(bh%nnz_l_sp1)
+   complex(kind=r8), intent(out) :: ham_sp1(bh%nnz_l_sp1)
+   complex(kind=r8), intent(inout) :: ovlp_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
 
@@ -3819,10 +3817,10 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
       call elsi_get_gid(bh%myid,bh%n_procs,bh%blk_sp2,i_col,col_send(i_val))
 
       row_send(i_val) = i_row
-      h_val_send(i_val) = ham_csc2(i_val)
+      h_val_send(i_val) = ham_sp2(i_val)
 
       if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
-         s_val_send(i_val) = ovlp_csc2(i_val)
+         s_val_send(i_val) = ovlp_sp2(i_val)
       end if
 
       ! Compute destination
@@ -3869,7 +3867,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    call elsi_deallocate(bh,col_send,"col_send")
 
    ! Hamiltonian Value
-   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_complex16,ham_csc1,&
+   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_complex16,ham_sp1,&
         recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -3879,7 +3877,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    ! Overlap value
    if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
-           ovlp_csc1,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+           ovlp_sp1,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -3898,10 +3896,10 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
 
    ! Sort
    if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
-      call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_csc1,ovlp_csc1,row_ind1,&
+      call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_sp1,ovlp_sp1,row_ind1,&
            col_recv)
    else
-      call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_csc1,row_ind1,col_recv)
+      call elsi_heapsort(bh%nnz_l_sp1,global_id,ham_sp1,row_ind1,col_recv)
    end if
 
    call elsi_deallocate(bh,global_id,"global_id")
@@ -3940,8 +3938,8 @@ end subroutine
 !! This routine converts density matrix computed by PEXSI, stored in 1D block
 !! CSC format to 1D block-cyclic CSC format.
 !!
-subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
-   row_ind2,col_ptr2,dm_csc2)
+subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_sp1,&
+   row_ind2,col_ptr2,dm_sp2)
 
    implicit none
 
@@ -3949,10 +3947,10 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: row_ind1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
-   real(kind=r8), intent(in) :: dm_csc1(bh%nnz_l_sp1)
+   real(kind=r8), intent(in) :: dm_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
-   real(kind=r8), intent(out) :: dm_csc2(bh%nnz_l_sp2)
+   real(kind=r8), intent(out) :: dm_sp2(bh%nnz_l_sp2)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
@@ -4003,7 +4001,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
          ! Compute global id
          row_send(i_val) = i_row
          col_send(i_val) = i_col+bh%myid*(ph%n_basis/ph%pexsi_np_per_pole)
-         val_send(i_val) = dm_csc1(i_val)
+         val_send(i_val) = dm_sp1(i_val)
 
          ! Compute destination
          dest(i_val) = mod((col_send(i_val)-1)/bh%blk_sp2,bh%n_procs)
@@ -4071,7 +4069,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_csc2 = 0.0_r8
+   dm_sp2 = 0.0_r8
 
    ! Unpack matrix
    do i_val = 1,bh%nnz_l_sp2
@@ -4081,7 +4079,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
 
       do j_val = col_ptr2(l_col),col_ptr2(l_col+1)-1
          if(row_ind2(j_val) == l_row) then
-            dm_csc2(j_val) = val_recv(i_val)
+            dm_sp2(j_val) = val_recv(i_val)
          end if
       end do
    end do
@@ -4103,8 +4101,8 @@ end subroutine
 !! This routine converts density matrix computed by PEXSI, stored in 1D block
 !! CSC format to 1D block-cyclic CSC format.
 !!
-subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
-   row_ind2,col_ptr2,dm_csc2)
+subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_sp1,&
+   row_ind2,col_ptr2,dm_sp2)
 
    implicit none
 
@@ -4112,10 +4110,10 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: row_ind1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
-   complex(kind=r8), intent(in) :: dm_csc1(bh%nnz_l_sp1)
+   complex(kind=r8), intent(in) :: dm_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
-   complex(kind=r8), intent(out) :: dm_csc2(bh%nnz_l_sp2)
+   complex(kind=r8), intent(out) :: dm_sp2(bh%nnz_l_sp2)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
@@ -4166,7 +4164,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
          ! Compute global id
          row_send(i_val) = i_row
          col_send(i_val) = i_col+bh%myid*(ph%n_basis/ph%pexsi_np_per_pole)
-         val_send(i_val) = dm_csc1(i_val)
+         val_send(i_val) = dm_sp1(i_val)
 
          ! Compute destination
          dest(i_val) = mod((col_send(i_val)-1)/bh%blk_sp2,bh%n_procs)
@@ -4234,7 +4232,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_csc2 = (0.0_r8,0.0_r8)
+   dm_sp2 = (0.0_r8,0.0_r8)
 
    ! Unpack matrix
    do i_val = 1,bh%nnz_l_sp2
@@ -4244,7 +4242,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
 
       do j_val = col_ptr2(l_col),col_ptr2(l_col+1)-1
          if(row_ind2(j_val) == l_row) then
-            dm_csc2(j_val) = val_recv(i_val)
+            dm_sp2(j_val) = val_recv(i_val)
          end if
       end do
    end do
@@ -4266,7 +4264,7 @@ end subroutine
 !! This routine converts density matrix computed by SLEPc-SIPs, stored in 1D
 !! block CSC format to 2D block-cyclic dense format.
 !!
-subroutine elsi_sips_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
+subroutine elsi_sips_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_sp,dm_den)
 
    implicit none
 
@@ -4274,7 +4272,7 @@ subroutine elsi_sips_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
-   real(kind=r8), intent(in) :: dm_csc(bh%nnz_l_sp)
+   real(kind=r8), intent(in) :: dm_sp(bh%nnz_l_sp)
    real(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
 
    character(len=*), parameter :: caller = "elsi_sips_to_blacs_dm_real"
@@ -4283,7 +4281,7 @@ subroutine elsi_sips_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
+   call elsi_pexsi_to_blacs_dm_real(ph,bh,row_ind,col_ptr,dm_sp,dm_den)
 
 end subroutine
 
@@ -4291,7 +4289,7 @@ end subroutine
 !! This routine converts density matrix computed by SLEPc-SIPs, stored in 1D
 !! block CSC format to 2D block-cyclic dense format.
 !!
-subroutine elsi_sips_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
+subroutine elsi_sips_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_sp,dm_den)
 
    implicit none
 
@@ -4299,7 +4297,7 @@ subroutine elsi_sips_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
-   complex(kind=r8), intent(in) :: dm_csc(bh%nnz_l_sp)
+   complex(kind=r8), intent(in) :: dm_sp(bh%nnz_l_sp)
    complex(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
 
    character(len=*), parameter :: caller = "elsi_sips_to_blacs_dm_cmplx"
@@ -4308,7 +4306,7 @@ subroutine elsi_sips_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_csc,dm_den)
+   call elsi_pexsi_to_blacs_dm_cmplx(ph,bh,row_ind,col_ptr,dm_sp,dm_den)
 
 end subroutine
 
@@ -4316,8 +4314,8 @@ end subroutine
 !! This routine converts density matrix computed by SLPEc-SIPs, stored in 1D
 !! block CSC format to 1D block-cyclic CSC format.
 !!
-subroutine elsi_sips_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
-   row_ind2,col_ptr2,dm_csc2)
+subroutine elsi_sips_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_sp1,row_ind2,&
+   col_ptr2,dm_sp2)
 
    implicit none
 
@@ -4325,10 +4323,10 @@ subroutine elsi_sips_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: row_ind1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
-   real(kind=r8), intent(in) :: dm_csc1(bh%nnz_l_sp1)
+   real(kind=r8), intent(in) :: dm_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
-   real(kind=r8), intent(out) :: dm_csc2(bh%nnz_l_sp2)
+   real(kind=r8), intent(out) :: dm_sp2(bh%nnz_l_sp2)
 
    character(len=*), parameter :: caller = "elsi_sips_to_siesta_dm_real"
 
@@ -4336,8 +4334,8 @@ subroutine elsi_sips_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_csc1,row_ind2,&
-        col_ptr2,dm_csc2)
+   call elsi_pexsi_to_siesta_dm_real(ph,bh,row_ind1,col_ptr1,dm_sp1,row_ind2,&
+        col_ptr2,dm_sp2)
 
 end subroutine
 
@@ -4345,8 +4343,8 @@ end subroutine
 !! This routine converts density matrix computed by SLEPc-SIPs, stored in 1D
 !! block CSC format to 1D block-cyclic CSC format.
 !!
-subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
-   row_ind2,col_ptr2,dm_csc2)
+subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_sp1,&
+   row_ind2,col_ptr2,dm_sp2)
 
    implicit none
 
@@ -4354,10 +4352,10 @@ subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: row_ind1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
-   complex(kind=r8), intent(in) :: dm_csc1(bh%nnz_l_sp1)
+   complex(kind=r8), intent(in) :: dm_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
-   complex(kind=r8), intent(out) :: dm_csc2(bh%nnz_l_sp2)
+   complex(kind=r8), intent(out) :: dm_sp2(bh%nnz_l_sp2)
 
    character(len=*), parameter :: caller = "elsi_sips_to_siesta_dm_cmplx"
 
@@ -4365,8 +4363,8 @@ subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_csc1,row_ind2,&
-        col_ptr2,dm_csc2)
+   call elsi_pexsi_to_siesta_dm_cmplx(ph,bh,row_ind1,col_ptr1,dm_sp1,row_ind2,&
+        col_ptr2,dm_sp2)
 
 end subroutine
 
@@ -4419,19 +4417,19 @@ end subroutine
 !! This routine converts Halmitonian and overlap matrices stored in 1D block-
 !! cyclic CSC format to 1D block CSC format.
 !!
-subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
-   col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
+subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
+   col_ptr2,ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   real(kind=r8), intent(in) :: ham_csc2(bh%nnz_l_sp2)
-   real(kind=r8), intent(in) :: ovlp_csc2(bh%nnz_l_sp2)
+   real(kind=r8), intent(in) :: ham_sp2(bh%nnz_l_sp2)
+   real(kind=r8), intent(in) :: ovlp_sp2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: col_ptr2(bh%nnz_l_sp2)
-   real(kind=r8), intent(out) :: ham_csc1(bh%nnz_l_sp1)
-   real(kind=r8), intent(inout) :: ovlp_csc1(bh%nnz_l_sp1)
+   real(kind=r8), intent(out) :: ham_sp1(bh%nnz_l_sp1)
+   real(kind=r8), intent(inout) :: ovlp_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: col_ptr1(bh%nnz_l_sp1)
 
@@ -4441,8 +4439,8 @@ subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_siesta_to_pexsi_hs_real(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
-        col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
+   call elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,col_ptr2,&
+        ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
 
 end subroutine
 
@@ -4450,19 +4448,19 @@ end subroutine
 !! This routine converts Halmitonian and overlap matrices stored in 1D block-
 !! cyclic CSC format to 1D block CSC format.
 !!
-subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
-   col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
+subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
+   col_ptr2,ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   complex(kind=r8), intent(in) :: ham_csc2(bh%nnz_l_sp2)
-   complex(kind=r8), intent(in) :: ovlp_csc2(bh%nnz_l_sp2)
+   complex(kind=r8), intent(in) :: ham_sp2(bh%nnz_l_sp2)
+   complex(kind=r8), intent(in) :: ovlp_sp2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: col_ptr2(bh%nnz_l_sp2)
-   complex(kind=r8), intent(out) :: ham_csc1(bh%nnz_l_sp1)
-   complex(kind=r8), intent(inout) :: ovlp_csc1(bh%nnz_l_sp1)
+   complex(kind=r8), intent(out) :: ham_sp1(bh%nnz_l_sp1)
+   complex(kind=r8), intent(inout) :: ovlp_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: col_ptr1(bh%nnz_l_sp1)
 
@@ -4472,8 +4470,8 @@ subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_csc2,ovlp_csc2,row_ind2,&
-        col_ptr2,ham_csc1,ovlp_csc1,row_ind1,col_ptr1)
+   call elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,col_ptr2,&
+        ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
 
 end subroutine
 
@@ -5025,7 +5023,7 @@ end subroutine
 !! This routine constructs Halmitonian and overlep matrices in NTPoly format
 !! from matrices stored in 1D block CSC format.
 !!
-subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
+subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_sp,ovlp_sp,&
    ham_nt,ovlp_nt)
 
    implicit none
@@ -5034,8 +5032,8 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
-   real(kind=r8), intent(in) :: ham_csc(bh%nnz_l_sp)
-   real(kind=r8), intent(in) :: ovlp_csc(bh%nnz_l_sp)
+   real(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
+   real(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
@@ -5071,14 +5069,14 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
          i_col = i_col+1
       end do
 
-      coo%point_value = ham_csc(i_val)
+      coo%point_value = ham_sp(i_val)
       coo%index_row = row_ind(i_val)
       coo%index_column = i_col+bh%myid*(ph%n_basis/bh%n_procs)
 
       call AppendToTripletList(ham_list,coo)
 
       if(ph%first_sips_to_ntpoly .and. .not. ph%unit_ovlp) then
-         coo%point_value = ovlp_csc(i_val)
+         coo%point_value = ovlp_sp(i_val)
 
          call AppendToTripletList(ovlp_list,coo)
       end if
@@ -5107,7 +5105,7 @@ end subroutine
 !! This routine constructs Halmitonian and overlep matrices in NTPoly format
 !! from matrices stored in 1D block CSC format.
 !!
-subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
+subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_sp,ovlp_sp,&
    ham_nt,ovlp_nt)
 
    implicit none
@@ -5116,8 +5114,8 @@ subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
-   complex(kind=r8), intent(in) :: ham_csc(bh%nnz_l_sp)
-   complex(kind=r8), intent(in) :: ovlp_csc(bh%nnz_l_sp)
+   complex(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
+   complex(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
@@ -5153,14 +5151,14 @@ subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
          i_col = i_col+1
       end do
 
-      coo%point_value = ham_csc(i_val)
+      coo%point_value = ham_sp(i_val)
       coo%index_row = row_ind(i_val)
       coo%index_column = i_col+bh%myid*(ph%n_basis/bh%n_procs)
 
       call AppendToTripletList(ham_list,coo)
 
       if(ph%first_sips_to_ntpoly .and. .not. ph%unit_ovlp) then
-         coo%point_value = ovlp_csc(i_val)
+         coo%point_value = ovlp_sp(i_val)
 
          call AppendToTripletList(ovlp_list,coo)
       end if
@@ -5189,7 +5187,7 @@ end subroutine
 !! This routine converts density matrix computed by NTPoly to 1D block CSC
 !! format.
 !!
-subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
+subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_sp)
 
    implicit none
 
@@ -5198,7 +5196,7 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    type(Matrix_ps), intent(inout) :: dm_nt
-   real(kind=r8), intent(out) :: dm_csc(bh%nnz_l_sp)
+   real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
@@ -5311,7 +5309,7 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_csc = 0.0_r8
+   dm_sp = 0.0_r8
 
    ! Unpack density matrix
    do i_val = 1,nnz_l_aux
@@ -5320,7 +5318,7 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
 
       do j_val = col_ptr(l_col),col_ptr(l_col+1)-1
          if(row_ind(j_val) == l_row) then
-            dm_csc(j_val) = val_recv(i_val)
+            dm_sp(j_val) = val_recv(i_val)
          end if
       end do
    end do
@@ -5342,7 +5340,7 @@ end subroutine
 !! This routine converts density matrix computed by NTPoly to 1D block CSC
 !! format.
 !!
-subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
+subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_nt,dm_sp)
 
    implicit none
 
@@ -5351,7 +5349,7 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    type(Matrix_ps), intent(inout) :: dm_nt
-   complex(kind=r8), intent(out) :: dm_csc(bh%nnz_l_sp)
+   complex(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
@@ -5464,7 +5462,7 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_csc = 0.0_r8
+   dm_sp = 0.0_r8
 
    ! Unpack density matrix
    do i_val = 1,nnz_l_aux
@@ -5473,7 +5471,7 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,row_ind,col_ptr,dm_nt,dm_csc)
 
       do j_val = col_ptr(l_col),col_ptr(l_col+1)-1
          if(row_ind(j_val) == l_row) then
-            dm_csc(j_val) = val_recv(i_val)
+            dm_sp(j_val) = val_recv(i_val)
          end if
       end do
    end do
@@ -5495,8 +5493,8 @@ end subroutine
 !! This routine constructs Halmitonian and overlep matrices in NTPoly format
 !! from matrices stored in 1D block-cyclic CSC format.
 !!
-subroutine elsi_siesta_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,&
-   ovlp_csc,ham_nt,ovlp_nt)
+subroutine elsi_siesta_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_sp,ovlp_sp,&
+   ham_nt,ovlp_nt)
 
    implicit none
 
@@ -5504,14 +5502,14 @@ subroutine elsi_siesta_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,&
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
-   real(kind=r8), intent(in) :: ham_csc(bh%nnz_l_sp)
-   real(kind=r8), intent(in) :: ovlp_csc(bh%nnz_l_sp)
+   real(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
+   real(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
    character(len=*), parameter :: caller = "elsi_siesta_to_ntpoly_hs_real"
 
-   call elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
+   call elsi_sips_to_ntpoly_hs_real(ph,bh,row_ind,col_ptr,ham_sp,ovlp_sp,&
         ham_nt,ovlp_nt)
 
 end subroutine
@@ -5520,8 +5518,8 @@ end subroutine
 !! This routine constructs Halmitonian and overlep matrices in NTPoly format
 !! from matrices stored in 1D block-cyclic CSC format.
 !!
-subroutine elsi_siesta_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
-   ovlp_csc,ham_nt,ovlp_nt)
+subroutine elsi_siesta_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_sp,ovlp_sp,&
+   ham_nt,ovlp_nt)
 
    implicit none
 
@@ -5529,14 +5527,14 @@ subroutine elsi_siesta_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,&
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
-   complex(kind=r8), intent(in) :: ham_csc(bh%nnz_l_sp)
-   complex(kind=r8), intent(in) :: ovlp_csc(bh%nnz_l_sp)
+   complex(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
+   complex(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
    character(len=*), parameter :: caller = "elsi_siesta_to_ntpoly_hs_cmplx"
 
-   call elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_csc,ovlp_csc,&
+   call elsi_sips_to_ntpoly_hs_cmplx(ph,bh,row_ind,col_ptr,ham_sp,ovlp_sp,&
         ham_nt,ovlp_nt)
 
 end subroutine
@@ -5545,7 +5543,7 @@ end subroutine
 !! This routine converts density matrix computed by NTPoly to 1D block-cyclic
 !! CSC format.
 !!
-subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_csc)
+subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_sp)
 
    implicit none
 
@@ -5553,7 +5551,7 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_csc)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    type(Matrix_ps), intent(inout) :: dm_nt
-   real(kind=r8), intent(out) :: dm_csc(bh%nnz_l_sp)
+   real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
@@ -5670,7 +5668,7 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_csc = 0.0_r8
+   dm_sp = 0.0_r8
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
@@ -5680,7 +5678,7 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,row_ind,col_ptr,dm_nt,dm_csc)
 
       do j_val = col_ptr(l_col),col_ptr(l_col+1)-1
          if(row_ind(j_val) == l_row) then
-            dm_csc(j_val) = val_recv(i_val)
+            dm_sp(j_val) = val_recv(i_val)
          end if
       end do
    end do
@@ -5702,7 +5700,7 @@ end subroutine
 !! This routine converts density matrix computed by NTPoly to 1D block-cyclic
 !! CSC format.
 !!
-subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_nt,dm_csc)
+subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_nt,dm_sp)
 
    implicit none
 
@@ -5710,7 +5708,7 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_nt,dm_csc)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    type(Matrix_ps), intent(inout) :: dm_nt
-   complex(kind=r8), intent(out):: dm_csc(bh%nnz_l_sp)
+   complex(kind=r8), intent(out):: dm_sp(bh%nnz_l_sp)
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
@@ -5827,7 +5825,7 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_nt,dm_csc)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_csc = 0.0_r8
+   dm_sp = 0.0_r8
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
@@ -5837,7 +5835,7 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,row_ind,col_ptr,dm_nt,dm_csc)
 
       do j_val = col_ptr(l_col),col_ptr(l_col+1)-1
          if(row_ind(j_val) == l_row) then
-            dm_csc(j_val) = val_recv(i_val)
+            dm_sp(j_val) = val_recv(i_val)
          end if
       end do
    end do

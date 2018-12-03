@@ -29,10 +29,6 @@ module ELSI_TOOLS
    public :: elsi_orthonormalize_ev_complex
    public :: elsi_extrapolate_dm_real
    public :: elsi_extrapolate_dm_complex
-   public :: elsi_construct_dm_real
-   public :: elsi_construct_dm_complex
-   public :: elsi_construct_edm_real
-   public :: elsi_construct_edm_complex
    public :: elsi_compute_mu_and_occ
    public :: elsi_compute_entropy
 
@@ -161,92 +157,6 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
       call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
       call CopyMatrix(eh%ph%nt_ovlp,eh%ph%nt_ovlp_copy)
    end select
-
-end subroutine
-
-!>
-!! This routine constructs density matrix from occupation numbers and
-!! eigenvectors.
-!!
-subroutine elsi_construct_dm_real(eh,occ,evec,dm)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   real(kind=r8), intent(in) :: occ(eh%ph%n_states) !< Occupation numbers
-   real(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
-   real(kind=r8), intent(out) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
-
-   character(len=*), parameter :: caller = "elsi_construct_dm_real"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,occ,evec,dm)
-
-end subroutine
-
-!>
-!! This routine constructs density matrix from occupation numbers and
-!! eigenvectors.
-!!
-subroutine elsi_construct_dm_complex(eh,occ,evec,dm)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   real(kind=r8), intent(in) :: occ(eh%ph%n_states) !< Occupation numbers
-   complex(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
-   complex(kind=r8), intent(out) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
-
-   character(len=*), parameter :: caller = "elsi_construct_dm_complex"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,occ,evec,dm)
-
-end subroutine
-
-!>
-!! This routine constructs energy-weighted density matrix from occupation
-!! numbers, eigenvalues, and eigenvectors.
-!!
-subroutine elsi_construct_edm_real(eh,occ,eval,evec,edm)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   real(kind=r8), intent(in) :: occ(eh%ph%n_states) !< Occupation numbers
-   real(kind=r8), intent(in) :: eval(eh%ph%n_states) !< Eigenvalues
-   real(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
-   real(kind=r8), intent(out) :: edm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
-
-   character(len=*), parameter :: caller = "elsi_construct_dm_real"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,occ,eval,evec,edm)
-
-end subroutine
-
-!>
-!! This routine constructs energy-weighted density matrix from occupation
-!! numbers, eigenvalues, and eigenvectors.
-!!
-subroutine elsi_construct_edm_complex(eh,occ,eval,evec,edm)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   real(kind=r8), intent(in) :: occ(eh%ph%n_states) !< Occupation numbers
-   real(kind=r8), intent(in) :: eval(eh%ph%n_states) !< Eigenvalues
-   complex(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
-   complex(kind=r8), intent(out) :: edm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
-
-   character(len=*), parameter :: caller = "elsi_construct_dm_complex"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,occ,eval,evec,edm)
 
 end subroutine
 

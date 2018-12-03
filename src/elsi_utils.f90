@@ -11,7 +11,8 @@ module ELSI_UTILS
 
    use ELSI_CONSTANTS, only: UNSET,UT_MAT,LT_MAT,N_SOLVERS,N_PARALLEL_MODES,&
        N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
-       SIESTA_CSC,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER
+       SIESTA_CSC,GENERIC_COO,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
+       NTPOLY_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
@@ -229,6 +230,8 @@ subroutine elsi_reset_basic(bh)
    bh%n_lcol_sp2 = UNSET
    bh%blk_sp2 = UNSET
    bh%siesta_csc_ready = .false.
+   bh%nnz_l_sp3 = UNSET
+   bh%generic_coo_ready = .false.
 
 end subroutine
 
@@ -322,6 +325,11 @@ subroutine elsi_check(ph,bh,caller)
       if(ph%solver == PEXSI_SOLVER .and. ph%pexsi_np_per_pole == UNSET) then
          call elsi_stop(bh,"Number of MPI tasks per pole should be set for"//&
               " PEXSI_CSC matrix format and PEXSI solver.",caller)
+      end if
+   else if(ph%matrix_format == GENERIC_COO) then
+      if(.not. bh%generic_coo_ready) then
+         call elsi_stop(bh,"GENERIC_COO matrix format not properly set up.",&
+              caller)
       end if
    end if
 

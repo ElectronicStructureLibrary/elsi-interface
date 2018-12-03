@@ -10,7 +10,8 @@
 module ELSI_IO
 
    use ELSI_CONSTANTS, only: MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
-       SIESTA_CSC,ELPA_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,NTPOLY_SOLVER
+       SIESTA_CSC,GENERIC_COO,ELPA_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
+       NTPOLY_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_PRECISION, only: r8,i4,i8
    use FORTJSON, only: fjson_write_name_value,fjson_reset_fj_handle,&
@@ -156,9 +157,9 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       end select
 
       if(ph%matrix_format == BLACS_DENSE) then
-         call elsi_print_den_settings(bh,jh)
+         call elsi_print_dense_settings(bh,jh)
       else
-         call elsi_print_csc_settings(bh,jh)
+         call elsi_print_sparse_settings(bh,jh)
       end if
 
       call fjson_finish_object(jh)
@@ -198,6 +199,8 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
       call fjson_write_name_value(jh,"matrix_format","PEXSI_CSC")
    else if(ph%matrix_format == SIESTA_CSC) then
       call fjson_write_name_value(jh,"matrix_format","SIESTA_CSC")
+   else if(ph%matrix_format == GENERIC_COO) then
+      call fjson_write_name_value(jh,"matrix_format","GENERIC_COO")
    end if
 
    call fjson_write_name_value(jh,"n_basis",ph%n_basis)
@@ -389,14 +392,14 @@ end subroutine
 !>
 !! This routine prints out settings for the dense matrix format.
 !!
-subroutine elsi_print_den_settings(bh,jh)
+subroutine elsi_print_dense_settings(bh,jh)
 
    implicit none
 
    type(elsi_basic_t), intent(in) :: bh
    type(fjson_handle), intent(inout) :: jh
 
-   character(len=*), parameter :: caller = "elsi_print_den_settings"
+   character(len=*), parameter :: caller = "elsi_print_dense_settings"
 
    call fjson_start_name_object(jh,"matrix_format_settings")
    call fjson_write_name_value(jh,"blk",bh%blk)
@@ -410,20 +413,21 @@ end subroutine
 !>
 !! This routine prints out settings for the sparse matrix format.
 !!
-subroutine elsi_print_csc_settings(bh,jh)
+subroutine elsi_print_sparse_settings(bh,jh)
 
    implicit none
 
    type(elsi_basic_t), intent(in) :: bh
    type(fjson_handle), intent(inout) :: jh
 
-   character(len=*), parameter :: caller = "elsi_print_csc_settings"
+   character(len=*), parameter :: caller = "elsi_print_sparse_settings"
 
    call fjson_start_name_object(jh,"matrix_format_settings")
    call fjson_write_name_value(jh,"def0",bh%def0)
    call fjson_write_name_value(jh,"blk_sp2",bh%blk_sp2)
    call fjson_write_name_value(jh,"pexsi_csc_ready",bh%pexsi_csc_ready)
    call fjson_write_name_value(jh,"siesta_csc_ready",bh%siesta_csc_ready)
+   call fjson_write_name_value(jh,"generic_coo_ready",bh%generic_coo_ready)
    call fjson_finish_object(jh)
 
 end subroutine
@@ -488,6 +492,9 @@ subroutine elsi_final_print(ph,bh)
       call elsi_say(bh,msg)
    else if(ph%matrix_format == SIESTA_CSC) then
       write(msg,"(2X,A,A22)") "|   Matrix format             :","SIESTA_CSC"
+      call elsi_say(bh,msg)
+   else if(ph%matrix_format == GENERIC_COO) then
+      write(msg,"(2X,A,A22)") "|   Matrix format             :","GENERIC_COO"
       call elsi_say(bh,msg)
    end if
 

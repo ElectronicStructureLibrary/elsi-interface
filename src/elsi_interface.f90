@@ -123,10 +123,6 @@ module ELSI
    public :: elsi_orthonormalize_ev_complex
    public :: elsi_extrapolate_dm_real
    public :: elsi_extrapolate_dm_complex
-   public :: elsi_construct_dm_real
-   public :: elsi_construct_dm_complex
-   public :: elsi_construct_edm_real
-   public :: elsi_construct_edm_complex
    public :: elsi_compute_mu_and_occ
    public :: elsi_compute_entropy
 

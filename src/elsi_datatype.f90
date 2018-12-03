@@ -72,6 +72,10 @@ module ELSI_DATATYPE
       integer(kind=i4) :: blk_sp2
       logical :: siesta_csc_ready = .false.
 
+      ! Sparse matrix information (generic)
+      integer(kind=i4) :: nnz_l_sp3 ! Local number of nonzeros
+      logical :: generic_coo_ready = .false.
+
    end type
 
    type, public :: elsi_param_t
@@ -220,16 +224,18 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: dm_cmplx_den(:,:)
 
       ! Sparse
-      real(kind=r8), allocatable :: ham_real_csc(:)
-      complex(kind=r8), allocatable :: ham_cmplx_csc(:)
-      real(kind=r8), allocatable :: ovlp_real_csc(:)
-      complex(kind=r8), allocatable :: ovlp_cmplx_csc(:)
-      real(kind=r8), allocatable :: dm_real_csc(:)
-      complex(kind=r8), allocatable :: dm_cmplx_csc(:)
+      real(kind=r8), allocatable :: ham_real_sp(:)
+      complex(kind=r8), allocatable :: ham_cmplx_sp(:)
+      real(kind=r8), allocatable :: ovlp_real_sp(:)
+      complex(kind=r8), allocatable :: ovlp_cmplx_sp(:)
+      real(kind=r8), allocatable :: dm_real_sp(:)
+      complex(kind=r8), allocatable :: dm_cmplx_sp(:)
       integer(kind=i4), allocatable :: row_ind_sp1(:)
       integer(kind=i4), allocatable :: col_ptr_sp1(:)
       integer(kind=i4), allocatable :: row_ind_sp2(:)
       integer(kind=i4), allocatable :: col_ptr_sp2(:)
+      integer(kind=i4), allocatable :: row_ind_sp3(:)
+      integer(kind=i4), allocatable :: col_ind_sp3(:)
 
       ! Auxiliary
       real(kind=r8), allocatable :: ovlp_real_copy(:,:)
