@@ -203,6 +203,7 @@ module ELSI_DATATYPE
       type(Matrix_ps) :: nt_ovlp
       type(Matrix_ps) :: nt_ovlp_copy
       type(Matrix_ps) :: nt_dm
+      type(Matrix_ps) :: nt_map
       type(SolverParameters_t) :: nt_options
       type(Permutation_t) :: nt_perm
       type(ProcessGrid_t) :: nt_pgrid
@@ -246,6 +247,9 @@ module ELSI_DATATYPE
       real(kind=r8), allocatable :: occ(:,:,:)
       integer(kind=i4), allocatable :: row_map(:)
       integer(kind=i4), allocatable :: col_map(:)
+      integer(kind=i4), allocatable :: map_den(:,:)
+      integer(kind=i4), allocatable :: map_sp1(:)
+      integer(kind=i4), allocatable :: perm_sp3(:)
       real(kind=r8), allocatable :: omm_c_real(:,:)
       complex(kind=r8), allocatable :: omm_c_cmplx(:,:)
       real(kind=r8), allocatable :: pexsi_ne_vec(:)

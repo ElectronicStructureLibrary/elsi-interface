@@ -19,8 +19,9 @@ module ELSI_SETUP
    use ELSI_NTPOLY, only: elsi_cleanup_ntpoly
    use ELSI_OMM, only: elsi_cleanup_omm
    use ELSI_PEXSI, only: elsi_set_pexsi_default,elsi_cleanup_pexsi
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SIPS, only: elsi_cleanup_sips
+   use ELSI_SORT, only: elsi_heapsort
    use ELSI_UTILS, only: elsi_check_init,elsi_reset_param,elsi_reset_basic
 
    implicit none
@@ -336,6 +337,9 @@ subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
    integer(kind=i4), intent(in) :: row_ind(nnz_l) !< Row index
    integer(kind=i4), intent(in) :: col_ind(nnz_l) !< Column index
 
+   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
+
    character(len=*), parameter :: caller = "elsi_set_coo"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -352,11 +356,28 @@ subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
       call elsi_deallocate(eh%bh,eh%col_ind_sp3,"col_ind_sp3")
    end if
 
+   if(allocated(eh%perm_sp3)) then
+      call elsi_deallocate(eh%bh,eh%perm_sp3,"perm_sp3")
+   end if
+
    call elsi_allocate(eh%bh,eh%row_ind_sp3,nnz_l,"row_ind_sp3",caller)
    call elsi_allocate(eh%bh,eh%col_ind_sp3,nnz_l,"col_ind_sp3",caller)
+   call elsi_allocate(eh%bh,eh%perm_sp3,nnz_l,"perm_sp3",caller)
+   call elsi_allocate(eh%bh,gid,nnz_l,"gid",caller)
+   call elsi_allocate(eh%bh,perm,nnz_l,"perm",caller)
 
    eh%row_ind_sp3 = row_ind
    eh%col_ind_sp3 = col_ind
+
+   ! Compute global 1D id
+   gid = int(col_ind-1,kind=i8)*int(eh%ph%n_basis,kind=i8)+int(row_ind,kind=i8)
+
+   ! Sort
+   call elsi_heapsort(nnz_l,gid,perm)
+   call elsi_heapsort(nnz_l,perm,eh%perm_sp3)
+
+   call elsi_deallocate(eh%bh,gid,"gid")
+   call elsi_deallocate(eh%bh,perm,"perm")
 
    eh%bh%generic_coo_ready = .true.
 
@@ -456,11 +477,23 @@ subroutine elsi_reinit(eh)
       end if
 
       if(allocated(eh%row_ind_sp3)) then
-         call elsi_deallocate(eh%bh,eh%row_ind_sp2,"row_ind_sp3")
+         call elsi_deallocate(eh%bh,eh%row_ind_sp3,"row_ind_sp3")
       end if
 
       if(allocated(eh%col_ind_sp3)) then
-         call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ind_sp3")
+         call elsi_deallocate(eh%bh,eh%col_ind_sp3,"col_ind_sp3")
+      end if
+
+      if(allocated(eh%map_den)) then
+         call elsi_deallocate(eh%bh,eh%map_den,"map_den")
+      end if
+
+      if(allocated(eh%map_sp1)) then
+         call elsi_deallocate(eh%bh,eh%map_sp1,"map_sp1")
+      end if
+
+      if(allocated(eh%perm_sp3)) then
+         call elsi_deallocate(eh%bh,eh%perm_sp3,"perm_sp3")
       end if
 
       if(.not. eh%ph%solver == ELPA_SOLVER) then
@@ -591,11 +624,11 @@ subroutine elsi_cleanup(eh)
    end if
 
    if(allocated(eh%row_ind_sp3)) then
-      call elsi_deallocate(eh%bh,eh%row_ind_sp2,"row_ind_sp3")
+      call elsi_deallocate(eh%bh,eh%row_ind_sp3,"row_ind_sp3")
    end if
 
    if(allocated(eh%col_ind_sp3)) then
-      call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ind_sp3")
+      call elsi_deallocate(eh%bh,eh%col_ind_sp3,"col_ind_sp3")
    end if
 
    ! Auxiliary arrays
@@ -629,6 +662,18 @@ subroutine elsi_cleanup(eh)
 
    if(allocated(eh%pexsi_ne_vec)) then
       call elsi_deallocate(eh%bh,eh%pexsi_ne_vec,"pexsi_ne_vec")
+   end if
+
+   if(allocated(eh%map_den)) then
+      call elsi_deallocate(eh%bh,eh%map_den,"map_den")
+   end if
+
+   if(allocated(eh%map_sp1)) then
+      call elsi_deallocate(eh%bh,eh%map_sp1,"map_sp1")
+   end if
+
+   if(allocated(eh%perm_sp3)) then
+      call elsi_deallocate(eh%bh,eh%perm_sp3,"perm_sp3")
    end if
 
    if(eh%bh%json_init) then

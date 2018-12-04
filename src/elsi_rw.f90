@@ -691,7 +691,7 @@ subroutine elsi_read_mat_real_mp(rwh,f_name,mat)
    eh%bh%n_lcol_sp = rwh%bh%n_lcol_sp
    eh%bh%n_lcol_sp1 = rwh%bh%n_lcol_sp
 
-   call elsi_sips_to_blacs_dm(eh%ph,eh%bh,row_ind,col_ptr,nnz_val,mat)
+   call elsi_sips_to_blacs_dm(eh%ph,eh%bh,nnz_val,row_ind,col_ptr,mat)
 
    call elsi_deallocate(rwh%bh,col_ptr,"col_ptr")
    call elsi_deallocate(rwh%bh,row_ind,"row_ind")
@@ -875,7 +875,7 @@ subroutine elsi_read_mat_complex_mp(rwh,f_name,mat)
    eh%bh%n_lcol_sp = rwh%bh%n_lcol_sp
    eh%bh%n_lcol_sp1 = rwh%bh%n_lcol_sp
 
-   call elsi_sips_to_blacs_dm(eh%ph,eh%bh,row_ind,col_ptr,nnz_val,mat)
+   call elsi_sips_to_blacs_dm(eh%ph,eh%bh,nnz_val,row_ind,col_ptr,mat)
 
    call elsi_deallocate(rwh%bh,col_ptr,"col_ptr")
    call elsi_deallocate(rwh%bh,row_ind,"row_ind")
