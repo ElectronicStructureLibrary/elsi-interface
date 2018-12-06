@@ -72,6 +72,15 @@ program elsi_test
          case default
             call test_die()
          end select
+      case("3") ! GENERIC_COO
+         select case(arg3(1:1))
+         case("r") ! real
+            call test_ev_real_coo(MPI_COMM_WORLD,solver,arg5,arg6)
+         case("c") ! complex
+            call test_ev_cmplx_coo(MPI_COMM_WORLD,solver,arg5,arg6)
+         case default
+            call test_die()
+         end select
       case default
          call test_die()
       end select
@@ -104,6 +113,15 @@ program elsi_test
          case default
             call test_die()
          end select
+      case("3") ! GENERIC_COO
+         select case(arg3(1:1))
+         case("r") ! real
+            call test_dm_real_coo(MPI_COMM_WORLD,solver,arg5,arg6)
+         case("c") ! complex
+            call test_dm_cmplx_coo(MPI_COMM_WORLD,solver,arg5,arg6)
+         case default
+            call test_die()
+         end select
       case default
          call test_die()
       end select
@@ -128,6 +146,7 @@ subroutine test_die()
       write(*,"(A)") "  ##  Arg #2: 0 = BLACS_DENSE           ##"
       write(*,"(A)") "  ##          1 = PEXSI_CSC             ##"
       write(*,"(A)") "  ##          2 = SIESTA_CSC            ##"
+      write(*,"(A)") "  ##          3 = GENERIC_COO           ##"
       write(*,"(A)") "  ##  Arg #3: 'real' or 'complex'       ##"
       write(*,"(A)") "  ##  Arg #4: 1 = ELPA                  ##"
       write(*,"(A)") "  ##          2 = libOMM                ##"
