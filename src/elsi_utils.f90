@@ -572,7 +572,7 @@ subroutine elsi_trace_mat_cmplx(ph,bh,row_map,col_map,mat,trace)
 
    character(len=*), parameter :: caller = "elsi_trace_mat_cmplx"
 
-   l_trace = 0.0_r8
+   l_trace = (0.0_r8,0.0_r8)
 
    do i = 1,ph%n_basis
       if(row_map(i) > 0 .and. col_map(i) > 0) then
