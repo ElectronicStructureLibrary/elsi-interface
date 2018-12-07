@@ -11,6 +11,9 @@
    * Fixed single precision calculations with an externally linked ELPA.
    * Fixed libOMM Cholesky flavor with random initial guess.
 
+   New Matrix Storage Format:
+   * Added arbitrarily distributed coordinate (GENERIC_COO) format.
+
    NTPoly:
    * Updated redistributed NTPoly source code to version 2.1.
 
