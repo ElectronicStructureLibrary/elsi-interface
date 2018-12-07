@@ -6751,6 +6751,8 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
       end if
 
       call elsi_allocate(bh,map_send,bh%nnz_l_sp3,"map_send",caller)
+
+      map_send = bh%myid
    end if
 
    call elsi_allocate(bh,dest,bh%nnz_l_sp3,"dest",caller)
@@ -6965,6 +6967,8 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
       end if
 
       call elsi_allocate(bh,map_send,bh%nnz_l_sp3,"map_send",caller)
+
+      map_send = bh%myid
    end if
 
    call elsi_allocate(bh,dest,bh%nnz_l_sp3,"dest",caller)
@@ -7275,7 +7279,7 @@ subroutine elsi_blacs_to_generic_dm_real(ph,bh,dm_den,map_den,dm_sp,perm_sp)
 
    do i_col = 1,bh%n_lcol
       do i_row = 1,bh%n_lrow
-         if(map_den(i_row,i_col) > 0) then
+         if(map_den(i_row,i_col) > -1) then
             nnz_l_aux = nnz_l_aux+1
          end if
       end do
@@ -7292,7 +7296,7 @@ subroutine elsi_blacs_to_generic_dm_real(ph,bh,dm_den,map_den,dm_sp,perm_sp)
 
    do i_col = 1,bh%n_lcol
       do i_row = 1,bh%n_lrow
-         if(map_den(i_row,i_col) > 0) then
+         if(map_den(i_row,i_col) > -1) then
             i_val = i_val+1
 
             call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,row_send(i_val))
@@ -7438,7 +7442,7 @@ subroutine elsi_blacs_to_generic_dm_cmplx(ph,bh,dm_den,map_den,dm_sp,perm_sp)
 
    do i_col = 1,bh%n_lcol
       do i_row = 1,bh%n_lrow
-         if(map_den(i_row,i_col) > 0) then
+         if(map_den(i_row,i_col) > -1) then
             nnz_l_aux = nnz_l_aux+1
          end if
       end do
@@ -7455,7 +7459,7 @@ subroutine elsi_blacs_to_generic_dm_cmplx(ph,bh,dm_den,map_den,dm_sp,perm_sp)
 
    do i_col = 1,bh%n_lcol
       do i_row = 1,bh%n_lrow
-         if(map_den(i_row,i_col) > 0) then
+         if(map_den(i_row,i_col) > -1) then
             i_val = i_val+1
 
             call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,row_send(i_val))
@@ -7992,6 +7996,7 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    ! Compute destination
    do i_val = 1,nnz_l_nt
       dest(i_val) = int(map_list%data(i_val)%point_value,kind=i4)
+      map_list%data(i_val)%point_value = 0.0_r8
    end do
 
    i_val = 1
@@ -8002,8 +8007,8 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
       i_row = map_list%data(i_val)%index_row
       i_col = map_list%data(i_val)%index_column
       gid_map = int(i_col-1,kind=i8)*int(ph%n_basis,kind=i8)+int(i_row,kind=i8)
-      i_row = dm_list%data(i_val)%index_row
-      i_col = dm_list%data(i_val)%index_column
+      i_row = dm_list%data(j_val)%index_row
+      i_col = dm_list%data(j_val)%index_column
       gid_dm = int(i_col-1,kind=i8)*int(ph%n_basis,kind=i8)+int(i_row,kind=i8)
 
       if(gid_map == gid_dm) then
@@ -8175,6 +8180,7 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    ! Compute destination
    do i_val = 1,nnz_l_nt
       dest(i_val) = int(map_list%data(i_val)%point_value,kind=i4)
+      map_list%data(i_val)%point_value = (0.0_r8,0.0_r8)
    end do
 
    i_val = 1
@@ -8185,8 +8191,8 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
       i_row = map_list%data(i_val)%index_row
       i_col = map_list%data(i_val)%index_column
       gid_map = int(i_col-1,kind=i8)*int(ph%n_basis,kind=i8)+int(i_row,kind=i8)
-      i_row = dm_list%data(i_val)%index_row
-      i_col = dm_list%data(i_val)%index_column
+      i_row = dm_list%data(j_val)%index_row
+      i_col = dm_list%data(j_val)%index_column
       gid_dm = int(i_col-1,kind=i8)*int(ph%n_basis,kind=i8)+int(i_row,kind=i8)
 
       if(gid_map == gid_dm) then

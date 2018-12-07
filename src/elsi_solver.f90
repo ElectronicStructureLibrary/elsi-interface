@@ -1241,7 +1241,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
               eh%col_ptr_sp1,dm,eh%row_ind_sp2,eh%col_ptr_sp2)
       case(GENERIC_COO)
          if(.not. allocated(eh%row_ind_sp1)) then
-            call elsi_generic_to_sips_hs_dim(eh%ph,eh%bh,eh%col_ind_sp3)
+            call elsi_generic_to_pexsi_hs_dim(eh%ph,eh%bh,eh%col_ind_sp3)
 
             if(eh%ph%unit_ovlp) then
                call elsi_allocate(eh%bh,eh%ovlp_real_sp,1,"ovlp_real_sp",caller)
@@ -1702,7 +1702,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
               eh%row_ind_sp1,eh%col_ptr_sp1,dm,eh%row_ind_sp2,eh%col_ptr_sp2)
       case(GENERIC_COO)
          if(.not. allocated(eh%row_ind_sp1)) then
-            call elsi_generic_to_sips_hs_dim(eh%ph,eh%bh,eh%col_ind_sp3)
+            call elsi_generic_to_pexsi_hs_dim(eh%ph,eh%bh,eh%col_ind_sp3)
 
             if(eh%ph%unit_ovlp) then
                call elsi_allocate(eh%bh,eh%ovlp_cmplx_sp,1,"ovlp_cmplx_sp",&
