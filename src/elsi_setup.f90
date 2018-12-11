@@ -19,8 +19,9 @@ module ELSI_SETUP
    use ELSI_NTPOLY, only: elsi_cleanup_ntpoly
    use ELSI_OMM, only: elsi_cleanup_omm
    use ELSI_PEXSI, only: elsi_set_pexsi_default,elsi_cleanup_pexsi
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SIPS, only: elsi_cleanup_sips
+   use ELSI_SORT, only: elsi_heapsort
    use ELSI_UTILS, only: elsi_check_init,elsi_reset_param,elsi_reset_basic
 
    implicit none
@@ -34,6 +35,7 @@ module ELSI_SETUP
    public :: elsi_set_kpoint
    public :: elsi_set_blacs
    public :: elsi_set_csc
+   public :: elsi_set_coo
    public :: elsi_reinit
    public :: elsi_finalize
    public :: elsi_cleanup
@@ -41,9 +43,9 @@ module ELSI_SETUP
 contains
 
 !>
-!! This routine initializes ELSI with the solver, parallel mode, matrix storage
-!! format, number of basis functions (global size of the Hamiltonian matrix),
-!! number of electrons, and number of states.
+!! This routine initializes ELSI with user's choice of solver, parallel mode,
+!! matrix format, number of basis functions (global size of Hamiltonian), number
+!! of electrons, and number of states.
 !!
 subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    n_state)
@@ -94,7 +96,8 @@ subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
 end subroutine
 
 !>
-!! This routine sets the unit MPI communicator.
+!! This routine sets the MPI communicator to be used to solve one eigenproblem
+!! (i.e., one spin channel, one k-point).
 !!
 subroutine elsi_set_mpi(eh,comm)
 
@@ -121,7 +124,8 @@ subroutine elsi_set_mpi(eh,comm)
 end subroutine
 
 !>
-!! This routine sets the global MPI communicator.
+!! This routine sets the global MPI communicator to be used to exchange
+!! information across all spin channels and k-points.
 !!
 subroutine elsi_set_mpi_global(eh,comm_all)
 
@@ -148,7 +152,8 @@ subroutine elsi_set_mpi_global(eh,comm_all)
 end subroutine
 
 !>
-!! This routine sets the spin information.
+!! This routine sets the number of spin channels and the index of the spin
+!! channel the calling process is solving.
 !!
 subroutine elsi_set_spin(eh,n_spin,i_spin)
 
@@ -164,7 +169,8 @@ subroutine elsi_set_spin(eh,n_spin,i_spin)
 end subroutine
 
 !>
-!! This routine sets the k-point information.
+!! This routine sets the number of k-points, and the index and weight of the
+!! k-point the calling process is solving.
 !!
 subroutine elsi_set_kpoint(eh,n_kpt,i_kpt,i_wt)
 
@@ -182,7 +188,8 @@ subroutine elsi_set_kpoint(eh,n_kpt,i_kpt,i_wt)
 end subroutine
 
 !>
-!! This routine sets the BLACS context and the block size.
+!! This routine sets the BLACS context and block size, necessary for the
+!! BLACS_DENSE matrix format.
 !!
 subroutine elsi_set_blacs(eh,blacs_ctxt,block_size)
 
@@ -246,7 +253,11 @@ subroutine elsi_set_blacs(eh,blacs_ctxt,block_size)
 end subroutine
 
 !>
-!! This routine sets the sparsity pattern.
+!! This routine sets the global number of non-zero matrix elements, local number
+!! of non-zeros matrix elements, local number of matrix columns, row index
+!! array, and column pointer array. These variables are collectively referred to
+!! as CSC sparsity pattern, necessary for the PEXSI_CSC and SIESTA_CSC matrix
+!! formats.
 !!
 subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
@@ -311,6 +322,68 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 end subroutine
 
 !>
+!! This routine sets the global number of non-zero matrix elements, local number
+!! of non-zeros matrix elements, row index array, and column index array. These
+!! variables are collectively referred to as COO sparsity pattern, necessary for
+!! the GENERIC_COO matrix format.
+!!
+subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: nnz_g !< Global number of nonzeros
+   integer(kind=i4), intent(in) :: nnz_l !< Local number of nonzeros
+   integer(kind=i4), intent(in) :: row_ind(nnz_l) !< Row index
+   integer(kind=i4), intent(in) :: col_ind(nnz_l) !< Column index
+
+   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
+
+   character(len=*), parameter :: caller = "elsi_set_coo"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%bh%nnz_g = nnz_g
+   eh%bh%nnz_l_sp = nnz_l
+   eh%bh%nnz_l_sp3 = nnz_l
+
+   if(allocated(eh%row_ind_sp3)) then
+      call elsi_deallocate(eh%bh,eh%row_ind_sp3,"row_ind_sp3")
+   end if
+
+   if(allocated(eh%col_ind_sp3)) then
+      call elsi_deallocate(eh%bh,eh%col_ind_sp3,"col_ind_sp3")
+   end if
+
+   if(allocated(eh%perm_sp3)) then
+      call elsi_deallocate(eh%bh,eh%perm_sp3,"perm_sp3")
+   end if
+
+   call elsi_allocate(eh%bh,eh%row_ind_sp3,nnz_l,"row_ind_sp3",caller)
+   call elsi_allocate(eh%bh,eh%col_ind_sp3,nnz_l,"col_ind_sp3",caller)
+   call elsi_allocate(eh%bh,eh%perm_sp3,nnz_l,"perm_sp3",caller)
+   call elsi_allocate(eh%bh,gid,nnz_l,"gid",caller)
+   call elsi_allocate(eh%bh,perm,nnz_l,"perm",caller)
+
+   eh%row_ind_sp3 = row_ind
+   eh%col_ind_sp3 = col_ind
+
+   ! Compute global 1D id
+   gid = int(col_ind-1,kind=i8)*int(eh%ph%n_basis,kind=i8)+int(row_ind,kind=i8)
+
+   ! Sort
+   call elsi_heapsort(nnz_l,gid,perm)
+   call elsi_heapsort(nnz_l,perm,eh%perm_sp3)
+
+   call elsi_deallocate(eh%bh,gid,"gid")
+   call elsi_deallocate(eh%bh,perm,"perm")
+
+   eh%bh%generic_coo_ready = .true.
+
+end subroutine
+
+!>
 !! This routine starts a new geometry step, which usually means a new overlap.
 !!
 subroutine elsi_reinit(eh)
@@ -339,6 +412,9 @@ subroutine elsi_reinit(eh)
       eh%ph%first_blacs_to_ntpoly = .true.
       eh%ph%first_blacs_to_pexsi = .true.
       eh%ph%first_blacs_to_sips = .true.
+      eh%ph%first_generic_to_blacs = .true.
+      eh%ph%first_generic_to_ntpoly = .true.
+      eh%ph%first_generic_to_pexsi = .true.
       eh%ph%first_siesta_to_blacs = .true.
       eh%ph%first_siesta_to_pexsi = .true.
       eh%ph%first_sips_to_blacs = .true.
@@ -360,28 +436,28 @@ subroutine elsi_reinit(eh)
          call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
       end if
 
-      if(allocated(eh%ham_real_csc)) then
-         call elsi_deallocate(eh%bh,eh%ham_real_csc,"ham_real_csc")
+      if(allocated(eh%ham_real_sp)) then
+         call elsi_deallocate(eh%bh,eh%ham_real_sp,"ham_real_sp")
       end if
 
-      if(allocated(eh%ham_cmplx_csc)) then
-         call elsi_deallocate(eh%bh,eh%ham_cmplx_csc,"ham_cmplx_csc")
+      if(allocated(eh%ham_cmplx_sp)) then
+         call elsi_deallocate(eh%bh,eh%ham_cmplx_sp,"ham_cmplx_sp")
       end if
 
-      if(allocated(eh%ovlp_real_csc)) then
-         call elsi_deallocate(eh%bh,eh%ovlp_real_csc,"ovlp_real_csc")
+      if(allocated(eh%ovlp_real_sp)) then
+         call elsi_deallocate(eh%bh,eh%ovlp_real_sp,"ovlp_real_sp")
       end if
 
-      if(allocated(eh%ovlp_cmplx_csc)) then
-         call elsi_deallocate(eh%bh,eh%ovlp_cmplx_csc,"ovlp_cmplx_csc")
+      if(allocated(eh%ovlp_cmplx_sp)) then
+         call elsi_deallocate(eh%bh,eh%ovlp_cmplx_sp,"ovlp_cmplx_sp")
       end if
 
-      if(allocated(eh%dm_real_csc)) then
-         call elsi_deallocate(eh%bh,eh%dm_real_csc,"dm_real_csc")
+      if(allocated(eh%dm_real_sp)) then
+         call elsi_deallocate(eh%bh,eh%dm_real_sp,"dm_real_sp")
       end if
 
-      if(allocated(eh%dm_cmplx_csc)) then
-         call elsi_deallocate(eh%bh,eh%dm_cmplx_csc,"dm_cmplx_csc")
+      if(allocated(eh%dm_cmplx_sp)) then
+         call elsi_deallocate(eh%bh,eh%dm_cmplx_sp,"dm_cmplx_sp")
       end if
 
       if(allocated(eh%row_ind_sp1)) then
@@ -398,6 +474,26 @@ subroutine elsi_reinit(eh)
 
       if(allocated(eh%col_ptr_sp2)) then
          call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ptr_sp2")
+      end if
+
+      if(allocated(eh%row_ind_sp3)) then
+         call elsi_deallocate(eh%bh,eh%row_ind_sp3,"row_ind_sp3")
+      end if
+
+      if(allocated(eh%col_ind_sp3)) then
+         call elsi_deallocate(eh%bh,eh%col_ind_sp3,"col_ind_sp3")
+      end if
+
+      if(allocated(eh%map_den)) then
+         call elsi_deallocate(eh%bh,eh%map_den,"map_den")
+      end if
+
+      if(allocated(eh%map_sp1)) then
+         call elsi_deallocate(eh%bh,eh%map_sp1,"map_sp1")
+      end if
+
+      if(allocated(eh%perm_sp3)) then
+         call elsi_deallocate(eh%bh,eh%perm_sp3,"perm_sp3")
       end if
 
       if(.not. eh%ph%solver == ELPA_SOLVER) then
@@ -487,28 +583,28 @@ subroutine elsi_cleanup(eh)
    end if
 
    ! Sparse arrays
-   if(allocated(eh%ham_real_csc)) then
-      call elsi_deallocate(eh%bh,eh%ham_real_csc,"ham_real_csc")
+   if(allocated(eh%ham_real_sp)) then
+      call elsi_deallocate(eh%bh,eh%ham_real_sp,"ham_real_sp")
    end if
 
-   if(allocated(eh%ham_cmplx_csc)) then
-      call elsi_deallocate(eh%bh,eh%ham_cmplx_csc,"ham_cmplx_csc")
+   if(allocated(eh%ham_cmplx_sp)) then
+      call elsi_deallocate(eh%bh,eh%ham_cmplx_sp,"ham_cmplx_sp")
    end if
 
-   if(allocated(eh%ovlp_real_csc)) then
-      call elsi_deallocate(eh%bh,eh%ovlp_real_csc,"ovlp_real_csc")
+   if(allocated(eh%ovlp_real_sp)) then
+      call elsi_deallocate(eh%bh,eh%ovlp_real_sp,"ovlp_real_sp")
    end if
 
-   if(allocated(eh%ovlp_cmplx_csc)) then
-      call elsi_deallocate(eh%bh,eh%ovlp_cmplx_csc,"ovlp_cmplx_csc")
+   if(allocated(eh%ovlp_cmplx_sp)) then
+      call elsi_deallocate(eh%bh,eh%ovlp_cmplx_sp,"ovlp_cmplx_sp")
    end if
 
-   if(allocated(eh%dm_real_csc)) then
-      call elsi_deallocate(eh%bh,eh%dm_real_csc,"dm_real_csc")
+   if(allocated(eh%dm_real_sp)) then
+      call elsi_deallocate(eh%bh,eh%dm_real_sp,"dm_real_sp")
    end if
 
-   if(allocated(eh%dm_cmplx_csc)) then
-      call elsi_deallocate(eh%bh,eh%dm_cmplx_csc,"dm_cmplx_csc")
+   if(allocated(eh%dm_cmplx_sp)) then
+      call elsi_deallocate(eh%bh,eh%dm_cmplx_sp,"dm_cmplx_sp")
    end if
 
    if(allocated(eh%row_ind_sp1)) then
@@ -525,6 +621,14 @@ subroutine elsi_cleanup(eh)
 
    if(allocated(eh%col_ptr_sp2)) then
       call elsi_deallocate(eh%bh,eh%col_ptr_sp2,"col_ptr_sp2")
+   end if
+
+   if(allocated(eh%row_ind_sp3)) then
+      call elsi_deallocate(eh%bh,eh%row_ind_sp3,"row_ind_sp3")
+   end if
+
+   if(allocated(eh%col_ind_sp3)) then
+      call elsi_deallocate(eh%bh,eh%col_ind_sp3,"col_ind_sp3")
    end if
 
    ! Auxiliary arrays
@@ -558,6 +662,18 @@ subroutine elsi_cleanup(eh)
 
    if(allocated(eh%pexsi_ne_vec)) then
       call elsi_deallocate(eh%bh,eh%pexsi_ne_vec,"pexsi_ne_vec")
+   end if
+
+   if(allocated(eh%map_den)) then
+      call elsi_deallocate(eh%bh,eh%map_den,"map_den")
+   end if
+
+   if(allocated(eh%map_sp1)) then
+      call elsi_deallocate(eh%bh,eh%map_sp1,"map_sp1")
+   end if
+
+   if(allocated(eh%perm_sp3)) then
+      call elsi_deallocate(eh%bh,eh%perm_sp3,"perm_sp3")
    end if
 
    if(eh%bh%json_init) then

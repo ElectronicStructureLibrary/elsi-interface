@@ -18,7 +18,7 @@ module ELSI_CONSTANTS
 
    integer(kind=i4), parameter :: UNSET = -910910
    integer(kind=i4), parameter :: N_SOLVERS = 7
-   integer(kind=i4), parameter :: N_MATRIX_FORMATS = 3
+   integer(kind=i4), parameter :: N_MATRIX_FORMATS = 4
    integer(kind=i4), parameter :: N_PARALLEL_MODES = 2
 
    ! Method names
@@ -37,6 +37,7 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: BLACS_DENSE = 0
    integer(kind=i4), parameter :: PEXSI_CSC = 1
    integer(kind=i4), parameter :: SIESTA_CSC = 2
+   integer(kind=i4), parameter :: GENERIC_COO = 3
 
    ! Triangular matrix
    integer(kind=i4), parameter :: FULL_MAT = 0

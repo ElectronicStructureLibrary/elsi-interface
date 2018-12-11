@@ -2,15 +2,19 @@
 LIST(APPEND ftest_src
   Fortran/elsi_test.f90
   Fortran/test_dm_cmplx_den.f90
+  Fortran/test_dm_cmplx_coo.f90
   Fortran/test_dm_cmplx_csc1.f90
   Fortran/test_dm_cmplx_csc2.f90
   Fortran/test_dm_real_den.f90
+  Fortran/test_dm_real_coo.f90
   Fortran/test_dm_real_csc1.f90
   Fortran/test_dm_real_csc2.f90
   Fortran/test_ev_cmplx_den.f90
+  Fortran/test_ev_cmplx_coo.f90
   Fortran/test_ev_cmplx_csc1.f90
   Fortran/test_ev_cmplx_csc2.f90
   Fortran/test_ev_real_den.f90
+  Fortran/test_ev_real_coo.f90
   Fortran/test_ev_real_csc1.f90
   Fortran/test_ev_real_csc2.f90)
 
@@ -110,54 +114,66 @@ test_fortran(03_elpa e 1 r 1 ${h_real} ${s_real})
 test_fortran(04_elpa e 1 c 1 ${h_cmplx} ${s_cmplx})
 test_fortran(05_elpa e 2 r 1 ${h_real} ${s_real})
 test_fortran(06_elpa e 2 c 1 ${h_cmplx} ${s_cmplx})
+test_fortran(07_elpa e 3 r 1 ${h_real} ${s_real})
+test_fortran(08_elpa e 3 c 1 ${h_cmplx} ${s_cmplx})
 
 ### Parallel Fortran tests: dm + ELPA ###
-test_fortran(07_elpa d 0 r 1 ${h_real} ${s_real})
-test_fortran(08_elpa d 0 c 1 ${h_cmplx} ${s_cmplx})
-test_fortran(09_elpa d 1 r 1 ${h_real} ${s_real})
-test_fortran(10_elpa d 1 c 1 ${h_cmplx} ${s_cmplx})
-test_fortran(11_elpa d 2 r 1 ${h_real} ${s_real})
-test_fortran(12_elpa d 2 c 1 ${h_cmplx} ${s_cmplx})
+test_fortran(09_elpa d 0 r 1 ${h_real} ${s_real})
+test_fortran(10_elpa d 0 c 1 ${h_cmplx} ${s_cmplx})
+test_fortran(11_elpa d 1 r 1 ${h_real} ${s_real})
+test_fortran(12_elpa d 1 c 1 ${h_cmplx} ${s_cmplx})
+test_fortran(13_elpa d 2 r 1 ${h_real} ${s_real})
+test_fortran(14_elpa d 2 c 1 ${h_cmplx} ${s_cmplx})
+test_fortran(15_elpa d 3 r 1 ${h_real} ${s_real})
+test_fortran(16_elpa d 3 c 1 ${h_cmplx} ${s_cmplx})
 
 ### Parallel Fortran tests: dm + libOMM ###
-test_fortran(13_omm d 0 r 2 ${h_real} ${s_real})
-test_fortran(14_omm d 0 c 2 ${h_cmplx} ${s_cmplx})
-test_fortran(15_omm d 1 r 2 ${h_real} ${s_real})
-test_fortran(16_omm d 1 c 2 ${h_cmplx} ${s_cmplx})
-test_fortran(17_omm d 2 r 2 ${h_real} ${s_real})
-test_fortran(18_omm d 2 c 2 ${h_cmplx} ${s_cmplx})
+test_fortran(17_omm d 0 r 2 ${h_real} ${s_real})
+test_fortran(18_omm d 0 c 2 ${h_cmplx} ${s_cmplx})
+test_fortran(19_omm d 1 r 2 ${h_real} ${s_real})
+test_fortran(20_omm d 1 c 2 ${h_cmplx} ${s_cmplx})
+test_fortran(21_omm d 2 r 2 ${h_real} ${s_real})
+test_fortran(22_omm d 2 c 2 ${h_cmplx} ${s_cmplx})
+test_fortran(23_omm d 3 r 2 ${h_real} ${s_real})
+test_fortran(24_omm d 3 c 2 ${h_cmplx} ${s_cmplx})
 
 ### Parallel Fortran tests: dm + PEXSI ###
 IF(ENABLE_PEXSI)
-  test_fortran(19_pexsi d 0 r 3 ${h_real} ${s_real})
-  test_fortran(20_pexsi d 0 c 3 ${h_cmplx} ${s_cmplx})
-  test_fortran(21_pexsi d 1 r 3 ${h_real} ${s_real})
-  test_fortran(22_pexsi d 1 c 3 ${h_cmplx} ${s_cmplx})
-  test_fortran(23_pexsi d 2 r 3 ${h_real} ${s_real})
-  test_fortran(24_pexsi d 2 c 3 ${h_cmplx} ${s_cmplx})
+  test_fortran(25_pexsi d 0 r 3 ${h_real} ${s_real})
+  test_fortran(26_pexsi d 0 c 3 ${h_cmplx} ${s_cmplx})
+  test_fortran(27_pexsi d 1 r 3 ${h_real} ${s_real})
+  test_fortran(28_pexsi d 1 c 3 ${h_cmplx} ${s_cmplx})
+  test_fortran(29_pexsi d 2 r 3 ${h_real} ${s_real})
+  test_fortran(30_pexsi d 2 c 3 ${h_cmplx} ${s_cmplx})
+  test_fortran(31_pexsi d 3 r 3 ${h_real} ${s_real})
+  test_fortran(32_pexsi d 3 c 3 ${h_cmplx} ${s_cmplx})
 ENDIF()
 
 ### Parallel Fortran tests: ev + SLEPc-SIPs ###
 IF(ENABLE_SIPS)
-  test_fortran(25_sips e 0 r 5 ${h_real} ${s_real})
-  test_fortran(26_sips e 1 r 5 ${h_real} ${s_real})
-  test_fortran(27_sips e 2 r 5 ${h_real} ${s_real})
+  test_fortran(33_sips e 0 r 5 ${h_real} ${s_real})
+  test_fortran(34_sips e 1 r 5 ${h_real} ${s_real})
+  test_fortran(35_sips e 2 r 5 ${h_real} ${s_real})
+  test_fortran(36_sips e 3 r 5 ${h_real} ${s_real})
 ENDIF()
 
 ### Parallel Fortran tests: dm + SLEPc-SIPs ###
 IF(ENABLE_SIPS)
-  test_fortran(28_sips d 0 r 5 ${h_real} ${s_real})
-  test_fortran(29_sips d 1 r 5 ${h_real} ${s_real})
-  test_fortran(30_sips d 2 r 5 ${h_real} ${s_real})
+  test_fortran(37_sips d 0 r 5 ${h_real} ${s_real})
+  test_fortran(38_sips d 1 r 5 ${h_real} ${s_real})
+  test_fortran(39_sips d 2 r 5 ${h_real} ${s_real})
+  test_fortran(40_sips d 3 r 5 ${h_real} ${s_real})
 ENDIF()
 
 ### Parallel Fortran tests: dm + NTPoly ###
-test_fortran(31_ntpoly d 0 r 6 ${h_real} ${s_real})
-test_fortran(32_ntpoly d 0 c 6 ${h_cmplx} ${s_cmplx})
-test_fortran(33_ntpoly d 1 r 6 ${h_real} ${s_real})
-test_fortran(34_ntpoly d 1 c 6 ${h_cmplx} ${s_cmplx})
-test_fortran(35_ntpoly d 2 r 6 ${h_real} ${s_real})
-test_fortran(36_ntpoly d 2 c 6 ${h_cmplx} ${s_cmplx})
+test_fortran(41_ntpoly d 0 r 6 ${h_real} ${s_real})
+test_fortran(42_ntpoly d 0 c 6 ${h_cmplx} ${s_cmplx})
+test_fortran(43_ntpoly d 1 r 6 ${h_real} ${s_real})
+test_fortran(44_ntpoly d 1 c 6 ${h_cmplx} ${s_cmplx})
+test_fortran(45_ntpoly d 2 r 6 ${h_real} ${s_real})
+test_fortran(46_ntpoly d 2 c 6 ${h_cmplx} ${s_cmplx})
+test_fortran(47_ntpoly d 3 r 6 ${h_real} ${s_real})
+test_fortran(48_ntpoly d 3 c 6 ${h_cmplx} ${s_cmplx})
 
 ### Serial Fortran tests: ev + ELPA (LAPACK) ###
 ADD_TEST(test_serial_01_lapack

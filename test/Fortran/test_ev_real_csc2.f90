@@ -158,7 +158,7 @@ subroutine test_ev_real_csc2(mpi_comm,solver,h_file,s_file)
    call elsi_set_blacs(eh,blacs_ctxt,blk)
 
    ! Customize ELSI
-   call elsi_set_output(eh,3)
+   call elsi_set_output(eh,2)
    call elsi_set_output_log(eh,1)
    call elsi_set_mu_broaden_width(eh,1.0e-6_r8)
    call elsi_set_sips_n_elpa(eh,1)

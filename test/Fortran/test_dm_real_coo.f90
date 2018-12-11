@@ -5,9 +5,9 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This subroutine tests real eigensolver, PEXSI_CSC format.
+!! This subroutine tests real density matrix solver, GENERIC_COO format.
 !!
-subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
+subroutine test_dm_real_coo(mpi_comm,solver,h_file,s_file)
 
    use ELSI_PRECISION, only: r8,i4
    use ELSI
@@ -22,27 +22,20 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
    character(len=*), intent(in) :: s_file
 
    integer(kind=i4) :: n_proc
-   integer(kind=i4) :: nprow
-   integer(kind=i4) :: npcol
    integer(kind=i4) :: myid
-   integer(kind=i4) :: myprow
-   integer(kind=i4) :: mypcol
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: blk
-   integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: n_states
    integer(kind=i4) :: n_basis
    integer(kind=i4) :: nnz_g
    integer(kind=i4) :: nnz_l
    integer(kind=i4) :: n_l_cols
-   integer(kind=i4) :: l_rows
-   integer(kind=i4) :: l_cols
    integer(kind=i4) :: i
-   integer(kind=i4) :: header(8)
+   integer(kind=i4) :: j
+   integer(kind=i4) :: header(8) = 0
 
    real(kind=r8) :: n_electrons
-   real(kind=r8) :: mu
-   real(kind=r8) :: weight(1)
+   real(kind=r8) :: n_test
+   real(kind=r8) :: tmp
    real(kind=r8) :: e_test = 0.0_r8
    real(kind=r8) :: e_ref = 0.0_r8
    real(kind=r8) :: tol = 0.0_r8
@@ -51,21 +44,24 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
 
    real(kind=r8), allocatable :: ham(:)
    real(kind=r8), allocatable :: ovlp(:)
-   real(kind=r8), allocatable :: evec(:,:)
-   real(kind=r8), allocatable :: eval(:)
-   real(kind=r8), allocatable :: occ(:)
+   real(kind=r8), allocatable :: dm(:)
+   real(kind=r8), allocatable :: edm(:)
 
    integer(kind=i4), allocatable :: row_ind(:)
+   integer(kind=i4), allocatable :: col_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
+
+   real(kind=r8), external :: ddot
 
    type(elsi_handle) :: eh
    type(elsi_rw_handle) :: rwh
 
    ! Reference values
    real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_omm = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
    real(kind=r8), parameter :: e_sips = -2622.88214509316_r8
-
-   integer(kind=i4), external :: numroc
+   real(kind=r8), parameter :: e_ntpoly = -2622.88214509311_r8
 
    call MPI_Comm_size(mpi_comm,n_proc,ierr)
    call MPI_Comm_rank(mpi_comm,myid,ierr)
@@ -77,29 +73,25 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
       write(*,"(2X,A)") "################################"
       write(*,*)
       if(solver == 1) then
-         write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + ELPA"
+         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + ELPA"
          e_ref = e_elpa
+      else if(solver == 2) then
+         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + libOMM"
+         e_ref = e_omm
+      else if(solver == 3) then
+         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + PEXSI"
+         e_ref = e_pexsi
+         tol = 1.0e-3_r8
       else if(solver == 5) then
-         write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + SLEPc-SIPs"
+         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + SLEPc-SIPs"
          e_ref = e_sips
-         tol = 1.0e-6_r8
+      else if(solver == 6) then
+         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + NTPoly"
+         e_ref = e_ntpoly
+         tol = 1.0e-7_r8
       end if
       write(*,*)
    end if
-
-   ! Set up square-like processor grid
-   do npcol = nint(sqrt(real(n_proc))),2,-1
-      if(mod(n_proc,npcol) == 0) exit
-   end do
-   nprow = n_proc/npcol
-
-   ! Set block size
-   blk = 32
-
-   ! Set up BLACS
-   blacs_ctxt = mpi_comm
-   call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
-   call BLACS_Gridinfo(blacs_ctxt,nprow,npcol,myprow,mypcol)
 
    ! Read H and S matrices
    call elsi_init_rw(rwh,0,1,0,0.0_r8)
@@ -109,16 +101,13 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
            n_l_cols)
    call elsi_get_rw_header(rwh,header)
 
-   l_rows = numroc(n_basis,blk,myprow,0,nprow)
-   l_cols = numroc(n_basis,blk,mypcol,0,npcol)
-
    allocate(ham(nnz_l))
    allocate(ovlp(nnz_l))
+   allocate(dm(nnz_l))
+   allocate(edm(nnz_l))
    allocate(row_ind(nnz_l))
+   allocate(col_ind(nnz_l))
    allocate(col_ptr(n_l_cols+1))
-   allocate(evec(l_rows,l_cols))
-   allocate(eval(n_basis))
-   allocate(occ(n_basis))
 
    t1 = MPI_Wtime()
 
@@ -135,25 +124,38 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
       write(*,*)
    end if
 
+   ! Convert CSC to COO
+   j = 0
+
+   do i = 1,nnz_l
+      do while(i == col_ptr(j+1) .and. j /= n_l_cols)
+         j = j+1
+      end do
+
+      col_ind(i) = j+myid*(n_basis/n_proc)
+   end do
+
    ! Initialize ELSI
    n_states = int(n_electrons,kind=i4)
-   weight(1) = 1.0_r8
 
-   call elsi_init(eh,solver,1,1,n_basis,n_electrons,n_states)
+   call elsi_init(eh,solver,1,3,n_basis,n_electrons,n_states)
    call elsi_set_mpi(eh,mpi_comm)
-   call elsi_set_csc(eh,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
-   call elsi_set_blacs(eh,blacs_ctxt,blk)
+   call elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
 
    ! Customize ELSI
    call elsi_set_output(eh,2)
    call elsi_set_output_log(eh,1)
+   call elsi_set_illcond_check(eh,0)
    call elsi_set_mu_broaden_width(eh,1.0e-6_r8)
+   call elsi_set_omm_n_elpa(eh,1)
+   call elsi_set_pexsi_delta_e(eh,80.0_r8)
+   call elsi_set_pexsi_np_per_pole(eh,2)
    call elsi_set_sips_n_elpa(eh,1)
 
    t1 = MPI_Wtime()
 
    ! Solve
-   call elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
+   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
@@ -166,7 +168,7 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
    t1 = MPI_Wtime()
 
    ! Solve again
-   call elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
+   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
@@ -179,7 +181,7 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
    t1 = MPI_Wtime()
 
    ! Solve again
-   call elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
+   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
@@ -191,13 +193,15 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
 
    ! Reinit for a new geometry
    call elsi_reinit(eh)
-   call elsi_set_csc(eh,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
+   call elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
    call elsi_set_elpa_solver(eh,1)
+   call elsi_set_omm_flavor(eh,2)
+   call elsi_set_ntpoly_method(eh,1)
 
    t1 = MPI_Wtime()
 
    ! Solve again
-   call elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
+   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
@@ -210,17 +214,17 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
    t1 = MPI_Wtime()
 
    ! Solve again
-   call elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
+   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_test)
 
    t2 = MPI_Wtime()
 
-   call elsi_compute_mu_and_occ(eh,n_electrons,n_states,1,1,weight,eval,occ,mu)
+   ! Compute energy density matrix
+   call elsi_get_edm_real_sparse(eh,edm)
 
-   e_test = 0.0_r8
+   ! Compute electron count
+   tmp = ddot(nnz_l,ovlp,1,dm,1)
 
-   do i = 1,n_states
-      e_test = e_test+eval(i)*occ(i)
-   end do
+   call MPI_Reduce(tmp,n_test,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
 
    if(myid == 0) then
       write(*,"(2X,A)") "Finished SCF #5"
@@ -233,7 +237,11 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
          write(*,"(2X,A,F15.8)") "| This test :",e_test
          write(*,"(2X,A,F15.8)") "| Reference :",e_ref
          write(*,*)
-         if(abs(e_test-e_ref) < tol) then
+         write(*,"(2X,A)") "Electron count"
+         write(*,"(2X,A,F15.8)") "| This test :",n_test
+         write(*,"(2X,A,F15.8)") "| Reference :",n_electrons
+         write(*,*)
+         if(abs(e_test-e_ref) < tol .and. abs(n_test-n_electrons) < tol) then
             write(*,"(2X,A)") "Passed."
          else
             write(*,"(2X,A)") "Failed."
@@ -247,13 +255,10 @@ subroutine test_ev_real_csc1(mpi_comm,solver,h_file,s_file)
 
    deallocate(ham)
    deallocate(ovlp)
-   deallocate(evec)
-   deallocate(eval)
-   deallocate(occ)
+   deallocate(dm)
+   deallocate(edm)
    deallocate(row_ind)
+   deallocate(col_ind)
    deallocate(col_ptr)
-
-   call BLACS_Gridexit(blacs_ctxt)
-   call BLACS_Exit(1)
 
 end subroutine

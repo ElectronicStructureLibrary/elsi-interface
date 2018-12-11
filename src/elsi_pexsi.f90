@@ -169,7 +169,6 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    real(kind=r8), intent(in) :: ovlp(bh%nnz_l_sp1)
    real(kind=r8), intent(out) :: dm(bh%nnz_l_sp1)
 
-   real(kind=r8) :: ne_drv
    real(kind=r8) :: mu_range
    real(kind=r8) :: shift_width
    real(kind=r8) :: local_energy

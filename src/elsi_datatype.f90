@@ -72,6 +72,10 @@ module ELSI_DATATYPE
       integer(kind=i4) :: blk_sp2
       logical :: siesta_csc_ready = .false.
 
+      ! Sparse matrix information (generic)
+      integer(kind=i4) :: nnz_l_sp3 ! Local number of nonzeros
+      logical :: generic_coo_ready = .false.
+
    end type
 
    type, public :: elsi_param_t
@@ -121,6 +125,9 @@ module ELSI_DATATYPE
       logical :: first_blacs_to_ntpoly
       logical :: first_blacs_to_pexsi
       logical :: first_blacs_to_sips
+      logical :: first_generic_to_blacs
+      logical :: first_generic_to_ntpoly
+      logical :: first_generic_to_pexsi
       logical :: first_siesta_to_blacs
       logical :: first_siesta_to_pexsi
       logical :: first_sips_to_blacs
@@ -196,6 +203,7 @@ module ELSI_DATATYPE
       type(Matrix_ps) :: nt_ovlp
       type(Matrix_ps) :: nt_ovlp_copy
       type(Matrix_ps) :: nt_dm
+      type(Matrix_ps) :: nt_map
       type(SolverParameters_t) :: nt_options
       type(Permutation_t) :: nt_perm
       type(ProcessGrid_t) :: nt_pgrid
@@ -220,16 +228,18 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: dm_cmplx_den(:,:)
 
       ! Sparse
-      real(kind=r8), allocatable :: ham_real_csc(:)
-      complex(kind=r8), allocatable :: ham_cmplx_csc(:)
-      real(kind=r8), allocatable :: ovlp_real_csc(:)
-      complex(kind=r8), allocatable :: ovlp_cmplx_csc(:)
-      real(kind=r8), allocatable :: dm_real_csc(:)
-      complex(kind=r8), allocatable :: dm_cmplx_csc(:)
+      real(kind=r8), allocatable :: ham_real_sp(:)
+      complex(kind=r8), allocatable :: ham_cmplx_sp(:)
+      real(kind=r8), allocatable :: ovlp_real_sp(:)
+      complex(kind=r8), allocatable :: ovlp_cmplx_sp(:)
+      real(kind=r8), allocatable :: dm_real_sp(:)
+      complex(kind=r8), allocatable :: dm_cmplx_sp(:)
       integer(kind=i4), allocatable :: row_ind_sp1(:)
       integer(kind=i4), allocatable :: col_ptr_sp1(:)
       integer(kind=i4), allocatable :: row_ind_sp2(:)
       integer(kind=i4), allocatable :: col_ptr_sp2(:)
+      integer(kind=i4), allocatable :: row_ind_sp3(:)
+      integer(kind=i4), allocatable :: col_ind_sp3(:)
 
       ! Auxiliary
       real(kind=r8), allocatable :: ovlp_real_copy(:,:)
@@ -237,6 +247,9 @@ module ELSI_DATATYPE
       real(kind=r8), allocatable :: occ(:,:,:)
       integer(kind=i4), allocatable :: row_map(:)
       integer(kind=i4), allocatable :: col_map(:)
+      integer(kind=i4), allocatable :: map_den(:,:)
+      integer(kind=i4), allocatable :: map_sp1(:)
+      integer(kind=i4), allocatable :: perm_sp3(:)
       real(kind=r8), allocatable :: omm_c_real(:,:)
       complex(kind=r8), allocatable :: omm_c_cmplx(:,:)
       real(kind=r8), allocatable :: pexsi_ne_vec(:)

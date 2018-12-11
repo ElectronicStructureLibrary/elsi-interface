@@ -10,7 +10,7 @@
 !!
 module ELSI_TOOLS
 
-   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER
+   use ELSI_CONSTANTS, only: ELPA_SOLVER
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_update_dm_elpa
    use ELSI_MALLOC, only: elsi_allocate
@@ -18,8 +18,7 @@ module ELSI_TOOLS
    use ELSI_OCC, only: elsi_mu_and_occ,elsi_entropy
    use ELSI_PRECISION, only: i4,r8
    use ELSI_REDIST, only: elsi_blacs_to_ntpoly_hs,elsi_ntpoly_to_blacs_dm
-   use ELSI_UTILS, only: elsi_check_init,elsi_set_full_mat,elsi_build_dm,&
-       elsi_build_edm,elsi_gram_schmidt
+   use ELSI_UTILS, only: elsi_check_init,elsi_gram_schmidt
 
    implicit none
 
@@ -29,10 +28,6 @@ module ELSI_TOOLS
    public :: elsi_orthonormalize_ev_complex
    public :: elsi_extrapolate_dm_real
    public :: elsi_extrapolate_dm_complex
-   public :: elsi_construct_dm_real
-   public :: elsi_construct_dm_complex
-   public :: elsi_construct_edm_real
-   public :: elsi_construct_edm_complex
    public :: elsi_compute_mu_and_occ
    public :: elsi_compute_entropy
 
@@ -87,8 +82,6 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
    real(kind=r8), intent(inout) :: ovlp(eh%bh%n_lrow,eh%bh%n_lcol) !< New overlap
    real(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
 
-   logical :: unit_ovlp_save
-
    character(len=*), parameter :: caller = "elsi_extrapolate_dm_real"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -100,7 +93,6 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
 
       eh%ovlp_real_copy = ovlp
    case default
-      unit_ovlp_save = eh%ph%unit_ovlp
       eh%ph%unit_ovlp = .true.
 
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%ph%nt_ham,eh%ph%nt_dm)
@@ -110,7 +102,7 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,dm,eh%ph%nt_ovlp,&
            eh%ph%nt_dm)
 
-      eh%ph%unit_ovlp = unit_ovlp_save
+      eh%ph%unit_ovlp = .false.
 
       call elsi_update_dm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ovlp_copy,eh%ph%nt_ovlp,&
            eh%ph%nt_ham,eh%ph%nt_dm)
@@ -131,8 +123,6 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
    complex(kind=r8), intent(inout) :: ovlp(eh%bh%n_lrow,eh%bh%n_lcol) !< New overlap
    complex(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
 
-   logical :: unit_ovlp_save
-
    character(len=*), parameter :: caller = "elsi_extrapolate_dm_complex"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -144,7 +134,6 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
 
       eh%ovlp_cmplx_copy = ovlp
    case default
-      unit_ovlp_save = eh%ph%unit_ovlp
       eh%ph%unit_ovlp = .true.
 
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%ph%nt_ham,eh%ph%nt_dm)
@@ -154,99 +143,13 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,dm,eh%ph%nt_ovlp,&
            eh%ph%nt_dm)
 
-      eh%ph%unit_ovlp = unit_ovlp_save
+      eh%ph%unit_ovlp = .false.
 
       call elsi_update_dm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ovlp_copy,eh%ph%nt_ovlp,&
            eh%ph%nt_ham,eh%ph%nt_dm)
       call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
       call CopyMatrix(eh%ph%nt_ovlp,eh%ph%nt_ovlp_copy)
    end select
-
-end subroutine
-
-!>
-!! This routine constructs density matrix from occupation numbers and
-!! eigenvectors.
-!!
-subroutine elsi_construct_dm_real(eh,occ,evec,dm)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   real(kind=r8), intent(in) :: occ(eh%ph%n_states) !< Occupation numbers
-   real(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
-   real(kind=r8), intent(out) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
-
-   character(len=*), parameter :: caller = "elsi_construct_dm_real"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,occ,evec,dm)
-
-end subroutine
-
-!>
-!! This routine constructs density matrix from occupation numbers and
-!! eigenvectors.
-!!
-subroutine elsi_construct_dm_complex(eh,occ,evec,dm)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   real(kind=r8), intent(in) :: occ(eh%ph%n_states) !< Occupation numbers
-   complex(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
-   complex(kind=r8), intent(out) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
-
-   character(len=*), parameter :: caller = "elsi_construct_dm_complex"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,occ,evec,dm)
-
-end subroutine
-
-!>
-!! This routine constructs energy-weighted density matrix from occupation
-!! numbers, eigenvalues, and eigenvectors.
-!!
-subroutine elsi_construct_edm_real(eh,occ,eval,evec,edm)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   real(kind=r8), intent(in) :: occ(eh%ph%n_states) !< Occupation numbers
-   real(kind=r8), intent(in) :: eval(eh%ph%n_states) !< Eigenvalues
-   real(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
-   real(kind=r8), intent(out) :: edm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
-
-   character(len=*), parameter :: caller = "elsi_construct_dm_real"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,occ,eval,evec,edm)
-
-end subroutine
-
-!>
-!! This routine constructs energy-weighted density matrix from occupation
-!! numbers, eigenvalues, and eigenvectors.
-!!
-subroutine elsi_construct_edm_complex(eh,occ,eval,evec,edm)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   real(kind=r8), intent(in) :: occ(eh%ph%n_states) !< Occupation numbers
-   real(kind=r8), intent(in) :: eval(eh%ph%n_states) !< Eigenvalues
-   complex(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
-   complex(kind=r8), intent(out) :: edm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
-
-   character(len=*), parameter :: caller = "elsi_construct_dm_complex"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,occ,eval,evec,edm)
 
 end subroutine
 

@@ -197,6 +197,25 @@ subroutine elsi_set_csc_c_wrapper(h_c,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)&
 
 end subroutine
 
+subroutine elsi_set_coo_c_wrapper(h_c,nnz_g,nnz_l,row_ind,col_ind)&
+   bind(C,name="c_elsi_set_coo")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: nnz_g
+   integer(kind=c_int), value, intent(in) :: nnz_l
+   integer(kind=c_int), intent(in) :: row_ind(nnz_l)
+   integer(kind=c_int), intent(in) :: col_ind(nnz_l)
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_coo(h_f,nnz_g,nnz_l,row_ind,col_ind)
+
+end subroutine
+
 subroutine elsi_reinit_c_wrapper(h_c)&
    bind(C,name="c_elsi_reinit")
 
@@ -1614,144 +1633,6 @@ subroutine elsi_extrapolate_dm_complex_c_wrapper(h_c,ovlp_c,dm_c)&
    call c_f_pointer(dm_c,dm_f,shape=[lrow,lcol])
 
    call elsi_extrapolate_dm_complex(h_f,ovlp_f,dm_f)
-
-end subroutine
-
-subroutine elsi_construct_dm_real_c_wrapper(h_c,occ_c,evec_c,dm_c)&
-   bind(C,name="c_elsi_construct_dm_real")
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   type(c_ptr), value, intent(in) :: occ_c
-   type(c_ptr), value, intent(in) :: evec_c
-   type(c_ptr), value, intent(in) :: dm_c
-
-   type(elsi_handle), pointer :: h_f
-   real(kind=c_double), pointer :: occ_f(:)
-   real(kind=c_double), pointer :: evec_f(:,:)
-   real(kind=c_double), pointer :: dm_f(:,:)
-
-   integer(kind=c_int) :: n_state
-   integer(kind=c_int) :: lrow
-   integer(kind=c_int) :: lcol
-
-   call c_f_pointer(h_c,h_f)
-
-   n_state = h_f%ph%n_states
-   lrow = h_f%bh%n_lrow
-   lcol = h_f%bh%n_lcol
-
-   call c_f_pointer(occ_c,occ_f,shape=[n_state])
-   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
-   call c_f_pointer(dm_c,dm_f,shape=[lrow,lcol])
-
-   call elsi_construct_dm_real(h_f,occ_f,evec_f,dm_f)
-
-end subroutine
-
-subroutine elsi_construct_dm_complex_c_wrapper(h_c,occ_c,evec_c,dm_c)&
-   bind(C,name="c_elsi_construct_dm_complex")
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   type(c_ptr), value, intent(in) :: occ_c
-   type(c_ptr), value, intent(in) :: evec_c
-   type(c_ptr), value, intent(in) :: dm_c
-
-   type(elsi_handle), pointer :: h_f
-   real(kind=c_double), pointer :: occ_f(:)
-   complex(kind=c_double), pointer :: evec_f(:,:)
-   complex(kind=c_double), pointer :: dm_f(:,:)
-
-   integer(kind=c_int) :: n_state
-   integer(kind=c_int) :: lrow
-   integer(kind=c_int) :: lcol
-
-   call c_f_pointer(h_c,h_f)
-
-   n_state = h_f%ph%n_states
-   lrow = h_f%bh%n_lrow
-   lcol = h_f%bh%n_lcol
-
-   call c_f_pointer(occ_c,occ_f,shape=[n_state])
-   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
-   call c_f_pointer(dm_c,dm_f,shape=[lrow,lcol])
-
-   call elsi_construct_dm_complex(h_f,occ_f,evec_f,dm_f)
-
-end subroutine
-
-subroutine elsi_construct_edm_real_c_wrapper(h_c,occ_c,eval_c,evec_c,edm_c)&
-   bind(C,name="c_elsi_construct_edm_real")
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   type(c_ptr), value, intent(in) :: occ_c
-   type(c_ptr), value, intent(in) :: eval_c
-   type(c_ptr), value, intent(in) :: evec_c
-   type(c_ptr), value, intent(in) :: edm_c
-
-   type(elsi_handle), pointer :: h_f
-   real(kind=c_double), pointer :: occ_f(:)
-   real(kind=c_double), pointer :: eval_f(:)
-   real(kind=c_double), pointer :: evec_f(:,:)
-   real(kind=c_double), pointer :: edm_f(:,:)
-
-   integer(kind=c_int) :: n_state
-   integer(kind=c_int) :: lrow
-   integer(kind=c_int) :: lcol
-
-   call c_f_pointer(h_c,h_f)
-
-   n_state = h_f%ph%n_states
-   lrow = h_f%bh%n_lrow
-   lcol = h_f%bh%n_lcol
-
-   call c_f_pointer(occ_c,occ_f,shape=[n_state])
-   call c_f_pointer(eval_c,eval_f,shape=[n_state])
-   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
-   call c_f_pointer(edm_c,edm_f,shape=[lrow,lcol])
-
-   call elsi_construct_edm_real(h_f,occ_f,eval_f,evec_f,edm_f)
-
-end subroutine
-
-subroutine elsi_construct_edm_complex_c_wrapper(h_c,occ_c,eval_c,evec_c,edm_c)&
-   bind(C,name="c_elsi_construct_edm_complex")
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   type(c_ptr), value, intent(in) :: occ_c
-   type(c_ptr), value, intent(in) :: eval_c
-   type(c_ptr), value, intent(in) :: evec_c
-   type(c_ptr), value, intent(in) :: edm_c
-
-   type(elsi_handle), pointer :: h_f
-   real(kind=c_double), pointer :: occ_f(:)
-   real(kind=c_double), pointer :: eval_f(:)
-   complex(kind=c_double), pointer :: evec_f(:,:)
-   complex(kind=c_double), pointer :: edm_f(:,:)
-
-   integer(kind=c_int) :: n_state
-   integer(kind=c_int) :: lrow
-   integer(kind=c_int) :: lcol
-
-   call c_f_pointer(h_c,h_f)
-
-   n_state = h_f%ph%n_states
-   lrow = h_f%bh%n_lrow
-   lcol = h_f%bh%n_lcol
-
-   call c_f_pointer(occ_c,occ_f,shape=[n_state])
-   call c_f_pointer(eval_c,eval_f,shape=[n_state])
-   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
-   call c_f_pointer(edm_c,edm_f,shape=[lrow,lcol])
-
-   call elsi_construct_edm_complex(h_f,occ_f,eval_f,evec_f,edm_f)
 
 end subroutine
 
