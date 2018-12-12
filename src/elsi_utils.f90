@@ -459,14 +459,14 @@ end subroutine
 !>
 !! This routine counts the number of non_zero elements in a matrix.
 !!
-subroutine elsi_get_nnz_real(def0,mat,n_row,n_col,nnz)
+subroutine elsi_get_nnz_real(def0,n_row,n_col,mat,nnz)
 
    implicit none
 
    real(kind=r8), intent(in) :: def0
-   real(kind=r8), intent(in) :: mat(n_row,n_col)
    integer(kind=i4), intent(in) :: n_row
    integer(kind=i4), intent(in) :: n_col
+   real(kind=r8), intent(in) :: mat(n_row,n_col)
    integer(kind=i4), intent(out) :: nnz
 
    integer(kind=i4) :: i_row
@@ -489,14 +489,14 @@ end subroutine
 !>
 !! This routine counts the number of non_zero elements in a matrix.
 !!
-subroutine elsi_get_nnz_cmplx(def0,mat,n_row,n_col,nnz)
+subroutine elsi_get_nnz_cmplx(def0,n_row,n_col,mat,nnz)
 
    implicit none
 
    real(kind=r8), intent(in) :: def0
-   complex(kind=r8), intent(in) :: mat(n_row,n_col)
    integer(kind=i4), intent(in) :: n_row
    integer(kind=i4), intent(in) :: n_col
+   complex(kind=r8), intent(in) :: mat(n_row,n_col)
    integer(kind=i4), intent(out) :: nnz
 
    integer(kind=i4) :: i_row

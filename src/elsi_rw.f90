@@ -17,7 +17,7 @@ module ELSI_RW
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: mpi_sum,mpi_real8,mpi_complex16,mpi_integer4,&
        mpi_mode_rdonly,mpi_mode_wronly,mpi_mode_create,mpi_info_null,&
-       mpi_status_ignore,mpi_success,elsi_stop,elsi_check_mpi
+       mpi_status_ignore,elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_REDIST, only: elsi_sips_to_blacs_dm,elsi_blacs_to_sips_hs,&
        elsi_blacs_to_sips_hs_dim
@@ -1647,7 +1647,7 @@ subroutine elsi_write_mat_real_sp(rwh,f_name,mat)
    character(len=*), parameter :: caller = "elsi_write_mat_real_sp"
 
    ! Compute nnz
-   call elsi_get_nnz(rwh%bh%def0,mat,rwh%bh%n_lrow,rwh%bh%n_lcol,nnz_g)
+   call elsi_get_nnz(rwh%bh%def0,rwh%bh%n_lrow,rwh%bh%n_lcol,mat,nnz_g)
 
    ! Convert to CSC
    call elsi_allocate(rwh%bh,col_ptr,rwh%n_basis+1,"col_ptr",caller)
@@ -1738,7 +1738,7 @@ subroutine elsi_write_mat_complex_sp(rwh,f_name,mat)
    character(len=*), parameter :: caller = "elsi_write_mat_complex_sp"
 
    ! Compute nnz
-   call elsi_get_nnz(rwh%bh%def0,mat,rwh%bh%n_lrow,rwh%bh%n_lcol,nnz_g)
+   call elsi_get_nnz(rwh%bh%def0,rwh%bh%n_lrow,rwh%bh%n_lcol,mat,nnz_g)
 
    ! Convert to CSC
    call elsi_allocate(rwh%bh,col_ptr,rwh%n_basis+1,"col_ptr",caller)

@@ -13,7 +13,7 @@ module ELSI_REDIST
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_real8,mpi_complex16,&
-       mpi_integer4,mpi_comm_self
+       mpi_integer4
    use ELSI_NTPOLY, only: Triplet_r,Triplet_c,TripletList_r,TripletList_c,&
        Matrix_ps,ConstructEmptyMatrix,FillMatrixFromTripletList,&
        GetMatrixTripletList,ConstructTripletList,AppendToTripletList,&
@@ -438,11 +438,11 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 
    if(ph%first_blacs_to_pexsi) then
       if(.not. ph%unit_ovlp) then
-         call elsi_get_nnz(bh%def0,ovlp_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ovlp_den,bh%nnz_l)
 
          call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
       else
-         call elsi_get_nnz(bh%def0,ham_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham_den,bh%nnz_l)
       end if
    end if
 
@@ -767,11 +767,11 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 
    if(ph%first_blacs_to_pexsi) then
       if(.not. ph%unit_ovlp) then
-         call elsi_get_nnz(bh%def0,ovlp_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ovlp_den,bh%nnz_l)
 
          call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
       else
-         call elsi_get_nnz(bh%def0,ham_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham_den,bh%nnz_l)
       end if
    end if
 
@@ -1579,11 +1579,11 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 
    if(ph%first_blacs_to_sips) then
       if(.not. ph%unit_ovlp) then
-         call elsi_get_nnz(bh%def0,ovlp_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ovlp_den,bh%nnz_l)
 
          call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
       else
-         call elsi_get_nnz(bh%def0,ham_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham_den,bh%nnz_l)
       end if
    end if
 
@@ -1801,11 +1801,11 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 
    if(ph%first_blacs_to_sips) then
       if(.not. ph%unit_ovlp) then
-         call elsi_get_nnz(bh%def0,ovlp_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ovlp_den,bh%nnz_l)
 
          call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
       else
-         call elsi_get_nnz(bh%def0,ham_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham_den,bh%nnz_l)
       end if
    end if
 
@@ -2615,7 +2615,7 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
 
    call elsi_get_time(t0)
 
-   call elsi_get_nnz(bh%def0,dm_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+   call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,dm_den,bh%nnz_l)
 
    call elsi_allocate(bh,val_send,bh%nnz_l,"val_send",caller)
    call elsi_allocate(bh,row_send,bh%nnz_l,"row_send",caller)
@@ -2771,7 +2771,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
 
    call elsi_get_time(t0)
 
-   call elsi_get_nnz(bh%def0,dm_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+   call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,dm_den,bh%nnz_l)
 
    call elsi_allocate(bh,val_send,bh%nnz_l,"val_send",caller)
    call elsi_allocate(bh,row_send,bh%nnz_l,"row_send",caller)
@@ -3351,7 +3351,7 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,dm_den,dm_sp,row_ind,col_ptr)
 
    call elsi_get_time(t0)
 
-   call elsi_get_nnz(bh%def0,dm_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+   call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,dm_den,bh%nnz_l)
 
    call elsi_allocate(bh,dest,bh%nnz_l,"dest",caller)
    call elsi_allocate(bh,perm,bh%nnz_l,"perm",caller)
@@ -3517,7 +3517,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,dm_den,dm_sp,row_ind,col_ptr)
 
    call elsi_get_time(t0)
 
-   call elsi_get_nnz(bh%def0,dm_den,bh%n_lrow,bh%n_lcol,bh%nnz_l)
+   call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,dm_den,bh%nnz_l)
 
    call elsi_allocate(bh,dest,bh%nnz_l,"dest",caller)
    call elsi_allocate(bh,perm,bh%nnz_l,"perm",caller)

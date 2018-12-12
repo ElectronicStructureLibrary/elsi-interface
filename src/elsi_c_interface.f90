@@ -410,13 +410,11 @@ subroutine elsi_dm_real_c_wrapper(h_c,ham_c,ovlp_c,dm_c,energy)&
    real(kind=c_double), pointer :: ovlp_f(:,:)
    real(kind=c_double), pointer :: dm_f(:,:)
 
-   integer(kind=c_int) :: n_basis
    integer(kind=c_int) :: lrow
    integer(kind=c_int) :: lcol
 
    call c_f_pointer(h_c,h_f)
 
-   n_basis = h_f%ph%n_basis
    lrow = h_f%bh%n_lrow
    lcol = h_f%bh%n_lcol
 
@@ -444,13 +442,11 @@ subroutine elsi_dm_complex_c_wrapper(h_c,ham_c,ovlp_c,dm_c,energy)&
    complex(kind=c_double_complex), pointer :: ovlp_f(:,:)
    complex(kind=c_double_complex), pointer :: dm_f(:,:)
 
-   integer(kind=c_int) :: n_basis
    integer(kind=c_int) :: lrow
    integer(kind=c_int) :: lcol
 
    call c_f_pointer(h_c,h_f)
 
-   n_basis = h_f%ph%n_basis
    lrow = h_f%bh%n_lrow
    lcol = h_f%bh%n_lcol
 

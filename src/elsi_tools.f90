@@ -13,8 +13,7 @@ module ELSI_TOOLS
    use ELSI_CONSTANTS, only: ELPA_SOLVER
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_update_dm_elpa
-   use ELSI_MALLOC, only: elsi_allocate
-   use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_update_dm_ntpoly,CopyMatrix
+   use ELSI_NTPOLY, only: elsi_update_dm_ntpoly,CopyMatrix
    use ELSI_OCC, only: elsi_mu_and_occ,elsi_entropy
    use ELSI_PRECISION, only: i4,r8
    use ELSI_REDIST, only: elsi_blacs_to_ntpoly_hs,elsi_ntpoly_to_blacs_dm
