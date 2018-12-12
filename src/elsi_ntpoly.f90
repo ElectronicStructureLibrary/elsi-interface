@@ -13,7 +13,6 @@ module ELSI_NTPOLY
        NTPOLY_HPCP
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
-   use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_check_mpi,mpi_logical
    use ELSI_PRECISION, only: r8,i4
    use NTPOLY, only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,LowdinExtrapolate,&
@@ -227,7 +226,6 @@ subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
    type(Matrix_ps), intent(inout) :: dm0
    type(Matrix_ps), intent(inout) :: dm1
 
-   integer(kind=i4) :: ne
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    character(len=200) :: msg
@@ -235,8 +233,6 @@ subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
    character(len=*), parameter :: caller = "elsi_update_dm_ntpoly"
 
    call elsi_get_time(t0)
-
-   ne = int(ph%n_electrons,kind=i4)
 
    if(ph%solver /= NTPOLY_SOLVER) then
       call DestructPermutation(ph%nt_perm)

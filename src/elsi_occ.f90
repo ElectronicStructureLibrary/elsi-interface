@@ -11,7 +11,7 @@ module ELSI_OCC
 
    use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON,COLD,CUBIC,&
        SQRT_PI,INVERT_SQRT_PI
-   use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
+   use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8

@@ -11,10 +11,10 @@ module ELSI_SETUP
 
    use ELSI_CONSTANTS, only: ELPA_SOLVER,PEXSI_SOLVER,SINGLE_PROC,MULTI_PROC,&
        PEXSI_CSC,SIESTA_CSC,UNSET
-   use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
+   use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_cleanup_elpa
-   use ELSI_IO, only: elsi_say,elsi_final_print,fjson_close_file,&
-       fjson_finish_array,fjson_reset_fj_handle
+   use ELSI_IO, only: elsi_final_print,fjson_close_file,fjson_finish_array,&
+       fjson_reset_fj_handle
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_NTPOLY, only: elsi_cleanup_ntpoly
    use ELSI_OMM, only: elsi_cleanup_omm
