@@ -3327,9 +3327,9 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       use precision
       implicit none
 
-      real(kind=rk8)     :: g_col(nlen), l_col(*) ! chnage this to proper 2d 1d matching ! remove assumed size
       integer(kind=ik)  :: noff, nlen, my_prow, np_rows, nblk
 
+      real(kind=rk8)     :: g_col(nlen), l_col(*) ! chnage this to proper 2d 1d matching ! remove assumed size
       integer(kind=ik)  :: nbs, nbe, jb, g_off, l_off, js, je
 
       nbs = noff/(nblk*np_rows)

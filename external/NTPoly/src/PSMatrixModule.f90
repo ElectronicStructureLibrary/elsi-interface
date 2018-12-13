@@ -381,7 +381,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ELSE
        !! Setup Involves Just The Root Opening And Reading Parameter Data
        CALL StartTimer("MPI Read Text")
-       bytes_per_character = sizeof(temp_char)
+       bytes_per_character = c_sizeof(temp_char)
        IF (IsRoot(process_grid_in)) THEN
           header_length = 0
           local_file_handler = 16
@@ -720,8 +720,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL MergeMatrixLocalBlocks(this, merged_local_data)
 
   !! Determine Write Location
-  bytes_per_int = sizeof(temp_int)
-  bytes_per_data = sizeof(temp_data)
+  bytes_per_int = c_sizeof(temp_int)
+  bytes_per_data = c_sizeof(temp_data)
   header_size = bytes_per_int*4
   ALLOCATE(local_values_buffer(this%process_grid%slice_size))
   CALL MPI_Allgather(SIZE(merged_local_data%values), 1, MPINTINTEGER,&
@@ -805,8 +805,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL MergeMatrixLocalBlocks(this, merged_local_data)
 
   !! Determine Write Location
-  bytes_per_int = sizeof(temp_int)
-  bytes_per_data = sizeof(temp_data)
+  bytes_per_int = c_sizeof(temp_int)
+  bytes_per_data = c_sizeof(temp_data)
   header_size = bytes_per_int*4
   ALLOCATE(local_values_buffer(this%process_grid%slice_size))
   CALL MPI_Allgather(SIZE(merged_local_data%values), 1, MPINTINTEGER,&
@@ -914,7 +914,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Merge all the local data
   CALL MergeMatrixLocalBlocks(this, merged_local_data)
 
-  bytes_per_character = sizeof(temp_char)
+  bytes_per_character = c_sizeof(temp_char)
 
   !! Create the matrix size line
   NEW_LINE_LENGTH = LEN(new_line('A'))
@@ -1047,7 +1047,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Merge all the local data
   CALL MergeMatrixLocalBlocks(this, merged_local_data)
 
-  bytes_per_character = sizeof(temp_char)
+  bytes_per_character = c_sizeof(temp_char)
 
   !! Create the matrix size line
   NEW_LINE_LENGTH = LEN(new_line('A'))

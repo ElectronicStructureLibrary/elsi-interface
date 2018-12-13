@@ -69,12 +69,12 @@ subroutine qr_pdlarfb_1dcomm_double(m,mb,n,k,a,lda,v,ldv,tau,t,ldt,baseidx,idx,r
 
     implicit none
 
+! input variables (global)
+    integer(kind=ik)  :: m,mb,n,k,baseidx,idx,rev,mpicomm
+
 ! input variables (local)
     integer(kind=ik)  :: lda,ldv,ldt,lwork
     real(kind=rk8)     :: a(lda,*),v(ldv,*),tau(*),t(ldt,*),work(k,*)
-
-! input variables (global)
-    integer(kind=ik)  :: m,mb,n,k,baseidx,idx,rev,mpicomm
 
 ! output variables (global)
 
@@ -143,12 +143,12 @@ subroutine qr_pdlarft_pdlarfb_1dcomm_double(m,mb,n,oldk,k,v,ldv,tau,t,ldt,a,lda,
 
     implicit none
 
+! input variables (global)
+    integer(kind=ik)  :: m,mb,n,k,oldk,baseidx,rev,mpicomm
+
 ! input variables (local)
     integer(kind=ik)  :: ldv,ldt,lda,lwork
     real(kind=rk8)     :: v(ldv,*),tau(*),t(ldt,*),work(k,*),a(lda,*)
-
-! input variables (global)
-    integer(kind=ik)  :: m,mb,n,k,oldk,baseidx,rev,mpicomm
 
 ! output variables (global)
 
@@ -234,12 +234,12 @@ subroutine qr_pdlarft_set_merge_1dcomm_double(m,mb,n,blocksize,v,ldv,t,ldt,basei
 
     implicit none
 
+! input variables (global)
+    integer(kind=ik)  :: m,mb,n,blocksize,baseidx,rev,mpicomm
+
 ! input variables (local)
     integer(kind=ik)  :: ldv,ldt,lwork
     real(kind=rk8)     :: v(ldv,*),t(ldt,*),work(n,*)
-
-! input variables (global)
-    integer(kind=ik)  :: m,mb,n,blocksize,baseidx,rev,mpicomm
 
 ! output variables (global)
 
@@ -287,12 +287,12 @@ subroutine qr_pdlarft_tree_merge_1dcomm_double(m,mb,n,blocksize,treeorder,v,ldv,
 
     implicit none
 
+! input variables (global)
+    integer(kind=ik) :: m,mb,n,blocksize,treeorder,baseidx,rev,mpicomm
+
 ! input variables (local)
     integer(kind=ik) :: ldv,ldt,lwork
     real(kind=rk8)    :: v(ldv,*),t(ldt,*),work(n,*)
-
-! input variables (global)
-    integer(kind=ik) :: m,mb,n,blocksize,treeorder,baseidx,rev,mpicomm
 
 ! output variables (global)
 
