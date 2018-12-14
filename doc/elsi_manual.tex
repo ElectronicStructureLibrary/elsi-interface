@@ -1139,7 +1139,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \textcolor{blue}{output\_log}         & integer            & 0          & If not 0, a separate log file in JSON format will be written out.\\
 \hline
-\textcolor{blue}{save\_ovlp }         & integer            & 0          & If not 0, the overlap matrix will be saved and used to extrapolate density matrix or orthonormalize eigenvectors.\\
+\textcolor{blue}{save\_ovlp }         & integer            & 0          & If not 0, the overlap matrix will be saved for extrapolation of density matrix or eigenvectors to a new geometry.\\
 \hline
 \textcolor{blue}{unit\_ovlp }         & integer            & 0          & If not 0, the overlap matrix will be treated as an identity (unit) matrix in ELSI and the solvers.  See remark 1.\\
 \hline
@@ -1476,11 +1476,11 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \textbf{1)} Please refer to the 7$^\text{th}$ remark in \ref{subsec:setter_pexsi} for the chemical potential determination algorithm in PEXSI and ELSI.
 
-\subsection{Eigenvector orthonormalization and density matrix extrapolation}
+\subsection{Extrapolation of wavefunction and density matrix}
 \label{subsec:extrapolation}
-In a single point total energy calculation, a simple way to construct an initial guess of the electron density is using the superposition of free atom densities.  In geometry calculations, the initial guess in the (n+1)$^\text{th}$ geometry step can be made better than free atom superposition, by taking advantage of eigensolution or density matrix in the n$^\text{th}$ geometry step.  However, due to the movement of localized basis functions, eigenvectors from the n$^\text{th}$ geometry step are no longer orthonormalized with respect to new basis functions in the (n+1)$^\text{th}$ geometry step.  Similarly, density matrix from the n$^\text{th}$ geometry step does not satisfy the conditions in Eq. \ref{eq:density_matrix_conditions} with respect to the new overlap matrix.
+In a single point total energy calculation, a simple way to construct an initial guess of the electron density is using the superposition of free atom densities.  In geometry calculations, the initial guess in the (n+1)$^\text{th}$ geometry step can be made better than free atom superposition, by reusing the wavefunctions or density matrix calculated in the n$^\text{th}$ geometry step.  However, due to the movement of atoms and localized basis functions around them, wavefunctions obtained in the n$^\text{th}$ geometry step are no longer orthonormalized in the (n+1)$^\text{th}$ geometry step.  Similarly, density matrix from the n$^\text{th}$ geometry step does not satisfy the conditions in Eq. \ref{eq:density_matrix_conditions} with respect to the new overlap matrix.
 
-The following subroutines orthonormalize eigenvectors in the n$^\text{th}$ geometry step with respect to the overlap matrix in the (n+1)$^\text{th}$ geometry step with a Gram-Schmidt algorithm.
+The following subroutines orthonormalize eigenvectors (coefficients of wavefunctions) in the n$^\text{th}$ geometry step with respect to the overlap matrix in the (n+1)$^\text{th}$ geometry step with a Gram-Schmidt algorithm.
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_orthonormalize\_ev\_real}(handle, ovlp, evec)]
 \end{labeling}
