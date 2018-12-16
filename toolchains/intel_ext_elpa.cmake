@@ -12,6 +12,6 @@ SET(USE_EXTERNAL_ELPA ON CACHE BOOL "Use external ELPA")
 SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
 SET(ENABLE_TESTS ON CACHE BOOL "Enable Fortran tests")
 
-SET(INC_PATHS "/home/wy29/opt/elpa-2018.05.001/include" CACHE STRING "Include paths")
+SET(INC_PATHS "/home/wy29/opt/elpa-2018.05.001/include" CACHE STRING "External library include paths")
 SET(LIB_PATHS "$ENV{MKLROOT}/lib/intel64 /home/wy29/opt/elpa-2018.05.001/lib" CACHE STRING "External library paths")
 SET(LIBS "elpa mkl_scalapack_lp64 mkl_blacs_intelmpi_lp64 mkl_intel_lp64 mkl_sequential mkl_core" CACHE STRING "External libraries")
