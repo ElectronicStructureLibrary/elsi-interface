@@ -10,6 +10,10 @@ LIST(APPEND fortjson_src
 
 ADD_LIBRARY(fortjson ${fortjson_src})
 
+TARGET_INCLUDE_DIRECTORIES(fortjson PRIVATE
+  ${INC_PATHS}
+  ${CMAKE_Fortran_MODULE_DIRECTORY})
+
 INSTALL(TARGETS fortjson
   EXPORT elsiConfig
   DESTINATION ${CMAKE_INSTALL_LIBDIR})

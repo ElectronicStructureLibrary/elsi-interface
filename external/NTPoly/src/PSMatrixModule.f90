@@ -28,8 +28,8 @@ MODULE PSMatrixModule
        & DestructTripletList, SortTripletList, AppendToTripletList, &
        & SymmetrizeTripletList, GetTripletAt, RedistributeTripletLists, &
        & ShiftTripletList
-  USE ISO_C_BINDING
   USE NTMPIModule
+  USE, INTRINSIC :: ISO_C_BINDING
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -367,7 +367,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Temporary Variables
     REAL(NTREAL) :: realval, cval
     INTEGER :: bytes_per_character
-    CHARACTER(len=1) :: temp_char
     LOGICAL :: found_comment_line
     INTEGER :: mpi_status(MPI_STATUS_SIZE)
     INTEGER :: full_buffer_counter
@@ -381,7 +380,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ELSE
        !! Setup Involves Just The Root Opening And Reading Parameter Data
        CALL StartTimer("MPI Read Text")
-       bytes_per_character = c_sizeof(temp_char)
+       CALL MPI_Type_size(MPI_CHARACTER, bytes_per_character, ierr)
        IF (IsRoot(process_grid_in)) THEN
           header_length = 0
           local_file_handler = 16
@@ -700,7 +699,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(TripletList_r) :: triplet_list
     TYPE(Matrix_lsr) :: merged_local_data
-    REAL(NTREAL) :: temp_data
 
   !! Local Data
   INTEGER, DIMENSION(:), ALLOCATABLE :: local_values_buffer
@@ -708,8 +706,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER(KIND=MPI_OFFSET_KIND) :: header_size
   INTEGER(KIND=MPI_OFFSET_KIND) :: write_offset
   !! Temporary Variables
-  INTEGER :: temp_int
-  INTEGER :: bytes_per_int, bytes_per_data
+  INTEGER :: bytes_per_int, bytes_per_entry
   INTEGER, DIMENSION(4) :: header_buffer
   INTEGER :: mpi_status(MPI_STATUS_SIZE)
   INTEGER(KIND=MPI_OFFSET_KIND) :: zero_offset = 0
@@ -720,8 +717,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL MergeMatrixLocalBlocks(this, merged_local_data)
 
   !! Determine Write Location
-  bytes_per_int = c_sizeof(temp_int)
-  bytes_per_data = c_sizeof(temp_data)
+  CALL MPI_Type_size(MPINTINTEGER, bytes_per_int, ierr)
+  CALL MPI_Type_extent(triplet_mpi_type, bytes_per_entry, ierr)
   header_size = bytes_per_int*4
   ALLOCATE(local_values_buffer(this%process_grid%slice_size))
   CALL MPI_Allgather(SIZE(merged_local_data%values), 1, MPINTINTEGER,&
@@ -731,7 +728,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   write_offset = write_offset + header_size
   DO counter = 1,this%process_grid%within_slice_rank
      write_offset = write_offset + &
-          & local_values_buffer(counter)*(bytes_per_int*2+bytes_per_data*1)
+          & local_values_buffer(counter)*(bytes_per_entry)
   END DO
 
   !! Write The File
@@ -785,7 +782,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(TripletList_c) :: triplet_list
     TYPE(Matrix_lsc) :: merged_local_data
-    COMPLEX(NTCOMPLEX) :: temp_data
 
   !! Local Data
   INTEGER, DIMENSION(:), ALLOCATABLE :: local_values_buffer
@@ -793,8 +789,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER(KIND=MPI_OFFSET_KIND) :: header_size
   INTEGER(KIND=MPI_OFFSET_KIND) :: write_offset
   !! Temporary Variables
-  INTEGER :: temp_int
-  INTEGER :: bytes_per_int, bytes_per_data
+  INTEGER :: bytes_per_int, bytes_per_entry
   INTEGER, DIMENSION(4) :: header_buffer
   INTEGER :: mpi_status(MPI_STATUS_SIZE)
   INTEGER(KIND=MPI_OFFSET_KIND) :: zero_offset = 0
@@ -805,8 +800,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL MergeMatrixLocalBlocks(this, merged_local_data)
 
   !! Determine Write Location
-  bytes_per_int = c_sizeof(temp_int)
-  bytes_per_data = c_sizeof(temp_data)
+  CALL MPI_Type_size(MPINTINTEGER, bytes_per_int, ierr)
+  CALL MPI_Type_extent(triplet_mpi_type, bytes_per_entry, ierr)
   header_size = bytes_per_int*4
   ALLOCATE(local_values_buffer(this%process_grid%slice_size))
   CALL MPI_Allgather(SIZE(merged_local_data%values), 1, MPINTINTEGER,&
@@ -816,7 +811,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   write_offset = write_offset + header_size
   DO counter = 1,this%process_grid%within_slice_rank
      write_offset = write_offset + &
-          & local_values_buffer(counter)*(bytes_per_int*2+bytes_per_data*1)
+          & local_values_buffer(counter)*(bytes_per_entry)
   END DO
 
   !! Write The File
@@ -908,13 +903,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CHARACTER(len=MAX_LINE_LENGTH) :: temp_string2
   INTEGER :: temp_length
   INTEGER :: bytes_per_character
-  CHARACTER(len=1) :: temp_char
   INTEGER :: ierr
 
   !! Merge all the local data
   CALL MergeMatrixLocalBlocks(this, merged_local_data)
 
-  bytes_per_character = c_sizeof(temp_char)
+  CALL MPI_Type_size(MPI_CHARACTER, bytes_per_character, ierr)
 
   !! Create the matrix size line
   NEW_LINE_LENGTH = LEN(new_line('A'))
@@ -974,8 +968,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   write_offset = 0
   write_offset = write_offset + header_size
   DO counter = 1,this%process_grid%within_slice_rank
-     write_offset = write_offset + &
-          & local_values_buffer(counter)
+     write_offset = write_offset + local_values_buffer(counter)
   END DO
 
   !! Global Write
@@ -988,10 +981,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      IF (this%process_grid%within_slice_rank .EQ. 0) THEN
         header_offset = 0
         CALL MPI_File_write_at(mpi_file_handler,header_offset,header_line1, &
-             & LEN(header_line1), MPI_CHARACTER,mpi_status,ierr)
+             & LEN(header_line1), MPI_CHARACTER, mpi_status,ierr)
         header_offset = header_offset + LEN(header_line1)
         CALL MPI_File_write_at(mpi_file_handler,header_offset,header_line2, &
-             & LEN(header_line2), MPI_CHARACTER,mpi_status,ierr)
+             & LEN(header_line2), MPI_CHARACTER, mpi_status,ierr)
      END IF
      !! Write Local Data
      CALL MPI_File_set_view(mpi_file_handler,write_offset,MPI_CHARACTER,&
@@ -1041,13 +1034,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CHARACTER(len=MAX_LINE_LENGTH) :: temp_string2
   INTEGER :: temp_length
   INTEGER :: bytes_per_character
-  CHARACTER(len=1) :: temp_char
   INTEGER :: ierr
 
   !! Merge all the local data
   CALL MergeMatrixLocalBlocks(this, merged_local_data)
 
-  bytes_per_character = c_sizeof(temp_char)
+  CALL MPI_Type_size(MPI_CHARACTER, bytes_per_character, ierr)
 
   !! Create the matrix size line
   NEW_LINE_LENGTH = LEN(new_line('A'))
@@ -1109,8 +1101,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   write_offset = 0
   write_offset = write_offset + header_size
   DO counter = 1,this%process_grid%within_slice_rank
-     write_offset = write_offset + &
-          & local_values_buffer(counter)
+     write_offset = write_offset + local_values_buffer(counter)
   END DO
 
   !! Global Write
@@ -1123,10 +1114,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      IF (this%process_grid%within_slice_rank .EQ. 0) THEN
         header_offset = 0
         CALL MPI_File_write_at(mpi_file_handler,header_offset,header_line1, &
-             & LEN(header_line1), MPI_CHARACTER,mpi_status,ierr)
+             & LEN(header_line1), MPI_CHARACTER, mpi_status,ierr)
         header_offset = header_offset + LEN(header_line1)
         CALL MPI_File_write_at(mpi_file_handler,header_offset,header_line2, &
-             & LEN(header_line2), MPI_CHARACTER,mpi_status,ierr)
+             & LEN(header_line2), MPI_CHARACTER, mpi_status,ierr)
      END IF
      !! Write Local Data
      CALL MPI_File_set_view(mpi_file_handler,write_offset,MPI_CHARACTER,&

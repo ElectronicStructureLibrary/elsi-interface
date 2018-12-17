@@ -3,6 +3,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> Module for load balancing the matrix multiplication calculation.
 MODULE PermutationModule
+  USE DataTypesModule, ONLY : NTREAL
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -72,7 +73,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     INTEGER :: counter
     INTEGER :: random_integer
-    REAL(KIND=8) :: rand_temp
+    REAL(KIND=NTREAL) :: rand_temp
     INTEGER :: swap_space
     INTEGER, DIMENSION(:), ALLOCATABLE :: seed
     INTEGER :: seed_size
@@ -114,7 +115,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     INTEGER :: counter
     INTEGER :: random_integer
-    REAL(KIND=8) :: rand_temp
+    REAL(KIND=NTREAL) :: rand_temp
     INTEGER :: swap_space
     INTEGER, DIMENSION(:), ALLOCATABLE :: seed
     INTEGER :: seed_size

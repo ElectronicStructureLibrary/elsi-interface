@@ -278,7 +278,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> matAT = matA^T.
     TYPE(Matrix_ldr), INTENT(INOUT) :: matAT
 
-  CALL ConstructEmptyMatrix(matAT, matA%rows, matA%columns)
+  CALL ConstructEmptyMatrix(matAT, matA%columns, matA%rows)
   matAT%data = TRANSPOSE(matA%data)
 
   END SUBROUTINE TransposeMatrix_ldr
@@ -618,7 +618,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> matAT = matA^T.
     TYPE(Matrix_ldc), INTENT(INOUT) :: matAT
 
-  CALL ConstructEmptyMatrix(matAT, matA%rows, matA%columns)
+  CALL ConstructEmptyMatrix(matAT, matA%columns, matA%rows)
   matAT%data = TRANSPOSE(matA%data)
 
   END SUBROUTINE TransposeMatrix_ldc
