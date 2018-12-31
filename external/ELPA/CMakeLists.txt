@@ -57,7 +57,6 @@ ELSEIF(ELPA2_KERNEL STREQUAL "BGQ")
   LIST(APPEND elpa_src
     src/mod_compute_hh_trafo_real_bgq.f90
     src/mod_compute_hh_trafo_complex.f90
-    src/mod_fortran_interfaces.f90
     src/elpa2_utilities_bgq.f90
     src/elpa2_kernels_real_bgq.f90
     src/elpa2_kernels_complex.f90)
