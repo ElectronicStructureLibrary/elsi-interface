@@ -14,8 +14,7 @@ MODULE EigenBoundsModule
        & DestructMatrix, GetMatrixTripletList, FillMatrixFromTripletList
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters, &
        & SolverParameters_init
-  USE TripletListModule, ONLY : TripletList_r, TripletList_c, &
-       & AppendToTripletList, DestructTripletList, ConstructTripletList_r
+  USE TripletListModule
   USE TripletModule, ONLY : Triplet_r
   USE NTMPIModule
   IMPLICIT NONE

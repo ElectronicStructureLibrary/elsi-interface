@@ -21,7 +21,7 @@ MODULE PSMatrixAlgebraModule
   USE SMatrixModule, ONLY : Matrix_lsr, Matrix_lsc, DestructMatrix, CopyMatrix,&
        & TransposeMatrix, ComposeMatrixColumns, MatrixToTripletList
   USE TimerModule, ONLY : StartTimer, StopTimer
-  USE TripletListModule, ONLY : TripletList_r, TripletList_c
+  USE TripletListModule
   USE NTMPIModule
   USE, INTRINSIC :: ISO_C_BINDING
   IMPLICIT NONE
