@@ -23,11 +23,7 @@ MODULE PSMatrixModule
   USE TimerModule, ONLY : StartTimer, StopTimer
   USE TripletModule, ONLY : Triplet_r, Triplet_c, GetMPITripletType_r, &
        & GetMPITripletType_c
-  USE TripletListModule, ONLY : TripletList_r, TripletList_c, &
-       & ConstructTripletList, &
-       & DestructTripletList, SortTripletList, AppendToTripletList, &
-       & SymmetrizeTripletList, GetTripletAt, RedistributeTripletLists, &
-       & ShiftTripletList
+  USE TripletListModule
   USE NTMPIModule
   USE, INTRINSIC :: ISO_C_BINDING
   IMPLICIT NONE

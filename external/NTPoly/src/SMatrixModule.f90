@@ -5,9 +5,7 @@
 MODULE SMatrixModule
   USE DataTypesModule, ONLY: NTREAL, NTCOMPLEX
   USE MatrixMarketModule, ONLY : ParseMMHeader
-  USE TripletListModule, ONLY: TripletList_r, TripletList_c, SortTripletList, &
-       & DestructTripletList, ConstructTripletList, AppendToTripletList, &
-       & SymmetrizeTripletList, ConvertTripletListType
+  USE TripletListModule
   USE TripletModule, ONLY : Triplet_r, Triplet_c
   IMPLICIT NONE
   PRIVATE
