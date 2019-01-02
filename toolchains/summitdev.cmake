@@ -2,9 +2,9 @@
 
 # module load cmake/3.11.3
 # module load essl/5.5.0
-# module load netlib-lapack
+# module load netlib-lapack/3.8.0
 # module load netlib-scalapack/2.0.2
-# module load xl
+# module load xl/20180502
 
 SET(CMAKE_Fortran_COMPILER "mpixlf" CACHE STRING "MPI Fortran compiler")
 SET(CMAKE_C_COMPILER "mpixlc" CACHE STRING "MPI C compiler")

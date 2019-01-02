@@ -1,8 +1,8 @@
 ### Titan ###
 
-# module load cmake3/3.9.0
-# module load cudatoolkit/7.5.18-1.0502.10743.2.1 (to sidestep a system issue)
-# module load gcc/7.2.0
+# module load cmake3/3.11.3
+# module load gcc/8.2.0
+# module load pgi/18.10.0
 
 SET(CMAKE_Fortran_COMPILER "ftn" CACHE STRING "MPI Fortran compiler")
 SET(CMAKE_C_COMPILER "cc" CACHE STRING "MPI C compiler")
