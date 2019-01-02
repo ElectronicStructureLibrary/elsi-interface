@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2018, the ELSI team.
+/* Copyright (c) 2015-2019, the ELSI team.
    All rights reserved.
 
    This file is part of ELSI and is distributed under the BSD 3-clause license,
