@@ -8500,7 +8500,7 @@ end subroutine
 !      t2_compute_kernel =MPI_Wtime()
 !      t0_compute_kernel =  t0_compute_kernel + t2_compute_kernel-t1_compute_kernel
 
-      kernel_flops = kernel_flops + 4 * int(nl, 8) * int(ncols, 8) * int(nbw,8)
+      kernel_flops = kernel_flops + 4 * int(nl, lik) * int(ncols, lik) * int(nbw, lik)
       kernel_time = kernel_time + mpi_wtime() - ttt
       n_times =n_times +1
     end subroutine
