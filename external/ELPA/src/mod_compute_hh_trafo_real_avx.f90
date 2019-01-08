@@ -117,7 +117,7 @@ module compute_hh_trafo_real
 
          endif ! GPU_KERNEL
 
-           kernel_flops = kernel_flops + 4*int(nl,8)*int(ncols,8)*int(nbw,8)
+           kernel_flops = kernel_flops + 4*int(nl,lik)*int(ncols,lik)*int(nbw,lik)
            kernel_time = kernel_time + mpi_wtime()-ttt
 
        end subroutine compute_hh_trafo_real_cpu_double
