@@ -14,6 +14,9 @@
    New Matrix Storage Format:
    * Added arbitrarily distributed coordinate (GENERIC_COO) format.
 
+   ELPA:
+   * Interface for externally linked ELPA compatible with ELPA 2018.11.
+
    NTPoly:
    * Updated redistributed NTPoly source code to version 2.1.
 
