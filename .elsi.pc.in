@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@
+includedir=@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: @PROJECT_NAME@
+Description: Electronic structure infrastructure
+Version: @PROJECT_VERSION@
+URL: http://elsi-interchange.org
+
+Requries: @PKG_REQUIRES@
+Libs: -L${libdir} @PKG_LIBS@
+Cflags: -I${includedir}
