@@ -96,36 +96,36 @@ generate_library_targets(LIB_PATHS LIBS)
 ### Compilations ###
 IF(USE_EXTERNAL_ELPA)
   MESSAGE(STATUS "Using external ELPA")
+  SET(PKG_REQUIRES "${PKG_REQUIRES}, elpa")
 ELSE()
   MESSAGE(STATUS "Enabling internal ELPA")
+  SET(PKG_LIBS "${PKG_LIBS} -lelpa")
   ADD_SUBDIRECTORY(external/ELPA)
 ENDIF()
 
 IF(USE_EXTERNAL_OMM)
   MESSAGE(STATUS "Using external libOMM")
+  SET(PKG_REQUIRES "${PKG_REQUIRES}, OMM, MatrixSwitch")
 ELSE()
   MESSAGE(STATUS "Enabling internal libOMM")
+  SET(PKG_LIBS "${PKG_LIBS} -lOMM -lMatrixSwitch")
   ADD_SUBDIRECTORY(external/libOMM)
 ENDIF()
 
 IF(ENABLE_PEXSI)
   MESSAGE(STATUS "Enabling internal PEXSI")
+  SET(PKG_LIBS "${PKG_LIBS} -lpexsi")
   ADD_SUBDIRECTORY(external/PEXSI)
 
   IF(USE_EXTERNAL_SUPERLU)
     MESSAGE(STATUS "Using external SuperLU_DIST")
-
-    SET(USE_EXTERNAL_PTSCOTCH OFF CACHE BOOL "Use external PT-SCOTCH" FORCE)
+    SET(PKG_REQUIRES "${PKG_REQUIRES}, superlu_dist")
   ELSE()
     MESSAGE(STATUS "Enabling internal SuperLU_DIST")
+    MESSAGE(STATUS "Enabling internal PT-SCOTCH")
+    SET(PKG_LIBS "${PKG_LIBS} -lsuperlu_dist -lptscotchparmetis -lptscotch -lptscotcherr -lscotchmetis -lscotch -lscotcherr")
     ADD_SUBDIRECTORY(external/SuperLU_DIST)
-
-    IF(USE_EXTERNAL_PTSCOTCH)
-      MESSAGE(STATUS "Using external PT-SCOTCH")
-    ELSE()
-      MESSAGE(STATUS "Enabling internal PT-SCOTCH")
-      ADD_SUBDIRECTORY(external/SCOTCH)
-    ENDIF()
+    ADD_SUBDIRECTORY(external/SCOTCH)
   ENDIF()
 ENDIF()
 
@@ -136,8 +136,10 @@ ENDIF()
 
 IF(USE_EXTERNAL_NTPOLY)
   MESSAGE(STATUS "Using external NTPoly")
+  SET(PKG_REQUIRES "${PKG_REQUIRES}, NTPoly")
 ELSE()
   MESSAGE(STATUS "Enabling internal NTPoly")
+  SET(PKG_LIBS "${PKG_LIBS} -lNTPoly")
   ADD_SUBDIRECTORY(external/NTPoly)
 ENDIF()
 
@@ -159,3 +161,12 @@ ADD_CUSTOM_TARGET(pack rm -rf ${PROJECT_BINARY_DIR}/elsi_packed
   COMMAND cp -r ${PROJECT_SOURCE_DIR}/external ${PROJECT_BINARY_DIR}/elsi_packed
   COMMAND cp -r ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/elsi_packed
   VERBATIM)
+
+SET(PKG_LIBS "-lelsi -lfortjson ${PKG_LIBS}")
+IF(PKG_REQUIRES)
+  STRING(SUBSTRING "${PKG_REQUIRES}" 2 -1 PKG_REQUIRES)
+ENDIF()
+
+CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/.elsi.pc.in
+  ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/pkgconfig/elsi.pc
+  @ONLY)
