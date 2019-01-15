@@ -8115,7 +8115,7 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 
    ! Compute destination
    do i_val = 1,nnz_l_nt
-      dest(i_val) = int(map_list%data(i_val)%point_value,kind=i4)
+      dest(i_val) = nint(map_list%data(i_val)%point_value,kind=i4)
       map_list%data(i_val)%point_value = 0.0_r8
    end do
 
@@ -8299,7 +8299,7 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 
    ! Compute destination
    do i_val = 1,nnz_l_nt
-      dest(i_val) = int(map_list%data(i_val)%point_value,kind=i4)
+      dest(i_val) = nint(map_list%data(i_val)%point_value,kind=i4)
       map_list%data(i_val)%point_value = (0.0_r8,0.0_r8)
    end do
 

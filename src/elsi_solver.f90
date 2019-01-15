@@ -117,7 +117,7 @@ subroutine elsi_init_blacs(eh)
 
    if(eh%ph%parallel_mode == MULTI_PROC .and. .not. eh%bh%blacs_ready) then
       ! Set square-like process grid
-      do nprow = nint(sqrt(real(eh%bh%n_procs,kind=r8))),2,-1
+      do nprow = nint(sqrt(real(eh%bh%n_procs,kind=r8)),kind=i4),2,-1
          if(mod(eh%bh%n_procs,nprow) == 0) then
             exit
          end if
