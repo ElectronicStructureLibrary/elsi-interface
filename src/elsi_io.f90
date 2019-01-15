@@ -732,7 +732,7 @@ subroutine elsi_init_random_seed()
 
    call elsi_get_time(wtime)
 
-   t = int(wtime*1000.0_r8,kind=i8)
+   t = nint(wtime*1000.0_r8,kind=i8)
 
    call random_seed(size=n)
 

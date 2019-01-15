@@ -126,6 +126,7 @@ subroutine elsi_reset_param(ph)
    ph%first_generic_to_ntpoly = .true.
    ph%first_generic_to_pexsi = .true.
    ph%first_siesta_to_blacs = .true.
+   ph%first_siesta_to_ntpoly = .true.
    ph%first_siesta_to_pexsi = .true.
    ph%first_sips_to_blacs = .true.
    ph%first_sips_to_ntpoly = .true.

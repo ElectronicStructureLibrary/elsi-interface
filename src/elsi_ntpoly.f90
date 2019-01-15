@@ -70,7 +70,7 @@ subroutine elsi_init_ntpoly(ph,bh)
       np_per_group = bh%n_procs/ph%nt_n_group
 
       ! Set square-like process grid
-      do n_prow = nint(sqrt(real(np_per_group,kind=r8))),2,-1
+      do n_prow = nint(sqrt(real(np_per_group,kind=r8)),kind=i4),2,-1
          if(mod(np_per_group,n_prow) == 0) then
             exit
          end if
@@ -146,7 +146,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 
    call elsi_get_time(t0)
 
-   ne = int(ph%n_electrons,kind=i4)
+   ne = nint(ph%n_electrons,kind=i4)
 
    select case(ph%nt_method)
    case(NTPOLY_PM)

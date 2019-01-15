@@ -1022,7 +1022,7 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    header(2) = UNSET
    header(3) = REAL_DATA
    header(4) = rwh%n_basis
-   header(5) = int(rwh%n_electrons,kind=i4)
+   header(5) = nint(rwh%n_electrons,kind=i4)
    header(6) = eh%bh%nnz_g
    header(7:8) = UNSET
    header(9:16) = rwh%header_user
@@ -1148,7 +1148,7 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    header(2) = UNSET
    header(3) = CMPLX_DATA
    header(4) = rwh%n_basis
-   header(5) = int(rwh%n_electrons,kind=i4)
+   header(5) = nint(rwh%n_electrons,kind=i4)
    header(6) = eh%bh%nnz_g
    header(7:8) = UNSET
    header(9:16) = rwh%header_user
@@ -1251,7 +1251,7 @@ subroutine elsi_write_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    header(2) = UNSET
    header(3) = REAL_DATA
    header(4) = rwh%n_basis
-   header(5) = int(rwh%n_electrons,kind=i4)
+   header(5) = nint(rwh%n_electrons,kind=i4)
    header(6) = rwh%bh%nnz_g
    header(7:8) = UNSET
    header(9:16) = rwh%header_user
@@ -1353,7 +1353,7 @@ subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    header(2) = UNSET
    header(3) = CMPLX_DATA
    header(4) = rwh%n_basis
-   header(5) = int(rwh%n_electrons,kind=i4)
+   header(5) = nint(rwh%n_electrons,kind=i4)
    header(6) = rwh%bh%nnz_g
    header(7:8) = UNSET
    header(9:16) = rwh%header_user
@@ -1680,7 +1680,7 @@ subroutine elsi_write_mat_real_sp(rwh,f_name,mat)
    header(2) = UNSET
    header(3) = REAL_DATA
    header(4) = rwh%n_basis
-   header(5) = int(rwh%n_electrons,kind=i4)
+   header(5) = nint(rwh%n_electrons,kind=i4)
    header(6) = nnz_g
    header(7:8) = UNSET
    header(9:16) = rwh%header_user
@@ -1771,7 +1771,7 @@ subroutine elsi_write_mat_complex_sp(rwh,f_name,mat)
    header(2) = UNSET
    header(3) = CMPLX_DATA
    header(4) = rwh%n_basis
-   header(5) = int(rwh%n_electrons,kind=i4)
+   header(5) = nint(rwh%n_electrons,kind=i4)
    header(6) = nnz_g
    header(7:8) = UNSET
    header(9:16) = rwh%header_user

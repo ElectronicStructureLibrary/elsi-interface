@@ -78,7 +78,7 @@ subroutine elsi_init_pexsi(ph,bh)
       ph%pexsi_myid_point = mod(bh%myid,ph%pexsi_np_per_point)
 
       if(ph%pexsi_np_per_pole == UNSET) then
-         j = nint(sqrt(real(ph%pexsi_np_per_point,kind=r8)))
+         j = nint(sqrt(real(ph%pexsi_np_per_point,kind=r8)),kind=i4)
 
          do i = ph%pexsi_np_per_point,j,-1
             if(mod(ph%pexsi_np_per_point,i) == 0) then
@@ -92,7 +92,7 @@ subroutine elsi_init_pexsi(ph,bh)
       end if
 
       ! Set square-like process grid for selected inversion of each pole
-      do i = nint(sqrt(real(ph%pexsi_np_per_pole,kind=r8))),2,-1
+      do i = nint(sqrt(real(ph%pexsi_np_per_pole,kind=r8)),kind=i4),2,-1
          if(mod(ph%pexsi_np_per_pole,i) == 0) then
             exit
          end if

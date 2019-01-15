@@ -5651,10 +5651,70 @@ subroutine elsi_siesta_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i_col
+   integer(kind=i4) :: g_col
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
+   type(TripletList_r) :: ham_list
+   type(TripletList_r) :: ovlp_list
+   type(Triplet_r) :: coo
+
    character(len=*), parameter :: caller = "elsi_siesta_to_ntpoly_hs_real"
 
-   call elsi_sips_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
-        ham_nt,ovlp_nt)
+   call elsi_get_time(t0)
+
+   if(ph%first_siesta_to_ntpoly) then
+      if(.not. ph%unit_ovlp) then
+         call ConstructEmptyMatrix(ovlp_nt,ph%n_basis,ph%nt_pgrid,.false.)
+         call ConstructTripletList(ovlp_list)
+      end if
+
+      call ConstructEmptyMatrix(ham_nt,ph%n_basis,ph%nt_pgrid,.false.)
+   end if
+
+   call ConstructTripletList(ham_list)
+
+   i_col = 0
+
+   do i_val = 1,bh%nnz_l_sp
+      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
+         i_col = i_col+1
+      end do
+
+      call elsi_get_gid(bh%myid,bh%n_procs,bh%blk_sp2,i_col,g_col)
+
+      coo%point_value = ham_sp(i_val)
+      coo%index_row = row_ind(i_val)
+      coo%index_column = g_col
+
+      call AppendToTripletList(ham_list,coo)
+
+      if(ph%first_siesta_to_ntpoly .and. .not. ph%unit_ovlp) then
+         coo%point_value = ovlp_sp(i_val)
+
+         call AppendToTripletList(ovlp_list,coo)
+      end if
+   end do
+
+   if(ph%first_siesta_to_ntpoly .and. .not. ph%unit_ovlp) then
+      call FillMatrixFromTripletList(ovlp_nt,ovlp_list)
+      call DestructTripletList(ovlp_list)
+   end if
+
+   call FillMatrixFromTripletList(ham_nt,ham_list)
+   call DestructTripletList(ham_list)
+
+   call elsi_get_time(t1)
+
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
+   ph%first_siesta_to_ntpoly = .false.
 
 end subroutine
 
@@ -5676,10 +5736,70 @@ subroutine elsi_siesta_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i_col
+   integer(kind=i4) :: g_col
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
+   type(TripletList_c) :: ham_list
+   type(TripletList_c) :: ovlp_list
+   type(Triplet_c) :: coo
+
    character(len=*), parameter :: caller = "elsi_siesta_to_ntpoly_hs_cmplx"
 
-   call elsi_sips_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
-        ham_nt,ovlp_nt)
+   call elsi_get_time(t0)
+
+   if(ph%first_siesta_to_ntpoly) then
+      if(.not. ph%unit_ovlp) then
+         call ConstructEmptyMatrix(ovlp_nt,ph%n_basis,ph%nt_pgrid,.true.)
+         call ConstructTripletList(ovlp_list)
+      end if
+
+      call ConstructEmptyMatrix(ham_nt,ph%n_basis,ph%nt_pgrid,.true.)
+   end if
+
+   call ConstructTripletList(ham_list)
+
+   i_col = 0
+
+   do i_val = 1,bh%nnz_l_sp
+      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
+         i_col = i_col+1
+      end do
+
+      call elsi_get_gid(bh%myid,bh%n_procs,bh%blk_sp2,i_col,g_col)
+
+      coo%point_value = ham_sp(i_val)
+      coo%index_row = row_ind(i_val)
+      coo%index_column = g_col
+
+      call AppendToTripletList(ham_list,coo)
+
+      if(ph%first_siesta_to_ntpoly .and. .not. ph%unit_ovlp) then
+         coo%point_value = ovlp_sp(i_val)
+
+         call AppendToTripletList(ovlp_list,coo)
+      end if
+   end do
+
+   if(ph%first_siesta_to_ntpoly .and. .not. ph%unit_ovlp) then
+      call FillMatrixFromTripletList(ovlp_nt,ovlp_list)
+      call DestructTripletList(ovlp_list)
+   end if
+
+   call FillMatrixFromTripletList(ham_nt,ham_list)
+   call DestructTripletList(ham_list)
+
+   call elsi_get_time(t1)
+
+   write(msg,"(2X,A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
+   ph%first_siesta_to_ntpoly = .false.
 
 end subroutine
 
@@ -7995,7 +8115,7 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 
    ! Compute destination
    do i_val = 1,nnz_l_nt
-      dest(i_val) = int(map_list%data(i_val)%point_value,kind=i4)
+      dest(i_val) = nint(map_list%data(i_val)%point_value,kind=i4)
       map_list%data(i_val)%point_value = 0.0_r8
    end do
 
@@ -8179,7 +8299,7 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 
    ! Compute destination
    do i_val = 1,nnz_l_nt
-      dest(i_val) = int(map_list%data(i_val)%point_value,kind=i4)
+      dest(i_val) = nint(map_list%data(i_val)%point_value,kind=i4)
       map_list%data(i_val)%point_value = (0.0_r8,0.0_r8)
    end do
 
