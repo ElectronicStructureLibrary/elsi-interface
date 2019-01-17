@@ -10,7 +10,7 @@
 module ELSI_MUTATOR
 
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
-       NTPOLY_SOLVER,PEXSI_CSC,SIESTA_CSC,GENERIC_COO
+       NTPOLY_SOLVER,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,SINGLE_PROC
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_MPI, only: elsi_stop
    use ELSI_NTPOLY, only: elsi_compute_edm_ntpoly
@@ -34,13 +34,13 @@ module ELSI_MUTATOR
    public :: elsi_set_output_log
    public :: elsi_set_output_tag
    public :: elsi_set_uuid
+   public :: elsi_set_n_basis
    public :: elsi_set_save_ovlp
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def
    public :: elsi_set_illcond_check
    public :: elsi_set_illcond_tol
    public :: elsi_set_illcond_abort
-   public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
@@ -237,6 +237,34 @@ subroutine elsi_set_uuid(eh,uuid)
 end subroutine
 
 !>
+!! This routine sets a new number of basis functions. Only allowed in
+!! SINGLE_PROC mode.
+!!
+subroutine elsi_set_n_basis(eh,n_basis)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: n_basis !< Number of basis functions
+
+   character(len=*), parameter :: caller = "elsi_set_n_basis"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(eh%ph%parallel_mode == SINGLE_PROC) then
+      eh%ph%n_basis = n_basis
+      eh%ph%n_good = n_basis
+      eh%bh%n_lrow = n_basis
+      eh%bh%n_lcol = n_basis
+      eh%bh%blk = n_basis
+   else
+      call elsi_stop(eh%bh,"Number of basis functions not allowed to change"//&
+           " in MULTI_PROC parallel mode.",caller)
+   end if
+
+end subroutine
+
+!>
 !! This routine sets whether to save the overlap matrix or its Cholesky factor
 !! for density matrix extrapolation.
 !!
@@ -360,24 +388,6 @@ subroutine elsi_set_illcond_abort(eh,illcond_abort)
    else
       eh%ph%ill_abort = .true.
    end if
-
-end subroutine
-
-!>
-!! This routine sets the block size in 1D block-cyclic distributed CSC format.
-!!
-subroutine elsi_set_csc_blk(eh,blk)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: blk !< Block size
-
-   character(len=*), parameter :: caller = "elsi_set_csc_blk"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   eh%bh%blk_sp2 = blk
 
 end subroutine
 

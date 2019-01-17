@@ -34,6 +34,7 @@ module ELSI
    public :: elsi_set_kpoint
    public :: elsi_set_blacs
    public :: elsi_set_csc
+   public :: elsi_set_csc_blk
    public :: elsi_set_coo
    public :: elsi_reinit
    public :: elsi_finalize
@@ -44,13 +45,13 @@ module ELSI
    public :: elsi_set_output_log
    public :: elsi_set_output_tag
    public :: elsi_set_uuid
+   public :: elsi_set_n_basis
    public :: elsi_set_save_ovlp
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def
    public :: elsi_set_illcond_check
    public :: elsi_set_illcond_tol
    public :: elsi_set_illcond_abort
-   public :: elsi_set_csc_blk
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu

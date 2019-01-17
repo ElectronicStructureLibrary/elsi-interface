@@ -54,6 +54,9 @@ void c_elsi_set_csc(elsi_handle handle_c,
                     int *row_ind,
                     int *col_ptr);
 
+void c_elsi_set_csc_blk(elsi_handle handle_c,
+                        int blk);
+
 void c_elsi_set_coo(elsi_handle handle_c,
                     int nnz,
                     int nnz_l,
@@ -117,6 +120,9 @@ void c_elsi_set_output(elsi_handle handle_c,
 
 void c_elsi_set_output_log(elsi_handle handle_c,
                            int output_log);
+
+void c_elsi_set_n_basis(elsi_handle handle_c,
+                        int n_basis);
 
 void c_elsi_set_save_ovlp(elsi_handle handle_c,
                           int save_ovlp);

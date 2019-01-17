@@ -197,6 +197,22 @@ subroutine elsi_set_csc_c_wrapper(h_c,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)&
 
 end subroutine
 
+subroutine elsi_set_csc_blk_c_wrapper(h_c,blk)&
+   bind(C,name="c_elsi_set_csc_blk")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: blk
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_csc_blk(h_f,blk)
+
+end subroutine
+
 subroutine elsi_set_coo_c_wrapper(h_c,nnz_g,nnz_l,row_ind,col_ind)&
    bind(C,name="c_elsi_set_coo")
 
@@ -547,6 +563,22 @@ subroutine elsi_set_output_log_c_wrapper(h_c,output_log)&
    call c_f_pointer(h_c,h_f)
 
    call elsi_set_output_log(h_f,output_log)
+
+end subroutine
+
+subroutine elsi_set_n_basis_c_wrapper(h_c,n_basis)&
+   bind(C,name="c_elsi_set_n_basis")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: n_basis
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_n_basis(h_f,n_basis)
 
 end subroutine
 
