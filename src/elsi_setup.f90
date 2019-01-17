@@ -35,6 +35,7 @@ module ELSI_SETUP
    public :: elsi_set_kpoint
    public :: elsi_set_blacs
    public :: elsi_set_csc
+   public :: elsi_set_csc_blk
    public :: elsi_set_coo
    public :: elsi_reinit
    public :: elsi_finalize
@@ -318,6 +319,24 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
       eh%bh%siesta_csc_ready = .true.
    end select
+
+end subroutine
+
+!>
+!! This routine sets the block size in 1D block-cyclic distributed CSC format.
+!!
+subroutine elsi_set_csc_blk(eh,blk)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: blk !< Block size
+
+   character(len=*), parameter :: caller = "elsi_set_csc_blk"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%bh%blk_sp2 = blk
 
 end subroutine
 
