@@ -7,6 +7,5 @@ Description: Electronic structure infrastructure
 Version: @PROJECT_VERSION@
 URL: http://elsi-interchange.org
 
-Requries: @PKG_REQUIRES@
-Libs: -L${libdir} @PKG_LIBS@
-Cflags: -I${includedir}
+Libs: -L${libdir}@PKG_LIB_PATHS@@PKG_LIBS@
+Cflags: -I${includedir}@PKG_INC_PATHS@
