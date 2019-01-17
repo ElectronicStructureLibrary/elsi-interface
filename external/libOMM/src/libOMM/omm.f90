@@ -274,7 +274,6 @@ subroutine omm(m,n,H,S,new_S,e_min,D_min,calc_ED,eta,C_min,init_C,T,scale_T,flav
   end if
   if (use_precon) then
     if (.not. P(ip)%is_initialized) call m_allocate(P(ip),m,m,m_storage)
-    !if (.not. P(ip)%is_initialized) call m_register_psp_thre(P(ip),S%dval,S%iaux1,'csc',0.0_dp)
   end if
   if (.not. work2(ip)%is_initialized) call m_allocate(work2(ip),n,m,m_storage)
 
