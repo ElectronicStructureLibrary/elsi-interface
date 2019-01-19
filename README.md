@@ -20,11 +20,12 @@ The standard installation of ELSI requires:
 
 Installation with recent versions of Cray, GNU, IBM, Intel, NAG, and PGI
 compilers has been tested. For a complete description of the installation
-process, please refer to `./INSTALL.md`.
+process, please refer to [`./INSTALL.md`](./INSTALL.md).
 
 ## More
 
-A User's Guide is available at `./doc/elsi_manual.pdf`. For comments, feedback,
-and suggestions, please [contact the ELSI team](mailto:elsi-team@duke.edu).
+A User's Guide is available at [`./doc/elsi_manual.pdf`](./doc/elsi_manual.pdf).
+For comments, feedback, and suggestions, please
+[contact the ELSI team](mailto:elsi-team@duke.edu).
 
 Copyright (c) 2015-2019, the ELSI team. All rights reserved.
