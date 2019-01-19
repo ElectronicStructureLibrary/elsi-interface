@@ -143,13 +143,13 @@ read in by CMake:
 
     -DCMAKE_TOOLCHAIN_FILE=[YOUR_TOOLCHAIN_FILE]
 
-Example toolchains are provided in the `./toolchains` directory, which the
-user may use as templates to create new ones.
+Example toolchains are provided in the [`./toolchains`](./toolchains) directory,
+which the user may use as templates to create new ones.
 
 ## Beyond this guide
 
 A complete description of the ELSI build system is available in
-`./doc/elsi_manual.pdf` and on the ELSI GitLab wiki pages.
+[`./doc/elsi_manual.pdf`](./doc/elsi_manual.pdf).
 
 ## Troubleshooting
 
