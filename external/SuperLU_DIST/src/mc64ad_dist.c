@@ -12,12 +12,8 @@
 
 #include "superlu_ddefs.h"
 
-#ifndef abs
 #define abs(x) ((x) >= 0 ? (x) : -(x))
-#endif
-#ifndef min
 #define min(a,b) ((a) < (b)) ? (a) : (b)
-#endif
 
 /* Table of constant values */
 

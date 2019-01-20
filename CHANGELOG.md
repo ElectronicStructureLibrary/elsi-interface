@@ -21,6 +21,10 @@
 ### NTPoly
 * Updated redistributed NTPoly source code to version 2.1.
 
+### PEXSI
+* Updated redistributed PEXSI source code to version 1.2.0.
+* Updated redistributed SuperLU\_DIST source code to version 6.1.0.
+
 ## ELSI v2.1.0 (October 2018)
 
 ### ELSI interface
@@ -107,7 +111,7 @@
 * Reduced the default number of poles to 20 without sacrificing accuracy.
 * Switched to the PT-SCOTCH library as the default sparse matrix reordering
   software.
-* Redistributed superLU\_DIST 5.3.0 and (PT-)SCOTCH 6.0.5a libraries. Users may
+* Redistributed SuperLU\_DIST 5.3.0 and (PT-)SCOTCH 6.0.5a libraries. Users may
   still provide their own SuperLU\_DIST library linked against any compatible
   sparse matrix reordering library.
 * Removed ParMETIS as a mandatory external dependency for PEXSI.

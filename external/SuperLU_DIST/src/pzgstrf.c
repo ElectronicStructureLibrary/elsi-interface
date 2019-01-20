@@ -13,19 +13,20 @@ at the top-level directory.
  * \brief Performs LU factorization in parallel
  *
  * <pre>
- * -- Distributed SuperLU routine (version 5.2) --
+ * -- Distributed SuperLU routine (version 6.1) --
  * Lawrence Berkeley National Lab, Univ. of California Berkeley.
  * October 1, 2014
  *
  * Modified:
- *     September 1, 1999
- *     Feburary 7, 2001  use MPI_Isend/MPI_Irecv
- *     October 15, 2008  latency-reducing panel factorization
- *     July    12, 2011  static scheduling and arbitrary look-ahead
- *     March   13, 2013  change NTAGS to MPI_TAG_UB value
- *     September 24, 2015 replace xLAMCH by xMACH, using C99 standard.
- *     December 31, 2015 rename xMACH to xMACH_DIST.
- *     September 30, 2017 optimization for Intel Knights Landing (KNL) node .
+ *   September 1, 1999
+ *   Feburary 7, 2001  use MPI_Isend/MPI_Irecv
+ *   October 15, 2008  latency-reducing panel factorization
+ *   July    12, 2011  static scheduling and arbitrary look-ahead
+ *   March   13, 2013  change NTAGS to MPI_TAG_UB value
+ *   September 24, 2015 replace xLAMCH by xMACH, using C99 standard.
+ *   December 31, 2015 rename xMACH to xMACH_DIST.
+ *   September 30, 2017 optimization for Intel Knights Landing (KNL) node .
+ *   June 1, 2018      add parallel AWPM pivoting; add back arrive_at_ublock()
  *
  * Sketch of the algorithm 
  *
@@ -281,7 +282,6 @@ pzgstrf(superlu_dist_options_t * options, int m, int n, double anorm,
     doublecomplex **Unzval_br_ptr, **Lnzval_bc_ptr;
     int_t *index;
     doublecomplex *nzval;
-    int_t *iuip, *ruip; /* Pointers to U index/nzval; size ceil(NSUPERS/Pr). */
     doublecomplex *ucol;
     int *indirect, *indirect2;
     int_t *tempi;
@@ -315,8 +315,11 @@ pzgstrf(superlu_dist_options_t * options, int m, int n, double anorm,
     int nnodes, *sendcnts, *sdispls, *recvcnts, *rdispls, *srows, *rrows;
     etree_node *head, *tail, *ptr;
     int *num_child;
-    int num_look_aheads, look_id, *look_ahead;
+    int num_look_aheads, look_id;
+    int *look_ahead; /* global look_ahead table */
     int_t *perm_c_supno, *iperm_c_supno;
+          /* perm_c_supno[k] = j means at the k-th step of elimination,
+	   * the j-th supernode is chosen. */
     MPI_Request *recv_req, **recv_reqs, **send_reqs, **send_reqs_u,
         **recv_reqs_u;
     MPI_Request *send_req, *U_diag_blk_send_req = NULL;
@@ -795,19 +798,20 @@ pzgstrf(superlu_dist_options_t * options, int m, int n, double anorm,
     int buffer_size  = SUPERLU_MAX(max_row_size*Threads_per_process*ldt,get_max_buffer_size());
 #endif /* end ifdef GPU_ACC */
 
+    int_t max_ncols = 0;
 #if 0
     /* symmetric assumption -- using L's supernode to estimate. */
     /* Note that in following expression 8 can be anything
        as long as its not too big */
     int bigu_size = 8 * sp_ienv_dist (3) * (max_row_size);
 #else
-    int_t bigu_size = estimate_bigu_size( nsupers, ldt, 
-					  Ufstnz_br_ptr,
-					  Glu_persist, grid, perm_u );
+    int_t bigu_size = estimate_bigu_size( nsupers, Ufstnz_br_ptr, Glu_persist,
+    	                                  grid, perm_u, &max_ncols );
 #endif
 
     /* +16 to avoid cache line false sharing */
-    int_t bigv_size = SUPERLU_MAX(max_row_size * (bigu_size / ldt),
+    // int_t bigv_size = SUPERLU_MAX(max_row_size * (bigu_size / ldt),
+    int_t bigv_size = SUPERLU_MAX(max_row_size * max_ncols,
 				  (ldt*ldt + CACHELINE / dword) * num_threads);
 
     /* bigU and bigV are either on CPU or on GPU, not both. */
@@ -815,13 +819,14 @@ pzgstrf(superlu_dist_options_t * options, int m, int n, double anorm,
                       bigU has the same size either on CPU or on CPU. */
     doublecomplex* bigV; /* for storing GEMM output matrix, i.e. update matrix. 
 	              bigV is large to hold the aggregate GEMM output.*/
-
+    bigU = NULL;
+    bigV = NULL;
+				  
 #if ( PRNTlevel>=1 )
     if(!iam) {
-	printf("max_nrows in L panel %d\n", max_row_size);
-	printf("\t.. GEMM buffer size: max_nrows X max_ncols = %d x %d\n",
-	       max_row_size, (bigu_size / ldt));
-	printf(".. BIG U size %d\t BIG V size %d\n", bigu_size, bigv_size);
+	printf("\t.. GEMM buffer size: max_row_size X max_ncols = %d x " IFMT "\n",
+	       max_row_size, max_ncols);
+	printf(".. BIG U size " IFMT "\t BIG V size " IFMT "\n", bigu_size, bigv_size);
 	fflush(stdout);
     }
 #endif
@@ -894,17 +899,17 @@ pzgstrf(superlu_dist_options_t * options, int m, int n, double anorm,
     bigu_size += (gemm_k_pad * (j + ldt + gemm_n_pad));
     bigv_size += (gemm_m_pad * (j + max_row_size + gemm_n_pad));
 
-#ifdef __INTEL_COMPILER
-    bigU = _mm_malloc(bigu_size * sizeof(doublecomplex), 1<<12); // align at 4K page
-    bigV = _mm_malloc(bigv_size * sizeof(doublecomplex), 1<<12);
-#else
+//#ifdef __INTEL_COMPILER
+//    bigU = _mm_malloc(bigu_size * sizeof(doublecomplex), 1<<12); // align at 4K page
+//    bigV = _mm_malloc(bigv_size * sizeof(doublecomplex), 1<<12);
+//#else
     if ( !(bigU = doublecomplexMalloc_dist(bigu_size)) )
         ABORT ("Malloc fails for zgemm U buffer"); 
           //Maximum size of bigU= sqrt(buffsize) ?
     // int bigv_size = 8 * ldt * ldt * num_threads;
     if ( !(bigV = doublecomplexMalloc_dist(bigv_size)) )
         ABORT ("Malloc failed for zgemm V buffer");
-#endif
+//#endif
 
 #endif /* end ifdef GPU_ACC */
 
@@ -933,24 +938,20 @@ pzgstrf(superlu_dist_options_t * options, int m, int n, double anorm,
         ABORT ("Malloc fails for indirect[].");
     if (!(indirect2 = SUPERLU_MALLOC (iinfo * num_threads * sizeof(int))))
         ABORT ("Malloc fails for indirect[].");
-    if (!(iuip = intMalloc_dist (k)))  ABORT ("Malloc fails for iuip[].");
-    if (!(ruip = intMalloc_dist (k)))  ABORT ("Malloc fails for ruip[].");
 
-    log_memory(2 * ldt*ldt * dword + 2 * iinfo * num_threads * iword
-	       + 2 * k * iword, stat);
+    log_memory(2 * ldt*ldt * dword + 2 * iinfo * num_threads * iword, stat);
 
     int_t *lookAheadFullRow,*lookAheadStRow,*lookAhead_lptr,*lookAhead_ib,
-        *RemainFullRow,*RemainStRow,*Remain_lptr,*Remain_ib;
+          *RemainStRow,*Remain_lptr,*Remain_ib;
 
     lookAheadFullRow   = intMalloc_dist( (num_look_aheads+1) );
     lookAheadStRow     = intMalloc_dist( (num_look_aheads+1) );
     lookAhead_lptr     = intMalloc_dist( (num_look_aheads+1) );
     lookAhead_ib       = intMalloc_dist( (num_look_aheads+1) );
 
-    int_t mrb=    (nsupers+Pr-1) / Pr;
-    int_t mcb=    (nsupers+Pc-1) / Pc;
+    int_t mrb = (nsupers + Pr - 1) / Pr;
+    int_t mcb = (nsupers + Pc - 1) / Pc;
     
-    RemainFullRow   = intMalloc_dist(mrb); 
     RemainStRow     = intMalloc_dist(mrb);
 #if 0
     Remain_lptr     = (int *) _mm_malloc(sizeof(int)*mrb,1);
@@ -988,7 +989,7 @@ pzgstrf(superlu_dist_options_t * options, int m, int n, double anorm,
     int *Ublock_info_jb = (int *) SUPERLU_MALLOC(mcb*sizeof(int));
 #endif
 
-    long long alloc_mem = 4 * mrb * iword + mrb * sizeof(Remain_info_t)
+    long long alloc_mem = 3 * mrb * iword + mrb * sizeof(Remain_info_t)
                         + ldt * ldt * (num_look_aheads+1) * dword
  			+ Llu->bufmax[1] * dword ;
     log_memory(alloc_mem, stat);
@@ -1623,17 +1624,15 @@ pzgstrf(superlu_dist_options_t * options, int m, int n, double anorm,
             }
             iukp = iukp0;
 #ifdef ISORT
-            isort (nub, iperm_u, perm_u);
+            /* iperm_u is sorted based on elimination order; 
+               perm_u reorders the U blocks to match the elimination order. */
+            isort (nub, iperm_u, perm_u); 
 #else
             qsort (perm_u, (size_t) nub, 2 * sizeof (int_t),
                    &superlu_sort_perm);
 #endif
-            j = jj0 = 0;
 
 /************************************************************************/
-#if 0
-	for (jj = 0; jj < nub; ++jj) assert(perm_u[jj] == jj); /* Sherry */
-#endif
             double ttx =SuperLU_timer_();
 
 //#include "zlook_ahead_update_v4.c"
@@ -1762,7 +1761,7 @@ pzgstrf(superlu_dist_options_t * options, int m, int n, double anorm,
     
     pxgstrfTimer = SuperLU_timer_() - pxgstrfTimer;
 
-#if ( PRNTlevel>=1 )
+#if ( PRNTlevel>=2 )
     /* Print detailed statistics */
     /* Updating total flops */
     double allflops;
@@ -1877,13 +1876,13 @@ pzgstrf(superlu_dist_options_t * options, int m, int n, double anorm,
     SUPERLU_FREE( streams );
     SUPERLU_FREE( stream_end_col );
 #else
-  #ifdef __INTEL_COMPILER
-    _mm_free (bigU);
-    _mm_free (bigV);
-  #else
+//  #ifdef __INTEL_COMPILER
+//    _mm_free (bigU);
+//    _mm_free (bigV);
+//  #else
     SUPERLU_FREE (bigV);
     SUPERLU_FREE (bigU);
-  #endif
+//  #endif
     /* Decrement freed memory from memory stat. */
     log_memory(-(bigv_size + bigu_size) * dword, stat);
 #endif
@@ -1892,12 +1891,9 @@ pzgstrf(superlu_dist_options_t * options, int m, int n, double anorm,
     // SUPERLU_FREE (tempv2d);/* Sherry */
     SUPERLU_FREE (indirect);
     SUPERLU_FREE (indirect2); /* Sherry added */
-    SUPERLU_FREE (iuip);
-    SUPERLU_FREE (ruip);
 
     ldt = sp_ienv_dist(3);
-    log_memory( -(3 * ldt *ldt * dword + 2 * ldt * num_threads * iword
-		  + 2 * k * iword), stat );
+    log_memory( -(3 * ldt *ldt * dword + 2 * ldt * num_threads * iword), stat );
 
     /* Sherry added */
     SUPERLU_FREE(omp_loop_time);
@@ -1912,14 +1908,13 @@ pzgstrf(superlu_dist_options_t * options, int m, int n, double anorm,
     SUPERLU_FREE(lookAhead_lptr);
     SUPERLU_FREE(lookAhead_ib);
 
-    SUPERLU_FREE(RemainFullRow);
     SUPERLU_FREE(RemainStRow);
     SUPERLU_FREE(Remain_lptr);
     SUPERLU_FREE(Remain_ib);
     SUPERLU_FREE(Remain_info);
     SUPERLU_FREE(lookAhead_L_buff);
     SUPERLU_FREE(Remain_L_buff);
-    log_memory( -(4 * mrb * iword + mrb * sizeof(Remain_info_t) + 
+    log_memory( -(3 * mrb * iword + mrb * sizeof(Remain_info_t) + 
 		  ldt * ldt * (num_look_aheads + 1) * dword +
 		  Llu->bufmax[1] * dword), stat );
 

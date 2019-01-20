@@ -152,7 +152,8 @@ int pdCompRow_loc_to_CompCol_global
     for (i = 0; i < procs-1; ++i) rdispls[i+1] = rdispls[i] + recvcnts[i];
 
     k = rdispls[procs-1] + recvcnts[procs-1]; /* Total received */
-    if ( !(rowind_recv = (int_t *) intMalloc_dist(2*k)) )
+    //    if ( !(rowind_recv = (int_t *) intMalloc_dist(2*k)) )
+    if ( !(rowind_recv = (int_t *) intCalloc_dist(2*k)) )
         ABORT("Malloc fails for rowind_recv[]");
     rowind_buf = rowind_recv + k;
     MPI_Alltoallv(rowind_loc, sendcnts, sdispls, mpi_int_t,
@@ -535,4 +536,3 @@ void pdinf_norm_error(int iam, int_t n, int_t nrhs, double x[], int_t ldx,
       if ( !iam ) printf("\tSol %2d: ||X-Xtrue||/||X|| = %e\n", j, err);
     }
 }
-

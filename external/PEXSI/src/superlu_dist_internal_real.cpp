@@ -211,7 +211,6 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
     options.RowPerm         = LargeDiag_MC64;
 #endif
 #else
-//    options.RowPerm         = LargeDiag_MC64;
     options.RowPerm         = LargeDiag;
 #endif
   }

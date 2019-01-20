@@ -307,7 +307,6 @@ pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 			need_value = (options->RowPerm == LargeDiag_MC64);
 #endif
 #else
-//			need_value = (options->RowPerm == LargeDiag_MC64);
 			need_value = (options->RowPerm == LargeDiag);
 #endif
 

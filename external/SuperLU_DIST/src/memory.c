@@ -26,8 +26,8 @@ at the top-level directory.
 /*
  * Global variables
  */
-ExpHeader *expanders; /* Array of pointers to 4 types of memory */
-LU_stack_t stack;
+SuperLU_ExpHeader *expanders; /* Array of pointers to 4 types of memory */
+SuperLU_LU_stack_t stack;
 int_t no_expand;
 
 
@@ -66,6 +66,10 @@ void *superlu_malloc_dist(size_t size)
     int iam;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &iam);
+    if ( size <= 0 ) {
+	printf("(%d) superlu_malloc size %lld\n", iam, size);
+	ABORT("superlu_malloc: nonpositive size");
+    }
     buf = (char *) malloc(size + DWORD);
     if ( !buf ) {
 	printf("(%d) superlu_malloc fails: malloc_total %.0f MB, size %lld\n",
@@ -94,9 +98,11 @@ void superlu_free_dist(void *addr)
 
     { 
 	int_t n = ((size_t *) p)[0];
+	//printf("superlu_free-dist: n %d\n", n);
 	
-	if ( !n )
+	if ( n==0 ) {
 	    ABORT("superlu_free: tried to free a freed pointer");
+	}
 	*((size_t *) p) = 0; /* Set to zero to detect duplicate free's. */
 #if 0	
 	superlu_malloc_total -= (n + DWORD);
@@ -112,10 +118,16 @@ void superlu_free_dist(void *addr)
     }
 
 }
-
+ 
 #else  /* The production mode. */
 
-#if defined (__INTEL_COMPILER)
+//#if  0 
+#if (__STDC_VERSION__ >= 201112L)
+
+void * superlu_malloc_dist(size_t size) {void* ptr;int alignment=1<<12;if(size>1<<19){alignment=1<<21;}posix_memalign( (void**)&(ptr), alignment, size );return(ptr);}
+void   superlu_free_dist(void * ptr)    {free(ptr);}
+
+#elif defined (__INTEL_COMPILER)
 #include <immintrin.h>
 void * superlu_malloc_dist(size_t size) {
     void* ptr;
@@ -124,11 +136,6 @@ void * superlu_malloc_dist(size_t size) {
     return (_mm_malloc(size, alignment));
 }
 void  superlu_free_dist(void * ptr)  { _mm_free(ptr); }
-
-// #elif (_POSIX_C_SOURCE>=200112L)
-//
-// void * MALLOC(size_t size) {void* ptr;int alignment=1<<12;if(size>1<<19){alignment=1<<21;}posix_memalign( (void**)&(ptr), alignment, size );return(ptr);}
-//void   FREE(void * ptr)    {free(ptr);}
 
 #else // normal malloc/free 
 
@@ -189,7 +196,7 @@ void *user_malloc_dist(int_t bytes, int_t which_end)
 {
     void *buf;
     
-    if ( StackFull(bytes) ) return (NULL);
+    if ( SuperLU_StackFull(bytes) ) return (NULL);
 
     if ( which_end == HEAD ) {
 	buf = (char*) stack.array + stack.top1;
@@ -273,7 +280,7 @@ int_t symbfact_SubInit
     no_expand = 0;
     iword     = sizeof(int_t);
 
-    expanders = (ExpHeader *) SUPERLU_MALLOC( NO_MEMTYPE*sizeof(ExpHeader) );
+    expanders = (SuperLU_ExpHeader *) SUPERLU_MALLOC( NO_MEMTYPE*sizeof(SuperLU_ExpHeader) );
     if ( !expanders ) ABORT("SUPERLU_MALLOC fails for expanders");
     
     if ( fact == DOFACT || fact == SamePattern ) {
@@ -282,7 +289,7 @@ int_t symbfact_SubInit
 	nzumax = FILL/2.0 * annz;
 
 	if ( lwork == -1 ) {
-	    return ( GluIntArray(n) * iword + TempSpace(m,1)
+	    return ( SuperLU_GluIntArray(n) * iword + SuperLU_TempSpace(m,1)
 		    + (nzlmax+nzumax)*iword + n );
         } else {
 	    SetupSpace(work, lwork, &Glu_freeable->MemModel);
@@ -324,7 +331,7 @@ int_t symbfact_SubInit
 	    }
 #if ( PRNTlevel>=1 )
 	    printf("(%d).. symbfact_SubInit() reduce size:"
-		   "nzlmax %ld, nzumax %ld\n", iam, (long long) nzlmax, (long long) nzumax);
+		   "nzlmax %lld, nzumax %lld\n", iam, (long long) nzlmax, (long long) nzumax);
 	    fflush(stdout);
 #endif
 	    lsub  = (int_t *) expand( &nzlmax, (MemType) LSUB, 0, 0, Glu_freeable );
@@ -342,7 +349,7 @@ int_t symbfact_SubInit
     } else {
 	/* fact == SamePattern_SameRowPerm */
 	if ( lwork == -1 ) {
-	    return ( GluIntArray(n) * iword + TempSpace(m, 1)
+	    return ( SuperLU_GluIntArray(n) * iword + SuperLU_TempSpace(m, 1)
 		    + (nzlmax+nzumax)*iword + n );
         } else if ( lwork == 0 ) {
 	    Glu_freeable->MemModel = SYSTEM;
@@ -492,7 +499,7 @@ static void *expand
 	    } else {
 		while ( !new_mem ) {
 		    if ( ++tries > 10 ) return (NULL);
-		    alpha = Reduce(alpha);
+		    alpha = SuperLU_Reduce(alpha);
 		    new_len = alpha * *prev_len;
 		    new_mem = (void*) SUPERLU_MALLOC((size_t)new_len * lword); 
 		    /* new_mem = (void *) calloc(new_len, lword); */
@@ -512,11 +519,11 @@ static void *expand
 	    tries = 0;
 	    extra = (new_len - *prev_len) * lword;
 	    if ( keep_prev ) {
-		if ( StackFull(extra) ) return (NULL);
+		if ( SuperLU_StackFull(extra) ) return (NULL);
 	    } else {
-		while ( StackFull(extra) ) {
+		while ( SuperLU_StackFull(extra) ) {
 		    if ( ++tries > 10 ) return (NULL);
-		    alpha = Reduce(alpha);
+		    alpha = SuperLU_Reduce(alpha);
 		    new_len = alpha * *prev_len;
 		    extra = (new_len - *prev_len) * lword;	    
 		}

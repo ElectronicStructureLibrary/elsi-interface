@@ -536,4 +536,3 @@ void pzinf_norm_error(int iam, int_t n, int_t nrhs, doublecomplex x[], int_t ldx
       if ( !iam ) printf("\tSol %2d: ||X-Xtrue||/||X|| = %e\n", j, err);
     }
 }
-

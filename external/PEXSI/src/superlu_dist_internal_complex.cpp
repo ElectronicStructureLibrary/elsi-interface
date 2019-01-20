@@ -239,7 +239,6 @@ ComplexSuperLUData_internal::ComplexSuperLUData_internal(const SuperLUGrid<Compl
     options.RowPerm         = LargeDiag_MC64;
 #endif
 #else
-//    options.RowPerm         = LargeDiag_MC64;
     options.RowPerm         = LargeDiag;
 #endif
   }
