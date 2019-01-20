@@ -53,8 +53,8 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include <Cnames.h>
 extern "C"{ void
-#ifdef SLU_MAJOR_VERSION
-#if SLU_MAJOR_VERSION < 5
+#ifdef SUPERLU_DIST_MAJOR_VERSION
+#if SUPERLU_DIST_MAJOR_VERSION < 5
 pdsymbfact(superlu_options_t *options, SuperMatrix *A,
     ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
     LUstruct_t *LUstruct, SuperLUStat_t *stat, int *numProcSymbFact,
@@ -140,8 +140,8 @@ protected:
   ///
   /// to make sure that symmetric permutation is used.
   ///
-#ifdef SLU_MAJOR_VERSION
-#if SLU_MAJOR_VERSION < 5
+#ifdef SUPERLU_DIST_MAJOR_VERSION
+#if SUPERLU_DIST_MAJOR_VERSION < 5
   superlu_options_t   options;
 #else
   superlu_dist_options_t   options;
@@ -204,7 +204,16 @@ RealSuperLUData_internal::RealSuperLUData_internal(const SuperLUGrid<Real>& g, c
   // The default value of ColPerm uses the default value from SuperLUOptions
   options.Fact              = DOFACT;
   if(opt.RowPerm == "LargeDiag"){
+#ifdef SUPERLU_DIST_MAJOR_VERSION
+#if SUPERLU_DIST_MAJOR_VERSION < 6
     options.RowPerm         = LargeDiag;
+#else
+    options.RowPerm         = LargeDiag_MC64;
+#endif
+#else
+//    options.RowPerm         = LargeDiag_MC64;
+    options.RowPerm         = LargeDiag;
+#endif
   }
   else{
     options.RowPerm         = NOROWPERM;

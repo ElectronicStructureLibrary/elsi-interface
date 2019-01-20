@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Mathias Jacquelin and Lin Lin
 
@@ -51,19 +51,19 @@ namespace PEXSI{
 inline SuperLUMatrix<Real>::SuperLUMatrix	(  )
 {
   ptrData = NULL;
-} 		// -----  end of method SuperLUMatrix<Real>::SuperLUMatrix  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::SuperLUMatrix  -----
 
 
 inline SuperLUMatrix<Real>::SuperLUMatrix	( const SuperLUGrid<Real>& g, const SuperLUOptions& opt )
 {
   ptrData = new RealSuperLUData(g,opt);
-} 		// -----  end of method SuperLUMatrix<Real>::SuperLUMatrix  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::SuperLUMatrix  -----
 
 inline SuperLUMatrix<Real>::~SuperLUMatrix	(  )
 {
   if( ptrData != NULL )
     delete ptrData;
-} 		// -----  end of method SuperLUMatrix<Real>::~SuperLUMatrix  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::~SuperLUMatrix  -----
 
 
 
@@ -99,7 +99,7 @@ inline SuperLUMatrix<Real> & SuperLUMatrix<Real>::operator = (const SuperLUMatri
 
 
 
-inline void 
+inline void
 SuperLUMatrix<Real>::Setup ( const SuperLUGrid<Real>& g, const SuperLUOptions& opt )
 {
   //  if( ptrData == NULL ){
@@ -109,28 +109,28 @@ SuperLUMatrix<Real>::Setup ( const SuperLUGrid<Real>& g, const SuperLUOptions& o
   //ErrorHandling("SuperLUMatrix has been set up before.");
   //  }
   return;
-} 		// -----  end of method SuperLUMatrix<Real>::Setup  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::Setup  -----
 
 
 
-inline Int SuperLUMatrix<Real>::m (  ) const	
+inline Int SuperLUMatrix<Real>::m (  ) const
 {
   return ptrData->m();
-} 		// -----  end of method SuperLUMatrix<Real>::m  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::m  -----
 
 
 
-inline Int SuperLUMatrix<Real>::n (  ) const	
+inline Int SuperLUMatrix<Real>::n (  ) const
 {
   return ptrData->n();
-} 		// -----  end of method SuperLUMatrix<Real>::n  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::n  -----
 
 inline void
 SuperLUMatrix<Real>::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA , const SuperLUOptions& opt )
 {
   ptrData->DistSparseMatrixToSuperMatrixNRloc(sparseA, opt );
   return;
-} 		// -----  end of method SuperLUMatrix<Real>::DistSparseMatrixToSuperMatrixNRloc ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::DistSparseMatrixToSuperMatrixNRloc -----
 
 
 inline void
@@ -139,7 +139,7 @@ SuperLUMatrix<Real>::DestroyAOnly	(  )
   ptrData->DestroyAOnly();
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Real>::DestroyAOnly  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::DestroyAOnly  -----
 
 inline void
 SuperLUMatrix<Real>::SymbolicFactorize	(  )
@@ -147,7 +147,7 @@ SuperLUMatrix<Real>::SymbolicFactorize	(  )
   ptrData->SymbolicFactorize();
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Real>::SymbolicFactorize  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::SymbolicFactorize  -----
 
 
 inline void
@@ -156,7 +156,7 @@ SuperLUMatrix<Real>::Distribute	(  )
   ptrData->Distribute();
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Real>::Distribute  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::Distribute  -----
 
 
 inline void
@@ -165,7 +165,7 @@ SuperLUMatrix<Real>::NumericalFactorize	(  )
   ptrData->NumericalFactorize();
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Real>::NumericalFactorize  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::NumericalFactorize  -----
 
 
 inline void
@@ -174,7 +174,7 @@ SuperLUMatrix<Real>::ConvertNRlocToNC	( SuperLUMatrix& AGlobal )
   ptrData->ConvertNRlocToNC(AGlobal.ptrData);
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Real>::ConvertNRlocToNC  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::ConvertNRlocToNC  -----
 
 inline void
 SuperLUMatrix<Real>::MultiplyGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& bGlobal )
@@ -182,7 +182,7 @@ SuperLUMatrix<Real>::MultiplyGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat<R
   ptrData->MultiplyGlobalMultiVector(xGlobal, bGlobal);
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Real>::MultiplyGlobalMultiVector  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::MultiplyGlobalMultiVector  -----
 
 
 inline void
@@ -191,7 +191,7 @@ SuperLUMatrix<Real>::DistributeGlobalMultiVector	( NumMat<Real>& xGlobal, NumMat
   ptrData->DistributeGlobalMultiVector(xGlobal, xLocal );
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Real>::DistributeGlobalMultiVector  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::DistributeGlobalMultiVector  -----
 
 
 inline void SuperLUMatrix<Real>::GatherDistributedMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& xLocal )
@@ -199,7 +199,7 @@ inline void SuperLUMatrix<Real>::GatherDistributedMultiVector	( NumMat<Real>& xG
   ptrData->GatherDistributedMultiVector(xGlobal, xLocal );
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Real>::GatherDistributedMultiVector  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::GatherDistributedMultiVector  -----
 
 
 inline void
@@ -208,7 +208,7 @@ SuperLUMatrix<Real>::SolveDistMultiVector	( NumMat<Real>& bLocal, DblNumVec& ber
   ptrData->SolveDistMultiVector(bLocal, berr );
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Real>::SolveDistMultiVector  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::SolveDistMultiVector  -----
 
 
 inline void
@@ -217,7 +217,7 @@ SuperLUMatrix<Real>::CheckErrorDistMultiVector	( NumMat<Real>& xLocal, NumMat<Re
   ptrData->CheckErrorDistMultiVector(xLocal, xTrueLocal );
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Real>::CheckErrorDistMultiVector  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::CheckErrorDistMultiVector  -----
 
 
 inline void
@@ -226,7 +226,7 @@ SuperLUMatrix<Real>::LUstructToPMatrix	( PMatrix<Real>& PMloc )
   ptrData->LUstructToPMatrix(PMloc);
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Real>::LUstructToPMatrix  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::LUstructToPMatrix  -----
 
 
 
@@ -236,7 +236,7 @@ SuperLUMatrix<Real>::SymbolicToSuperNode	( SuperNodeType& super )
   ptrData->SymbolicToSuperNode(super);
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Real>::SymbolicToSuperNode  ----- 
+} 		// -----  end of method SuperLUMatrix<Real>::SymbolicToSuperNode  -----
 
 }
 
@@ -245,20 +245,20 @@ namespace PEXSI{
 inline SuperLUMatrix<Complex>::SuperLUMatrix	( )
 {
   ptrData = NULL;
-} 		// -----  end of method SuperLUMatrix<Complex>::SuperLUMatrix  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::SuperLUMatrix  -----
 
 
 inline SuperLUMatrix<Complex>::SuperLUMatrix	( const SuperLUGrid<Complex>& g, const SuperLUOptions& opt )
 {
   ptrData = new ComplexSuperLUData(g,opt);
-} 		// -----  end of method SuperLUMatrix<Complex>::SuperLUMatrix  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::SuperLUMatrix  -----
 
 inline SuperLUMatrix<Complex>::~SuperLUMatrix	(  )
 {
   if( ptrData != NULL ){
     delete ptrData;
   }
-} 		// -----  end of method SuperLUMatrix<Complex>::~SuperLUMatrix  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::~SuperLUMatrix  -----
 
 
 inline SuperLUMatrix<Complex>::SuperLUMatrix(const SuperLUMatrix<Complex> & g){
@@ -300,25 +300,25 @@ SuperLUMatrix<Complex>::Setup ( const SuperLUGrid<Complex>& g, const SuperLUOpti
   //  else{
   //ErrorHandling("SuperLUMatrix has been set up before.");
   //  }
-} 		// -----  end of method SuperLUMatrix<Complex>::Setup  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::Setup  -----
 
 
-inline Int SuperLUMatrix<Complex>::m (  ) const	
+inline Int SuperLUMatrix<Complex>::m (  ) const
 {
   return ptrData->m();
-}		// -----  end of method SuperLUMatrix<Complex>::m  ----- 
+}		// -----  end of method SuperLUMatrix<Complex>::m  -----
 
-inline Int SuperLUMatrix<Complex>::n (  ) const	
+inline Int SuperLUMatrix<Complex>::n (  ) const
 {
   return ptrData->n();
-} 		// -----  end of method SuperLUMatrix<Complex>::n  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::n  -----
 
 inline void
 SuperLUMatrix<Complex>::DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA , const SuperLUOptions& opt)
 {
   ptrData->DistSparseMatrixToSuperMatrixNRloc(sparseA, opt);
   return;
-} 		// -----  end of method SuperLUMatrix<Complex>::DistSparseMatrixToSuperMatrixNRloc ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::DistSparseMatrixToSuperMatrixNRloc -----
 
 inline void
 SuperLUMatrix<Complex>::DestroyAOnly	(  )
@@ -326,7 +326,7 @@ SuperLUMatrix<Complex>::DestroyAOnly	(  )
   ptrData->DestroyAOnly();
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Complex>::DestroyAOnly  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::DestroyAOnly  -----
 
 inline void
 SuperLUMatrix<Complex>::SymbolicFactorize	(  )
@@ -334,7 +334,7 @@ SuperLUMatrix<Complex>::SymbolicFactorize	(  )
   ptrData->SymbolicFactorize();
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Complex>::SymbolicFactorize  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::SymbolicFactorize  -----
 
 inline void
 SuperLUMatrix<Complex>::Distribute	(  )
@@ -342,7 +342,7 @@ SuperLUMatrix<Complex>::Distribute	(  )
   ptrData->Distribute();
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Complex>::Distribute  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::Distribute  -----
 
 inline void
 SuperLUMatrix<Complex>::NumericalFactorize	(  )
@@ -350,7 +350,7 @@ SuperLUMatrix<Complex>::NumericalFactorize	(  )
   ptrData->NumericalFactorize();
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Complex>::NumericalFactorize  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::NumericalFactorize  -----
 
 inline void
 SuperLUMatrix<Complex>::ConvertNRlocToNC	( SuperLUMatrix& AGlobal )
@@ -358,7 +358,7 @@ SuperLUMatrix<Complex>::ConvertNRlocToNC	( SuperLUMatrix& AGlobal )
   ptrData->ConvertNRlocToNC(AGlobal.ptrData);
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Complex>::ConvertNRlocToNC  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::ConvertNRlocToNC  -----
 
 inline void
 SuperLUMatrix<Complex>::MultiplyGlobalMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& bGlobal )
@@ -366,7 +366,7 @@ SuperLUMatrix<Complex>::MultiplyGlobalMultiVector	( NumMat<Complex>& xGlobal, Nu
   ptrData->MultiplyGlobalMultiVector(xGlobal, bGlobal);
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Complex>::MultiplyGlobalMultiVector  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::MultiplyGlobalMultiVector  -----
 
 inline void
 SuperLUMatrix<Complex>::DistributeGlobalMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal )
@@ -374,14 +374,14 @@ SuperLUMatrix<Complex>::DistributeGlobalMultiVector	( NumMat<Complex>& xGlobal, 
   ptrData->DistributeGlobalMultiVector(xGlobal, xLocal );
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Complex>::DistributeGlobalMultiVector  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::DistributeGlobalMultiVector  -----
 
 inline void SuperLUMatrix<Complex>::GatherDistributedMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal )
 {
   ptrData->GatherDistributedMultiVector(xGlobal, xLocal );
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Complex>::GatherDistributedMultiVector  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::GatherDistributedMultiVector  -----
 
 inline void
 SuperLUMatrix<Complex>::SolveDistMultiVector	( NumMat<Complex>& bLocal, DblNumVec& berr )
@@ -389,7 +389,7 @@ SuperLUMatrix<Complex>::SolveDistMultiVector	( NumMat<Complex>& bLocal, DblNumVe
   ptrData->SolveDistMultiVector(bLocal, berr );
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Complex>::SolveDistMultiVector  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::SolveDistMultiVector  -----
 
 inline void
 SuperLUMatrix<Complex>::CheckErrorDistMultiVector	( NumMat<Complex>& xLocal, NumMat<Complex>& xTrueLocal )
@@ -397,7 +397,7 @@ SuperLUMatrix<Complex>::CheckErrorDistMultiVector	( NumMat<Complex>& xLocal, Num
   ptrData->CheckErrorDistMultiVector(xLocal, xTrueLocal );
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Complex>::CheckErrorDistMultiVector  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::CheckErrorDistMultiVector  -----
 
 inline void
 SuperLUMatrix<Complex>::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
@@ -405,7 +405,7 @@ SuperLUMatrix<Complex>::LUstructToPMatrix	( PMatrix<Complex>& PMloc )
   ptrData->LUstructToPMatrix(PMloc);
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Complex>::LUstructToPMatrix  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::LUstructToPMatrix  -----
 
 inline void
 SuperLUMatrix<Complex>::SymbolicToSuperNode	( SuperNodeType& super )
@@ -413,7 +413,7 @@ SuperLUMatrix<Complex>::SymbolicToSuperNode	( SuperNodeType& super )
   ptrData->SymbolicToSuperNode(super);
 
   return ;
-} 		// -----  end of method SuperLUMatrix<Complex>::SymbolicToSuperNode  ----- 
+} 		// -----  end of method SuperLUMatrix<Complex>::SymbolicToSuperNode  -----
 
 }
 

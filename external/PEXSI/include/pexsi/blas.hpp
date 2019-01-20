@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Jack Poulson and Lin Lin
 
@@ -43,7 +43,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 /// @file blas.hpp
 /// @brief Thin interface to BLAS
 /// @date 2012-09-12
-#ifndef _PEXSI_BLAS_HPP_ 
+#ifndef _PEXSI_BLAS_HPP_
 #define _PEXSI_BLAS_HPP_
 #include "pexsi/environment.hpp"
 
@@ -123,7 +123,7 @@ void Scal( Int n, dcomplex alpha, dcomplex* x, Int incx );
 template<typename F> void Scal( Int n, F alpha, F* x, Int incx );
 
 // *********************************************************************
-// Level 2 BLAS                                                   
+// Level 2 BLAS
 // *********************************************************************
 void Gemv
   ( char trans, Int m, Int n,
@@ -213,6 +213,43 @@ template<typename T>
     T alpha, const T* x, Int incx, const T* y, Int incy,
     T beta,        T* A, Int lda );
 
+void Hemv
+  ( char uplo, Int m,
+    float alpha, const float* A, Int lda, const float* x, Int incx,
+    float beta,        float* y, Int incy );
+void Hemv
+  ( char uplo, Int m,
+    double alpha, const double* A, Int lda, const double* x, Int incx,
+    double beta,        double* y, Int incy );
+void Hemv
+  ( char uplo, Int m,
+    scomplex alpha, const scomplex* A, Int lda, const scomplex* x, Int incx,
+    scomplex beta,        scomplex* y, Int incy );
+void Hemv
+  ( char uplo, Int m,
+    dcomplex alpha, const dcomplex* A, Int lda, const dcomplex* x, Int incx,
+    dcomplex beta,        dcomplex* y, Int incy );
+template<typename T>
+  void Hemv
+  ( char uplo, Int m,
+    T alpha, const T* A, Int lda, const T* x, Int incx,
+    T beta,        T* y, Int incy );
+
+void Her
+  ( char uplo, Int m,
+    float alpha, const float* x, Int incx, float* A, Int lda );
+void Her
+  ( char uplo, Int m,
+    double alpha, const double* x, Int incx, double* A, Int lda );
+void Her
+  ( char uplo, Int m,
+    scomplex alpha, const scomplex* x, Int incx, scomplex* A, Int lda );
+void Her
+  ( char uplo, Int m,
+    dcomplex alpha, const dcomplex* x, Int incx, dcomplex* A, Int lda );
+template<typename T>
+  void Hemv( char uplo, Int m, T alpha, const T* x, Int incx, T* A, Int lda );
+
 void Her2
   ( char uplo, Int m,
     float alpha, const float* x, Int incx, const float* y, Int incy,
@@ -232,8 +269,45 @@ void Her2
 template<typename T>
   void Her2
   ( char uplo, Int m,
-    T alpha, const T* x, Int incx, const T* y, Int incy, 
+    T alpha, const T* x, Int incx, const T* y, Int incy,
     T* A, Int lda );
+
+void Symv
+  ( char uplo, Int m,
+    float alpha, const float* A, Int lda, const float* x, Int incx,
+    float beta,        float* y, Int incy );
+void Symv
+  ( char uplo, Int m,
+    double alpha, const double* A, Int lda, const double* x, Int incx,
+    double beta,        double* y, Int incy );
+void Symv
+  ( char uplo, Int m,
+    scomplex alpha, const scomplex* A, Int lda, const scomplex* x, Int incx,
+    scomplex beta,        scomplex* y, Int incy );
+void Symv
+  ( char uplo, Int m,
+    dcomplex alpha, const dcomplex* A, Int lda, const dcomplex* x, Int incx,
+    dcomplex beta,        dcomplex* y, Int incy );
+template<typename T>
+  void Symv
+  ( char uplo, Int m,
+    T alpha, const T* A, Int lda, const T* x, Int incx,
+    T beta,        T* y, Int incy );
+
+void Syr
+  ( char uplo, Int m,
+    float alpha, const float* x, Int incx, float* A, Int lda );
+void Syr
+  ( char uplo, Int m,
+    double alpha, const double* x, Int incx, double* A, Int lda );
+void Syr
+  ( char uplo, Int m,
+    scomplex alpha, const scomplex* x, Int incx, scomplex* A, Int lda );
+void Syr
+  ( char uplo, Int m,
+    dcomplex alpha, const dcomplex* x, Int incx, dcomplex* A, Int lda );
+template<typename T>
+  void Syr( char uplo, Int m, T alpha, const T* x, Int incx, T* A, Int lda );
 
 void Syr2
   ( char uplo, Int m,
@@ -292,7 +366,7 @@ template<typename T>
     const T* A, Int lda, T* x, Int incx );
 
 // *********************************************************************
-// Level 3 BLAS                                                  
+// Level 3 BLAS
 // *********************************************************************
 void Gemm
   ( char transA, char transB, Int m, Int n, Int k,
@@ -481,6 +555,6 @@ template<typename T>
     T alpha, const T* A, Int lda, T* B, Int ldb );
 
 } // namespace blas
-} // namespace PEXSI 
+} // namespace PEXSI
 
 #endif //_PEXSI_BLAS_HPP_

@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Mathias Jacquelin and Lin Lin
 
@@ -70,7 +70,7 @@ template<typename T>  class PMatrix;
 
 /// @class SuperLUMatrix
 /// @brief An thin interface to keep the main code insulated from
-/// the source code of SuperLU. 
+/// the source code of SuperLU.
 ///
 template<typename T> class SuperLUMatrix{
 private:
@@ -97,8 +97,8 @@ public:
   Int n() const { return -1;}
 
   /// @brief Convert a distributed sparse matrix in compressed sparse
-  /// column format into the SuperLU compressed row format. 
-  /// 
+  /// column format into the SuperLU compressed row format.
+  ///
   /// The output is saved in the current %SuperLUMatrix.
   ///
   /// @note
@@ -112,12 +112,12 @@ public:
   /// @param[in] sparseA Matrix A saved in distributed compressed
   /// sparse column format.
   ///
-  /// @todo 
+  /// @todo
   /// Better way to incorporate both real and complex arithmetic.
   void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<T>& sparseA , const SuperLUOptions & options){ }
 
   /// @brief Releases the data in A but keeps other data,
-  /// such as LUstruct. 
+  /// such as LUstruct.
   ///
   /// This allows one to perform factorization of
   /// matrices of the same pattern, such as the option
@@ -141,15 +141,15 @@ public:
   /// @brief Distribute redistrbutes the SuperMatrix in parallel so that
   /// it is ready for the numerical factorization.
   ///
-  /// @todo 
+  /// @todo
   /// Better way to incorporate both real and complex arithmetic.
   void Distribute(){ }
 
-  /// @brief Performs LU factorization numerically.  
+  /// @brief Performs LU factorization numerically.
   ///
-  /// The %SuperLUMatrix should have been permuted and distributed.  
+  /// The %SuperLUMatrix should have been permuted and distributed.
   ///
-  /// @todo 
+  /// @todo
   /// Better way to incorporate both real and complex arithmetic.
   void NumericalFactorize(){ }
 
@@ -190,7 +190,7 @@ public:
   /// @param[in] xLocal The computed solution.
   /// @param[in] xTrueLocal The true solution.
   void CheckErrorDistMultiVector( NumMat<T>& xLocal, NumMat<T>& xTrueLocal ){
-  } 
+  }
   /// @brief LUstructToPMatrix converts the data in LUstruct to PMatrix.
   ///
   /// @paramp[out] PMloc
@@ -218,7 +218,7 @@ private:
 public:
 
   SuperLUMatrix();
-  SuperLUMatrix( const SuperLUGrid<Real>& g, const SuperLUOptions& opt = SuperLUOptions() ); 
+  SuperLUMatrix( const SuperLUGrid<Real>& g, const SuperLUOptions& opt = SuperLUOptions() );
   ~SuperLUMatrix();
   SuperLUMatrix(const SuperLUMatrix & g);
   SuperLUMatrix & operator = (const SuperLUMatrix & g);
@@ -229,8 +229,8 @@ public:
   Int n() const;
 
   /// @brief Convert a distributed sparse matrix in compressed sparse
-  /// column format into the SuperLU compressed row format. 
-  /// 
+  /// column format into the SuperLU compressed row format.
+  ///
   /// The output is saved in the current %SuperLUMatrix.
   ///
   /// @note
@@ -244,12 +244,12 @@ public:
   /// @param[in] sparseA Matrix A saved in distributed compressed
   /// sparse column format.
   ///
-  /// @todo 
+  /// @todo
   /// Better way to incorporate both real and complex arithmetic.
   void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA , const SuperLUOptions & opt);
 
   /// @brief Releases the data in A but keeps other data,
-  /// such as LUstruct. 
+  /// such as LUstruct.
   ///
   /// This allows one to perform factorization of
   /// matrices of the same pattern, such as the option
@@ -273,15 +273,15 @@ public:
   /// @brief Distribute redistrbutes the SuperMatrix in parallel so that
   /// it is ready for the numerical factorization.
   ///
-  /// @todo 
+  /// @todo
   /// Better way to incorporate both real and complex arithmetic.
   void Distribute();
 
-  /// @brief Performs LU factorization numerically.  
+  /// @brief Performs LU factorization numerically.
   ///
-  /// The %SuperLUMatrix should have been permuted and distributed.  
+  /// The %SuperLUMatrix should have been permuted and distributed.
   ///
-  /// @todo 
+  /// @todo
   /// Better way to incorporate both real and complex arithmetic.
   void NumericalFactorize();
 
@@ -361,8 +361,8 @@ public:
   Int n() const;
 
   /// @brief Convert a distributed sparse matrix in compressed sparse
-  /// column format into the SuperLU compressed row format. 
-  /// 
+  /// column format into the SuperLU compressed row format.
+  ///
   /// The output is saved in the current %SuperLUMatrix.
   ///
   /// @note
@@ -376,12 +376,12 @@ public:
   /// @param[in] sparseA Matrix A saved in distributed compressed
   /// sparse column format.
   ///
-  /// @todo 
+  /// @todo
   /// Better way to incorporate both real and complex arithmetic.
   void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA , const SuperLUOptions & options);
 
   /// @brief Releases the data in A but keeps other data,
-  /// such as LUstruct. 
+  /// such as LUstruct.
   ///
   /// This allows one to perform factorization of
   /// matrices of the same pattern, such as the option
@@ -405,15 +405,15 @@ public:
   /// @brief Distribute redistrbutes the SuperMatrix in parallel so that
   /// it is ready for the numerical factorization.
   ///
-  /// @todo 
+  /// @todo
   /// Better way to incorporate both real and complex arithmetic.
   void Distribute();
 
-  /// @brief Performs LU factorization numerically.  
+  /// @brief Performs LU factorization numerically.
   ///
-  /// The %SuperLUMatrix should have been permuted and distributed.  
+  /// The %SuperLUMatrix should have been permuted and distributed.
   ///
-  /// @todo 
+  /// @todo
   /// Better way to incorporate both real and complex arithmetic.
   void NumericalFactorize();
 

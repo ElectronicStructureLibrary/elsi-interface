@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Lin Lin and Mathias Jacquelin
 
@@ -56,10 +56,10 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 namespace PEXSI{
   template<typename T>
-    PMatrixUnsym<T>::PMatrixUnsym ( 
-        const GridType* g, 
-        const SuperNodeType* s, 
-        const PSelInvOptions * o, 
+    PMatrixUnsym<T>::PMatrixUnsym (
+        const GridType* g,
+        const SuperNodeType* s,
+        const PSelInvOptions * o,
         const FactorizationOptions * oFact
         )
     {
@@ -67,15 +67,15 @@ namespace PEXSI{
       this->Setup( g, s, o, oFact );
 
       return ;
-    } 		// -----  end of method PMatrixUnsym::PMatrixUnsym  ----- 
+    } 		// -----  end of method PMatrixUnsym::PMatrixUnsym  -----
 
 
   template<typename T>
-    void PMatrixUnsym<T>::Setup( 
-        const GridType* g, 
-        const SuperNodeType* s, 
-        const PSelInvOptions * o, 
-        const FactorizationOptions * oFact  
+    void PMatrixUnsym<T>::Setup(
+        const GridType* g,
+        const SuperNodeType* s,
+        const PSelInvOptions * o,
+        const FactorizationOptions * oFact
         ) {
 
       PMatrix<T>::Setup(g,s,o,oFact);
@@ -93,17 +93,17 @@ namespace PEXSI{
       UcolSize_.resize( this->NumLocalBlockCol() );
 
       return ;
-    } 		// -----  end of method PMatrixUnsym::Setup   ----- 
+    } 		// -----  end of method PMatrixUnsym::Setup   -----
 
 
   ///////////// Utility functions ///////////////////
   template<typename T>
     inline  void PMatrixUnsym<T>::SelInv_lookup_indexes(
-        SuperNodeBufferTypeUnsym & snode, 
-        std::vector<LBlock<T> > & LcolRecv, 
-        std::vector<LBlock<T> > & LrowRecv, 
-        std::vector<UBlock<T> > & UcolRecv, 
-        std::vector<UBlock<T> > & UrowRecv, /*useless so far*/ 
+        SuperNodeBufferTypeUnsym & snode,
+        std::vector<LBlock<T> > & LcolRecv,
+        std::vector<LBlock<T> > & LrowRecv,
+        std::vector<UBlock<T> > & UcolRecv,
+        std::vector<UBlock<T> > & UrowRecv, /*useless so far*/
         NumMat<T> & AinvBuf,
         NumMat<T> & LBuf,
         NumMat<T> & UBuf )
@@ -204,7 +204,7 @@ namespace PEXSI{
         LBlock<T>& LB = LrowRecv[jb];
         if(1 || (LB.numRow>0 && LB.numCol>0)){
           if( LB.numRow != SuperSize(snode.Index, this->super_) ){
-            ErrorHandling( 
+            ErrorHandling(
                 "The size of LB is not right. Something is seriously wrong." );
           }
           lapack::Lacpy( 'A', LB.numRow, LB.numCol, LB.nzval.Data(),
@@ -214,14 +214,14 @@ namespace PEXSI{
       TIMER_STOP(Fill_LBuf);
 
       TIMER_START(Fill_UBuf);
-      // Fill UBuf first. 
+      // Fill UBuf first.
       SetValue(UBuf, ZERO<T>());
       for( Int jb = 0; jb < UcolRecv.size(); jb++ ){
         UBlock<T>& UB = UcolRecv[jb];
 
         if(1||(UB.numRow>0 && UB.numCol>0)){
           if( UB.numRow != SuperSize(snode.Index, this->super_) ){
-            ErrorHandling( 
+            ErrorHandling(
                 "The size of UB is not right. Something is seriously wrong." );
           }
 
@@ -281,7 +281,7 @@ namespace PEXSI{
                   else{
                     std::ostringstream msg;
                     msg << "Row " << rowsLBPtr[i] <<
-                      " in LB cannot find the corresponding row in SinvB" 
+                      " in LB cannot find the corresponding row in SinvB"
                       << std::endl
                       << "LB.rows    = " << LB.rows << std::endl
                       << "SinvB.rows = " << SinvB.rows << std::endl;
@@ -326,7 +326,7 @@ namespace PEXSI{
               relRows[i] = LB.rows[i] - SinvRowsSta;
             }
 
-            std::vector<UBlock<T> >& UrowSinv = 
+            std::vector<UBlock<T> >& UrowSinv =
               this->U( LBi( isup, this->grid_ ) );
             bool isBlockFound = false;
             TIMER_START(PARSING_COL_BLOCKIDX);
@@ -451,10 +451,10 @@ namespace PEXSI{
         mpi::Waitall(arrMpiReqsSizeSendUCD);
         mpi::Waitall(arrMpiReqsSendUCD);
 
-        //        MPI_Waitall(arrMpiReqsSizeSendLCD.size(), &arrMpiReqsSizeSendLCD[0], MPI_STATUSES_IGNORE); 
-        //        MPI_Waitall(arrMpiReqsSendLCD.size(), &arrMpiReqsSendLCD[0], MPI_STATUSES_IGNORE); 
-        //        MPI_Waitall(arrMpiReqsSizeSendUCD.size(), &arrMpiReqsSizeSendUCD[0], MPI_STATUSES_IGNORE); 
-        //        MPI_Waitall(arrMpiReqsSendUCD.size(), &arrMpiReqsSendUCD[0], MPI_STATUSES_IGNORE); 
+        //        MPI_Waitall(arrMpiReqsSizeSendLCD.size(), &arrMpiReqsSizeSendLCD[0], MPI_STATUSES_IGNORE);
+        //        MPI_Waitall(arrMpiReqsSendLCD.size(), &arrMpiReqsSendLCD[0], MPI_STATUSES_IGNORE);
+        //        MPI_Waitall(arrMpiReqsSizeSendUCD.size(), &arrMpiReqsSizeSendUCD[0], MPI_STATUSES_IGNORE);
+        //        MPI_Waitall(arrMpiReqsSendUCD.size(), &arrMpiReqsSendUCD[0], MPI_STATUSES_IGNORE);
       }
 
       void WaitAllRecv(){
@@ -470,8 +470,8 @@ namespace PEXSI{
 
     template<typename T>
       inline void PMatrixUnsym<T>::SendRecvSizesCD(
-          std::vector<Int > & arrSuperNodes, 
-          Int stepSuper, CDBuffers & buffers) 
+          std::vector<Int > & arrSuperNodes,
+          Int stepSuper, CDBuffers & buffers)
       {
         TIMER_START(SendRecvSizesCD);
         //compute the number of requests
@@ -492,13 +492,13 @@ namespace PEXSI{
         buffers.resize(sendCount,recvCount);
 
 
-        //Do Isend for size and content of L and Irecv for sizes of U 
+        //Do Isend for size and content of L and Irecv for sizes of U
         for (Int supidx=0; supidx<stepSuper; supidx++){
           Int snode_index = arrSuperNodes[supidx];
 
           TIMER_START(Send_L_Recv_Size_U_CrossDiag);
 
-          if( MYCOL( this->grid_ ) == PCOL( snode_index, this->grid_ ) 
+          if( MYCOL( this->grid_ ) == PCOL( snode_index, this->grid_ )
               && this->isSendToCrossDiagonal_(this->grid_->numProcCol, snode_index ) ){
 
             Int sendIdxL = 0;
@@ -509,13 +509,13 @@ namespace PEXSI{
 
                 if( MYPROC( this->grid_ ) != dest	){
                   //Send size and content of L
-                  MPI_Request & mpiReqSizeSendL = 
+                  MPI_Request & mpiReqSizeSendL =
                     buffers.arrMpiReqsSizeSendLCD[buffers.sendOffset[supidx]+sendIdxL];
-                  MPI_Request & mpiReqSendL = 
+                  MPI_Request & mpiReqSendL =
                     buffers.arrMpiReqsSendLCD[buffers.sendOffset[supidx]+sendIdxL];
-                  std::vector<char> & sstrLcolSend = 
+                  std::vector<char> & sstrLcolSend =
                     buffers.arrSstrLcolSendCD[buffers.sendOffset[supidx]+sendIdxL];
-                  Int & sstrSizeL = 
+                  Int & sstrSizeL =
                     buffers.arrSstrLcolSizeSendCD[buffers.sendOffset[supidx]+sendIdxL];
 
                   // Pack L data
@@ -525,11 +525,11 @@ namespace PEXSI{
                   // All blocks except for the diagonal block are to be sent right
                   //TODO not true > this is a scatter operation ! Can we know the destination ?
 
-                  //Skip the diagonal block if necessary 
+                  //Skip the diagonal block if necessary
                   Int startIdx = ( MYROW( this->grid_ ) == PROW( snode_index, this->grid_ ) ) ? 1:0;
                   Int count = 0;
                   for( Int ib = startIdx; ib < Lcol.size(); ib++ ){
-                    if( Lcol[ib].blockIdx > snode_index && 
+                    if( Lcol[ib].blockIdx > snode_index &&
                         (Lcol[ib].blockIdx % this->grid_->numProcCol) == dstCol  ){
                       count++;
                     }
@@ -538,8 +538,8 @@ namespace PEXSI{
                   serialize( (Int)count, sstm, NO_MASK );
 
                   for( Int ib = startIdx; ib < Lcol.size(); ib++ ){
-                    if( Lcol[ib].blockIdx > snode_index &&  
-                        (Lcol[ib].blockIdx % this->grid_->numProcCol) == dstCol  ){ 
+                    if( Lcol[ib].blockIdx > snode_index &&
+                        (Lcol[ib].blockIdx % this->grid_->numProcCol) == dstCol  ){
 #if ( _DEBUGlevel_ >= 1 )
                       statusOFS << "["<<snode_index<<"] SEND contains "<<Lcol[ib].blockIdx
                         << " which corresponds to "<<GBj(ib,this->grid_)
@@ -556,7 +556,7 @@ namespace PEXSI{
 
 
 
-                  MPI_Isend( &sstrSizeL, 1, MPI_INT, dest, 
+                  MPI_Isend( &sstrSizeL, 1, MPI_INT, dest,
                       IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_SIZE_CD),
                       this->grid_->comm, &mpiReqSizeSendL );
                   MPI_Isend( (void*)&sstrLcolSend[0], sstrSizeL, MPI_BYTE, dest,
@@ -565,12 +565,12 @@ namespace PEXSI{
                   sendIdxL++;
 
                   //Recv for U size
-                  Int & sstrSizeU = 
+                  Int & sstrSizeU =
                     buffers.arrSstrUcolSizeRecvCD[buffers.sendOffset[supidx]+recvIdxU];
-                  MPI_Request & mpiReqSizeRecvU = 
+                  MPI_Request & mpiReqSizeRecvU =
                     buffers.arrMpiReqsSizeRecvUCD[buffers.sendOffset[supidx]+recvIdxU];
 
-                  MPI_Irecv( &sstrSizeU, 1, MPI_INT, dest, 
+                  MPI_Irecv( &sstrSizeU, 1, MPI_INT, dest,
                       IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_SIZE_CD),
                       this->grid_->comm, &mpiReqSizeRecvU );
                   recvIdxU++;
@@ -587,7 +587,7 @@ namespace PEXSI{
           Int snode_index = arrSuperNodes[supidx];
           TIMER_START(Send_U_Recv_Size_L_CrossDiag);
           //If I'm a receiver
-          if( MYROW( this->grid_ ) == PROW( snode_index, this->grid_ ) 
+          if( MYROW( this->grid_ ) == PROW( snode_index, this->grid_ )
               && this->isRecvFromCrossDiagonal_(this->grid_->numProcRow, snode_index ) ){
             Int recvIdxL=0;
             Int sendIdxU=0;
@@ -596,25 +596,25 @@ namespace PEXSI{
                 Int src = PNUM(srcRow,PCOL(snode_index,this->grid_),this->grid_);
                 if( MYPROC( this->grid_ ) != src ){
                   //Recv size of L
-                  Int & sstrSizeL = 
+                  Int & sstrSizeL =
                     buffers.arrSstrLrowSizeRecvCD[buffers.recvOffset[supidx]+recvIdxL];
-                  MPI_Request & mpiReqSizeRecvL = 
+                  MPI_Request & mpiReqSizeRecvL =
                     buffers.arrMpiReqsSizeRecvLCD[buffers.recvOffset[supidx]+recvIdxL];
 
-                  MPI_Irecv( &sstrSizeL, 1, MPI_INT, src, 
+                  MPI_Irecv( &sstrSizeL, 1, MPI_INT, src,
                       IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_L_SIZE_CD),
                       this->grid_->comm, &mpiReqSizeRecvL );
                   recvIdxL++;
 
 
                   //Send size and content of U
-                  MPI_Request & mpiReqSizeSendU = 
+                  MPI_Request & mpiReqSizeSendU =
                     buffers.arrMpiReqsSizeSendUCD[buffers.recvOffset[supidx]+sendIdxU];
-                  MPI_Request & mpiReqSendU = 
+                  MPI_Request & mpiReqSendU =
                     buffers.arrMpiReqsSendUCD[buffers.recvOffset[supidx]+sendIdxU];
-                  std::vector<char> & sstrUrowSend = 
+                  std::vector<char> & sstrUrowSend =
                     buffers.arrSstrUrowSendCD[buffers.recvOffset[supidx]+sendIdxU];
-                  Int & sstrSizeU = 
+                  Int & sstrSizeU =
                     buffers.arrSstrUrowSizeSendCD[buffers.recvOffset[supidx]+sendIdxU];
 
                   // Pack U data
@@ -626,7 +626,7 @@ namespace PEXSI{
 
                   Int count = 0;
                   for( Int jb = 0; jb < Urow.size(); jb++ ){
-                    if( Urow[jb].blockIdx > snode_index 
+                    if( Urow[jb].blockIdx > snode_index
                         && (Urow[jb].blockIdx % this->grid_->numProcRow) == srcRow ){
                       count++;
                     }
@@ -635,8 +635,8 @@ namespace PEXSI{
                   serialize( (Int)count, sstm, NO_MASK );
 
                   for( Int jb = 0; jb < Urow.size(); jb++ ){
-                    if( Urow[jb].blockIdx > snode_index 
-                        && (Urow[jb].blockIdx % this->grid_->numProcRow) == srcRow ){ 
+                    if( Urow[jb].blockIdx > snode_index
+                        && (Urow[jb].blockIdx % this->grid_->numProcRow) == srcRow ){
 #if ( _DEBUGlevel_ >= 1 )
                       statusOFS << "["<<snode_index<<"] SEND contains "<<Urow[jb].blockIdx
                         << " which corresponds to "<<GBi(jb,this->grid_)
@@ -652,8 +652,8 @@ namespace PEXSI{
                   sstrSizeU = sstrUrowSend.size();
 
 
-                  MPI_Isend( &sstrSizeU, 1, MPI_INT, src, 
-                      IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_SIZE_CD), 
+                  MPI_Isend( &sstrSizeU, 1, MPI_INT, src,
+                      IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_SIZE_CD),
                       this->grid_->comm, &mpiReqSizeSendU );
                   MPI_Isend( (void*)&sstrUrowSend[0], sstrSizeU, MPI_BYTE, src,
                       IDX_TO_TAG2(snode_index,supidx,SELINV_TAG_U_CONTENT_CD),
@@ -670,7 +670,7 @@ namespace PEXSI{
 
     template<typename T>
       inline void PMatrixUnsym<T>::IRecvContentCD(
-          std::vector<Int > & arrSuperNodes, 
+          std::vector<Int > & arrSuperNodes,
           Int stepSuper, CDBuffers & buffers) {
         TIMER_START(IrecvContentCD);
 
@@ -687,18 +687,18 @@ namespace PEXSI{
           Int snode_index = arrSuperNodes[supidx];
           //If I'm a receiver
           TIMER_START(Recv_L_CrossDiag);
-          if( MYROW( this->grid_ ) == PROW( snode_index, this->grid_ ) 
+          if( MYROW( this->grid_ ) == PROW( snode_index, this->grid_ )
               && this->isRecvFromCrossDiagonal_(this->grid_->numProcRow, snode_index ) ){
             Int recvIdxL=0;
             for(Int srcRow = 0; srcRow<this->grid_->numProcRow; srcRow++){
               if(this->isRecvFromCrossDiagonal_(srcRow,snode_index) ){
                 Int src = PNUM(srcRow,PCOL(snode_index,this->grid_),this->grid_);
                 if( MYPROC( this->grid_ ) != src ){
-                  Int & sstrSizeL = 
+                  Int & sstrSizeL =
                     buffers.arrSstrLrowSizeRecvCD[buffers.recvOffset[supidx]+recvIdxL];
-                  std::vector<char> & sstrLrowRecv = 
+                  std::vector<char> & sstrLrowRecv =
                     buffers.arrSstrLrowRecvCD[buffers.recvOffset[supidx]+recvIdxL];
-                  MPI_Request & mpiReqRecvL = 
+                  MPI_Request & mpiReqRecvL =
                     buffers.arrMpiReqsRecvLCD[buffers.recvOffset[supidx]+recvIdxL];
                   sstrLrowRecv.resize( sstrSizeL);
 
@@ -723,18 +723,18 @@ namespace PEXSI{
         for (Int supidx=0; supidx<stepSuper; supidx++){
           Int snode_index = arrSuperNodes[supidx];
           TIMER_START(Recv_U_CrossDiag);
-          if( MYCOL( this->grid_ ) == PCOL( snode_index, this->grid_ ) 
+          if( MYCOL( this->grid_ ) == PCOL( snode_index, this->grid_ )
               && this->isSendToCrossDiagonal_(this->grid_->numProcCol, snode_index ) ){
             Int recvIdxU = 0;
             for(Int srcCol = 0; srcCol<this->grid_->numProcCol; srcCol++){
               if(this->isSendToCrossDiagonal_(srcCol,snode_index) ){
                 Int src = PNUM(PROW(snode_index,this->grid_),srcCol,this->grid_);
                 if( MYPROC( this->grid_ ) != src ){
-                  Int & sstrSizeU = 
+                  Int & sstrSizeU =
                     buffers.arrSstrUcolSizeRecvCD[buffers.sendOffset[supidx]+recvIdxU];
-                  std::vector<char> & sstrUcolRecv = 
+                  std::vector<char> & sstrUcolRecv =
                     buffers.arrSstrUcolRecvCD[buffers.sendOffset[supidx]+recvIdxU];
-                  MPI_Request & mpiReqRecvU = 
+                  MPI_Request & mpiReqRecvU =
                     buffers.arrMpiReqsRecvUCD[buffers.sendOffset[supidx]+recvIdxU];
                   sstrUcolRecv.resize( sstrSizeU );
 
@@ -755,7 +755,7 @@ namespace PEXSI{
 
     template<typename T>
       inline void PMatrixUnsym<T>::WaitContentLCD(
-          std::vector<Int > & arrSuperNodes, 
+          std::vector<Int > & arrSuperNodes,
           Int stepSuper, CDBuffers & buffers) {
         TIMER_START(WaitContentLCD);
         //waitall content of L
@@ -777,14 +777,14 @@ namespace PEXSI{
 
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << std::endl << " ["<<snode_index<<"] "
-              << "Update the upper triangular block" 
-              << std::endl << std::endl; 
+              << "Update the upper triangular block"
+              << std::endl << std::endl;
             statusOFS << std::endl << " ["<<snode_index<<"] "
               //            << "blockIdxLocal:" << snode.BlockIdxLocal
-              << std::endl << std::endl; 
+              << std::endl << std::endl;
             statusOFS << std::endl << " ["<<snode_index<<"] "
               //            << "rowLocalPtr:" << snode.RowLocalPtr
-              << std::endl << std::endl; 
+              << std::endl << std::endl;
 #endif
 
             std::vector<LBlock<T> >& Lcol = this->L( LBj(snode_index, this->grid_) );
@@ -807,9 +807,9 @@ namespace PEXSI{
                 std::vector<LBlock<T> > * pLcol;
                 std::vector<LBlock<T> > LcolRecv;
                 if(MYPROC(this->grid_)!= src){
-                  Int & sstrSizeL = 
+                  Int & sstrSizeL =
                     buffers.arrSstrLrowSizeRecvCD[buffers.recvOffset[supidx]+recvIdxL];
-                  std::vector<char> & sstrLrowRecv = 
+                  std::vector<char> & sstrLrowRecv =
                     buffers.arrSstrLrowRecvCD[buffers.recvOffset[supidx]+recvIdxL];
 
                   std::stringstream sstm;
@@ -822,7 +822,7 @@ namespace PEXSI{
 #endif
                   sstm.write( &sstrLrowRecv[0], sstrSizeL );
 
-                  // Unpack L data.  
+                  // Unpack L data.
                   Int numLBlock;
                   std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
                   deserialize( numLBlock, sstm, NO_MASK );
@@ -833,9 +833,9 @@ namespace PEXSI{
                     statusOFS << "["<<snode_index<<"] RECV contains "
                       << LcolRecv[ib].blockIdx<< " which corresponds to "
                       << ib * this->grid_->numProcRow + srcRow;
-                    statusOFS << " L is on row "<< srcRow 
+                    statusOFS << " L is on row "<< srcRow
                       << " whereas Lrow is on col "
-                      << LcolRecv[ib].blockIdx % this->grid_->numProcCol 
+                      << LcolRecv[ib].blockIdx % this->grid_->numProcCol
                       << std::endl;
 #endif
                   }
@@ -852,7 +852,7 @@ namespace PEXSI{
 
                 //We can directly put LcolRecv in Lrow (stil need to transpose)
 
-                //Skip the diagonal block if necessary 
+                //Skip the diagonal block if necessary
                 Int startIdx = ( MYPROC( this->grid_ ) == src && MYPROC(this->grid_) == PNUM(ksupProcRow,ksupProcCol, this->grid_) ) ? 1:0;
                 for( Int ib = startIdx; ib < pLcol->size(); ib++ ){
                   LBlock<T> & LB = (*pLcol)[ib];
@@ -903,7 +903,7 @@ namespace PEXSI{
             for( Int ib = 0; ib < Lrow.size(); ib++ ){
               LBlock<T> &  LB = Lrow[ib];
               if( !isBlockFound[ib] ){
-                ErrorHandling( 
+                ErrorHandling(
                     "LBlock cannot find its update. Something is seriously wrong."
                     );
               }
@@ -918,7 +918,7 @@ namespace PEXSI{
 
     template<typename T>
       inline void PMatrixUnsym<T>::WaitContentUCD(
-          std::vector<Int > & arrSuperNodes, 
+          std::vector<Int > & arrSuperNodes,
           Int stepSuper, CDBuffers & buffers) {
 
         TIMER_START(WaitContentUCD);
@@ -957,9 +957,9 @@ namespace PEXSI{
                 std::vector<UBlock<T> > * pUrow;
                 std::vector<UBlock<T> > UrowRecv;
                 if(MYPROC(this->grid_)!= src){
-                  Int & sstrSizeU = 
+                  Int & sstrSizeU =
                     buffers.arrSstrUcolSizeRecvCD[buffers.sendOffset[supidx]+recvIdxU];
-                  std::vector<char> & sstrUcolRecv = 
+                  std::vector<char> & sstrUcolRecv =
                     buffers.arrSstrUcolRecvCD[buffers.sendOffset[supidx]+recvIdxU];
 
 
@@ -972,7 +972,7 @@ namespace PEXSI{
 #endif
                   sstm.write( &sstrUcolRecv[0], sstrSizeU );
 
-                  // Unpack U data.  
+                  // Unpack U data.
                   Int numUBlock;
                   std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
                   deserialize( numUBlock, sstm, NO_MASK );
@@ -983,9 +983,9 @@ namespace PEXSI{
                     statusOFS << "["<<snode_index<<"] RECV contains "
                       << UrowRecv[jb].blockIdx<< " which corresponds to "
                       << jb * this->grid_->numProcCol + srcCol;
-                    statusOFS << " Urow is on col "<< srcCol 
+                    statusOFS << " Urow is on col "<< srcCol
                       << " whereas U is on row "
-                      << UrowRecv[jb].blockIdx % this->grid_->numProcRow 
+                      << UrowRecv[jb].blockIdx % this->grid_->numProcRow
                       << std::endl;
 #endif
                   }
@@ -993,7 +993,7 @@ namespace PEXSI{
                   recvIdxU++;
                 } // sender is not the same as receiver
                 else{
-                  // U is obtained locally, just make a copy. 
+                  // U is obtained locally, just make a copy.
                   std::vector<UBlock<T> >& Urow = this->U( LBi( snode_index, this->grid_ ) );
                   pUrow = &Urow;
                 } // sender is the same as receiver
@@ -1049,7 +1049,7 @@ namespace PEXSI{
               UBlock<T> &  UB = Ucol[jb];
               if( !isBlockFound[jb] ){
 
-                ErrorHandling( 
+                ErrorHandling(
                     "UBlock cannot find its update. Something is seriously wrong."
                     );
               }
@@ -1066,7 +1066,7 @@ namespace PEXSI{
 
     template<typename T>
       inline void PMatrixUnsym<T>::SendRecvCD(
-          std::vector<SuperNodeBufferTypeUnsym > & arrSuperNodes, 
+          std::vector<SuperNodeBufferTypeUnsym > & arrSuperNodes,
           Int stepSuper)
       {
 
@@ -1108,13 +1108,13 @@ namespace PEXSI{
 
 
 
-        //Do Isend for size and content of L and Irecv for sizes of U 
+        //Do Isend for size and content of L and Irecv for sizes of U
         for (Int supidx=0; supidx<stepSuper; supidx++){
           SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
           TIMER_START(Send_L_Recv_Size_U_CrossDiag);
 
-          if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) 
+          if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ )
               && this->isSendToCrossDiagonal_(this->grid_->numProcCol, snode.Index ) ){
 
             Int sendIdxL = 0;
@@ -1125,13 +1125,13 @@ namespace PEXSI{
 
                 if( MYPROC( this->grid_ ) != dest	){
                   //Send size and content of L
-                  MPI_Request & mpiReqSizeSendL = 
+                  MPI_Request & mpiReqSizeSendL =
                     arrMpiReqsSizeSendLCD[sendOffset[supidx]+sendIdxL];
-                  MPI_Request & mpiReqSendL = 
+                  MPI_Request & mpiReqSendL =
                     arrMpiReqsSendLCD[sendOffset[supidx]+sendIdxL];
-                  std::vector<char> & sstrLcolSend = 
+                  std::vector<char> & sstrLcolSend =
                     arrSstrLcolSendCD[sendOffset[supidx]+sendIdxL];
-                  Int & sstrSizeL = 
+                  Int & sstrSizeL =
                     arrSstrLcolSizeSendCD[sendOffset[supidx]+sendIdxL];
 
                   // Pack L data
@@ -1141,11 +1141,11 @@ namespace PEXSI{
                   // All blocks except for the diagonal block are to be sent right
                   //TODO not true > this is a scatter operation ! Can we know the destination ?
 
-                  //Skip the diagonal block if necessary 
+                  //Skip the diagonal block if necessary
                   Int startIdx = ( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ) ? 1:0;
                   Int count = 0;
                   for( Int ib = startIdx; ib < Lcol.size(); ib++ ){
-                    if( Lcol[ib].blockIdx > snode.Index && 
+                    if( Lcol[ib].blockIdx > snode.Index &&
                         (Lcol[ib].blockIdx % this->grid_->numProcCol) == dstCol  ){
                       count++;
                     }
@@ -1154,8 +1154,8 @@ namespace PEXSI{
                   serialize( (Int)count, sstm, NO_MASK );
 
                   for( Int ib = startIdx; ib < Lcol.size(); ib++ ){
-                    if( Lcol[ib].blockIdx > snode.Index &&  
-                        (Lcol[ib].blockIdx % this->grid_->numProcCol) == dstCol  ){ 
+                    if( Lcol[ib].blockIdx > snode.Index &&
+                        (Lcol[ib].blockIdx % this->grid_->numProcCol) == dstCol  ){
 #if ( _DEBUGlevel_ >= 1 )
                       statusOFS << "["<<snode.Index<<"] SEND contains "<<Lcol[ib].blockIdx
                         << " which corresponds to "<<GBj(ib,this->grid_)
@@ -1172,7 +1172,7 @@ namespace PEXSI{
 
 
 
-                  MPI_Isend( &sstrSizeL, 1, MPI_INT, dest, 
+                  MPI_Isend( &sstrSizeL, 1, MPI_INT, dest,
                       IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE_CD),
                       this->grid_->comm, &mpiReqSizeSendL );
                   MPI_Isend( (void*)&sstrLcolSend[0], sstrSizeL, MPI_BYTE, dest,
@@ -1181,12 +1181,12 @@ namespace PEXSI{
                   sendIdxL++;
 
                   //Recv for U size
-                  Int & sstrSizeU = 
+                  Int & sstrSizeU =
                     arrSstrUcolSizeRecvCD[sendOffset[supidx]+recvIdxU];
-                  MPI_Request & mpiReqSizeRecvU = 
+                  MPI_Request & mpiReqSizeRecvU =
                     arrMpiReqsSizeRecvUCD[sendOffset[supidx]+recvIdxU];
 
-                  MPI_Irecv( &sstrSizeU, 1, MPI_INT, dest, 
+                  MPI_Irecv( &sstrSizeU, 1, MPI_INT, dest,
                       IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE_CD),
                       this->grid_->comm, &mpiReqSizeRecvU );
                   recvIdxU++;
@@ -1203,7 +1203,7 @@ namespace PEXSI{
           SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
           TIMER_START(Send_U_Recv_Size_L_CrossDiag);
           //If I'm a receiver
-          if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) 
+          if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ )
               && this->isRecvFromCrossDiagonal_(this->grid_->numProcRow, snode.Index ) ){
             Int recvIdxL=0;
             Int sendIdxU=0;
@@ -1212,25 +1212,25 @@ namespace PEXSI{
                 Int src = PNUM(srcRow,PCOL(snode.Index,this->grid_),this->grid_);
                 if( MYPROC( this->grid_ ) != src ){
                   //Recv size of L
-                  Int & sstrSizeL = 
+                  Int & sstrSizeL =
                     arrSstrLrowSizeRecvCD[recvOffset[supidx]+recvIdxL];
-                  MPI_Request & mpiReqSizeRecvL = 
+                  MPI_Request & mpiReqSizeRecvL =
                     arrMpiReqsSizeRecvLCD[recvOffset[supidx]+recvIdxL];
 
-                  MPI_Irecv( &sstrSizeL, 1, MPI_INT, src, 
+                  MPI_Irecv( &sstrSizeL, 1, MPI_INT, src,
                       IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE_CD),
                       this->grid_->comm, &mpiReqSizeRecvL );
                   recvIdxL++;
 
 
                   //Send size and content of U
-                  MPI_Request & mpiReqSizeSendU = 
+                  MPI_Request & mpiReqSizeSendU =
                     arrMpiReqsSizeSendUCD[recvOffset[supidx]+sendIdxU];
-                  MPI_Request & mpiReqSendU = 
+                  MPI_Request & mpiReqSendU =
                     arrMpiReqsSendUCD[recvOffset[supidx]+sendIdxU];
-                  std::vector<char> & sstrUrowSend = 
+                  std::vector<char> & sstrUrowSend =
                     arrSstrUrowSendCD[recvOffset[supidx]+sendIdxU];
-                  Int & sstrSizeU = 
+                  Int & sstrSizeU =
                     arrSstrUrowSizeSendCD[recvOffset[supidx]+sendIdxU];
 
                   // Pack U data
@@ -1242,7 +1242,7 @@ namespace PEXSI{
 
                   Int count = 0;
                   for( Int jb = 0; jb < Urow.size(); jb++ ){
-                    if( Urow[jb].blockIdx > snode.Index 
+                    if( Urow[jb].blockIdx > snode.Index
                         && (Urow[jb].blockIdx % this->grid_->numProcRow) == srcRow ){
                       count++;
                     }
@@ -1251,8 +1251,8 @@ namespace PEXSI{
                   serialize( (Int)count, sstm, NO_MASK );
 
                   for( Int jb = 0; jb < Urow.size(); jb++ ){
-                    if( Urow[jb].blockIdx > snode.Index 
-                        && (Urow[jb].blockIdx % this->grid_->numProcRow) == srcRow ){ 
+                    if( Urow[jb].blockIdx > snode.Index
+                        && (Urow[jb].blockIdx % this->grid_->numProcRow) == srcRow ){
 #if ( _DEBUGlevel_ >= 1 )
                       statusOFS << "["<<snode.Index<<"] SEND contains "<<Urow[jb].blockIdx
                         << " which corresponds to "<<GBi(jb,this->grid_)
@@ -1268,8 +1268,8 @@ namespace PEXSI{
                   sstrSizeU = sstrUrowSend.size();
 
 
-                  MPI_Isend( &sstrSizeU, 1, MPI_INT, src, 
-                      IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE_CD), 
+                  MPI_Isend( &sstrSizeU, 1, MPI_INT, src,
+                      IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE_CD),
                       this->grid_->comm, &mpiReqSizeSendU );
                   MPI_Isend( (void*)&sstrUrowSend[0], sstrSizeU, MPI_BYTE, src,
                       IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT_CD),
@@ -1294,18 +1294,18 @@ namespace PEXSI{
           SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
           //If I'm a receiver
           TIMER_START(Recv_L_CrossDiag);
-          if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) 
+          if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ )
               && this->isRecvFromCrossDiagonal_(this->grid_->numProcRow, snode.Index ) ){
             Int recvIdxL=0;
             for(Int srcRow = 0; srcRow<this->grid_->numProcRow; srcRow++){
               if(this->isRecvFromCrossDiagonal_(srcRow,snode.Index) ){
                 Int src = PNUM(srcRow,PCOL(snode.Index,this->grid_),this->grid_);
                 if( MYPROC( this->grid_ ) != src ){
-                  Int & sstrSizeL = 
+                  Int & sstrSizeL =
                     arrSstrLrowSizeRecvCD[recvOffset[supidx]+recvIdxL];
-                  std::vector<char> & sstrLrowRecv = 
+                  std::vector<char> & sstrLrowRecv =
                     arrSstrLrowRecvCD[recvOffset[supidx]+recvIdxL];
-                  MPI_Request & mpiReqRecvL = 
+                  MPI_Request & mpiReqRecvL =
                     arrMpiReqsRecvLCD[recvOffset[supidx]+recvIdxL];
                   sstrLrowRecv.resize( sstrSizeL);
 
@@ -1330,18 +1330,18 @@ namespace PEXSI{
         for (Int supidx=0; supidx<stepSuper; supidx++){
           SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
           TIMER_START(Recv_U_CrossDiag);
-          if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) 
+          if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ )
               && this->isSendToCrossDiagonal_(this->grid_->numProcCol, snode.Index ) ){
             Int recvIdxU = 0;
             for(Int srcCol = 0; srcCol<this->grid_->numProcCol; srcCol++){
               if(this->isSendToCrossDiagonal_(srcCol,snode.Index) ){
                 Int src = PNUM(PROW(snode.Index,this->grid_),srcCol,this->grid_);
                 if( MYPROC( this->grid_ ) != src ){
-                  Int & sstrSizeU = 
+                  Int & sstrSizeU =
                     arrSstrUcolSizeRecvCD[sendOffset[supidx]+recvIdxU];
-                  std::vector<char> & sstrUcolRecv = 
+                  std::vector<char> & sstrUcolRecv =
                     arrSstrUcolRecvCD[sendOffset[supidx]+recvIdxU];
-                  MPI_Request & mpiReqRecvU = 
+                  MPI_Request & mpiReqRecvU =
                     arrMpiReqsRecvUCD[sendOffset[supidx]+recvIdxU];
                   sstrUcolRecv.resize( sstrSizeU );
 
@@ -1375,14 +1375,14 @@ namespace PEXSI{
 
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << std::endl << " ["<<snode.Index<<"] "
-              << "Update the upper triangular block" 
-              << std::endl << std::endl; 
+              << "Update the upper triangular block"
+              << std::endl << std::endl;
             statusOFS << std::endl << " ["<<snode.Index<<"] "
               << "blockIdxLocal:" << snode.BlockIdxLocal
-              << std::endl << std::endl; 
+              << std::endl << std::endl;
             statusOFS << std::endl << " ["<<snode.Index<<"] "
               << "rowLocalPtr:" << snode.RowLocalPtr
-              << std::endl << std::endl; 
+              << std::endl << std::endl;
 #endif
 
             std::vector<LBlock<T> >& Lcol = this->L( LBj(snode.Index, this->grid_) );
@@ -1405,9 +1405,9 @@ namespace PEXSI{
                 std::vector<LBlock<T> > * pLcol;
                 std::vector<LBlock<T> > LcolRecv;
                 if(MYPROC(this->grid_)!= src){
-                  Int & sstrSizeL = 
+                  Int & sstrSizeL =
                     arrSstrLrowSizeRecvCD[recvOffset[supidx]+recvIdxL];
-                  std::vector<char> & sstrLrowRecv = 
+                  std::vector<char> & sstrLrowRecv =
                     arrSstrLrowRecvCD[recvOffset[supidx]+recvIdxL];
 
                   std::stringstream sstm;
@@ -1420,7 +1420,7 @@ namespace PEXSI{
 #endif
                   sstm.write( &sstrLrowRecv[0], sstrSizeL );
 
-                  // Unpack L data.  
+                  // Unpack L data.
                   Int numLBlock;
                   std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
                   deserialize( numLBlock, sstm, NO_MASK );
@@ -1431,9 +1431,9 @@ namespace PEXSI{
                     statusOFS << "["<<snode.Index<<"] RECV contains "
                       << LcolRecv[ib].blockIdx<< " which corresponds to "
                       << ib * this->grid_->numProcRow + srcRow;
-                    statusOFS << " L is on row "<< srcRow 
+                    statusOFS << " L is on row "<< srcRow
                       << " whereas Lrow is on col "
-                      << LcolRecv[ib].blockIdx % this->grid_->numProcCol 
+                      << LcolRecv[ib].blockIdx % this->grid_->numProcCol
                       << std::endl;
 #endif
                   }
@@ -1450,7 +1450,7 @@ namespace PEXSI{
 
                 //We can directly put LcolRecv in Lrow (stil need to transpose)
 
-                //Skip the diagonal block if necessary 
+                //Skip the diagonal block if necessary
                 Int startIdx = ( MYPROC( this->grid_ ) == src && MYPROC(this->grid_) == PNUM(ksupProcRow,ksupProcCol, this->grid_) ) ? 1:0;
                 for( Int ib = startIdx; ib < pLcol->size(); ib++ ){
                   LBlock<T> & LB = (*pLcol)[ib];
@@ -1501,7 +1501,7 @@ namespace PEXSI{
             for( Int ib = 0; ib < Lrow.size(); ib++ ){
               LBlock<T> &  LB = Lrow[ib];
               if( !isBlockFound[ib] ){
-                ErrorHandling( 
+                ErrorHandling(
                     "LBlock cannot find its update. Something is seriously wrong."
                     );
               }
@@ -1544,9 +1544,9 @@ namespace PEXSI{
                 std::vector<UBlock<T> > * pUrow;
                 std::vector<UBlock<T> > UrowRecv;
                 if(MYPROC(this->grid_)!= src){
-                  Int & sstrSizeU = 
+                  Int & sstrSizeU =
                     arrSstrUcolSizeRecvCD[sendOffset[supidx]+recvIdxU];
-                  std::vector<char> & sstrUcolRecv = 
+                  std::vector<char> & sstrUcolRecv =
                     arrSstrUcolRecvCD[sendOffset[supidx]+recvIdxU];
 
 
@@ -1559,7 +1559,7 @@ namespace PEXSI{
 #endif
                   sstm.write( &sstrUcolRecv[0], sstrSizeU );
 
-                  // Unpack U data.  
+                  // Unpack U data.
                   Int numUBlock;
                   std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
                   deserialize( numUBlock, sstm, NO_MASK );
@@ -1570,9 +1570,9 @@ namespace PEXSI{
                     statusOFS << "["<<snode.Index<<"] RECV contains "
                       << UrowRecv[jb].blockIdx<< " which corresponds to "
                       << jb * this->grid_->numProcCol + srcCol;
-                    statusOFS << " Urow is on col "<< srcCol 
+                    statusOFS << " Urow is on col "<< srcCol
                       << " whereas U is on row "
-                      << UrowRecv[jb].blockIdx % this->grid_->numProcRow 
+                      << UrowRecv[jb].blockIdx % this->grid_->numProcRow
                       << std::endl;
 #endif
                   }
@@ -1580,7 +1580,7 @@ namespace PEXSI{
                   recvIdxU++;
                 } // sender is not the same as receiver
                 else{
-                  // U is obtained locally, just make a copy. 
+                  // U is obtained locally, just make a copy.
                   std::vector<UBlock<T> >& Urow = this->U( LBi( snode.Index, this->grid_ ) );
                   pUrow = &Urow;
                 } // sender is the same as receiver
@@ -1635,7 +1635,7 @@ namespace PEXSI{
             for( Int jb = 0; jb < Ucol.size(); jb++ ){
               UBlock<T> &  UB = Ucol[jb];
               if( !isBlockFound[jb] ){
-                ErrorHandling( 
+                ErrorHandling(
                     "UBlock cannot find its update. Something is seriously wrong."
                     );
               }
@@ -1657,10 +1657,10 @@ namespace PEXSI{
 
     template<typename T>
       inline void PMatrixUnsym<T>::UnpackData(
-          SuperNodeBufferTypeUnsym & snode, 
-          std::vector<LBlock<T> > & LcolRecv, 
+          SuperNodeBufferTypeUnsym & snode,
+          std::vector<LBlock<T> > & LcolRecv,
           std::vector<LBlock<T> > & LrowRecv,
-          std::vector<UBlock<T> > & UcolRecv, 
+          std::vector<UBlock<T> > & UcolRecv,
           std::vector<UBlock<T> > & UrowRecv
           )
       {
@@ -1671,7 +1671,7 @@ namespace PEXSI{
 
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
+        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl;
 #endif
         // Lrow part
         if( MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
@@ -1723,7 +1723,7 @@ namespace PEXSI{
 
         } // sender is not the same as receiver
         else{
-          // L is obtained locally, just make a copy. 
+          // L is obtained locally, just make a copy.
           // Do not include the diagonal block
           std::vector<LBlock<T> >& Lcol =  this->L( LBj( snode.Index, this->grid_ ) );
           Int startIdx = ( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) )?1:0;
@@ -1742,7 +1742,7 @@ namespace PEXSI{
           UrowRecv.resize( numUBlock );
           for( Int jb = 0; jb < numUBlock; jb++ ){
             deserialize( UrowRecv[jb], sstm, mask );
-          } 
+          }
 
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS<< "["<<snode.Index<<"] "<<"Urow RECV "<<std::endl;
@@ -1779,7 +1779,7 @@ namespace PEXSI{
 #endif
         } // sender is not the same as receiver
         else{
-          // Ucol is obtained locally, just make a copy. 
+          // Ucol is obtained locally, just make a copy.
           // Do not include the diagonal block
           std::vector<UBlock<T> >& Ucol =  this->Ucol( LBj( snode.Index, this->grid_ ) );
           UcolRecv.resize( Ucol.size() );
@@ -1829,22 +1829,22 @@ namespace PEXSI{
 
             if(1 || (LcolB.numRow>0 && LcolB.numCol>0 && UcolB.numRow>0 && UcolB.numCol>0)){
               //Compute U S-1 L
-              blas::Gemm( 'N', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), 
+              blas::Gemm( 'N', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(),
                   LcolB.numRow, MINUS_ONE<T>(),
-                  UcolB.nzval.Data(), UcolB.nzval.m(), 
+                  UcolB.nzval.Data(), UcolB.nzval.m(),
                   &snode.LUpdateBuf( snode.RowLocalPtr[ib-startIb], 0 ),
-                  snode.LUpdateBuf.m(), 
+                  snode.LUpdateBuf.m(),
                   ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
             }
-          } 
+          }
 
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << std::endl << "["<<snode.Index<<"] "
-            << "Updated the diagonal block" << std::endl << std::endl; 
+            << "Updated the diagonal block" << std::endl << std::endl;
 #endif
         }
         TIMER_STOP(ComputeDiagUpdate);
-      } // End of method PMatrixUnsym<T>::ComputeDiagUpdate 
+      } // End of method PMatrixUnsym<T>::ComputeDiagUpdate
 
 
 
@@ -1860,10 +1860,10 @@ namespace PEXSI{
 #if defined (PROFILE) || defined(PMPI) || defined(USE_TAU)
         Real begin_SendULWaitContentFirst, end_SendULWaitContentFirst, time_SendULWaitContentFirst = 0;
 #endif
-        Int numSuper = this->NumSuper(); 
+        Int numSuper = this->NumSuper();
         std::vector<std::vector<Int> > & superList = this->WorkingSet();
         Int numSteps = superList.size();
-        Int stepSuper = superList[lidx].size(); 
+        Int stepSuper = superList[lidx].size();
 
         TIMER_START(AllocateBuffer);
 
@@ -1908,8 +1908,8 @@ namespace PEXSI{
 
         //allocate the buffers for this supernode
         std::vector<SuperNodeBufferTypeUnsym> arrSuperNodes(stepSuper);
-        for (Int supidx=0; supidx<stepSuper; supidx++){ 
-          arrSuperNodes[supidx].Index = superList[lidx][supidx];  
+        for (Int supidx=0; supidx<stepSuper; supidx++){
+          arrSuperNodes[supidx].Index = superList[lidx][supidx];
         }
 
         NumMat<T> AinvBuf, UBuf, LBuf;
@@ -1929,7 +1929,7 @@ namespace PEXSI{
 
           //Resize L and U first
           bool doSend = false;
-          for (Int supidx=0; supidx<superList[next_lidx].size(); supidx++){ 
+          for (Int supidx=0; supidx<superList[next_lidx].size(); supidx++){
             Int snode_index = superList[next_lidx][supidx];
             if( MYROW( this->grid_ ) == PROW( snode_index, this->grid_ ) ){
               std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode_index, this->grid_) );
@@ -1964,7 +1964,7 @@ namespace PEXSI{
 
         if(next_lidx < superList.size()){
           //Resize L and U first
-          for (Int supidx=0; supidx<superList[next_lidx].size(); supidx++){ 
+          for (Int supidx=0; supidx<superList[next_lidx].size(); supidx++){
             Int snode_index = superList[next_lidx][supidx];
             if( MYROW( this->grid_ ) == PROW( snode_index, this->grid_ ) ){
               std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode_index, this->grid_) );
@@ -1984,7 +1984,7 @@ namespace PEXSI{
 
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
+        statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl;
 #endif
 
         // Senders
@@ -1997,7 +1997,7 @@ namespace PEXSI{
 
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << std::endl <<  "["<<snode.Index<<"] "
-            << "Communication for the Lrow part." << std::endl << std::endl; 
+            << "Communication for the Lrow part." << std::endl << std::endl;
 #endif
           // Communication for the Lrow part.
           if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
@@ -2025,10 +2025,10 @@ namespace PEXSI{
                   this->isSendToBelow_( iProcRow,snode.Index ) == true ){
 
                 // Use Isend to send to multiple targets
-                MPI_Isend( &snode.SizeSstrLrowSend, 1, MPI_INT,  
+                MPI_Isend( &snode.SizeSstrLrowSend, 1, MPI_INT,
                     iProcRow, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_SIZE), this->grid_->colComm, &mpireqsSendLToBelow[2*iProcRow] );
-                MPI_Isend( (void*)&snode.SstrLrowSend[0], snode.SizeSstrLrowSend, MPI_BYTE, 
-                    iProcRow, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_CONTENT), 
+                MPI_Isend( (void*)&snode.SstrLrowSend[0], snode.SizeSstrLrowSend, MPI_BYTE,
+                    iProcRow, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_CONTENT),
                     this->grid_->colComm, &mpireqsSendLToBelow[2*iProcRow+1] );
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS<< "["<<snode.Index<<"] "<<"Lrow SENT "<<std::endl;
@@ -2036,23 +2036,23 @@ namespace PEXSI{
                 statusOFS<<std::endl;
                 statusOFS << "["<<snode.Index<<"] "<<  "Sending Lrow "
                   << snode.SizeSstrLrowSend << " BYTES to P" << PNUM(iProcRow,MYCOL(this->grid_),this->grid_)
-                  << std::endl <<  std::endl; 
+                  << std::endl <<  std::endl;
 #endif
-              } // Send 
+              } // Send
             } // for (iProcRow)
           } // if I am the sender
 
 #if ( _DEBUGlevel_ >= 1 )
-          statusOFS << std::endl << "["<<snode.Index<<"] "<< "Communication for the L part." << std::endl << std::endl; 
+          statusOFS << std::endl << "["<<snode.Index<<"] "<< "Communication for the L part." << std::endl << std::endl;
 #endif
           // Communication for the L (Lcol) part.
           if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
 
             TIMER_START(Serialize_LcolL);
-            // Pack the data in L 
+            // Pack the data in L
             std::stringstream sstm;
             std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-            mask[LBlockMask::NZVAL] = 0; // nzval is excluded 
+            mask[LBlockMask::NZVAL] = 0; // nzval is excluded
 
             std::vector<LBlock<T> >&  Lcol = this->L( LBj(snode.Index, this->grid_) );
             // All blocks except for the diagonal block are to be sent right
@@ -2077,11 +2077,11 @@ namespace PEXSI{
               if( MYCOL( this->grid_ ) != iProcCol &&
                   this->isSendToRight_( iProcCol, snode.Index ) == true ){
                 // Use Isend to send to multiple targets
-                MPI_Isend( &snode.SizeSstrLcolSend, 1, MPI_INT,  
-                    iProcCol, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE), 
+                MPI_Isend( &snode.SizeSstrLcolSend, 1, MPI_INT,
+                    iProcCol, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE),
                     this->grid_->rowComm, &mpireqsSendLToRight[2*iProcCol] );
-                MPI_Isend( (void*)&snode.SstrLcolSend[0], snode.SizeSstrLcolSend, MPI_BYTE, 
-                    iProcCol, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT), 
+                MPI_Isend( (void*)&snode.SstrLcolSend[0], snode.SizeSstrLcolSend, MPI_BYTE,
+                    iProcCol, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT),
                     this->grid_->rowComm, &mpireqsSendLToRight[2*iProcCol+1] );
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS<< "["<<snode.Index<<"] "<<"L SENT "<<std::endl;
@@ -2089,24 +2089,24 @@ namespace PEXSI{
                 statusOFS<<std::endl;
                 statusOFS << "["<<snode.Index<<"] "<<  "Sending L "
                   << snode.SizeSstrLcolSend << " BYTES to P" << PNUM(MYROW(this->grid_),iProcCol,this->grid_)
-                  << std::endl <<  std::endl; 
+                  << std::endl <<  std::endl;
 #endif
-              } // Send 
+              } // Send
             } // for (iProcCol)
           } // if I am the sender
 
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << std::endl <<  "["<<snode.Index<<"] "
-            << "Communication for the U part." << std::endl << std::endl; 
+            << "Communication for the U part." << std::endl << std::endl;
 #endif
           // Communication for the U (Urow) part.
           if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) ){
 
             TIMER_START(Serialize_UcolU);
-            // Pack the data in U 
+            // Pack the data in U
             std::stringstream sstm;
             std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
-            mask[UBlockMask::NZVAL] = 0; // nzval is excluded 
+            mask[UBlockMask::NZVAL] = 0; // nzval is excluded
 
             std::vector<UBlock<T> >&  Urow = this->U( LBi(snode.Index, this->grid_) );
             // All blocks except for the diagonal block are to be sent right
@@ -2128,28 +2128,28 @@ namespace PEXSI{
               if( MYROW( this->grid_ ) != iProcRow &&
                   this->isSendToBelow_( iProcRow,snode.Index ) == true ){
                 // Use Isend to send to multiple targets
-                MPI_Isend( &snode.SizeSstrUrowSend, 1, MPI_INT,  
+                MPI_Isend( &snode.SizeSstrUrowSend, 1, MPI_INT,
                     iProcRow, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE), this->grid_->colComm, &mpireqsSendUToBelow[2*iProcRow] );
-                MPI_Isend( (void*)&snode.SstrLrowSend[0], snode.SizeSstrUrowSend, MPI_BYTE, 
-                    iProcRow, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT), 
+                MPI_Isend( (void*)&snode.SstrLrowSend[0], snode.SizeSstrUrowSend, MPI_BYTE,
+                    iProcRow, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT),
                     this->grid_->colComm, &mpireqsSendUToBelow[2*iProcRow+1] );
 #if ( _DEBUGlevel_ >= 1 )
-                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES"<< std::endl <<  std::endl; 
+                statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Sending U " << snode.SizeSstrUrowSend << " BYTES"<< std::endl <<  std::endl;
                 statusOFS<< "["<<snode.Index<<"] "<<"U SENT "<<std::endl;
                 for(Int ib=0;ib<Urow.size();++ib){statusOFS<<Urow[ib].blockIdx<<" ";}
                 statusOFS<<std::endl;
                 statusOFS << "["<<snode.Index<<"] "<<  "Sending U "
                   << snode.SizeSstrUrowSend << " BYTES to P" << PNUM(iProcRow,MYCOL(this->grid_),this->grid_)
-                  << std::endl <<  std::endl; 
+                  << std::endl <<  std::endl;
 #endif
-              } // Send 
+              } // Send
             } // for (iProcRow)
           } // if I am the sender
 
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << "["<<snode.Index<<"] "
-            << "Communication for the Ucol part." << std::endl 
-            << std::endl; 
+            << "Communication for the Ucol part." << std::endl
+            << std::endl;
 #endif
           // Communication for the Ucol part.
           if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
@@ -2157,7 +2157,7 @@ namespace PEXSI{
             TIMER_START(Serialize_UcolU);
             std::stringstream sstm;
             std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
-            std::vector<UBlock<T> >&  Ucol = 
+            std::vector<UBlock<T> >&  Ucol =
               this->Ucol( LBj(snode.Index, this->grid_) );
             // All blocks are to be sent down.
             serialize( (Int)Ucol.size(), sstm, NO_MASK );
@@ -2171,18 +2171,18 @@ namespace PEXSI{
             snode.SizeSstrUcolSend = snode.SstrUcolSend.size();
             TIMER_STOP(Serialize_UcolU);
 
-            for( Int iProcCol = 0; 
+            for( Int iProcCol = 0;
                 iProcCol < this->grid_->numProcCol ; iProcCol++ ){
               if( MYCOL( this->grid_ ) != iProcCol &&
                   this->isSendToRight_( iProcCol, snode.Index ) == true ){
                 // Use Isend to send to multiple targets
-                MPI_Isend( &snode.SizeSstrUcolSend, 1, MPI_INT,  
-                    iProcCol, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_SIZE), 
+                MPI_Isend( &snode.SizeSstrUcolSend, 1, MPI_INT,
+                    iProcCol, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_SIZE),
                     this->grid_->rowComm, &mpireqsSendUToRight[2*iProcCol] );
                 MPI_Isend( &snode.SstrUcolSend[0],snode.SizeSstrUcolSend,
-                    MPI_BYTE, iProcCol, 
-                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_CONTENT), 
-                    this->grid_->rowComm, 
+                    MPI_BYTE, iProcCol,
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_CONTENT),
+                    this->grid_->rowComm,
                     &mpireqsSendUToRight[2*iProcCol+1] );
 #if ( _DEBUGlevel_ >= 2 )
                 statusOFS<< "["<<snode.Index<<"] "<<"Ucol SENT "<<std::endl;
@@ -2193,11 +2193,11 @@ namespace PEXSI{
 #endif
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS << "["<<snode.Index<<"] "<<  "Sending Ucol "
-                  << snode.SizeSstrUcolSend << " BYTES to P" 
+                  << snode.SizeSstrUcolSend << " BYTES to P"
                   << PNUM(MYROW(this->grid_),iProcCol,this->grid_)
-                  << std::endl <<  std::endl; 
+                  << std::endl <<  std::endl;
 #endif
-              } // Send 
+              } // Send
             } // for (iProcCol)
           } // if I am the sender
 
@@ -2205,67 +2205,67 @@ namespace PEXSI{
 
         } //Senders
 
-        //TODO Ideally, we should not receive data in sequence 
+        //TODO Ideally, we should not receive data in sequence
         // but in any order with ksup packed with the data
 
         TIMER_START(WaitContentLU);
         // Receivers (Size)
         for (Int supidx=0; supidx<stepSuper ; supidx++){
           SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-          MPI_Request * mpireqsRecvLFromAbove = 
+          MPI_Request * mpireqsRecvLFromAbove =
             &arrMpireqsRecvLSizeFromAny[supidx*2];
-          MPI_Request * mpireqsRecvLFromLeft = 
+          MPI_Request * mpireqsRecvLFromLeft =
             &arrMpireqsRecvLSizeFromAny[supidx*2+1];
-          MPI_Request * mpireqsRecvUFromAbove = 
+          MPI_Request * mpireqsRecvUFromAbove =
             &arrMpireqsRecvUSizeFromAny[supidx*2];
-          MPI_Request * mpireqsRecvUFromLeft = 
+          MPI_Request * mpireqsRecvUFromLeft =
             &arrMpireqsRecvUSizeFromAny[supidx*2+1];
 
           // Receive the size first
-          if( this->isRecvFromAbove_( snode.Index ) && 
+          if( this->isRecvFromAbove_( snode.Index ) &&
               MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
-            Int sender = PROW( snode.Index, this->grid_ ); 
-            MPI_Irecv( &snode.SizeSstrLrowRecv, 1, MPI_INT, sender, 
+            Int sender = PROW( snode.Index, this->grid_ );
+            MPI_Irecv( &snode.SizeSstrLrowRecv, 1, MPI_INT, sender,
                 IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_SIZE),
                 this->grid_->colComm, mpireqsRecvLFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving Lrow"
               <<" size on tag "<<IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_SIZE)
               <<" from P" << PNUM(sender,MYCOL(this->grid_),this->grid_)
-              << std::endl << std::endl; 
+              << std::endl << std::endl;
 #endif
-            MPI_Irecv( &snode.SizeSstrUrowRecv, 1, MPI_INT, sender, 
+            MPI_Irecv( &snode.SizeSstrUrowRecv, 1, MPI_INT, sender,
                 IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE),
                 this->grid_->colComm, mpireqsRecvUFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving U"
               <<" size on tag "<<IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_SIZE)
               <<" from P" << PNUM(sender,MYCOL(this->grid_),this->grid_)
-              << std::endl << std::endl; 
+              << std::endl << std::endl;
 #endif
           } // if I need to receive from up
 
 
           if( this->isRecvFromLeft_( snode.Index ) &&
               MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
-            Int sender = PCOL( snode.Index, this->grid_ ); 
-            MPI_Irecv( &snode.SizeSstrLcolRecv, 1, MPI_INT, sender, 
+            Int sender = PCOL( snode.Index, this->grid_ );
+            MPI_Irecv( &snode.SizeSstrLcolRecv, 1, MPI_INT, sender,
                 IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE),
                 this->grid_->rowComm, mpireqsRecvLFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving L"
               <<" size on tag "<<IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_SIZE)
               <<" from P" << PNUM(MYROW(this->grid_),sender,this->grid_)
-              << std::endl << std::endl; 
+              << std::endl << std::endl;
 #endif
-            MPI_Irecv( &snode.SizeSstrUcolRecv, 1, MPI_INT, sender, 
+            MPI_Irecv( &snode.SizeSstrUcolRecv, 1, MPI_INT, sender,
                 IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_SIZE),
                 this->grid_->rowComm, mpireqsRecvUFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving Ucol"
               <<" size on tag "<<IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_SIZE)
               <<" from P" << PNUM(MYROW(this->grid_),sender,this->grid_)
-              << std::endl << std::endl; 
+              << std::endl << std::endl;
 #endif
           } // if I need to receive from left
         }
@@ -2283,22 +2283,22 @@ namespace PEXSI{
 
           MPI_Request * mpireqsRecvFromAbove =
             &arrMpireqsRecvLContentFromAny[supidx*2];
-          MPI_Request * mpireqsRecvFromLeft = 
+          MPI_Request * mpireqsRecvFromLeft =
             &arrMpireqsRecvLContentFromAny[supidx*2+1];
 
           TIMER_START(Alloc_Buffer_Recv_LrowL);
-          if( this->isRecvFromAbove_( snode.Index ) && 
+          if( this->isRecvFromAbove_( snode.Index ) &&
               MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
             snode.SstrLrowRecv.resize( snode.SizeSstrLrowRecv );
-            Int sender = PROW( snode.Index, this->grid_ ); 
-            MPI_Irecv( &snode.SstrLrowRecv[0], snode.SizeSstrLrowRecv, MPI_BYTE, 
-                sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_CONTENT), 
+            Int sender = PROW( snode.Index, this->grid_ );
+            MPI_Irecv( &snode.SstrLrowRecv[0], snode.SizeSstrLrowRecv, MPI_BYTE,
+                sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_LROW_CONTENT),
                 this->grid_->colComm, mpireqsRecvFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving Lrow "
-              << snode.SizeSstrLrowRecv << " BYTES from P" 
+              << snode.SizeSstrLrowRecv << " BYTES from P"
               << PNUM(sender,MYCOL(this->grid_),this->grid_)
-              << std::endl <<  std::endl; 
+              << std::endl <<  std::endl;
 #endif
           } // if I need to receive from up
           TIMER_STOP(Alloc_Buffer_Recv_LrowL);
@@ -2307,16 +2307,16 @@ namespace PEXSI{
           if( this->isRecvFromLeft_( snode.Index ) &&
               MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
             snode.SstrLcolRecv.resize( snode.SizeSstrLcolRecv );
-            Int sender = PCOL( snode.Index, this->grid_ ); 
-            MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE, 
-                sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT), 
+            Int sender = PCOL( snode.Index, this->grid_ );
+            MPI_Irecv( &snode.SstrLcolRecv[0], snode.SizeSstrLcolRecv, MPI_BYTE,
+                sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_CONTENT),
                 this->grid_->rowComm,
                 mpireqsRecvFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving L "
-              << snode.SizeSstrLcolRecv << " BYTES from P" 
+              << snode.SizeSstrLcolRecv << " BYTES from P"
               << PNUM(MYROW(this->grid_),sender,this->grid_)
-              << std::endl <<  std::endl; 
+              << std::endl <<  std::endl;
 #endif
           } // if I need to receive from left
           TIMER_STOP(Alloc_Buffer_Recv_LcolL);
@@ -2334,24 +2334,24 @@ namespace PEXSI{
         for (Int supidx=0; supidx<stepSuper ; supidx++){
           SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
-          MPI_Request * mpireqsRecvFromAbove = 
+          MPI_Request * mpireqsRecvFromAbove =
             &arrMpireqsRecvUContentFromAny[supidx*2];
-          MPI_Request * mpireqsRecvFromLeft = 
+          MPI_Request * mpireqsRecvFromLeft =
             &arrMpireqsRecvUContentFromAny[supidx*2+1];
 
           TIMER_START(Alloc_Buffer_Recv_UrowL);
-          if( this->isRecvFromAbove_( snode.Index ) && 
+          if( this->isRecvFromAbove_( snode.Index ) &&
               MYROW( this->grid_ ) != PROW( snode.Index, this->grid_ ) ){
             snode.SstrUrowRecv.resize( snode.SizeSstrUrowRecv );
-            Int sender = PROW( snode.Index, this->grid_ ); 
+            Int sender = PROW( snode.Index, this->grid_ );
             MPI_Irecv( &snode.SstrUrowRecv[0], snode.SizeSstrUrowRecv, MPI_BYTE,
-                sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT), 
+                sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_CONTENT),
                 this->grid_->colComm, mpireqsRecvFromAbove );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving U "
-              << snode.SizeSstrUrowRecv << " BYTES from P" 
+              << snode.SizeSstrUrowRecv << " BYTES from P"
               << PNUM(sender,MYCOL(this->grid_),this->grid_)
-              << std::endl <<  std::endl; 
+              << std::endl <<  std::endl;
 #endif
           } // if I need to receive from up
           TIMER_STOP(Alloc_Buffer_Recv_UrowL);
@@ -2360,16 +2360,16 @@ namespace PEXSI{
           if( this->isRecvFromLeft_( snode.Index ) &&
               MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
             snode.SstrUcolRecv.resize( snode.SizeSstrUcolRecv );
-            Int sender = PCOL( snode.Index, this->grid_ ); 
-            MPI_Irecv( &snode.SstrUcolRecv[0], snode.SizeSstrUcolRecv, MPI_BYTE, 
-                sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_CONTENT), 
+            Int sender = PCOL( snode.Index, this->grid_ );
+            MPI_Irecv( &snode.SstrUcolRecv[0], snode.SizeSstrUcolRecv, MPI_BYTE,
+                sender, IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_UCOL_CONTENT),
                 this->grid_->rowComm,
                 mpireqsRecvFromLeft );
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "["<<snode.Index<<"] "<<  "Receiving Ucol "
-              << snode.SizeSstrUcolRecv << " BYTES from P" 
+              << snode.SizeSstrUcolRecv << " BYTES from P"
               << PNUM(MYROW(this->grid_),sender,this->grid_)
-              << std::endl <<  std::endl; 
+              << std::endl <<  std::endl;
 #endif
           } // if I need to receive from left
           TIMER_STOP(Alloc_Buffer_Recv_UcolL);
@@ -2388,7 +2388,7 @@ namespace PEXSI{
           //find local things to do
           for(Int supidx = 0;supidx<stepSuper;supidx++){
             SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-            if( this->isRecvFromAbove_( snode.Index ) 
+            if( this->isRecvFromAbove_( snode.Index )
                 && this->isRecvFromLeft_( snode.Index )){
               gemmToDo+=2;
               if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
@@ -2408,13 +2408,13 @@ namespace PEXSI{
             }
             else{
               TIMER_START(Reduce_Sinv_L_Send);
-              if( this->isRecvFromLeft_( snode.Index )  
+              if( this->isRecvFromLeft_( snode.Index )
                   && MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
                 MPI_Request & mpireqsSendToLeft = arrMpireqsSendLToLeft[supidx];
                 // Dummy 0-b send If I was a receiver, I need to send my data to
                 // proc in column of snode.Index
                 MPI_Isend( NULL, 0, MPI_BYTE, PCOL(snode.Index,this->grid_),
-                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_REDUCE), 
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_REDUCE),
                     this->grid_->rowComm, &mpireqsSendToLeft );
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -2438,7 +2438,7 @@ namespace PEXSI{
 #endif
 
 
-#if defined (PROFILE) 
+#if defined (PROFILE)
           end_SendULWaitContentFirst=0;
           begin_SendULWaitContentFirst=0;
 #endif
@@ -2449,10 +2449,10 @@ namespace PEXSI{
             Int supidx = -1;
 
             TIMER_START(WaitContentLU);
-            //while I don't have anything to do, wait for data to arrive 
+            //while I don't have anything to do, wait for data to arrive
             do{
               int reqIndicesL[arrMpireqsRecvLContentFromAny.size()];
-              int numRecv = 0; 
+              int numRecv = 0;
 
               //then process with the remote ones
 
@@ -2470,7 +2470,7 @@ namespace PEXSI{
               for(int i =0;i<numRecv;i++){
                 reqidx = reqIndicesL[i];
                 //I've received something
-                if(reqidx!=MPI_UNDEFINED){ 
+                if(reqidx!=MPI_UNDEFINED){
 
                   supidx = reqidx/2;
                   SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
@@ -2478,7 +2478,7 @@ namespace PEXSI{
 
 #if ( _DEBUGlevel_ >= 1 )
                   statusOFS << "["<<snode.Index<<"] "<<"Received data for L"
-                    << " reqidx%2=" << reqidx%2 
+                    << " reqidx%2=" << reqidx%2
                     << " is ready ?"<<snode.isReady<<std::endl;
 #endif
                   //if we received both L and U, the supernode is ready
@@ -2498,7 +2498,7 @@ namespace PEXSI{
 
 
               int reqIndicesU[arrMpireqsRecvUContentFromAny.size()];
-              numRecv = 0; 
+              numRecv = 0;
 
 
               TIMER_START(WaitContent_UcolU);
@@ -2508,14 +2508,14 @@ namespace PEXSI{
               for(int i =0;i<numRecv;i++){
                 reqidx = reqIndicesU[i];
                 //I've received something
-                if(reqidx!=MPI_UNDEFINED){ 
+                if(reqidx!=MPI_UNDEFINED){
                   supidx = reqidx/2;
                   SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
                   snode.isReady++;
 
 #if ( _DEBUGlevel_ >= 1 )
                   statusOFS << "["<<snode.Index<<"] "<<"Received data for U"
-                    << " reqidx%2=" << reqidx%2 
+                    << " reqidx%2=" << reqidx%2
                     << " is ready ?"<<snode.isReady<<std::endl;
 #endif
                   //if we received both L and U, the supernode is ready
@@ -2536,7 +2536,7 @@ namespace PEXSI{
             } while(readySupidx.size()==0);
             TIMER_STOP(WaitContentLU);
 
-            //If I have some work to do 
+            //If I have some work to do
             if(readySupidx.size()>0)
             {
               supidx = readySupidx.back();
@@ -2544,7 +2544,7 @@ namespace PEXSI{
               SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
 
 
-              // Only the processors received information participate in the Gemm 
+              // Only the processors received information participate in the Gemm
               if( this->isRecvFromAbove_( snode.Index )
                   && this->isRecvFromLeft_( snode.Index ) ){
                 std::vector<LBlock<T> > LcolRecv;
@@ -2562,7 +2562,7 @@ namespace PEXSI{
 
                 UnpackData(snode, LcolRecv, LrowRecv, UcolRecv, UrowRecv);
 
-                SelInv_lookup_indexes(snode, LcolRecv, LrowRecv, 
+                SelInv_lookup_indexes(snode, LcolRecv, LrowRecv,
                     UcolRecv, UrowRecv,AinvBuf,LBuf, UBuf);
 
 
@@ -2574,20 +2574,20 @@ namespace PEXSI{
 #endif
 
                 NumMat<T> LUpdateBuf;
-                LUpdateBuf.Resize( AinvBuf.m(), 
+                LUpdateBuf.Resize( AinvBuf.m(),
                     SuperSize( snode.Index, this->super_ ) );
 
 
 
                 TIMER_START(Compute_Sinv_L_Resize);
-                snode.LUpdateBuf.Resize( AinvBuf.m(), 
+                snode.LUpdateBuf.Resize( AinvBuf.m(),
                     SuperSize( snode.Index, this->super_ ) );
                 TIMER_STOP(Compute_Sinv_L_Resize);
 
                 TIMER_START(Compute_Sinv_LT_GEMM);
                 blas::Gemm('N', 'T', AinvBuf.m(), LBuf.m(), AinvBuf.n(),
-                    MINUS_ONE<T>(), AinvBuf.Data(), AinvBuf.m(), 
-                    LBuf.Data(), LBuf.m(), ZERO<T>(), 
+                    MINUS_ONE<T>(), AinvBuf.Data(), AinvBuf.m(),
+                    LBuf.Data(), LBuf.m(), ZERO<T>(),
                     snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() );
                 TIMER_STOP(Compute_Sinv_LT_GEMM);
 
@@ -2623,12 +2623,12 @@ namespace PEXSI{
               // If I was a receiver, I need to send my data to proc in column
               // of snode.Index
               if( this->isRecvFromAbove_( snode.Index )  ){
-                if( this->isRecvFromLeft_( snode.Index ) 
+                if( this->isRecvFromLeft_( snode.Index )
                     && MYCOL( this->grid_ ) != PCOL( snode.Index, this->grid_ ) ){
                   MPI_Request & reqsSendToLeft = arrMpireqsSendLToLeft[supidx];
                   MPI_Isend( snode.LUpdateBuf.Data(), snode.LUpdateBuf.ByteSize(),
                       MPI_BYTE, PCOL(snode.Index,this->grid_),
-                      IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_REDUCE), 
+                      IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_REDUCE),
                       this->grid_->rowComm, &reqsSendToLeft );
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -2668,7 +2668,7 @@ namespace PEXSI{
           if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) ){
             //determine the number of rows in LUpdateBufReduced
             Int numRowLUpdateBuf;
-            std::vector<LBlock<T> >&  Lcol = 
+            std::vector<LBlock<T> >&  Lcol =
               this->L( LBj( snode.Index, this->grid_ ) );
 
             // If I own the diagonal block, skip the diagonal block
@@ -2696,7 +2696,7 @@ namespace PEXSI{
 
 #if ( _DEBUGlevel_ >= 2 )
             statusOFS << "["<<snode.Index<<"] "<<"LUpdateBuf Before Reduction: "
-              <<  snode.LUpdateBuf << std::endl << std::endl; 
+              <<  snode.LUpdateBuf << std::endl << std::endl;
 #endif
 
             Int totCountRecv = 0;
@@ -2708,7 +2708,7 @@ namespace PEXSI{
               MPI_Status stat;
               Int size = 0;
               TIMER_START(L_RECV);
-              MPI_Recv(LUpdateBufRecv.Data(), LUpdateBufRecv.ByteSize(), 
+              MPI_Recv(LUpdateBufRecv.Data(), LUpdateBufRecv.ByteSize(),
                   MPI_BYTE, MPI_ANY_SOURCE,
                   IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_L_REDUCE),
                   this->grid_->rowComm,&stat);
@@ -2719,22 +2719,22 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1 )
                 Int src = PNUM(MYROW(this->grid_),stat.MPI_SOURCE,this->grid_);
                 statusOFS << "["<<snode.Index<<"] "<< " LReduce P"
-                  << MYPROC(this->grid_)<<" has received "<< size 
+                  << MYPROC(this->grid_)<<" has received "<< size
                   << " bytes from " << src << std::endl;
 #endif
 #if ( _DEBUGlevel_ >= 2 )
                 statusOFS << "["<<snode.Index<<"] "<<   "LUpdateBufRecv: "
-                  << LUpdateBufRecv << std::endl << std::endl; 
+                  << LUpdateBufRecv << std::endl << std::endl;
 #endif
                 //do the sum
-                blas::Axpy(snode.LUpdateBuf.Size(), ONE<T>(), 
-                    LUpdateBufRecv.Data(), 1, 
+                blas::Axpy(snode.LUpdateBuf.Size(), ONE<T>(),
+                    LUpdateBufRecv.Data(), 1,
                     snode.LUpdateBuf.Data(), 1 );
               }
             } // for (iProcCol)
-#if ( _DEBUGlevel_ >= 2 ) 
+#if ( _DEBUGlevel_ >= 2 )
             statusOFS << "["<<snode.Index<<"] "<<   "LUpdateBuf After Reduction: "
-              <<  snode.LUpdateBuf << std::endl << std::endl; 
+              <<  snode.LUpdateBuf << std::endl << std::endl;
 #endif
           } // Receiver
         }
@@ -2765,15 +2765,15 @@ namespace PEXSI{
               if(this->isSendToDiagonal_(snode.Index)){
                 //send to above
                 MPI_Request & mpireqsSendToAbove = arrMpireqsSendToAbove[supidx];
-                MPI_Isend( snode.DiagBuf.Data(), snode.DiagBuf.ByteSize(), 
+                MPI_Isend( snode.DiagBuf.Data(), snode.DiagBuf.ByteSize(),
                     MPI_BYTE, PROW(snode.Index,this->grid_) ,
-                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_D_REDUCE), 
+                    IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_D_REDUCE),
                     this->grid_->colComm, &mpireqsSendToAbove );
 
 #if ( _DEBUGlevel_ >= 1 )
                 statusOFS << "["<<snode.Index<<"] "<< " P"<<MYROW(this->grid_)
-                  <<" has sent "<< snode.DiagBuf.ByteSize() 
-                  << " bytes of DiagBuf to " 
+                  <<" has sent "<< snode.DiagBuf.ByteSize()
+                  << " bytes of DiagBuf to "
                   << PROW(snode.Index,this->grid_) << std::endl;
 #endif
               }
@@ -2806,7 +2806,7 @@ namespace PEXSI{
                 MPI_Status stat;
                 Int size = 0;
                 TIMER_START(D_RECV);
-                MPI_Recv(DiagBufRecv.Data(), DiagBufRecv.ByteSize(), MPI_BYTE, 
+                MPI_Recv(DiagBufRecv.Data(), DiagBufRecv.ByteSize(), MPI_BYTE,
                     MPI_ANY_SOURCE,IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_D_REDUCE),
                     this->grid_->colComm,&stat);
                 TIMER_STOP(D_RECV);
@@ -2820,12 +2820,12 @@ namespace PEXSI{
                 }
               }
               LBlock<T> &  LB = this->L( LBj( snode.Index, this->grid_ ) )[0];
-              blas::Axpy( LB.numRow * LB.numCol, ONE<T>(), 
+              blas::Axpy( LB.numRow * LB.numCol, ONE<T>(),
                   snode.DiagBuf.Data(), 1,
                   LB.nzval.Data(), 1 );
             }
 
-          } 
+          }
         }
 
 
@@ -2844,7 +2844,7 @@ namespace PEXSI{
             //determine the number of rows in UUpdateBufReduced
             Int numColUUpdateBuf;
             //FIXME U must be revised to store the same structure as L ?
-            std::vector<UBlock<T> >&  Urow = 
+            std::vector<UBlock<T> >&  Urow =
               this->U( LBi( snode.Index, this->grid_ ) );
 
             snode.ColLocalPtr.resize( Urow.size() + 1 );
@@ -2950,17 +2950,17 @@ namespace PEXSI{
 
 #if ( _DEBUGlevel_ >= 2 )
                 statusOFS << "["<<snode.Index<<"] "<< "UUpdateBufRecv: "
-                  <<  UUpdateBufRecv << std::endl << std::endl; 
+                  <<  UUpdateBufRecv << std::endl << std::endl;
 #endif
                 //do the sum
-                blas::Axpy(snode.UUpdateBuf.Size(), ONE<T>(), 
+                blas::Axpy(snode.UUpdateBuf.Size(), ONE<T>(),
                     UUpdateBufRecv.Data(), 1,
                     snode.UUpdateBuf.Data(), 1);
               }
             } // for (iProcRow)
-#if ( _DEBUGlevel_ >= 2 ) 
+#if ( _DEBUGlevel_ >= 2 )
             statusOFS << "["<<snode.Index<<"] "<<"UUpdateBuf After Reduction: "
-              <<  snode.UUpdateBuf << std::endl << std::endl; 
+              <<  snode.UUpdateBuf << std::endl << std::endl;
 #endif
           } // Receiver
           else{
@@ -2969,10 +2969,10 @@ namespace PEXSI{
             TIMER_START(Reduce_Sinv_U_Send);
             if(!this->isRecvFromLeft_( snode.Index ) && this->isRecvFromAbove_( snode.Index )   ){
               MPI_Request & mpireqsSendToAbove = arrMpireqsSendUToAbove[supidx];
-              // Dummy 0-b send If I was a receiver, I need to send my data to 
+              // Dummy 0-b send If I was a receiver, I need to send my data to
               // proc in row of snode.Index
               MPI_Isend( NULL, 0, MPI_BYTE, PROW(snode.Index,this->grid_),
-                  IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_REDUCE), 
+                  IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_REDUCE),
                   this->grid_->colComm, &mpireqsSendToAbove );
 
 #if ( _DEBUGlevel_ >= 1 )
@@ -2988,14 +2988,14 @@ namespace PEXSI{
 
 
             TIMER_START(Reduce_Sinv_U_Send);
-            // If I was a receiver, I need to send my data to proc in row 
+            // If I was a receiver, I need to send my data to proc in row
             // of snode.Index
             if( this->isRecvFromAbove_( snode.Index )  && this->isRecvFromLeft_( snode.Index )  ){
               MPI_Request & reqsSendToAbove = arrMpireqsSendUToAbove[supidx];
               TIMER_START(Reduce_Sinv_U_Send_Isend);
               MPI_Isend( snode.UUpdateBuf.Data(), snode.UUpdateBuf.ByteSize(),
                   MPI_BYTE, PROW(snode.Index,this->grid_),
-                  IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_REDUCE), 
+                  IDX_TO_TAG2(snode.Index,supidx,SELINV_TAG_U_REDUCE),
                   this->grid_->colComm, &reqsSendToAbove );
               TIMER_STOP(Reduce_Sinv_U_Send_Isend);
 #if ( _DEBUGlevel_ >= 1 )
@@ -3024,13 +3024,13 @@ namespace PEXSI{
 
 
         //Deallocate Lrow and Ucol
-        for (Int supidx=0; supidx<stepSuper; supidx++){ 
+        for (Int supidx=0; supidx<stepSuper; supidx++){
           SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-          if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ )){ 
+          if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ )){
             std::vector<LBlock<T> >&  Lrow = this->Lrow( LBi(snode.Index, this->grid_) );
             Lrow.clear();
           }
-          if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ )){ 
+          if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ )){
             std::vector<UBlock<T> >&  Ucol = this->Ucol( LBj(snode.Index, this->grid_) );
             Ucol.clear();
           }
@@ -3045,24 +3045,24 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << std::endl << "["<<snode.Index<<"] "
             << "Finish updating the L part by filling LUpdateBufReduced"
-            << " back to L" << std::endl << std::endl; 
+            << " back to L" << std::endl << std::endl;
 #endif
 
-          if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ ) 
+          if( MYCOL( this->grid_ ) == PCOL( snode.Index, this->grid_ )
               && snode.LUpdateBuf.m() > 0 ){
             std::vector<LBlock<T> >& Lcol = this->L(LBj(snode.Index,this->grid_));
             //Need to skip the diagonal block if present
-            Int startBlock = 
+            Int startBlock =
               (MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ))?1:0;
             for( Int ib = startBlock; ib < Lcol.size(); ib++ ){
               LBlock<T> & LB = Lcol[ib];
               if(1|| (LB.numRow>0 && LB.numCol>0)){
-                lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
+                lapack::Lacpy( 'A', LB.numRow, LB.numCol,
                     &snode.LUpdateBuf(snode.RowLocalPtr[ib-startBlock], 0),
                     snode.LUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
               }
             }
-          } // Finish updating L	
+          } // Finish updating L
         } // for (snode.Index) : Main loop
 
 
@@ -3079,10 +3079,10 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1 )
           statusOFS << "["<<snode.Index<<"] "
             << "Finish updating the U part by filling UUpdateBufReduced"
-            << " back to U" << std::endl << std::endl; 
+            << " back to U" << std::endl << std::endl;
 #endif
 
-          if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ ) 
+          if( MYROW( this->grid_ ) == PROW( snode.Index, this->grid_ )
               && snode.UUpdateBuf.m() > 0 ){
             std::vector<UBlock<T> >& Urow = this->U(LBi(snode.Index,this->grid_));
 
@@ -3096,7 +3096,7 @@ namespace PEXSI{
                   << "in UB "<<UB.blockIdx<<std::endl;
 #endif
                 //Indices follow L order... look at Lrow
-                lapack::Lacpy( 'A', UB.numRow, UB.numCol, 
+                lapack::Lacpy( 'A', UB.numRow, UB.numCol,
                     &snode.UUpdateBuf( 0, snode.ColLocalPtr[jb] ),
                     snode.UUpdateBuf.m(), UB.nzval.Data(), UB.numRow );
 #if ( _DEBUGlevel_ >= 2 )
@@ -3159,20 +3159,20 @@ namespace PEXSI{
 
       }
 
-    template<typename T> 
+    template<typename T>
       void PMatrixUnsym<T>::SelInv	(  )
       {
         this->SelInv_P2p	(  );
-      } 		// -----  end of method PMatrixUnsym::SelInv  ----- 
+      } 		// -----  end of method PMatrixUnsym::SelInv  -----
 
-    template<typename T> 
+    template<typename T>
       void PMatrixUnsym<T>::SelInv_P2p	(  )
       {
         TIMER_START(SelInv_P2p);
 
 
 
-        Int numSuper = this->NumSuper(); 
+        Int numSuper = this->NumSuper();
 
         // Main loop
         std::vector<std::vector<Int> > & superList = this->WorkingSet();
@@ -3180,13 +3180,13 @@ namespace PEXSI{
 
 #ifdef OLD_SELINV
         for (Int lidx=0; lidx<numSteps ; lidx++){
-          Int stepSuper = superList[lidx].size(); 
+          Int stepSuper = superList[lidx].size();
           this->SelInvIntra_P2p(lidx);
         }
 #else
         Int rank = 0;
         for (Int lidx=0; lidx<numSteps ; lidx++){
-          Int stepSuper = superList[lidx].size(); 
+          Int stepSuper = superList[lidx].size();
 
 //if(lidx==0){gdb_lock();}
           this->SelInvIntra_New(lidx,rank);
@@ -3235,7 +3235,7 @@ namespace PEXSI{
         TIMER_STOP(SelInv_P2p);
 
         return ;
-      } 		// -----  end of method PMatrixUnsym::SelInv_P2p  ----- 
+      } 		// -----  end of method PMatrixUnsym::SelInv_P2p  -----
 
 
 
@@ -3249,18 +3249,18 @@ namespace PEXSI{
 
 
 
-    template<typename T> 
+    template<typename T>
       void PMatrixUnsym<T>::PreSelInv	(  )
       {
 #if 1
         this->PreSelInv_New();
 #else
 
-        Int numSuper = this->NumSuper(); 
+        Int numSuper = this->NumSuper();
 
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << std::endl << "L(i,k) <- L(i,k) * L(k,k)^{-1}"
-          << std::endl << std::endl; 
+          << std::endl << std::endl;
 #endif
 
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
@@ -3272,7 +3272,7 @@ namespace PEXSI{
               nzvalLDiag = Lcol[0].nzval;
               if( nzvalLDiag.m() != SuperSize(ksup, this->super_) ||
                   nzvalLDiag.n() != SuperSize(ksup, this->super_) ){
-                ErrorHandling( 
+                ErrorHandling(
                     "The size of the diagonal block of L is wrong." );
               }
             } // Owns the diagonal block
@@ -3287,12 +3287,12 @@ namespace PEXSI{
               LBlock<T> & LB = Lcol[ib];
               if( LB.blockIdx > ksup  && (1 || (LB.numCol>0 && LB.numRow>0))){
 #if ( _DEBUGlevel_ >= 2 )
-                // Check the correctness of the triangular solve 
+                // Check the correctness of the triangular solve
                 //for the first local column
                 //              if( LBj( ksup, this->grid_ ) == 0 ){
                 //                statusOFS << "Diag   L(" << ksup << ", " << ksup << "): "
                 //                  << nzvalLDiag << std::endl;
-                //                statusOFS << "Before solve L(" << LB.blockIdx << ", " << ksup 
+                //                statusOFS << "Before solve L(" << LB.blockIdx << ", " << ksup
                 //                  << "): " << LB.nzval << std::endl;
                 //              }
 #endif
@@ -3300,7 +3300,7 @@ namespace PEXSI{
                 NumMat<T> Ljk = LB.nzval;
 #endif
                 blas::Trsm( 'R', 'L', 'N', 'U', LB.numRow, LB.numCol,
-                    ONE<T>(), nzvalLDiag.Data(), LB.numCol, 
+                    ONE<T>(), nzvalLDiag.Data(), LB.numCol,
                     LB.nzval.Data(), LB.numRow );
 #if defined( CHECK_NORM )
                 NumMat<T> res = LB.nzval;
@@ -3320,7 +3320,7 @@ namespace PEXSI{
                 // Check the correctness of the triangular solve
                 // for the first local column
                 //              if( LBj( ksup, this->grid_ ) == 0 ){
-                //                statusOFS << "After solve  L(" << LB.blockIdx << ", " << ksup 
+                //                statusOFS << "After solve  L(" << LB.blockIdx << ", " << ksup
                 //                  << "): " << LB.nzval << std::endl;
                 //              }
 #endif
@@ -3333,8 +3333,8 @@ namespace PEXSI{
 
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "U(k,j) <- U(k,k)^{-1} * U(k,j)" 
-          << std::endl << std::endl; 
+        statusOFS << std::endl << "U(k,j) <- U(k,k)^{-1} * U(k,j)"
+          << std::endl << std::endl;
 #endif
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
           if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
@@ -3346,7 +3346,7 @@ namespace PEXSI{
               nzvalUDiag = Lcol[0].nzval;
               if( nzvalUDiag.m() != SuperSize(ksup, this->super_) ||
                   nzvalUDiag.n() != SuperSize(ksup, this->super_) ){
-                ErrorHandling( 
+                ErrorHandling(
                     "The size of the diagonal block of U is wrong." );
               }
             } // Owns the diagonal block
@@ -3363,7 +3363,7 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 2 )
                 // Check the correctness of the triangular solve for the first local column
                 //              if( LBi( ksup, this->grid_ ) == 0 ){
-                //                statusOFS << "Diag U(" << ksup << ", " << ksup << "): " 
+                //                statusOFS << "Diag U(" << ksup << ", " << ksup << "): "
                 //                  << nzvalUDiag << std::endl;
                 //                statusOFS << "Before solve U(" << ksup << ", " << UB.blockIdx
                 //                  << "): " << UB.nzval << std::endl;
@@ -3372,7 +3372,7 @@ namespace PEXSI{
 #if defined( CHECK_NORM )
                 NumMat<T> Ukj = UB.nzval;
 #endif
-                blas::Trsm( 'L', 'U', 'N', 'N', UB.numRow, UB.numCol, 
+                blas::Trsm( 'L', 'U', 'N', 'N', UB.numRow, UB.numCol,
                     ONE<T>(), nzvalUDiag.Data(), UB.numRow,
                     UB.nzval.Data(), UB.numRow );
 #if defined( CHECK_NORM )
@@ -3402,8 +3402,8 @@ namespace PEXSI{
 
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "L(i,i) <- [L(k,k) * U(k,k)]^{-1}" << std::endl 
-          << std::endl; 
+        statusOFS << std::endl << "L(i,i) <- [L(k,k) * U(k,k)]^{-1}" << std::endl
+          << std::endl;
 #endif
 
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
@@ -3417,7 +3417,7 @@ namespace PEXSI{
             }
             LBlock<T> & LB = (this->L( LBj( ksup, this->grid_ ) ))[0];
 #if ( _DEBUGlevel_ >= 2 )
-            // Check the correctness of the matrix inversion 
+            // Check the correctness of the matrix inversion
             // for the first local column
             //          statusOFS << "Factorized A (" << ksup << ", " << ksup << "): "
             //            << LB.nzval << std::endl;
@@ -3426,7 +3426,7 @@ namespace PEXSI{
 #if defined( CHECK_NORM )
             NumMat<T> Lkk = LB.nzval;
 #endif
-            lapack::Getri( SuperSize( ksup, this->super_ ), LB.nzval.Data(), 
+            lapack::Getri( SuperSize( ksup, this->super_ ), LB.nzval.Data(),
                 SuperSize( ksup, this->super_ ), ipiv.Data() );
 
 #if defined( CHECK_NORM )
@@ -3458,9 +3458,9 @@ namespace PEXSI{
 
 
 
-            // Check the correctness of the matrix inversion 
+            // Check the correctness of the matrix inversion
             // for the first local column
-            //          statusOFS << "Inverted   A (" << ksup << ", " << ksup << "): " 
+            //          statusOFS << "Inverted   A (" << ksup << ", " << ksup << "): "
             //            << LB.nzval << std::endl;
 #endif
           } // if I need to invert the diagonal block
@@ -3471,7 +3471,7 @@ namespace PEXSI{
 
         return ;
 #endif
-      } 		// -----  end of method PMatrixUnsym::PreSelInv  ----- 
+      } 		// -----  end of method PMatrixUnsym::PreSelInv  -----
 
 
     template<typename T>
@@ -3482,7 +3482,7 @@ namespace PEXSI{
 #else
         ConstructCommunicationPattern_New();
 #endif
-      } 		// -----  end of method PMatrixUnsym::ConstructCommunicationPattern  ----- 
+      } 		// -----  end of method PMatrixUnsym::ConstructCommunicationPattern  -----
 
 
 
@@ -3526,12 +3526,12 @@ namespace PEXSI{
         // localColBlockRowIdx stores the nonzero block indices for each local block column.
         // The nonzero block indices including contribution from both L and U.
         // Dimension: numLocalBlockCol x numNonzeroBlock
-        std::vector<std::vector<LBlock<T> > * > colBlockRowBuf; 
+        std::vector<std::vector<LBlock<T> > * > colBlockRowBuf;
         colBlockRowBuf.resize( numSuper );
-        std::vector<std::vector<UBlock<T> > * > rowBlockColBuf; 
+        std::vector<std::vector<UBlock<T> > * > rowBlockColBuf;
         rowBlockColBuf.resize( numSuper );
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
-          if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) 
+          if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ )
               ||  MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
             colBlockRowBuf[ksup] = new std::vector<LBlock<T> >();
             if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
@@ -3556,7 +3556,7 @@ namespace PEXSI{
 
             std::stringstream sstms,sstmr;
             std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-            mask[LBlockMask::NZVAL] = 0; // nzval is excluded 
+            mask[LBlockMask::NZVAL] = 0; // nzval is excluded
 
             // All blocks are to be allgathered within column.
             Int numLBlock, totalLBlock;
@@ -3599,8 +3599,8 @@ namespace PEXSI{
             //auto last = std::unique(LcolRecv.begin(),LcolRecv.end(),LBlockComparator<T>);
             //LcolRecv.resize(last - LcolRecv.begin());
 #if ( _DEBUGlevel_ >= 1  )
-            statusOFS<<"["<<ksup<<"] "<<"Lcol1: ";for(auto it = Lcol.begin();it != Lcol.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
-            statusOFS<<"["<<ksup<<"] "<<"LcolRecv1: ";for(auto it = LcolRecv.begin();it != LcolRecv.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Lcol1: ";for(auto it = Lcol.begin();it != Lcol.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;
+            statusOFS<<"["<<ksup<<"] "<<"LcolRecv1: ";for(auto it = LcolRecv.begin();it != LcolRecv.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;
 #endif
           } // if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) )
         }
@@ -3620,7 +3620,7 @@ namespace PEXSI{
 
             std::stringstream sstms,sstmr;
             std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
-            mask[UBlockMask::NZVAL] = 0; // nzval is excluded 
+            mask[UBlockMask::NZVAL] = 0; // nzval is excluded
 
             Int numUBlock, totalUBlock;
             numUBlock = Urow.size();
@@ -3657,8 +3657,8 @@ namespace PEXSI{
             //          UrowRecv.resize(last - UrowRecv.begin());
 
 #if ( _DEBUGlevel_ >= 1  )
-            statusOFS<<"["<<ksup<<"] "<<"Urow1: ";for(auto it = Urow.begin();it != Urow.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
-            statusOFS<<"["<<ksup<<"] "<<"UrowRecv1: ";for(auto it = UrowRecv.begin();it != UrowRecv.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Urow1: ";for(auto it = Urow.begin();it != Urow.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;
+            statusOFS<<"["<<ksup<<"] "<<"UrowRecv1: ";for(auto it = UrowRecv.begin();it != UrowRecv.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;
 #endif
 
           } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
@@ -3678,7 +3678,7 @@ namespace PEXSI{
             std::vector<char> sendBuf;
 
             std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-            mask[LBlockMask::NZVAL] = 0; // nzval is excluded 
+            mask[LBlockMask::NZVAL] = 0; // nzval is excluded
             if( this->grid_ -> mpisize != 1 ){
               pLcolRecv = new std::vector<LBlock<T> >();
               //diagonal processor
@@ -3748,9 +3748,9 @@ namespace PEXSI{
                 *result = LB;
                 ++firstUrow;
               }
-              else if (firstLcol->blockIdx<firstUrow->blockIdx) { 
-                *result = *firstLcol; 
-                ++firstLcol; 
+              else if (firstLcol->blockIdx<firstUrow->blockIdx) {
+                *result = *firstLcol;
+                ++firstLcol;
               }
               else {
                 //compute set union between rows and cols
@@ -3767,16 +3767,16 @@ namespace PEXSI{
                 LB.rows.Resize(uRowCol.size());
                 std::copy(uRowCol.begin(),uRowCol.end(),&LB.rows[0]);
                 *result = LB;
-                ++firstUrow; 
-                ++firstLcol; 
+                ++firstUrow;
+                ++firstLcol;
               }
               ++result;
             }
 
 #if ( _DEBUGlevel_ >= 1  )
-            statusOFS<<"["<<ksup<<"] "<<"Lcol: ";for(auto it = pLcolRecv->begin();it != pLcolRecv->end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
-            statusOFS<<"["<<ksup<<"] "<<"Urow: ";for(auto it = UrowRecv.begin();it != UrowRecv.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
-            statusOFS<<"["<<ksup<<"] "<<"Union: ";for(auto it = Union.begin();it != Union.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Lcol: ";for(auto it = pLcolRecv->begin();it != pLcolRecv->end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;
+            statusOFS<<"["<<ksup<<"] "<<"Urow: ";for(auto it = UrowRecv.begin();it != UrowRecv.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;
+            statusOFS<<"["<<ksup<<"] "<<"Union: ";for(auto it = Union.begin();it != Union.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;
 #endif
 
             //replace LcolSend by the union
@@ -3801,7 +3801,7 @@ namespace PEXSI{
             std::vector<char> sendBuf;
 
             std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
-            mask[LBlockMask::NZVAL] = 0; // nzval is excluded 
+            mask[LBlockMask::NZVAL] = 0; // nzval is excluded
             if( this->grid_ -> mpisize != 1 ){
               pUnionRecv = new std::vector<LBlock<T> >();
               //diagonal processor
@@ -3840,7 +3840,7 @@ namespace PEXSI{
             }
 
 #if ( _DEBUGlevel_ >= 1  )
-            statusOFS<<"["<<ksup<<"] "<<"Union: ";for(auto it = UnionSend.begin();it != UnionSend.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Union: ";for(auto it = UnionSend.begin();it != UnionSend.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;
 #endif
 
             if( this->grid_ -> mpisize != 1 ){
@@ -3863,7 +3863,7 @@ namespace PEXSI{
             LrowSize = 0;
             for(auto it = Union.begin(); it!=Union.end();++it){
               Int Idx = it->blockIdx;
-              if(Idx > ksup && (Idx % this->grid_->numProcCol) == MYCOL(this->grid_)  ){ 
+              if(Idx > ksup && (Idx % this->grid_->numProcCol) == MYCOL(this->grid_)  ){
                 ++LrowSize;
               }
             }
@@ -3874,7 +3874,7 @@ namespace PEXSI{
 
             for(auto it = Union.begin(); it!=Union.end();++it){
               Int Idx = it->blockIdx;
-              if(Idx > ksup && (Idx % this->grid_->numProcCol) == MYCOL(this->grid_)  ){ 
+              if(Idx > ksup && (Idx % this->grid_->numProcCol) == MYCOL(this->grid_)  ){
                 bool isFound = false;
                 Int nextIdx = -1;
                 for(Int jb = 0; jb < Urow.size(); ++jb){
@@ -3943,7 +3943,7 @@ namespace PEXSI{
 #endif
             std::sort(Urow.begin(),Urow.end(),UBlockComparator<T>);
 #if ( _DEBUGlevel_ >= 1  )
-            statusOFS<<"["<<ksup<<"] "<<"Urow extended: ";for(auto it = Urow.begin();it != Urow.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Urow extended: ";for(auto it = Urow.begin();it != Urow.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;
 #endif
             TIMER_STOP(Extending_Urow);
           } // if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) )
@@ -3961,7 +3961,7 @@ namespace PEXSI{
             UcolSize = 0;
             for(auto it = Union.begin(); it!=Union.end();++it){
               Int Idx = it->blockIdx;
-              if(Idx > ksup && (Idx % this->grid_->numProcRow) == MYROW(this->grid_)  ){ 
+              if(Idx > ksup && (Idx % this->grid_->numProcRow) == MYROW(this->grid_)  ){
                 ++UcolSize;
               }
             }
@@ -3972,7 +3972,7 @@ namespace PEXSI{
 
             for(auto it = Union.begin(); it!=Union.end();++it){
               Int Idx = it->blockIdx;
-              if(Idx > ksup && (Idx % this->grid_->numProcRow) == MYROW(this->grid_)  ){ 
+              if(Idx > ksup && (Idx % this->grid_->numProcRow) == MYROW(this->grid_)  ){
                 bool isFound = false;
                 Int nextIdx = -1;
                 for(Int ib = 0; ib < Lcol.size(); ++ib){
@@ -4037,7 +4037,7 @@ namespace PEXSI{
 #endif
             std::sort(Lcol.begin(),Lcol.end(),LBlockComparator<T>);
 #if ( _DEBUGlevel_ >= 1  )
-            statusOFS<<"["<<ksup<<"] "<<"Lcol extended: ";for(auto it = Lcol.begin();it != Lcol.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;  
+            statusOFS<<"["<<ksup<<"] "<<"Lcol extended: ";for(auto it = Lcol.begin();it != Lcol.end();++it){statusOFS<<it->blockIdx<<" ";}statusOFS<<std::endl;
 #endif
             TIMER_STOP(Extending_Lcol);
           } // if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) )
@@ -4078,10 +4078,10 @@ namespace PEXSI{
                   statusOFS<<"["<<ksup<<"] "<<"Urow["<<jsup<<"]: "; for(auto it = Urow.begin(); it != Urow.end(); ++it){ statusOFS<<it->blockIdx<<" "; } statusOFS<<std::endl;
 #endif
 
-                  Int & nextIdx = nextNZRowBlockCol[ LBi(jsup, this->grid_) ]; 
-                  while(nextIdx<Urow.size()){ 
-                    if(Urow[nextIdx].blockIdx < ksup){ 
-                      ++nextIdx; 
+                  Int & nextIdx = nextNZRowBlockCol[ LBi(jsup, this->grid_) ];
+                  while(nextIdx<Urow.size()){
+                    if(Urow[nextIdx].blockIdx < ksup){
+                      ++nextIdx;
                     }
                     else{
                       break;
@@ -4152,10 +4152,10 @@ namespace PEXSI{
                 statusOFS<<"["<<ksup<<"] "<<"Lcol["<<jsup<<"]: "; for(auto it = Lcol.begin(); it != Lcol.end(); ++it){ statusOFS<<it->blockIdx<<" "; } statusOFS<<std::endl;
 #endif
 
-                Int & nextIdx = nextNZColBlockRow[ LBj(jsup, this->grid_) ]; 
-                while(nextIdx<Lcol.size()){ 
-                  if(Lcol[nextIdx].blockIdx < ksup){ 
-                    ++nextIdx; 
+                Int & nextIdx = nextNZColBlockRow[ LBj(jsup, this->grid_) ];
+                while(nextIdx<Lcol.size()){
+                  if(Lcol[nextIdx].blockIdx < ksup){
+                    ++nextIdx;
                   }
                   else{
                     break;
@@ -4325,12 +4325,12 @@ namespace PEXSI{
             } // if( MYROW( this->grid_ ) == isupProcRow )
 
             if( MYCOL( this->grid_ ) == PCOL(ksup, this->grid_) ){
-              if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){ 
+              if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
                 this->isRecvFromBelow_(isupProcRow,ksup) = true;
-              }    
+              }
               else if (MYROW(this->grid_) == isupProcRow){
                 this->isSendToDiagonal_(ksup)=true;
-              }    
+              }
             } // if( MYCOL( this->grid_ ) == PCOL(ksup, this->grid_) )
             isup = snodeEtree[isup];
           } // for (isup)
@@ -4435,7 +4435,7 @@ namespace PEXSI{
         TIMER_STOP(STCD_RFCD);
 
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
-          if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ ) 
+          if( MYCOL( this->grid_ ) == PCOL( ksup, this->grid_ )
               ||  MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
             delete colBlockRowBuf[ksup];
             if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
@@ -4451,7 +4451,7 @@ namespace PEXSI{
 
 
         return ;
-      } 		// -----  end of method PMatrixUnsym::ConstructCommunicationPattern_P2p  ----- 
+      } 		// -----  end of method PMatrixUnsym::ConstructCommunicationPattern_P2p  -----
 
 
 
@@ -5134,7 +5134,7 @@ namespace PEXSI{
             }
           }
 
-          if(ranks.size()>0){ 
+          if(ranks.size()>0){
             //Create redDTree
             Int msgSize = SuperSize(ksup, this->super_)*SuperSize(ksup, this->super_);
 
@@ -5199,14 +5199,14 @@ namespace PEXSI{
             else{
               if(MYROW(this->grid_)==PROW(ksup,this->grid_)){
                 auto & redLTree = this->redLTree2_[ksup];
-                
+
                 if(redLTree!=nullptr || MYPROC(this->grid_)==proot){
                   auto & inserted_proc = inserted_procs[ksup];
                   inserted_proc.assign(this->grid_->mpisize,false);
                   auto & rnkList = rnkLists[ksup];
                   rnkList.clear();
 
-                  if( listL.size()>0){ 
+                  if( listL.size()>0){
                     inserted_proc[proot]=true;
                     rnkList.push_back(proot);
                     Int prow = PROW(ksup,this->grid_);
@@ -5232,7 +5232,7 @@ namespace PEXSI{
               }
             }
 
-            if(ranks.size()>0){ 
+            if(ranks.size()>0){
               //Create redDTree
               Int msgSize = SuperSize(ksup, this->super_)*SuperSize(ksup, this->super_);
 
@@ -5276,22 +5276,22 @@ namespace PEXSI{
 
 
         return ;
-      } 		// -----  end of method PMatrixUnsym::ConstructCommunicationPattern_New  ----- 
+      } 		// -----  end of method PMatrixUnsym::ConstructCommunicationPattern_New  -----
 
 
 
 
-    template<typename T> 
+    template<typename T>
       void PMatrixUnsym<T>::PreSelInv_New	(  )
       {
 #ifdef _PRINT_STATS_
         this->localFlops_ = 0.0;
 #endif
-        Int numSuper = this->NumSuper(); 
+        Int numSuper = this->NumSuper();
 
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << std::endl << "L(i,k) <- L(i,k) * L(k,k)^{-1}"
-          << std::endl << std::endl; 
+          << std::endl << std::endl;
 #endif
 
         //TODO These BCASTS can be done with a single Allgatherv within each row / column
@@ -5305,7 +5305,7 @@ namespace PEXSI{
               nzvalLDiag = Lcol[0].nzval;
               if( nzvalLDiag.m() != SuperSize(ksup, this->super_) ||
                   nzvalLDiag.n() != SuperSize(ksup, this->super_) ){
-                ErrorHandling( 
+                ErrorHandling(
                     "The size of the diagonal block of L is wrong." );
               }
             } // Owns the diagonal block
@@ -5320,7 +5320,7 @@ namespace PEXSI{
               LBlock<T> & LB = Lcol[ib];
               if( LB.blockIdx > ksup  ){
                 blas::Trsm( 'R', 'L', 'N', 'U', LB.numRow, LB.numCol,
-                    ONE<T>(), nzvalLDiag.Data(), LB.numCol, 
+                    ONE<T>(), nzvalLDiag.Data(), LB.numCol,
                     LB.nzval.Data(), LB.numRow );
 #ifdef _PRINT_STATS_
                 this->localFlops_+=flops::Trsm<T>('R',LB.numRow, LB.numCol);
@@ -5331,8 +5331,8 @@ namespace PEXSI{
         } // for (ksup)
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "U(k,j) <- U(k,k)^{-1} * U(k,j)" 
-          << std::endl << std::endl; 
+        statusOFS << std::endl << "U(k,j) <- U(k,k)^{-1} * U(k,j)"
+          << std::endl << std::endl;
 #endif
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
           if( MYROW( this->grid_ ) == PROW( ksup, this->grid_ ) ){
@@ -5343,7 +5343,7 @@ namespace PEXSI{
               nzvalUDiag = Lcol[0].nzval;
               if( nzvalUDiag.m() != SuperSize(ksup, this->super_) ||
                   nzvalUDiag.n() != SuperSize(ksup, this->super_) ){
-                ErrorHandling( 
+                ErrorHandling(
                     "The size of the diagonal block of U is wrong." );
               }
             } // Owns the diagonal block
@@ -5358,7 +5358,7 @@ namespace PEXSI{
             for( Int jb = 0; jb < Urow.size(); jb++ ){
               UBlock<T> & UB = Urow[jb];
               if( UB.blockIdx > ksup ){
-                blas::Trsm( 'L', 'U', 'N', 'N', UB.numRow, UB.numCol, 
+                blas::Trsm( 'L', 'U', 'N', 'N', UB.numRow, UB.numCol,
                     ONE<T>(), nzvalUDiag.Data(), UB.numRow,
                     UB.nzval.Data(), UB.numRow );
 #ifdef _PRINT_STATS_
@@ -5370,8 +5370,8 @@ namespace PEXSI{
         } // for (ksup)
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "L(i,i) <- [L(k,k) * U(k,k)]^{-1}" << std::endl 
-          << std::endl; 
+        statusOFS << std::endl << "L(i,i) <- [L(k,k) * U(k,k)]^{-1}" << std::endl
+          << std::endl;
 #endif
 
         for( Int ksup = 0; ksup < numSuper; ksup++ ){
@@ -5382,7 +5382,7 @@ namespace PEXSI{
             std::iota(ipiv.Data(),ipiv.Data()+ipiv.m(),1);
 
             LBlock<T> & LB = (this->L( LBj( ksup, this->grid_ ) ))[0];
-            lapack::Getri( SuperSize( ksup, this->super_ ), LB.nzval.Data(), 
+            lapack::Getri( SuperSize( ksup, this->super_ ), LB.nzval.Data(),
                 SuperSize( ksup, this->super_ ), ipiv.Data() );
 #ifdef _PRINT_STATS_
             this->localFlops_+=flops::Getri<T>(SuperSize( ksup, this->super_ ));
@@ -5395,24 +5395,24 @@ namespace PEXSI{
 
 
         return ;
-      } 		// -----  end of method PMatrixUnsym::PreSelInv_New  ----- 
+      } 		// -----  end of method PMatrixUnsym::PreSelInv_New  -----
 
 
     template<typename T>
       inline void PMatrixUnsym<T>::SelInvIntra_New(Int lidx, Int & rank)
       {
-        Int numSuper = this->NumSuper(); 
+        Int numSuper = this->NumSuper();
         std::vector<std::vector<Int> > & superList = this->WorkingSet();
         Int numSteps = superList.size();
-        Int stepSuper = superList[lidx].size(); 
+        Int stepSuper = superList[lidx].size();
 
         TIMER_START(AllocateBuffer);
 
         //allocate the buffers for this supernode
         std::vector<SuperNodeBufferTypeUnsym> arrSuperNodes(stepSuper);
-        for (Int supidx=0; supidx<stepSuper; supidx++){ 
+        for (Int supidx=0; supidx<stepSuper; supidx++){
           SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
-          snode.Index = superList[lidx][supidx];  
+          snode.Index = superList[lidx][supidx];
           snode.Rank = rank++;
 
           auto & bcastLDataTree = this->bcastLDataTree_[snode.Index];
@@ -5428,7 +5428,7 @@ namespace PEXSI{
         TIMER_STOP(AllocateBuffer);
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl; 
+        statusOFS << std::endl << "Communication to the Schur complement." << std::endl << std::endl;
 #endif
 
 
@@ -5516,14 +5516,14 @@ namespace PEXSI{
         TIMER_STOP(WaitContentLU);
 
 
-        std::list<int> bcastLStructIdx; 
-        std::list<int> bcastLDataIdx; 
-        std::list<int> bcastUStructIdx; 
-        std::list<int> bcastUDataIdx; 
-        std::vector<bool> bcastLStructDone(stepSuper,false); 
-        std::vector<bool> bcastLDataDone(stepSuper,false); 
-        std::vector<bool> bcastUStructDone(stepSuper,false); 
-        std::vector<bool> bcastUDataDone(stepSuper,false); 
+        std::list<int> bcastLStructIdx;
+        std::list<int> bcastLDataIdx;
+        std::list<int> bcastUStructIdx;
+        std::list<int> bcastUDataIdx;
+        std::vector<bool> bcastLStructDone(stepSuper,false);
+        std::vector<bool> bcastLDataDone(stepSuper,false);
+        std::vector<bool> bcastUStructDone(stepSuper,false);
+        std::vector<bool> bcastUDataDone(stepSuper,false);
 
         //TODO dummy wait
 #ifdef BLOCK_BCAST_LDATA
@@ -5610,19 +5610,19 @@ namespace PEXSI{
           {
             TIMER_START(WaitContentLU);
             do{
-              //TODO this ensure that one of the Tree is IsDone(). Ideally, we should react at IsDataReceived() 
+              //TODO this ensure that one of the Tree is IsDone(). Ideally, we should react at IsDataReceived()
               TreeBcast_Testsome( superList[lidx], this->bcastLDataTree_, bcastLDataIdx, bcastLDataDone);
               TreeBcast_Testsome( superList[lidx], this->bcastUDataTree_, bcastUDataIdx, bcastUDataDone);
 
               std::set<Int> updatedSnode;
 
-              for(auto supidx : bcastLDataIdx){ 
+              for(auto supidx : bcastLDataIdx){
                 SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
                 snode.isReadyL++;
                 updatedSnode.insert(supidx);
               }
 
-              for(auto supidx : bcastUDataIdx){ 
+              for(auto supidx : bcastUDataIdx){
                 SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
                 snode.isReadyU++;
                 updatedSnode.insert(supidx);
@@ -5641,7 +5641,7 @@ namespace PEXSI{
             } while(readySnode.empty());
             TIMER_STOP(WaitContentLU);
 
-            //If I have some work to do 
+            //If I have some work to do
             if(readySnode.size()>0)
             {
               SuperNodeBufferTypeUnsym & snode = *readySnode.back();
@@ -5668,8 +5668,8 @@ namespace PEXSI{
                 TIMER_START(Compute_Sinv_LT_GEMM);
                 assert(AinvBuf.m()==LBuf.m());
                 blas::Gemm('T', 'N', LBuf.n(), AinvBuf.n(), LBuf.m(),
-                    MINUS_ONE<T>(), LBuf.Data(),LBuf.m(), 
-                    AinvBuf.Data(), AinvBuf.m(), ZERO<T>(), 
+                    MINUS_ONE<T>(), LBuf.Data(),LBuf.m(),
+                    AinvBuf.Data(), AinvBuf.m(), ZERO<T>(),
                     snode.LUpdateBuf.Data(), snode.LUpdateBuf.m() );
                 TIMER_STOP(Compute_Sinv_LT_GEMM);
                 gemmProcessed++;
@@ -5702,7 +5702,7 @@ namespace PEXSI{
                 snode.UUpdateBuf.Resize( AinvBuf.m(), SuperSize( snode.Index, this->super_ ) );
                 TIMER_STOP(Compute_Sinv_U_Resize);
                 TIMER_START(Compute_Sinv_U_GEMM);
-                blas::Gemm('N', 'T', AinvBuf.m(),UBuf.m(), AinvBuf.n(), 
+                blas::Gemm('N', 'T', AinvBuf.m(),UBuf.m(), AinvBuf.n(),
                     MINUS_ONE<T>(), AinvBuf.Data(), AinvBuf.m(),
                     UBuf.Data(), UBuf.m(), ZERO<T>(),
                     snode.UUpdateBuf.Data(), snode.UUpdateBuf.m() );
@@ -5757,7 +5757,7 @@ namespace PEXSI{
 #endif
 //        TIMER_STOP(Progress_all_reductions);
           }
-          
+
 
 
         }
@@ -5774,7 +5774,7 @@ namespace PEXSI{
 #endif
 
         TIMER_START(Reduce_Sinv_L);
-        std::list<int> redLIdx; 
+        std::list<int> redLIdx;
         std::vector<bool> redLdone(stepSuper,false);
 
 
@@ -5798,7 +5798,7 @@ namespace PEXSI{
         while(!all_doneL){
           TreeReduce_Testsome( superList[lidx], this->redLTree2_, redLIdx, redLdone);
 
-          for(auto supidx : redLIdx){ 
+          for(auto supidx : redLIdx){
             auto & snode = arrSuperNodes[supidx];
             auto & redLTree = this->redLTree2_[snode.Index];
 
@@ -5809,7 +5809,7 @@ namespace PEXSI{
               if( snode.LUpdateBuf.ByteSize() == 0 ){
                 Int m = SuperSize( snode.Index, this->super_);
                 Int n = redLTree->GetMsgSize() / m;
-                snode.LUpdateBuf.Resize(m,n); 
+                snode.LUpdateBuf.Resize(m,n);
                 SetValue(snode.LUpdateBuf, ZERO<T>());
               }
 
@@ -5826,14 +5826,14 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS << std::endl << "["<<snode.Index<<"] "
                 << "Finish updating the L part by filling LUpdateBufReduced"
-                << " back to U" << std::endl << std::endl; 
+                << " back to U" << std::endl << std::endl;
 #endif
 
               auto & Urow = this->U(LBi(snode.Index,this->grid_));
               Int offset = 0;
               for( Int jb = 0; jb < Urow.size(); jb++ ){
                 auto & UB = Urow[jb];
-                lapack::Lacpy( 'A', UB.numRow, UB.numCol, 
+                lapack::Lacpy( 'A', UB.numRow, UB.numCol,
                     &snode.LUpdateBuf(0, offset),
                     snode.LUpdateBuf.m(), UB.nzval.Data(), UB.numRow );
                 offset += UB.numCol;
@@ -5873,7 +5873,7 @@ namespace PEXSI{
 #endif
         //Reduce U Sinv  to the processors in PROW(ksup,this->grid_)
         TIMER_START(Reduce_Sinv_U);
-        std::list<int> redUIdx; 
+        std::list<int> redUIdx;
         std::vector<bool> redUdone(stepSuper,false);
 
 
@@ -5899,7 +5899,7 @@ namespace PEXSI{
         while(!all_doneU){
           TreeReduce_Testsome( superList[lidx], this->redUTree2_, redUIdx, redUdone);
 
-          for(auto supidx : redUIdx){ 
+          for(auto supidx : redUIdx){
             SuperNodeBufferTypeUnsym & snode = arrSuperNodes[supidx];
             auto & redUTree = this->redUTree2_[snode.Index];
 #if ( _DEBUGlevel_ >= 1 )
@@ -5910,7 +5910,7 @@ namespace PEXSI{
               if( snode.UUpdateBuf.ByteSize() == 0 ){
                 Int n = SuperSize( snode.Index, this->super_);
                 Int m = redUTree->GetMsgSize() / n;
-                snode.UUpdateBuf.Resize(m,n); 
+                snode.UUpdateBuf.Resize(m,n);
                 SetValue(snode.UUpdateBuf, ZERO<T>());
               }
               //copy the buffer from the reduce tree
@@ -5926,7 +5926,7 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1 )
               statusOFS << "["<<snode.Index<<"] "
                 << "Finish updating the U part by filling UUpdateBufReduced"
-                << " back to L" << std::endl << std::endl; 
+                << " back to L" << std::endl << std::endl;
 #endif
 
               Int offset = 0;
@@ -5941,7 +5941,7 @@ namespace PEXSI{
               statusOFS << "["<<snode.Index<<"] LB "<<ib<<" before "<<LB.nzval<<std::endl;
 #endif
                 //Indices follow L order... look at Lrow
-                lapack::Lacpy( 'A', LB.numRow, LB.numCol, 
+                lapack::Lacpy( 'A', LB.numRow, LB.numCol,
                     &snode.UUpdateBuf( offset , 0 ),
                     snode.UUpdateBuf.m(), LB.nzval.Data(), LB.numRow );
 
@@ -6030,13 +6030,13 @@ namespace PEXSI{
 
         //Reduce D
         TIMER_START(Reduce_Diagonal);
-        std::list<int> redDIdx; 
+        std::list<int> redDIdx;
         std::vector<bool> redDdone(stepSuper,false);
         bool all_doneD = std::all_of(redDdone.begin(), redDdone.end(), [](bool v) { return v; });
         while(!all_doneD){
           TreeReduce_Testsome( superList[lidx], this->redDTree2_, redDIdx, redDdone);
 
-          for(auto supidx : redDIdx){ 
+          for(auto supidx : redDIdx){
             auto & snode = arrSuperNodes[supidx];
             auto & redDTree = this->redDTree2_[snode.Index];
 #if ( _DEBUGlevel_ >= 1 )
@@ -6105,9 +6105,9 @@ namespace PEXSI{
 
     template<typename T>
       inline void PMatrixUnsym<T>::UnpackData_New(
-          SuperNodeBufferTypeUnsym & snode, 
-          std::vector<LBlock<T> > & LRecv, 
-          std::vector<UBlock<T> > & URecv 
+          SuperNodeBufferTypeUnsym & snode,
+          std::vector<LBlock<T> > & LRecv,
+          std::vector<UBlock<T> > & URecv
           )
       {
 
@@ -6117,14 +6117,14 @@ namespace PEXSI{
 
 
 #if ( _DEBUGlevel_ >= 1 )
-        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl; 
+        statusOFS << std::endl << "["<<snode.Index<<"] "<<  "Unpack the received data for processors participate in Gemm. " << std::endl << std::endl;
 #endif
 
 
         if(snode.updatesLU){
           {
             std::stringstream sstm;
-            auto & bcastLDataTree = this->bcastLDataTree_[snode.Index]; 
+            auto & bcastLDataTree = this->bcastLDataTree_[snode.Index];
             sstm.write( bcastLDataTree->GetLocalBuffer(), bcastLDataTree->GetMsgSize() );
             std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
             Int numLBlock;
@@ -6144,7 +6144,7 @@ namespace PEXSI{
           //clear and unpack U
           {
             std::stringstream sstm;
-            auto & bcastUDataTree = this->bcastUDataTree_[snode.Index]; 
+            auto & bcastUDataTree = this->bcastUDataTree_[snode.Index];
             sstm.write( bcastUDataTree->GetLocalBuffer(), bcastUDataTree->GetMsgSize() );
             std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
             Int numUBlock;
@@ -6168,8 +6168,8 @@ namespace PEXSI{
 
     template<typename T>
       inline  void PMatrixUnsym<T>::SelInv_lookup_indexes_New(
-          SuperNodeBufferTypeUnsym & snode, 
-          std::vector<LBlock<T> > & LRecv, 
+          SuperNodeBufferTypeUnsym & snode,
+          std::vector<LBlock<T> > & LRecv,
           std::vector<UBlock<T> > & URecv,
           NumMat<T> & AinvBuf,
           NumMat<T> & LBuf,
@@ -6230,7 +6230,7 @@ namespace PEXSI{
         for( Int ib = 0; ib < LRecv.size(); ib++ ){
           LBlock<T>& LB = LRecv[ib];
           if( LB.numCol != SuperSize(snode.Index, this->super_) ){
-            ErrorHandling( 
+            ErrorHandling(
                 "The size of LB is not right. Something is seriously wrong." );
           }
           lapack::Lacpy( 'A', LB.numRow, LB.numCol, LB.nzval.Data(),
@@ -6239,13 +6239,13 @@ namespace PEXSI{
         TIMER_STOP(Fill_LBuf);
 
         TIMER_START(Fill_UBuf);
-        // Fill UBuf first. 
+        // Fill UBuf first.
         SetValue(UBuf, ZERO<T>());
         for( Int jb = 0; jb < URecv.size(); jb++ ){
           UBlock<T>& UB = URecv[jb];
 
           if( UB.numRow != SuperSize(snode.Index, this->super_) ){
-            ErrorHandling( 
+            ErrorHandling(
                 "The size of UB is not right. Something is seriously wrong." );
           }
           lapack::Lacpy( 'A', UB.numRow, UB.numCol, UB.nzval.Data(),
@@ -6303,7 +6303,7 @@ namespace PEXSI{
                     else{
                       std::ostringstream msg;
                       msg << "Row " << rowsLBPtr[i] <<
-                        " in LB cannot find the corresponding row in SinvB" 
+                        " in LB cannot find the corresponding row in SinvB"
                         << std::endl
                         << "LB.rows    = " << LB.rows << std::endl
                         << "SinvB.rows = " << SinvB.rows << std::endl;
@@ -6346,7 +6346,7 @@ namespace PEXSI{
                 relRows[i] = LB.rows[i] - SinvRowsSta;
               }
 
-              std::vector<UBlock<T> >& USinv = 
+              std::vector<UBlock<T> >& USinv =
                 this->U( LBi( isup, this->grid_ ) );
               bool isBlockFound = false;
               TIMER_START(PARSING_COL_BLOCKIDX);
@@ -6482,10 +6482,10 @@ namespace PEXSI{
               auto & UB = Urow[jb];
 
               //Compute (L^T S-T) . U^T
-              blas::Gemm( 'N', 'T', snode.DiagBuf.m(), snode.DiagBuf.n(), 
+              blas::Gemm( 'N', 'T', snode.DiagBuf.m(), snode.DiagBuf.n(),
                   UB.numCol, MINUS_ONE<T>(),
                   &snode.LUpdateBuf( 0, offset ), snode.LUpdateBuf.m(),
-                  UB.nzval.Data(), UB.nzval.m(), 
+                  UB.nzval.Data(), UB.nzval.m(),
                   ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
 #ifdef _PRINT_STATS_
                 this->localFlops_+=flops::Gemm<T>(snode.DiagBuf.m(), snode.DiagBuf.n(), UB.numCol);
@@ -6525,9 +6525,9 @@ namespace PEXSI{
               auto & LB = Lcol[ib];
 
               //Compute L^T . ( S-T U^T )
-              blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(), 
+              blas::Gemm( 'T', 'N', snode.DiagBuf.m(), snode.DiagBuf.n(),
                   LB.numRow, MINUS_ONE<T>(),
-                  LB.nzval.Data(), LB.nzval.m(), 
+                  LB.nzval.Data(), LB.nzval.m(),
                   &snode.UUpdateBuf( offset, 0 ),
                   snode.UUpdateBuf.m(),
                   ONE<T>(), snode.DiagBuf.Data(), snode.DiagBuf.m() );
@@ -6567,7 +6567,7 @@ namespace PEXSI{
 
           TIMER_STOP(Update_Diagonal);
         }
-      } // End of method PMatrixUnsym<T>::ComputeDiagUpdate_New 
+      } // End of method PMatrixUnsym<T>::ComputeDiagUpdate_New
 
     template<typename T>
       void PMatrixUnsym<T>::PMatrixToDistSparseMatrix_ ( const NumVec<Int> & AcolptrLocal, const NumVec<Int> & ArowindLocal, const Int Asize, const LongInt Annz, const Int AnnzLocal, DistSparseMatrix<T>& B )
@@ -6634,7 +6634,7 @@ namespace PEXSI{
 #if ( _DEBUGlevel_ >= 1 )
             statusOFS << "("<< orow<<", "<<ocol<<") == "<< "("<< row<<", "<<col<<")"<< std::endl;
             statusOFS << "BlockIdx = " << blockRowIdx << ", " <<blockColIdx << std::endl;
-            statusOFS << procRow << ", " << procCol << ", " 
+            statusOFS << procRow << ", " << procCol << ", "
               << dest << std::endl;
 #endif
             sizeSend[dest]++;
@@ -6642,7 +6642,7 @@ namespace PEXSI{
         } // for (j)
 
         // All-to-all exchange of size information
-        MPI_Alltoall( 
+        MPI_Alltoall(
             &sizeSend[0], 1, MPI_INT,
             &sizeRecv[0], 1, MPI_INT, this->grid_->comm );
 
@@ -6719,11 +6719,11 @@ namespace PEXSI{
         }
 
         // Alltoallv to exchange information
-        mpi::Alltoallv( 
+        mpi::Alltoallv(
             &rowSend[0], &sizeSend[0], &displsSend[0],
             &rowRecv[0], &sizeRecv[0], &displsRecv[0],
             this->grid_->comm );
-        mpi::Alltoallv( 
+        mpi::Alltoallv(
             &colSend[0], &sizeSend[0], &displsSend[0],
             &colRecv[0], &sizeRecv[0], &displsRecv[0],
             this->grid_->comm );
@@ -6779,9 +6779,9 @@ namespace PEXSI{
                   } // found the corresponding row
                 }
               }
-              if( isFound == true ) break;  
+              if( isFound == true ) break;
             } // for (ib)
-          } 
+          }
           else{
             // Data on the U side
 
@@ -6799,9 +6799,9 @@ namespace PEXSI{
                   } // found the corresponding col
                 }
               }
-              if( isFound == true ) break;  
+              if( isFound == true ) break;
             } // for (jb)
-          } // if( blockColIdx <= blockRowIdx ) 
+          } // if( blockColIdx <= blockRowIdx )
 
           // Did not find the corresponding row, set the value to zero.
           if( isFound == false ){
@@ -6815,7 +6815,7 @@ namespace PEXSI{
 
         // Feed back valRecv to valSend through Alltoallv. NOTE: for the
         // values, the roles of "send" and "recv" are swapped.
-        mpi::Alltoallv( 
+        mpi::Alltoallv(
             &valRecv[0], &sizeRecv[0], &displsRecv[0],
             &valSend[0], &sizeSend[0], &displsSend[0],
             this->grid_->comm );
@@ -6870,7 +6870,7 @@ namespace PEXSI{
         }
 
         return ;
-      }     // -----  end of method PMatrix::PMatrixToDistSparseMatrix  ----- 
+      }     // -----  end of method PMatrix::PMatrixToDistSparseMatrix  -----
 
 
 

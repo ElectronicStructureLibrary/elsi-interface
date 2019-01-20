@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Lexing Ying, Mathias Jacquelin and Lin Lin
 
@@ -58,16 +58,16 @@ namespace  PEXSI{
 ///
 /// NumTns is a portable encapsulation of a pointer to represent a 3D
 /// tensor, which can either own (owndata == true) or view (owndata ==
-/// false) a piece of data.  
+/// false) a piece of data.
 template <class F>
   class NumTns
   {
   public:
     /// @brief The size of the first dimension.
-    Int m_; 
+    Int m_;
 
     /// @brief The size of second dimension.
-    Int n_; 
+    Int n_;
 
     /// @brief The size of third dimension.
     Int p_;

@@ -349,7 +349,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
       if(ph%pexsi_my_point == i-1) then
          call f_ppexsi_calculate_fermi_operator_real3(ph%pexsi_plan,&
-              ph%pexsi_options,ph%mu,ph%n_electrons,ph%pexsi_ne,ierr)
+              ph%pexsi_options,ph%n_electrons,ph%mu,ph%pexsi_ne,ierr)
       end if
    end do
 
@@ -564,7 +564,8 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    ! Get energy density matrix
    call elsi_allocate(bh,tmp,bh%nnz_l_sp1,"tmp",caller)
 
-   call f_ppexsi_retrieve_real_edm(ph%pexsi_plan,tmp,local_energy,ierr)
+   call f_ppexsi_retrieve_real_edm(ph%pexsi_plan,ph%pexsi_options,tmp,&
+        local_energy,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Failed to get energy density matirx.",caller)
@@ -1093,7 +1094,8 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    ! Get energy density matrix
    call elsi_allocate(bh,tmp,bh%nnz_l_sp1,"tmp",caller)
 
-   call f_ppexsi_retrieve_complex_edm(ph%pexsi_plan,tmp,local_energy,ierr)
+   call f_ppexsi_retrieve_complex_edm(ph%pexsi_plan,ph%pexsi_options,tmp,&
+        local_energy,ierr)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Failed to get energy density matirx.",caller)

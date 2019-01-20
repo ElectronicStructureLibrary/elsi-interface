@@ -243,20 +243,20 @@ namespace PEXSI{
 
 void ErrorHandling( const char * msg );
 
-// We define an output stream that does nothing. This is done so that the 
-// root process can be used to print data to a file's ostream while all other 
-// processes use a null ostream. 
+// We define an output stream that does nothing. This is done so that the
+// root process can be used to print data to a file's ostream while all other
+// processes use a null ostream.
 struct NullStream : std::ostream
-{            
+{
   struct NullStreamBuffer : std::streambuf
   {
     Int overflow( Int c ) { return traits_type::not_eof(c); }
   } nullStreamBuffer_;
 
-  NullStream() 
+  NullStream()
     : std::ios(&nullStreamBuffer_), std::ostream(&nullStreamBuffer_)
     { }
-};  
+};
 
 /////////////////////////////////////////////
 
@@ -279,15 +279,15 @@ public:
 };
 
 // *********************************************************************
-// Global utility functions 
+// Global utility functions
 // These utility functions do not depend on local definitions
 // *********************************************************************
 // Return the closest integer to a real number
-inline Int iround(Real a){ 
+inline Int iround(Real a){
   Int b = 0;
   if(a>0) b = (a-Int(a)<0.5)?Int(a):(Int(a)+1);
   else b = (Int(a)-a<0.5)?Int(a):(Int(a)-1);
-  return b; 
+  return b;
 }
 
 // Read the options from command line

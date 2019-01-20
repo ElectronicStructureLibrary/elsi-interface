@@ -5,7 +5,7 @@
 
 namespace PEXSI{
 #ifdef COMM_PROFILE_BCAST
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_v2<T>::SetGlobalComm(const MPI_Comm & pGComm){
       if(commGlobRanks.count(comm_)==0){
         MPI_Group group2 = MPI_GROUP_NULL;
@@ -28,11 +28,11 @@ namespace PEXSI{
 
 
 
-  template< typename T> 
+  template< typename T>
     TreeBcast_v2<T>::TreeBcast_v2(){
       comm_ = MPI_COMM_NULL;
       myRank_=-1;
-      myRoot_ = -1; 
+      myRoot_ = -1;
       msgSize_ = -1;
       recvCount_ = -1;
       sendCount_ = -1;
@@ -53,7 +53,7 @@ namespace PEXSI{
     }
 
 
-  template< typename T> 
+  template< typename T>
     TreeBcast_v2<T>::TreeBcast_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt,Int msgSize):TreeBcast_v2(){
       comm_ = pComm;
       MPI_Comm_rank(comm_,&myRank_);
@@ -70,16 +70,16 @@ namespace PEXSI{
     }
 
 
-  template< typename T> 
+  template< typename T>
     TreeBcast_v2<T>::TreeBcast_v2(const TreeBcast_v2 & Tree){
       this->Copy(Tree);
     }
 
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_v2<T>::Copy(const TreeBcast_v2 & Tree){
       this->comm_ = Tree.comm_;
       this->myRank_ = Tree.myRank_;
-      this->myRoot_ = Tree.myRoot_; 
+      this->myRoot_ = Tree.myRoot_;
       this->msgSize_ = Tree.msgSize_;
 
       this->recvCount_ = Tree.recvCount_;
@@ -103,7 +103,7 @@ namespace PEXSI{
       this->done_= Tree.done_;
     }
 
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_v2<T>::Reset(){
       assert(done_);
       cleanupBuffers();
@@ -122,50 +122,50 @@ namespace PEXSI{
     }
 
 
-  template< typename T> 
+  template< typename T>
     TreeBcast_v2<T>::~TreeBcast_v2(){
       cleanupBuffers();
       MPI_Type_free( &type_ );
     }
 
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_v2<T>::GetNumRecvMsg(){
       return recvCount_;
     }
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_v2<T>::GetNumMsgToSend(){
       return this->GetDestCount();
     }
 
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_v2<T>::GetNumMsgToRecv(){
       return 1;//always one even for root//myRank_==myRoot_?0:1;
     }
 
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_v2<T>::GetNumSendMsg(){
       return sendCount_;
     }
-  template< typename T> 
-    inline void TreeBcast_v2<T>::SetDataReady(bool rdy){ 
+  template< typename T>
+    inline void TreeBcast_v2<T>::SetDataReady(bool rdy){
       isReady_=rdy;
     }
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_v2<T>::SetTag(Int tag){
       tag_ = tag;
     }
-  template< typename T> 
+  template< typename T>
     inline int TreeBcast_v2<T>::GetTag(){
       return tag_;
     }
 
-  template< typename T> 
+  template< typename T>
     inline bool TreeBcast_v2<T>::IsDone(){
       return done_;
     }
 
 
-  template< typename T> 
+  template< typename T>
     inline bool TreeBcast_v2<T>::IsDataReceived(){
       bool retVal = false;
       if(myRank_==myRoot_){
@@ -201,34 +201,34 @@ namespace PEXSI{
       return retVal;
     }
 
-  template< typename T> 
+  template< typename T>
     inline Int * TreeBcast_v2<T>::GetDests(){
       return &myDests_[0];
     }
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_v2<T>::GetDest(Int i){
       return myDests_[i];
     }
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_v2<T>::GetDestCount(){
       return this->myDests_.size();
     }
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_v2<T>::GetRoot(){
       return this->myRoot_;
     }
 
-  template< typename T> 
+  template< typename T>
     inline bool TreeBcast_v2<T>::IsRoot(){
       return this->myRoot_==this->myRank_;
     }
 
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_v2<T>::GetMsgSize(){
       return this->msgSize_;
     }
 
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_v2<T>::forwardMessage( ){
       if(this->isReady_){
 #if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
@@ -241,7 +241,7 @@ namespace PEXSI{
         for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
           Int iProc = this->myDests_[idxRecv];
           // Use Isend to send to multiple targets
-          int error_code = MPI_Isend( this->recvDataPtrs_[0], this->msgSize_, this->type_, 
+          int error_code = MPI_Isend( this->recvDataPtrs_[0], this->msgSize_, this->type_,
               iProc, this->tag_,this->comm_, &this->sendRequests_[idxRecv] );
 #ifdef CHECK_MPI_ERROR
           if(error_code!=MPI_SUCCESS){
@@ -269,7 +269,7 @@ namespace PEXSI{
       }
     }
 
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_v2<T>::cleanupBuffers(){
       this->recvRequests_.clear();
       this->recvStatuses_.clear();
@@ -295,20 +295,20 @@ namespace PEXSI{
     }
 
 
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_v2<T>::SetLocalBuffer(T * locBuffer){
       //if recvDataPtrs_[0] has been allocated as a temporary buffer
       if(this->recvDataPtrs_[0]!=NULL && this->recvDataPtrs_[0]!=locBuffer){
-        //If we have received some data, we need to copy 
+        //If we have received some data, we need to copy
         //it to the new buffer
         if(this->recvCount_>0){
           copyLocalBuffer(locBuffer);
         }
 
-        //If data hasn't been forwarded yet, 
+        //If data hasn't been forwarded yet,
         //it is safe to clear recvTempBuffer_ now
         if(!this->fwded_){
-          this->recvTempBuffer_.clear(); 
+          this->recvTempBuffer_.clear();
         }
       }
 
@@ -316,12 +316,12 @@ namespace PEXSI{
     }
 
 
-  template< typename T> 
+  template< typename T>
     inline bool TreeBcast_v2<T>::isMessageForwarded(){
       bool retVal=false;
 
       if(!this->fwded_){
-        //If data has been received but not forwarded 
+        //If data has been received but not forwarded
         if(IsDataReceived()){
           forwardMessage();
         }
@@ -375,7 +375,7 @@ namespace PEXSI{
     }
 
   //async wait and forward
-  template< typename T> 
+  template< typename T>
     inline bool TreeBcast_v2<T>::Progress(){
       bool retVal = this->done_;
 
@@ -383,9 +383,9 @@ namespace PEXSI{
         retVal = isMessageForwarded();
 
         if(retVal){
-          //if the local buffer has been set by the user, but the temporary 
+          //if the local buffer has been set by the user, but the temporary
           //buffer was already in use, we can clear it now
-          if(this->recvTempBuffer_.size()>0){ 
+          if(this->recvTempBuffer_.size()>0){
             if(this->recvDataPtrs_[0]!=(T*)this->recvTempBuffer_.data()){
               this->recvTempBuffer_.clear();
             }
@@ -407,21 +407,21 @@ namespace PEXSI{
     }
 
   //blocking wait
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_v2<T>::Wait(){
       if(!this->done_){
         while(!Progress());
       }
     }
 
-  template< typename T> 
+  template< typename T>
     inline T* TreeBcast_v2<T>::GetLocalBuffer(){
       assert(this->recvDataPtrs_.size()>0);
       assert(this->recvDataPtrs_[0]!=nullptr);
       return this->recvDataPtrs_[0];
     }
 
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_v2<T>::postRecv()
     {
 #if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
@@ -433,7 +433,7 @@ namespace PEXSI{
           this->recvTempBuffer_.resize(this->msgSize_);
           this->recvDataPtrs_[0] = (T*)this->recvTempBuffer_.data();
         }
-        int error_code = MPI_Irecv( (char*)this->recvDataPtrs_[0], this->msgSize_, this->type_, 
+        int error_code = MPI_Irecv( (char*)this->recvDataPtrs_[0], this->msgSize_, this->type_,
             this->myRoot_, this->tag_,this->comm_, &this->recvRequests_[0] );
 #ifdef CHECK_MPI_ERROR
           if(error_code!=MPI_SUCCESS){
@@ -456,7 +456,7 @@ namespace PEXSI{
 
 
 
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_v2<T>::copyLocalBuffer(T* destBuffer){
       std::copy((T*)this->recvDataPtrs_[0],(T*)this->recvDataPtrs_[0]+this->msgSize_,destBuffer);
     }
@@ -503,7 +503,7 @@ namespace PEXSI{
       if(this->IsRoot() ){
         this->myDests_.insert(this->myDests_.end(),&ranks[1],&ranks[0]+rank_cnt);
       }
-#if (defined(BCAST_VERBOSE)) 
+#if (defined(BCAST_VERBOSE))
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
@@ -524,7 +524,7 @@ namespace PEXSI{
     inline FTreeBcast2<T> * FTreeBcast2<T>::clone() const{
       FTreeBcast2 * out = new FTreeBcast2(*this);
       return out;
-    } 
+    }
 
 
 
@@ -589,7 +589,7 @@ namespace PEXSI{
             }
             this->myRoot_ = prevRoot;
             break;
-          } 
+          }
 
           if( this->myRank_ < ranks[idxStartH]){
             idxStart = idxStartL;
@@ -637,7 +637,7 @@ namespace PEXSI{
 
       //sort the ranks with the modulo like operation
       if(rank_cnt>1){
-        Int new_idx = (Int)this->rseed_ % (rank_cnt - 1) + 1; 
+        Int new_idx = (Int)this->rseed_ % (rank_cnt - 1) + 1;
         Int * new_start = &ranks[new_idx];
         std::rotate(&ranks[1], new_start, &ranks[0]+rank_cnt);
       }
@@ -676,10 +676,10 @@ namespace PEXSI{
             }
             this->myRoot_ = prevRoot;
             break;
-          } 
+          }
 
           //not true anymore ?
-          //first half to 
+          //first half to
           TIMER_START(FIND_RANK);
           Int * pos = std::find(&ranks[idxStartL], &ranks[idxStartH], this->myRank_);
           TIMER_STOP(FIND_RANK);
@@ -788,7 +788,7 @@ namespace PEXSI{
    void TreeBcast_Waitall(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeBcast_v2<T> > > & arrTrees){
      std::list<int> doneIdx;
      std::vector<bool> finishedFlags(treeIdx.size(),false);
-     
+
       doneIdx.clear();
       auto all_done = [](const std::vector<bool> & boolvec){
         return std::all_of(boolvec.begin(), boolvec.end(), [](bool v) { return v; });

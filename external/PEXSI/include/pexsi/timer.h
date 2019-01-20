@@ -1,9 +1,9 @@
 /*
 	 Copyright (c) 2012 The Regents of the University of California,
-	 through Lawrence Berkeley National Laboratory.  
+	 through Lawrence Berkeley National Laboratory.
 
    Author: Edgar Solomonik and Mathias Jacquelin
-	 
+
    This file is part of Cyclops Tensor Framework (CTF) and PEXSI. All rights
    reserved.
 
@@ -78,14 +78,14 @@ class CTF_timer{
     int index;
     int exited;
     int original;
-  
+
   public:
     CTF_timer(char const * name);
     ~CTF_timer();
     void stop();
     void start();
     void exit();
-    
+
 };
 
 void CTF_set_main_args(int argc, char * const * argv);
@@ -98,7 +98,7 @@ void CTF_set_context(MPI_Comm ctxt);
 #define TAU_FSTOP(ARG)                                            \
   do { CTF_timer t(#ARG); t.stop(); } while (0);
 
-#define TAU_PROFILE_TIMER(ARG1, ARG2, ARG3, ARG4)                 
+#define TAU_PROFILE_TIMER(ARG1, ARG2, ARG3, ARG4)
 
 #ifdef __cplusplus
 extern "C"{

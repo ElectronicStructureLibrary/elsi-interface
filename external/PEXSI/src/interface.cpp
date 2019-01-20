@@ -256,10 +256,10 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
         {
           //Handle symPACK ordering options
           switch (options.ordering){
-            case 0:
+            case 5:
               colPerm = "PTSCOTCH";
               break;
-            case 1:
+            case 6:
               colPerm = "SCOTCH";
               break;
             case 2:
@@ -271,10 +271,10 @@ void PPEXSISymbolicFactorizeRealSymmetricMatrix(
             case 4:
               colPerm = "AMD";
               break;
-            case 5:
+            case 0:
               colPerm = "PARMETIS";
               break;
-            case 6:
+            case 1:
               colPerm = "METIS";
               break;
             default:
@@ -416,10 +416,10 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
         {
           //Handle symPACK ordering options
           switch (options.ordering){
-            case 0:
+            case 5:
               colPerm = "PTSCOTCH";
               break;
-            case 1:
+            case 6:
               colPerm = "SCOTCH";
               break;
             case 2:
@@ -431,10 +431,10 @@ void PPEXSISymbolicFactorizeComplexSymmetricMatrix(
             case 4:
               colPerm = "AMD";
               break;
-            case 5:
+            case 0:
               colPerm = "PARMETIS";
               break;
-            case 6:
+            case 1:
               colPerm = "METIS";
               break;
             default:
@@ -631,8 +631,8 @@ extern "C"
 void PPEXSICalculateFermiOperatorReal3(
     PPEXSIPlan        plan,
     PPEXSIOptions     options,
-    double            mu,
     double            numElectronExact,
+    double*           mu,
     double*           numElectronPEXSI,
     int*              info )
 {
@@ -650,7 +650,7 @@ void PPEXSICalculateFermiOperatorReal3(
         options.numElectronPEXSITolerance,
         options.solver,
         options.verbosity,
-        mu,
+        *mu,
         *numElectronPEXSI,
         options.method,
         options.nPoints,
@@ -825,6 +825,7 @@ void PPEXSIRetrieveRealDM(
 extern "C"
 void PPEXSIRetrieveRealEDM(
     PPEXSIPlan  plan,
+    PPEXSIOptions     options,
     double*     EDMnzvalLocal,
     double*     totalEnergyS,
     int*        info ){
@@ -834,6 +835,17 @@ void PPEXSIRetrieveRealEDM(
   PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
 
   try{
+/*
+    statusOFS << std::endl << " Warning, EDM correction before retrieve"
+      << gridPole->mpirank << std::endl;
+
+    reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionReal(
+        options.numPole,
+        options.solver,
+        options.verbosity,
+        options.nPoints,
+        options.spin);
+*/
     Int nnzLocal = ptrData->EnergyDensityRealMat().nnzLocal;
 
     blas::Copy( nnzLocal, ptrData->EnergyDensityRealMat().nzvalLocal.Data(), 1,
@@ -884,6 +896,7 @@ void PPEXSIRetrieveComplexDM(
 extern "C"
 void PPEXSIRetrieveComplexEDM(
     PPEXSIPlan        plan,
+    PPEXSIOptions     options,
     double*     EDMnzvalLocal,
     double*     totalEnergyS,
     int*              info ){
@@ -893,6 +906,17 @@ void PPEXSIRetrieveComplexEDM(
   PPEXSIData* ptrData = reinterpret_cast<PPEXSIData*>(plan);
 
   try{
+/*
+    statusOFS << std::endl << " Warning, EDM correction before retrieve"
+      << gridPole->mpirank << std::endl;
+
+    reinterpret_cast<PPEXSIData*>(plan)->CalculateEDMCorrectionComplex(
+        options.numPole,
+        options.solver,
+        options.verbosity,
+        options.nPoints,
+        options.spin);
+*/
     Int nnzLocal = ptrData->RhoComplexMat().nnzLocal;
 
     blas::Copy( 2*nnzLocal,
@@ -952,4 +976,4 @@ PPEXSIPlan f_ppexsi_plan_initialize (
       numProcCol,
       outputFileIndex,
       info );
-}		// -----  end of function f_ppexsi_plan_initialize  -----
+}              // -----  end of function f_ppexsi_plan_initialize  -----

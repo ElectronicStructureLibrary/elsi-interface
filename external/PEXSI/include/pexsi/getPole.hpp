@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2017 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Weile Jia & Lin Lin
 
@@ -48,7 +48,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #define _PEXSI_GETPOLE_HPP_
 
 #include "pexsi/environment.hpp"
-class poleClass { 
+class poleClass {
     private:
 
 	// @brief method used
@@ -65,14 +65,14 @@ class poleClass {
 
 	// @brief zweight vector
         std::vector< std::vector< std::complex<double> > >  zweight;
-    
+
     public:
         poleClass();
         ~poleClass();
 
         // @brief given a set of parameter, return a set of zweight and zshift.
         bool getPole ( int inputMethod, int inputPole, double inputBeta,  std::vector< std::complex<double> > &out_zshift, std::vector < std::complex<double> > &out_zweight );
-        
+
 };
 
 #endif // _PEXSI_GETPOLE_HPP_

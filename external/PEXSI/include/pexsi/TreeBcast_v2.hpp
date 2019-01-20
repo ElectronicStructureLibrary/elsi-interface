@@ -79,7 +79,7 @@ namespace PEXSI{
         TreeBcast_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt,Int msgSize);
         TreeBcast_v2(const TreeBcast_v2 & Tree);
         virtual ~TreeBcast_v2();
-        virtual TreeBcast_v2 * clone() const = 0; 
+        virtual TreeBcast_v2 * clone() const = 0;
         virtual void Copy(const TreeBcast_v2 & Tree);
         virtual void Reset();
 

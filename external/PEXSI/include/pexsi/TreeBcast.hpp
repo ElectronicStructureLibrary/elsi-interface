@@ -97,7 +97,7 @@ template< typename T>
     TreeBcast2(){
       comm_ = MPI_COMM_WORLD;
       myRank_=-1;
-      myRoot_ = -1; 
+      myRoot_ = -1;
       msgSize_ = -1;
       numRecv_ = -1;
       tag_=-1;
@@ -116,7 +116,7 @@ template< typename T>
       int tmprank;
       MPI_Comm_rank(comm_,&tmprank);
       myRank_ = tmprank;
-      myRoot_ = -1; 
+      myRoot_ = -1;
       msgSize_ = msgSize;
       numRecv_ = 0;
       tag_=-1;
@@ -125,7 +125,7 @@ template< typename T>
     }
 
 
-    virtual TreeBcast2 * clone() const = 0; 
+    virtual TreeBcast2 * clone() const = 0;
 
     TreeBcast2(const TreeBcast2 & Tree){
       this->Copy(Tree);
@@ -134,7 +134,7 @@ template< typename T>
     virtual void Copy(const TreeBcast2 & Tree){
       this->comm_ = Tree.comm_;
       this->myRank_ = Tree.myRank_;
-      this->myRoot_ = Tree.myRoot_; 
+      this->myRoot_ = Tree.myRoot_;
       this->msgSize_ = Tree.msgSize_;
 
       this->numRecv_ = Tree.numRecv_;
@@ -184,7 +184,7 @@ template< typename T>
 
     virtual inline Int GetNumRecvMsg(){return numRecv_;}
     virtual inline Int GetNumMsgToSend(){return GetDestCount();}
-    inline void SetDataReady(bool rdy){ 
+    inline void SetDataReady(bool rdy){
       isReady_=rdy;
       //numRecv_ = rdy?1:0;
     }
@@ -211,7 +211,7 @@ template< typename T>
       for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
         Int iProc = myDests_[idxRecv];
         // Use Isend to send to multiple targets
-        MPI_Isend( myData_, msgSize_, MPI_BYTE, 
+        MPI_Isend( myData_, msgSize_, MPI_BYTE,
             iProc, tag_,comm_, &myRequests_[idxRecv] );
 
 #if ( _DEBUGlevel_ >= 1 ) || defined(BCAST_VERBOSE)
@@ -241,7 +241,7 @@ template< typename T>
           CopyLocalBuffer(locBuffer);
         }
         if(!fwded_){
-          myRecvBuffer_.Clear(); 
+          myRecvBuffer_.Clear();
         }
       }
 
@@ -372,7 +372,7 @@ template< typename T>
           myRecvBuffer_.Resize(msgSize_);
           myData_ = (T*)&myRecvBuffer_[0];
         }
-        MPI_Irecv( (char*)this->myData_, this->msgSize_, MPI_BYTE, 
+        MPI_Irecv( (char*)this->myData_, this->msgSize_, MPI_BYTE,
             this->myRoot_, this->tag_,this->comm_, &this->recvRequest_ );
       }
     }
@@ -405,7 +405,7 @@ template< typename T>
         this->myDests_.insert(this->myDests_.begin(),&ranks[1],&ranks[0]+rank_cnt);
       }
 
-#if (defined(BCAST_VERBOSE)) 
+#if (defined(BCAST_VERBOSE))
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
@@ -425,7 +425,7 @@ template< typename T>
     virtual FTreeBcast2 * clone() const{
       FTreeBcast2 * out = new FTreeBcast2(*this);
       return out;
-    } 
+    }
   };
 
 template< typename T>
@@ -495,7 +495,7 @@ template< typename T>
             }
             this->myRoot_ = prevRoot;
             break;
-          } 
+          }
 
           if( this->myRank_ < ranks[idxStartH]){
             idxStart = idxStartL;
@@ -549,7 +549,7 @@ template< typename T>
         //Int new_idx = (int)((rand()+1.0) * (double)rank_cnt / ((double)RAND_MAX+1.0));
 
         //        srand(ranks[0]+rank_cnt);
-        Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+        Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1;
         //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
         //statusOFS<<"NEW IDX: "<<new_idx<<endl;
 
@@ -561,7 +561,7 @@ template< typename T>
 
         //        Int * new_start = std::lower_bound(&ranks[1],&ranks[0]+rank_cnt,ranks[0]);
         //just swap the two chunks   r[0] | r[1] --- r[new_start-1] | r[new_start] --- r[end]
-        // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1] 
+        // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1]
         std::rotate(&ranks[1], new_start, &ranks[0]+rank_cnt);
 
         //for(int i =0;i<rank_cnt;++i){statusOFS<<ranks[i]<<" ";} statusOFS<<std::endl;
@@ -601,10 +601,10 @@ template< typename T>
             }
             this->myRoot_ = prevRoot;
             break;
-          } 
+          }
 
           //not true anymore ?
-          //first half to 
+          //first half to
           TIMER_START(FIND_RANK);
           Int * pos = std::find(&ranks[idxStartL], &ranks[idxStartH], this->myRank_);
           TIMER_STOP(FIND_RANK);
@@ -640,7 +640,7 @@ template< typename T>
     //virtual void Copy(const ModBTreeBcast & Tree){
     //  comm_ = Tree.comm_;
     //  myRank_ = Tree.myRank_;
-    //  myRoot_ = Tree.myRoot_; 
+    //  myRoot_ = Tree.myRoot_;
     //  msgSize_ = Tree.msgSize_;
 
     //  numRecv_ = Tree.numRecv_;
@@ -651,7 +651,7 @@ template< typename T>
 
     //  rseed_ = Tree.rseed_;
     //  myRank_ = Tree.myRank_;
-    //  myRoot_ = Tree.myRoot_; 
+    //  myRoot_ = Tree.myRoot_;
     //  msgSize_ = Tree.msgSize_;
 
     //  numRecv_ = Tree.numRecv_;
@@ -756,7 +756,7 @@ public:
   TreeBcast(){
     comm_ = MPI_COMM_WORLD;
     myRank_=-1;
-    myRoot_ = -1; 
+    myRoot_ = -1;
     msgSize_ = -1;
     numRecv_ = -1;
     tag_=-1;
@@ -770,7 +770,7 @@ public:
     int tmprank;
     MPI_Comm_rank(comm_,&tmprank);
     myRank_ = tmprank;
-    myRoot_ = -1; 
+    myRoot_ = -1;
     msgSize_ = msgSize;
 
     numRecv_ = 0;
@@ -780,13 +780,13 @@ public:
   }
 
   TreeBcast(const TreeBcast & Tree){
-    Copy(Tree); 
+    Copy(Tree);
   }
 
   virtual void Copy(const TreeBcast & Tree){
     comm_ = Tree.comm_;
     myRank_ = Tree.myRank_;
-    myRoot_ = Tree.myRoot_; 
+    myRoot_ = Tree.myRoot_;
     msgSize_ = Tree.msgSize_;
 
     tag_= Tree.tag_;
@@ -799,7 +799,7 @@ public:
     numRecv_ = 0;
   }
 
-  virtual TreeBcast * clone() const = 0; 
+  virtual TreeBcast * clone() const = 0;
 
   void Reset(){
     //statusOFS<<"RESET CALLED"<<std::endl;
@@ -829,7 +829,7 @@ public:
     for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
       Int iProc = myDests_[idxRecv];
       // Use Isend to send to multiple targets
-      MPI_Isend( data, size, MPI_BYTE, 
+      MPI_Isend( data, size, MPI_BYTE,
           iProc, tag,comm_, &requests[2*iProc+1] );
 
 #if defined(COMM_PROFILE_BCAST) || defined(COMM_PROFILE)
@@ -879,7 +879,7 @@ public:
   virtual FTreeBcast * clone() const{
     FTreeBcast * out = new FTreeBcast(*this);
     return out;
-  } 
+  }
 };
 
 
@@ -950,7 +950,7 @@ protected:
           }
           myRoot_ = prevRoot;
           break;
-        } 
+        }
 
         if( myRank_ < ranks[idxStartH]){
           idxStart = idxStartL;
@@ -1003,7 +1003,7 @@ protected:
       //Int new_idx = (int)((rand()+1.0) * (double)rank_cnt / ((double)RAND_MAX+1.0));
 
       //        srand(ranks[0]+rank_cnt);
-      //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+      //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1;
 //      Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
       Int new_idx = (int)(this->rseed_)%(rank_cnt-1)+1;
       //statusOFS<<"NEW IDX: "<<new_idx<<endl;
@@ -1016,7 +1016,7 @@ protected:
 
       //        Int * new_start = std::lower_bound(&ranks[1],&ranks[0]+rank_cnt,ranks[0]);
       //just swap the two chunks   r[0] | r[1] --- r[new_start-1] | r[new_start] --- r[end]
-      // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1] 
+      // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1]
       std::rotate(&ranks[1], new_start, &ranks[0]+rank_cnt);
 
       //for(int i =0;i<rank_cnt;++i){statusOFS<<ranks[i]<<" ";} statusOFS<<std::endl;
@@ -1059,10 +1059,10 @@ protected:
           }
           myRoot_ = prevRoot;
           break;
-        } 
+        }
 
         //not true anymore ?
-        //first half to 
+        //first half to
         TIMER_START(FIND_RANK);
         Int * pos = std::find(&ranks[idxStartL], &ranks[idxStartH], myRank_);
         TIMER_STOP(FIND_RANK);
@@ -1099,7 +1099,7 @@ public:
     ((TreeBcast*)this)->Copy(*((const TreeBcast*)&Tree));
     ///      comm_ = Tree.comm_;
     ///      myRank_ = Tree.myRank_;
-    ///      myRoot_ = Tree.myRoot_; 
+    ///      myRoot_ = Tree.myRoot_;
     ///      msgSize_ = Tree.msgSize_;
     ///
     ///      numRecv_ = Tree.numRecv_;
@@ -1109,7 +1109,7 @@ public:
     ///      myDests_ = Tree.myDests_;
     ///
     ///      myRank_ = Tree.myRank_;
-    ///      myRoot_ = Tree.myRoot_; 
+    ///      myRoot_ = Tree.myRoot_;
     ///      msgSize_ = Tree.msgSize_;
     ///
     ///      numRecv_ = Tree.numRecv_;
@@ -1181,10 +1181,10 @@ protected:
           }
           myRoot_ = prevRoot;
           break;
-        } 
+        }
 
         //not true anymore ?
-        //first half to 
+        //first half to
         Int * pos = std::find(&ranks[idxStartL], &ranks[idxStartH], myRank_);
         if( pos != &ranks[idxStartH]){
           idxStart = idxStartL;
@@ -1300,7 +1300,7 @@ public:
   }
 
 
-  virtual TreeReduce * clone() const = 0; 
+  virtual TreeReduce * clone() const = 0;
 
   TreeReduce(const TreeReduce & Tree){
     this->Copy(Tree);
@@ -1311,7 +1311,7 @@ public:
 
     //      this->comm_ = Tree.comm_;
     //      this->myRank_ = Tree.myRank_;
-    //      this->myRoot_ = Tree.myRoot_; 
+    //      this->myRoot_ = Tree.myRoot_;
     //      this->msgSize_ = Tree.msgSize_;
     //      this->numRecv_ = Tree.numRecv_;
     //      this->tag_= Tree.tag_;
@@ -1425,7 +1425,7 @@ public:
       //statusOFS<<"DOING SUM"<<std::endl;
       //gdb_lock();
       blas::Axpy(msgSize_/sizeof(T), ONE<T>(), myData_, 1, locBuffer, 1 );
-      myLocalBuffer_.Clear(); 
+      myLocalBuffer_.Clear();
     }
 
     myData_ = locBuffer;
@@ -1473,7 +1473,7 @@ public:
       isReady_=true;
     }
 
-    //      if(this->numRecvPosted_==0){ 
+    //      if(this->numRecvPosted_==0){
     //        this->PostFirstRecv();
     //      }
 
@@ -1574,7 +1574,7 @@ public:
       for( Int idxRecv = 0; idxRecv < myDests_.size(); ++idxRecv ){
         Int iProc = myDests_[idxRecv];
         //assert(msgSize_>=0);
-        MPI_Irecv( (char*)remoteData_[idxRecv], msgSize_, MPI_BYTE, 
+        MPI_Irecv( (char*)remoteData_[idxRecv], msgSize_, MPI_BYTE,
             iProc, tag_,comm_, &myRequests_[idxRecv] );
         this->numRecvPosted_++;
       } // for (iProc)
@@ -1590,19 +1590,19 @@ protected:
     blas::Axpy(msgSize_/sizeof(T), ONE<T>(), remoteData_[idxRecv], 1, myData_, 1 );
   }
 
-  void Forward(){ 
+  void Forward(){
     //forward to my root if I have reseived everything
     Int iProc = myRoot_;
     // Use Isend to send to multiple targets
     if(myData_==NULL){
-      MPI_Isend( NULL, 0, MPI_BYTE, 
+      MPI_Isend( NULL, 0, MPI_BYTE,
           iProc, tag_,comm_, &sendRequest_ );
 #ifdef COMM_PROFILE
       PROFILE_COMM(myGRank_,myGRoot_,tag_,0);
 #endif
     }
     else{
-      MPI_Isend( (char*)myData_, msgSize_, MPI_BYTE, 
+      MPI_Isend( (char*)myData_, msgSize_, MPI_BYTE,
           iProc, tag_,comm_, &sendRequest_ );
 #ifdef COMM_PROFILE
       PROFILE_COMM(myGRank_,myGRoot_,tag_,msgSize_);
@@ -1650,14 +1650,14 @@ protected:
 
 
 #if (defined(REDUCE_DEBUG))
-    statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Recv contrib"<< std::endl; 
+    statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Recv contrib"<< std::endl;
     for(int i = 0; i < this->msgSize_/sizeof(T); ++i){
       statusOFS<< this->remoteData_[0][i]<< " ";
       if(i%3==0){statusOFS<<std::endl;}
     }
     statusOFS<<std::endl;
 
-    statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Reduce buffer now is"<< std::endl; 
+    statusOFS << std::endl << /*"["<<snode.Index<<"]*/" Reduce buffer now is"<< std::endl;
     for(int i = 0; i < this->msgSize_/sizeof(T); ++i){
       statusOFS<< this->myData_[i]<< " ";
       if(i%3==0){statusOFS<<std::endl;}
@@ -1680,7 +1680,7 @@ public:
     //          this->AllocRecvBuffers();
     //        }
     if(this->isAllocated_ && this->GetDestCount()>this->numRecvPosted_){
-      MPI_Irecv( (char*)this->remoteData_[0], this->msgSize_, MPI_BYTE, 
+      MPI_Irecv( (char*)this->remoteData_[0], this->msgSize_, MPI_BYTE,
           MPI_ANY_SOURCE, this->tag_,this->comm_, &this->myRequests_[0] );
       this->numRecvPosted_++;
     }
@@ -1716,7 +1716,7 @@ public:
       this->isReady_=true;
     }
 
-    //      if(this->numRecvPosted_==0){ 
+    //      if(this->numRecvPosted_==0){
     //        this->PostFirstRecv();
     //      }
 
@@ -1847,7 +1847,7 @@ protected:
           }
           this->myRoot_ = prevRoot;
           break;
-        } 
+        }
 
         if( this->myRank_ < ranks[idxStartH]){
           idxStart = idxStartL;
@@ -1897,7 +1897,7 @@ protected:
       //Int new_idx = rseed_%(rank_cnt-1)+1;
 
       //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
-      //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+      //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1;
 //      Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
       Int new_idx = (int)(this->rseed_)%(rank_cnt-1)+1;
 
@@ -1906,7 +1906,7 @@ protected:
 
       //        Int * new_start = std::lower_bound(&ranks[1],&ranks[0]+rank_cnt,ranks[0]);
       //just swap the two chunks   r[0] | r[1] --- r[new_start-1] | r[new_start] --- r[end]
-      // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1] 
+      // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1]
       std::rotate(&ranks[1], new_start, &ranks[0]+rank_cnt);
       //        for(int i =0;i<rank_cnt;++i){statusOFS<<ranks[i]<<" ";} statusOFS<<std::endl;
     }
@@ -1945,10 +1945,10 @@ protected:
           }
           this->myRoot_ = prevRoot;
           break;
-        } 
+        }
 
         //not true anymore ?
-        //first half to 
+        //first half to
         TIMER_START(FIND_RANK);
         Int * pos = std::find(&ranks[idxStartL], &ranks[idxStartH], this->myRank_);
         TIMER_STOP(FIND_RANK);
@@ -1964,7 +1964,7 @@ protected:
 
     }
 
-#if (defined(REDUCE_VERBOSE)) 
+#if (defined(REDUCE_VERBOSE))
     statusOFS<<"My root is "<<this->myRoot_<<std::endl;
     statusOFS<<"My dests are ";
     for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
@@ -1981,7 +1981,7 @@ public:
     ((TreeReduce<T>*)this)->Copy(*((const TreeReduce<T>*)&Tree));
     //this->comm_ = Tree.comm_;
     //this->myRank_ = Tree.myRank_;
-    //this->myRoot_ = Tree.myRoot_; 
+    //this->myRoot_ = Tree.myRoot_;
     //this->msgSize_ = Tree.msgSize_;
 
     //this->numRecv_ = Tree.numRecv_;
@@ -2065,7 +2065,7 @@ public:
     ((TreeReduce<T>*)this)->Copy(*((const TreeReduce<T>*)&Tree));
     //this->comm_ = Tree.comm_;
     //this->myRank_ = Tree.myRank_;
-    //this->myRoot_ = Tree.myRoot_; 
+    //this->myRoot_ = Tree.myRoot_;
     //this->msgSize_ = Tree.msgSize_;
 
     //this->numRecv_ = Tree.numRecv_;

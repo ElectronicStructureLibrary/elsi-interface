@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Lexing Ying, Mathias Jacquelin and Lin Lin
 
@@ -52,7 +52,7 @@ namespace  PEXSI{
 /// @class NumVec
 ///
 /// @brief Numerical vector.
-/// 
+///
 /// NumVec is a portable encapsulation of a pointer to represent a 1D
 /// vector. The main difference between NumVec<F> and std::vector<F> is
 /// that NumVec<F> allows the vector to not owning the data, by
@@ -68,15 +68,15 @@ protected:
   inline void deallocate();
 
   /// @brief The size of the vector.
-  Int  m_;                                
+  Int  m_;
   ///
   /// @brief Whether it owns the data.
-  bool owndata_;                          
+  bool owndata_;
 
   /// @brief The pointer for the actual data.
   F* data_;
 
-  /// @brief The actual storage space allocated                          
+  /// @brief The actual storage space allocated
   Int bufsize_;
 public:
   NumVec();
@@ -90,8 +90,8 @@ public:
   void Resize ( Int m );
   void Clear();
 
-  const F& operator()(Int i) const;  
-  F& operator()(Int i);  
+  const F& operator()(Int i) const;
+  F& operator()(Int i);
   const F& operator[](Int i) const;
   F& operator[](Int i);
 

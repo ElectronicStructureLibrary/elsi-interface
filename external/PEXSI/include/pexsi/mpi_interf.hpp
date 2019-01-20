@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin
 
@@ -61,8 +61,8 @@ namespace mpi{
 //
 // NOTE: The interface is quite preliminary.
 // *********************************************************************
-void Gatherv( 
-    std::vector<Int>& localVec, 
+void Gatherv(
+    std::vector<Int>& localVec,
     std::vector<Int>& allVec,
     Int root,
     MPI_Comm          comm );
@@ -71,8 +71,8 @@ void Gatherv(
 
 template<typename T>
   void
-  Gatherv ( 
-      std::vector<T>& localVec, 
+  Gatherv (
+      std::vector<T>& localVec,
       std::vector<T>& allVec,
       Int root,
       MPI_Comm          comm )
@@ -96,21 +96,21 @@ template<typename T>
       allVec.clear();
       allVec.resize( totalSize / sizeof(T) );
 
-      MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, &allVec[0], 
+      MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, &allVec[0],
           &localSizeVec[0], &localSizeDispls[0], MPI_BYTE, root, comm	);
     }
     else{
-      MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, NULL, 
+      MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, NULL,
           NULL, NULL, MPI_INT, root, comm	);
     }
 
     return ;
-  }		// -----  end of function Gatherv  ----- 
+  }		// -----  end of function Gatherv  -----
 
 
 void
-  Gatherv ( 
-      std::vector<Int>& localVec, 
+  Gatherv (
+      std::vector<Int>& localVec,
       std::vector<Int>& allVec,
       std::vector<Int>& sizes,
       std::vector<Int>& displs,
@@ -120,8 +120,8 @@ void
 
 template<typename T>
   void
-  Gatherv ( 
-      std::vector<T>& localVec, 
+  Gatherv (
+      std::vector<T>& localVec,
       std::vector<T>& allVec,
       std::vector<T>& sizes,
       std::vector<T>& displs,
@@ -149,17 +149,17 @@ template<typename T>
       allVec.clear();
       allVec.resize( totalSize / sizeof(T) );
 
-      MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, &allVec[0], 
+      MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, &allVec[0],
           &localSizeVec[0], &localSizeDispls[0], MPI_BYTE, root, comm	);
     }
     else{
       MPI_Gather( &localSize, 1, MPI_INT, NULL, 1, MPI_INT,root, comm );
-      MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, NULL, 
+      MPI_Gatherv( &localVec[0], localSize, MPI_BYTE, NULL,
           NULL, NULL, MPI_INT, root, comm	);
     }
 
     return ;
-  }		// -----  end of function Gatherv  ----- 
+  }		// -----  end of function Gatherv  -----
 
 
 
@@ -170,8 +170,8 @@ template<typename T>
 //
 // NOTE: The interface is quite preliminary.
 // *********************************************************************
-void Allgatherv( 
-    std::vector<Int>& localVec, 
+void Allgatherv(
+    std::vector<Int>& localVec,
     std::vector<Int>& allVec,
     MPI_Comm          comm );
 
@@ -181,8 +181,8 @@ void Allgatherv(
 
 template <typename T>
   void
-  Allgatherv ( 
-      std::vector<T>& localVec, 
+  Allgatherv (
+      std::vector<T>& localVec,
       std::vector<T>& allVec,
       MPI_Comm          comm )
   {
@@ -203,12 +203,12 @@ template <typename T>
     allVec.clear();
     allVec.resize( totalSize/sizeof(T) );
 
-    MPI_Allgatherv( &localVec[0], localSize, MPI_BYTE, &allVec[0], 
+    MPI_Allgatherv( &localVec[0], localSize, MPI_BYTE, &allVec[0],
         &localSizeVec[0], &localSizeDispls[0], MPI_BYTE, comm	);
 
 
     return ;
-  };		// -----  end of function Allgatherv  ----- 
+  };		// -----  end of function Allgatherv  -----
 
 
 
@@ -217,9 +217,9 @@ template <typename T>
 
 template <typename T>
   void
-  Bcast ( 
+  Bcast (
       std::vector<T>& dataVec,
-      Int root, 
+      Int root,
       MPI_Comm          comm )
   {
     int mpirank, mpisize;
@@ -238,7 +238,7 @@ template <typename T>
 
 
     return ;
-  };		// -----  end of function Bcast  ----- 
+  };		// -----  end of function Bcast  -----
 
 
 
@@ -250,19 +250,19 @@ template <typename T>
 
 
 // *********************************************************************
-// Send / Recv for stringstream 
+// Send / Recv for stringstream
 //
-// Isend / Irecv is not here because the size and content has to be 
+// Isend / Irecv is not here because the size and content has to be
 // communicated separately for non-blocking communication.
 // *********************************************************************
 
-void Send( std::stringstream& sstm, Int dest, Int tagSize, Int tagContent, 
+void Send( std::stringstream& sstm, Int dest, Int tagSize, Int tagContent,
     MPI_Comm comm );
 
-void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
+void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
     MPI_Comm comm, MPI_Status& statSize, MPI_Status& statContent );
 
-void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent, 
+void Recv ( std::stringstream& sstm, Int src, Int tagSize, Int tagContent,
     MPI_Comm comm );
 
 // *********************************************************************
@@ -314,18 +314,18 @@ void
 // *********************************************************************
 
 void
-  Alltoallv ( Int *bufSend, Int *sizeSend, Int *displsSend, 
-      Int *bufRecv, Int *sizeRecv, 
+  Alltoallv ( Int *bufSend, Int *sizeSend, Int *displsSend,
+      Int *bufRecv, Int *sizeRecv,
       Int *displsRecv, MPI_Comm comm );
 
 void
-  Alltoallv ( Real *bufSend, Int *sizeSend, Int *displsSend, 
-      Real *bufRecv, Int *sizeRecv, 
+  Alltoallv ( Real *bufSend, Int *sizeSend, Int *displsSend,
+      Real *bufRecv, Int *sizeRecv,
       Int *displsRecv, MPI_Comm comm );
 
 void
-  Alltoallv ( Complex *bufSend, Int *sizeSend, Int *displsSend, 
-      Complex *bufRecv, Int *sizeRecv, 
+  Alltoallv ( Complex *bufSend, Int *sizeSend, Int *displsSend,
+      Complex *bufRecv, Int *sizeRecv,
       Int *displsRecv, MPI_Comm comm );
 
 } // namespace mpi

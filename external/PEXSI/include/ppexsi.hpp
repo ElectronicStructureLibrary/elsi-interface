@@ -707,7 +707,7 @@ public:
       Real  numElectronTolerance,
       Int   solver,
       Int   verbosity,
-      Real  mu,
+      Real& mu,
       Real& numElectron,
       Int   method,
       Int   nPoints,

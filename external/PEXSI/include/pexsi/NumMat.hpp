@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Lexing Ying, Mathias Jacquelin and Lin Lin
 
@@ -56,7 +56,7 @@ namespace  PEXSI{
 ///
 /// NumMat is a portable encapsulation of a pointer to represent a 2D
 /// matrix, which can either own (owndata == true) or view (owndata ==
-/// false) a piece of data.  
+/// false) a piece of data.
 template <class F>
   class NumMat
   {
@@ -65,7 +65,7 @@ template <class F>
     bool owndata_;
 
     /// @brief The size of the first dimension.
-    Int m_; 
+    Int m_;
 
     /// @brief The size of second dimension.
     Int n_;
@@ -74,7 +74,7 @@ template <class F>
     F* data_;
 
     /// @brief Actual size of the allocated buffer. Similar to the capacity of a std::vector
-    Int bufsize_; 
+    Int bufsize_;
 
     /// @brief Helper function allocating the memory pointed by the data_ attribute
     void allocate(F* data=NULL);
@@ -94,7 +94,7 @@ template <class F>
     const F& operator()(Int i, Int j) const;
     F& operator()(Int i, Int j);
     F* Data() const { return data_; }
-    F* VecData(Int j)  const; 
+    F* VecData(Int j)  const;
     Int m() const { return m_; }
     Int n() const { return n_; }
     Int Size() const {return m_*n_;}
