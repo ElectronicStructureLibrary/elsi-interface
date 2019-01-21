@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin and Mathias Jacquelin
 
@@ -43,7 +43,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 /// @file utility.hpp
 /// @brief Various utility subroutines.
 /// @date 2012-09-27
-#ifndef _PEXSI_UTILITY_HPP_ 
+#ifndef _PEXSI_UTILITY_HPP_
 #define _PEXSI_UTILITY_HPP_
 
 #include  <stdlib.h>
@@ -65,7 +65,7 @@ namespace PEXSI{
 // Define constants
 // *********************************************************************
 
-// Write format control parameters 
+// Write format control parameters
 const int LENGTH_VAR_NAME = 8;
 const int LENGTH_DBL_DATA = 16;
 const int LENGTH_INT_DATA = 5;
@@ -103,7 +103,7 @@ inline Int Print(std::ostream &os, const char* name) {
 };
 
 inline Int Print(std::ostream &os, const std::string name, std::string val) {
-  os << std::setiosflags(std::ios::left) 
+  os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << name
     << std::setw(LENGTH_VAR_DATA) << val
     << std::endl;
@@ -111,7 +111,7 @@ inline Int Print(std::ostream &os, const std::string name, std::string val) {
 };
 
 inline Int Print(std::ostream &os, const std::string name, const char* val) {
-  os << std::setiosflags(std::ios::left) 
+  os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << name
     << std::setw(LENGTH_VAR_DATA) << std::string(val)
     << std::endl;
@@ -124,7 +124,7 @@ inline Int Print(std::ostream &os, const std::string name, const char* val) {
 // one real number
 
 inline Int Print(std::ostream &os, const std::string name, Real val) {
-  os << std::setiosflags(std::ios::left) 
+  os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << name
     << std::setiosflags(std::ios::scientific)
     << std::setiosflags(std::ios::showpos)
@@ -136,7 +136,7 @@ inline Int Print(std::ostream &os, const std::string name, Real val) {
 };
 
 inline Int Print(std::ostream &os, const char* name, Real val) {
-  os << std::setiosflags(std::ios::left) 
+  os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << std::string(name)
     << std::setiosflags(std::ios::scientific)
     << std::setiosflags(std::ios::showpos)
@@ -149,27 +149,27 @@ inline Int Print(std::ostream &os, const char* name, Real val) {
 
 
 inline Int Print(std::ostream &os, const std::string name, Real val, const std::string unit) {
-  os << std::setiosflags(std::ios::left) 
+  os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << name
     << std::setiosflags(std::ios::scientific)
     << std::setiosflags(std::ios::showpos)
     << std::setw(LENGTH_DBL_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val
     << std::resetiosflags(std::ios::scientific)
     << std::resetiosflags(std::ios::showpos)
-    << std::setw(LENGTH_VAR_UNIT) << unit 
+    << std::setw(LENGTH_VAR_UNIT) << unit
     << std::endl;
   return 0;
 };
 
 inline Int Print(std::ostream &os, const char *name, Real val, const char *unit) {
-  os << std::setiosflags(std::ios::left) 
+  os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << std::string(name)
     << std::setiosflags(std::ios::scientific)
     << std::setiosflags(std::ios::showpos)
     << std::setw(LENGTH_DBL_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val
     << std::resetiosflags(std::ios::scientific)
     << std::resetiosflags(std::ios::showpos)
-    << std::setw(LENGTH_VAR_UNIT) << std::string(unit) 
+    << std::setw(LENGTH_VAR_UNIT) << std::string(unit)
     << std::endl;
   return 0;
 };
@@ -182,12 +182,12 @@ inline Int Print(std::ostream &os, const std::string name1, Real val1, const std
     << std::setiosflags(std::ios::scientific)
     << std::setiosflags(std::ios::showpos)
     << std::setw(LENGTH_VAR_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val1
-    << std::setw(LENGTH_VAR_UNIT) << unit1 
+    << std::setw(LENGTH_VAR_UNIT) << unit1
     << std::setw(LENGTH_VAR_NAME) << name2
     << std::setw(LENGTH_VAR_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val2
     << std::resetiosflags(std::ios::scientific)
     << std::resetiosflags(std::ios::showpos)
-    << std::setw(LENGTH_VAR_UNIT) << unit2 
+    << std::setw(LENGTH_VAR_UNIT) << unit2
     << std::endl;
   return 0;
 };
@@ -199,12 +199,12 @@ inline Int Print(std::ostream &os, const char *name1, Real val1, const char *uni
     << std::setiosflags(std::ios::scientific)
     << std::setiosflags(std::ios::showpos)
     << std::setw(LENGTH_VAR_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val1
-    << std::setw(LENGTH_VAR_UNIT) << std::string(unit1) 
+    << std::setw(LENGTH_VAR_UNIT) << std::string(unit1)
     << std::setw(LENGTH_VAR_NAME) << std::string(name2)
     << std::setw(LENGTH_VAR_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val2
     << std::resetiosflags(std::ios::scientific)
     << std::resetiosflags(std::ios::showpos)
-    << std::setw(LENGTH_VAR_UNIT) << std::string(unit2) 
+    << std::setw(LENGTH_VAR_UNIT) << std::string(unit2)
     << std::endl;
   return 0;
 };
@@ -215,14 +215,14 @@ inline Int Print(std::ostream &os, const std::string name1, Int val1, const std:
   os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << name1
     << std::setw(LENGTH_INT_DATA) << val1
-    << std::setw(LENGTH_VAR_UNIT) << unit1 
+    << std::setw(LENGTH_VAR_UNIT) << unit1
     << std::setw(LENGTH_VAR_NAME) << name2
     << std::setiosflags(std::ios::scientific)
     << std::setiosflags(std::ios::showpos)
     << std::setw(LENGTH_VAR_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val2
     << std::resetiosflags(std::ios::scientific)
     << std::resetiosflags(std::ios::showpos)
-    << std::setw(LENGTH_VAR_UNIT) << unit2 
+    << std::setw(LENGTH_VAR_UNIT) << unit2
     << std::endl;
   return 0;
 };
@@ -232,30 +232,30 @@ inline Int Print(std::ostream &os, const char *name1, Int val1, const char *unit
   os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << std::string(name1)
     << std::setw(LENGTH_INT_DATA) << val1
-    << std::setw(LENGTH_VAR_UNIT) << std::string(unit1) 
+    << std::setw(LENGTH_VAR_UNIT) << std::string(unit1)
     << std::setw(LENGTH_VAR_NAME) << std::string(name2)
     << std::setiosflags(std::ios::scientific)
     << std::setiosflags(std::ios::showpos)
     << std::setw(LENGTH_VAR_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val2
     << std::resetiosflags(std::ios::scientific)
     << std::resetiosflags(std::ios::showpos)
-    << std::setw(LENGTH_VAR_UNIT) << std::string(unit2) 
+    << std::setw(LENGTH_VAR_UNIT) << std::string(unit2)
     << std::endl;
   return 0;
 };
 
-inline Int Print(std::ostream &os, 
-    const char *name1, Int val1, 
-    const char *name2, Real val2, 
+inline Int Print(std::ostream &os,
+    const char *name1, Int val1,
+    const char *name2, Real val2,
     char *name3, Real val3) {
   os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << std::string(name1)
-    << std::setw(LENGTH_INT_DATA) << val1 
+    << std::setw(LENGTH_INT_DATA) << val1
     << std::setiosflags(std::ios::scientific)
     << std::setiosflags(std::ios::showpos)
     << std::setw(LENGTH_VAR_NAME) << std::string(name2)
     << std::setw(LENGTH_VAR_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val2
-    << std::setw(LENGTH_VAR_NAME) << std::string(name3) 
+    << std::setw(LENGTH_VAR_NAME) << std::string(name3)
     << std::setw(LENGTH_VAR_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val3
     << std::resetiosflags(std::ios::scientific)
     << std::resetiosflags(std::ios::showpos)
@@ -264,21 +264,21 @@ inline Int Print(std::ostream &os,
 };
 
 
-inline Int Print(std::ostream &os, 
-    const char *name1, Int val1, 
-    const char *name2, Real val2, 
+inline Int Print(std::ostream &os,
+    const char *name1, Int val1,
+    const char *name2, Real val2,
     const char *name3, Real val3,
     const char *name4, Real val4 ) {
   os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << std::string(name1)
-    << std::setw(LENGTH_INT_DATA) << val1 
+    << std::setw(LENGTH_INT_DATA) << val1
     << std::setiosflags(std::ios::scientific)
     << std::setiosflags(std::ios::showpos)
     << std::setw(LENGTH_VAR_NAME) << std::string(name2)
     << std::setw(LENGTH_VAR_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val2
-    << std::setw(LENGTH_VAR_NAME) << std::string(name3) 
+    << std::setw(LENGTH_VAR_NAME) << std::string(name3)
     << std::setw(LENGTH_VAR_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val3
-    << std::setw(LENGTH_VAR_NAME) << std::string(name4) 
+    << std::setw(LENGTH_VAR_NAME) << std::string(name4)
     << std::setw(LENGTH_VAR_DATA) << std::setprecision(LENGTH_DBL_PREC)<< val4
     << std::resetiosflags(std::ios::scientific)
     << std::resetiosflags(std::ios::showpos)
@@ -311,7 +311,7 @@ inline Int Print(std::ostream &os, const std::string name, Int val, const std::s
   os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << name
     << std::setw(LENGTH_VAR_DATA) << val
-    << std::setw(LENGTH_VAR_UNIT) << unit 
+    << std::setw(LENGTH_VAR_UNIT) << unit
     << std::endl;
   return 0;
 };
@@ -321,7 +321,7 @@ inline Int Print(std::ostream &os, const char* name, Int val, const std::string 
   os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << std::string(name)
     << std::setw(LENGTH_VAR_DATA) << val
-    << std::setw(LENGTH_VAR_UNIT) << unit 
+    << std::setw(LENGTH_VAR_UNIT) << unit
     << std::endl;
   return 0;
 };
@@ -334,10 +334,10 @@ inline Int Print(std::ostream &os, const std::string name1, Int val1, const std:
   os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << name1
     << std::setw(LENGTH_VAR_DATA) << val1
-    << std::setw(LENGTH_VAR_UNIT) << unit1 
+    << std::setw(LENGTH_VAR_UNIT) << unit1
     << std::setw(LENGTH_VAR_NAME) << name2
     << std::setw(LENGTH_VAR_DATA) << val2
-    << std::setw(LENGTH_VAR_UNIT) << unit2 
+    << std::setw(LENGTH_VAR_UNIT) << unit2
     << std::endl;
   return 0;
 };
@@ -347,10 +347,10 @@ inline Int Print(std::ostream &os, const char *name1, Int val1, const char *unit
   os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << std::string(name1)
     << std::setw(LENGTH_VAR_DATA) << val1
-    << std::setw(LENGTH_VAR_UNIT) << std::string(unit1) 
+    << std::setw(LENGTH_VAR_UNIT) << std::string(unit1)
     << std::setw(LENGTH_VAR_NAME) << std::string(name2)
     << std::setw(LENGTH_VAR_DATA) << val2
-    << std::setw(LENGTH_VAR_UNIT) << std::string(unit2) 
+    << std::setw(LENGTH_VAR_UNIT) << std::string(unit2)
     << std::endl;
   return 0;
 };
@@ -381,7 +381,7 @@ inline Int Print(std::ostream &os, const char* name, bool val) {
 
 
 // Index 3 and Point 3
-inline Int Print(std::ostream &os, 
+inline Int Print(std::ostream &os,
     const char *name1, Index3 val ) {
   os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << std::string(name1)
@@ -392,7 +392,7 @@ inline Int Print(std::ostream &os,
   return 0;
 };
 
-inline Int Print(std::ostream &os, 
+inline Int Print(std::ostream &os,
     const char *name1, Point3 val ) {
   os << std::setiosflags(std::ios::left)
     << std::setw(LENGTH_VAR_NAME) << std::string(name1)
@@ -407,7 +407,7 @@ inline Int Print(std::ostream &os,
   return 0;
 };
 
-inline Int Print(std::ostream &os, 
+inline Int Print(std::ostream &os,
     const char *name1, Int val1,
     const char *name2, Point3 val ) {
   os << std::setiosflags(std::ios::left)
@@ -434,7 +434,7 @@ template <class F> inline std::ostream& operator<<( std::ostream& os, const std:
 {
   os<<vec.size()<<std::endl;
   os.setf(std::ios_base::scientific, std::ios_base::floatfield);
-  for(Int i=0; i<vec.size(); i++)	 
+  for(Int i=0; i<vec.size(); i++)
     os<<" "<<vec[i];
   os<<std::endl;
   return os;
@@ -445,7 +445,7 @@ template <class F> inline std::ostream& operator<<( std::ostream& os, const NumV
 {
   os<<vec.m()<<std::endl;
   os.setf(std::ios_base::scientific, std::ios_base::floatfield);
-  for(Int i=0; i<vec.m(); i++)	 
+  for(Int i=0; i<vec.m(); i++)
     os<<" "<<vec(i);
   os<<std::endl;
   return os;
@@ -454,7 +454,7 @@ template <class F> inline std::ostream& operator<<( std::ostream& os, const NumV
 //template <class F> inline std::istream& operator>>( std::istream& is, NumVec<F>& vec)
 //{
 //	Int m;  is>>m;  vec.resize(m);
-//	for(Int i=0; i<vec.m(); i++)	 
+//	for(Int i=0; i<vec.m(); i++)
 //		is >> vec(i);
 //	return is;
 //}
@@ -543,6 +543,7 @@ inline Int deserialize(char& val, std::istream& is, const std::vector<Int>& mask
 inline Int combine(char& val, char& ext)
 {
   ErrorHandling( "Combine operation not implemented." );
+  return 0;
 }
 
 //-------------------
@@ -683,6 +684,7 @@ inline Int deserialize(Index3& val, std::istream& is, const std::vector<Int>& ma
 inline Int combine(Index3& val, Index3& ext)
 {
   ErrorHandling( "Combine operation not implemented." );
+  return 0;
 }
 
 //-------------------
@@ -702,6 +704,7 @@ inline Int deserialize(Point3& val, std::istream& is, const std::vector<Int>& ma
 inline Int combine(Point3& val, Point3& ext)
 {
   ErrorHandling( "Combine operation not implemented." );
+  return 0;
 }
 
 //-------------------
@@ -741,7 +744,7 @@ Int serialize(const std::set<T>& val, std::ostream& os, const std::vector<Int>& 
 {
   Int sz = val.size();
   os.write((char*)&sz, sizeof(Int));
-  for(typename std::set<T>::const_iterator mi=val.begin(); mi!=val.end(); mi++) 
+  for(typename std::set<T>::const_iterator mi=val.begin(); mi!=val.end(); mi++)
     serialize((*mi), os, mask);
   return 0;
 }
@@ -1374,7 +1377,7 @@ Int inline deserialize(symPACK::DistSparseMatrix<T>& val, std::istream& is, cons
 template<class T>
 void inline Convert(const DistSparseMatrix<T>& A, symPACK::DistSparseMatrix<T> & B)
 {
-    const MPI_Comm & comm = A.comm; 
+    const MPI_Comm & comm = A.comm;
     int mpisize,mpirank;
     MPI_Comm_size(comm,&mpisize);
     MPI_Comm_rank(comm,&mpirank);
@@ -1390,14 +1393,14 @@ void inline Convert(const DistSparseMatrix<T>& A, symPACK::DistSparseMatrix<T> &
     //BGraph.vertexDist[0] = 1;
     //std::partial_sum(BGraph.vertexDist.begin(),BGraph.vertexDist.end(),BGraph.vertexDist.begin());
     //BGraph.vertexDist.back() = A.size+1;
-    BGraph.size = B.size;       
+    BGraph.size = B.size;
     BGraph.nnz = B.nnz;
     BGraph.SetComm(B.comm);
     BGraph.SetExpanded(true);
     BGraph.baseval = 1;
     BGraph.keepDiag = 1;
     BGraph.sorted = 1;
-    BGraph.colptr.resize(BGraph.LocalVertexCount()+1); 
+    BGraph.colptr.resize(BGraph.LocalVertexCount()+1);
     assert(A.colptrLocal.m()== BGraph.colptr.size());
     std::copy(A.colptrLocal.Data(),A.colptrLocal.Data()+BGraph.LocalVertexCount()+1,BGraph.colptr.data());
 
@@ -1413,7 +1416,7 @@ void inline Convert(const DistSparseMatrix<T>& A, symPACK::DistSparseMatrix<T> &
 template<class T>
 void inline Convert(symPACK::DistSparseMatrix<T>& B, DistSparseMatrix<T> & A)
 {
-        MPI_Comm & comm = B.comm; 
+        MPI_Comm & comm = B.comm;
         int mpisize,mpirank;
         MPI_Comm_size(comm,&mpisize);
         MPI_Comm_rank(comm,&mpirank);
@@ -1568,30 +1571,30 @@ inline void UniformRandom( NumVec<Complex>& vec )
 inline void UniformRandom( NumMat<Real>& M )
 {
   Real *ptr = M.Data();
-  for(Int i=0; i < M.m() * M.n(); i++) 
-    *(ptr++) = UniformRandom(); 
+  for(Int i=0; i < M.m() * M.n(); i++)
+    *(ptr++) = UniformRandom();
 }
 
 inline void UniformRandom( NumMat<Complex>& M )
 {
   Complex *ptr = M.Data();
-  for(Int i=0; i < M.m() * M.n(); i++) 
-    *(ptr++) = Complex(UniformRandom(), UniformRandom()); 
+  for(Int i=0; i < M.m() * M.n(); i++)
+    *(ptr++) = Complex(UniformRandom(), UniformRandom());
 }
 
 
 inline void UniformRandom( NumTns<Real>& T )
 {
   Real *ptr = T.Data();
-  for(Int i=0; i < T.m() * T.n() * T.p(); i++) 
-    *(ptr++) = UniformRandom(); 
+  for(Int i=0; i < T.m() * T.n() * T.p(); i++)
+    *(ptr++) = UniformRandom();
 }
 
 inline void UniformRandom( NumTns<Complex>& T )
 {
   Complex *ptr = T.Data();
-  for(Int i=0; i < T.m() * T.n() * T.p(); i++) 
-    *(ptr++) = Complex(UniformRandom(), UniformRandom()); 
+  for(Int i=0; i < T.m() * T.n() * T.p(); i++)
+    *(ptr++) = Complex(UniformRandom(), UniformRandom());
 }
 
 // *********************************************************************
@@ -1606,12 +1609,12 @@ inline void GetTime(Real&  t){
 // *********************************************************************
 
 // Real
-inline bool PairLtComparator( const std::pair<Real, Int>& l, 
+inline bool PairLtComparator( const std::pair<Real, Int>& l,
     const std::pair<Real, Int>& r ){
   return l.first < r.first;
 }
 
-inline bool PairGtComparator( const std::pair<Real, Int>& l, 
+inline bool PairGtComparator( const std::pair<Real, Int>& l,
     const std::pair<Real, Int>& r ){
   return l.first > r.first;
 }
@@ -1619,9 +1622,9 @@ inline bool PairGtComparator( const std::pair<Real, Int>& l,
 // For sorting with indices
 // Example usage:
 //   std::sort(val.begin(), val.end(), IndexComp<std::vector<int>&>(indices));
-template<class T> 
+template<class T>
 struct IndexComp {
-private: 
+private:
   const T indices_;
 public:
   IndexComp (const T indices) : indices_(indices) {}
@@ -1665,7 +1668,7 @@ std::string ToMatlabScalar( std::complex<T> val);
 template<typename T>
 void WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & pspmat, MPI_Comm comm);
 
-template <class F1, class F2> 
+template <class F1, class F2>
 void
 CopyPattern	( const SparseMatrix<F1>& A, SparseMatrix<F2>& B )
 {
@@ -1675,19 +1678,19 @@ CopyPattern	( const SparseMatrix<F1>& A, SparseMatrix<F2>& B )
   B.rowind      = A.rowind;
   B.nzval.Resize( A.nnz );
   return ;
-}		// -----  end of template function CopyPattern  ----- 
+}		// -----  end of template function CopyPattern  -----
 
 
 // TODO Real format
 template<typename T>
 void
-GetDiagonal ( const DistSparseMatrix<T>& A, 
+GetDiagonal ( const DistSparseMatrix<T>& A,
     NumVec<T>& diag );
 
 
 // Functions for DistSparseMatrix
 
-template <class F1, class F2> 
+template <class F1, class F2>
 void
 CopyPattern	( const DistSparseMatrix<F1>& A, DistSparseMatrix<F2>& B )
 {
@@ -1699,10 +1702,10 @@ CopyPattern	( const DistSparseMatrix<F1>& A, DistSparseMatrix<F2>& B )
   B.nzvalLocal.Resize( A.nnzLocal );
   B.comm        = A.comm;
   return ;
-}		// -----  end of template function CopyPattern  ----- 
+}		// -----  end of template function CopyPattern  -----
 
 #ifdef WITH_SYMPACK
-template <class F1, class F2> 
+template <class F1, class F2>
 void
 CopyPattern	( const symPACK::DistSparseMatrix<F1>& A, symPACK::DistSparseMatrix<F2>& B )
 {
@@ -1715,7 +1718,7 @@ CopyPattern	( const symPACK::DistSparseMatrix<F1>& A, symPACK::DistSparseMatrix<
   B.nzvalLocal.resize( Bgraph.LocalEdgeCount() );
   B.comm        = A.comm;
   return ;
-}		// -----  end of template function CopyPattern  ----- 
+}		// -----  end of template function CopyPattern  -----
 #endif
 
 
@@ -1736,11 +1739,11 @@ CopyPattern	( const symPACK::DistSparseMatrix<F1>& A, symPACK::DistSparseMatrix<
 /// @param[in,out] C Dense vector with the same values across all
 ///                  procesors. The size of the vector is the same as
 ///                  the size of the matrix A and B.
-template <class F> 
+template <class F>
 void
-DistSparseMatMultGlobalVec( 
+DistSparseMatMultGlobalVec(
     const F                    alpha,
-    const DistSparseMatrix<F>& AMat, 
+    const DistSparseMatrix<F>& AMat,
     const NumVec<F>&           B,
     const F                    beta,
     NumVec<F>&                 C )
@@ -1749,7 +1752,7 @@ DistSparseMatMultGlobalVec(
     std::ostringstream msg;
     msg << std::endl
       << "The size of the matrix A is " << AMat.size << std::endl
-      << "The size of the vector B is " << B.m() << std::endl 
+      << "The size of the vector B is " << B.m() << std::endl
       << "and they must agree with each other.";
     ErrorHandling( msg.str().c_str() );
   }
@@ -1757,7 +1760,7 @@ DistSparseMatMultGlobalVec(
     std::ostringstream msg;
     msg << std::endl
       << "The size of the matrix A is " << AMat.size << std::endl
-      << "The size of the vector C is " << C.m() << std::endl 
+      << "The size of the vector C is " << C.m() << std::endl
       << "and they must agree with each other.";
     ErrorHandling( msg.str().c_str() );
   }
@@ -1772,8 +1775,8 @@ DistSparseMatMultGlobalVec(
   // This is somewhat inefficient implementation but this should not
   // matter at this moment, since the global distribution of a dense
   // vector is not important anyway.
-  NumVec<F>  DeltaClocal( AMat.size ); 
-  NumVec<F>  DeltaC( AMat.size ); 
+  NumVec<F>  DeltaClocal( AMat.size );
+  NumVec<F>  DeltaC( AMat.size );
   SetValue( DeltaClocal, 0.0 );
   SetValue( DeltaC, 0.0 );
 
@@ -1785,14 +1788,14 @@ DistSparseMatMultGlobalVec(
   // vectors uses 0-based indicies.
   for( Int j = 0; j < numColLocal; j++ ){
     Int jcol = firstCol + j;
-    for( Int i = AMat.colptrLocal(j)-1; 
+    for( Int i = AMat.colptrLocal(j)-1;
         i < AMat.colptrLocal(j+1)-1; i++ ){
       Int irow = AMat.rowindLocal(i) - 1;
       DeltaClocal( irow ) += AMat.nzvalLocal(i) * B(jcol);
     }
   } // for (j)
 
-  mpi::Allreduce( DeltaClocal.Data(), DeltaC.Data(), 
+  mpi::Allreduce( DeltaClocal.Data(), DeltaC.Data(),
       AMat.size, MPI_SUM, comm );
 
   for( Int i = 0; i < AMat.size; i++ ){
@@ -1800,7 +1803,7 @@ DistSparseMatMultGlobalVec(
   }
 
   return ;
-}		// -----  end of template function DistSparseMatMultGlobalVec  ----- 
+}		// -----  end of template function DistSparseMatMultGlobalVec  -----
 
 // *********************************************************************
 // Other numerical routines
@@ -1809,15 +1812,15 @@ DistSparseMatMultGlobalVec(
 // Interpolation
 /// @brief Linear interpolates from (x,y) to (xx,yy)
 ///
-/// Note: 
+/// Note:
 ///
 /// x and xx must be sorted in ascending order.
 ///
 /// if xx[i] < x[0],     yy[i] = y[0]
 ///    xx[i] > x[end-1], yy[i] = y[end-1]
 void
-LinearInterpolation ( 
-    const std::vector<Real>& x, 
+LinearInterpolation (
+    const std::vector<Real>& x,
     const std::vector<Real>& y,
     const std::vector<Real>& xx,
     std::vector<Real>& yy );
@@ -1831,14 +1834,14 @@ LinearInterpolation (
 /// follow non-decreasing order. The solution is obtained via linear
 /// interpolation.
 ///
-/// This is an internal routine used for searching the chemical potential.  
+/// This is an internal routine used for searching the chemical potential.
 ///
-/// @param[in] x Dimension: N. 
-/// @param[in] y Dimension: N. 
+/// @param[in] x Dimension: N.
+/// @param[in] y Dimension: N.
 /// @param[in] val Real scalar.
 /// @return Root of \f$y(x) = val\f$.
 inline Real
-MonotoneRootFinding ( 
+MonotoneRootFinding (
     const std::vector<Real>&  x,
     const std::vector<Real>&  y,
     Real val )
@@ -1847,14 +1850,14 @@ MonotoneRootFinding (
 
   if( val <= y[0] || val >= y[numX-1] ){
     std::ostringstream msg;
-    msg 
-      << "The root finding procedure cannot find the solution for y(x)=" 
+    msg
+      << "The root finding procedure cannot find the solution for y(x)="
       << val << std::endl << "here [min(y) max(y)] = [" << y[0] << ", "
       << y[numX-1] << "]" << std::endl;
     ErrorHandling( msg.str().c_str() );
   }
 
-  std::vector<Real>::const_iterator vi = std::lower_bound( 
+  std::vector<Real>::const_iterator vi = std::lower_bound(
       y.begin(), y.end(), val );
 
   Int idx = vi - y.begin();
@@ -1865,13 +1868,13 @@ MonotoneRootFinding (
   }
   else{
     // Linear interpolation
-    root = x[idx-1] + ( x[idx] - x[idx-1] ) / ( y[idx] - y[idx-1] ) 
+    root = x[idx-1] + ( x[idx] - x[idx-1] ) / ( y[idx] - y[idx-1] )
       * ( val - y[idx-1] );
   }
 
 
   return root;
-}		// -----  end of function MonotoneRootFinding  ----- 
+}		// -----  end of function MonotoneRootFinding  -----
 
 
 

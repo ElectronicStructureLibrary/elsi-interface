@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Mathias Jacquelin and Lin Lin
 
@@ -108,7 +108,7 @@ template <class F> inline LongInt DistSparseMatrix<F>::Nnz ( )
 
 
   return nnz;
-} 		// -----  end of method DistSparseMatrix<F>::Nnz  ----- 
+} 		// -----  end of method DistSparseMatrix<F>::Nnz  -----
 
 template <typename F> inline void DistSparseMatrix<F>::Clear()
 {

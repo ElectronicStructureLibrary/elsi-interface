@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Mathias Jacquelin and Lin Lin
 
@@ -53,7 +53,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 namespace  PEXSI{
 
 /// @struct SparseMatrix
-/// 
+///
 /// @brief SparseMatrix describes a sequential sparse matrix saved in
 /// compressed sparse column format.
 ///
@@ -78,11 +78,11 @@ typedef SparseMatrix<Complex>    CpxSparseMatrix;
 /// @struct DistSparseMatrix
 ///
 /// @brief DistSparseMatrix describes a Sparse matrix in the compressed
-/// sparse column format (CSC) and distributed with column major partition. 
+/// sparse column format (CSC) and distributed with column major partition.
 ///
 /// Note
 /// ----
-/// 
+///
 /// Since in PEXSI and PPEXSI only symmetric matrix is considered, the
 /// compressed sparse row format will also be represented by the
 /// compressed sparse column format.
@@ -90,33 +90,33 @@ typedef SparseMatrix<Complex>    CpxSparseMatrix;
 /// @todo Add the parameter of numColLocal
 template <class F> struct DistSparseMatrix{
   /// @brief Matrix dimension.
-  Int          size;         
+  Int          size;
 
   /// @brief Local number of local nonzeros elements on this processor.
-  Int          nnzLocal;                        
+  Int          nnzLocal;
 
   /// @brief Total number of nonzeros elements.
   ///
   /// FIXME: The datatype should be changed to LongInt in the future.
-  Int          nnz;                        
+  Int          nnz;
 
   /// @brief Dimension numColLocal + 1, storing the pointers to the
   /// nonzero row indices and nonzero values in rowptrLocal and
   /// nzvalLocal, respectively.  numColLocal is the number
   /// of local columns saved on this processor. The indices are 1-based
-  /// (FORTRAN-convention), i.e.  colptrLocal[0] = 1. 
-  IntNumVec    colptrLocal;                     
+  /// (FORTRAN-convention), i.e.  colptrLocal[0] = 1.
+  IntNumVec    colptrLocal;
 
   /// @brief Dimension nnzLocal, storing the nonzero row indices.
   /// The indices are 1-based (FORTRAN-convention), i.e. the first row
-  /// index is 1. 
-  IntNumVec    rowindLocal;                    
+  /// index is 1.
+  IntNumVec    rowindLocal;
 
   /// @brief Dimension nnzLocal, storing the nonzero values.
-  NumVec<F>    nzvalLocal;                      
+  NumVec<F>    nzvalLocal;
 
   /// @brief MPI communicator
-  MPI_Comm     comm;        
+  MPI_Comm     comm;
 
   /// @brief Compute the total number of nonzeros through
   /// MPI_Allreduce

@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Jack Poulson and Lin Lin
 
@@ -55,7 +55,7 @@ namespace PEXSI {
 /// @brief Thin interface to LAPACK.
 namespace lapack {
 
-typedef  int                    Int; 
+typedef  int                    Int;
 typedef  std::complex<float>    scomplex;
 typedef  std::complex<double>   dcomplex;
 
@@ -85,7 +85,7 @@ void Getrf( Int m, Int n, dcomplex* A, Int lda, Int* p );
 // *********************************************************************
 
 void Hegst
-  ( Int itype, char uplo, 
+  ( Int itype, char uplo,
     Int n, float* A, Int lda, const float* B, Int ldb );
 void Hegst
   ( Int itype, char uplo,
@@ -111,7 +111,7 @@ void Syevd
 // *********************************************************************
 
 void Sygvd
-  ( int itype, char jobz, char uplo, Int n, double* A, Int lda, 
+  ( int itype, char jobz, char uplo, Int n, double* A, Int lda,
     double* B, Int ldb, double* eigs );
 
 
@@ -135,16 +135,16 @@ void Trtri
 // *********************************************************************
 
 void DivideAndConquerSVD
-  ( Int m, Int n, float* A, Int lda, 
+  ( Int m, Int n, float* A, Int lda,
     float* s, float* U, Int ldu, float* VTrans, Int ldvt );
 void DivideAndConquerSVD
-  ( Int m, Int n, double* A, Int lda, 
+  ( Int m, Int n, double* A, Int lda,
     double* s, double* U, Int ldu, double* VTrans, Int ldvt );
 void DivideAndConquerSVD
-  ( Int m, Int n, scomplex* A, Int lda, 
+  ( Int m, Int n, scomplex* A, Int lda,
     float* s, scomplex* U, Int ldu, scomplex* VAdj, Int ldva );
 void DivideAndConquerSVD
-  ( Int m, Int n, dcomplex* A, Int lda, 
+  ( Int m, Int n, dcomplex* A, Int lda,
     double* s, dcomplex* U, Int ldu, dcomplex* VAdj, Int ldva );
 
 //
@@ -152,16 +152,16 @@ void DivideAndConquerSVD
 //
 
 void QRSVD
-  ( Int m, Int n, float* A, Int lda, 
+  ( Int m, Int n, float* A, Int lda,
     float* s, float* U, Int ldu, float* VTrans, Int ldvt );
 void QRSVD
-  ( Int m, Int n, double* A, Int lda, 
+  ( Int m, Int n, double* A, Int lda,
     double* s, double* U, Int ldu, double* VTrans, Int ldvt );
 void QRSVD
-  ( Int m, Int n, scomplex* A, Int lda, 
+  ( Int m, Int n, scomplex* A, Int lda,
     float* s, scomplex* U, Int ldu, scomplex* VAdj, Int ldva );
 void QRSVD
-  ( Int m, Int n, dcomplex* A, Int lda, 
+  ( Int m, Int n, dcomplex* A, Int lda,
     double* s, dcomplex* U, Int ldu, dcomplex* VAdj, Int ldva );
 
 
@@ -182,13 +182,13 @@ void BidiagQRAlg
   ( char uplo, Int n, Int numColsVTrans, Int numRowsU,
     float* d, float* e, float* VTrans, Int ldVTrans, float* U, Int ldU );
 void BidiagQRAlg
-  ( char uplo, Int n, Int numColsVTrans, Int numRowsU, 
+  ( char uplo, Int n, Int numColsVTrans, Int numRowsU,
     double* d, double* e, double* VTrans, Int ldVTrans, double* U, Int ldU );
 void BidiagQRAlg
   ( char uplo, Int n, Int numColsVAdj, Int numRowsU,
     float* d, float* e, scomplex* VAdj, Int ldVAdj, scomplex* U, Int ldU );
 void BidiagQRAlg
-  ( char uplo, Int n, Int numColsVAdj, Int numRowsU, 
+  ( char uplo, Int n, Int numColsVAdj, Int numRowsU,
     double* d, double* e, dcomplex* VAdj, Int ldVAdj, dcomplex* U, Int ldU );
 
 // *********************************************************************

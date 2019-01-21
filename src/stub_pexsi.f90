@@ -80,7 +80,8 @@ subroutine f_ppexsi_set_default_options(options)
 
 end subroutine
 
-function f_ppexsi_plan_initialize(fcomm,numProcRow,numProcCol,outputFileIndex,info)
+function f_ppexsi_plan_initialize(fcomm,numProcRow,numProcCol,outputFileIndex,&
+   info)
 
    implicit none
 
@@ -220,15 +221,15 @@ subroutine f_ppexsi_inertia_count_complex_matrix(plan,options,numShift,&
 
 end subroutine
 
-subroutine f_ppexsi_calculate_fermi_operator_real3(plan,options,mu,&
-   numElectronExact,numElectronPEXSI,info)
+subroutine f_ppexsi_calculate_fermi_operator_real3(plan,options,&
+   numElectronExact,mu,numElectronPEXSI,info)
 
    implicit none
 
    integer(c_intptr_t) :: plan
    type(f_ppexsi_options) :: options
-   real(kind=r8) :: mu
    real(kind=r8) :: numElectronExact
+   real(kind=r8) :: mu
    real(kind=r8) :: numElectronPEXSI
    integer(kind=i4) :: info
 
@@ -309,11 +310,13 @@ subroutine f_ppexsi_retrieve_complex_dm(plan,DMnzvalLocal,totalEnergyH,info)
 
 end subroutine
 
-subroutine f_ppexsi_retrieve_real_edm(plan,EDMnzvalLocal,totalEnergyS,info)
+subroutine f_ppexsi_retrieve_real_edm(plan,options,EDMnzvalLocal,totalEnergyS,&
+   info)
 
    implicit none
 
    integer(kind=c_intptr_t) :: plan
+   type(f_ppexsi_options) :: options
    real(kind=r8) :: EDMnzvalLocal(*)
    real(kind=r8) :: totalEnergyS
    integer(kind=i4):: info
@@ -323,11 +326,13 @@ subroutine f_ppexsi_retrieve_real_edm(plan,EDMnzvalLocal,totalEnergyS,info)
 
 end subroutine
 
-subroutine f_ppexsi_retrieve_complex_edm(plan,EDMnzvalLocal,totalEnergyS,info)
+subroutine f_ppexsi_retrieve_complex_edm(plan,options,EDMnzvalLocal,&
+   totalEnergyS,info)
 
    implicit none
 
    integer(kind=c_intptr_t) :: plan
+   type(f_ppexsi_options) :: options
    complex(kind=r8) :: EDMnzvalLocal(*)
    real(kind=r8) :: totalEnergyS
    integer(kind=i4) :: info

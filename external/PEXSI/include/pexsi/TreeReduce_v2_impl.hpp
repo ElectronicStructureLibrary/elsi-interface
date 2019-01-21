@@ -48,7 +48,7 @@ namespace PEXSI{
       if(this->GetDestCount()>this->recvPostedCount_){
         for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
           Int iProc = this->myDests_[idxRecv];
-          int error_code = MPI_Irecv( (char*)this->recvDataPtrs_[idxRecv], this->msgSize_, this->type_, 
+          int error_code = MPI_Irecv( (char*)this->recvDataPtrs_[idxRecv], this->msgSize_, this->type_,
               iProc, this->tag_,this->comm_, &this->recvRequests_[idxRecv] );
 #ifdef CHECK_MPI_ERROR
           if(error_code!=MPI_SUCCESS){
@@ -112,7 +112,7 @@ namespace PEXSI{
     }
 
   template<typename T>
-    inline void TreeReduce_v2<T>::forwardMessage(){ 
+    inline void TreeReduce_v2<T>::forwardMessage(){
       if(this->isReady_){
         if(this->myRank_!=this->myRoot_){
           //forward to my root if I have reseived everything
@@ -124,7 +124,7 @@ namespace PEXSI{
 
           int msgsz = this->sendDataPtrs_[0]==NULL?0:this->msgSize_;
 
-          int error_code = MPI_Isend((char*)this->sendDataPtrs_[0], msgsz, this->type_, 
+          int error_code = MPI_Isend((char*)this->sendDataPtrs_[0], msgsz, this->type_,
               iProc, this->tag_,this->comm_, &this->sendRequests_[0] );
 #ifdef CHECK_MPI_ERROR
           if(error_code!=MPI_SUCCESS){
@@ -154,7 +154,7 @@ namespace PEXSI{
       }
     }
 
-  template< typename T> 
+  template< typename T>
     inline bool TreeReduce_v2<T>::IsDataReceived(){
       bool retVal = false;
       if(this->isReady_){
@@ -252,7 +252,7 @@ namespace PEXSI{
       return retVal;
     }
 
-  template< typename T> 
+  template< typename T>
     inline bool TreeReduce_v2<T>::Progress(){
 
 
@@ -294,12 +294,12 @@ namespace PEXSI{
       return retVal;
     }
 
-  template< typename T> 
-    inline T * TreeReduce_v2<T>::GetLocalBuffer(){ 
+  template< typename T>
+    inline T * TreeReduce_v2<T>::GetLocalBuffer(){
       return this->sendDataPtrs_[0];
     }
 
-  template< typename T> 
+  template< typename T>
     inline void TreeReduce_v2<T>::SetLocalBuffer(T * locBuffer){
       if(this->sendDataPtrs_.size()<1){
         this->sendDataPtrs_.assign(1,NULL);
@@ -380,7 +380,7 @@ namespace PEXSI{
 
 
           blas::Axpy(this->msgSize_, ONE<T>(), this->sendDataPtrs_[0], 1, locBuffer, 1 );
-          this->sendTempBuffer_.clear(); 
+          this->sendTempBuffer_.clear();
           this->sendDataPtrs_[0] = locBuffer;
 #if ( _DEBUGlevel_ >= 1 ) || defined(REDUCE_VERBOSE)
           {
@@ -399,7 +399,7 @@ namespace PEXSI{
       }
     }
 
-  template< typename T> 
+  template< typename T>
     inline void TreeReduce_v2<T>::AllocRecvBuffers(){
       if(!this->isAllocated_){
         this->recvDataPtrs_.assign(this->GetDestCount(),NULL);
@@ -419,21 +419,21 @@ namespace PEXSI{
       }
     }
 
-  template< typename T> 
+  template< typename T>
     inline void TreeReduce_v2<T>::Reset(){
       TreeBcast_v2<T>::Reset();
       this->isAllocated_=false;
       this->isBufferSet_=false;
     }
 
-  template< typename T> 
+  template< typename T>
     inline bool TreeReduce_v2<T>::isMessageForwarded(){
       bool retVal=false;
 //      if(this->tag_==12){gdb_lock();}
 //      if(this->tag_==9){gdb_lock();}
 
       if(!this->fwded_){
-        //If data has been received but not forwarded 
+        //If data has been received but not forwarded
         if(this->IsDataReceived()){
           this->forwardMessage();
         }
@@ -559,7 +559,7 @@ namespace PEXSI{
     inline void FTreeReduce_v2<T>::postRecv()
     {
       if(this->isAllocated_ && this->GetDestCount()>this->recvPostedCount_){
-        int error_code = MPI_Irecv( (char*)this->recvDataPtrs_[0], this->msgSize_, this->type_, 
+        int error_code = MPI_Irecv( (char*)this->recvDataPtrs_[0], this->msgSize_, this->type_,
             MPI_ANY_SOURCE, this->tag_,this->comm_, &this->recvRequests_[0] );
 #ifdef CHECK_MPI_ERROR
         if(error_code!=MPI_SUCCESS){
@@ -699,7 +699,7 @@ namespace PEXSI{
             }
             this->myRoot_ = prevRoot;
             break;
-          } 
+          }
 
           if( this->myRank_ < ranks[idxStartH]){
             idxStart = idxStartL;
@@ -754,7 +754,7 @@ namespace PEXSI{
         //Int new_idx = rseed_%(rank_cnt-1)+1;
 
         //Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
-        //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+        //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1;
         //      Int new_idx = (int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
         Int new_idx = (int)(this->rseed_)%(rank_cnt-1)+1;
 
@@ -763,7 +763,7 @@ namespace PEXSI{
 
         //        Int * new_start = std::lower_bound(&ranks[1],&ranks[0]+rank_cnt,ranks[0]);
         //just swap the two chunks   r[0] | r[1] --- r[new_start-1] | r[new_start] --- r[end]
-        // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1] 
+        // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1]
         std::rotate(&ranks[1], new_start, &ranks[0]+rank_cnt);
         //        for(int i =0;i<rank_cnt;++i){statusOFS<<ranks[i]<<" ";} statusOFS<<std::endl;
       }
@@ -802,10 +802,10 @@ namespace PEXSI{
             }
             this->myRoot_ = prevRoot;
             break;
-          } 
+          }
 
           //not true anymore ?
-          //first half to 
+          //first half to
           TIMER_START(FIND_RANK);
           Int * pos = std::find(&ranks[idxStartL], &ranks[idxStartH], this->myRank_);
           TIMER_STOP(FIND_RANK);
@@ -821,7 +821,7 @@ namespace PEXSI{
 
       }
 
-#if (defined(REDUCE_VERBOSE)) 
+#if (defined(REDUCE_VERBOSE))
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}

@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory. 
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Mathias Jacquelin and Lin Lin
 
@@ -59,11 +59,11 @@ inline SuperLUGrid<Real>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
   if( ptrData == NULL ){
     ErrorHandling( "SuperLUGrid cannot be allocated." );
   }
-  ptrData->GridInit(comm, nprow, npcol);	
+  ptrData->GridInit(comm, nprow, npcol);
 
 
   return ;
-} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
+} 		// -----  end of method SuperLUGrid::SuperLUGrid  -----
 
 inline SuperLUGrid<Real>::~SuperLUGrid	(  )
 {
@@ -71,12 +71,12 @@ inline SuperLUGrid<Real>::~SuperLUGrid	(  )
   // communicator, it is legal to call superlu_gridexit even if
   // grid->comm is a copy of MPI_COMM_WORLD.
 
-  ptrData->GridExit();	
+  ptrData->GridExit();
 
   delete ptrData;
 
   return ;
-} 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
+} 		// -----  end of method SuperLUGrid::~SuperLUGrid  -----
 
 
 
@@ -97,7 +97,7 @@ inline SuperLUGrid<Real>::SuperLUGrid(const SuperLUGrid<Real> & g)
 
 
   return ;
-} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
+} 		// -----  end of method SuperLUGrid::SuperLUGrid  -----
 
 inline SuperLUGrid<Real> & SuperLUGrid<Real>::operator = (const SuperLUGrid<Real> & g){
 
@@ -137,11 +137,11 @@ inline SuperLUGrid<Complex>::SuperLUGrid	( MPI_Comm comm, Int nprow, Int npcol )
   if( ptrData == NULL ){
     ErrorHandling( "SuperLUGrid cannot be allocated." );
   }
-  ptrData->GridInit(comm, nprow, npcol);	
+  ptrData->GridInit(comm, nprow, npcol);
 
 
   return ;
-} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
+} 		// -----  end of method SuperLUGrid::SuperLUGrid  -----
 
 
 inline SuperLUGrid<Complex>::~SuperLUGrid	(  )
@@ -150,12 +150,12 @@ inline SuperLUGrid<Complex>::~SuperLUGrid	(  )
   // communicator, it is legal to call superlu_gridexit even if
   // grid->comm is a copy of MPI_COMM_WORLD.
 
-  ptrData->GridExit();	
+  ptrData->GridExit();
 
   delete ptrData;
 
   return ;
-} 		// -----  end of method SuperLUGrid::~SuperLUGrid  ----- 
+} 		// -----  end of method SuperLUGrid::~SuperLUGrid  -----
 
 
 inline SuperLUGrid<Complex>::SuperLUGrid(const SuperLUGrid<Complex> & g)
@@ -172,7 +172,7 @@ inline SuperLUGrid<Complex>::SuperLUGrid(const SuperLUGrid<Complex> & g)
 
 
   return ;
-} 		// -----  end of method SuperLUGrid::SuperLUGrid  ----- 
+} 		// -----  end of method SuperLUGrid::SuperLUGrid  -----
 
 inline SuperLUGrid<Complex> & SuperLUGrid<Complex>::operator = (const SuperLUGrid<Complex> & g){
 

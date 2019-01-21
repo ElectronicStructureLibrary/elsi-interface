@@ -31,7 +31,7 @@ namespace PEXSI{
         TreeReduce_v2(const TreeReduce_v2 & Tree);
 
         virtual ~TreeReduce_v2();
-        virtual TreeReduce_v2 * clone() const = 0; 
+        virtual TreeReduce_v2 * clone() const = 0;
         virtual void Copy(const TreeReduce_v2 & Tree);
         virtual void Reset();
 
@@ -42,7 +42,7 @@ namespace PEXSI{
 
 
         virtual void AllocRecvBuffers();
-        
+
 
 
         virtual void SetLocalBuffer(T * locBuffer);
@@ -52,7 +52,7 @@ namespace PEXSI{
 
         //async wait and forward
         virtual bool Progress();
-        
+
 
         //  void CopyLocalBuffer(T* destBuffer){
         //    std::copy((char*)myData_,(char*)myData_+GetMsgSize(),(char*)destBuffer);
@@ -108,7 +108,7 @@ class ModBTreeReduce_v2: public TreeReduce_v2<T>{
 protected:
   double rseed_;
   virtual void buildTree(Int * ranks, Int rank_cnt);
-  
+
 public:
   ModBTreeReduce_v2(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize, double rseed);
   virtual void Copy(const ModBTreeReduce_v2<T> & Tree);
@@ -150,7 +150,7 @@ public:
   template< typename T>
   void TreeReduce_ProgressAll(std::vector<Int> & treeIdx, std::vector< std::shared_ptr<TreeReduce_v2<T> > > & arrTrees);
 
-  
+
 
 
 }//namespace PEXSI

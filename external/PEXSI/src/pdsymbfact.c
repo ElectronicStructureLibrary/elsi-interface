@@ -16,6 +16,8 @@
 #define lsame_ lsame
 #endif
 
+int lsame_(char *a, char *b);
+
 /// @brief pdsymbfact performs symbolic factorization that can be
 /// reused.
 ///
@@ -23,8 +25,8 @@
 /// from SuperLU_DIST. For its use see SuperLUMatrix for more
 /// information.
 	void
-#ifdef SLU_MAJOR_VERSION
-#if SLU_MAJOR_VERSION < 5
+#ifdef SUPERLU_DIST_MAJOR_VERSION
+#if SUPERLU_DIST_MAJOR_VERSION < 5
 pdsymbfact(superlu_options_t *options, SuperMatrix *A,
 					 ScalePermstruct_t *ScalePermstruct, gridinfo_t *grid,
 					 LUstruct_t *LUstruct, SuperLUStat_t *stat,
@@ -82,8 +84,8 @@ pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 	double   t;
 	float    GA_mem_use;    /* memory usage by global A */
 	float    dist_mem_use; /* memory usage during distribution */
-#ifdef SLU_MAJOR_VERSION
-#if SLU_MAJOR_VERSION < 5
+#ifdef SUPERLU_DIST_MAJOR_VERSION
+#if SUPERLU_DIST_MAJOR_VERSION < 5
 	mem_usage_t num_mem_usage, symb_mem_usage;
 #else
 	superlu_dist_mem_usage_t num_mem_usage, symb_mem_usage;
@@ -298,7 +300,15 @@ pdsymbfact(superlu_dist_options_t *options, SuperMatrix *A,
 		if ( Fact != SamePattern_SameRowPerm &&
 				 (parSymbFact == NO || options->RowPerm != NO) ) {
 
+#ifdef SUPERLU_DIST_MAJOR_VERSION
+#if SUPERLU_DIST_MAJOR_VERSION < 6
 			need_value = (options->RowPerm == LargeDiag);
+#else
+			need_value = (options->RowPerm == LargeDiag_MC64);
+#endif
+#else
+			need_value = (options->RowPerm == LargeDiag);
+#endif
 
 			pdCompRow_loc_to_CompCol_global(need_value, A, grid, &GA);
 

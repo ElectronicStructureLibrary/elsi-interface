@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin and Mathias Jacquelin
 
@@ -43,7 +43,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 /// @file utility_impl.hpp
 /// @brief Implementation of utility subroutines.
 /// @date 2012-09-27
-#ifndef _PEXSI_UTILITY_IMPL_HPP_ 
+#ifndef _PEXSI_UTILITY_IMPL_HPP_
 #define _PEXSI_UTILITY_IMPL_HPP_
 
 #include <numeric>
@@ -78,7 +78,7 @@ inline void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat )
   }
 
   // Ascii format
-  if( 0 ) {	
+  if( 0 ) {
     ifstream fin(filename);
     fin >> spmat.size >> spmat.nnz;
 
@@ -102,7 +102,7 @@ inline void ReadSparseMatrix ( const char* filename, SparseMatrix<Real>& spmat )
   }
 
   return ;
-}		// -----  end of function ReadSparseMatrix  ----- 
+}		// -----  end of function ReadSparseMatrix  -----
 
 //---------------------------------------------------------
 inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm )
@@ -136,7 +136,7 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
   IntNumVec  colptr(pspmat.size+1);
   if( mpirank == 0 ){
     Int tmp;
-    fin.read((char*)&tmp, sizeof(Int));  
+    fin.read((char*)&tmp, sizeof(Int));
 
     if( tmp != pspmat.size+1 ){
       ErrorHandling( "colptr is not of the right size." );
@@ -153,7 +153,7 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
   Int numColLocal, numColFirst;
   numColFirst = pspmat.size / mpisize;
   SetValue( numColLocalVec, numColFirst );
-  numColLocalVec[mpisize-1] = pspmat.size - numColFirst * (mpisize-1);  // Modify the last entry	
+  numColLocalVec[mpisize-1] = pspmat.size - numColFirst * (mpisize-1);  // Modify the last entry
   numColLocal = numColLocalVec[mpirank];
 
   pspmat.colptrLocal.Resize( numColLocal + 1 );
@@ -170,11 +170,11 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
   // Read and distribute the row indices
   if( mpirank == 0 ){
     Int tmp;
-    fin.read((char*)&tmp, sizeof(Int));  
+    fin.read((char*)&tmp, sizeof(Int));
 
     if( tmp != pspmat.nnz ){
       std::ostringstream msg;
-      msg 
+      msg
         << "The number of nonzeros in row indices do not match." << std::endl
         << "nnz = " << pspmat.nnz << std::endl
         << "size of row indices = " << tmp << std::endl;
@@ -183,7 +183,7 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
     IntNumVec buf;
     Int numRead;
     for( Int ip = 0; ip < mpisize; ip++ ){
-      numRead = colptr[ip*numColFirst + numColLocalVec[ip]] - 
+      numRead = colptr[ip*numColFirst + numColLocalVec[ip]] -
         colptr[ip*numColFirst];
       buf.Resize(numRead);
       fin.read( (char*)buf.Data(), numRead*sizeof(Int) );
@@ -215,11 +215,11 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
   // Read and distribute the nonzero values
   if( mpirank == 0 ){
     Int tmp;
-    fin.read((char*)&tmp, sizeof(Int));  
+    fin.read((char*)&tmp, sizeof(Int));
 
     if( tmp != pspmat.nnz ){
       std::ostringstream msg;
-      msg 
+      msg
         << "The number of nonzeros in values do not match." << std::endl
         << "nnz = " << pspmat.nnz << std::endl
         << "size of values = " << tmp << std::endl;
@@ -228,7 +228,7 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
     NumVec<Real> buf;
     Int numRead;
     for( Int ip = 0; ip < mpisize; ip++ ){
-      numRead = colptr[ip*numColFirst + numColLocalVec[ip]] - 
+      numRead = colptr[ip*numColFirst + numColLocalVec[ip]] -
         colptr[ip*numColFirst];
       buf.Resize(numRead);
       fin.read( (char*)buf.Data(), numRead*sizeof(Real) );
@@ -268,7 +268,7 @@ inline void ReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>&
 
 
   return ;
-}		// -----  end of function ReadDistSparseMatrix  ----- 
+}		// -----  end of function ReadDistSparseMatrix  -----
 
 inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm )
 {
@@ -382,8 +382,8 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<R
   /* set file view */
   err = MPI_File_set_view(fout, 0, MPI_BYTE, filetype, "native",MPI_INFO_NULL);
 
-  /* everyone writes their own row offsets, columns, and 
-   * data with one big noncontiguous write (in memory and 
+  /* everyone writes their own row offsets, columns, and
+   * data with one big noncontiguous write (in memory and
    * file)
    */
   err = MPI_File_write_all(fout, MPI_BOTTOM, 1, memtype, &status);
@@ -400,7 +400,7 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<R
   MPI_File_close(&fout);
 
   return ;
-}		// -----  end of function ParaWriteDistSparseMatrix  ----- 
+}		// -----  end of function ParaWriteDistSparseMatrix  -----
 
 inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm )
 {
@@ -458,7 +458,7 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Re
   Int numColLocal, numColFirst;
   numColFirst = pspmat.size / mpisize;
   SetValue( numColLocalVec, numColFirst );
-  numColLocalVec[mpisize-1] = pspmat.size - numColFirst * (mpisize-1);  // Modify the last entry	
+  numColLocalVec[mpisize-1] = pspmat.size - numColFirst * (mpisize-1);  // Modify the last entry
   numColLocal = numColLocalVec[mpirank];
   pspmat.colptrLocal.Resize( numColLocal + 1 );
 
@@ -555,7 +555,7 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Re
   MPI_File_close(&fin);
 
   return ;
-}		// -----  end of function ParaReadDistSparseMatrix  ----- 
+}		// -----  end of function ParaReadDistSparseMatrix  -----
 
 inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatrix<Real>& pspmat, MPI_Comm comm )
 {
@@ -604,7 +604,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
   Int numColLocal, numColFirst;
   numColFirst = pspmat.size / mpisize;
   SetValue( numColLocalVec, numColFirst );
-  numColLocalVec[mpisize-1] = pspmat.size - numColFirst * (mpisize-1);  // Modify the last entry	
+  numColLocalVec[mpisize-1] = pspmat.size - numColFirst * (mpisize-1);  // Modify the last entry
   numColLocal = numColLocalVec[mpirank];
 
   pspmat.colptrLocal.Resize( numColLocal + 1 );
@@ -624,7 +624,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
     IntNumVec buf;
     Int numRead;
     for( Int ip = 0; ip < mpisize; ip++ ){
-      numRead = colptr[ip*numColFirst + numColLocalVec[ip]] - 
+      numRead = colptr[ip*numColFirst + numColLocalVec[ip]] -
         colptr[ip*numColFirst];
       buf.Resize(numRead);
       Int *ptr = buf.Data();
@@ -655,7 +655,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
     MPI_Recv( pspmat.rowindLocal.Data(), numRead, MPI_INT, 0, 1, comm, &mpistat );
   }
 
-  //	std::cout << "Proc " << mpirank << " outputs rowindLocal.size() = " 
+  //	std::cout << "Proc " << mpirank << " outputs rowindLocal.size() = "
   //		<< pspmat.rowindLocal.m() << endl;
 
 
@@ -665,7 +665,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
     NumVec<Real> buf;
     Int numRead;
     for( Int ip = 0; ip < mpisize; ip++ ){
-      numRead = colptr[ip*numColFirst + numColLocalVec[ip]] - 
+      numRead = colptr[ip*numColFirst + numColLocalVec[ip]] -
         colptr[ip*numColFirst];
       buf.Resize(numRead);
       Real *ptr = buf.Data();
@@ -707,7 +707,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 
 
   return ;
-}		// -----  end of function ReadDistSparseMatrixFormatted  ----- 
+}		// -----  end of function ReadDistSparseMatrixFormatted  -----
 
 
 inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Complex>& pspmat, MPI_Comm comm )
@@ -766,7 +766,7 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
   Int numColLocal, numColFirst;
   numColFirst = pspmat.size / mpisize;
   SetValue( numColLocalVec, numColFirst );
-  numColLocalVec[mpisize-1] = pspmat.size - numColFirst * (mpisize-1);  // Modify the last entry	
+  numColLocalVec[mpisize-1] = pspmat.size - numColFirst * (mpisize-1);  // Modify the last entry
   numColLocal = numColLocalVec[mpirank];
   pspmat.colptrLocal.Resize( numColLocal + 1 );
 
@@ -864,7 +864,7 @@ inline void ParaReadDistSparseMatrix ( const char* filename, DistSparseMatrix<Co
   MPI_File_close(&fin);
 
   return ;
-}		// -----  end of function ParaReadDistSparseMatrix  ----- 
+}		// -----  end of function ParaReadDistSparseMatrix  -----
 
 inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<Complex>& pspmat, MPI_Comm comm )
 {
@@ -978,8 +978,8 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<C
   /* set file view */
   err = MPI_File_set_view(fout, 0, MPI_BYTE, filetype, "native",MPI_INFO_NULL);
 
-  /* everyone writes their own row offsets, columns, and 
-   * data with one big noncontiguous write (in memory and 
+  /* everyone writes their own row offsets, columns, and
+   * data with one big noncontiguous write (in memory and
    * file)
    */
   err = MPI_File_write_all(fout, MPI_BOTTOM, 1, memtype, &status);
@@ -996,7 +996,7 @@ inline void ParaWriteDistSparseMatrix ( const char* filename, DistSparseMatrix<C
   MPI_File_close(&fout);
 
   return ;
-}		// -----  end of function ParaWriteDistSparseMatrix  ----- 
+}		// -----  end of function ParaWriteDistSparseMatrix  -----
 
 
 
@@ -1047,7 +1047,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
   Int numColLocal, numColFirst;
   numColFirst = pspmat.size / mpisize;
   SetValue( numColLocalVec, numColFirst );
-  numColLocalVec[mpisize-1] = pspmat.size - numColFirst * (mpisize-1);  // Modify the last entry	
+  numColLocalVec[mpisize-1] = pspmat.size - numColFirst * (mpisize-1);  // Modify the last entry
   numColLocal = numColLocalVec[mpirank];
 
   pspmat.colptrLocal.Resize( numColLocal + 1 );
@@ -1067,7 +1067,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
     IntNumVec buf;
     Int numRead;
     for( Int ip = 0; ip < mpisize; ip++ ){
-      numRead = colptr[ip*numColFirst + numColLocalVec[ip]] - 
+      numRead = colptr[ip*numColFirst + numColLocalVec[ip]] -
         colptr[ip*numColFirst];
 
 
@@ -1100,7 +1100,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
     MPI_Recv( pspmat.rowindLocal.Data(), numRead, MPI_INT, 0, 1, comm, &mpistat );
   }
 
-  //	std::cout << "Proc " << mpirank << " outputs rowindLocal.size() = " 
+  //	std::cout << "Proc " << mpirank << " outputs rowindLocal.size() = "
   //		<< pspmat.rowindLocal.m() << endl;
 
 
@@ -1110,7 +1110,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
     NumVec<Real> buf;
     Int numRead;
     for( Int ip = 0; ip < mpisize; ip++ ){
-      numRead = 2* (colptr[ip*numColFirst + numColLocalVec[ip]] - 
+      numRead = 2* (colptr[ip*numColFirst + numColLocalVec[ip]] -
           colptr[ip*numColFirst]);
       Real *ptr;
       if( ip > 0 ){
@@ -1149,7 +1149,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
     }
 
     pspmat.nzvalLocal.Resize( numRead/2 );
-    MPI_Recv( reinterpret_cast<Real*>(pspmat.nzvalLocal.Data()), 
+    MPI_Recv( reinterpret_cast<Real*>(pspmat.nzvalLocal.Data()),
         numRead, MPI_DOUBLE, 0, 1, comm, &mpistat );
   }
 
@@ -1164,7 +1164,7 @@ inline void ReadDistSparseMatrixFormatted ( const char* filename, DistSparseMatr
 
 
   return ;
-}		// -----  end of function ReadDistSparseMatrixFormatted  ----- 
+}		// -----  end of function ReadDistSparseMatrixFormatted  -----
 
 
 template<typename T> inline void GetDiagonal ( const DistSparseMatrix<T>& A, NumVec<T>& diag )
@@ -1194,8 +1194,8 @@ template<typename T> inline void GetDiagonal ( const DistSparseMatrix<T>& A, Num
     Int numRow = A.colptrLocal(j+1) - A.colptrLocal(j);
     const Int* rowPtr = &A.rowindLocal( A.colptrLocal(j) - 1 );
     // NOTE: The rows in DistSparseMatrix are not necessarily ordered.
-    // So lower_bound cannot be used here for fast searching. find has to be used. 
-    const Int* ptr = std::find( rowPtr, rowPtr + numRow, jcol ); 
+    // So lower_bound cannot be used here for fast searching. find has to be used.
+    const Int* ptr = std::find( rowPtr, rowPtr + numRow, jcol );
     if( ptr == rowPtr + numRow ){
       std::ostringstream msg;
       msg << "Serious problem. Did not find the row corresponding to the column." << std::endl
@@ -1211,7 +1211,7 @@ template<typename T> inline void GetDiagonal ( const DistSparseMatrix<T>& A, Num
 
 
   return ;
-}		// -----  end of function GetDiagonal  ----- 
+}		// -----  end of function GetDiagonal  -----
 
 
 
@@ -1242,29 +1242,29 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
   {
     colptrGlobal.Resize(sparseA.size+1);
 
-    /* Allgatherv for row indices. */ 
+    /* Allgatherv for row indices. */
     IntNumVec prevnz(mpisize);
     IntNumVec rcounts(mpisize);
     MPI_Allgather((void*)&sparseA.nnzLocal, 1, MPI_INT, rcounts.Data(), 1, MPI_INT, sparseA.comm);
 
     prevnz[0] = 0;
-    for (Int i = 0; i < mpisize-1; ++i) { prevnz[i+1] = prevnz[i] + rcounts[i]; } 
+    for (Int i = 0; i < mpisize-1; ++i) { prevnz[i+1] = prevnz[i] + rcounts[i]; }
 
     nnz = 0;
-    for (Int i = 0; i < mpisize; ++i) { nnz += rcounts[i]; } 
+    for (Int i = 0; i < mpisize; ++i) { nnz += rcounts[i]; }
     rowindGlobal.Resize(nnz);
 
-    MPI_Allgatherv(sparseA.rowindLocal.Data(), sparseA.nnzLocal, MPI_INT, rowindGlobal.Data(),rcounts.Data(), prevnz.Data(), MPI_INT, sparseA.comm); 
+    MPI_Allgatherv(sparseA.rowindLocal.Data(), sparseA.nnzLocal, MPI_INT, rowindGlobal.Data(),rcounts.Data(), prevnz.Data(), MPI_INT, sparseA.comm);
 
     /* Allgatherv for colptr */
     // Compute the number of columns on each processor
     Int numColFirst = std::max(1,sparseA.size / mpisize);
     SetValue( rcounts, numColFirst );
-    rcounts[mpisize-1] = sparseA.size - numColFirst * (mpisize-1);  // Modify the last entry     
+    rcounts[mpisize-1] = sparseA.size - numColFirst * (mpisize-1);  // Modify the last entry
 
     IntNumVec rdispls(mpisize);
     rdispls[0] = 0;
-    for (Int i = 0; i < mpisize-1; ++i) { rdispls[i+1] = rdispls[i] + rcounts[i]; } 
+    for (Int i = 0; i < mpisize-1; ++i) { rdispls[i+1] = rdispls[i] + rcounts[i]; }
 
     MPI_Allgatherv(sparseA.colptrLocal.Data(), sparseA.colptrLocal.m()-1, MPI_INT, colptrGlobal.Data(),
         rcounts.Data(), rdispls.Data(), MPI_INT, sparseA.comm);
@@ -1290,7 +1290,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
     IntNumVec row_nnz(sparseA.size);
     SetValue(row_nnz,I_ZERO);
 
-    for (i = 0; i < nnz; i++) { 
+    for (i = 0; i < nnz; i++) {
       Int k = rowindGlobal[i];
       row_nnz[k-1]++;
     }
@@ -1327,7 +1327,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
 
 
 
-  } 
+  }
 
   //This assertion is only ok for structurally symmetric matrices
   //for(int i=0;i<rowptrGlobal.m();++i){ assert(rowptrGlobal[i]==colptrGlobal[i]); }
@@ -1412,7 +1412,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
           Int colbeg = colptrGlobal[col-1];
           Int colend = colptrGlobal[col]-1;
           for(Int i=colbeg;i<=colend;++i){
-            Int row = rowindGlobal[i-1];  
+            Int row = rowindGlobal[i-1];
             //determine where it should be packed ?
             Int p_dest = std::min(mpisize-1,(row-1)/(numRowLocalFirst));
             bufsizes[p_dest]+=sizeof(T);
@@ -1439,7 +1439,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
           Int colbeg = sparseA.colptrLocal[j-1];
           Int colend = sparseA.colptrLocal[j]-1;
           for(Int i=colbeg;i<=colend;++i){
-            Int row = sparseA.rowindLocal[i-1];  
+            Int row = sparseA.rowindLocal[i-1];
             //determine where it should be packed ?
             Int p_dest = std::min(mpisize-1,(row-1)/(numRowLocalFirst));
             Int p_displs = displs[p_dest];
@@ -1467,7 +1467,7 @@ template <typename T> void CSCToCSR(DistSparseMatrix<T>& sparseA, DistSparseMatr
           Int colbeg = colptrGlobal[col-1];
           Int colend = colptrGlobal[col]-1;
           for(Int i=colbeg;i<=colend;++i){
-            Int row = rowindGlobal[i-1];  
+            Int row = rowindGlobal[i-1];
             Int p_dest = std::min(mpisize-1,(row-1)/(numRowLocalFirst));
             if(p_dest==mpirank){
               //compute local CSR coordinates
@@ -1540,7 +1540,7 @@ void WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & ps
     for(Int locCol = 0 ; locCol< LocalVertexCount; locCol++){
       Int col = locCol + firstLocCol;
       Int colbeg = pspmat.colptrLocal[locCol]-baseval; //now 0 based
-      Int colend = pspmat.colptrLocal[locCol+1]-baseval; // now 0 based 
+      Int colend = pspmat.colptrLocal[locCol+1]-baseval; // now 0 based
 
       for(Int pos = colbeg; pos<colend; pos++){
         Int row = pspmat.rowindLocal[pos];
@@ -1554,7 +1554,7 @@ void WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & ps
     for(Int locCol = 0 ; locCol< LocalVertexCount; locCol++){
       Int col = locCol + firstLocCol;
       Int colbeg = pspmat.colptrLocal[locCol]-baseval; //now 0 based
-      Int colend = pspmat.colptrLocal[locCol+1]-baseval; // now 0 based 
+      Int colend = pspmat.colptrLocal[locCol+1]-baseval; // now 0 based
 
       for(Int pos = colbeg; pos<colend; pos++){
         ofile<<col+1<<" ";
@@ -1568,7 +1568,7 @@ void WriteDistSparseMatrixMatlab(const char * filename, DistSparseMatrix<T> & ps
     for(Int locCol = 0 ; locCol< LocalVertexCount; locCol++){
       Int col = locCol + firstLocCol;
       Int colbeg = pspmat.colptrLocal[locCol]-baseval; //now 0 based
-      Int colend = pspmat.colptrLocal[locCol+1]-baseval; // now 0 based 
+      Int colend = pspmat.colptrLocal[locCol+1]-baseval; // now 0 based
 
       for(Int pos = colbeg; pos<colend; pos++){
         T val = pspmat.nzvalLocal[pos];

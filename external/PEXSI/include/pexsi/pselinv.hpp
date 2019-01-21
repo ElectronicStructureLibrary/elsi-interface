@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Lin Lin and Mathias Jacquelin
 
@@ -52,7 +52,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 #include "pexsi/environment.hpp"
 #include "pexsi/NumVec.hpp"
-#include "pexsi/NumMat.hpp" 
+#include "pexsi/NumMat.hpp"
 #include "pexsi/sparse_matrix.hpp"
 
 #include "pexsi/superlu_dist_interf.hpp"
@@ -69,12 +69,12 @@ such enhancements or derivative works thereof, in binary and source code form.
 #include <set>
 
 
-//#define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag)) 
+//#define IDX_TO_TAG(lidx,tag) (SELINV_TAG_COUNT*(lidx)+(tag))
 #define sym_IDX_TO_TAG( lidx, tag, numSuper, max)  ((SELINV_TAG_COUNT)*(numSuper)*((lidx)%((max)+1))+(tag))
 
 #define IDX_TO_TAG(lidx,tag,max) ((SELINV_TAG_COUNT*(lidx%(max+1))+(tag)))
-#define IDX_TO_TAG2(sidx,lidx,tag) (SELINV_TAG_COUNT*(sidx)+(tag)) 
-#define TAG_TO_IDX(tag,typetag) (((tag)-(typetag))/SELINV_TAG_COUNT) 
+#define IDX_TO_TAG2(sidx,lidx,tag) (SELINV_TAG_COUNT*(sidx)+(tag))
+#define TAG_TO_IDX(tag,typetag) (((tag)-(typetag))/SELINV_TAG_COUNT)
 
 
 //#define LIST_BARRIER
@@ -101,14 +101,14 @@ typedef std::map<bitMask , std::vector<Int> > bitMaskSet;
 
 /// @struct PSelInvOptions
 /// @brief A thin interface for passing parameters to set the PSelInv
-/// options.  
+/// options.
 ///
 struct PSelInvOptions{
-  /// @brief The maximum pipeline depth. 
-  Int              maxPipelineDepth; 
+  /// @brief The maximum pipeline depth.
+  Int              maxPipelineDepth;
 
-  /// @brief Use symmetric storage for the selected inversion or not. 
-  Int              symmetricStorage; 
+  /// @brief Use symmetric storage for the selected inversion or not.
+  Int              symmetricStorage;
 
   // Member functions to setup the default value
   PSelInvOptions(): maxPipelineDepth(-1), symmetricStorage(0) {}
@@ -117,7 +117,7 @@ struct PSelInvOptions{
 
 /// @struct FactorizationOptions
 /// @brief A thin interface for passing parameters to set the Factorization
-/// options.  
+/// options.
 ///
 struct FactorizationOptions{
   std::string ColPerm;
@@ -138,7 +138,7 @@ struct FactorizationOptions{
 
 /// @struct GridType
 ///
-/// @brief GridType is the PSelInv way of defining the grid.  
+/// @brief GridType is the PSelInv way of defining the grid.
 ///
 /// GridType should be consistent with the grid used by SuperLU.
 ///
@@ -150,7 +150,7 @@ struct GridType{
   MPI_Comm    rowComm;
   MPI_Comm    colComm;
   Int         mpirank;
-  Int         mpisize; 
+  Int         mpisize;
   Int         numProcRow;
   Int         numProcCol;
 
@@ -164,8 +164,8 @@ struct GridType{
 /// @brief SuperNodeType describes mapping between supernode and column, the
 /// permutation information, and potentially the elimination tree (not
 /// implemented here).
-/// 
-/// superIdx[i] is the supernode index to which column i belongs. 
+///
+/// superIdx[i] is the supernode index to which column i belongs.
 /// This is the same as supno[i] in SuperLU.
 ///
 /// superPtr[s] is the leading column of the s-th supernode (as in
@@ -182,9 +182,9 @@ struct GridType{
 /// permInv is the inverse of the permutation vector.
 ///
 struct SuperNodeType{
-  IntNumVec   perm;              
+  IntNumVec   perm;
   IntNumVec   permInv;
-  IntNumVec   perm_r;              
+  IntNumVec   perm_r;
   IntNumVec   permInv_r;
   IntNumVec   superIdx;
   IntNumVec   superPtr;
@@ -202,10 +202,10 @@ struct LBlock{
   /// @brief Block index (supernodal index)
   Int               blockIdx;
 
-  /// @brief Number of nonzero rows. 
+  /// @brief Number of nonzero rows.
   Int               numRow;
 
-  /// @brief Number of nonzero columns. 
+  /// @brief Number of nonzero columns.
   Int               numCol;
 
   /// @brief Dimension numRow * 1, index (0-based) for the number of nonzero rows.
@@ -217,8 +217,8 @@ struct LBlock{
 
   // Member functions;
   LBlock() {
-    blockIdx = -1; numRow = 0; numCol =0; 
-    nzval.Resize(0,0); 
+    blockIdx = -1; numRow = 0; numCol =0;
+    nzval.Resize(0,0);
   }
   ~LBlock() {}
   LBlock& operator = (const LBlock& LB) {
@@ -240,12 +240,12 @@ struct LBlock{
 
 /// @struct UBlock
 ///
-/// @brief UBlock stores a nonzero block in the upper triangular part in PSelInv. 
-/// 
+/// @brief UBlock stores a nonzero block in the upper triangular part in PSelInv.
+///
 /// In particular, the current version of PSelInv is for sparse
 /// symmetric matrices.  All UBlocks, labeled as U(i,j), i<j save the
 /// redundant information as saved in L(j,i). The purpose of having
-/// UBlocks is to facilitate the communication.  
+/// UBlocks is to facilitate the communication.
 ///
 /// @see PMatrix::SelInv
 template<typename T>
@@ -254,10 +254,10 @@ struct UBlock{
   /// @brief Block index (supernodal index)
   Int               blockIdx;
 
-  /// @brief Number of nonzero rows. 
+  /// @brief Number of nonzero rows.
   Int               numRow;
 
-  /// @brief Number of nonzero columns. 
+  /// @brief Number of nonzero columns.
   Int               numCol;
 
   /// @brief Dimension numCol * 1, index (0-based) for the number of nonzero rows.
@@ -281,7 +281,7 @@ struct UBlock{
   }
 
   friend std::ostream& operator<<(std::ostream& out, const UBlock& vec) // output
-  { 
+  {
     out << "(" << vec.blockIdx << ", " << vec.numRow << ", " << vec.numCol <<std::endl<< "cols " << vec.cols <<std::endl<< "nzval " <<std::endl<< vec.nzval << ")";
     return out;
   }
@@ -289,8 +289,8 @@ struct UBlock{
 
 // *********************************************************************
 // SuperLU style utility functions
-// 
-// The SuperLU style macros are defined here as inline functions 
+//
+// The SuperLU style macros are defined here as inline functions
 // so that the code is more portable.
 // *********************************************************************
 
@@ -308,12 +308,12 @@ inline Int MYCOL( const GridType* g )
 
 /// @brief PROW returns the processor row that the bnum-th block
 /// (supernode) belongs to.
-inline Int PROW( Int bnum, const GridType* g ) 
+inline Int PROW( Int bnum, const GridType* g )
 { return bnum % g->numProcRow; }
 
 /// @brief PCOL returns the processor column that the bnum-th block
 /// (supernode) belongs to.
-inline Int PCOL( Int bnum, const GridType* g ) 
+inline Int PCOL( Int bnum, const GridType* g )
 { return bnum % g->numProcCol; }
 
 /// @brief PNUM returns the processor rank that the bnum-th block
@@ -353,19 +353,19 @@ inline Int BlockIdx( Int i, const SuperNodeType *s )
 /// @brief FirstBlockCol returns the first column of a block
 /// bnum.
 inline Int FirstBlockCol( Int bnum, const SuperNodeType *s )
-{ return s->superPtr[bnum]; }	
+{ return s->superPtr[bnum]; }
 
 
 /// @brief FirstBlockRow returns the first column of a block
 /// bnum. Note: the functionality of FirstBlockRow is exactly the same
 /// as in FirstBlockCol.
 inline Int FirstBlockRow( Int bnum, const SuperNodeType *s )
-{ return s->superPtr[bnum]; } 
+{ return s->superPtr[bnum]; }
 
 
 /// @brief SuperSize returns the size of the block bnum.
 inline Int SuperSize( Int bnum, const SuperNodeType *s )
-{ return s->superPtr[bnum+1] - s->superPtr[bnum]; } 
+{ return s->superPtr[bnum+1] - s->superPtr[bnum]; }
 
 /// @brief NumSuper returns the total number of supernodes.
 inline Int NumSuper( const SuperNodeType *s )
@@ -383,7 +383,7 @@ inline Int NumCol( const SuperNodeType *s )
 
 // L part
 
-/// @namespace LBlockMask 
+/// @namespace LBlockMask
 ///
 /// @brief LBlockMask allows one to compress the selected data in
 /// LBlock used for communication.
@@ -392,7 +392,7 @@ inline Int NumCol( const SuperNodeType *s )
 /// -------
 /// std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
 ///
-/// assumes all information is to be communicated. 
+/// assumes all information is to be communicated.
 ///
 ///	mask[LBlockMask::NZVAL] = 0;
 ///
@@ -415,8 +415,8 @@ Int inline serialize(LBlock<T>& val, std::ostream& os, const std::vector<Int>& m
   if(mask[LBlockMask::BLOCKIDX]==1) serialize(val.blockIdx, os, mask);
   if(mask[LBlockMask::NUMROW  ]==1) serialize(val.numRow,  os, mask);
   if(mask[LBlockMask::NUMCOL  ]==1) serialize(val.numCol,  os, mask);
-  if(mask[LBlockMask::ROWS    ]==1) serialize(val.rows, os, mask); 
-  if(mask[LBlockMask::NZVAL   ]==1) serialize(val.nzval, os, mask); 
+  if(mask[LBlockMask::ROWS    ]==1) serialize(val.rows, os, mask);
+  if(mask[LBlockMask::NZVAL   ]==1) serialize(val.nzval, os, mask);
   return 0;
 }
 
@@ -431,7 +431,7 @@ Int inline deserialize(LBlock<T>& val, std::istream& is, const std::vector<Int>&
 }
 
 // U part
-/// @namespace UBlockMask 
+/// @namespace UBlockMask
 ///
 /// @brief UBlockMask allows one to compress the selected data in
 /// UBlock used for communication.
@@ -441,7 +441,7 @@ Int inline deserialize(LBlock<T>& val, std::istream& is, const std::vector<Int>&
 ///
 /// std::vector<Int> mask( UBlockMask::TOTAL_NUMBER, 1 );
 ///
-/// assumes all information is to be communicated. 
+/// assumes all information is to be communicated.
 ///
 ///	mask[UBlockMask::NZVAL] = 0;
 ///
@@ -475,7 +475,7 @@ Int inline deserialize(UBlock<T>& val, std::istream& is, const std::vector<Int>&
   if(mask[i]==1) deserialize(val.numRow,  is, mask); i++;
   if(mask[i]==1) deserialize(val.numCol,  is, mask); i++;
   if(mask[i]==1) deserialize(val.cols,   is, mask); i++;
-  if(mask[i]==1) deserialize(val.nzval,  is, mask); i++; 
+  if(mask[i]==1) deserialize(val.nzval,  is, mask); i++;
   return 0;
 }
 
@@ -486,40 +486,40 @@ Int inline deserialize(UBlock<T>& val, std::istream& is, const std::vector<Int>&
 /// @class PMatrix
 ///
 /// @brief PMatrix contains the main data structure and the
-/// computational routine for the parallel selected inversion.  
-/// 
+/// computational routine for the parallel selected inversion.
+///
 /// **NOTE** The following is a bit obsolete.
 ///
-/// Procedure for Selected Inversion 
+/// Procedure for Selected Inversion
 /// --------------------------------
 ///
 /// After factorizing a SuperLUMatrix luMat (See SuperLUMatrix for
 /// information on how to perform factorization), perform the following
 /// steps for parallel selected inversion.
-/// 
+///
 /// - Conversion from SuperLU_DIST.
-///   
+///
 ///   Symbolic information
 ///
-///       SuperNodeType super; 
+///       SuperNodeType super;
 ///       PMatrix PMloc;
-///       luMat.SymbolicToSuperNode( super );  
-///   
+///       luMat.SymbolicToSuperNode( super );
+///
 ///   Numerical information, both L and U.
 ///
-///       luMat.LUstructToPMatrix( PMloc ); 
+///       luMat.LUstructToPMatrix( PMloc );
 ///
 /// - Preparation.
 ///
 ///   Construct the communication pattern for SelInv.
 ///
-///       PMloc.ConstructCommunicationPattern(); 
-///       or PMloc.ConstructCommunicationPattern_P2p(); 
-///       or PMloc.ConstructCommunicationPattern_Collectives(); 
-///   
+///       PMloc.ConstructCommunicationPattern();
+///       or PMloc.ConstructCommunicationPattern_P2p();
+///       or PMloc.ConstructCommunicationPattern_Collectives();
+///
 ///   Numerical preparation so that SelInv only involves Gemm.
 ///
-///       PMloc.PreSelInv();  
+///       PMloc.PreSelInv();
 ///
 /// - Selected inversion.
 ///
@@ -529,10 +529,10 @@ Int inline deserialize(UBlock<T>& val, std::istream& is, const std::vector<Int>&
 ///
 /// - Postprocessing.
 ///
-///   Get the information in DistSparseMatrix format 
+///   Get the information in DistSparseMatrix format
 ///
 ///       DistSparseMatrix<Scalar> Ainv;
-///       PMloc.PMatrixToDistSparseMatrix( Ainv );  
+///       PMloc.PMatrixToDistSparseMatrix( Ainv );
 ///
 /// Note
 /// ----
@@ -609,15 +609,15 @@ protected:
   BolNumMat                       isRecvFromCrossDiagonal_;
 
 
-  std::vector<std::shared_ptr<TreeReduce_v2<T> > > redDTree2_; 
+  std::vector<std::shared_ptr<TreeReduce_v2<T> > > redDTree2_;
 
-  std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastLDataTree_; 
-  std::vector<std::shared_ptr<TreeReduce_v2<T> > > redLTree2_; 
+  std::vector<std::shared_ptr<TreeBcast_v2<char> > > bcastLDataTree_;
+  std::vector<std::shared_ptr<TreeReduce_v2<T> > > redLTree2_;
 
-  std::vector<TreeBcast *> fwdToBelowTree_; 
-  std::vector<TreeBcast *> fwdToRightTree_; 
-  std::vector<TreeReduce<T> *> redToLeftTree_; 
-  std::vector<TreeReduce<T> *> redToAboveTree_; 
+  std::vector<TreeBcast *> fwdToBelowTree_;
+  std::vector<TreeBcast *> fwdToRightTree_;
+  std::vector<TreeReduce<T> *> redToLeftTree_;
+  std::vector<TreeReduce<T> *> redToAboveTree_;
 
   //This is for the symmetric storage implementation
   std::vector<Int> snodeEtree_;
@@ -657,8 +657,8 @@ protected:
       SizeSstrUrowSend(0),
       SizeSstrLcolRecv(0),
       SizeSstrUrowRecv(0),
-      Index(0), 
-      Rank(0), 
+      Index(0),
+      Rank(0),
       isReady(0){}
 
     SuperNodeBufferType(Int &pIndex) :
@@ -690,7 +690,7 @@ protected:
 
 public:
   // *********************************************************************
-  // Public member functions 
+  // Public member functions
   // *********************************************************************
 
 //  double GetTotalFlops();
@@ -740,11 +740,11 @@ public:
 
   /// @brief SuperNode returns the supernodal partition of the current
   /// PMatrix.
-  const SuperNodeType* SuperNode() const { return super_; }	
+  const SuperNodeType* SuperNode() const { return super_; }
 
   /// @brief L returns the vector of nonzero L blocks for the local
   /// block column jLocal.
-  std::vector<LBlock<T> >& L( Int jLocal ) { return L_[jLocal]; } 	
+  std::vector<LBlock<T> >& L( Int jLocal ) { return L_[jLocal]; }
 
   /// @brief U returns the vector of nonzero U blocks for the local
   /// block row iLocal.
@@ -752,18 +752,18 @@ public:
 
   /// @brief WorkingSet returns the ordered list of supernodes which could
   /// be done in parallel.
-  std::vector<std::vector<int> >& WorkingSet( ) { return workingSet_; } 	
-  //void WorkingSet(const std::vector<std::vector<int> > * pWSet,const std::vector<std::vector<int> > * pWRanks) { pWSet = &workingSet_; pWRanks = &workingRanks_; } 	
+  std::vector<std::vector<int> >& WorkingSet( ) { return workingSet_; }
+  //void WorkingSet(const std::vector<std::vector<int> > * pWSet,const std::vector<std::vector<int> > * pWRanks) { pWSet = &workingSet_; pWRanks = &workingRanks_; }
 
-  /// @brief CountSendToRight returns the number of processors 
+  /// @brief CountSendToRight returns the number of processors
   /// to the right of current processor with which it has to communicate
   Int CountSendToRight(Int ksup) {  Int count= std::count (isSendToRight_.VecData(ksup), isSendToRight_.VecData(ksup) + grid_->numProcCol, true); return (isSendToRight_(MYCOL(grid_),ksup)?count-1:count); }
 
-  /// @brief CountSendToBelow returns the number of processors 
+  /// @brief CountSendToBelow returns the number of processors
   /// below current processor with which it has to communicate
   Int CountSendToBelow(Int ksup) {  Int count= std::count (isSendToBelow_.VecData(ksup), isSendToBelow_.VecData(ksup) + grid_->numProcRow, true); return (isSendToBelow_(MYROW(grid_),ksup)?count-1:count); }
 
-  /// @brief CountRecvFromBelow returns the number of processors 
+  /// @brief CountRecvFromBelow returns the number of processors
   /// below the current processor from which it receives data
   Int CountRecvFromBelow(Int ksup) {  Int count= std::count (isRecvFromBelow_.VecData(ksup), isRecvFromBelow_.VecData(ksup) + grid_->numProcRow, true); return (isRecvFromBelow_(MYROW(grid_),ksup)?count-1:count); }
 
@@ -843,7 +843,7 @@ public:
   /// implementation of PSelInv is that the upper-triangular matrix is
   /// saved (in the form of UBlock).  Such redundant information is
   /// effective for reducing the complexity for designing the
-  /// communication pattern.  
+  /// communication pattern.
   ///
   /// At each supernode ksup, the lower triangular part Ainv(isup, ksup)
   /// (isup > ksup) are first updated.  The blocks in the processor row
@@ -851,7 +851,7 @@ public:
   /// L(isup, ksup)^T) to the Schur complements Ainv(isup, jsup).  At
   /// the same time the blocks in the processor column of ksup sends the
   /// nonzero blocks (only nonzero row indices) to the Schur complement
-  /// Ainv(isup, jsup).  Then 
+  /// Ainv(isup, jsup).  Then
   ///
   /// sum_{jsup} Ainv(isup, jsup) U^{T}(ksup, jsup)
   ///
@@ -886,7 +886,7 @@ public:
   /// double indexing of the supernodes and can scale to matrices of
   /// large size.
   ///
-  /// - isSendToBelow:  
+  /// - isSendToBelow:
   ///
   ///   Dimension: numSuper x numProcRow
   ///
@@ -897,7 +897,7 @@ public:
   ///
   ///   Dimension: numSuper
   ///
-  ///   Role     : 
+  ///   Role     :
   ///
   ///     * At supernode ksup, if isRecvFromAbove(ksup) == true,
   ///       receive blocks from the processor owning the block row of ksup
@@ -918,10 +918,10 @@ public:
   ///   ksup} to the processor column jp.
   ///
   /// - isRecvFromLeft:
-  ///   
+  ///
   ///   Dimension: numSuper
   ///
-  ///   Role     : 
+  ///   Role     :
   ///
   ///     * At supernode ksup, if isRecvFromLeft(ksup) == true, receive
   ///     blocks from the processor owning the block column of ksup
@@ -947,7 +947,7 @@ public:
   ///   Role     : At supernode ksup, if isRecvFromCrossDiagonal(ksup) ==
   ///   true, receive from the cross-diagonal processor.  <b> NOTE </b>:
   ///   This requires a square processor grid.
-  ///   
+  ///
   ///
   ///
   ///
@@ -983,7 +983,7 @@ public:
   /// @param[in]  A Input sparse matrix to provide the sparsity pattern.
   ///
   /// @param[out] B Output sparse matrix.
-  void PMatrixToDistSparseMatrix_OLD( 
+  void PMatrixToDistSparseMatrix_OLD(
       const DistSparseMatrix<T>& A,
       DistSparseMatrix<T>& B	);
 
@@ -998,7 +998,7 @@ public:
   ///
   /// @param[out] B Output sparse matrix.
   template<typename T1 = T>
-  void PMatrixToDistSparseMatrix( 
+  void PMatrixToDistSparseMatrix(
       const DistSparseMatrix<T1>& A, DistSparseMatrix<T>& B );
 
 
@@ -1018,7 +1018,7 @@ public:
 
   //      inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}
 
-  void DumpLU();      
+  void DumpLU();
 
   void CopyLU( const PMatrix & C);
   inline int IdxToTag(Int lidx, Int tag) { return SELINV_TAG_COUNT*(lidx)+(tag);}

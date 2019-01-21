@@ -57,6 +57,7 @@
 !> @see  c_pexsi_interface.h
 !> @date 2014-04-01 Initial version
 !> @date 2015-01-21 Interface with unsymmetric version of selected inversion.
+!> @date 2017-10-22 PEXSI v1.0 release
 
 ! *********************************************************************
 ! Module for main PEXSI interface routines
@@ -143,18 +144,18 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    intent(in), value :: plan
-    type(f_ppexsi_options), intent(in), value :: options
-    integer(c_int),         intent(in), value :: nrows
-    integer(c_int),         intent(in), value :: nnz
-    integer(c_int),         intent(in), value :: nnzLocal
-    integer(c_int),         intent(in), value :: numColLocal
-    integer(c_int),         intent(in), value :: isSIdentity
-    integer(c_int),         intent(in)        :: colptrLocal(*)
-    integer(c_int),         intent(in)        :: rowindLocal(*)
-    real(c_double),         intent(in)        :: HnzvalLocal(*)
-    real(c_double),         intent(in)        :: SnzvalLocal(*)
-    integer(c_int),         intent(out)       :: info
+    integer(c_intptr_t),    value, intent(in)  :: plan
+    type(f_ppexsi_options), value, intent(in)  :: options
+    integer(c_int),         value, intent(in)  :: nrows
+    integer(c_int),         value, intent(in)  :: nnz
+    integer(c_int),         value, intent(in)  :: nnzLocal
+    integer(c_int),         value, intent(in)  :: numColLocal
+    integer(c_int),         value, intent(in)  :: isSIdentity
+    integer(c_int),                intent(in)  :: colptrLocal(*)
+    integer(c_int),                intent(in)  :: rowindLocal(*)
+    real(c_double),                intent(in)  :: HnzvalLocal(*)
+    real(c_double),                intent(in)  :: SnzvalLocal(*)
+    integer(c_int),                intent(out) :: info
   end subroutine
 
   subroutine f_ppexsi_load_complex_hs_matrix(&
@@ -174,18 +175,18 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    intent(in), value :: plan
-    type(f_ppexsi_options), intent(in), value :: options
-    integer(c_int),         intent(in), value :: nrows
-    integer(c_int),         intent(in), value :: nnz
-    integer(c_int),         intent(in), value :: nnzLocal
-    integer(c_int),         intent(in), value :: numColLocal
-    integer(c_int),         intent(in), value :: isSIdentity
-    integer(c_int),         intent(in)        :: colptrLocal(*)
-    integer(c_int),         intent(in)        :: rowindLocal(*)
-    complex(c_double),      intent(in)        :: HnzvalLocal(*)
-    complex(c_double),      intent(in)        :: SnzvalLocal(*)
-    integer(c_int),         intent(out)       :: info
+    integer(c_intptr_t),    value, intent(in)  :: plan
+    type(f_ppexsi_options), value, intent(in)  :: options
+    integer(c_int),         value, intent(in)  :: nrows
+    integer(c_int),         value, intent(in)  :: nnz
+    integer(c_int),         value, intent(in)  :: nnzLocal
+    integer(c_int),         value, intent(in)  :: numColLocal
+    integer(c_int),         value, intent(in)  :: isSIdentity
+    integer(c_int),                intent(in)  :: colptrLocal(*)
+    integer(c_int),                intent(in)  :: rowindLocal(*)
+    complex(c_double),             intent(in)  :: HnzvalLocal(*)
+    complex(c_double),             intent(in)  :: SnzvalLocal(*)
+    integer(c_int),                intent(out) :: info
   end subroutine
 
   subroutine f_ppexsi_symbolic_factorize_real_symmetric_matrix(&
@@ -196,9 +197,9 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    intent(in), value :: plan
-    type(f_ppexsi_options), intent(in), value :: options
-    integer(c_int),         intent(out)       :: info
+    integer(c_intptr_t),    value, intent(in)  :: plan
+    type(f_ppexsi_options), value, intent(in)  :: options
+    integer(c_int),                intent(out) :: info
   end subroutine
 
   subroutine f_ppexsi_symbolic_factorize_complex_symmetric_matrix(&
@@ -209,9 +210,9 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    intent(in), value :: plan
-    type(f_ppexsi_options), intent(in), value :: options
-    integer(c_int),         intent(out)       :: info
+    integer(c_intptr_t),    value, intent(in)  :: plan
+    type(f_ppexsi_options), value, intent(in)  :: options
+    integer(c_int),                intent(out) :: info
   end subroutine
 
   subroutine f_ppexsi_symbolic_factorize_real_unsymmetric_matrix(&
@@ -223,10 +224,10 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    intent(in), value :: plan
-    type(f_ppexsi_options), intent(in), value :: options
-    real(c_double),         intent(inout)     :: AnzvalLocal(*)
-    integer(c_int),         intent(out)       :: info
+    integer(c_intptr_t),    value, intent(in)    :: plan
+    type(f_ppexsi_options), value, intent(in)    :: options
+    real(c_double),                intent(inout) :: AnzvalLocal(*)
+    integer(c_int),                intent(out)   :: info
   end subroutine
 
   subroutine f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(&
@@ -238,10 +239,10 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    intent(in), value :: plan
-    type(f_ppexsi_options), intent(in), value :: options
-    complex(c_double),      intent(inout)     :: AnzvalLocal(*)
-    integer(c_int),         intent(out)       :: info
+    integer(c_intptr_t),    value, intent(in)    :: plan
+    type(f_ppexsi_options), value, intent(in)    :: options
+    complex(c_double),             intent(inout) :: AnzvalLocal(*)
+    integer(c_int),                intent(out)   :: info
   end subroutine
 
   subroutine f_ppexsi_inertia_count_real_matrix(&
@@ -255,12 +256,12 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    intent(in), value :: plan
-    type(f_ppexsi_options), intent(in), value :: options
-    integer(c_int),         intent(in), value :: numShift
-    real(c_double),         intent(in)        :: shiftList(*)
-    real(c_double),         intent(out)       :: inertiaList(*)
-    integer(c_int),         intent(out)       :: info
+    integer(c_intptr_t),    value, intent(in)  :: plan
+    type(f_ppexsi_options), value, intent(in)  :: options
+    integer(c_int),         value, intent(in)  :: numShift
+    real(c_double),                intent(in)  :: shiftList(*)
+    real(c_double),                intent(out) :: inertiaList(*)
+    integer(c_int),                intent(out) :: info
   end subroutine
 
   subroutine f_ppexsi_inertia_count_complex_matrix(&
@@ -274,31 +275,31 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    intent(in), value :: plan
-    type(f_ppexsi_options), intent(in), value :: options
-    integer(c_int),         intent(in), value :: numShift
-    real(c_double),         intent(in)        :: shiftList(*)
-    real(c_double),         intent(out)       :: inertiaList(*)
-    integer(c_int),         intent(out)       :: info
+    integer(c_intptr_t),    value, intent(in)  :: plan
+    type(f_ppexsi_options), value, intent(in)  :: options
+    integer(c_int),         value, intent(in)  :: numShift
+    real(c_double),                intent(in)  :: shiftList(*)
+    real(c_double),                intent(out) :: inertiaList(*)
+    integer(c_int),                intent(out) :: info
   end subroutine
 
   subroutine f_ppexsi_calculate_fermi_operator_real3(&
       plan,&
       options,&
-      mu,&
       numElectronExact,&
+      mu,&
       numElectronPEXSI,&
       info)&
       bind(C, Name="PPEXSICalculateFermiOperatorReal3")
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    intent(in), value :: plan
-    type(f_ppexsi_options), intent(in), value :: options
-    real(c_double),         intent(in), value :: mu
-    real(c_double),         intent(in), value :: numElectronExact
-    real(c_double),         intent(out)       :: numElectronPEXSI
-    integer(c_int),         intent(out)       :: info
+    integer(c_intptr_t),    value, intent(in)  :: plan
+    type(f_ppexsi_options), value, intent(in)  :: options
+    real(c_double),         value, intent(in)  :: numElectronExact
+    real(c_double),                intent(in)  :: mu
+    real(c_double),                intent(out) :: numElectronPEXSI
+    integer(c_int),                intent(out) :: info
   end subroutine
 
   subroutine f_ppexsi_calculate_fermi_operator_complex(&
@@ -313,13 +314,13 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    intent(in), value :: plan
-    type(f_ppexsi_options), intent(in), value :: options
-    real(c_double),         intent(in), value :: mu
-    real(c_double),         intent(in), value :: numElectronExact
-    real(c_double),         intent(out)       :: numElectronPEXSI
-    real(c_double),         intent(out)       :: numElectronDrvMuPEXSI
-    integer(c_int),         intent(out)       :: info
+    integer(c_intptr_t),    value, intent(in)  :: plan
+    type(f_ppexsi_options), value, intent(in)  :: options
+    real(c_double),         value, intent(in)  :: mu
+    real(c_double),         value, intent(in)  :: numElectronExact
+    real(c_double),                intent(out) :: numElectronPEXSI
+    real(c_double),                intent(out) :: numElectronDrvMuPEXSI
+    integer(c_int),                intent(out) :: info
   end subroutine
 
   subroutine f_ppexsi_plan_finalize(&
@@ -328,8 +329,8 @@ interface
       bind(C, Name="PPEXSIPlanFinalize")
     use, intrinsic :: iso_c_binding
     implicit none
-    integer(c_intptr_t), intent(in), value :: plan
-    integer(c_int),      intent(out)       :: info
+    integer(c_intptr_t), value, intent(in)  :: plan
+    integer(c_int),             intent(out) :: info
   end subroutine
 
   subroutine f_ppexsi_calculate_edm_correction_complex(&
@@ -340,9 +341,9 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    intent(in), value :: plan
-    type(f_ppexsi_options), intent(in), value :: options
-    integer(c_int),         intent(out)       :: info
+    integer(c_intptr_t),    value, intent(in)  :: plan
+    type(f_ppexsi_options), value, intent(in)  :: options
+    integer(c_int),                intent(out) :: info
   end subroutine
 
   subroutine f_ppexsi_calculate_edm_correction_real(&
@@ -353,9 +354,9 @@ interface
     use, intrinsic :: iso_c_binding
     import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t),    intent(in), value :: plan
-    type(f_ppexsi_options), intent(in), value :: options
-    integer(c_int),         intent(out)       :: info
+    integer(c_intptr_t),    value, intent(in)  :: plan
+    type(f_ppexsi_options), value, intent(in)  :: options
+    integer(c_int),                intent(out) :: info
   end subroutine
 
    subroutine f_ppexsi_retrieve_real_dm(&
@@ -374,16 +375,19 @@ interface
 
   subroutine f_ppexsi_retrieve_real_edm(&
       plan,&
+      options,&
       EDMnzvalLocal,&
       totalEnergyS,&
       info)&
       bind(C, Name="PPEXSIRetrieveRealEDM")
     use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t), intent(in), value :: plan
-    real(c_double),      intent(out)       :: EDMnzvalLocal(*)
-    real(c_double),      intent(out)       :: totalEnergyS
-    integer(c_int),      intent(out)       :: info
+    integer(c_intptr_t),    intent(in), value :: plan
+    type(f_ppexsi_options), intent(in), value :: options
+    real(c_double),         intent(out)       :: EDMnzvalLocal(*)
+    real(c_double),         intent(out)       :: totalEnergyS
+    integer(c_int),         intent(out)       :: info
   end subroutine
 
   subroutine f_ppexsi_retrieve_complex_dm(&
@@ -402,16 +406,19 @@ interface
 
   subroutine f_ppexsi_retrieve_complex_edm(&
       plan,&
+      options,&
       EDMnzvalLocal,&
       totalEnergyS,&
       info)&
       bind(C, Name="PPEXSIRetrieveComplexEDM")
     use, intrinsic :: iso_c_binding
+    import         :: f_ppexsi_options
     implicit none
-    integer(c_intptr_t), intent(in), value :: plan
-    complex(c_double),   intent(out)       :: EDMnzvalLocal(*)
-    real(c_double),      intent(out)       :: totalEnergyS
-    integer(c_int),      intent(out)       :: info
+    integer(c_intptr_t),    intent(in), value :: plan
+    type(f_ppexsi_options), intent(in), value :: options
+    complex(c_double),      intent(out)       :: EDMnzvalLocal(*)
+    real(c_double),         intent(out)       :: totalEnergyS
+    integer(c_int),         intent(out)       :: info
   end subroutine
 
 end interface

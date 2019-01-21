@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Lexing Ying, Mathias Jacquelin and Lin Lin
 
@@ -125,7 +125,7 @@ template <class F> void NumMat<F>::Clear()  {
 
 
 
-template <class F> const F& NumMat<F>::operator()(Int i, Int j) const  { 
+template <class F> const F& NumMat<F>::operator()(Int i, Int j) const  {
   if( i < 0 || i >= m_ ||
       j < 0 || j >= n_ ) {
     ErrorHandling( "Index is out of bound." );
@@ -133,7 +133,7 @@ template <class F> const F& NumMat<F>::operator()(Int i, Int j) const  {
   return data_[i+j*m_];
 }
 
-template <class F> F& NumMat<F>::operator()(Int i, Int j)  { 
+template <class F> F& NumMat<F>::operator()(Int i, Int j)  {
   if( i < 0 || i >= m_ ||
       j < 0 || j >= n_ ) {
     ErrorHandling( "Index is out of bound." );
@@ -141,12 +141,12 @@ template <class F> F& NumMat<F>::operator()(Int i, Int j)  {
   return data_[i+j*m_];
 }
 
-template <class F> F* NumMat<F>::VecData(Int j)  const 
-{ 
+template <class F> F* NumMat<F>::VecData(Int j)  const
+{
   if( j < 0 || j >= n_ ) {
     ErrorHandling( "Index is out of bound." );
   }
-  return &(data_[j*m_]); 
+  return &(data_[j*m_]);
 }
 
 
@@ -159,7 +159,7 @@ template <class F> inline Real Energy(const NumMat<F>& M)
 {
   Real sum = 0;
   F *ptr = M.Data();
-  for (Int i=0; i < M.m()*M.n(); i++) 
+  for (Int i=0; i < M.m()*M.n(); i++)
     sum += abs(ptr[i]) * abs(ptr[i]);
   return sum;
 }
@@ -192,7 +192,7 @@ Transpose ( const NumMat<F>& A, NumMat<F>& B )
   }
 
   return ;
-}		// -----  end of function Transpose  ----- 
+}		// -----  end of function Transpose  -----
 
 template <class F> inline void
 ConjTranspose ( const NumMat<F>& A, NumMat<F>& B )
@@ -220,7 +220,7 @@ ConjTranspose ( const NumMat<F>& A, NumMat<F>& B )
   }
 
   return ;
-}		// -----  end of function ConjTranspose  ----- 
+}		// -----  end of function ConjTranspose  -----
 
 
 template <class F> inline void
@@ -245,7 +245,7 @@ Symmetrize( NumMat<F>& A )
 
 
   return ;
-}		// -----  end of function Symmetrize ----- 
+}		// -----  end of function Symmetrize -----
 
 
 } // namespace PEXSI

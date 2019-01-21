@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Mathias Jacquelin and Lin Lin
 
@@ -57,7 +57,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 namespace PEXSI{
 /// @struct SuperLUOptions
 /// @brief A thin interface for passing parameters to set the SuperLU
-/// options.  
+/// options.
 ///
 struct SuperLUOptions{
   /// @brief Number of processors for parallel symbolic factorization.
@@ -78,7 +78,7 @@ struct SuperLUOptions{
   /// requires the usage of METIS package.
   /// - "PARMETIS": Parallel ordering. This requires the usage of
   /// ParMETIS/PT-SCOTCH package.
-  /// - "NATURAL": No ordering. This lead to SIGNIFICANTLY higher 
+  /// - "NATURAL": No ordering. This lead to SIGNIFICANTLY higher
   /// computational and storage costs.
   ///
   std::string      ColPerm;
@@ -95,19 +95,19 @@ struct SuperLUOptions{
   std::string      RowPerm;
 
   /// @brief Option whether to equilibrate the system.
-  /// 
+  ///
   /// The following options of equilibration strategy are available (case
   /// sensitive):
-  /// 
+  ///
   /// - "YES": Scale A's rows and columns to have unit norm.
   /// - "NO": Don't equilibrate the system.
-  /// 
+  ///
   std::string      Equil;
 
   /// @brief Option to specify if matrix is symmetric or not.
   Int              Symmetric;
 
-  /// @brief Option to specify whether selected elements should 
+  /// @brief Option to specify whether selected elements should
   /// be computed in the pattern of the transposed matrix or not.
   /// Note that this has an impact only for unsymmetric matrices.
   Int              Transpose;
@@ -135,18 +135,18 @@ public:
 
   Int m() const;
   Int n() const;
-  void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA , const SuperLUOptions& opt); 
-  void DestroyAOnly(); 
-  void SymbolicFactorize(); 
-  void Distribute(); 
-  void NumericalFactorize(); 
+  void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Real>& sparseA , const SuperLUOptions& opt);
+  void DestroyAOnly();
+  void SymbolicFactorize();
+  void Distribute();
+  void NumericalFactorize();
   void ConvertNRlocToNC	( RealSuperLUData * aptrData );
-  void MultiplyGlobalMultiVector( NumMat<Real>& xGlobal, NumMat<Real>& bGlobal ); 
-  void DistributeGlobalMultiVector( NumMat<Real>& xGlobal, NumMat<Real>& xLocal ); 
-  void GatherDistributedMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& xLocal ); 
-  void SolveDistMultiVector( NumMat<Real>& bLocal, DblNumVec& berr ); 
-  void CheckErrorDistMultiVector( NumMat<Real>& xLocal, NumMat<Real>& xTrueLocal ); 
-  void LUstructToPMatrix( PMatrix<Real>& PMloc ); 
+  void MultiplyGlobalMultiVector( NumMat<Real>& xGlobal, NumMat<Real>& bGlobal );
+  void DistributeGlobalMultiVector( NumMat<Real>& xGlobal, NumMat<Real>& xLocal );
+  void GatherDistributedMultiVector	( NumMat<Real>& xGlobal, NumMat<Real>& xLocal );
+  void SolveDistMultiVector( NumMat<Real>& bLocal, DblNumVec& berr );
+  void CheckErrorDistMultiVector( NumMat<Real>& xLocal, NumMat<Real>& xTrueLocal );
+  void LUstructToPMatrix( PMatrix<Real>& PMloc );
   void SymbolicToSuperNode( SuperNodeType& super );
 };
 
@@ -162,18 +162,18 @@ public:
 
   Int m() const;
   Int n() const;
-  void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA , const SuperLUOptions& opt); 
-  void DestroyAOnly(); 
-  void SymbolicFactorize(); 
-  void Distribute(); 
-  void NumericalFactorize(); 
+  void DistSparseMatrixToSuperMatrixNRloc( DistSparseMatrix<Complex>& sparseA , const SuperLUOptions& opt);
+  void DestroyAOnly();
+  void SymbolicFactorize();
+  void Distribute();
+  void NumericalFactorize();
   void ConvertNRlocToNC	( ComplexSuperLUData * aptrData );
-  void MultiplyGlobalMultiVector( NumMat<Complex>& xGlobal, NumMat<Complex>& bGlobal ); 
-  void DistributeGlobalMultiVector( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal ); 
-  void GatherDistributedMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal ); 
-  void SolveDistMultiVector( NumMat<Complex>& bLocal, DblNumVec& berr ); 
-  void CheckErrorDistMultiVector( NumMat<Complex>& xLocal, NumMat<Complex>& xTrueLocal ); 
-  void LUstructToPMatrix( PMatrix<Complex>& PMloc ); 
+  void MultiplyGlobalMultiVector( NumMat<Complex>& xGlobal, NumMat<Complex>& bGlobal );
+  void DistributeGlobalMultiVector( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal );
+  void GatherDistributedMultiVector	( NumMat<Complex>& xGlobal, NumMat<Complex>& xLocal );
+  void SolveDistMultiVector( NumMat<Complex>& bLocal, DblNumVec& berr );
+  void CheckErrorDistMultiVector( NumMat<Complex>& xLocal, NumMat<Complex>& xTrueLocal );
+  void LUstructToPMatrix( PMatrix<Complex>& PMloc );
   void SymbolicToSuperNode( SuperNodeType& super );
 };
 

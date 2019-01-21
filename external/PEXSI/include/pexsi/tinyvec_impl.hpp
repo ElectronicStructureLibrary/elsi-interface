@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Lexing Ying, Mathias Jacquelin and Lin Lin
 
@@ -51,17 +51,17 @@ namespace PEXSI{
 
 // Template for tiny vectors of dimension 3.
 
-template <class F> 
+template <class F>
   inline F&
-  Vec3T<F>::operator() ( Int i ) 
+  Vec3T<F>::operator() ( Int i )
   {
     if( i < 0 || i > 2 ){
       ErrorHandling( "Index is out of bound." );
     }
     return v_[i];
-  } 		// -----  end of method Vec3T::operator()  ----- 
+  } 		// -----  end of method Vec3T::operator()  -----
 
-template <class F> 
+template <class F>
   inline const F&
   Vec3T<F>::operator() ( Int i ) const
   {
@@ -69,19 +69,19 @@ template <class F>
       ErrorHandling( "Index is out of bound." );
     }
     return v_[i];
-  } 		// -----  end of method Vec3T::operator()  ----- 
+  } 		// -----  end of method Vec3T::operator()  -----
 
-template <class F> 
+template <class F>
   inline F&
-  Vec3T<F>::operator[] ( Int i ) 
+  Vec3T<F>::operator[] ( Int i )
   {
     if( i < 0 || i > 2 ){
       ErrorHandling( "Index is out of bound." );
     }
     return v_[i];
-  } 		// -----  end of method Vec3T::operator[]  ----- 
+  } 		// -----  end of method Vec3T::operator[]  -----
 
-template <class F> 
+template <class F>
   inline const F&
   Vec3T<F>::operator[] ( Int i ) const
   {
@@ -89,7 +89,7 @@ template <class F>
       ErrorHandling( "Index is out of bound." );
     }
     return v_[i];
-  } 		// -----  end of method Vec3T::operator[]  ----- 
+  } 		// -----  end of method Vec3T::operator[]  -----
 
 
 } // namespace PEXSI

@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Lin Lin
 
@@ -51,16 +51,16 @@ such enhancements or derivative works thereof, in binary and source code form.
 namespace PEXSI{
 
 /// @brief Pole expansion for the Fermi-Dirac operator.
-/// 
+///
 /// This is the most commonly used subroutine for the pole expansion,
 /// and can be used to compute the shifts and weights for calculating
 /// the density matrix, the total energy, and the Hellman-Feynman
-/// force. 
+/// force.
 ///
 /// This routine obtains the expansion
 ///
 /// \f[
-///    f_{\beta} (z) = \frac{2}{1+e^{\beta z}} \approx 
+///    f_{\beta} (z) = \frac{2}{1+e^{\beta z}} \approx
 ///    \mathrm{Im} \sum_{l=1}^{P} \frac{\omega^{\rho}_l}{z-z_l}
 /// \f]
 ///
@@ -81,17 +81,17 @@ namespace PEXSI{
 /// \f$\varepsilon\f$ is an eigenvalue.
 /// @param[in]   mu      The chemical potential.
 ///
-/// @return 
-/// - = 0: successful exit.  
+/// @return
+/// - = 0: successful exit.
 /// - > 0: unsuccessful.
-///  
-int GetPoleDensity(Complex* zshift, Complex* zweight, 
+///
+int GetPoleDensity(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu);
 
 /// @brief Pole expansion for the derivative of the Fermi-Dirac
 /// operator with respect to the chemical potential mu.
-/// 
+///
 /// This routine can be used to evaluate the derivative of the number
 /// of electrons with respect to the chemical potential for the
 /// Newton step for updating the chemical potential.
@@ -101,7 +101,7 @@ int GetPoleDensity(Complex* zshift, Complex* zweight,
 ///
 /// \f[
 ///    -\frac{\partial f_{\beta}}{\partial z} (z) =
-///    2\beta \frac{e^{\beta z}}{(1+e^{\beta z})^2} 
+///    2\beta \frac{e^{\beta z}}{(1+e^{\beta z})^2}
 ///    \approx \mathrm{Im} \sum_{l=1}^{P}
 ///    \frac{\omega^{\mu}_l}{z-z_l}
 /// \f]
@@ -123,16 +123,16 @@ int GetPoleDensity(Complex* zshift, Complex* zweight,
 /// \f$\varepsilon\f$ is an eigenvalue.
 /// @param[in]   mu      The chemical potential.
 ///
-/// @return 
-/// - = 0: successful exit.  
+/// @return
+/// - = 0: successful exit.
 /// - > 0: unsuccessful.
-int GetPoleDensityDrvMu(Complex* zshift, Complex* zweight, 
+int GetPoleDensityDrvMu(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu);
 
 /// @brief Pole expansion for the derivative of the Fermi-Dirac
 /// operator with respect to the temperature T \f$(1/\beta)\f$.
-/// 
+///
 /// This routine can be used to extrapolate the number of electrons
 /// from a finite temperature calculation to a zero temperature
 /// calculation, using the derivative information.  However, this
@@ -142,7 +142,7 @@ int GetPoleDensityDrvMu(Complex* zshift, Complex* zweight,
 ///
 /// \f[
 ///    \frac{\partial f_{\beta}}{\partial (1/\beta)} (z) =
-///    2 \beta^2 z \frac{e^{\beta z}}{(1+e^{\beta z})^2} 
+///    2 \beta^2 z \frac{e^{\beta z}}{(1+e^{\beta z})^2}
 ///    \approx \mathrm{Im} \sum_{l=1}^{P}
 ///    \frac{\omega^{T}_l}{z-z_l}
 /// \f]
@@ -164,22 +164,22 @@ int GetPoleDensityDrvMu(Complex* zshift, Complex* zweight,
 /// \f$\varepsilon\f$ is an eigenvalue.
 /// @param[in]   mu      The chemical potential.
 ///
-/// @return 
-/// - = 0: successful exit.  
+/// @return
+/// - = 0: successful exit.
 /// - > 0: unsuccessful.
-int GetPoleDensityDrvT(Complex* zshift, Complex* zweight, 
+int GetPoleDensityDrvT(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu);
 
 /// @brief Pole expansion for the Helmholtz free energy function.
-/// 
+///
 /// This routine can be used to compute the (Helmholtz) free energy
 /// when finite temperature effect exists. This is especially
-/// important for metallic system and other small gapped systems. 
+/// important for metallic system and other small gapped systems.
 /// This routine expands the free energy function
 ///
 /// \f[
-///    f^{\mathcal{F}}_{\beta}(z) = -\frac{2}{\beta} \log 
+///    f^{\mathcal{F}}_{\beta}(z) = -\frac{2}{\beta} \log
 ///    (1 + e^{-\beta z}) \approx \mathrm{Im} \sum_{l=1}^{P}
 ///    \frac{\omega^{\mathcal{F}}_l}{z-z_l}
 /// \f]
@@ -201,16 +201,16 @@ int GetPoleDensityDrvT(Complex* zshift, Complex* zweight,
 /// \f$\varepsilon\f$ is an eigenvalue.
 /// @param[in]   mu      The chemical potential.
 ///
-/// @return 
-/// - = 0: successful exit.  
+/// @return
+/// - = 0: successful exit.
 /// - > 0: unsuccessful.
-int GetPoleHelmholtz(Complex* zshift, Complex* zweight, 
+int GetPoleHelmholtz(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu);
 
 
 /// @brief Pole expansion for the energy density function.
-/// 
+///
 /// This routine can be used to compute the Pulay contribution of the
 /// atomic force in electronic structure calculations.  This term is
 /// especially important when basis set is not complete and changes
@@ -218,7 +218,7 @@ int GetPoleHelmholtz(Complex* zshift, Complex* zweight,
 /// This routine expands the free energy function
 ///
 /// \f[
-///    f^{E}_{\beta}(z) = (z+\mu) f_{\beta}(z) 
+///    f^{E}_{\beta}(z) = (z+\mu) f_{\beta}(z)
 ///    \approx \mathrm{Im} \sum_{l=1}^{P}
 ///    \frac{\omega^{E}_l}{z-z_l}
 /// \f]
@@ -240,19 +240,19 @@ int GetPoleHelmholtz(Complex* zshift, Complex* zweight,
 /// \f$\varepsilon\f$ is an eigenvalue.
 /// @param[in]   mu      The chemical potential.
 ///
-/// @return 
-/// - = 0: successful exit.  
+/// @return
+/// - = 0: successful exit.
 /// - > 0: unsuccessful.
-int GetPoleForce(Complex* zshift, Complex* zweight, 
+int GetPoleForce(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu);
 
 
 /// @brief Pole expansion for the Fermi-Dirac operator and update the
 /// weight at mu+dmu.
-/// 
+///
 /// The shift is given at chemical potential mu, while the weight is
-/// given at mu+dmu. 
+/// given at mu+dmu.
 ///
 /// @note
 ///
@@ -260,7 +260,7 @@ int GetPoleForce(Complex* zshift, Complex* zweight,
 /// recomputing the pole expansion.  dmu should be <b>on the order of
 /// \f$k_BT\f$</b> in order to be accurate.
 ///
-/// - All units (temperature, gap, deltaE) should be the same.  
+/// - All units (temperature, gap, deltaE) should be the same.
 ///	Without specification they should all be Hartree (au).
 ///
 ///
@@ -276,13 +276,13 @@ int GetPoleForce(Complex* zshift, Complex* zweight,
 /// \f$\max_{\varepsilon} |\varepsilon-\mu|\f$, where
 /// \f$\varepsilon\f$ is an eigenvalue.
 /// @param[in]   mu      The chemical potential.
-/// @param[in] dmu Update of chemical potential. 
+/// @param[in] dmu Update of chemical potential.
 ///
-/// @return 
-/// - = 0: successful exit.  
+/// @return
+/// - = 0: successful exit.
 /// - > 0: unsuccessful.
-///  
-int GetPoleDensityUpdate(Complex* zshift, Complex* zweight, 
+///
+int GetPoleDensityUpdate(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu, double dmu);
 
@@ -290,7 +290,7 @@ int GetPoleDensityUpdate(Complex* zshift, Complex* zweight,
 ///
 /// Similar to @ref GetPoleHelmholtz but obtain the weights using the
 /// update formula
-int GetPoleHelmholtzUpdate(Complex* zshift, Complex* zweight, 
+int GetPoleHelmholtzUpdate(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu, double dmu);
 
@@ -298,7 +298,7 @@ int GetPoleHelmholtzUpdate(Complex* zshift, Complex* zweight,
 ///
 /// Similar to @ref GetPoleForce but obtain the weights using the
 /// update formula
-int GetPoleForceUpdate(Complex* zshift, Complex* zweight, 
+int GetPoleForceUpdate(Complex* zshift, Complex* zweight,
     int Npole, double temp, double gap, double deltaE,
     double mu, double dmu);
 

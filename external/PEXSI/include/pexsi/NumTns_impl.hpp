@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Lexing Ying, Mathias Jacquelin and Lin Lin
 
@@ -68,9 +68,9 @@ template <class F> NumTns<F>::NumTns(Int m, Int n, Int p, bool owndata, F* data)
 
 template <class F> NumTns<F>::NumTns(const NumTns<F>& C): m_(C.m_), n_(C.n_), p_(C.p_), owndata_(C.owndata_) {
   if(owndata_) {
-    if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; 
+    if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_];
       if( data_ == NULL ) {
-        ErrorHandling("Cannot allocate memory.");} 
+        ErrorHandling("Cannot allocate memory.");}
     } else data_=NULL;
 
     if(m_>0 && n_>0 && p_>0) { for(Int i=0; i<m_*n_*p_; i++) data_[i] = C.data_[i]; }
@@ -79,15 +79,15 @@ template <class F> NumTns<F>::NumTns(const NumTns<F>& C): m_(C.m_), n_(C.n_), p_
   }
 }
 
-template <class F> NumTns<F>::~NumTns() { 
-  if(owndata_) { 
-    if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; } 
+template <class F> NumTns<F>::~NumTns() {
+  if(owndata_) {
+    if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; }
   }
 }
 
 template <class F> NumTns<F>& NumTns<F>::operator=(const NumTns<F>& C) {
-  if(owndata_) { 
-    if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; } 
+  if(owndata_) {
+    if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; }
   }
   m_ = C.m_; n_=C.n_; p_=C.p_; owndata_=C.owndata_;
   if(owndata_) {
@@ -105,7 +105,7 @@ template <class F> void NumTns<F>::Resize(Int m, Int n, Int p)  {
     ErrorHandling("Tensor being resized must own data.");
   }
   if(m_!=m || n_!=n || p_!=p) {
-    if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; } 
+    if(m_>0 && n_>0 && p_>0) { delete[] data_; data_ = NULL; }
     m_ = m; n_ = n; p_=p;
     if(m_>0 && n_>0 && p_>0) { data_ = new F[m_*n_*p_]; if( data_ == NULL ) {
       ErrorHandling("Cannot allocate memory.");}
@@ -151,7 +151,7 @@ template <class F> F* NumTns<F>::VecData (Int j, Int k) const {
 template <class F> inline void SetValue(NumTns<F>& T, F val)
 {
   F *ptr = T.data_;
-  for(Int i=0; i < T.m() * T.n() * T.p(); i++) *(ptr++) = val; 
+  for(Int i=0; i < T.m() * T.n() * T.p(); i++) *(ptr++) = val;
 
   return;
 }
@@ -163,7 +163,7 @@ template <class F> inline Real Energy(const NumTns<F>& T)
   Real sum = 0;
 
   F *ptr = T.Data();
-  for(Int i=0; i < T.m() * T.n() * T.p(); i++) 
+  for(Int i=0; i < T.m() * T.n() * T.p(); i++)
     sum += abs(ptr[i]) * abs(ptr[i]);
 
   return sum;

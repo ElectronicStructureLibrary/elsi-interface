@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Authors: Lexing Ying, Mathias Jacquelin and Lin Lin
 
@@ -58,7 +58,7 @@ namespace  PEXSI{
 template <class F> NumVec<F>::NumVec	() : m_(0), owndata_(true), data_(NULL), bufsize_(0)
 {
   m_ = 0;
-} 		// -----  end of method NumVec<F>::NumVec  ----- 
+} 		// -----  end of method NumVec<F>::NumVec  -----
 
 
 template <class F> NumVec<F>::NumVec	( Int m ) : m_(m), owndata_(true), data_(NULL), bufsize_(0)
@@ -66,26 +66,26 @@ template <class F> NumVec<F>::NumVec	( Int m ) : m_(m), owndata_(true), data_(NU
 
   this->allocate();
 
-} 		// -----  end of method NumVec<F>::NumVec  ----- 
+} 		// -----  end of method NumVec<F>::NumVec  -----
 
 template <class F> NumVec<F>::NumVec	( Int m, bool owndata, F* data ) : m_(m), owndata_(owndata), data_(NULL), bufsize_(0)
 {
 
   this->allocate(data);
 
-} 		// -----  end of method NumVec<F>::NumVec  ----- 
+} 		// -----  end of method NumVec<F>::NumVec  -----
 
 template <class F> NumVec<F>::NumVec	( const NumVec<F>& C ) : m_(C.m_), owndata_(C.owndata_), data_(NULL), bufsize_(0)
 {
   this->allocate(C.data_);
-} 		// -----  end of method NumVec<F>::NumVec  ----- 
+} 		// -----  end of method NumVec<F>::NumVec  -----
 
 
 template < class F > NumVec<F>::~NumVec	(  )
 {
   this->deallocate();
 
-} 		// -----  end of method NumVec<F>::~NumVec  ----- 
+} 		// -----  end of method NumVec<F>::~NumVec  -----
 
 
 template < class F > inline NumVec<F>& NumVec<F>::operator =	( const NumVec& C  )
@@ -96,7 +96,7 @@ template < class F > inline NumVec<F>& NumVec<F>::operator =	( const NumVec& C  
   this->allocate(C.data_);
 
   return *this;
-} 		// -----  end of method NumVec<F>::operator=  ----- 
+} 		// -----  end of method NumVec<F>::operator=  -----
 
 
 template < class F > inline void NumVec<F>::Resize	( const Int m )
@@ -113,7 +113,7 @@ template < class F > inline void NumVec<F>::Resize	( const Int m )
     m_ = m;
   }
   return ;
-} 		// -----  end of method NumVec<F>::Resize  ----- 
+} 		// -----  end of method NumVec<F>::Resize  -----
 
 template < class F > inline void NumVec<F>::Clear	( )
 {
@@ -124,7 +124,7 @@ template < class F > inline void NumVec<F>::Clear	( )
     this->deallocate();
   }
   return ;
-} 		// -----  end of method NumVec<F>::Clear  ----- 
+} 		// -----  end of method NumVec<F>::Clear  -----
 
 
 
@@ -135,7 +135,7 @@ template <class F> inline F& NumVec<F>::operator()	( Int i )
   }
   return data_[i];
 
-} 		// -----  end of method NumVec<F>::operator()  ----- 
+} 		// -----  end of method NumVec<F>::operator()  -----
 
 
 template <class F>
@@ -147,7 +147,7 @@ NumVec<F>::operator()	( Int i ) const
   }
   return data_[i];
 
-} 		// -----  end of method NumVec<F>::operator()  ----- 
+} 		// -----  end of method NumVec<F>::operator()  -----
 
 
 template <class F> inline F& NumVec<F>::operator[]	( Int i )
@@ -156,7 +156,7 @@ template <class F> inline F& NumVec<F>::operator[]	( Int i )
     ErrorHandling( "Index is out of bound." );
   }
   return data_[i];
-} 		// -----  end of method NumVec<F>::operator[]  ----- 
+} 		// -----  end of method NumVec<F>::operator[]  -----
 
 
 template <class F> inline const F& NumVec<F>::operator[]	( Int i ) const
@@ -166,34 +166,34 @@ template <class F> inline const F& NumVec<F>::operator[]	( Int i ) const
   }
   return data_[i];
 
-} 		// -----  end of method NumVec<F>::operator[]  ----- 
+} 		// -----  end of method NumVec<F>::operator[]  -----
 
 template <class F> inline void NumVec<F>::allocate(F* data) {
   if(owndata_) {
-    if(m_>0) { 
-      data_ = new F[m_]; 
+    if(m_>0) {
+      data_ = new F[m_];
       if( data_ == NULL ) {
         ErrorHandling("Cannot allocate memory.");
       }
-    } 
+    }
     else{
       data_=NULL;
     }
     if(data!=NULL){
       std::copy(data,data+m_,data_);
     }
-  } 
+  }
   else {
     data_ = data;
   }
   bufsize_ = m_;
-} 		// -----  end of method NumVec<F>::allocate  ----- 
+} 		// -----  end of method NumVec<F>::allocate  -----
 
 template <class F> inline void NumVec<F>::deallocate() {
   if(owndata_) {
     if(bufsize_>0) { delete[] data_; data_ = NULL; bufsize_=0; m_=0; }
   }
-} 		// -----  end of method NumVec<F>::deallocate  ----- 
+} 		// -----  end of method NumVec<F>::deallocate  -----
 
 
 
@@ -210,7 +210,7 @@ template <class F> inline Real Energy( const NumVec<F>& vec )
     sum += std::abs(vec(i)*vec(i));
   }
   return sum;
-}  
+}
 
 
 } // namespace PEXSI

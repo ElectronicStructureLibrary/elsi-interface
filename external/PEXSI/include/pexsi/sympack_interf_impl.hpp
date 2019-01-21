@@ -1,6 +1,6 @@
 /*
    Copyright (c) 2012 The Regents of the University of California,
-   through Lawrence Berkeley National Laboratory.  
+   through Lawrence Berkeley National Laboratory.
 
 Author: Mathias Jacquelin and Lin Lin
 
@@ -68,7 +68,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 namespace PEXSI{
 
-  template<typename T> void symPACKMatrixToSuperNode( 
+  template<typename T> void symPACKMatrixToSuperNode(
       symPACK::symPACKMatrix<T>& SMat,
       SuperNodeType& super ){
     Int n = SMat.Size();
@@ -125,11 +125,11 @@ namespace PEXSI{
       super.etree[i]-=1;
     }
 
-  }  // -----  end of symPACKMatrixToSuperNode ----- 
+  }  // -----  end of symPACKMatrixToSuperNode -----
 
 
 
-  template<typename T> void symPACKMatrixToPMatrix( 
+  template<typename T> void symPACKMatrixToPMatrix(
       symPACK::symPACKMatrix<T>& SMat,
       PMatrix<T>& PMat ){
     TIMER_START(symPACKtoPMatrix);
@@ -143,12 +143,12 @@ namespace PEXSI{
     MPI_Comm comm = g->comm;
     MPI_Comm colComm = g->colComm;
     MPI_Comm rowComm = g->rowComm;
-    MPI_Comm_size(comm, &mpisize); 
+    MPI_Comm_size(comm, &mpisize);
     MPI_Comm_rank(comm, &mpirank);
 
     Int nprow = g->numProcRow, npcol = g->numProcCol;
 
-    Int mpirow = mpirank / npcol;  
+    Int mpirow = mpirank / npcol;
     Int mpicol = mpirank % npcol;
 
     Int n = SMat.Size();
@@ -170,7 +170,7 @@ namespace PEXSI{
     //   cyclic)
     //     serialize the information
     //     broadcast the information to all processors
-    //   elseif 
+    //   elseif
     //     receive the information from the processor owning the
     //     supernode, and save the information in a deserialized buffer
     //   endif
@@ -226,10 +226,10 @@ namespace PEXSI{
         // Get the local supernode
         Int iSuperLocal = SMat.snodeLocalIndex(iSuper+1);
         //symPACK::SuperNode<T>& snodetmp = SMat.GetLocalSupernode(iSuperLocal-1);
-        symPACK::SuperNode<T>* snodetmp = SMat.snodeLocal(iSuper+1); 
+        symPACK::SuperNode<T>* snodetmp = SMat.snodeLocal(iSuper+1);
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << "iSuper = " << iSuper << ", iSuperLocal = " <<
-          iSuperLocal << ", id = " << snodetmp->Id() << ", size = " << 
+          iSuperLocal << ", id = " << snodetmp->Id() << ", size = " <<
           snodetmp->Size() << ", #Block = " << snodetmp->NZBlockCnt() <<
           std::endl;
         //    statusOFS << "snode (before bcast) = " << *snodetmp << std::endl;
@@ -296,7 +296,7 @@ namespace PEXSI{
         blkVec.insert( blkVec.end(), blkSet.begin(), blkSet.end() );
         Lcol.resize( blkVec.size() );
 
-        // Allocate the nonzero rows and nzvals 
+        // Allocate the nonzero rows and nzvals
 #if ( _DEBUGlevel_ >= 1 )
         statusOFS << "Lcol.size = " << Lcol.size() << std::endl;
         statusOFS << "blkSet.size = " << blkSet.size() << std::endl;
@@ -321,7 +321,7 @@ namespace PEXSI{
               rowsBlk[pos].push_back(i);
               nzvalBlk[pos].insert(
                   nzvalBlk[pos].end(),
-                  nzval, nzval + superSize ); 
+                  nzval, nzval + superSize );
             }
             nzval += superSize;
           }
@@ -492,7 +492,7 @@ namespace PEXSI{
     MPI_Type_free(&type);
 
     size_t recvHead = 0;
-    
+
     //IrecvPtr->setHead(0);
     //while(IrecvPtr->head < IrecvPtr->capacity())
     while(recvHead < rdispls.back())
@@ -521,7 +521,7 @@ namespace PEXSI{
         if(destBlkIdx!=curBlkIdx){
           //push a new block
           blockSizes.push_back(0);
-        }  
+        }
         blockSizes.back()++;
         curBlkIdx = destBlkIdx;
 
@@ -632,7 +632,7 @@ namespace PEXSI{
       for( Int iblk = 0; iblk < Lcol.size(); iblk++ ){
         LBlock<T>& LB = Lcol[iblk];
         PMat.ColBlockIdx(jb).push_back(LB.blockIdx);
-        Int LBi = LB.blockIdx / g->numProcRow; 
+        Int LBi = LB.blockIdx / g->numProcRow;
         PMat.RowBlockIdx( LBi ).push_back( bnum );
       }
     }
@@ -646,7 +646,7 @@ namespace PEXSI{
       for(Int jblk = 0; jblk < Urow.size(); jblk++ ){
         UBlock<T> & UB = Urow[jblk];
         PMat.RowBlockIdx(ib).push_back(UB.blockIdx);
-        Int LBj = UB.blockIdx / g->numProcCol; 
+        Int LBj = UB.blockIdx / g->numProcCol;
         PMat.ColBlockIdx( LBj ).push_back( bnum );
       }
     }
@@ -676,13 +676,13 @@ namespace PEXSI{
               //LB.nzval(row,col) = T(std::conj(LB.nzval(col,row))) * LB.nzval(row,row);
               LB.nzval(row,col) = (LB.nzval(col,row)) * LB.nzval(row,row);
             }
-          } 
+          }
           DiagBuf = LB.nzval;
         }
       }
     }
     TIMER_STOP(symPACKtoPMatrix);
-  }  // -----  end of symPACKMatrixToPMatrix ----- 
+  }  // -----  end of symPACKMatrixToPMatrix -----
 
 //#ifndef _SYM_STORAGE_
   template<typename T> void PMatrixLtoU( PMatrix<T>& PMat )
@@ -697,11 +697,11 @@ namespace PEXSI{
     MPI_Comm comm = g->comm;
     MPI_Comm colComm = g->colComm;
     MPI_Comm rowComm = g->rowComm;
-    MPI_Comm_size(comm, &mpisize); 
+    MPI_Comm_size(comm, &mpisize);
     MPI_Comm_rank(comm, &mpirank);
 
     Int nprow = g->numProcRow, npcol = g->numProcCol;
-    Int mpirow = mpirank / npcol;  
+    Int mpirow = mpirank / npcol;
     Int mpicol = mpirank % npcol;
 
     Int numSuper = PMat.NumSuper();
@@ -757,7 +757,7 @@ namespace PEXSI{
 
           //sender_proc[i] contains the set of sender to processor column i
           std::vector<std::set<Int> > sender_procs(npcol);
-          std::vector<Int> urow_sizes(npcol,0);      
+          std::vector<Int> urow_sizes(npcol,0);
           for(Int prow = 0; prow < nprow; ++prow){
             Int * recv_list = &all_proc_list[displs[prow]];
             Int * recv_blocks = &all_blocks_cnt[displs[prow]];
@@ -797,7 +797,7 @@ namespace PEXSI{
         MPI_Scatter(mpicol==root?&sizes[0]:NULL,sizeof(Int),MPI_BYTE,
             &localSize,sizeof(Int),MPI_BYTE, root, rowComm);
         sender_proc.resize(localSize / sizeof(Int));
-        //Now do the scatterv; 
+        //Now do the scatterv;
         MPI_Scatterv(mpicol==root?&all_proc_list[0]:NULL,
             mpicol==root?&sizes[0]:NULL,
             mpicol==root?&displs[0]:NULL,MPI_BYTE,
@@ -837,7 +837,7 @@ namespace PEXSI{
 #endif
               serialize( numLBlocks , sstm, NO_MASK);
               typename std::list<LBlock<T> *>::iterator it;
-              for(it = blocks.begin(); 
+              for(it = blocks.begin();
                   it!=blocks.end();++it){
                 LBlock<T> & LB = *(*it);
 #if ( _DEBUGlevel_ >= 1 )
@@ -854,7 +854,7 @@ namespace PEXSI{
         }
       }
 
-      //If I'm a receiver 
+      //If I'm a receiver
       if( mpirow == ( ksup % nprow ) ){
         std::vector<Int> mask( LBlockMask::TOTAL_NUMBER, 1 );
         Int ib = ksup / nprow;
@@ -891,7 +891,7 @@ namespace PEXSI{
               UB.numRow = LB.numCol;
               UB.cols = LB.rows;
               Transpose(LB.nzval,UB.nzval);
-              ++idx; 
+              ++idx;
             }
           }
           else{
@@ -903,7 +903,7 @@ namespace PEXSI{
             std::list<LBlock<T> *> & blocks = blocks_to_receiver[pcol];
             if(blocks.size()>0){
               typename std::list<LBlock<T> *>::iterator it;
-              for(it = blocks.begin(); 
+              for(it = blocks.begin();
                   it!=blocks.end();++it){
                 LBlock<T> & LB = *(*it);
                 UBlock<T> & UB = Urow[idx];
@@ -913,7 +913,7 @@ namespace PEXSI{
                 UB.numRow = LB.numCol;
                 UB.cols = LB.rows;
                 Transpose(LB.nzval,UB.nzval);
-                ++idx; 
+                ++idx;
               }
             }
           }
@@ -924,7 +924,7 @@ namespace PEXSI{
     }
 
     TIMER_STOP(PMatrixLtoU);
-  }  // -----  end of PMatrixLToU ----- 
+  }  // -----  end of PMatrixLToU -----
 //#endif
 
 

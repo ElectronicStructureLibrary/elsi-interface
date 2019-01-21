@@ -22,7 +22,7 @@ will be built. Optionally, they may be substituted by user's optimized versions:
 * MatrixSwitch
 * NTPoly (2.1 or newer)
 * PT-SCOTCH (6.0.0)
-* SuperLU\_DIST (5.3.0)
+* SuperLU\_DIST (6.1.0)
 
 ## CMake basics
 
