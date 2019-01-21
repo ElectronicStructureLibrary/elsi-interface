@@ -258,7 +258,7 @@ ELSI is a National Science Foundation Software Infrastructure for Sustained Inno
 \chapter{Installation of ELSI}
 \section{Overview}
 \label{sec:install}
-The ELSI package contains the ELSI interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.0.3), and NTPoly (version 2.1).  Starting from the May 2018 (version 2.0.0) release, the installation of ELSI makes use of the \href{http://cmake.org}{CMake} software.
+The ELSI package contains the ELSI interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.2.0), and NTPoly (version 2.1).  The installation of ELSI makes use of the \href{http://cmake.org}{CMake} software.
 
 \section{Prerequisites}
 \label{sec:prereq}
@@ -435,7 +435,7 @@ if using redistributed SuperLU\_DIST with PT-SCOTCH, or
 \end{verbatim}
 \end{tcolorbox}
 
-if using an externally compiled SuperLU\_DIST.  SuperLU\_DIST 5.3.0 has been tested with this version of ELSI.  Older/newer versions may or may not be compatible.
+if using an externally compiled SuperLU\_DIST.  SuperLU\_DIST 5.3.0, 5.4.0, and 6.1.0 have been tested with this version of ELSI.  Older/newer versions may or may not be compatible.
 
 SLEPc-SIPs may be activated by specifying:
 \begin{tcolorbox}
@@ -450,7 +450,7 @@ metis;ptesmumps;ptscotchparmetis;ptscotch;ptscotcherr;esmumps;scotchmetis;scotch
 \end{verbatim}
 \end{tcolorbox}
 
-SLEPc 3.9.2 and PETSc 3.9.3 have been tested with this version of ELSI.  Older/newer versions may or may not be compatible.  The PETSc library must be compiled with MPI support, and (at least) with external packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.  The SuperLU\_DIST library redistributed through ELSI must be turned off by setting \textcolor{blue}{USE\_EXTERNAL\_SUPERLU} to ``ON'', as SuperLU\_DIST is already present in the PETSc installation.
+SLEPc 3.9.2 and PETSc 3.9.4 have been tested with this version of ELSI.  Older/newer versions may or may not be compatible.  The PETSc library must be compiled with MPI support, and (at least) with external packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.  The SuperLU\_DIST library redistributed through ELSI must be turned off by setting \textcolor{blue}{USE\_EXTERNAL\_SUPERLU} to ``ON'', as SuperLU\_DIST is already present in the PETSc installation.
 
 \subsection{Build Targets}
 \label{subsec:config_targets}
@@ -2272,6 +2272,6 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 \end{Verbatim}
 \end{tcolorbox}
 
-The source code of ELPA 2016.11.001 (LGPL3), libOMM (BSD2), NTPoly 2.1 (MIT), PEXSI 1.0.3 (BSD3), PT-SCOTCH 6.0.0 (CeCILL-C), and SuperLU\_DIST 5.3.0 (BSD3) are redistributed through this version of ELSI.  Individual license of each library can be found in the corresponding subfolder.
+The source code of ELPA 2016.11.001 (LGPL3), libOMM (BSD2), NTPoly 2.1 (MIT), PEXSI 1.2.0 (BSD3), PT-SCOTCH 6.0.0 (CeCILL-C), and SuperLU\_DIST 6.1.0 (BSD3) are redistributed through this version of ELSI.  Individual license of each library can be found in the corresponding subfolder.
 
 \end{document}
