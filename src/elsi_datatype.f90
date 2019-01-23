@@ -109,6 +109,9 @@ module ELSI_DATATYPE
       real(kind=r8) :: spin_degen
       logical :: spin_is_set = .false.
       real(kind=r8) :: ebs ! Band structure energy
+      real(kind=r8) :: energy_gap
+      real(kind=r8) :: spectrum_width
+      integer(kind=i4) :: dimensionality
       logical :: edm_ready_real = .false.
       logical :: edm_ready_cmplx = .false.
 

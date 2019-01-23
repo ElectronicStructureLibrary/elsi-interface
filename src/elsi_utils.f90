@@ -110,6 +110,9 @@ subroutine elsi_reset_param(ph)
    ph%spin_degen = 0.0_r8
    ph%spin_is_set = .false.
    ph%ebs = 0.0_r8
+   ph%energy_gap = 0.0_r8
+   ph%spectrum_width = 1.0e3_r8
+   ph%dimensionality = 3
    ph%edm_ready_real = .false.
    ph%edm_ready_cmplx = .false.
    ph%mu = 0.0_r8
@@ -343,8 +346,6 @@ subroutine elsi_check(ph,bh,caller)
 
    ! Specific check for each solver
    select case(ph%solver)
-   case(ELPA_SOLVER)
-      ! Nothing
    case(OMM_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
          call elsi_stop(bh,"libOMM requires MULTI_PROC parallel mode.",caller)
@@ -360,8 +361,8 @@ subroutine elsi_check(ph,bh,caller)
       end if
 
       if(ph%pexsi_np_per_pole /= UNSET) then
-         if(mod(bh%n_procs,ph%pexsi_np_per_pole*ph%pexsi_options%nPoints)&
-            /= 0) then
+         if(mod(bh%n_procs,ph%pexsi_np_per_pole*ph%pexsi_options%nPoints) /= 0)&
+            then
             call elsi_stop(bh,"To use PEXSI, specified number of MPI tasks"//&
                  " per pole times number of mu points must be a divisor of"//&
                  " number of MPI tasks.",caller)

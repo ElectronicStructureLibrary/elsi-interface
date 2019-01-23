@@ -726,6 +726,54 @@ subroutine elsi_set_sing_stop_c_wrapper(h_c,sing_stop)&
 
 end subroutine
 
+subroutine elsi_set_energy_gap_c_wrapper(h_c,gap)&
+   bind(C,name="c_elsi_set_energy_gap")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   real(kind=c_double), value, intent(in) :: gap
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_energy_gap(h_f,gap)
+
+end subroutine
+
+subroutine elsi_set_spectrum_width_c_wrapper(h_c,width)&
+   bind(C,name="c_elsi_set_spectrum_width")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   real(kind=c_double), value, intent(in) :: width
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_spectrum_width(h_f,width)
+
+end subroutine
+
+subroutine elsi_set_dimensionality_c_wrapper(h_c,dimensionality)&
+   bind(C,name="c_elsi_set_dimensionality")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: dimensionality
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_dimensionality(h_f,dimensionality)
+
+end subroutine
+
 subroutine elsi_set_elpa_solver_c_wrapper(h_c,solver)&
    bind(C,name="c_elsi_set_elpa_solver")
 

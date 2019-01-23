@@ -151,6 +151,15 @@ void c_elsi_set_sing_tol(elsi_handle handle_c,
 void c_elsi_set_sing_stop(elsi_handle handle_c,
                           int sing_stop);
 
+void c_elsi_set_energy_gap(elsi_handle handle_c,
+                           double gap);
+
+void c_elsi_set_spectrum_width(elsi_handle handle_c,
+                               double width);
+
+void c_elsi_set_dimensionality(elsi_handle handle_c,
+                               int dimensionality);
+
 void c_elsi_set_elpa_solver(elsi_handle handle_c,
                             int solver);
 

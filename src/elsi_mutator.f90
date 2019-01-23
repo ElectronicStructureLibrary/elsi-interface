@@ -41,6 +41,9 @@ module ELSI_MUTATOR
    public :: elsi_set_illcond_check
    public :: elsi_set_illcond_tol
    public :: elsi_set_illcond_abort
+   public :: elsi_set_energy_gap
+   public :: elsi_set_spectrum_width
+   public :: elsi_set_dimensionality
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
@@ -123,10 +126,18 @@ module ELSI_MUTATOR
       module procedure elsi_get_n_illcond
    end interface
 
+   interface elsi_set_pexsi_gap
+      module procedure elsi_set_energy_gap
+   end interface
+
+   interface elsi_set_pexsi_delta_e
+      module procedure elsi_set_spectrum_width
+   end interface
+
 contains
 
 !>
-!! This routine sets ELSI output level.
+!! This routine sets the output level of ELSI.
 !!
 subroutine elsi_set_output(eh,output)
 
@@ -204,7 +215,7 @@ subroutine elsi_set_output_log(eh,output_log)
 end subroutine
 
 !>
-!! This routine sets the user_tag for the log.
+!! This routine sets a custom tag for the JSON log file.
 !!
 subroutine elsi_set_output_tag(eh,output_tag)
 
@@ -388,6 +399,74 @@ subroutine elsi_set_illcond_abort(eh,illcond_abort)
    else
       eh%ph%ill_abort = .true.
    end if
+
+end subroutine
+
+!>
+!! This routine sets an estimate of the band (or HOMO/LUMO) gap.
+!!
+subroutine elsi_set_energy_gap(eh,gap)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(in) :: gap !< Energy gap
+
+   character(len=*), parameter :: caller = "elsi_set_energy_gap"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(gap < 0.0_r8) then
+      call elsi_stop(eh%bh,"Input value should not be negative.",caller)
+   end if
+
+   eh%ph%energy_gap = gap
+   eh%ph%pexsi_options%gap = gap
+
+end subroutine
+
+!>
+!! This routine sets an estimate of the eigenspectrum width.
+!!
+subroutine elsi_set_spectrum_width(eh,width)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(in) :: width !< Spectrum width
+
+   character(len=*), parameter :: caller = "elsi_set_spectrum_width"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(width < 0.0_r8) then
+      call elsi_stop(eh%bh,"Input value should not be negative.",caller)
+   end if
+
+   eh%ph%spectrum_width = width
+   eh%ph%pexsi_options%deltaE = width
+
+end subroutine
+
+!>
+!! This routine sets the dimensionality of the simulating system.
+!!
+subroutine elsi_set_dimensionality(eh,dimensionality)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: dimensionality !< Dimensionality
+
+   character(len=*), parameter :: caller = "elsi_set_dimensionality"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(dimensionality < 1 .or. dimensionality > 3) then
+      call elsi_stop(eh%bh,"Input value should be 1, 2, or 3.",caller)
+   end if
+
+   eh%ph%dimensionality = dimensionality
 
 end subroutine
 
@@ -699,50 +778,6 @@ subroutine elsi_set_pexsi_temp(eh,temp)
    end if
 
    eh%ph%pexsi_options%temperature = temp
-
-end subroutine
-
-!>
-!! This routine sets the spectral gap in PEXSI.
-!!
-subroutine elsi_set_pexsi_gap(eh,gap)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: gap !< Gap
-
-   character(len=*), parameter :: caller = "elsi_set_pexsi_gap"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   if(gap < 0.0_r8) then
-      call elsi_stop(eh%bh,"Input value should not be negative.",caller)
-   end if
-
-   eh%ph%pexsi_options%gap = gap
-
-end subroutine
-
-!>
-!! This routine sets the spectrum width in PEXSI.
-!!
-subroutine elsi_set_pexsi_delta_e(eh,delta_e)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: delta_e !< Spectrum width
-
-   character(len=*), parameter :: caller = "elsi_set_pexsi_delta_e"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   if(delta_e < 0.0_r8) then
-      call elsi_stop(eh%bh,"Input value should not be negative.",caller)
-   end if
-
-   eh%ph%pexsi_options%deltaE = delta_e
 
 end subroutine
 
@@ -1256,7 +1291,7 @@ subroutine elsi_get_initialized(eh,initialized)
 end subroutine
 
 !>
-!! This routine returns version number.
+!! This routine returns the version number of ELSI.
 !!
 subroutine elsi_get_version(major,minor,patch)
 
@@ -1288,7 +1323,7 @@ subroutine elsi_get_version(major,minor,patch)
 end subroutine
 
 !>
-!! This routine returns date stamp.
+!! This routine returns the date stamp of ELSI source code.
 !!
 subroutine elsi_get_datestamp(datestamp)
 
