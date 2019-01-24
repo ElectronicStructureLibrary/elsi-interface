@@ -59,7 +59,7 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
+   type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
    type(fjson_handle), intent(inout) :: jh
    character(len=*), intent(in) :: dt0
@@ -70,6 +70,41 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
    real(kind=r8) :: t1
    character(len=20) :: solver_tag
    character(len=29) :: dt_record
+
+   call elsi_get_time(t1)
+
+   solver_use = 1
+
+   select case(ph%solver)
+   case(ELPA_SOLVER)
+      if(ph%parallel_mode == SINGLE_PROC) then
+         solver_tag = "LAPACK"
+      else
+         solver_tag = "ELPA"
+      end if
+   case(OMM_SOLVER)
+      if(ph%n_calls <= ph%omm_n_elpa) then
+         solver_tag = "ELPA"
+      else
+         solver_tag = "LIBOMM"
+         solver_use = 2
+      end if
+   case(PEXSI_SOLVER)
+      solver_tag = "PEXSI"
+      solver_use = 3
+   case(SIPS_SOLVER)
+      if(ph%n_calls <= ph%sips_n_elpa) then
+         solver_tag = "ELPA"
+      else
+         solver_tag = "SLEPC_SIPS"
+         solver_use = 5
+      end if
+   case(NTPOLY_SOLVER)
+      solver_tag = "NTPOLY"
+      solver_use = 6
+   end select
+
+   ph%decision_data(solver_use) = ceiling(t1-t0,kind=i4)
 
    if(bh%print_json > 0) then
       if(.not. bh%json_init) then
@@ -84,40 +119,7 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
          bh%json_init = .true.
       end if
 
-      call elsi_get_time(t1)
       call fjson_get_datetime_rfc3339(dt_record)
-
-      solver_use = 1
-
-      select case(ph%solver)
-      case(ELPA_SOLVER)
-         if(ph%parallel_mode == SINGLE_PROC) then
-            solver_tag = "LAPACK"
-         else
-            solver_tag = "ELPA"
-         end if
-      case(OMM_SOLVER)
-         if(ph%n_calls <= ph%omm_n_elpa) then
-            solver_tag = "ELPA"
-         else
-            solver_tag = "LIBOMM"
-            solver_use = 2
-         end if
-      case(PEXSI_SOLVER)
-         solver_tag = "PEXSI"
-         solver_use = 3
-      case(SIPS_SOLVER)
-         if(ph%n_calls <= ph%sips_n_elpa) then
-            solver_tag = "ELPA"
-         else
-            solver_tag = "SLEPC_SIPS"
-            solver_use = 5
-         end if
-      case(NTPOLY_SOLVER)
-         solver_tag = "NTPOLY"
-         solver_use = 6
-      end select
-
       call fjson_start_object(jh)
       call elsi_print_versioning(bh%uuid,jh)
       call fjson_write_name_value(jh,"step",ph%n_calls)

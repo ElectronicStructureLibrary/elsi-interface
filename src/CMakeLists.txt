@@ -14,6 +14,7 @@ LIST(APPEND elsi_src
   elsi_c_interface.f90
   elsi_constants.f90
   elsi_datatype.f90
+  elsi_decision.f90
   elsi_interface.f90
   elsi_io.f90
   elsi_lapack.f90

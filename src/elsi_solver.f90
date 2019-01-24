@@ -14,6 +14,7 @@ module ELSI_SOLVER
    use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
        NTPOLY_SOLVER,MULTI_PROC,SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,GENERIC_COO
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
+   use ELSI_DECISION, only: elsi_decide_ev,elsi_decide_dm
    use ELSI_ELPA, only: elsi_init_elpa,elsi_solve_elpa
    use ELSI_IO, only: elsi_add_log,elsi_get_time,fjson_get_datetime_rfc3339
    use ELSI_LAPACK, only: elsi_solve_lapack
@@ -180,6 +181,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    call elsi_check(eh%ph,eh%bh,caller)
    call elsi_get_time(t0)
    call fjson_get_datetime_rfc3339(dt0)
+   call elsi_decide_ev(eh%ph,eh%bh)
 
    eh%ph%n_calls = eh%ph%n_calls+1
    solver = eh%ph%solver
@@ -274,6 +276,7 @@ subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
    call elsi_check(eh%ph,eh%bh,caller)
    call elsi_get_time(t0)
    call fjson_get_datetime_rfc3339(dt0)
+   call elsi_decide_ev(eh%ph,eh%bh)
 
    eh%ph%n_calls = eh%ph%n_calls+1
 
@@ -319,6 +322,7 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
    call elsi_check(eh%ph,eh%bh,caller)
    call elsi_get_time(t0)
    call fjson_get_datetime_rfc3339(dt0)
+   call elsi_decide_ev(eh%ph,eh%bh)
 
    eh%ph%n_calls = eh%ph%n_calls+1
    solver = eh%ph%solver
@@ -474,6 +478,7 @@ subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
    call elsi_check(eh%ph,eh%bh,caller)
    call elsi_get_time(t0)
    call fjson_get_datetime_rfc3339(dt0)
+   call elsi_decide_ev(eh%ph,eh%bh)
 
    eh%ph%n_calls = eh%ph%n_calls+1
 
@@ -549,6 +554,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
    call elsi_check(eh%ph,eh%bh,caller)
    call elsi_get_time(t0)
    call fjson_get_datetime_rfc3339(dt0)
+   call elsi_decide_dm(eh%ph,eh%bh,ham)
 
    eh%ph%n_calls = eh%ph%n_calls+1
    eh%ph%ill_check = .false.
@@ -562,7 +568,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       solver = ELPA_SOLVER
    end if
 
-   if(eh%ph%solver /= solver) then
+   if(eh%ph%solver /= solver .or. eh%ph%decision_status > 0) then
       ! Save overlap
       if(.not. allocated(eh%ovlp_real_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
@@ -806,6 +812,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
    call elsi_check(eh%ph,eh%bh,caller)
    call elsi_get_time(t0)
    call fjson_get_datetime_rfc3339(dt0)
+   call elsi_decide_dm(eh%ph,eh%bh,ham)
 
    eh%ph%n_calls = eh%ph%n_calls+1
    eh%ph%ill_check = .false.
@@ -998,6 +1005,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
    call elsi_check(eh%ph,eh%bh,caller)
    call elsi_get_time(t0)
    call fjson_get_datetime_rfc3339(dt0)
+   call elsi_decide_dm(eh%ph,eh%bh)
 
    eh%ph%n_calls = eh%ph%n_calls+1
    eh%ph%ill_check = .false.
@@ -1461,6 +1469,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
    call elsi_check(eh%ph,eh%bh,caller)
    call elsi_get_time(t0)
    call fjson_get_datetime_rfc3339(dt0)
+   call elsi_decide_dm(eh%ph,eh%bh)
 
    eh%ph%n_calls = eh%ph%n_calls+1
    eh%ph%ill_check = .false.
