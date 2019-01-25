@@ -191,7 +191,6 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    end if
 
    if(eh%ph%solver /= solver) then
-      ! Save overlap
       if(.not. allocated(eh%ovlp_real_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_real_copy",caller)
@@ -568,8 +567,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       solver = ELPA_SOLVER
    end if
 
-   if(eh%ph%solver /= solver .or. eh%ph%decision_status > 0) then
-      ! Save overlap
+   if(eh%ph%solver /= solver .or. eh%ph%decision_status == 1) then
       if(.not. allocated(eh%ovlp_real_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_real_copy",caller)
@@ -596,8 +594,23 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
               eh%ph%n_kpts,"occ",caller)
       end if
 
+      if(eh%ph%decision_status == 2) then
+         if(allocated(eh%ovlp_real_copy)) then
+            ovlp = eh%ovlp_real_copy
+
+            call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
+         end if
+      end if
+
       call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,eh%eval,&
            eh%evec_real)
+
+      if(eh%ph%decision_status == 1) then
+         ham = ovlp
+         ovlp = eh%ovlp_real_copy
+         eh%ovlp_real_copy = ham
+      end if
+
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
            eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%evec_real,dm)
@@ -822,8 +835,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       solver = ELPA_SOLVER
    end if
 
-   if(eh%ph%solver /= solver) then
-      ! Save overlap
+   if(eh%ph%solver /= solver .or. eh%ph%decision_status == 1) then
       if(.not. allocated(eh%ovlp_cmplx_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_cmplx_copy",caller)
@@ -850,8 +862,23 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
               eh%ph%n_kpts,"occ",caller)
       end if
 
+      if(eh%ph%decision_status == 2) then
+         if(allocated(eh%ovlp_cmplx_copy)) then
+            ovlp = eh%ovlp_cmplx_copy
+
+            call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
+         end if
+      end if
+
       call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,eh%eval,&
            eh%evec_cmplx)
+
+      if(eh%ph%decision_status == 1) then
+         ham = ovlp
+         ovlp = eh%ovlp_cmplx_copy
+         eh%ovlp_cmplx_copy = ham
+      end if
+
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
            eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%evec_cmplx,dm)
@@ -1079,7 +1106,6 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
 
       if(eh%ph%solver == OMM_SOLVER .and. eh%ph%omm_flavor == 0) then
          if(.not. allocated(eh%ovlp_real_copy)) then
-            ! Save Overlap
             call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_real_copy",caller)
 
@@ -1087,8 +1113,26 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          end if
       end if
 
+      if(eh%ph%decision_status == 2) then
+         if(allocated(eh%ovlp_real_copy)) then
+            eh%ovlp_real_den = eh%ovlp_real_copy
+
+            call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
+         end if
+      end if
+
       call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%ham_real_den,&
            eh%ovlp_real_den,eh%eval,eh%evec_real)
+
+      if(eh%ph%decision_status == 1) then
+         if(.not. allocated(eh%ovlp_real_copy)) then
+            call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
+                 eh%bh%n_lcol,"ovlp_real_copy",caller)
+
+            eh%ovlp_real_copy = eh%ovlp_real_den
+         end if
+      end if
+
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
            eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%evec_real,eh%dm_real_den)
@@ -1539,7 +1583,6 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
 
       if(eh%ph%solver == OMM_SOLVER .and. eh%ph%omm_flavor == 0) then
          if(.not. allocated(eh%ovlp_cmplx_copy)) then
-            ! Save overlap
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
 
@@ -1547,8 +1590,26 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          end if
       end if
 
+      if(eh%ph%decision_status == 2) then
+         if(allocated(eh%ovlp_cmplx_copy)) then
+            eh%ovlp_cmplx_den = eh%ovlp_cmplx_copy
+
+            call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
+         end if
+      end if
+
       call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%ham_cmplx_den,&
            eh%ovlp_cmplx_den,eh%eval,eh%evec_cmplx)
+
+      if(eh%ph%decision_status == 1) then
+         if(.not. allocated(eh%ovlp_cmplx_copy)) then
+            call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
+                 eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
+
+            eh%ovlp_cmplx_copy = eh%ovlp_cmplx_den
+         end if
+      end if
+
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
            eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%evec_cmplx,eh%dm_cmplx_den)
