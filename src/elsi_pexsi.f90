@@ -9,7 +9,7 @@
 !!
 module ELSI_PEXSI
 
-   use ELSI_CONSTANTS, only: UNSET,PEXSI_CSC
+   use ELSI_CONSTANTS, only: UNSET,PEXSI_SOLVER,PEXSI_CSC
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
@@ -387,6 +387,10 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Fermi operator calculation failed.",caller)
+   end if
+
+   if(ph%decision_status == 1) then
+      ph%decision_data(PEXSI_SOLVER) = t1-t0
    end if
 
    ! Get density matrix
@@ -916,6 +920,10 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    if(ierr /= 0) then
       call elsi_stop(bh,"Fermi operator calculation failed.",caller)
+   end if
+
+   if(ph%decision_status == 1) then
+      ph%decision_data(PEXSI_SOLVER) = t1-t0
    end if
 
    ! Get density matrix

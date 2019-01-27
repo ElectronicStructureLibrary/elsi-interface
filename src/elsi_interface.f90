@@ -52,6 +52,9 @@ module ELSI
    public :: elsi_set_illcond_check
    public :: elsi_set_illcond_tol
    public :: elsi_set_illcond_abort
+   public :: elsi_set_energy_gap
+   public :: elsi_set_spectrum_width
+   public :: elsi_set_dimensionality
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
@@ -91,6 +94,7 @@ module ELSI
    public :: elsi_get_initialized
    public :: elsi_get_version
    public :: elsi_get_datestamp
+   public :: elsi_get_solver
    public :: elsi_get_n_illcond
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max

@@ -11,8 +11,8 @@ module ELSI_UTILS
 
    use ELSI_CONSTANTS, only: UNSET,UT_MAT,LT_MAT,N_SOLVERS,N_PARALLEL_MODES,&
        N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
-       SIESTA_CSC,GENERIC_COO,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
-       NTPOLY_SOLVER
+       SIESTA_CSC,GENERIC_COO,AUTO_SOLVER,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
+       SIPS_SOLVER,NTPOLY_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
@@ -110,6 +110,9 @@ subroutine elsi_reset_param(ph)
    ph%spin_degen = 0.0_r8
    ph%spin_is_set = .false.
    ph%ebs = 0.0_r8
+   ph%energy_gap = 0.0_r8
+   ph%spectrum_width = 1.0e3_r8
+   ph%dimensionality = 3
    ph%edm_ready_real = .false.
    ph%edm_ready_cmplx = .false.
    ph%mu = 0.0_r8
@@ -130,6 +133,8 @@ subroutine elsi_reset_param(ph)
    ph%first_siesta_to_pexsi = .true.
    ph%first_sips_to_blacs = .true.
    ph%first_sips_to_ntpoly = .true.
+   ph%decision_status = 0
+   ph%decision_data = 0.0_r8
    ph%elpa_solver = 2
    ph%elpa_n_single = 0
    ph%elpa_comm_row = UNSET
@@ -330,6 +335,11 @@ subroutine elsi_check(ph,bh,caller)
          call elsi_stop(bh,"Number of MPI tasks per pole should be set for"//&
               " PEXSI_CSC matrix format and PEXSI solver.",caller)
       end if
+
+      if(ph%solver == AUTO_SOLVER) then
+         call elsi_stop(bh,"Solver automatic selection not yet implemented"//&
+              " for PEXSI_CSC matrix format.",caller)
+      end if
    else if(ph%matrix_format == GENERIC_COO) then
       if(.not. bh%generic_coo_ready) then
          call elsi_stop(bh,"GENERIC_COO matrix format not properly set up.",&
@@ -343,8 +353,6 @@ subroutine elsi_check(ph,bh,caller)
 
    ! Specific check for each solver
    select case(ph%solver)
-   case(ELPA_SOLVER)
-      ! Nothing
    case(OMM_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
          call elsi_stop(bh,"libOMM requires MULTI_PROC parallel mode.",caller)
@@ -360,8 +368,8 @@ subroutine elsi_check(ph,bh,caller)
       end if
 
       if(ph%pexsi_np_per_pole /= UNSET) then
-         if(mod(bh%n_procs,ph%pexsi_np_per_pole*ph%pexsi_options%nPoints)&
-            /= 0) then
+         if(mod(bh%n_procs,ph%pexsi_np_per_pole*ph%pexsi_options%nPoints) /= 0)&
+            then
             call elsi_stop(bh,"To use PEXSI, specified number of MPI tasks"//&
                  " per pole times number of mu points must be a divisor of"//&
                  " number of MPI tasks.",caller)

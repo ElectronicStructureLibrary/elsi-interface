@@ -9,7 +9,7 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANTS, only: LT_MAT,UT_MAT,UNSET
+   use ELSI_CONSTANTS, only: LT_MAT,UT_MAT,UNSET,ELPA_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
@@ -181,6 +181,10 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
+   if(ph%decision_status == 1) then
+      ph%decision_data(ELPA_SOLVER) = t1-t0
+   end if
+
 end subroutine
 
 !>
@@ -265,7 +269,7 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
+   type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(out) :: ham(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
@@ -304,6 +308,10 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
    call elsi_say(bh,msg)
    write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
+
+   if(ph%decision_status == 1) then
+      ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
+   end if
 
 end subroutine
 
@@ -362,6 +370,10 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    call elsi_say(bh,msg)
    write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
+
+   if(ph%decision_status == 1) then
+      ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
+   end if
 
    ! Back-transform eigenvectors
    if(.not. ph%unit_ovlp) then
@@ -531,6 +543,10 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
+   if(ph%decision_status == 1) then
+      ph%decision_data(ELPA_SOLVER) = t1-t0
+   end if
+
 end subroutine
 
 !>
@@ -615,7 +631,7 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
+   type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    complex(kind=r8), intent(out) :: ham(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
@@ -654,6 +670,10 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
    call elsi_say(bh,msg)
    write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
+
+   if(ph%decision_status == 1) then
+      ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
+   end if
 
 end subroutine
 
@@ -712,6 +732,10 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
    call elsi_say(bh,msg)
    write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
+
+   if(ph%decision_status == 1) then
+      ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
+   end if
 
    ! Back-transform eigenvectors
    if(.not. ph%unit_ovlp) then

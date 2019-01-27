@@ -10,6 +10,7 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
+   use ELSI_CONSTANTS, only: N_SOLVERS
    use ELSI_PRECISION, only: r8,i4
    use ELPA, only: elpa_t,elpa_autotune_t
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
@@ -109,6 +110,9 @@ module ELSI_DATATYPE
       real(kind=r8) :: spin_degen
       logical :: spin_is_set = .false.
       real(kind=r8) :: ebs ! Band structure energy
+      real(kind=r8) :: energy_gap
+      real(kind=r8) :: spectrum_width
+      integer(kind=i4) :: dimensionality
       logical :: edm_ready_real = .false.
       logical :: edm_ready_cmplx = .false.
 
@@ -133,6 +137,10 @@ module ELSI_DATATYPE
       logical :: first_siesta_to_pexsi
       logical :: first_sips_to_blacs
       logical :: first_sips_to_ntpoly
+
+      ! Solver decision
+      integer(kind=i4) :: decision_status
+      real(kind=r8) :: decision_data(N_SOLVERS-1)
 
       ! ELPA
       integer(kind=i4) :: elpa_solver
