@@ -1408,6 +1408,22 @@ subroutine elsi_get_datestamp_c_wrapper(datestamp)&
 
 end subroutine
 
+subroutine elsi_get_solver_c_wrapper(h_c,solver)&
+   bind(C,name="c_elsi_get_solver")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), intent(out) :: solver
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_get_solver(h_f,solver)
+
+end subroutine
+
 subroutine elsi_get_n_illcond_c_wrapper(h_c,n_illcond)&
    bind(C,name="c_elsi_get_n_illcond")
 

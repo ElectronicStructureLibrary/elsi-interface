@@ -9,8 +9,8 @@
 !!
 module ELSI_MUTATOR
 
-   use ELSI_CONSTANTS, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
-       NTPOLY_SOLVER,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,SINGLE_PROC
+   use ELSI_CONSTANTS, only: AUTO_SOLVER,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
+       SIPS_SOLVER,NTPOLY_SOLVER,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,SINGLE_PROC
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_MPI, only: elsi_stop
    use ELSI_NTPOLY, only: elsi_compute_edm_ntpoly
@@ -83,6 +83,7 @@ module ELSI_MUTATOR
    public :: elsi_get_initialized
    public :: elsi_get_version
    public :: elsi_get_datestamp
+   public :: elsi_get_solver
    public :: elsi_get_n_illcond
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
@@ -1342,6 +1343,28 @@ subroutine elsi_get_datestamp(datestamp)
    call elsi_version_info(s1,s2,s3,s4,s5)
 
    read(s2,*) datestamp
+
+end subroutine
+
+!>
+!! This routine gets the currently selected solver.
+!!
+subroutine elsi_get_solver(eh,solver)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(out) :: solver !< Solver
+
+   character(len=*), parameter :: caller = "elsi_get_solver"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(eh%ph%decision_status == 1) then
+      solver = AUTO_SOLVER
+   else
+      solver = eh%ph%solver
+   end if
 
 end subroutine
 
