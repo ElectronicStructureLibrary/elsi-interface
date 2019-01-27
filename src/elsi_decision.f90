@@ -294,13 +294,13 @@ subroutine elsi_decide_dm_core(ph,bh,sparsity)
             if(ph%decision_data(i) < 1.0e6_r8) then
                select case(i)
                case(ELPA_SOLVER)
-                  write(msg,"(2X,A,F8.1,A)") "| ELPA time :",&
+                  write(msg,"(2X,A,F10.3,A)") "| ELPA time :",&
                      ph%decision_data(i)," s"
                case(PEXSI_SOLVER)
-                  write(msg,"(2X,A,F8.1,A)") "| PEXSI time :",&
+                  write(msg,"(2X,A,F10.3,A)") "| PEXSI time :",&
                      ph%decision_data(i)," s"
                case(NTPOLY_SOLVER)
-                  write(msg,"(2X,A,F8.1,A)") "| NTPoly time :",&
+                  write(msg,"(2X,A,F10.3,A)") "| NTPoly time :",&
                      ph%decision_data(i)," s"
                end select
 

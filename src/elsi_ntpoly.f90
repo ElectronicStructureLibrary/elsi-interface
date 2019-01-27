@@ -168,6 +168,10 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
    write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
+   if(ph%decision_status == 1) then
+      ph%decision_data(NTPOLY_SOLVER) = t1-t0
+   end if
+
    ph%nt_first = .false.
 
 end subroutine
