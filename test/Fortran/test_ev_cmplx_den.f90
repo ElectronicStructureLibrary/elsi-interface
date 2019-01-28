@@ -39,7 +39,6 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: mu
    real(kind=r8) :: weight(1)
    real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref = 0.0_r8
    real(kind=r8) :: tol = 0.0_r8
    real(kind=r8) :: t1
    real(kind=r8) :: t2
@@ -59,7 +58,7 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
    type(elsi_rw_handle) :: rwh
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_ref = -2622.88214509316_r8
 
    character(len=*), parameter :: file_name = "elsi.in"
 
@@ -74,11 +73,11 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
       write(*,*)
       if(solver == 1) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_complex + ELPA"
+      else if(solver == 7) then
+         write(*,"(2X,A)") "Now start testing  elsi_ev_complex + MAGMA"
       end if
       write(*,*)
    end if
-
-   e_ref = e_elpa
 
    ! Set up square-like processor grid
    do npcol = nint(sqrt(real(n_proc))),2,-1
