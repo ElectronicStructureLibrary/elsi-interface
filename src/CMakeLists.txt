@@ -21,6 +21,7 @@ LIST(APPEND elsi_src
   elsi_input.f90
   elsi_interface.f90
   elsi_lapack.f90
+  elsi_magma.f90
   elsi_malloc.f90
   elsi_mpi.f90
   elsi_ntpoly.f90
@@ -49,6 +50,9 @@ IF(NOT ENABLE_EIGENEXA)
 ENDIF()
 IF(NOT ENABLE_SIPS)
   LIST(APPEND elsi_src stub_sips.f90)
+ENDIF()
+IF(NOT ENABLE_MAGMA)
+  LIST(APPEND elsi_src stub_magma.f90)
 ENDIF()
 IF(NOT USE_EXTERNAL_ELPA)
   LIST(APPEND elsi_src

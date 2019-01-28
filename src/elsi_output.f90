@@ -11,13 +11,13 @@ module ELSI_OUTPUT
 
    use ELSI_CONSTANT, only: MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
        SIESTA_CSC,GENERIC_COO,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-       EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER
+       EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER,MAGMA_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_PRECISION, only: r8,i4
-   use FORTJSON, only: fjson_write_name_value,fjson_reset_fj_handle,&
-       fjson_start_name_object,fjson_start_array,fjson_finish_object,&
-       fjson_open_file,fjson_handle,fjson_start_object,&
-       fjson_get_datetime_rfc3339,fjson_close_file,fjson_finish_array
+   use FORTJSON, only: fjson_handle,fjson_reset_fj_handle,fjson_open_file,&
+       fjson_close_file,fjson_start_object,fjson_finish_object,&
+       fjson_start_array,fjson_finish_array,fjson_start_name_object,&
+       fjson_write_name_value,fjson_get_datetime_rfc3339
 
    implicit none
 
@@ -26,7 +26,6 @@ module ELSI_OUTPUT
    public :: elsi_say
    public :: elsi_add_log
    public :: elsi_get_time
-   public :: elsi_final_print
    public :: fjson_close_file
    public :: fjson_finish_array
    public :: fjson_get_datetime_rfc3339
@@ -82,7 +81,7 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       call elsi_get_time(t1)
       call fjson_get_datetime_rfc3339(dt_record)
 
-      solver_use = 1
+      solver_use = ph%solver
 
       select case(ph%solver)
       case(ELPA_SOLVER)
@@ -94,26 +93,25 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       case(OMM_SOLVER)
          if(ph%n_calls <= ph%omm_n_elpa) then
             solver_tag = "ELPA"
+            solver_use = ELPA_SOLVER
          else
             solver_tag = "LIBOMM"
-            solver_use = 2
          end if
       case(PEXSI_SOLVER)
          solver_tag = "PEXSI"
-         solver_use = 3
       case(EIGENEXA_SOLVER)
          solver_tag = "EIGENEXA"
-         solver_use = 4
       case(SIPS_SOLVER)
          if(ph%n_calls <= ph%sips_n_elpa) then
             solver_tag = "ELPA"
+            solver_use = ELPA_SOLVER
          else
             solver_tag = "SLEPC_SIPS"
-            solver_use = 5
          end if
       case(NTPOLY_SOLVER)
          solver_tag = "NTPOLY"
-         solver_use = 6
+      case(MAGMA_SOLVER)
+         solver_tag = "MAGMA"
       end select
 
       call fjson_start_object(jh)
@@ -153,13 +151,16 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
          call elsi_print_sips_settings(ph,jh)
       case(NTPOLY_SOLVER)
          call elsi_print_ntpoly_settings(ph,jh)
+      case(MAGMA_SOLVER)
+         call elsi_print_magma_settings(ph,jh)
       end select
 
-      if(ph%matrix_format == BLACS_DENSE) then
+      select case(ph%matrix_format)
+      case(BLACS_DENSE)
          call elsi_print_dense_settings(bh,jh)
-      else
+      case(PEXSI_CSC,SIESTA_CSC,GENERIC_COO)
          call elsi_print_sparse_settings(bh,jh)
-      end if
+      end select
 
       call fjson_finish_object(jh)
    end if
@@ -182,42 +183,39 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
    character(len=*), parameter :: caller = "elsi_print_handle_summary"
 
    call fjson_write_name_value(jh,"n_electrons",ph%n_electrons)
-
-   if(ph%parallel_mode == MULTI_PROC) then
-      call fjson_write_name_value(jh,"n_spin",ph%n_spins)
-      call fjson_write_name_value(jh,"n_kpts",ph%n_kpts)
-   end if
-
-   if(ph%solver == ELPA_SOLVER .or. ph%solver == SIPS_SOLVER) then
-      call fjson_write_name_value(jh,"n_states",ph%n_states)
-   end if
-
-   select case(ph%matrix_format)
-   case(BLACS_DENSE)
-      call fjson_write_name_value(jh,"matrix_format","BLACS_DENSE")
-   case(PEXSI_CSC)
-      call fjson_write_name_value(jh,"matrix_format","PEXSI_CSC")
-   case(SIESTA_CSC)
-      call fjson_write_name_value(jh,"matrix_format","SIESTA_CSC")
-   case(GENERIC_COO)
-      call fjson_write_name_value(jh,"matrix_format","GENERIC_COO")
-   end select
-
    call fjson_write_name_value(jh,"n_basis",ph%n_basis)
 
-   if(ph%parallel_mode == MULTI_PROC) then
-      sparsity = 1.0_r8-(1.0_r8*bh%nnz_g/ph%n_basis/ph%n_basis)
-      call fjson_write_name_value(jh,"sparsity",sparsity)
-      call fjson_write_name_value(jh,"nnz_g",bh%nnz_g)
-   end if
-
-   if(ph%parallel_mode == MULTI_PROC) then
+   select case(ph%parallel_mode)
+   case(MULTI_PROC)
       call fjson_write_name_value(jh,"parallel_mode","MULTI_PROC")
       call fjson_write_name_value(jh,"n_procs",bh%n_procs)
       call fjson_write_name_value(jh,"n_procs_all",bh%n_procs_all)
-   else if(ph%parallel_mode == SINGLE_PROC) then
+      call fjson_write_name_value(jh,"n_spin",ph%n_spins)
+      call fjson_write_name_value(jh,"n_kpts",ph%n_kpts)
+
+      select case(ph%matrix_format)
+      case(BLACS_DENSE)
+         call fjson_write_name_value(jh,"matrix_format","BLACS_DENSE")
+      case(PEXSI_CSC)
+         call fjson_write_name_value(jh,"matrix_format","PEXSI_CSC")
+      case(SIESTA_CSC)
+         call fjson_write_name_value(jh,"matrix_format","SIESTA_CSC")
+      case(GENERIC_COO)
+         call fjson_write_name_value(jh,"matrix_format","GENERIC_COO")
+      end select
+
+      sparsity = 1.0_r8-(1.0_r8*bh%nnz_g/ph%n_basis/ph%n_basis)
+
+      call fjson_write_name_value(jh,"sparsity",sparsity)
+      call fjson_write_name_value(jh,"nnz_g",bh%nnz_g)
+   case(SINGLE_PROC)
       call fjson_write_name_value(jh,"parallel_mode","SINGLE_PROC")
-   end if
+   end select
+
+   select case(ph%solver)
+   case(ELPA_SOLVER,SIPS_SOLVER,MAGMA_SOLVER)
+      call fjson_write_name_value(jh,"n_states",ph%n_states)
+   end select
 
    select case(ph%solver)
    case(ELPA_SOLVER)
@@ -232,6 +230,8 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
       call fjson_write_name_value(jh,"solver_chosen","SLEPc_SIPs")
    case(NTPOLY_SOLVER)
       call fjson_write_name_value(jh,"solver_chosen","NTPOLY")
+   case(MAGMA_SOLVER)
+      call fjson_write_name_value(jh,"solver_chosen","MAGMA")
    end select
 
 end subroutine
@@ -437,6 +437,25 @@ subroutine elsi_print_ntpoly_settings(ph,jh)
 end subroutine
 
 !>
+!! Print settings for MAGMA.
+!!
+subroutine elsi_print_magma_settings(ph,jh)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(fjson_handle), intent(inout) :: jh
+
+   character(len=*), parameter :: caller = "elsi_print_magma_settings"
+
+   call fjson_start_name_object(jh,"solver_settings")
+   call fjson_write_name_value(jh,"magma_solver",ph%magma_solver)
+   call fjson_write_name_value(jh,"magma_n_gpus",ph%magma_n_gpus)
+   call fjson_finish_object(jh)
+
+end subroutine
+
+!>
 !! Print settings for the dense matrix format.
 !!
 subroutine elsi_print_dense_settings(bh,jh)
@@ -476,139 +495,6 @@ subroutine elsi_print_sparse_settings(bh,jh)
    call fjson_write_name_value(jh,"siesta_csc_ready",bh%siesta_csc_ready)
    call fjson_write_name_value(jh,"generic_coo_ready",bh%generic_coo_ready)
    call fjson_finish_object(jh)
-
-end subroutine
-
-!>
-!! Print a final summary.
-!!
-subroutine elsi_final_print(ph,bh)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-
-   real(kind=r8) :: sparsity
-   character(len=200) :: ll
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_final_print"
-
-   write(ll,"(A)") "|------------------------------------------------------"
-   call elsi_say(bh,ll)
-
-   write(msg,"(A)") "| Final ELSI Output"
-   call elsi_say(bh,msg)
-
-   call elsi_say(bh,ll)
-
-   write(msg,"(A)") "|"
-   call elsi_say(bh,msg)
-
-   write(msg,"(A)") "| Physical Properties"
-   call elsi_say(bh,msg)
-
-   write(msg,"(A,E22.8)") "|   Number of electrons       :",ph%n_electrons
-   call elsi_say(bh,msg)
-
-   if(ph%parallel_mode == MULTI_PROC) then
-      write(msg,"(A,I22)") "|   Number of spins           :",ph%n_spins
-      call elsi_say(bh,msg)
-
-      write(msg,"(A,I22)") "|   Number of k-points        :",ph%n_kpts
-      call elsi_say(bh,msg)
-   end if
-
-   if(ph%solver == ELPA_SOLVER .or. ph%solver == SIPS_SOLVER) then
-      write(msg,"(A,I22)") "|   Number of states          :",ph%n_states
-      call elsi_say(bh,msg)
-   end if
-
-   write(msg,"(A)") "|"
-   call elsi_say(bh,msg)
-
-   write(msg,"(A)") "| Matrix Properties"
-   call elsi_say(bh,msg)
-
-   select case(ph%matrix_format)
-   case(BLACS_DENSE)
-      write(msg,"(A,A22)") "|   Matrix format             :","BLACS_DENSE"
-      call elsi_say(bh,msg)
-   case(PEXSI_CSC)
-      write(msg,"(A,A22)") "|   Matrix format             :","PEXSI_CSC"
-      call elsi_say(bh,msg)
-   case(SIESTA_CSC)
-      write(msg,"(A,A22)") "|   Matrix format             :","SIESTA_CSC"
-      call elsi_say(bh,msg)
-   case(GENERIC_COO)
-      write(msg,"(A,A22)") "|   Matrix format             :","GENERIC_COO"
-      call elsi_say(bh,msg)
-   end select
-
-   write(msg,"(A,I22)") "|   Number of basis functions :",ph%n_basis
-   call elsi_say(bh,msg)
-
-   if(ph%parallel_mode == MULTI_PROC) then
-      sparsity = 1.0_r8-(1.0_r8*bh%nnz_g/ph%n_basis/ph%n_basis)
-
-      write(msg,"(A,E22.8)") "|   Matrix sparsity           :",sparsity
-      call elsi_say(bh,msg)
-   end if
-
-   write(msg,"(A)") "|"
-   call elsi_say(bh,msg)
-
-   write(msg,"(A)") "| Computational Details"
-   call elsi_say(bh,msg)
-
-   if(ph%parallel_mode == MULTI_PROC) then
-      write(msg,"(A,A22)") "|   Parallel mode             :","MULTI_PROC"
-      call elsi_say(bh,msg)
-
-      write(msg,"(A,I22)") "|   Number of MPI tasks       :",bh%n_procs_all
-      call elsi_say(bh,msg)
-
-      select case(ph%solver)
-      case(ELPA_SOLVER)
-         write(msg,"(A,A22)") "|   Solver requested          :","ELPA"
-         call elsi_say(bh,msg)
-      case(OMM_SOLVER)
-         write(msg,"(A,A22)") "|   Solver requested          :","libOMM"
-         call elsi_say(bh,msg)
-      case(PEXSI_SOLVER)
-         write(msg,"(A,A22)") "|   Solver requested          :","PEXSI"
-         call elsi_say(bh,msg)
-      case(EIGENEXA_SOLVER)
-         write(msg,"(A,A22)") "|   Solver requested          :","EigenExa"
-         call elsi_say(bh,msg)
-      case(SIPS_SOLVER)
-         write(msg,"(A,A22)") "|   Solver requested          :","SLEPc-SIPs"
-         call elsi_say(bh,msg)
-      case(NTPOLY_SOLVER)
-         write(msg,"(A,A22)") "|   Solver requested          :","NTPoly"
-         call elsi_say(bh,msg)
-      end select
-   else if(ph%parallel_mode == SINGLE_PROC) then
-      write(msg,"(A,A22)") "|   Parallel mode             :","SINGLE_PROC"
-      call elsi_say(bh,msg)
-
-      write(msg,"(A,A22)") "|   Solver requested          :","LAPACK"
-      call elsi_say(bh,msg)
-   end if
-
-   write(msg,"(A,I22)") "|   Number of ELSI calls      :",ph%n_calls_all
-   call elsi_say(bh,msg)
-
-   write(msg,"(A)") "|"
-   call elsi_say(bh,msg)
-
-   call elsi_say(bh,ll)
-
-   write(msg,"(A)") "| ELSI Project (c)  elsi-interchange.org"
-   call elsi_say(bh,msg)
-
-   call elsi_say(bh,ll)
 
 end subroutine
 

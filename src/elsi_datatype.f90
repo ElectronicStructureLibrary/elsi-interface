@@ -230,6 +230,11 @@ module ELSI_DATATYPE
       logical :: exa_first
       logical :: exa_started = .false.
 
+      ! MAGMA
+      integer(kind=i4) :: magma_solver
+      integer(kind=i4) :: magma_n_gpus
+      logical :: magma_started = .false.
+
    end type
 
    type, public :: elsi_handle

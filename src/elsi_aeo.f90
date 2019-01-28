@@ -863,7 +863,6 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
    logical, intent(in) :: is_aux
 
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: ierr2
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_elpa_setup"

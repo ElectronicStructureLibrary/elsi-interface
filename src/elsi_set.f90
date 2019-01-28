@@ -63,6 +63,7 @@ module ELSI_SET
    public :: elsi_set_ntpoly_filter
    public :: elsi_set_ntpoly_max_iter
    public :: elsi_set_ntpoly_n_layer
+   public :: elsi_set_magma_solver
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
@@ -267,7 +268,7 @@ subroutine elsi_set_zero_def(eh,zero_def)
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: zero_def !< Zero tolerance
+   real(kind=r8), intent(in) :: zero_def !< Zero threshold
 
    character(len=*), parameter :: caller = "elsi_set_zero_def"
 
@@ -1157,6 +1158,31 @@ subroutine elsi_set_ntpoly_n_layer(eh,n_layer)
          " MPI tasks"
       call elsi_stop(eh%bh,msg,caller)
    end if
+
+end subroutine
+
+!>
+!! Set the solver of MAGMA.
+!!
+subroutine elsi_set_magma_solver(eh,solver)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: solver !< MAGMA solver
+
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_set_magma_solver"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(solver < 1 .or. solver > 2) then
+      write(msg,"(A)") "Input value should be 1 or 2"
+      call elsi_stop(eh%bh,msg,caller)
+   end if
+
+   eh%ph%magma_solver = solver
 
 end subroutine
 
