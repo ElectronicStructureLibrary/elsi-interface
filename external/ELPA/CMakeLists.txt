@@ -21,8 +21,7 @@ LIST(APPEND elpa_src
   src/mod_pack_unpack_real.f90
   src/mod_precision.f90
   src/mod_single_hh_trafo_real.f90
-  src/qr_utils.f90
-  src/timer_dummy.f90)
+  src/qr_utils.f90)
 
 ### Kernels ###
 IF(ELPA2_KERNEL STREQUAL "AVX512")

@@ -853,8 +853,6 @@ end subroutine
       use cuda_functions
       use, intrinsic :: iso_c_binding
 
-      use timings_dummy
-
       use precision
       implicit none
 
@@ -920,14 +918,10 @@ end subroutine
       uv_stored_cols_dev = 0
 
 
-      call timer%start("tridiag_real" // "_double")
-
-      call timer%start("mpi_communication")
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
       call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
-      call timer%stop("mpi_communication")
 ! Matrix is split into tiles; work is done only for tiles on the diagonal or above
 ! seems that tile is a square submatrix, consisting by several blocks
 ! it is a smallest possible square submatrix, where blocks being distributed among
@@ -1080,9 +1074,7 @@ end subroutine
             endif
 
 
-            call timer%start("mpi_communication")
             call mpi_allreduce(aux1, aux2, 2, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
-            call timer%stop("mpi_communication")
 
           vnorm2 = aux2(1)
           vrl    = aux2(2)
@@ -1251,9 +1243,7 @@ end subroutine
         if (l_cols>0) then
           tmp(1:l_cols) = u_col(1:l_cols)
 
-          call timer%start("mpi_communication")
           call mpi_allreduce(tmp, u_col, l_cols, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
-          call timer%stop("mpi_communication")
 
         endif
 
@@ -1265,9 +1255,7 @@ end subroutine
         if (l_cols>0)  &
            x = dot_product(v_col(1:l_cols),u_col(1:l_cols))
 
-        call timer%start("mpi_communication")
         call mpi_allreduce(x, vav, 1, MPI_REAL8, MPI_SUM, mpi_comm_cols, mpierr)
-        call timer%stop("mpi_communication")
 
 
 ! store u and v in the matrices U and V
@@ -1394,7 +1382,6 @@ end subroutine
         stop
       endif
 
-      call timer%start("mpi_communication")
       tmp = d_vec
       call mpi_allreduce(tmp, d_vec, na, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
       tmp = d_vec
@@ -1403,7 +1390,6 @@ end subroutine
       call mpi_allreduce(tmp, e_vec, na, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
       tmp = e_vec
       call mpi_allreduce(tmp, e_vec, na, MPI_REAL8, MPI_SUM, mpi_comm_cols, mpierr)
-      call timer%stop("mpi_communication")
 
       deallocate(tmp,  stat=istat, errmsg=errorMessage)
       if (istat .ne. 0) then
@@ -1411,7 +1397,6 @@ end subroutine
         stop
       endif
 
-      call timer%stop("tridiag_real" // "_double")
 
 !    contains
 
@@ -1493,7 +1478,6 @@ end subroutine
       use cuda_functions
       use, intrinsic :: iso_c_binding
 
-      use timings_dummy
 
       use precision
       implicit none
@@ -1525,13 +1509,10 @@ end subroutine
 !write(*,*) "na", na, "nqc", nqc, "lda", lda, "ldq", ldq, "matrixCols", matrixCols
       
       
-      call timer%start("trans_ev_real" // "_double")
-      call timer%start("mpi_communication")
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
       call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
-      call timer%stop("mpi_communication")
       totalblocks = (na-1)/nblk + 1
       max_blocks_row = (totalblocks-1)/np_rows + 1
       max_blocks_col = ((nqc-1)/nblk)/np_cols + 1  ! Columns of q_mat!
@@ -1619,10 +1600,8 @@ end subroutine
         enddo
 
 
-        call timer%start("mpi_communication")
         if (nb>0) &
             call MPI_Bcast(hvb, nb, MPI_REAL8, cur_pcol, mpi_comm_cols, mpierr)
-        call timer%stop("mpi_communication")
 
         nb = 0
         do ic=ics,ice
@@ -1653,9 +1632,7 @@ end subroutine
             nc = nc+n
           enddo
 
-          call timer%start("mpi_communication")
           if (nc>0) call mpi_allreduce( h1, h2, nc, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
-          call timer%stop("mpi_communication")
 
 ! Calculate triangular matrix T
 
@@ -1704,7 +1681,6 @@ end subroutine
           endif  !l_rows>0
 
 
-            call timer%start("mpi_communication")
 ! In the legacy GPU version, this allreduce was ommited. But probably it has to be done for GPU + MPI
 ! todo: does it need to be copied whole? Wouldn't be a part sufficient?
           if (useGPU) then          
@@ -1717,8 +1693,6 @@ end subroutine
           if (useGPU) then          
 
           endif 
-
-            call timer%stop("mpi_communication")
 
 
           if (l_rows>0) then
@@ -1781,16 +1755,12 @@ end subroutine
 
       endif
 
-      call timer%stop("trans_ev_real" // "_double")
-
     end subroutine trans_ev_real_double
 
 
 subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm_rows, &
                                            mpi_comm_cols, wantDebug, success )
 
-
-      use timings_dummy
 
       use precision
       implicit none
@@ -1811,14 +1781,10 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       integer(kind=ik)              :: istat
       character(200)                :: errorMessage
 
-      call timer%start("solve_tridi" // "_double")
-
-      call timer%start("mpi_communication")
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
       call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
-      call timer%stop("mpi_communication")
 
       success = .true.
 
@@ -1846,7 +1812,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 ! Scalapack supports it but delivers no results for these columns,
 ! which is rather annoying
         if (nc==0) then
-          call timer%stop("solve_tridi" // "_double")
           if (wantDebug) write(error_unit,*) 'ELPA1_solve_tridi: ERROR: Problem contains processor column with zero width'
           success = .false.
           return
@@ -1874,7 +1839,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       call solve_tridi_col_double(l_cols, nev1, nc, d(nc+1), e(nc+1), q, ldq, nblk,  &
                         matrixCols, mpi_comm_rows, wantDebug, success)
       if (.not.(success)) then
-        call timer%stop("solve_tridi" // "_double")
         return
       endif
 ! If there is only 1 processor column, we are done
@@ -1886,7 +1850,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           stop
         endif
 
-        call timer%stop("solve_tridi" // "_double")
         return
       endif
 
@@ -1947,7 +1910,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 ! Recursively merge sub problems
       call merge_recursive_double(0, np_cols, wantDebug, success)
       if (.not.(success)) then
-        call timer%stop("solve_tridi" // "_double")
         return
       endif
 
@@ -1957,14 +1919,11 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         stop
       endif
 
-      call timer%stop("solve_tridi" // "_double")
       return
 
       contains
         recursive subroutine merge_recursive_double(np_off, nprocs, wantDebug, success)
            use precision
-
-           use timings_dummy           
 
            implicit none
 
@@ -2002,38 +1961,28 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
            nlen = limits(np_off+nprocs) - noff
 
 
-           call timer%start("mpi_communication")
            if (my_pcol==np_off) then
              do n=np_off+np1,np_off+nprocs-1
                call mpi_send(d(noff+1), nmid, MPI_REAL8, n, 1, mpi_comm_cols, mpierr)
              enddo
            endif
-           call timer%stop("mpi_communication")
-
 
            if (my_pcol>=np_off+np1 .and. my_pcol<np_off+nprocs) then
 
-             call timer%start("mpi_communication")
              call mpi_recv(d(noff+1), nmid, MPI_REAL8, np_off, 1, mpi_comm_cols, MPI_STATUS_IGNORE, mpierr)
-             call timer%stop("mpi_communication")
 
            endif
 
            if (my_pcol==np_off+np1) then
              do n=np_off,np_off+np1-1
 
-               call timer%start("mpi_communication")
                call mpi_send(d(noff+nmid+1), nlen-nmid, MPI_REAL8, n, 1, mpi_comm_cols, mpierr)
-               call timer%stop("mpi_communication")
-
 
              enddo
            endif
            if (my_pcol>=np_off .and. my_pcol<np_off+np1) then
 
-             call timer%start("mpi_communication")
              call mpi_recv(d(noff+nmid+1), nlen-nmid, MPI_REAL8, np_off+np1, 1,mpi_comm_cols, MPI_STATUS_IGNORE, mpierr)
-             call timer%stop("mpi_communication")
 
            endif
            if (nprocs == np_cols) then
@@ -2061,8 +2010,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 ! with the divide and conquer method.
 ! Works best if the number of processor rows is a power of 2!
 
-      use timings_dummy
-
       use precision
       implicit none
 
@@ -2085,11 +2032,8 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       integer(kind=ik)              :: istat
       character(200)                :: errorMessage
 
-      call timer%start("solve_tridi_col" // "_double")
-      call timer%start("mpi_communication")
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
-      call timer%stop("mpi_communication")
       success = .true.
 ! Calculate the number of subdivisions needed.
 
@@ -2189,11 +2133,9 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           noff = limits(np)
           nlen = limits(np+1)-noff
 
-          call timer%start("mpi_communication")
           call MPI_Bcast(d(noff+1), nlen, MPI_REAL8, np, mpi_comm_rows, mpierr)
           qmat2 = qmat1
           call MPI_Bcast(qmat2, max_size*max_size, MPI_REAL8, np, mpi_comm_rows, mpierr)
-          call timer%stop("mpi_communication")
 
           do i=1,nlen
 
@@ -2258,16 +2200,12 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         stop
       endif
 
-      call timer%stop("solve_tridi_col" // "_double")
-
     end subroutine solve_tridi_col_double
 
     recursive subroutine solve_tridi_single_problem_double(nlen, d, e, q, ldq, wantDebug, success)
 
 ! Solves the symmetric, tridiagonal eigenvalue problem on a single processor.
 ! Takes precautions if DSTEDC fails or if the eigenvalues are not ordered correctly.
-
-     use timings_dummy
 
      use precision
      implicit none
@@ -2285,8 +2223,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
      logical, intent(out)          :: success
       integer(kind=ik)             :: istat
       character(200)               :: errorMessage
-
-     call timer%start("solve_tridi_single" // "_double")
 
      success = .true.
      allocate(ds(nlen), es(nlen), stat=istat, errmsg=errorMessage)
@@ -2378,7 +2314,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
        endif
      enddo
-     call timer%stop("solve_tridi_single" // "_double")
 
     end subroutine solve_tridi_single_problem_double
 
@@ -2386,8 +2321,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
     subroutine merge_systems_double( na, nm, d, e, q, ldq, nqoff, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, &
                           l_col, p_col, l_col_out, p_col_out, npc_0, npc_n, wantDebug, success)
 
-
-      use timings_dummy
 
       use precision
       implicit none
@@ -2432,19 +2365,15 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
 
 
-      call timer%start("merge_systems" // "_double")
       success = .true.
-      call timer%start("mpi_communication")
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
       call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
-      call timer%stop("mpi_communication")
 
 ! If my processor column isn't in the requested set, do nothing
 
       if (my_pcol<npc_0 .or. my_pcol>=npc_0+npc_n) then
-        call timer%stop("merge_systems" // "_double")
         return
       endif
 ! Determine number of "next" and "prev" column for ring sends
@@ -2462,12 +2391,10 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       endif
       call check_monotony_double(nm,d,'Input1',wantDebug, success)
       if (.not.(success)) then
-        call timer%stop("merge_systems" // "_double")
         return
       endif
       call check_monotony_double(na-nm,d(nm+1),'Input2',wantDebug, success)
       if (.not.(success)) then
-        call timer%stop("merge_systems" // "_double")
         return
       endif
 ! Get global number of processors and my processor number.
@@ -2551,8 +2478,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
 ! Rearrange eigenvectors
         call resort_ev_double(idx, na)
-
-        call timer%stop("merge_systems" // "_double")
 
         return
       ENDIF
@@ -2664,12 +2589,10 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       enddo
       call check_monotony_double(na1,d1,'Sorted1', wantDebug, success)
       if (.not.(success)) then
-        call timer%stop("merge_systems" // "_double")
         return
       endif
       call check_monotony_double(na2,d2,'Sorted2', wantDebug, success)
       if (.not.(success)) then
-        call timer%stop("merge_systems" // "_double")
         return
       endif
 
@@ -2791,7 +2714,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         call check_monotony_double(na,d,'Output', wantDebug, success)
 
         if (.not.(success)) then
-          call timer%stop("merge_systems" // "_double")
           return
         endif
 ! Eigenvector calculations
@@ -2892,11 +2814,9 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
               np_rem = np_rem-1
             endif
 
-            call timer%start("mpi_communication")
             call MPI_Sendrecv_replace(qtmp1, l_rows*max_local_cols, MPI_REAL8, &
                                         np_next, 1111, np_prev, 1111, &
                                         mpi_comm_cols, MPI_STATUS_IGNORE, mpierr)
-            call timer%stop("mpi_communication")
 
           endif
 
@@ -3012,8 +2932,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
 
 
-      call timer%stop("merge_systems" // "_double")
-
       return
 
       contains
@@ -3041,8 +2959,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         end subroutine add_tmp_double
 
         subroutine resort_ev_double(idx_ev, nLength)
-
-      use timings_dummy
 
           use precision
           implicit none
@@ -3084,16 +3000,12 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
                 qtmp(1:l_rows,nc) = q(l_rqs:l_rqe,lc1)
               else
 
-                call timer%start("mpi_communication")
                 call mpi_send(q(l_rqs,lc1), l_rows, MPI_REAL8, pc2, mod(i,4096), mpi_comm_cols, mpierr)
-                call timer%stop("mpi_communication")
 
               endif
             else if (pc2==my_pcol) then
 
-              call timer%start("mpi_communication")
               call mpi_recv(qtmp(1,nc), l_rows, MPI_REAL8, pc1, mod(i,4096), mpi_comm_cols, MPI_STATUS_IGNORE, mpierr)
-              call timer%stop("mpi_communication")
 
             endif
           enddo
@@ -3122,8 +3034,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
         subroutine transform_columns_double(col1, col2)
 
-          use timings_dummy
-
           use precision
           implicit none
 
@@ -3145,21 +3055,17 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
               q(l_rqs:l_rqe,lc1) = tmp(1:l_rows)
             else
 
-              call timer%start("mpi_communication")
               call mpi_sendrecv(q(l_rqs,lc1), l_rows, MPI_REAL8, pc2, 1, &
                                 tmp, l_rows, MPI_REAL8, pc2, 1,          &
                                 mpi_comm_cols, MPI_STATUS_IGNORE, mpierr)
-              call timer%stop("mpi_communication")
 
               q(l_rqs:l_rqe,lc1) = q(l_rqs:l_rqe,lc1)*qtrans(1,1) + tmp(1:l_rows)*qtrans(2,1)
             endif
           else if (pc2==my_pcol) then
 
-            call timer%start("mpi_communication")
             call mpi_sendrecv(q(l_rqs,lc2), l_rows, MPI_REAL8, pc1, 1, &
                                tmp, l_rows, MPI_REAL8, pc1, 1,         &
                                mpi_comm_cols, MPI_STATUS_IGNORE, mpierr)
-            call timer%stop("mpi_communication")
 
 
             q(l_rqs:l_rqe,lc2) = tmp(1:l_rows)*qtrans(1,2) + q(l_rqs:l_rqe,lc2)*qtrans(2,2)
@@ -3173,8 +3079,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 ! otherways the results may be numerically different on different columns
           use precision
 
-          use timings_dummy
-
           implicit none
 
           integer(kind=ik) :: n
@@ -3185,9 +3089,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
 ! Do an mpi_allreduce over processor rows
 
-          call timer%start("mpi_communication")
           call mpi_allreduce(z, tmp, n, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
-          call timer%stop("mpi_communication")
 
 ! If only 1 processor column, we are done
           if (npc_n==1) then
@@ -3198,9 +3100,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 ! If all processor columns are involved, we can use mpi_allreduce
           if (npc_n==np_cols) then
 
-            call timer%start("mpi_communication")
             call mpi_allreduce(tmp, z, n, MPI_REAL8, MPI_SUM, mpi_comm_cols, mpierr)
-            call timer%stop("mpi_communication")
 
 
             return
@@ -3211,10 +3111,8 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           do np = 1, npc_n
             z(:) = z(:) + tmp(:)
 
-            call timer%start("mpi_communication")
             call MPI_Sendrecv_replace(z, n, MPI_REAL8, np_next, 1111, np_prev, 1111, &
                                        mpi_comm_cols, MPI_STATUS_IGNORE, mpierr)
-            call timer%stop("mpi_communication")
 
           enddo
         end subroutine global_gather_double
@@ -3222,8 +3120,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         subroutine global_product_double(z, n)
 ! This routine calculates the global product of z.
           use precision
-
-          use timings_dummy
 
           implicit none
 
@@ -3236,9 +3132,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
 ! Do an mpi_allreduce over processor rows
 
-          call timer%start("mpi_communication")
           call mpi_allreduce(z, tmp, n, MPI_REAL8, MPI_PROD, mpi_comm_rows, mpierr)
-          call timer%stop("mpi_communication")
 
 ! If only 1 processor column, we are done
           if (npc_n==1) then
@@ -3249,9 +3143,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 ! If all processor columns are involved, we can use mpi_allreduce
           if (npc_n==np_cols) then
 
-            call timer%start("mpi_communication")
             call mpi_allreduce(tmp, z, n, MPI_REAL8, MPI_PROD, mpi_comm_cols, mpierr)
-            call timer%stop("mpi_communication")
 
             return
           endif
@@ -3263,26 +3155,19 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
             z(1:n) = tmp(1:n)
             do np = npc_0+1, npc_0+npc_n-1
 
-              call timer%start("mpi_communication")
               call mpi_recv(tmp, n, MPI_REAL8, np, 1111, mpi_comm_cols, MPI_STATUS_IGNORE, mpierr)
-              call timer%stop("mpi_communication")
 
               z(1:n) = z(1:n)*tmp(1:n)
             enddo
             do np = npc_0+1, npc_0+npc_n-1
 
-              call timer%start("mpi_communication")
               call mpi_send(z, n, MPI_REAL8, np, 1111, mpi_comm_cols, mpierr)
-              call timer%stop("mpi_communication")
 
             enddo
           else
 
-            call timer%start("mpi_communication")
             call mpi_send(tmp, n, MPI_REAL8, npc_0, 1111, mpi_comm_cols, mpierr)
             call mpi_recv(z  ,n, MPI_REAL8, npc_0, 1111, mpi_comm_cols, MPI_STATUS_IGNORE, mpierr)
-            call timer%stop("mpi_communication")
-
 
           endif
         end subroutine global_product_double
@@ -3401,8 +3286,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 !-------------------------------------------------------------------------------
 
 
-      use timings_dummy
-
       use precision
       implicit none
 
@@ -3417,7 +3300,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
 ! Upper and lower bound of the shifted solution interval are a and b
 
-      call timer%start("solve_secular_equation" // "_double")
       if (i==n) then
 
 ! Special case: Last eigenvalue
@@ -3479,7 +3361,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
       dlam = x + dshift
       delta(:) = delta(:) - x
-      call  timer%stop("solve_secular_equation" // "_double")
 
     end subroutine solve_secular_equation_double
 !-------------------------------------------------------------------------------
@@ -3597,8 +3478,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       use cuda_functions
       use, intrinsic :: iso_c_binding
 
-      use timings_dummy
-
       use precision
       implicit none
 
@@ -3650,8 +3529,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       uv_stored_cols_dev = 0
       aux3 = 0
 
-
-      call timer%start("tridiag_complex" // "_double")
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -3783,9 +3660,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
             aux1(2) = 0.
           endif
 
-          call timer%start("mpi_communication")
           call mpi_allreduce(aux1, aux2, 2, MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_rows, mpierr)
-          call timer%stop("mpi_communication")
 
           vnorm2 = aux2(1)
           vrl    = aux2(2)
@@ -3810,10 +3685,8 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
          endif !(my_pcol==pcol(istep, nblk, np_cols))
 
 
-         call timer%start("mpi_communication")
 ! Broadcast the Householder vector (and tau) along columns
          call MPI_Bcast(v_row, l_rows+1, MPI_DOUBLE_COMPLEX, pcol(istep, nblk, np_cols), mpi_comm_cols, mpierr)
-         call timer%stop("mpi_communication")
 
 
 
@@ -3922,9 +3795,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         if (l_cols>0) then
           tmp(1:l_cols) = u_col(1:l_cols)
 
-          call timer%start("mpi_communication")
           call mpi_allreduce(tmp, u_col, l_cols, MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_rows, mpierr)
-          call timer%stop("mpi_communication")
 
 
         endif
@@ -3943,10 +3814,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         if (l_cols>0)  &
            xc = dot_product(v_col(1:l_cols),u_col(1:l_cols))
 
-        call timer%start("mpi_communication")
         call mpi_allreduce(xc, vav, 1 , MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_cols, mpierr)
-        call timer%stop("mpi_communication")
-
 
 
 ! store u and v in the matrices U and V
@@ -4035,18 +3903,12 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         endif
 
 
-        call timer%start("mpi_communication")
         call mpi_bcast(tau(2), 1, MPI_DOUBLE_COMPLEX, prow(1, nblk, np_rows), mpi_comm_rows, mpierr)
-        call timer%stop("mpi_communication")
-
 
       endif
 
 
-      call timer%start("mpi_communication")
       call mpi_bcast(tau(2), 1, MPI_DOUBLE_COMPLEX, pcol(2, nblk, np_cols), mpi_comm_cols, mpierr)
-      call timer%stop("mpi_communication")
-
 
 
       if (my_prow==prow(1, nblk, np_rows) .and. my_pcol==pcol(1, nblk, np_cols))  then
@@ -4098,7 +3960,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         stop
       endif
 
-      call timer%start("mpi_communication")
       tmp_real = d_vec
       call mpi_allreduce(tmp_real, d_vec, na, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
       tmp_real = d_vec
@@ -4107,16 +3968,12 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       call mpi_allreduce(tmp_real, e_vec, na, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
       tmp_real = e_vec
       call mpi_allreduce(tmp_real, e_vec, na, MPI_REAL8, MPI_SUM, mpi_comm_cols, mpierr)
-      call timer%stop("mpi_communication")
-
 
       deallocate(tmp_real, stat=istat, errmsg=errorMessage)
       if (istat .ne. 0) then
         print *,"tridiag_complex: error when deallocating tmp_real "//errorMessage
         stop
       endif
-
-      call timer%stop("tridiag_complex" // "_double")
 
     end subroutine tridiag_complex_double
 
@@ -4159,8 +4016,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       use cuda_functions
       use, intrinsic :: iso_c_binding
 
-      use timings_dummy
-
       use precision
       implicit none
 
@@ -4189,14 +4044,10 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       integer(kind=C_intptr_T)    :: q_dev, tmp_dev, hvm_dev, tmat_dev
       logical                     :: successCUDA
 
-      call timer%start("trans_ev_complex" // "_double")
-      call timer%start("mpi_communication")
-
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
       call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
-      call timer%stop("mpi_communication")
 
       totalblocks = (na-1)/nblk + 1
       max_blocks_row = (totalblocks-1)/np_rows + 1
@@ -4290,12 +4141,8 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         enddo
 
 
-        call timer%start("mpi_communication")
-
         if (nb>0) &
            call MPI_Bcast(hvb, nb, MPI_DOUBLE_COMPLEX, cur_pcol, mpi_comm_cols, mpierr)
-        call timer%stop("mpi_communication")
-
 
         nb = 0
         do ic=ics,ice
@@ -4323,9 +4170,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
             nc = nc+n
           enddo
 
-          call timer%start("mpi_communication")
           if (nc>0) call mpi_allreduce(h1, h2, nc, MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_rows, mpierr)
-          call timer%stop("mpi_communication")
 
 
 ! Calculate triangular matrix T
@@ -4380,9 +4225,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
           endif 
           
-          call timer%start("mpi_communication")
           call mpi_allreduce(tmp1, tmp2, nstor*l_cols, MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_rows, mpierr)
-          call timer%stop("mpi_communication")
 
 ! copy back tmp2 - after reduction...
           if (useGPU) then          
@@ -4456,8 +4299,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
       endif
 
-      call timer%stop("trans_ev_complex" // "_double")
-
     end subroutine trans_ev_complex_double
     subroutine hh_transform_complex_double(alpha, xnorm_sq, xf, tau)
 
@@ -4467,8 +4308,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 ! since this would be expensive for the parallel implementation.
       use precision
 
-      use timings_dummy
-
       implicit none
       complex(kind=ck8), intent(inout) :: alpha
       real(kind=rk8), intent(in)       :: xnorm_sq
@@ -4476,8 +4315,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
       real(kind=rk8)                   :: ALPHR, ALPHI, BETA
       
-      call timer%start("hh_transform_complex" // "_double")
-
       ALPHR = real( ALPHA, kind=rk8 )
       ALPHI = DIMAG( ALPHA )
       if ( XNORM_SQ==0. .AND. ALPHI==0. ) then
@@ -4507,8 +4344,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         XF = 1.0_rk8/ALPHA
         ALPHA = BETA
       endif
-
-      call timer%stop("hh_transform_complex" // "_double")
 
     end subroutine hh_transform_complex_double
 

@@ -70,22 +70,16 @@ module ELPA1_utilities
 
    function gpu_usage_via_environment_variable() result(useGPU)
 
-     use timings_dummy
-
      use precision
      implicit none
      logical            :: useGPU
      CHARACTER(len=255) :: ELPA_USE_GPU_ENVIRONMENT
-
-     call timer%start("gpu_usage_via_environment_variable")
 
      useGPU = .false.
 
      if (trim(ELPA_USE_GPU_ENVIRONMENT) .eq. "YES" .or. trim(ELPA_USE_GPU_ENVIRONMENT) .eq. "yes") then
        useGPU = .true.
      endif
-
-     call timer%stop("gpu_usage_via_environment_variable")
 
    end function gpu_usage_via_environment_variable
 !-------------------------------------------------------------------------------
