@@ -721,7 +721,6 @@ end subroutine
 !
 !-------------------------------------------------------------------------------
 
-      use cuda_functions
       use, intrinsic :: iso_c_binding
       use elpa1_compute
 
@@ -802,12 +801,6 @@ end subroutine
       endif
 
 ! na_rows in used nowhere; only na_cols
-      if (useGPU) then
-
-!        na_rows = numroc(na, nblk, my_prow, 0, np_rows)
-        na_cols = numroc(na, nblk, my_pcol, 0, np_cols)
-
-      endif ! useGPU
 
 ! Matrix is split into tiles; work is done only for tiles on the diagonal or above
 
@@ -818,11 +811,6 @@ end subroutine
       l_cols_tile = tile_size/np_cols ! local cols of a tile
 
       if (useQR) then
-
-        if (useGPU) then
-          print *,"qr decomposition at the moment not supported with GPU"
-          stop
-        endif
 
         if (which_qr_decomposition == 1) then
           call qr_pqrparam_init(pqrparam(1:11),    nblk,'M',0,   nblk,'M',0,   nblk,'M',1,'s')
@@ -871,34 +859,6 @@ end subroutine
 
       endif ! useQr
 
-      if (useGPU) then
-! Here we convert the regular host array into a pinned host array
-        successCUDA = cuda_malloc(a_dev, lda*na_cols*size_of_double_real_datatype)
-        if (.not.(successCUDA)) then
-          print *,"bandred_real: error in cudaMalloc"
-          stop
-        endif
-        successCUDA = cuda_malloc(tmat_dev, nbw*nbw*size_of_double_real_datatype)
-        if (.not.(successCUDA)) then
-          print *,"bandred_real: error in cudaMalloc"
-          stop
-        endif
-        successCUDA = cuda_malloc(vav_dev, nbw*nbw*size_of_double_real_datatype)
-        if (.not.(successCUDA)) then
-          print *,"bandred_real: error in cudaMalloc"
-          stop
-        endif
-
-        cur_l_rows = 0
-        cur_l_cols = 0
-
-        if (.not.(successCUDA)) then
-          print *,"bandred_real: error in cudaMemcpy"
-          stop
-        endif
-      endif ! useGPU
-
-
       do istep = (na-1)/nbw, 1, -1
 
         n_cols = MIN(na,(istep+1)*nbw) - istep*nbw ! Number of columns in current step
@@ -906,90 +866,6 @@ end subroutine
 ! Number of local columns/rows of remaining matrix
         l_cols = local_index(istep*nbw, my_pcol, np_cols, nblk, -1)
         l_rows = local_index(istep*nbw, my_prow, np_rows, nblk, -1)
-
-        if (useGPU) then
-          cur_l_rows = max(l_rows, 1)
-          cur_l_cols = max(l_cols, 1)
-
-          vmr_size = cur_l_rows * 2 * n_cols
-          umc_size = cur_l_cols * 2 * n_cols
-
-! Allocate vmr and umc only if the inew size exceeds their current capacity
-! Added for FORTRAN CALLS
-          if ((.not. allocated(vr)) .or. (l_rows + 1 .gt. ubound(vr, dim=1))) then
-            if (allocated(vr)) then
-              deallocate(vr, stat=istat, errmsg=errorMessage)
-              if (istat .ne. 0) then
-                print *,"bandred_real: error when deallocating vr "//errorMessage
-                stop
-              endif
-            endif
-            allocate(vr(l_rows + 1), stat=istat, errmsg=errorMessage)
-            if (istat .ne. 0) then
-              print *,"bandred_real: error when allocating vr "//errorMessage
-              stop
-            endif
-
-          endif
-
-          if ((.not. allocated(vmrCUDA)) .or. (vmr_size .gt. ubound(vmrCUDA, dim=1))) then
-            if (allocated(vmrCUDA)) then
-              deallocate(vmrCUDA, stat=istat, errmsg=errorMessage)
-              if (istat .ne. 0) then
-                print *,"bandred_real: error when allocating vmrCUDA "//errorMessage
-                stop
-              endif
-
-              successCUDA = cuda_free(vmr_dev)
-              if (.not.(successCUDA)) then
-                print *,"bandred_real: error in cuda_free"
-                stop
-              endif
-            endif
-
-            allocate(vmrCUDA(vmr_size), stat=istat, errmsg=errorMessage)
-            if (istat .ne. 0) then
-              print *,"bandred_real: error when allocating vmrCUDA "//errorMessage
-              stop
-            endif
-            successCUDA = cuda_malloc(vmr_dev, vmr_size*size_of_double_real_datatype)
-            if (.not.(successCUDA)) then
-              print *,"bandred_real: error in cudaMalloc"
-              stop
-            endif
-
-          endif
-
-          if ((.not. allocated(umcCUDA)) .or. (umc_size .gt. ubound(umcCUDA, dim=1))) then
-            if (allocated(umcCUDA)) then
-              deallocate(umcCUDA, stat=istat, errmsg=errorMessage)
-              if (istat .ne. 0) then
-                print *,"bandred_real: error when deallocating umcCUDA "//errorMessage
-                stop
-              endif
-
-              successCUDA = cuda_free(umc_dev)
-              if (.not.(successCUDA)) then
-                 print *,"bandred_real: error in cudaFree"
-                 stop
-              endif
-
-            endif
-
-            allocate(umcCUDA(umc_size), stat=istat, errmsg=errorMessage)
-            if (istat .ne. 0) then
-              print *,"bandred_real: error when deallocating umcCUDA "//errorMessage
-              stop
-            endif
-            successCUDA = cuda_malloc(umc_dev, umc_size*size_of_double_real_datatype)
-            if (.not.(successCUDA)) then
-              print *,"bandred_real: error in cudaMalloc"
-              stop
-            endif
-
-          endif
-
-        else ! GPU not used
 
 ! Allocate vmr and umc to their exact sizes so that they can be used in bcasts and reduces
 
@@ -1011,36 +887,9 @@ end subroutine
             stop
           endif
 
-        endif ! use GPU
-
-        if (useGPU) then
-          vmrCUDA(1 : cur_l_rows * n_cols) = 0.0_rk8
-        else
           vmrCPU(1:l_rows,1:n_cols) = 0.0_rk8
-        endif
         vr(:) = 0.0_rk8
         tmat(:,:,istep) = 0.0_rk8
-
-        if (useGPU) then
-          umcCUDA(1 : umc_size) = 0.0_rk8
-          lc_start = local_index(istep*nbw+1, my_pcol, np_cols, nblk, -1)
-          lc_end   = local_index(istep*nbw+n_cols, my_pcol, np_cols, nblk, -1)
-          lr_end   = local_index((istep-1)*nbw + n_cols, my_prow, np_rows, nblk, -1)
-
-          if(lc_start .le. 0) lc_start = 1
-
-! Here we assume that the processor grid and the block grid are aligned
-          cur_pcol = pcol(istep*nbw+1, nblk, np_cols)
-
-          if(my_pcol == cur_pcol) then
-
-            if (.not.(successCUDA)) then
-              print *,"bandred_real: error in cudaMemcpy2d"
-              stop
-            endif
-
-          endif
-        endif ! useGPU
 
 ! Reduce current block to lower triangular form
 
@@ -1124,11 +973,7 @@ end subroutine
 
 
 
-           if (useGPU) then
-             vmrCUDA(cur_l_rows * (lc - 1) + 1 : cur_l_rows * (lc - 1) + lr) = vr(1:lr)
-           else
              vmrCPU(1:lr,lc) = vr(1:lr)
-           endif
 
            tau = vr(lr+1)
            tmat(lc,lc,istep) = tau ! Store tau in diagonal of tmat
@@ -1168,31 +1013,13 @@ end subroutine
 
          enddo ! lc
 
-         if (useGPU) then
-! store column tiles back to GPU
-           cur_pcol = pcol(istep*nbw+1, nblk, np_cols)
-           if (my_pcol == cur_pcol) then
-
-             if (.not.(successCUDA)) then
-               print *,"bandred_real: error in cudaMemcpy2d"
-               stop
-             endif
-
-           endif
-         endif
-
 ! Calculate scalar products of stored Householder vectors.
 ! This can be done in different ways, we use dsyrk
 
          vav = 0
 
-         if (useGPU) then
-           if (l_rows>0) &
-             call DSYRK('U', 'T', n_cols, l_rows, 1.0_rk8, vmrCUDA, cur_l_rows, 0.0_rk8, vav, ubound(vav,dim=1))
-         else
            if (l_rows>0) &
              call DSYRK('U', 'T', n_cols, l_rows, 1.0_rk8, vmrCPU, ubound(vmrCPU,dim=1), 0.0_rk8, vav, ubound(vav,dim=1))
-         endif
 
          call symm_matrix_allreduce_double(n_cols,vav, nbw, nbw,mpi_comm_rows)
 
@@ -1208,70 +1035,14 @@ end subroutine
 
 ! Transpose vmr -> vmc (stored in umc, second half)
 
-       if (useGPU) then
-         call elpa_transpose_vectors_real_double  (vmrCUDA, cur_l_rows, mpi_comm_rows, &
-                                            umcCUDA(cur_l_cols * n_cols + 1), cur_l_cols, mpi_comm_cols, &
-                                            1, istep*nbw, n_cols, nblk)
-       else
          call elpa_transpose_vectors_real_double  (vmrCPU, ubound(vmrCPU,dim=1), mpi_comm_rows, &
                                             umcCPU(1,n_cols+1), ubound(umcCPU,dim=1), mpi_comm_cols, &
                                             1, istep*nbw, n_cols, nblk)
-       endif
 
 ! Calculate umc = A**T * vmr
 ! Note that the distributed A has to be transposed
 ! Opposed to direct tridiagonalization there is no need to use the cache locality
 ! of the tiles, so we can use strips of the matrix
-
-! here the GPU version and CPU version diverged substantially, due to the newest
-! optimizations due to Intel. The GPU version has to be re-written
-       if (useGPU) then
-         umcCUDA(1 : l_cols * n_cols) = 0.0_rk8
-         vmrCUDA(cur_l_rows * n_cols + 1 : cur_l_rows * n_cols * 2) = 0.0_rk8
-
-         if (l_cols>0 .and. l_rows>0) then
-
-           if (.not.(successCUDA)) then
-             print *,"bandred_real: error in cudaMemcpy"
-             stop
-           endif
-
-           if (.not.(successCUDA)) then
-             print *,"bandred_real: error in cudaMemcpy"
-             stop
-           endif
-
-           do i=0,(istep*nbw-1)/tile_size
-
-             lcs = i*l_cols_tile+1
-             lce = min(l_cols,(i+1)*l_cols_tile)
-             if (lce<lcs) cycle
-
-             lre = min(l_rows,(i+1)*l_rows_tile)
-             call cublas_dgemm('T', 'N', lce-lcs+1, n_cols, lre, &
-                               1.0_rk8, (a_dev + ((lcs-1)*lda*size_of_double_real_datatype)), lda, vmr_dev,cur_l_rows, &
-                               1.0_rk8, (umc_dev+ (lcs-1)*size_of_double_real_datatype), cur_l_cols)
-             if(i==0) cycle
-             lre = min(l_rows,i*l_rows_tile)
-             call cublas_dgemm('N', 'N', lre,n_cols, lce-lcs+1,&
-                               1.0_rk8, (a_dev+ ((lcs-1)*lda*size_of_double_real_datatype)), lda,                  &
-                               (umc_dev+(cur_l_cols * n_cols+lcs-1)*size_of_double_real_datatype), cur_l_cols, &
-                               1.0_rk8, (vmr_dev+(cur_l_rows * n_cols)*size_of_double_real_datatype), cur_l_rows)
-           enddo
-
-           if (.not.(successCUDA)) then
-             print *,"bandred_real: error in cudaMemcpy"
-             stop
-           endif
-
-           if (.not.(successCUDA)) then
-             print *,"bandred_real: error in cudaMemcpy"
-             stop
-           endif
-
-         endif ! l_cols>0 .and. l_rows>0
-
-       else ! do not useGPU version
 
 !Code for Algorithm 4
 
@@ -1355,126 +1126,10 @@ end subroutine
            endif
          endif ! n_way > 1
 
-       endif ! do not useGPU version
-
 ! Sum up all ur(:) parts along rows and add them to the uc(:) parts
 ! on the processors containing the diagonal
 ! This is only necessary if ur has been calculated, i.e. if the
 ! global tile size is smaller than the global remaining matrix
-
-       if (useGPU) then
-! here the GPU version and CPU version divereged due to the same reasons as above
-
-         if (tile_size < istep*nbw) then
-           call elpa_reduce_add_vectors_real_double  (vmrCUDA(cur_l_rows * n_cols + 1),cur_l_rows,mpi_comm_rows, &
-                                               umcCUDA, cur_l_cols, mpi_comm_cols, &
-                                               istep*nbw, n_cols, nblk)
-         endif
-
-         if (l_cols>0) then
-           allocate(tmpCUDA(l_cols * n_cols), stat=istat, errmsg=errorMessage)
-           if (istat .ne. 0) then
-             print *,"bandred_real: error when allocating tmpCUDA "//errorMessage
-             stop
-           endif
-
-
-
-
-           call mpi_allreduce(umcCUDA, tmpCUDA, l_cols*n_cols, MPI_REAL8, MPI_SUM, mpi_comm_rows, ierr)
-           umcCUDA(1 : l_cols * n_cols) = tmpCUDA(1 : l_cols * n_cols)
-
-
-
-           if (allocated(tmpCUDA)) then
-             deallocate(tmpCUDA, stat=istat, errmsg=errorMessage)
-             if (istat .ne. 0) then
-               print *,"bandred_real: error when deallocating tmpCUDA "//errorMessage
-               stop
-             endif
-           endif
-         endif ! l_cols
-
-! U = U * Tmat**T
-
-         if (.not.(successCUDA)) then
-           print *,"bandred_real: error in cudaMemcpy"
-           stop
-         endif
-
-         if (.not.(successCUDA)) then
-           print *,"bandred_real: error in cudaMemcpy"
-           stop
-         endif
-         call cublas_dtrmm('Right', 'Upper', 'Trans', 'Nonunit', l_cols, n_cols, &
-                           1.0_rk8, tmat_dev, nbw, umc_dev, cur_l_cols)
-! VAV = Tmat * V**T * A * V * Tmat**T = (U*Tmat**T)**T * V * Tmat**T
-
-         if (.not.(successCUDA)) then
-           print *,"bandred_real: error in cudaMemcpy"
-           stop
-         endif
-         call cublas_dgemm('T', 'N', n_cols, n_cols, l_cols, &
-                           1.0_rk8, umc_dev, cur_l_cols, (umc_dev+(cur_l_cols * n_cols )*size_of_double_real_datatype),cur_l_cols, &
-                           0.0_rk8, vav_dev, nbw)
-
-         call cublas_dtrmm('Right', 'Upper', 'Trans', 'Nonunit', n_cols, n_cols, &
-                           1.0_rk8, tmat_dev, nbw, vav_dev, nbw)
-
-
-         if (.not.(successCUDA)) then
-           print *,"bandred_real: error in cudaMemcpy"
-           stop
-         endif
-
-         call symm_matrix_allreduce_double(n_cols,vav, nbw,nbw,mpi_comm_cols)
-
-
-         if (.not.(successCUDA)) then
-           print *,"bandred_real: error in cudaMemcpy"
-           stop
-         endif
-
-! U = U - 0.5 * V * VAV
-         call cublas_dgemm('N', 'N', l_cols, n_cols, n_cols,&
-                           -0.5_rk8, (umc_dev+(cur_l_cols * n_cols )*size_of_double_real_datatype),cur_l_cols, vav_dev,nbw,&
-                           1.0_rk8, umc_dev, cur_l_cols)
-
-
-         if (.not.(successCUDA)) then
-           print *,"bandred_real: error in cudaMemcpy"
-           stop
-         endif
-
-! Transpose umc -> umr (stored in vmr, second half)
-         call elpa_transpose_vectors_real_double  (umcCUDA, cur_l_cols, mpi_comm_cols, &
-                                            vmrCUDA(cur_l_rows * n_cols + 1), cur_l_rows, mpi_comm_rows, &
-                                            1, istep*nbw, n_cols, nblk)
-
-
-         if (.not.(successCUDA)) then
-           print *,"bandred_real: error in cudaMemcpy"
-           stop
-         endif
-
-
-         if (.not.(successCUDA)) then
-           print *,"bandred_real: error in cudaMemcpy"
-           stop
-         endif
-
-! A = A - V*U**T - U*V**T
-         do i=0,(istep*nbw-1)/tile_size
-           lcs = i*l_cols_tile+1
-           lce = min(l_cols,(i+1)*l_cols_tile)
-           lre = min(l_rows,(i+1)*l_rows_tile)
-           if (lce<lcs .or. lre<1) cycle
-           call cublas_dgemm('N', 'T', lre, lce-lcs+1, 2*n_cols, -1.0_rk8, &
-                             vmr_dev, cur_l_rows, (umc_dev +(lcs-1)*size_of_double_real_datatype), cur_l_cols, &
-                             1.0_rk8, (a_dev+(lcs-1)*lda*size_of_double_real_datatype), lda)
-         enddo
-
-       else ! do not useGPU
 
 ! Or if we used the Algorithm 4
          if (tile_size < istep*nbw .or. n_way > 1) then
@@ -1542,9 +1197,6 @@ end subroutine
          enddo
 
 
-       endif ! useGPU
-
-       if (.not.(useGPU)) then
          if (allocated(vr)) then
            deallocate(vr, stat=istat, errmsg=errorMessage)
            if (istat .ne. 0) then
@@ -1569,40 +1221,7 @@ end subroutine
            endif
          endif
 
-       endif !useGPU
-
      enddo ! istep
-
-     if (useGPU) then
-! this is not needed since a_dev is passed along from one subroutine to the other
-
-       if (.not.(successCUDA)) then
-         print *,"bandred_real: error in cudaMemcpy"
-         stop
-       endif
-
-       successCUDA = cuda_free(a_dev)
-       if (.not.(successCUDA)) then
-         print *,"bandred_real: error in cudaFree"
-         stop
-       endif
-
-!#ifdef 1
-! it should be possible to keep tmat dev on the device and not copy it arround
-! this is not necessary tmat_dev is passed (unchanged) from one routine to the other
-       successCUDA = cuda_free(tmat_dev)
-       if (.not.(successCUDA)) then
-         print *,"bandred_real: error in cudaFree"
-         stop
-       endif
-!#endif
-
-       successCUDA = cuda_free(vav_dev)
-       if (.not.(successCUDA)) then
-         print *,"bandred_real: error in cudaFree"
-         stop
-       endif
-     endif ! useGPU
 
      if (allocated(vr)) then
        deallocate(vr, stat=istat, errmsg=errorMessage)
@@ -1627,35 +1246,6 @@ end subroutine
          stop
        endif
      endif
-
-     if (useGPU) then
-       successCUDA = cuda_free(vmr_dev)
-       if (.not.(successCUDA)) then
-         print *,"bandred_real: error in cudaFree"
-         stop
-       endif
-
-       successCUDA = cuda_free(umc_dev)
-       if (.not.(successCUDA)) then
-         print *,"bandred_real: error in cudaFree"
-         stop
-       endif
-       if (allocated(umcCUDA)) then
-         deallocate(umcCUDA, stat=istat, errmsg=errorMessage)
-         if (istat .ne. 0) then
-           print *,"bandred_real: error when deallocating umcCUDA "//errorMessage
-           stop
-         endif
-       endif
-       if (allocated(vmrCUDA)) then
-         deallocate(vmrCUDA, stat=istat, errmsg=errorMessage)
-         if (istat .ne. 0) then
-           print *,"bandred_real: error when deallocating vmrCUDA "//errorMessage
-           stop
-         endif
-       endif
-
-     endif ! useGPU
 
      if (useQR) then
        if (which_qr_decomposition == 1) then
@@ -1761,7 +1351,6 @@ end subroutine
 !-------------------------------------------------------------------------------
 
       use precision
-      use cuda_functions
       use, intrinsic :: iso_c_binding
 
       implicit none
@@ -1810,226 +1399,6 @@ end subroutine
 
       max_local_rows = max_blocks_row*nblk
       max_local_cols = max_blocks_col*nblk
-
-      if (useGPU) then
-
-! here the GPU and CPU version diverged: the CPU version now always uses the useQR path which
-! is not implemented in the GPU version
-        allocate(tmp1(max_local_cols*nbw), stat=istat, errmsg=errorMessage)
-        if (istat .ne. 0) then
-          print *,"trans_ev_band_to_full_real: error when allocating tmp1 "//errorMessage
-          stop
-        endif
-
-        allocate(tmp2(max_local_cols*nbw), stat=istat, errmsg=errorMessage)
-        if (istat .ne. 0) then
-          print *,"trans_ev_band_to_full_real: error when allocating tmp2 "//errorMessage
-          stop
-        endif
-
-        allocate(hvb(max_local_rows*nbw), stat=istat, errmsg=errorMessage)
-        if (istat .ne. 0) then
-          print *,"trans_ev_band_to_full_real: error when allocating hvb "//errorMessage
-          stop
-        endif
-
-        allocate(hvm(max_local_rows,nbw), stat=istat, errmsg=errorMessage)
-        if (istat .ne. 0) then
-          print *,"trans_ev_band_to_full_real: error when allocating hvm "//errorMessage
-          stop
-        endif
-        successCUDA = cuda_malloc(hvm_dev, (max_local_rows)*nbw*size_of_double_real_datatype)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_band_to_full_real: error in cudaMalloc"
-          stop
-        endif
-        successCUDA = cuda_malloc(tmp_dev, (max_local_cols)*nbw*size_of_double_real_datatype)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_band_to_full_real: error in cudaMalloc"
-          stop
-        endif
-
-!#ifdef 1
-! it should be possible to keep tmat dev on the device and not copy it around
-! already existent on GPU
-        successCUDA = cuda_malloc(tmat_dev, nbw*nbw*size_of_double_real_datatype)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_band_to_full_real: error in cudaMalloc"
-          stop
-        endif
-!#endif
-
-! q_dev already living on device
-!        successCUDA = cuda_malloc(q_dev, ldq*matrixCols*size_of_double_real_datatype)
-!        if (.not.(successCUDA)) then
-!          print *,"trans_ev_band_to_full_real: error in cudaMalloc"
-!          stop
-!        endif
-
-!      q_temp(:,:) = 0.0
-!      q_temp(1:ldq,1:na_cols) = q(1:ldq,1:na_cols)
-
-!        ! copy q_dev to device, maybe this can be avoided if q_dev can be kept on device in trans_ev_tridi_to_band
-!        successCUDA = cuda_memcpy(q_dev, loc(q), (ldq)*(matrixCols)*size_of_double_real_datatype, cudaMemcpyHostToDevice)
-!        if (.not.(successCUDA)) then
-!          print *,"trans_ev_band_to_full_real: error in cudaMalloc"
-!          stop
-!        endif
-
-! if MPI is NOT used the following steps could be done on the GPU and memory transfers could be avoided
-        successCUDA = cuda_memset(hvm_dev, 0, (max_local_rows)*(nbw)*size_of_double_real_datatype)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_band_to_full_real: error in cudaMalloc"
-          stop
-        endif
-        hvm = 0.0_rk8   ! Must be set to 0 !!!
-        hvb = 0.0_rk8   ! Safety only
-        
-        l_cols = local_index(nqc, my_pcol, np_cols, nblk, -1) ! Local columns of q
-
-        do istep=1,(na-1)/nbw
-
-          n_cols = MIN(na,(istep+1)*nbw) - istep*nbw ! Number of columns in current step
-
-! Broadcast all Householder vectors for current step compressed in hvb
-
-          nb = 0
-          ns = 0
-
-          do lc = 1, n_cols
-            ncol = istep*nbw + lc ! absolute column number of householder vector
-            nrow = ncol - nbw ! absolute number of pivot row
-
-            l_rows = local_index(nrow-1, my_prow, np_rows, nblk, -1) ! row length for bcast
-            l_colh = local_index(ncol  , my_pcol, np_cols, nblk, -1) ! HV local column number
-
-            if (my_pcol==pcol(ncol, nblk, np_cols)) hvb(nb+1:nb+l_rows) = a(1:l_rows,l_colh)
-
-            nb = nb+l_rows
-
-            if (lc==n_cols .or. mod(ncol,nblk)==0) then
-
-
-              call MPI_Bcast(hvb(ns+1), nb-ns, MPI_REAL8, pcol(ncol, nblk, np_cols), mpi_comm_cols, mpierr)
-
-
-
-              ns = nb
-            endif
-          enddo
-
-! Expand compressed Householder vectors into matrix hvm
-
-          nb = 0
-          do lc = 1, n_cols
-            nrow = (istep-1)*nbw+lc ! absolute number of pivot row
-            l_rows = local_index(nrow-1, my_prow, np_rows, nblk, -1) ! row length for bcast
-
-            hvm(1:l_rows,lc) = hvb(nb+1:nb+l_rows)
-            if (my_prow==prow(nrow, nblk, np_rows)) hvm(l_rows+1,lc) = 1.0_rk8
-
-            nb = nb+l_rows
-          enddo
-
-          if (.not.(successCUDA)) then
-            print *,"trans_ev_band_to_full_real: error in cudaMemcpy"
-            stop
-
-          endif
-
-          l_rows = local_index(MIN(na,(istep+1)*nbw), my_prow, np_rows, nblk, -1)
-
-! Q = Q - V * T**T * V**T * Q
-
-          if (l_rows>0) then
-            call cublas_dgemm('T', 'N', n_cols, l_cols, l_rows, 1.0_rk8, hvm_dev, max_local_rows, &
-                              q_dev, ldq , 0.0_rk8, tmp_dev, n_cols)
-
-
-! copy data from device to host for a later MPI_ALLREDUCE
-
-! copy to host maybe this can be avoided this is needed if MPI is used (allreduce)
-
-            if (.not.(successCUDA)) then
-              print *,"trans_ev_band_to_full_real: error in cudaMemcpy"
-              stop
-            endif
-
-
-          else ! l_rows>0
-
-
-            tmp1(1:l_cols*n_cols) = 0
-
-
-          endif ! l_rows>0
-
-!#ifdef WITH_GPU_VERSION
-!       istat = cuda_memcpy(loc(tmp1), tmp_dev, max_local_cols*nbw*size_of_real_datatype,cudaMemcpyDeviceToHost)
-!       if (istat .ne. 0) then
-!         print *,"error in cudaMemcpy"
-!         stop
-!       endif
-!#endif
-
-
-          call mpi_allreduce(tmp1, tmp2, n_cols*l_cols, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
-
-
-!#ifdef WITH_GPU_VERSION
-!       istat = cuda_memcpy(tmp_dev, loc(tmp2), max_local_cols*nbw*size_of_real_datatype,cudaMemcpyHostToDevice)
-!       if (istat .ne. 0) then
-!         print *,"error in cudaMemcpy"
-!         stop
-!       endif
-!#endif
-
-          if (l_rows>0) then
-
-! after the mpi_allreduce we have to copy back to the device
-! copy back to device
-
-            if (.not.(successCUDA)) then
-              print *,"trans_ev_band_to_full_real: error in cudaMemcpy"
-              stop
-            endif
-
-
-!#ifdef 1
-! it should be possible to keep tmat on the device and not copy it aroud
-!            ! copy to device, maybe this can be avoided tmat is input from bandred_real
-
-
-            if (.not.(successCUDA)) then
-              print *,"trans_ev_band_to_full_real: error in cudaMemcpy"
-              stop
-            endif
-!#endif /* 1 */
-
-            call cublas_dtrmm('L', 'U', 'T', 'N', n_cols, l_cols, 1.0_rk8, tmat_dev, nbw, tmp_dev, n_cols)
-            call cublas_dgemm('N', 'N', l_rows, l_cols, n_cols, -1.0_rk8, hvm_dev, max_local_rows, &
-                              tmp_dev, n_cols, 1.0_rk8, q_dev, ldq)
-
-! copy to host maybe this can be avoided
-! this is not necessary hvm is not used anymore
-
-            if (.not.(successCUDA)) then
-              print *,"trans_ev_band_to_full_real: error in cudaMemcpy"
-              stop
-            endif
-
-          endif ! l_rows > 0
-!#ifdef WITH_GPU_VERSION
-!       istat = cuda_memcpy(loc(hvm), hvm_dev, ((max_local_rows)*nbw*size_of_real_datatype),cudaMemcpyDeviceToHost)
-!       if (istat .ne. 0) then
-!         print *,"error in cudaMemcpy"
-!         stop
-!       endif
-!
-!#endif
-        enddo ! istep
-
-      else ! do not useGPU
 
 ! t_blocking was formerly 2; 3 is a better choice
         t_blocking = 3 ! number of matrices T (tmat) which are aggregated into a new (larger) T matrix (tmat_complete) and applied at once
@@ -2172,59 +1541,11 @@ end subroutine
 !          endif
         enddo ! istep
 
-      endif ! useGPU
-
       deallocate(tmp1, tmp2, hvb, stat=istat, errmsg=errorMessage)
       if (istat .ne. 0) then
         print *,"trans_ev_band_to_full_real: error when deallocating tmp1 tmp2 hvb "//errorMessage
         stop
       endif
-
-      if (useGPU) then
-        successCUDA = cuda_free(hvm_dev)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_band_to_full_real: error in cudaFree"
-          stop
-        endif
-
-        successCUDA = cuda_free(tmp_dev)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_band_to_full_real: error in cudaFree"
-          stop
-        endif
-
-        successCUDA = cuda_free(tmat_dev)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_band_to_full_real: error in cudaFree"
-          stop
-        endif
-! final transfer of q_dev
-
-         if (.not.(successCUDA)) then
-          print *,"trans_ev_band_to_full_real: error in cudaFree"
-          stop
-         endif
-
-!   q(1:ldq,1:na_cols) = q_temp(1:ldq,1:na_cols)
-
-         successCUDA = cuda_free(q_dev)
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_band_to_full_real: error in cudaFree"
-           stop
-         endif
-
-!   deallocate(q_temp, stat=istat, errmsg=errorMessage)
-!   if (istat .ne. 0) then
-!     print *,"error when deallocating q_temp "//errorMessage
-!     stop
-!   endif
-!   deallocate(tmat_temp, stat=istat, errmsg=errorMessage)
-!   if (istat .ne. 0) then
-!     print *,"trans_ev_band_to_full_real: error when deallocating tmat_temp "//errorMessage
-!     stop
-!   endif
-
-      endif ! useGPU
 
       deallocate(hvm, stat=istat, errmsg=errorMessage)
       if (istat .ne. 0) then
@@ -2851,10 +2172,8 @@ end subroutine
 !
 !-------------------------------------------------------------------------------
 
-      use cuda_functions
       use precision
       use pack_unpack_real
-      use pack_unpack_real_gpu
       use compute_hh_trafo_real
       use, intrinsic :: iso_c_binding
       implicit none
@@ -2990,7 +2309,6 @@ end subroutine
 
 ! Suggested stripe width is 48 since 48*64 real*8 numbers should fit into
 ! every primary cache
-        if (.not.(useGPU)) then
 
 
 
@@ -3006,11 +2324,6 @@ end subroutine
 
           stripe_width = ((stripe_width+3)/4)*4 ! Must be a multiple of 4 because of AVX/SSE memory alignment of 32 bytes
 ! (4 * sizeof(double) == 32)
-
-        else ! GPUs are used
-          stripe_width = 256 ! Must be a multiple of 4
-          stripe_count = (l_nev - 1) / stripe_width + 1
-        endif
 
         last_stripe_width = l_nev - (stripe_count-1)*stripe_width
       endif
@@ -3028,22 +2341,6 @@ end subroutine
 
       a_dim2 = max_blk_size + nbw
 
-      if (useGPU) then
-        num =  (stripe_width*a_dim2*stripe_count)*size_of_double_real_datatype
-        successCUDA = cuda_malloc(aIntern_dev, stripe_width*a_dim2*stripe_count*size_of_double_real_datatype)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMalloc"//errorMessage
-          stop
-        endif
-
-        successCUDA = cuda_memset(aIntern_dev , 0, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMemset"//errorMessage
-          stop
-        endif
-
-      else ! GPUs are not used
-
         aux_int = int(stripe_width*a_dim2*stripe_count*8,kind=C_SIZE_T)
 
         if (posix_memalign(aIntern_ptr, 64_C_SIZE_T, aux_int) /= 0) then
@@ -3057,51 +2354,12 @@ end subroutine
         aIntern(:,:,:) = 0.0_rk8
 
 
-      endif !useGPU
-
       allocate(row(l_nev), stat=istat, errmsg=errorMessage)
       if (istat .ne. 0) then
         print *,"trans_ev_tridi_to_band_real: error when allocating row"//errorMessage
         stop
       endif
       row(:) = 0.0_rk8
-      if (useGPU) then
-        num =  (l_nev)*size_of_double_real_datatype
-        successCUDA = cuda_malloc( row_dev,num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMalloc "//errorMessage
-          stop
-        endif
-
-        successCUDA = cuda_memset(row_dev , 0, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMemset"//errorMessage
-          stop
-        endif
-
-! "row_group" and "row_group_dev" are needed for GPU optimizations
-        allocate(row_group(l_nev, nblk), stat=istat, errmsg=errorMessage)
-        if (istat .ne. 0) then
-          print *,"trans_ev_tridi_to_band_real: error when allocating row_group"//errorMessage
-          stop
-        endif
-
-        row_group(:, :) = 0.0_rk8
-
-        num =  (l_nev*nblk)*size_of_double_real_datatype
-!    call cuda_malloc2d( row_group_dev,l_nev*size_of_double_real_datatype,nblk*size_of_real_datatype)
-        successCUDA = cuda_malloc(row_group_dev, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMalloc"//errorMessage
-          stop
-        endif
-        successCUDA = cuda_memset(row_group_dev , 0, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMemset"//errorMessage
-          stop
-        endif
-
-      endif ! useGPU
 
 ! Copy q from a block cyclic distribution into a distribution with contiguous rows,
 ! and transpose the matrix using stripes of given stripe_width for cache blocking.
@@ -3119,44 +2377,20 @@ end subroutine
             src = mod((i-1)/nblk, np_rows)
             if (src < my_prow) then
 
-              if (useGPU) then
-! An unpacking of the current row group may occur before queuing the next row
-                call unpack_and_prepare_row_group_real_gpu_double(row_group, row_group_dev, aIntern_dev, stripe_count, &
-                                                           stripe_width, last_stripe_width, a_dim2, l_nev,&
-                                                           row_group_size, nblk, unpack_idx, i - limits(ip), .false.)
-
-
-                call MPI_Recv(row_group(:, row_group_size), l_nev, MPI_REAL8, src, 0, mpi_comm_rows, MPI_STATUS_IGNORE, mpierr)
-
-
-
-
-              else
-
-
                 call MPI_Recv(row, l_nev, MPI_REAL8, src, 0, mpi_comm_rows, MPI_STATUS_IGNORE, mpierr)
 
 
 
                 call unpack_row_real_cpu_double(aIntern, row,i-limits(ip), stripe_count, stripe_width, last_stripe_width)
-              endif
 
 
             elseif (src==my_prow) then
               src_offset = src_offset+1
-              if (.not.(useGPU)) row(:) = q(src_offset, 1:l_nev)
+              row(:) = q(src_offset, 1:l_nev)
 
 
 
-              if (useGPU) then
-! An unpacking of the current row group may occur before queuing the next row
-                call unpack_and_prepare_row_group_real_gpu_double(row_group, row_group_dev, aIntern_dev, stripe_count, &
-                                                           stripe_width, last_stripe_width, a_dim2, l_nev,&
-                                                           row_group_size, nblk, unpack_idx, i - limits(ip), .false.)
-                row_group(:, row_group_size) = q(src_offset, 1:l_nev)
-              else
                 call unpack_row_real_cpu_double(aIntern, row,i-limits(ip),  stripe_count, stripe_width, last_stripe_width)
-              endif
 
 
 
@@ -3199,44 +2433,15 @@ end subroutine
             src = mod((i-1)/nblk, np_rows)
             if (src == ip) then
 
-              if (useGPU) then
-! An unpacking of the current row group may occur before queuing the next row
-                call unpack_and_prepare_row_group_real_gpu_double(row_group, row_group_dev, aIntern_dev, stripe_count,  &
-                                                          stripe_width, last_stripe_width, a_dim2, l_nev,       &
-                                  row_group_size, nblk, unpack_idx, i - limits(my_prow), .false.)
-
-
-               call MPI_Recv(row_group(:, row_group_size), l_nev, MPI_REAL8, src, 0, mpi_comm_rows, MPI_STATUS_IGNORE, mpierr)
-
-
-              else
-
-
                 call MPI_Recv(row, l_nev, MPI_REAL8, src, 0, mpi_comm_rows, MPI_STATUS_IGNORE, mpierr)
 
 
                 call unpack_row_real_cpu_double(aIntern, row,i-limits(my_prow), stripe_count, stripe_width, last_stripe_width)
-              endif
-
-
 
             endif
           enddo
         endif
       enddo
-
-      if (useGPU) then
-! Force an unpacking of all remaining rows that haven't been unpacked yet
-        call unpack_and_prepare_row_group_real_gpu_double(row_group, row_group_dev, aIntern_dev, stripe_count, &
-                                                      stripe_width, last_stripe_width, &
-                                                   a_dim2, l_nev, row_group_size, nblk, unpack_idx, -1, .true.)
-        successCUDA = cuda_devicesynchronize()
-
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_tridi_to_band_real: error in cudaDeviceSynchronize"//errorMessage
-           stop
-         endif
-      endif
 
 ! Set up result buffer queue
 
@@ -3354,47 +2559,6 @@ end subroutine
 
       bcast_buffer = 0.0_rk8
 
-      if (useGPU) then
-        num =  ( nbw * max_blk_size) * size_of_double_real_datatype
-        successCUDA = cuda_malloc(bcast_buffer_dev, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMalloc"
-          stop
-        endif
-
-        successCUDA = cuda_memset( bcast_buffer_dev, 0, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMemset"
-          stop
-        endif
-
-        num =  ((max_blk_size-1))*size_of_double_real_datatype
-        successCUDA = cuda_malloc( hh_dot_dev, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMalloc"
-          stop
-        endif
-
-        successCUDA = cuda_memset( hh_dot_dev, 0, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMemset"
-          stop
-        endif
-
-        num =  (max_blk_size)*size_of_double_real_datatype
-        successCUDA = cuda_malloc( hh_tau_dev, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMalloc"
-          stop
-        endif
-
-        successCUDA = cuda_memset( hh_tau_dev, 0, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMemset"
-          stop
-        endif
-      endif ! useGPU
-
       current_tv_off = 0 ! Offset of next row to be broadcast
 
 ! ------------------- start of work loop -------------------
@@ -3459,31 +2623,11 @@ end subroutine
 
 
 
-          if (useGPU) then
-
-            if (.not.(successCUDA)) then
-              print *,"trans_ev_tridi_to_band_real: error in cudaMemcpy"
-              stop
-            endif
-
-            call extract_hh_tau_real_gpu_double(bcast_buffer_dev, hh_tau_dev, nbw, current_local_n, .false.)
-            call compute_hh_dot_products_real_gpu_double(bcast_buffer_dev, hh_dot_dev, nbw, current_local_n)
-          endif
-
         else ! (current_local_n > 1) then
 
 ! for current_local_n == 1 the one and only HH vector is 0 and not stored in hh_trans_real
           bcast_buffer(:,1) = 0.0_rk8
 
-          if (useGPU) then
-            successCUDA = cuda_memset(bcast_buffer_dev, 0, nbw * size_of_double_real_datatype)
-            if (.not.(successCUDA)) then
-              print *,"trans_ev_tridi_to_band_real: error in cudaMemset"
-              stop
-            endif
-
-            call extract_hh_tau_real_gpu_double(bcast_buffer_dev, hh_tau_dev, nbw, 1, .true.)
-          endif
         endif ! (current_local_n > 1) then
 
         if (l_nev == 0) cycle
@@ -3506,18 +2650,7 @@ end subroutine
 
               n_off = current_local_n+a_off
 
-              if (useGPU) then
-                dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width *a_dim2 )) *size_of_double_real_datatype
-
-                if (.not.(successCUDA)) then
-                  print *,"trans_ev_tridi_to_band_real: error in cudaMemcpy"
-                  stop
-                endif
-
-              else
                 aIntern(:,n_off+1:n_off+nbw,i) = bottom_border_recv_buffer(:,1:nbw,i)
-              endif
-
 
 
            if (next_n_end < next_n) then
@@ -3548,17 +2681,7 @@ end subroutine
 
 
 
-             if (useGPU) then
-               dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) *size_of_double_real_datatype
-!             host_offset= (0 + (0 * stripe_width) + ( (i-1) * stripe_width * nbw ) ) * 8
-
-               if (.not.(successCUDA)) then
-                 print *,"trans_ev_tridi_to_band_real: error in cudaMemcpy"
-                 stop
-                endif
-             else
                aIntern(:,a_off+1:a_off+top_msg_length,i) = top_border_recv_buffer(:,1:top_msg_length,i)
-             endif ! useGPU
 
            endif ! top_msg_length
 
@@ -3581,17 +2704,7 @@ end subroutine
            if (bottom_msg_length>0) then
              n_off = current_local_n+nbw-bottom_msg_length+a_off
 
-             if (useGPU) then
-               dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) *size_of_double_real_datatype
-
-               if (.not.(successCUDA)) then
-                 print *,"trans_ev_tridi_to_band_real: error in cudaMemcpy"
-                 stop
-               endif
-             else
                bottom_border_send_buffer(:,1:bottom_msg_length,i) = aIntern(:,n_off+1:n_off+bottom_msg_length,i)
-             endif
-
 
              call MPI_Isend(bottom_border_send_buffer(1,1,i), bottom_msg_length*stripe_width, MPI_REAL8, my_prow+1, &
                             top_recv_tag, mpi_comm_rows, bottom_send_request(i), mpierr)
@@ -3619,17 +2732,7 @@ end subroutine
         if (bottom_msg_length > 0) then
           n_off = current_local_n+nbw-bottom_msg_length+a_off
 
-          if (useGPU) then
-            dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) *size_of_double_real_datatype
-
-            if (.not.(successCUDA)) then
-              print *,"trans_ev_tridi_to_band_real: error cudaMemcpy"
-              stop
-            endif
-          else
             bottom_border_send_buffer(:,1:bottom_msg_length,i) = aIntern(:,n_off+1:n_off+bottom_msg_length,i)
-          endif
-
 
           call MPI_Isend(bottom_border_send_buffer(1,1,i), bottom_msg_length*stripe_width, MPI_REAL8, my_prow+1, &
                          top_recv_tag, mpi_comm_rows, bottom_send_request(i), mpierr)
@@ -3656,16 +2759,7 @@ end subroutine
           call MPI_Wait(top_recv_request(i), MPI_STATUS_IGNORE, mpierr)
 
 
-          if (useGPU) then
-            dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) *size_of_double_real_datatype
-
-            if (.not.(successCUDA)) then
-              print *,"trans_ev_tridi_to_band_real: error in cudaMemcpy"
-              stop
-            endif
-          else
             aIntern(:,a_off+1:a_off+top_msg_length,i) = top_border_recv_buffer(:,1:top_msg_length,i)
-          endif
 
         endif
 
@@ -3702,17 +2796,7 @@ end subroutine
         call MPI_Wait(top_send_request(i), MPI_STATUS_IGNORE, mpierr)
 
 
-        if (useGPU) then
-          dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) * size_of_double_real_datatype
-
-          if (.not.(successCUDA)) then
-            print *,"trans_ev_tridi_to_band_real: error in cudaMemcpy"
-            stop
-          endif
-
-        else
           top_border_send_buffer(:,1:nbw,i) = aIntern(:,a_off+1:a_off+nbw,i)
-        endif
 
 
         call MPI_Isend(top_border_send_buffer(1,1,i), nbw*stripe_width, MPI_REAL8, my_prow-1, bottom_recv_tag, &
@@ -3795,38 +2879,21 @@ end subroutine
         dst = mod(num_blk, np_rows)
 
         if (dst == 0) then
-          if (useGPU) then
-            row_group_size = min(na - num_blk*nblk, nblk)
-            call pack_row_group_real_gpu_double(row_group_dev, aIntern_dev, stripe_count, stripe_width, &
-                                     last_stripe_width, a_dim2, l_nev, &
-                                         row_group(:, :), j * nblk + a_off, row_group_size)
-            do i = 1, row_group_size
-              q((num_blk / np_rows) * nblk + i, 1 : l_nev) = row_group(:, i)
-            enddo
-          else ! useGPU
-
             do i = 1, min(na - num_blk*nblk, nblk)
 
               call pack_row_real_cpu_double(aIntern, row, j*nblk+i+a_off, stripe_width, last_stripe_width, stripe_count)
 
               q((num_blk/np_rows)*nblk+i,1:l_nev) = row(:)
             enddo
-          endif ! useGPU
 
         else ! (dst == 0)
 
-          if (useGPU) then
-            call pack_row_group_real_gpu_double(row_group_dev, aIntern_dev, stripe_count, stripe_width, &
-                                       last_stripe_width, a_dim2, l_nev, &
-                                           result_buffer(:, :, nbuf), j * nblk + a_off, nblk)
-          else  ! useGPU
             do i = 1, nblk
 
               call pack_row_real_cpu_double(aIntern, result_buffer(:,i,nbuf),j*nblk+i+a_off, stripe_width, &
                                       last_stripe_width, stripe_count)
 
             enddo
-          endif ! useGPU
 
 
           call MPI_Isend(result_buffer(1,1,nbuf), l_nev*nblk, MPI_REAL8, dst, &
@@ -3918,28 +2985,9 @@ end subroutine
     if (a_off + next_local_n + nbw > a_dim2) then
 
          do i = 1, stripe_count
-           if (useGPU) then
-             chunk = min(next_local_n - 1, a_off)
-             do j = top_msg_length + 1, top_msg_length + next_local_n, chunk
-               top = min(j + chunk, top_msg_length + next_local_n)
-               this_chunk = top - j + 1
-               dev_offset = (0 + ( (j-1) * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) *size_of_double_real_datatype
-               dev_offset_1 = (0 + ( (j + a_off-1) * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) * &
-                             size_of_double_real_datatype
-! it is not logical to set here always the value for the parameter
-! "cudaMemcpyDeviceToDevice" do this ONCE at startup
-!               tmp = cuda_d2d(1)
-
-               if (.not.(successCUDA)) then
-                 print *,"trans_ev_tridi_to_band_real: error cudaMemcpy"
-                 stop
-               endif
-             enddo
-           else ! not useGPU
              do j = top_msg_length+1, top_msg_length+next_local_n
                aIntern(:,j,i) = aIntern(:,j+a_off,i)
              enddo
-           endif
          enddo ! stripe_count
 
 
@@ -3978,31 +3026,10 @@ end subroutine
 
 
 
-! copy q to q_dev needed in trans_ev_band_to_full
-        successCUDA = cuda_malloc(q_dev, ldq*matrixCols*size_of_double_real_datatype)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMalloc"
-          stop
-        endif
-
-! copy q_dev to device, maybe this can be avoided if q_dev can be kept on device in trans_ev_tridi_to_band
-
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_real: error in cudaMalloc"
-          stop
-        endif
-
 ! deallocate all working space
 
-     if (.not.(useGPU)) then
        nullify(aIntern)
        call free(aIntern_ptr)
-!       deallocate(aIntern, stat=istat, errmsg=errorMessage)
-!       if (istat .ne. 0) then
-!         print *,"trans_ev_tridi_to_band_real: error when deallocating aIntern "//errorMessage
-!         stop
-!       endif
-     endif
 
      deallocate(row, stat=istat, errmsg=errorMessage)
      if (istat .ne. 0) then
@@ -4087,45 +3114,6 @@ end subroutine
        print *,"trans_ev_tridi_to_band_real: error when deallocating bottom_recv_request "//errorMessage
        stop
      endif
-
-     if (useGPU) then
-       successCUDA = cuda_free(hh_dot_dev)
-       if (.not.(successCUDA)) then
-         print *,"trans_ev_tridi_to_band_real: error in cudaFree "//errorMessage
-         stop
-       endif
-
-       successCUDA = cuda_free(hh_tau_dev)
-       if (.not.(successCUDA)) then
-         print *,"trans_ev_tridi_to_band_real: error in cudaFree "//errorMessage
-         stop
-       endif
-
-       successCUDA = cuda_free(row_dev)
-       if (.not.(successCUDA)) then
-         print *,"trans_ev_tridi_to_band_real: error in cudaFree "//errorMessage
-         stop
-       endif
-
-       deallocate(row_group, stat=istat, errmsg=errorMessage)
-       if (istat .ne. 0) then
-         print *,"trans_ev_tridi_to_band_real: error when deallocating row_group "//errorMessage
-         stop
-       endif
-
-       successCUDA = cuda_free(row_group_dev)
-       if (.not.(successCUDA)) then
-         print *,"trans_ev_tridi_to_band_real: error in cudaFree "//errorMessage
-         stop
-       endif
-
-       successCUDA =  cuda_free(bcast_buffer_dev)
-       if (.not.(successCUDA)) then
-         print *,"trans_ev_tridi_to_band_real: error in cudaFree "//errorMessage
-         stop
-       endif
-     endif ! useGPU
-
 
 
      return
@@ -4713,7 +3701,6 @@ end subroutine
 !-------------------------------------------------------------------------------
 
       use precision
-      use cuda_functions
       use, intrinsic :: iso_c_binding
 
       implicit none
@@ -4784,36 +3771,6 @@ end subroutine
           return
         endif
       endif
-      if (useGPU) then
-
-        na_rows = numroc(na, nblk, my_prow, 0, np_rows)
-        na_cols = numroc(na, nblk, my_pcol, 0, np_cols)
-
-
-
-        successCUDA = cuda_malloc(tmat_dev, nbw*nbw*size_of_double_complex_datatype)
-
-        if (.not.(successCUDA)) then
-          print *, " bandred_complex: cuda malloc failed tmat_dev ", istat
-          stop
-        endif
-
-
-        successCUDA = cuda_malloc(vav_dev, nbw*nbw*size_of_double_complex_datatype)
-
-        if (.not.(successCUDA)) then
-          print *, "bandred_complex:  cuda malloc failed vav_dev ", istat
-          stop
-        endif
-
-
-        successCUDA = cuda_malloc(a_dev, lda*na_cols*size_of_double_complex_datatype)
-
-        if (.not.(successCUDA)) then
-          print *, "bandred_complex:  cuda malloc failed a_dev ", istat
-          stop
-        endif
-      endif ! useGPU
 
 ! Matrix is split into tiles; work is done only for tiles on the diagonal or above
 
@@ -4822,16 +3779,6 @@ end subroutine
 
       l_rows_tile = tile_size/np_rows ! local rows of a tile
       l_cols_tile = tile_size/np_cols ! local cols of a tile
-
-      if (useGPU) then
-
-
-
-        if (.not.(successCUDA)) then
-          print *, "bandred_complex:  cuda memcpy faild a_dev ", istat
-          stop
-        endif
-      endif
 
       do istep = (na-1)/nbw, 1, -1
 
@@ -4843,96 +3790,6 @@ end subroutine
 
 ! Allocate vmr and umc to their exact sizes so that they can be used in bcasts and reduces
 
-        if (useGPU) then
-          cur_l_rows = max(l_rows, 1)
-          cur_l_cols = max(l_cols, 1)
-
-          vmr_size = cur_l_rows * 2 * n_cols
-          umc_size = cur_l_cols * 2 * n_cols
-
-          if ((.not. allocated(umc)) .or. (umc_size .gt. ubound(umc, dim=1))) then
-            if (allocated(umc)) then
-              deallocate(umc, stat=istat, errmsg=errorMessage)
-              if (istat .ne. 0) then
-                print *,"bandred_complex: error when allocating umc "//errorMessage
-                stop
-              endif
-              successCUDA = cuda_free(umc_dev)
-              if (.not.(successCUDA))then
-                print *,"bandred_complex: error in cudaFree"
-                stop
-              endif
-            endif
-
-            allocate(umc(max(l_cols,1),2*n_cols), stat=istat, errmsg=errorMessage)
-            if (istat .ne. 0) then
-              print *,"bandred_complex: error when allocating umc "//errorMessage
-              stop
-            endif
-
-            if (max(l_cols,1) * 2*n_cols .gt. umc_size) then
-              print *,"bandred_complex: umc_size ",max(l_cols,1) * 2*n_cols,umc_size
-            endif
-
-            successCUDA = cuda_malloc(umc_dev, umc_size*size_of_double_complex_datatype)
-
-            if (.not.(successCUDA)) then
-              print *, "bandred_complex:  cuda malloc failed umc_dev ", istat
-              stop
-            endif
-          endif
-
-          if ((.not. allocated(vmr)) .or. (vmr_size .gt. ubound(vmr, dim=1))) then
-            if (allocated(vmr)) then
-              deallocate(vmr, stat=istat, errmsg=errorMessage)
-              if (istat .ne. 0) then
-                print *,"bandred_complex: error when deallocating vmr "//errorMessage
-                stop
-              endif
-              successCUDA = cuda_free(vmr_dev)
-              if (.not.(successCUDA))then
-                print *,"bandred_complex: error in cudaFree"
-                stop
-              endif
-            endif
-
-            allocate(vmr(max(l_rows,1),2*n_cols), stat=istat, errmsg=errorMessage)
-            if (istat .ne. 0) then
-              print *,"bandred_complex: error when allocating vmr "//errorMessage
-              stop
-            endif
-
-            if (max(l_rows,1) * 2*n_cols .gt. vmr_size) then
-              print *,"bandred_complex: vmc_size ",max(l_rows,1) * 2*n_cols,vmr_size
-            endif
-
-
-            successCUDA = cuda_malloc(vmr_dev, vmr_size*size_of_double_complex_datatype)
-
-            if (.not.(successCUDA)) then
-              print *, "bandred_complex:  cuda malloc failed vmr_dev ", istat
-              stop
-            endif
-
-          endif
-
-          if ((.not. allocated(vr)) .or. (l_rows + 1 .gt. ubound(vr, dim=1))) then
-            if (allocated(vr)) then
-              deallocate(vr, stat=istat, errmsg=errorMessage)
-              if (istat .ne. 0) then
-                print *,"bandred_complex: error when deallocating vr "//errorMessage
-                stop
-              endif
-            endif
-
-            allocate(vr(l_rows + 1), stat=istat, errmsg=errorMessage)
-            if (istat .ne. 0) then
-              print *,"bandred_complex: error when allocating vr "//errorMessage
-              stop
-            endif
-          endif
-
-        else ! GPU not used
           allocate(vmr(max(l_rows,1),2*n_cols), stat=istat, errmsg=errorMessage)
           if (istat .ne. 0) then
             print *,"bandred_complex: error when allocating vmr "//errorMessage
@@ -4950,29 +3807,12 @@ end subroutine
             print *,"bandred_complex: error when allocating vr "//errorMessage
             stop
           endif
-        endif ! useGPU
 
 
         vmr(1:l_rows,1:n_cols) = 0._ck4
         vr(:) = 0._ck4
         tmat(:,:,istep) = 0._ck4
 
-
-        if (useGPU) then
-          lc_start = local_index(istep*nbw+1, my_pcol, np_cols, nblk, -1)
-          lc_end   = local_index(istep*nbw+n_cols, my_pcol, np_cols, nblk, -1)
-          lr_end   = local_index((istep-1)*nbw + n_cols, my_prow, np_rows, nblk, -1)
-
-          if (lc_start .le. 0) lc_start = 1
-          cur_pcol = pcol(istep*nbw+1, nblk, np_cols)
-          if (my_pcol == cur_pcol) then
-
-            if (.not.(successCUDA)) then
-              print *, "bandred_complex: error in cudaMemcpy2"
-              stop
-            endif
-          endif
-        endif
 
 ! Reduce current block to lower triangular form
 
@@ -5108,17 +3948,6 @@ end subroutine
 ! Calculate scalar products of stored Householder vectors.
 ! This can be done in different ways, we use zherk
 
-        if (useGPU) then
-          cur_pcol = pcol(istep*nbw+1, nblk, np_cols)
-          if (my_pcol == cur_pcol) then
-
-            if (.not.(successCUDA)) then
-              print *, "bandred_complex: cuda memcpy a_dev  failed ", istat
-              stop
-            endif
-          endif
-        endif
-
         vav = 0
         if (l_rows>0) &
 
@@ -5155,26 +3984,6 @@ end subroutine
         vmr(1:l_rows,n_cols+1:2*n_cols) = 0._ck8
 
         if (l_cols>0 .and. l_rows>0) then
-          if (useGPU) then
-            if (size(vmr,dim=1)*size(vmr,dim=2) .gt. vmr_size) then
-              print *,"bandred_complex: vmr size 2 :",size(vmr,dim=1)*size(vmr,dim=2),vmr_size
-              stop
-            endif
-
-            if (.not.(successCUDA)) then
-              print *, "bandred_complex:  cuda memcpy vmr_dev failed ", istat
-              stop
-            endif
-            if (size(umc,dim=1)*size(umc,dim=2) .gt. umc_size) then
-              print *,"bandred_complex: umc size 2 :",size(umc,dim=1)*size(umc,dim=2),umc_size
-              stop
-            endif
-
-            if (.not.(successCUDA)) then
-              print *, "bandred_complex:  cuda memcpy umc_dev failed  ", istat
-              stop
-            endif
-          endif
           do i=0,(istep*nbw-1)/tile_size
 
             lcs = i*l_cols_tile+1
@@ -5183,54 +3992,17 @@ end subroutine
 
             lre = min(l_rows,(i+1)*l_rows_tile)
 
-            if (useGPU) then
-
-              call cublas_ZGEMM('C', 'N', lce-lcs+1, n_cols, lre, CONE, (a_dev + ((lcs-1)*lda* &
-	                        size_of_double_complex_datatype)), lda, &
-                                vmr_dev, cur_l_rows, CONE, (umc_dev +(lcs-1)*size_of_double_complex_datatype), cur_l_cols)
-
-            else
-
               call ZGEMM('C', 'N', lce-lcs+1, n_cols, lre, CONE, a(1,lcs), ubound(a,dim=1), &
                          vmr, ubound(vmr,dim=1), CONE, umc(lcs,1), ubound(umc,dim=1))
-
-            endif
 
             if (i==0) cycle
             lre = min(l_rows,i*l_rows_tile)
 
-            if (useGPU) then
-              call cublas_ZGEMM('N', 'N', lre, n_cols, lce-lcs+1, CONE, (a_dev+((lcs-1)*lda* &
-	                        size_of_double_complex_datatype)),lda,  &
-                                (umc_dev+(cur_l_cols * n_cols+lcs-1)*size_of_double_complex_datatype), cur_l_cols,CONE,         &
-                                (vmr_dev+(cur_l_rows * n_cols)*size_of_double_complex_datatype), cur_l_rows)
-            else
               call ZGEMM('N', 'N', lre, n_cols, lce-lcs+1, CONE, a(1,lcs), lda, &
                          umc(lcs,n_cols+1), ubound(umc,dim=1), CONE, vmr(1,n_cols+1), ubound(vmr,dim=1))
-            endif
 
           enddo
 
-          if (useGPU) then
-            if (size(vmr,dim=1)*size(vmr,dim=2) .gt. vmr_size) then
-              print *,"bandred_complex: vmr size 3 :",size(vmr,dim=1)*size(vmr,dim=2),vmr_size
-              stop
-            endif
-
-            if (.not.(successCUDA)) then
-              print *, "bandred_complex:  cuad memcpy failed vmr ", istat
-              stop
-            endif
-            if (size(umc,dim=1)*size(umc,dim=2) .gt. umc_size) then
-              print *,"bandred_complex: umc size 3 :",size(umc,dim=1)*size(umc,dim=2),umc_size
-              stop
-            endif
-
-            if (.not.(successCUDA)) then
-              print *, "bandred_complex:  cuad memcpy failed umc ", istat
-              stop
-            endif
-          endif ! useGPU
         endif
 
 ! Sum up all ur(:) parts along rows and add them to the uc(:) parts
@@ -5271,61 +4043,11 @@ end subroutine
 
 
 ! U = U * Tmat**T
-        if (useGPU) then
-          if (size(umc,dim=1)*size(umc,dim=2) .gt. umc_size) then
-            print *,"bandred_complex: umc size 4 :",size(umc,dim=1)*size(umc,dim=2),umc_size
-            stop
-          endif
-
-          if (.not.(successCUDA)) then
-            print *, "bandred_complex:  cuad memcpy failed umc_dev ", istat
-            stop
-          endif
-
-          if (.not.(successCUDA)) then
-            print *, "bandred_complex:  cuad memcpy failed tmat_dev ", istat
-            stop
-          endif
-
-          call  cublas_ztrmm('Right', 'Upper', 'C', 'Nonunit', l_cols, n_cols, CONE, tmat_dev, nbw, umc_dev, cur_l_cols)
-
-        else ! not useGPU
-
           call ztrmm('Right', 'Upper', 'C', 'Nonunit', l_cols, n_cols, CONE, tmat(1,1,istep), ubound(tmat,dim=1), &
                      umc, ubound(umc,dim=1))
 
-        endif
 
 ! VAV = Tmat * V**T * A * V * Tmat**T = (U*Tmat**T)**T * V * Tmat**T
-        if (useGPU) then
-
-          if (.not.(successCUDA)) then
-            print *, "bandred_complex:  cuad memcpy failed vav_dev ", istat
-            stop
-          endif
-
-          call cublas_zgemm('C', 'N', n_cols, n_cols, l_cols, CONE, umc_dev, cur_l_cols, (umc_dev +( cur_l_cols *n_cols) &
-                            *size_of_double_complex_datatype ), cur_l_cols, CZERO, vav_dev, nbw)
-
-          call cublas_ztrmm('Right', 'Upper', 'C', 'Nonunit', n_cols, n_cols, CONE, tmat_dev, nbw, vav_dev, nbw)
-
-
-
-          if (.not.(successCUDA)) then
-            print *, "bandred_complex:  cuad memcpy failed vav ", istat
-            stop
-          endif
-
-
-          call herm_matrix_allreduce_double(n_cols,vav, nbw, nbw,mpi_comm_cols)
-
-
-
-          if (.not.(successCUDA)) then
-            print *, "bandred_complex:  cuad memcpy failed vav_dev ", istat
-            stop
-          endif
-        else
 
           call zgemm('C', 'N', n_cols, n_cols, l_cols, CONE, umc, ubound(umc,dim=1), umc(1,n_cols+1), &
                      ubound(umc,dim=1), CZERO, vav, ubound(vav,dim=1))
@@ -5336,52 +4058,7 @@ end subroutine
 
           call herm_matrix_allreduce_double(n_cols,vav,nbw,nbw,mpi_comm_cols)
 
-        endif
-
 ! U = U - 0.5 * V * VAV
-
-        if (useGPU) then
-
-          call cublas_zgemm('N', 'N', l_cols, n_cols, n_cols, (-0.5_rk8, 0.0_rk8), (umc_dev +  &
-                            (cur_l_cols * n_cols )*size_of_double_complex_datatype), &
-                            cur_l_cols, vav_dev, nbw, CONE, umc_dev, cur_l_cols)
-
-! Transpose umc -> umr (stored in vmr, second half)
-
-          if (size(umc,dim=1)*size(umc,dim=2) .gt. umc_size) then
-            print *,"bandred_complex: umc size 5 :",size(umc,dim=1)*size(umc,dim=2),umc_size
-            stop
-          endif
-
-          if (.not.(successCUDA)) then
-            print *, "bandred_complex:  cuad memcpy failed umc ", istat
-            stop
-          endif
-
-          call elpa_transpose_vectors_complex_double  (umc, ubound(umc,dim=1), mpi_comm_cols, &
-                                                vmr(1,n_cols+1), ubound(vmr,dim=1), mpi_comm_rows, &
-                                                1, istep*nbw, n_cols, nblk)
-
-          if (size(vmr,dim=1)*size(vmr,dim=2) .gt. vmr_size) then
-            print *,"bandred_complex: vmr size 4 :",size(vmr,dim=1)*size(vmr,dim=2),vmr_size
-            stop
-          endif
-
-          if (.not.(successCUDA)) then
-            print *, "bandred_complex:  cuda memcpy failed vav_dev", istat
-            stop
-          endif
-
-          if (size(umc,dim=1)*size(umc,dim=2) .gt. umc_size) then
-            print *,"bandred_complex: umc size 6 :",size(umc,dim=1)*size(umc,dim=2),umc_size
-            stop
-          endif
-
-          if (.not.(successCUDA)) then
-            print *, "bandred_complex:  cuda memcpy failed umc_dev ", istat
-            stop
-          endif
-        else ! not useGPU
 
           call zgemm('N', 'N', l_cols, n_cols, n_cols, (-0.5_rk8, 0.0_rk8), umc(1,n_cols+1), ubound(umc,dim=1), &
                      vav, ubound(vav,dim=1), CONE, umc, ubound(umc,dim=1))
@@ -5393,7 +4070,6 @@ end subroutine
                                                 vmr(1,n_cols+1), ubound(vmr,dim=1), mpi_comm_rows, &
                                                 1, istep*nbw, n_cols, nblk)
 
-        endif
 ! A = A - V*U**T - U*V**T
 
         do i=0,(istep*nbw-1)/tile_size
@@ -5402,19 +4078,11 @@ end subroutine
           lre = min(l_rows,(i+1)*l_rows_tile)
           if (lce<lcs .or. lre<1) cycle
 
-            if (useGPU) then
-              call cublas_zgemm('N', 'C', lre, lce-lcs+1, 2*n_cols, -CONE, &
-                                vmr_dev ,cur_l_rows, (umc_dev +(lcs-1)*size_of_double_complex_datatype),cur_l_cols, &
-                                CONE, (a_dev + (lcs-1)*lda*size_of_double_complex_datatype),lda)
-            else
               call zgemm('N', 'C', lre,lce-lcs+1, 2*n_cols, -CONE, &
                          vmr, ubound(vmr,dim=1), umc(lcs,1), ubound(umc,dim=1), &
                          CONE, a(1,lcs), lda)
-            endif
 
           enddo
-
-         if (.not.(useGPU)) then
 
            if (allocated(vr)) then
              deallocate(vr, stat=istat, errmsg=errorMessage)
@@ -5440,73 +4108,7 @@ end subroutine
            endif
 
 
-         endif ! not useGPU
-
        enddo ! istep
-
-       if (useGPU) then
-
-
-
-         if (.not.(successCUDA)) then
-           print *, "bandred_complex:  cuad memcpy failed a ", istat
-           stop
-         endif
-
-         successCUDA = cuda_free(a_dev)
-         if (.not.(successCUDA)) then
-           print *,"bandred_complex: error in cudaFree"
-           stop
-         endif
-
-         successCUDA = cuda_free(tmat_dev)
-         if (.not.(successCUDA)) then
-           print *,"bandred_complex: error in cudaFree"
-           stop
-         endif
-
-         successCUDA = cuda_free(vav_dev)
-         if (.not.(successCUDA)) then
-           print *,"bandred_complex: error in cudaFree"
-           stop
-         endif
-
-         if (allocated(vr)) then
-           deallocate(vr, stat=istat, errmsg=errorMessage)
-           if (istat .ne. 0) then
-             print *,"bandred_complex: error when deallocating vr "//errorMessage
-             stop
-           endif
-         endif
-         if (allocated(vmr)) then
-           deallocate(vmr, stat=istat, errmsg=errorMessage)
-           if (istat .ne. 0) then
-             print *,"bandred_complex: error when deallocating vmr "//errorMessage
-             stop
-           endif
-
-           successCUDA = cuda_free(vmr_dev)
-           if (.not.(successCUDA)) then
-             print *,"bandred_complex: error in cudaFree"
-             stop
-           endif
-         endif
-
-         if (allocated(umc)) then
-           deallocate(umc, stat=istat, errmsg=errorMessage)
-           if (istat .ne. 0) then
-             print *,"bandred_complex: error when deallocating umc "//errorMessage
-             stop
-           endif
-
-           successCUDA = cuda_free(umc_dev)
-           if (.not.(successCUDA)) then
-             print *,"bandred_complex: error in cudaFree"
-             stop
-           endif
-         endif
-       endif ! use GPU
-
 
 
 
@@ -5607,7 +4209,6 @@ end subroutine
 !
 !-------------------------------------------------------------------------------
 
-       use cuda_functions
        use, intrinsic :: iso_c_binding
        use precision
 
@@ -5679,73 +4280,8 @@ end subroutine
          stop
        endif
 
-       if (useGPU) then
-!   allocate(q_temp(ldq,max_local_cols), stat=istat, errmsg=errorMessage)
-!   if (istat .ne. 0) then
-!     print *,"trans_ev_band_to_full_complex: error when allocating q_temp "//errorMessage
-!   endif
-
-! allocate(tmat_temp(nbw,nbw), stat=istat, errmsg=errorMessage)
-! if (istat .ne. 0) then
-! print *,"trans_ev_band_to_full_complex: error when allocating tmat_temp "//errorMessage
-! endif
-
-         successCUDA = cuda_malloc(hvm_dev, max_local_rows*nbw*size_of_double_complex_datatype)
-
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_band_to_full_complex: error in cudaMalloc"
-           stop
-         endif
-
-         successCUDA = cuda_malloc(tmat_dev, nbw*nbw*size_of_double_complex_datatype)
-
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_band_to_full_complex: error in cudaMalloc"
-           stop
-         endif
-
-         successCUDA = cuda_malloc(q_dev, ldq*matrixCols*size_of_double_complex_datatype)
-
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_band_to_full_complex: error in cudaMalloc"
-           stop
-         endif
-
-         successCUDA = cuda_malloc(tmp_dev, max_local_cols*nbw*size_of_double_complex_datatype)
-
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_band_to_full_complex: error in cudaMalloc"
-           stop
-         endif
-
-!!e   istat = cuda_memset(tmp_dev, 0, (max_local_rows)*(nbw)*size_of_complex_datatype)
-!   istat = cuda_memset(tmp_dev, 0, (max_local_cols)*(nbw)*size_of_complex_datatype)
-!   if (istat .ne. 0) then
-!     print *,"trans_ev_band_to_full_complex: error in cudaMalloc"
-!     stop
-!   endif
-       endif
-
        hvm = 0._ck8   ! Must be set to 0 !!!
        hvb = 0._ck8   ! Safety only
-
-       if (useGPU) then
-!   q_temp(:,:) = 0.0
-!   q_temp(1:ldq,1:na_cols) = q(1:ldq,1:na_cols)
-
-
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
-           stop
-         endif
-
-         successCUDA = cuda_memset(hvm_dev, 0, (max_local_rows)*(nbw)*size_of_double_complex_datatype)
-
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_band_to_full_complex: error in cudaMemset"
-           stop
-         endif
-       endif
 
        l_cols = local_index(nqc, my_pcol, np_cols, nblk, -1) ! Local columns of q
 
@@ -5797,49 +4333,15 @@ end subroutine
            nb = nb+l_rows
          enddo
 
-         if (useGPU) then
-
-           if (.not.(successCUDA)) then
-             print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
-             stop
-           endif
-         endif
-
          l_rows = local_index(MIN(na,(istep+1)*nbw), my_prow, np_rows, nblk, -1)
 
 ! Q = Q - V * T**T * V**T * Q
 
          if (l_rows > 0) then
-           if (useGPU) then
-
-             call cublas_zgemm('C', 'N', n_cols, l_cols, l_rows, CONE, hvm_dev, max_local_rows, &
-                               q_dev, ldq, CZERO, tmp_dev, n_cols)
-
-
-
-             if (.not.(successCUDA)) then
-               print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
-               stop
-             endif
-           else
-
              call zgemm('C', 'N', n_cols, l_cols, l_rows, CONE, hvm, ubound(hvm,dim=1), &
                         q, ldq, CZERO, tmp1, n_cols)
 
-           endif
          else ! l_rows > 0
-           if (useGPU) then
-             if (l_cols*n_cols .gt. (max_local_cols)*(nbw)) then
-               print *,"trans_ev_band_to_full_complex: tmp_dev ",l_cols*n_cols,max_local_cols
-               stop
-             endif
-
-!       istat = cuda_memset(tmp_dev, 0, l_cols*n_cols*size_of_complex_datatype)
-!       if (istat .ne. 0) then
-!         print *,"trans_ev_band_to_full_complex: error in cudaMemset"
-!         stop
-!       endif
-           endif
 
            tmp1(1:l_cols*n_cols) = 0._ck8
 
@@ -5855,48 +4357,11 @@ end subroutine
 
          if (l_rows>0) then
 
-           if (useGPU) then
-
-
-
-
-             if (.not.(successCUDA)) then
-               print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
-               stop
-             endif
-
-! tmat_temp(1:nbw,1:nbw) = tmat(1:nbw,1:nbw,istep)
-
-             if (.not.(successCUDA)) then
-               print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
-               stop
-             endif
-
-             call cublas_ztrmm('L', 'U', 'C', 'N', n_cols, l_cols, CONE, tmat_dev, nbw, tmp_dev, n_cols)
-             call cublas_zgemm('N', 'N', l_rows, l_cols, n_cols, -CONE, hvm_dev, max_local_rows, &
-                              tmp_dev, n_cols, CONE, q_dev, ldq)
-
-           else ! not useGPU
-
-
-
-
              call ztrmm('L', 'U', 'C', 'N', n_cols, l_cols, CONE, tmat(1,1,istep), ubound(tmat,dim=1), tmp2, n_cols)
              call zgemm('N', 'N', l_rows, l_cols, n_cols, -CONE, hvm, ubound(hvm,dim=1), &
                         tmp2, n_cols, CONE, q, ldq)
 
-
-
-           endif
          endif
-
-!#ifdef WITH_GPU_VERSION
-!     istat =cuda_memcpy(loc(hvm(1,1)),hvm_dev,((max_local_rows)*nbw*size_of_complex_datatype),cudaMemcpyDeviceToHost)
-!     if (istat .ne. 0) then
-!       print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
-!       stop
-!     endif
-!#endif
 
        enddo
 
@@ -5905,51 +4370,6 @@ end subroutine
          print *,"trans_ev_band_to_full_complex: error when deallocating tmp1, tmp2, hvb, hvm "//errorMessage
          stop
        endif
-
-       if (useGPU) then
-
-         successCUDA = cuda_free(hvm_dev)
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_band_to_full_complex: error in cudaFree"
-           stop
-         endif
-
-         successCUDA = cuda_free(tmp_dev)
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_band_to_full_complex: error in cudaFree"
-           stop
-         endif
-
-         successCUDA = cuda_free(tmat_dev)
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_band_to_full_complex: error in cudaFree"
-           stop
-         endif
-
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_band_to_full_complex: error in cudaMemcpy"
-           stop
-         endif
-!   q(1:ldq,1:na_cols) = q_temp(1:ldq,1:na_cols)
-
-         successCUDA = cuda_free(q_dev)
-         if (.not.(successCUDA)) then
-           print *,"trans_ev_band_to_full_complex: error in cudaFree"
-           stop
-         endif
-
-!   deallocate(q_temp, stat=istat, errmsg=errorMessage)
-!   if (istat .ne. 0) then
-!     print *,"trans_ev_band_to_full_complex: error when deallocating q_temp "//errorMessage
-!   endif
-
-!deallocate(tmat_temp, stat=istat, errmsg=errorMessage)
-!if (istat .ne. 0) then
-!print *,"trans_ev_band_to_full_complex: error when deallocating tmat_temp "//errorMessage
-!endif
-       endif ! use GPU
-
-
 
      end subroutine trans_ev_band_to_full_complex_double
 
@@ -5987,11 +4407,6 @@ end subroutine
 
       use precision
       implicit none
-
-!#ifdef WITH_GPU_VERSION
-!   integer(C_SIZE_T)                        :: h_dev, hv_new_dev ,ab_dev,x_dev,hs_dev,tau_new_dev,hv_dev,hd_dev
-!   complex*16, allocatable                  :: ab_temp(:,:)
-!#endif
 
       integer(kind=ik), intent(in)                 ::  na, nb, nblk, lda, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm
 
@@ -6032,12 +4447,6 @@ end subroutine
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
       call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
 
-!#ifdef WITH_GPU_VERSION
-!   t_1 = 0
-!   t_2 = 0
-!#endif
-! Get global_id mapping 2D procssor coordinates to global id
-
       allocate(global_id(0:np_rows-1,0:np_cols-1), stat=istat, errmsg=errorMessage)
       if (istat .ne. 0) then
         print *,"tridiag_band_complex: error when allocating global_id "//errorMessage
@@ -6076,46 +4485,10 @@ end subroutine
         stop
       endif
 
-!#ifdef WITH_GPU_VERSION
-!   allocate(ab_temp(2*nb,nblocks*nb), stat=istat, errmsg=errorMessage)
-!   if (istat .ne. 0) then
-!     print *,"error when allocating ab_temp "//errorMessage
-!     stop
-!   endif
-!#endif
       ab = 0 ! needed for lower half, the extra block should also be set to 0 for safety
 
 
 
-!#ifdef WITH_GPU_VERSION
-!
-!   istat = cuda_malloc(ab_dev, 2*nb*(nblocks+1)*nb*size_of_complex_datatype)
-!   if (istat .ne. 0) print *, " cuda malloc failed ab_dev", istat
-!
-!   istat = cuda_malloc(hv_new_dev, nb*size_of_complex_datatype )
-!   if (istat .ne. 0) print *, " cuda malloc failed hv_new_dev", istat
-!
-!!   istat = cuda_malloc(temp_c_dev,  nb*nb*size_of_complex_datatype )
-!!   if(istat .ne. 0) print *, " cuda malloc failed temp_c", istat
-!
-!   istat = cuda_malloc(h_dev , nb*size_of_complex_datatype)
-!   if (istat .ne. 0) print *, " cuda malloc failed h_dev", istat
-!
-!   istat = cuda_malloc(hs_dev , nb*size_of_complex_datatype)
-!   if (istat .ne. 0) print *, " cuda malloc failed hs_dev", istat
-!
-!   istat = cuda_malloc(x_dev , 1*size_of_complex_datatype)
-!   if (istat .ne. 0) print *, " cuda malloc failed x_dev", istat
-!
-!   istat = cuda_malloc( tau_new_dev , 1*size_of_complex_datatype)
-!   if (istat .ne. 0) print *, " cuda malloc failed tau_new_dev", istat
-!
-!   istat = cuda_malloc(hv_dev , nb*size_of_complex_datatype)
-!   if (istat .ne. 0) print *, " cuda malloc failed hv_dev", istat
-!
-!   istat = cuda_malloc(hd_dev , nb*size_of_complex_datatype)
-!   if (istat .ne. 0) print *, " cuda malloc failed hd_dev", istat
-!#endif
 ! n_off: Offset of ab within band
       n_off = block_limits(my_pe)*nb
 
@@ -6326,20 +4699,12 @@ end subroutine
 
       na_s = na_s+1
       if (na_s-n_off > nb) then
-!#ifdef WITH_GPU_VERSION
-!       ab_temp(:,1:nblocks*nb) =  ab(:,nb+1:(nblocks +1)*nb)
-!       ab(:, 1:nblocks*nb) = ab_temp(:, 1:nblocks*nb)
-!#else
         ab(:,1:nblocks*nb) = ab(:,nb+1:(nblocks+1)*nb)
-!#endif
         ab(:,nblocks*nb+1:(nblocks+1)*nb) = 0
         n_off = n_off + nb
       endif
 
 
-!#ifdef WITH_GPU_VERSION
-!       call cpu_time(start)
-!#endif
         do iblk=1,nblocks
 
           ns = na_s + (iblk-1)*nb - n_off ! first column in block
@@ -6434,10 +4799,6 @@ end subroutine
 ! Householder transformation for this column
 
             hv_new(:) = 0 ! Needed, last rows must be 0 for nr < nb
-!#ifdef WITH_GPU_VERSION
-!           istat = cuda_memset(hv_new_dev, 0,nb*size_of_complex_datatype )
-!           if (istat .ne. 0) print *, " cuda memset failed hv_new_dev", istat
-!#endif
             tau_new = 0
 
             if (nr>0) then
@@ -6496,28 +4857,12 @@ end subroutine
            hd(1:nc) = hd(1:nc) - 0.5_rk8*x*hv(1:nc)
 
 
-!#ifdef WITH_GPU_VERSION
-!         istat = cuda_memcpy2d((ab_dev +  (ns-1)*2*nb*size_of_complex_datatype), 2*nb*size_of_complex_datatype,loc(a(1,ns)), 2*nb*size_of_complex_datatype, 2*size_of_complex_datatype , &
-!                               2*nb*size_of_complex_datatype,cudaMemcpyHostToDevice)
-!         if (istat .ne. 0) print *, "cuda memcpy a_dev H2D failed ", istat
-!         istat =cuda_memcpy(hv_dev,loc(hv),nc*size_of_complex_datatype,cudaMemcpyHostToDevice)
-!         if (istat .ne. 0) print *,"cuda memcpy failed hv_dev", istat
-!         istat =cuda_memcpy(hd_dev,loc(hd), nb*size_of_complex_datatype,cudaMemcpyHostToDevice)
-!         if (istat .ne. 0) print *,"cuda memcpy failed hd_dev", istat
-!#endif
-
            if (my_pe>0 .and. iblk==1) then
 
 ! The first column of the diagonal block has to be send to the previous PE
 ! Calculate first column only ...
 
-!#ifdef WITH_GPU_VERSION
-!            call double_hh_transform_2( ns, nc, nb  )
-!            istat=cuda_memcpy(loc(ab),ab_dev,(2*nb*(nblocks+1)*nb)*size_of_complex_datatype,cudaMemcpyDeviceToHost)
-!            if (istat .ne. 0) print *, " cuda memcpy failed ab ", istat
-!#else
              ab(1:nc,ns) = ab(1:nc,ns) - hd(1:nc)*conjg(hv(1)) - hv(1:nc)*conjg(hd(1))
-!#endif
 
 ! ... send it away ...
 
@@ -6541,61 +4886,22 @@ end subroutine
 ! ... and calculate remaining columns with rank-2 update
              if (nc>1) then
 
-!#ifdef WITH_GPU_VERSION
-!              call cublas_ZHER2( 'L',nc -1,(-1.d0,0.d0), hd_dev + 1*16, 1, hv_dev +1*16, 1 , ab_dev + (ns*2*nb )*16, 2*nb-1)
-!#else
-
                call ZHER2('L', nc-1, (-1.0_rk8,0.0_rk8), hd(2), 1, hv(2), 1, ab(1,ns+1), 2*nb-1)
 
-!#endif
              endif
            else
 
 ! No need to  send, just a rank-2 update
-!#ifdef WITH_GPU_VERSION
-!            call cublas_ZHER2( 'L',nc ,(-1.d0,0.d0), hd_dev, 1, hv_dev, 1 , ab_dev + ((ns-1)*2*nb )*16, 2*nb-1)
-!#else
 
              call ZHER2('L', nc, (-1.0_rk8,0.0_rk8), hd, 1, hv, 1, ab(1,ns), 2*nb-1)
 
-!#endif
            endif
-
-!#ifdef WITH_GPU_VERSION
-!          istat=cuda_memcpy( loc(hd),hd_dev,nb*size_of_complex_datatype,cudaMemcpyDeviceToHost)
-!          if (istat .ne. 0) print *,"cuda memcpy failed hd_dev", istat
-!#endif
 
 ! Do the remaining double Householder transformation on the subdiagonal block cols 2 ... nb
 
-!#ifdef WITH_GPU_VERSION
-!         istat =cuda_memcpy(hs_dev,loc(hs),nb*size_of_complex_datatype,cudaMemcpyHostToDevice)
-!         if (istat .ne. 0) print *,"cuda memcpy failed hs_dev", istat
-!#endif
 
            if (nr>0) then
              if (nr>1) then
-!#ifdef WITH_GPU_VERSION
-!              istat = cuda_memcpy(hv_new_dev,loc(hv_new),nb*size_of_complex_datatype,cudaMemcpyHostToDevice)
-!              if (istat .ne. 0) print *,"cuda memcpy failed hv_new_dev", istat
-!
-!              istat = cuda_memcpy(h_dev,loc(h),nb*size_of_complex_datatype,cudaMemcpyHostToDevice)
-!              if (istat .ne. 0) print *,"cuda memcpy failed h_dev", istat
-!
-!              call cublas_ZGEMV('C',nr,nb-1,tau_new,ab_dev + (nb-1 + ns *2*nb)*16,2*nb-1,hv_new_dev,1,(0.d0,0.d0),h_dev + 1* 16,1)
-!
-!              istat = cuda_memcpy(tau_new_dev,loc(tau_new),1*size_of_complex_datatype,cudaMemcpyHostToDevice)
-!              if (istat .ne. 0) print *,"cuda memcpy failed tau_new_dev", istat
-!
-!              call dot_product_kernel(nr , tau_new)
-!              call dot_product_kernel_1( nb, nr , ns)
-!
-!              istat = cuda_memcpy(loc(x),x_dev,1*size_of_complex_datatype,cudaMemcpyDeviceToHost)
-!              if (istat .ne. 0) print *, " cuda memcpy failed x_dev ", istat
-!
-!              istat =cuda_memcpy(loc(h),h_dev,nb*size_of_complex_datatype,cudaMemcpyDeviceToHost)
-!              if (istat .ne. 0) print *, " cuda memcpy failed h ", istat
-!#else
 
                call ZGEMV('C', nr, nb-1, tau_new, ab(nb,ns+1), 2*nb-1, hv_new, 1, (0.0_rk8, 0.0_rk8), h(2), 1)
 
@@ -6605,16 +4911,11 @@ end subroutine
                do i=2,nb
                  ab(2+nb-i:1+nb+nr-i,i+ns-1) = ab(2+nb-i:1+nb+nr-i,i+ns-1) - hv_new(1:nr)*conjg(h(i)) - hs(1:nr)*conjg(hv(i))
                enddo
-!#endif
              else
 ! No double Householder transformation for nr=1, just complete the row
-!#ifdef WITH_GPU_VERSION
-!               call double_hh_transform_1(nb, ns)
-!#else
                do i=2,nb
                  ab(2+nb-i,i+ns-1) = ab(2+nb-i,i+ns-1) - hs(1)*conjg(hv(i))
                enddo
-!#endif
 
              endif
            endif
@@ -6624,20 +4925,7 @@ end subroutine
            tau = tau_new
 
          enddo
-!#ifdef WITH_GPU_VERSION
-!      call cpu_time(finish)
-!      tstep2 = finish-start
-!      t_2 = t_2 + tstep2
-!#endif
-
-
-
      enddo
-!#ifdef WITH_GPU_VERSION
-!     call cpu_time(finish_1)
-!     tstep1 = finish_1-start_1
-!     t_1 = t_1 + tstep1
-!#endif
 
 ! Finish the last outstanding requests
 
@@ -6664,15 +4952,6 @@ end subroutine
        print *,"tridiag_band_complex: error when deallocating ab "//errorMessage
        stop
      endif
-
-!#ifdef WITH_GPU_VERSION
-!     deallocate(ab_temp, stat=istat, errmsg=errorMessage)
-!     if (istat .ne. 0) then
-!       print *,"error when deallocating ab_temp "//errorMessage
-!       stop
-!     endif
-!
-!#endif
 
      deallocate(ireq_hhr, ireq_hhs, stat=istat, errmsg=errorMessage)
      if (istat .ne. 0) then
@@ -6710,78 +4989,6 @@ end subroutine
         stop
       endif
 
-!#ifdef WITH_GPU_VERSION
-!     istat = cuda_free(ab_dev)
-!     if (istat .ne. 0) then
-!       print *,"error in cudaFree"
-!       stop
-!     endif
-!
-!     istat = cuda_free(hv_new_dev)
-!     if (istat .ne. 0) then
-!       print *,"error in cudaFree"
-!       stop
-!     endif
-!
-!     istat = cuda_free(hs_dev)
-!     if (istat .ne. 0) then
-!       print *,"error in cudaFree"
-!       stop
-!     endif
-!
-!     istat = cuda_free(h_dev)
-!     if (istat .ne. 0) then
-!       print *,"error in cudaFree"
-!       stop
-!     endif
-!
-!     istat = cuda_free(tau_new_dev)
-!     if (istat .ne. 0) then
-!       print *,"error in cudaFree"
-!       stop
-!     endif
-!
-!     istat = cuda_free(x_dev)
-!     if (istat .ne. 0) then
-!       print *,"error in cudaFree"
-!       stop
-!     endif
-!
-!#endif
-
-
-!#ifdef WITH_GPU_VERSION
-!   contains
-!
-!     subroutine dot_product_kernel(nr,tau_new)
-!       implicit none
-!       integer, intent(in)    :: nr
-!       complex*16, intent(in) :: tau_new
-!
-!       call launch_dot_product_kernel( hs_dev,hv_new_dev,tau_new,x_dev,h_dev,hv_dev, nr )
-!     end subroutine
-!
-!     subroutine dot_product_kernel_1( nb , nr , ns)
-!       implicit none
-!       integer, intent(in) ::  nb, nr, ns
-!
-!       call launch_dot_product_kernel_1(ab_dev,hs_dev, hv_new_dev,x_dev,h_dev,hv_dev,nb , nr, ns)
-!     end subroutine
-!
-!     subroutine double_hh_transform_1( nb , ns)
-!       implicit none
-!       integer, intent(in) ::  nb, ns
-!
-!       call launch_double_hh_transform_1(ab_dev,hs_dev,hv_dev,nb , ns)
-!     end subroutine
-!
-!     subroutine double_hh_transform_2( ns,nc, nb)
-!       implicit none
-!       integer, intent(in) ::  nc, ns, nb
-!
-!       call launch_double_hh_transform_2(ab_dev,hd_dev,hv_dev,nc , ns, nb)
-!     end subroutine
-!#endif
 
     end subroutine tridiag_band_complex_double ! has to be checked for GPU
 
@@ -6822,7 +5029,6 @@ end subroutine
       use pack_unpack_complex
       use compute_hh_trafo_complex
       use precision
-      use cuda_functions
       use, intrinsic :: iso_c_binding
       implicit none
 
@@ -6924,15 +5130,6 @@ end subroutine
 
 
 
-      if (useGPU) then
-        n_times =0
-!    n_times_1 =0
-        unpack_idx = 0
-        row_group_size = 0
-!    time0=0
-!    t0_compute_kernel=0
-      endif
-
       kernel_time = 0.0
       kernel_flops = 0
 
@@ -6942,13 +5139,6 @@ end subroutine
       call MPI_Comm_size(mpi_comm_rows, np_rows, mpierr)
       call MPI_Comm_rank(mpi_comm_cols, my_pcol, mpierr)
       call MPI_Comm_size(mpi_comm_cols, np_cols, mpierr)
-
-      if (useGPU) then
-
-        na_rows = numroc(na, nblk, my_prow, 0, np_rows)
-        na_cols = numroc(na, nblk, my_pcol, 0, np_cols)
-
-      endif
 
       success = .true.
       if (mod(nbw,nblk)/=0) then
@@ -6977,15 +5167,7 @@ end subroutine
       else
 ! Suggested stripe width is 48 - should this be reduced for the complex case ???
 
-        if (useGPU) then
-          stripe_width = 256
-        else
-
           stripe_width = 48 ! Must be a multiple of 2
-
-        endif
-
-
 
         stripe_count = (l_nev-1)/stripe_width + 1
 
@@ -6993,17 +5175,13 @@ end subroutine
 ! Adapt stripe width so that last one doesn't get too small
 
 
-        if (.not.(useGPU)) then
           stripe_width = (l_nev-1)/stripe_count + 1
-        endif
 
 
-        if (.not.(useGPU)) then
 
           stripe_width = ((stripe_width+3)/4)*4 ! Must be a multiple of 2 because of AVX/SSE memory alignment of 32 bytes
 ! (2 * sizeof(double complex) == 32)
 
-        endif
 
         last_stripe_width = l_nev - (stripe_count-1)*stripe_width
 
@@ -7026,7 +5204,6 @@ end subroutine
 
 
 
-      if (.not.(useGPU)) then
         aux_int = int(stripe_width*a_dim2*stripe_count*16,kind=C_SIZE_T)
 
         if (posix_memalign(aIntern_ptr, 64_C_SIZE_T, aux_int) /= 0) then
@@ -7039,7 +5216,6 @@ end subroutine
 !        allocate(aIntern(stripe_width,a_dim2,stripe_count), stat=istat, errmsg=errorMessage)
 
         aIntern(:,:,:) = 0
-      endif
 
 
 
@@ -7050,71 +5226,6 @@ end subroutine
       endif
 
       row(:) = 0
-
-      if (useGPU) then
-
-        num =  (stripe_width*a_dim2*stripe_count)*size_of_double_complex_datatype
-        if (na_rows * na_cols .lt. stripe_width*a_dim2*stripe_count) then
-          print *,"trans_ev_tridi_to_band_complex aIntern_dev ",na_rows * na_cols, stripe_width*a_dim2*stripe_count
-!      stop
-        endif
-
-        successCUDA = cuda_malloc(aIntern_dev, stripe_width*a_dim2*stripe_count*size_of_double_complex_datatype)
-
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMalloc "
-          stop
-        endif
-
-        if (num .gt. na_rows * na_cols) then
-          print *,"trans_ev_tridi_to_band_complex aIntern_dev 1",num, na_rows * na_cols
-!      stop
-        endif
-        successCUDA = cuda_memset(aIntern_dev , 0, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMemset "
-          stop
-        endif
-
-        num =  (l_nev)*size_of_double_complex_datatype
-
-        successCUDA = cuda_malloc( row_dev,num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMalloc "
-          stop
-        endif
-
-        successCUDA = cuda_memset(row_dev , 0, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMemset "
-          stop
-        endif
-
-! "row_group" and "row_group_dev" are needed for GPU optimizations
-        allocate(row_group(l_nev, nblk), stat=istat, errmsg=errorMessage)
-        if (istat .ne. 0) then
-          print *,"trans_ev_tridi_to_band_complex: error allocating row_group "//errorMessage
-          stop
-        endif
-
-        row_group(:, :) = 0._ck8
-
-
-
-        num =  (l_nev*nblk)*size_of_double_complex_datatype
-
-        successCUDA = cuda_malloc(row_group_dev, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMalloc "
-          stop
-        endif
-
-        successCUDA = cuda_memset(row_group_dev , 0, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMemset "
-          stop
-        endif
-      endif ! useGPU
 
 ! Copy q from a block cyclic distribution into a distribution with contiguous rows,
 ! and transpose the matrix using stripes of given stripe_width for cache blocking.
@@ -7134,58 +5245,17 @@ end subroutine
 
 
 
-              if (useGPU) then
-                call unpack_and_prepare_row_group_complex_gpu_double(i - limits(ip), .false.)
-
-
-
-                call MPI_Recv(row_group(:, row_group_size), l_nev,MPI_COMPLEX16, src, 0, mpi_comm_rows, MPI_STATUS_IGNORE, mpierr)
-
-
-
-              else
-
-
-
                 call MPI_Recv(row, l_nev, MPI_COMPLEX16, src, 0, mpi_comm_rows, MPI_STATUS_IGNORE, mpierr)
 
-
-
-              endif
-
-
-
-
-
-
-              if (.not.(useGPU)) then
-
                 call unpack_row_complex_cpu_double(aIntern, row,i-limits(ip), stripe_count, stripe_width, last_stripe_width)
-
-              endif
-
-
 
             elseif (src==my_prow) then
               src_offset = src_offset+1
-              if (useGPU) then
-
-                call unpack_and_prepare_row_group_complex_gpu_double(i - limits(ip),.false.)
-
-                row_group(:, row_group_size) = q(src_offset, 1:l_nev)
-              else
                 row(:) = q(src_offset, 1:l_nev)
-              endif
 
 
-
-              if (.not.(useGPU)) then
 
                 call unpack_row_complex_cpu_double(aIntern, row,i-limits(ip), stripe_count, stripe_width, last_stripe_width)
-
-              endif
-
-
 
             endif
           enddo
@@ -7235,49 +5305,15 @@ end subroutine
 
 
 
-              if (useGPU) then
-                call unpack_and_prepare_row_group_complex_gpu_double(i - limits(my_prow), .false.)
-
-
-                call MPI_Recv(row_group(:, row_group_size), l_nev,MPI_COMPLEX16, src, 0, mpi_comm_rows, MPI_STATUS_IGNORE, mpierr)
-
-
-              else
-
-
                 call MPI_Recv(row, l_nev, MPI_COMPLEX16, src, 0, mpi_comm_rows, MPI_STATUS_IGNORE, mpierr)
 
 
-              endif
-
-
-
-
-
-
-              if (.not.(useGPU)) then
-
                 call unpack_row_complex_cpu_double(aIntern, row,i-limits(my_prow), stripe_count, stripe_width, last_stripe_width)
-
-              endif
-
-
 
             endif
           enddo
         endif
       enddo
-
-      if (useGPU) then
-
-        call unpack_and_prepare_row_group_complex_gpu_double(-1, .true.)
-
-        successCUDA = cuda_devicesynchronize()
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaDeviceSynchronize"
-          stop
-        endif
-      endif
 
 ! Set up result buffer queue
 
@@ -7399,51 +5435,6 @@ end subroutine
       endif
       bcast_buffer = 0
 
-      if (useGPU) then
-
-        num =  ( nbw * max_blk_size) * size_of_double_complex_datatype
-
-        successCUDA = cuda_malloc(bcast_buffer_dev, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMalloc"
-          stop
-        endif
-
-        successCUDA = cuda_memset( bcast_buffer_dev, 0, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMemset"
-          stop
-        endif
-
-        num =  ((max_blk_size-1))*size_of_double_complex_datatype
-
-        successCUDA = cuda_malloc( hh_dot_dev, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMalloc"
-          stop
-        endif
-
-        successCUDA = cuda_memset( hh_dot_dev, 0, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMemset"
-          stop
-        endif
-
-        num =  (max_blk_size)*size_of_double_complex_datatype
-
-        successCUDA = cuda_malloc( hh_tau_dev, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMalloc"
-          stop
-        endif
-
-        successCUDA = cuda_memset( hh_tau_dev, 0, num)
-        if (.not.(successCUDA)) then
-          print *,"trans_ev_tridi_to_band_complex: error in cudaMemset"
-          stop
-        endif
-      endif ! useGPU
-
       current_tv_off = 0 ! Offset of next row to be broadcast
 
 
@@ -7521,40 +5512,12 @@ end subroutine
 
 
 
-          if (useGPU) then
-
-
-
-            call extract_hh_tau_complex_gpu_double(nbw, current_local_n, .false.)
-            call compute_hh_dot_products_complex_gpu_double(nbw, current_local_n)
-
-          endif
         else
 ! for current_local_n == 1 the one and only HH vector is 0 and not stored in hh_trans_complex
 
           bcast_buffer(:,1) = 0._ck8
 
 
-          if (useGPU) then
-
-            successCUDA = cuda_memset(bcast_buffer_dev, 0, nbw * size_of_double_complex_datatype)
-
-            if (.not.(successCUDA)) then
-              print *,"trans_ev_tridi_to_band_complex: error in cudaMemset"
-              stop
-            endif
-
-            call extract_hh_tau_complex_gpu_double(nbw, 1, .true.)
-
-!NOTE(ca): I commented out the following line
-!        istat =  cuda_memcpy(loc(bcast_buffer(1,1)),bcast_buffer_dev,nbw*current_local_n * size_of_complex_datatype ,
-!        cudaMemcpyDeviceToHost)
-!        if (istat .ne. 0) then
-!          print *,"trans_ev_tridi_to_band_complex: error in cudaMalloc"
-!          stop
-!        endif
-
-          endif ! useGPU
         endif
 
 
@@ -7587,22 +5550,7 @@ end subroutine
 
 
                 n_off = current_local_n+a_off
-                if (useGPU) then
-!                t1_memcpy_time =MPI_Wtime()
-
-                  dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width *a_dim2 )) * size_of_double_complex_datatype
-
-
-                  if (.not.(successCUDA)) then
-                    print *,"trans_ev_tridi_to_band_complex: error in cudaMalloc"
-                    stop
-                  endif
-
-!                t2_memcpy_time =MPI_Wtime()
-!                t0_memcpy_time = t0_memcpy_time + ( t2_memcpy_time - t1_memcpy_time)
-                else
                   aIntern(:,n_off+1:n_off+nbw,i) = bottom_border_recv_buffer(:,1:nbw,i)
-                endif
 
 
 
@@ -7636,47 +5584,17 @@ end subroutine
                   call MPI_Wait(top_recv_request(i), MPI_STATUS_IGNORE, mpierr)
 
 
-                  if (useGPU) then
-!                t2_mpi_wait_time =MPI_Wtime()
-!                t0_mpi_wait_time = t0_mpi_wait_time + ( t2_mpi_wait_time -t1_mpi_wait_time)
-!                t1_memcpy_time =MPI_Wtime()
-!
-
-                    dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width *a_dim2 )) * &
-                                  size_of_double_complex_datatype
-
-!                   host_offset= (0 + (0 * stripe_width) + ( (i-1) * stripe_width * nbw ))* 16
-
-                    if (.not.(successCUDA)) then
-                      print *,"trans_ev_tridi_to_band_complex: error in cudaMemcpy"
-                      stop
-                    endif
-
-!                   t2_memcpy_time =MPI_Wtime()
-!                   t0_memcpy_time = t0_memcpy_time + ( t2_memcpy_time - t1_memcpy_time)
-                  else
                     aIntern(:,a_off+1:a_off+top_msg_length,i) = top_border_recv_buffer(:,1:top_msg_length,i)
-                  endif ! useGPU
 
 
                 endif
 
 !compute
 
-                if (useGPU) then
-
-                  call compute_hh_trafo_complex_gpu_double(0, current_local_n, i, a_off, dev_offset, dev_offset_1, dev_offset_2)
-!                call compute_hh_trafo_complex_gpu_double(0, current_local_n, i)
-
-                else
-
                   call compute_hh_trafo_complex_cpu_double(aIntern, stripe_width, a_dim2, stripe_count,            &
                                                     a_off, nbw, max_blk_size, bcast_buffer, kernel_flops, kernel_time, &
                                                     0, current_local_n, i, last_stripe_width,                          &
                                                     THIS_COMPLEX_ELPA_KERNEL)
-
-                endif
-
 
 
 !send_b
@@ -7699,23 +5617,7 @@ end subroutine
 
 
 
-                  if (useGPU) then
-!                  t1_memcpy_time =MPI_Wtime()
-
-                    dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) * &
-                                 size_of_double_complex_datatype
-
-
-                    if (.not.(successCUDA)) then
-                      print *,"trans_ev_tridi_to_band_complex: error in cudaMemcpy"
-                      stop
-                    endif
-
-!                   t2_memcpy_time =MPI_Wtime()
-!                   t0_memcpy_time = t0_memcpy_time + ( t2_memcpy_time -t1_memcpy_time)
-                  else
                     bottom_border_send_buffer(:,1:bottom_msg_length,i) = aIntern(:,n_off+1:n_off+bottom_msg_length,i)
-                  endif
 
 
 
@@ -7734,19 +5636,10 @@ end subroutine
 
 
 
-              if (useGPU) then
-                call compute_hh_trafo_complex_gpu_double(current_local_n -bottom_msg_length, bottom_msg_length, i, a_off, &
-                                                  dev_offset, dev_offset_1, dev_offset_2)
-!              call compute_hh_trafo_complex_gpu_double(current_local_n -bottom_msg_length, bottom_msg_length, i)
-              else
                 call compute_hh_trafo_complex_cpu_double(aIntern, stripe_width, a_dim2, stripe_count,              &
                                                   a_off, nbw, max_blk_size, bcast_buffer, kernel_flops, kernel_time, &
                                                   current_local_n - bottom_msg_length, bottom_msg_length, i,         &
                                                   last_stripe_width, THIS_COMPLEX_ELPA_KERNEL)
-
-              endif
-
-
 
 
 !send_b
@@ -7768,27 +5661,7 @@ end subroutine
                 n_off = current_local_n+nbw-bottom_msg_length+a_off
 
 
-                if (useGPU) then
-!                t1_memcpy_time =MPI_Wtime()
-
-                  dev_offset = (0 + (n_off * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) * &
-                                size_of_double_complex_datatype
-
-
-                  if (.not.(successCUDA)) then
-                    print *,"trans_ev_tridi_to_band_complex: error in cudaMemcpy"
-                    stop
-                  endif
-
-!                t2_memcpy_time =MPI_Wtime()
-!                t0_memcpy_time = t0_memcpy_time + ( t2_memcpy_time -t1_memcpy_time)
-                else
                   bottom_border_send_buffer(:,1:bottom_msg_length,i) = aIntern(:,n_off+1:n_off+bottom_msg_length,i)
-                endif
-
-
-
-
 
                 call MPI_Isend(bottom_border_send_buffer(1,1,i), bottom_msg_length*stripe_width, MPI_COMPLEX16, my_prow+1, &
                               top_recv_tag, mpi_comm_rows, bottom_send_request(i), mpierr)
@@ -7804,20 +5677,10 @@ end subroutine
 
 
 
-              if (useGPU) then
-!              call compute_hh_trafo_complex_gpu_double(top_msg_length,current_local_n-top_msg_length-bottom_msg_length, i)
-
-                call compute_hh_trafo_complex_gpu_double(top_msg_length,current_local_n-top_msg_length-bottom_msg_length, &
-                                                 i, a_off, &
-                                                  dev_offset, dev_offset_1, dev_offset_2)
-              else
                call compute_hh_trafo_complex_cpu_double(aIntern, stripe_width, a_dim2, stripe_count,                  &
                                                  a_off, nbw, max_blk_size, bcast_buffer, kernel_flops, kernel_time,   &
                                                  top_msg_length, current_local_n-top_msg_length-bottom_msg_length, i, &
                                                  last_stripe_width, THIS_COMPLEX_ELPA_KERNEL)
-
-              endif
-
 
 !wait_t
               if (top_msg_length>0) then
@@ -7830,28 +5693,7 @@ end subroutine
                 call MPI_Wait(top_recv_request(i), MPI_STATUS_IGNORE, mpierr)
 
 
-                if (useGPU) then
-!                t2_mpi_wait_time =MPI_Wtime()
-!                t0_mpi_wait_time = t0_mpi_wait_time +(t2_mpi_wait_time-t1_mpi_wait_time)
-!
-!                t1_memcpy_time =MPI_Wtime()
-
-                   dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width *a_dim2 )) * &
-                                 size_of_double_complex_datatype
-
-
-                   if (.not.(successCUDA)) then
-                     print *,"trans_ev_tridi_to_band_complex: error in cudaMemcpy"
-                     stop
-                   endif
-
-!
-!                t2_memcpy_time =MPI_Wtime()
-!                t0_memcpy_time = t0_memcpy_time + ( t2_memcpy_time-t1_memcpy_time)
-                else
                   aIntern(:,a_off+1:a_off+top_msg_length,i) = top_border_recv_buffer(:,1:top_msg_length,i)
-                endif
-
 
               endif
 
@@ -7859,15 +5701,10 @@ end subroutine
 
 
 
-              if (useGPU) then
-                call compute_hh_trafo_complex_gpu_double(0, top_msg_length, i, a_off, dev_offset, dev_offset_1, dev_offset_2)
-!              call compute_hh_trafo_complex_gpu_double(0, top_msg_length, i)
-              else
                 call compute_hh_trafo_complex_cpu_double(aIntern, stripe_width, a_dim2, stripe_count,               &
                                                   a_off, nbw, max_blk_size, bcast_buffer, kernel_flops, kernel_time,  &
                                                   0, top_msg_length, i, last_stripe_width,                            &
                                                   THIS_COMPLEX_ELPA_KERNEL)
-              endif
 
 
 
@@ -7910,25 +5747,7 @@ end subroutine
 
 
 
-              if (useGPU) then
-!              t1_memcpy_time =MPI_Wtime()
-
-
-                dev_offset = (0 + (a_off * stripe_width) + ( (i-1) * stripe_width *a_dim2 )) * &
-                              size_of_double_complex_datatype
-
-
-                if (.not.(successCUDA)) then
-                  print *,"trans_ev_tridi_to_band_complex: error in cudaMemcpy"
-                  stop
-                endif
-
-!              t2_memcpy_time =MPI_Wtime()
-!              t0_memcpy_time = t0_memcpy_time + (t2_memcpy_time-t1_memcpy_time)
-!
-              else
                 top_border_send_buffer(:,1:nbw,i) = aIntern(:,a_off+1:a_off+nbw,i)
-              endif
 
 
 
@@ -8020,15 +5839,6 @@ end subroutine
             dst = mod(num_blk, np_rows)
 
             if (dst == 0) then
-              if (useGPU) then
-                row_group_size = min(na - num_blk*nblk, nblk)
-
-                call pack_row_group_complex_gpu_double(row_group(:, :), j * nblk + a_off,row_group_size)
-
-                do i = 1, row_group_size
-                  q((num_blk / np_rows) * nblk + i, 1 : l_nev) = row_group(:, i)
-                enddo
-              else
                 do i = 1, min(na - num_blk*nblk, nblk)
 
 
@@ -8039,24 +5849,17 @@ end subroutine
 
                   q((num_blk/np_rows)*nblk+i,1:l_nev) = row(:)
                 enddo
-              endif
             else
-              if (useGPU) then
-
-                call pack_row_group_complex_gpu_double(result_buffer(:, :, nbuf), j * nblk + a_off, nblk)
-
-              else
                 do i = 1, nblk
 
 
 
                   call pack_row_complex_cpu_double(aIntern, result_buffer(:,i,nbuf),j*nblk+i+a_off, stripe_width, &
-		                            last_stripe_width, stripe_count)
+                                            last_stripe_width, stripe_count)
 
 
 
                 enddo
-              endif
 
 
 
@@ -8146,31 +5949,9 @@ end subroutine
           if (a_off + next_local_n + nbw > a_dim2) then
 
             do i = 1, stripe_count
-              if (useGPU) then
-                chunk = min(next_local_n - 1, a_off)
-                do j = top_msg_length + 1, top_msg_length + next_local_n, chunk
-                  top = min(j + chunk, top_msg_length + next_local_n)
-                  this_chunk = top - j + 1
-
-                  dev_offset = (0 + ( (j-1) * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) * &
-                                size_of_double_complex_datatype
-                  dev_offset_1 = (0 + ( (j + a_off-1) * stripe_width) + ( (i-1) * stripe_width * a_dim2 )) * &
-                                 size_of_double_complex_datatype
-! it is not logical to set here always the parameter "cudaMemcpyDeviceToDevice" do this ONCE at startup
-!                  tmp = cuda_d2d(1)
-
-
-                  if (.not.(successCUDA)) then
-                    print *,"trans_ev_tridi_to_band_complex: error in cudaMemcpy"
-                    stop
-                  endif
-
-                enddo
-              else ! useGPU
                 do j = top_msg_length+1, top_msg_length+next_local_n
                   aIntern(:,j,i) = aIntern(:,j+a_off,i)
                 enddo
-              endif
             enddo
 
             a_off = 0
@@ -8209,15 +5990,8 @@ end subroutine
 
 ! deallocate all working space
 
-        if (.not.(useGPU)) then
-	  nullify(aIntern)
-	  call free(aIntern_ptr)
-!          deallocate(a, stat=istat, errmsg=errorMessage)
-!          if (istat .ne. 0) then
-!            print *,"trans_ev_tridi_to_band_complex: error deallocating a "//errorMessage
-!            stop
-!          endif
-        endif
+          nullify(aIntern)
+          call free(aIntern_ptr)
 
         deallocate(row, stat=istat, errmsg=errorMessage)
         if (istat .ne. 0) then
@@ -8303,207 +6077,7 @@ end subroutine
           stop
         endif
 
-        if (useGPU) then
-          successCUDA = cuda_free(aIntern_dev)
-          if (.not.(successCUDA)) then
-            print *,"trans_ev_tridi_to_band_complex: error in cudaFree"
-            stop
-          endif
-
-          successCUDA = cuda_free(hh_tau_dev)
-          if (.not.(successCUDA)) then
-            print *,"trans_ev_tridi_to_band_complex: error in cudaFree"
-            stop
-          endif
-
-          successCUDA = cuda_free(hh_dot_dev)
-          if (.not.(successCUDA)) then
-            print *,"trans_ev_tridi_to_band_complex: error in cudaFree"
-            stop
-          endif
-
-          successCUDA = cuda_free(row_dev)
-          if (.not.(successCUDA)) then
-            print *,"trans_ev_tridi_to_band_complex: error in cudaFree"
-            stop
-          endif
-
-          deallocate(row_group, stat=istat, errmsg=errorMessage)
-          if (istat .ne. 0) then
-            print *,"trans_ev_tridi_to_band_complex: error deallocating row_group "//errorMessage
-            stop
-          endif
-
-          successCUDA= cuda_free(row_group_dev)
-          if (.not.(successCUDA)) then
-            print *,"trans_ev_tridi_to_band_complex: error in cudaFree"
-            stop
-          endif
-
-          successCUDA =  cuda_free(bcast_buffer_dev)
-          if (.not.(successCUDA)) then
-            print *,"trans_ev_tridi_to_band_complex: error in cudaFree"
-            stop
-          endif
-
-        endif ! useGPU
-
        return
-       contains
-
-! The host wrapper for extracting "tau" from the HH reflectors (see the
-! kernel below)
-    subroutine extract_hh_tau_complex_gpu_double(nbw, n, is_zero)
-
-      use cuda_c_kernel
-      use precision
-      implicit none
-      integer(kind=ik), value :: nbw, n
-      logical, value          :: is_zero
-      integer(kind=ik)        :: val_is_zero
-
-      if (is_zero) then
-        val_is_zero = 1
-      else
-        val_is_zero = 0
-      endif
-
-      call launch_extract_hh_tau_c_kernel_complex_double(bcast_buffer_dev,hh_tau_dev, nbw, n,val_is_zero)
-
-    end subroutine
-
-
-    subroutine compute_hh_dot_products_complex_gpu_double(nbw, n)
-
-      use cuda_c_kernel
-      use precision
-      implicit none
-      integer(kind=ik), value :: nbw, n
-
-      if (n .le. 1) return
-
-      call launch_compute_hh_dotp_c_kernel_complex_double( bcast_buffer_dev, hh_dot_dev, nbw,n)
-
-     end subroutine
-
-
-     subroutine pack_row_group_complex_gpu_double(rows, n_offset, row_count)
-
-       use cuda_c_kernel
-       use precision
-       implicit none
-       integer(kind=ik), intent(in) :: n_offset, row_count
-       complex(kind=ck8)             :: rows(:,:)
-       integer(kind=ik)             :: max_idx
-       logical                      :: successCUDA
-
-       successCUDA = .true.
-
-       max_idx = (stripe_count - 1) * stripe_width + last_stripe_width
-
-       call launch_my_pack_c_kernel_complex_double(row_count, n_offset, max_idx, stripe_width,a_dim2, stripe_count, &
-                                            l_nev, aIntern_dev, row_group_dev)
-
-
-       if (.not.(successCUDA)) then
-         print *,"pack_row_group_complex_gpu: error in cudaMemcpy"
-         stop
-       endif
-
-     end subroutine
-
-     subroutine unpack_row_group_complex_gpu_double(rows, n_offset, row_count)
-
-       use cuda_c_kernel
-       use precision
-       implicit none
-       integer(kind=ik), intent(in)    :: n_offset, row_count
-       complex(kind=ck8), intent(in)    :: rows(:, :)
-       integer(kind=ik)                :: max_idx
-       integer(kind=ik)                :: i
-       logical                         :: successCUDA
-
-       successCUDA = .true.
-
-       max_idx = (stripe_count - 1) * stripe_width + last_stripe_width
-
-       if (.not.(successCUDA)) then
-         print *,"unpack_row_group_complex_gpu: error in cudaMemcpy"
-         stop
-       endif
-
-       call launch_my_unpack_c_kernel_complex_double( row_count, n_offset,max_idx,stripe_width,a_dim2, stripe_count, l_nev, &
-                                              row_group_dev,aIntern_dev)
-
-     end subroutine
-
-
-     subroutine unpack_and_prepare_row_group_complex_gpu_double(next_unpack_idx, force)
-
-
-       use precision
-       implicit none
-       integer(kind=ik), intent(in) :: next_unpack_idx
-       logical, intent(in)          :: force
-
-       if (row_group_size == 0) then
-! Nothing to flush, just prepare for the upcoming row
-         row_group_size = 1
-       else
-         if (force .or. (row_group_size == nblk) .or. (unpack_idx + 1 /=next_unpack_idx)) then
-! A flush and a reset must  performed
-
-           call unpack_row_group_complex_gpu_double(row_group(:, :), unpack_idx - row_group_size, row_group_size)
-
-           row_group_size = 1
-         else
-! Just prepare for the upcoming row
-           row_group_size = row_group_size + 1
-         endif
-       endif
-! Always update the index for the upcoming row
-       unpack_idx = next_unpack_idx
-
-    end subroutine
-
-
-    subroutine compute_hh_trafo_complex_gpu_double(off, ncols, istripe, a_off, dev_offset, dev_offset_1, dev_offset_2)
-
-
-      use, intrinsic :: iso_c_binding
-      use cuda_c_kernel
-      use precision
-      implicit none
-      integer(kind=ik), intent(in) :: off, ncols, istripe
-      integer(kind=ik)             :: nl
-      real(kind=c_double)          :: ttt ! MPI_WTIME always needs double
-
-      integer(kind=ik)             :: a_off
-      integer(kind=c_size_t)       :: dev_offset, dev_offset_1, dev_offset_2
-
-      if (ncols < 1) return
-      ttt = mpi_wtime()
-      nl = merge(stripe_width, last_stripe_width, istripe < stripe_count)
-
-
-      dev_offset = (0 + ( (  a_off + off-1 )* stripe_width) + ( (istripe - 1)*stripe_width*a_dim2 )) * &
-                    size_of_double_complex_datatype
-      dev_offset_1 = (0 +  (  off-1 )* nbw) *size_of_double_complex_datatype
-      dev_offset_2 =( off-1 )*size_of_double_complex_datatype
-
-!      t1_compute_kernel =MPI_Wtime()
-      call launch_compute_hh_trafo_c_kernel_complex_double(aIntern_dev + dev_offset,bcast_buffer_dev + dev_offset_1, &
-                                                    hh_tau_dev + dev_offset_2, nl, nbw,stripe_width, off,ncols)
-
-
-!      time0 = time0 + time1
-!      t2_compute_kernel =MPI_Wtime()
-!      t0_compute_kernel =  t0_compute_kernel + t2_compute_kernel-t1_compute_kernel
-
-      kernel_flops = kernel_flops + 4 * int(nl, lik) * int(ncols, lik) * int(nbw, lik)
-      kernel_time = kernel_time + mpi_wtime() - ttt
-      n_times =n_times +1
-    end subroutine
 end subroutine
 
 

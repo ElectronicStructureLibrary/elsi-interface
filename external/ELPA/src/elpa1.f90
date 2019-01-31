@@ -83,7 +83,6 @@ module ELPA1
   use, intrinsic :: iso_c_binding
   use elpa_utilities
   use elpa1_auxiliary
-  use elpa1_utilities
 
   implicit none
 
@@ -471,8 +470,6 @@ function elpa_solve_evp_real_1stage_double(na, nev, a, lda, ev, q, ldq, nblk, &
                                            matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm_all, &
                                            useGPU) result(success)
    use precision
-   use cuda_functions
-   use mod_check_for_gpu
 
    use, intrinsic :: iso_c_binding
    use elpa_mpi
@@ -518,29 +515,6 @@ function elpa_solve_evp_real_1stage_double(na, nev, a, lda, ev, q, ldq, nblk, &
    endif
 
    do_useGPU      = .false.
-
-   if (present(useGPU)) then
-! user defined GPU usage via the optional argument in the API call
-     if (useGPU) then
-       if (check_for_gpu(my_pe,numberOfGPUDevices, wantDebug=wantDebug)) then
-
-         do_useGPU = .true.
-! set the neccessary parameters
-         cudaMemcpyHostToDevice   = cuda_memcpyHostToDevice()
-         cudaMemcpyDeviceToHost   = cuda_memcpyDeviceToHost()
-         cudaMemcpyDeviceToDevice = cuda_memcpyDeviceToDevice()
-         cudaHostRegisterPortable = cuda_hostRegisterPortable()
-         cudaHostRegisterMapped   = cuda_hostRegisterMapped()
-       else
-         print *,"GPUs are requested but not detected! Aborting..."
-         success = .false.
-         return
-       endif
-     endif
-   else
-! check whether set by environment variable
-     do_useGPU = gpu_usage_via_environment_variable()
-   endif
 
    allocate(e(na), tau(na))
 
@@ -630,8 +604,6 @@ function elpa_solve_evp_complex_1stage_double(na, nev, a, lda, ev, q, ldq, nblk,
                                          useGPU) result(success)
 
    use precision
-   use cuda_functions
-   use mod_check_for_gpu
    use, intrinsic :: iso_c_binding
    use elpa_mpi
    use elpa1_compute
@@ -682,28 +654,6 @@ function elpa_solve_evp_complex_1stage_double(na, nev, a, lda, ev, q, ldq, nblk,
    endif
 
    do_useGPU      = .false.
-
-   if (present(useGPU)) then
-! user defined GPU usage via the optional argument in the API call
-     if (useGPU) then
-       if (check_for_gpu(my_pe,numberOfGPUDevices, wantDebug=wantDebug)) then
-         do_useGPU = .true.
-! set the neccessary parameters
-         cudaMemcpyHostToDevice   = cuda_memcpyHostToDevice()
-         cudaMemcpyDeviceToHost   = cuda_memcpyDeviceToHost()
-         cudaMemcpyDeviceToDevice = cuda_memcpyDeviceToDevice()
-         cudaHostRegisterPortable = cuda_hostRegisterPortable()
-         cudaHostRegisterMapped   = cuda_hostRegisterMapped()
-       else
-         print *,"GPUs are requested but not detected! Aborting..."
-         success = .false.
-         return
-       endif
-     endif
-   else
-! check whether set by environment variable
-     do_useGPU = gpu_usage_via_environment_variable()
-   endif
 
    l_rows = local_index(na, my_prow, np_rows, nblk, -1) ! Local rows of a and q
    l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local columns of q

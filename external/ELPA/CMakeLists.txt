@@ -1,23 +1,18 @@
 ### Source files ###
 LIST(APPEND elpa_src
   src/aligned_mem.f90
-  src/check_for_gpu.f90
-  src/check_singularity.f90
+  src/check_pd.f90
   src/elpa1_auxiliary.f90
   src/elpa1_compute_private.f90
   src/elpa1.f90
-  src/elpa1_utilities.f90
   src/elpa2_compute.f90
   src/elpa2.f90
   src/elpa_pdgeqrf.f90
   src/elpa_pdlarfb.f90
   src/elpa_qrkernels.f90
   src/elpa_utilities.f90
-  src/interface_c_kernel.f90
-  src/mod_cuda.f90
   src/mod_mpi.f90
   src/mod_pack_unpack_complex.f90
-  src/mod_pack_unpack_real_gpu.f90
   src/mod_pack_unpack_real.f90
   src/mod_precision.f90
   src/mod_single_hh_trafo_real.f90

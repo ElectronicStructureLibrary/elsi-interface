@@ -298,12 +298,9 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
             mpi_comm_rows,mpi_comm_cols,mpi_comm_all,THIS_REAL_ELPA_KERNEL_API,&
             useQR,useGPU) result(success)
 
-   use elpa1_utilities, only : gpu_usage_via_environment_variable
    use elpa1_compute
    use elpa2_compute
    use elpa_mpi
-   use cuda_functions
-   use mod_check_for_gpu
    use, intrinsic :: iso_c_binding
 
    implicit none
@@ -513,13 +510,9 @@ function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
             mpi_comm_rows,mpi_comm_cols,mpi_comm_all,THIS_COMPLEX_ELPA_KERNEL_API,&
             useGPU) result(success)
 
-    use elpa1_utilities, only : gpu_usage_via_environment_variable
-
     use elpa1_compute
     use elpa2_compute
     use elpa_mpi
-    use cuda_functions
-    use mod_check_for_gpu
     use, intrinsic :: iso_c_binding
 
     implicit none

@@ -850,7 +850,6 @@ end subroutine
 !>
     subroutine tridiag_real_double(na, a_mat, lda, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, d_vec, e_vec, tau, useGPU)
 
-      use cuda_functions
       use, intrinsic :: iso_c_binding
 
       use precision
@@ -992,27 +991,6 @@ end subroutine
       allocate(uv_stored_cols(max_local_cols,2*max_stored_uv), stat=istat, errmsg=errorMessage)
       call check_alloc("tridiag_real", "uv_stored_cols", istat, errorMessage)
 
-      if (useGPU) then
-         successCUDA = cuda_malloc(v_row_dev, max_local_rows * size_of_double_real_datatype)
-         call check_alloc_CUDA_f("tridiag", 253, successCUDA)
-
-         successCUDA = cuda_malloc(u_row_dev, max_local_rows * size_of_double_real_datatype)
-         call check_alloc_CUDA_f("tridiag", 256, successCUDA)
-
-         successCUDA = cuda_malloc(v_col_dev, max_local_cols * size_of_double_real_datatype)
-         call check_alloc_CUDA_f("tridiag", 259, successCUDA)
-
-         successCUDA = cuda_malloc(u_col_dev, max_local_cols * size_of_double_real_datatype)
-         call check_alloc_CUDA_f("tridiag", 262, successCUDA)
-
-         successCUDA = cuda_malloc(vu_stored_rows_dev, max_local_rows * 2 * max_stored_uv * size_of_double_real_datatype)
-         call check_alloc_CUDA_f("tridiag", 265, successCUDA)
-
-         successCUDA = cuda_malloc(uv_stored_cols_dev, max_local_cols * 2 * max_stored_uv * size_of_double_real_datatype)
-         call check_alloc_CUDA_f("tridiag", 268, successCUDA)
-      endif
-
-
       d_vec(:) = 0
       e_vec(:) = 0
       tau(:) = 0
@@ -1023,13 +1001,6 @@ end subroutine
       l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local cols of a_mat
       if (my_prow==prow(na, nblk, np_rows) .and. my_pcol==pcol(na, nblk, np_cols)) &
         d_vec(na) = a_mat(l_rows,l_cols)
-
-      if (useGPU) then
-! allocate memmory for matrix A on the device and than copy the matrix
-        successCUDA = cuda_malloc(a_dev, lda * matrixCols * size_of_double_real_datatype)
-        call check_alloc_CUDA_f("tridiag", 286, successCUDA)
-
-      endif
 
 ! main cycle of tridiagonalization
 ! in each step, 1 Householder vector is calculated
@@ -1049,14 +1020,7 @@ end subroutine
 ! remaining elements to all procs in current column
 
 ! copy l_cols + 1 column of A to v_row
-          if (useGPU) then
-            a_offset = l_cols * lda * size_of_double_real_datatype
-! we use v_row on the host at the moment! successCUDA = cuda_memcpy(v_row_dev, a_dev + a_offset, (l_rows)*size_of_double_real_datatype, cudaMemcpyDeviceToDevice)
-
-
-          else
             v_row(1:l_rows) = a_mat(1:l_rows,l_cols+1)
-          endif
 
             if(n_stored_vecs>0 .and. l_rows>0) then
               call DGEMV('N', l_rows, 2*n_stored_vecs, &
@@ -1119,46 +1083,6 @@ end subroutine
         u_col(1:l_cols) = 0
         u_row(1:l_rows) = 0
         if (l_rows>0 .and. l_cols>0) then
-          if(useGPU) then
-            successCUDA = cuda_memset(u_col_dev, 0, l_cols * size_of_double_real_datatype)
-             call check_memcpy_CUDA_f("tridiag", 391, successCUDA)
-            successCUDA = cuda_memset(u_row_dev, 0, l_rows * size_of_double_real_datatype)
-             call check_memcpy_CUDA_f("tridiag", 393, successCUDA)
-
-
-          endif
-!            if (useGPU) then
-!u_col_dev(1:l_cols) = 0.
-!u_row_dev(1:l_rows) = 0.
-!v_col_dev(1:l_cols) = v_col(1:l_cols)
-!v_row_dev(1:l_rows) = v_row(1:l_rows)
-!                do i=0,(istep-2)/tile_size
-!                  l_col_beg = i*l_cols_per_tile+1
-!                  l_col_end = min(l_cols,(i+1)*l_cols_per_tile)
-!                  if(l_col_end<l_col_beg) cycle
-!                  do j=0,i
-!                     l_row_beg = j*l_rows_per_tile+1
-!                     l_row_end = min(l_rows,(j+1)*l_rows_per_tile)
-!                     if(l_row_end<l_row_beg) cycle
-!                     if(mod(n_iter,n_threads) == my_thread) then
-!                       call cublasDGEMV('T',l_row_end-l_row_beg+1,l_col_end-l_col_beg+1,1.d0,a_dev(l_row_beg,l_col_beg),lda,v_row_dev(l_row_beg),1,1.d0,u_col_dev(l_col_beg),1)
-!                       if(i/=j) call cublasDGEMV('N',l_row_end-l_row_beg+1,l_col_end-l_col_beg+1,1.d0,a_dev(l_row_beg,l_col_beg),lda,v_col_dev(l_col_beg),1,1.d0,u_row_dev(l_row_beg),1)
-!                     endif
-!                     n_iter = n_iter+1
-!                  enddo
-!                enddo
-!
-!--- for now, just use DSYMV!!!
-! a_dev -> a_mat ?
-!write(*,*) "ubound ", ubound(a_mat,1), "lda", lda, "lcols", l_cols
-!              call DSYMV('U', l_cols,  &
-!                         1.d0, a_mat, ubound(a_mat,1),  &
-!                         v_row, 1,  &
-!                         0.d0, u_col, 1)
-!u_col(1:l_cols) = u_col_dev(1:l_cols)
-!u_row(1:l_rows) = u_row_dev(1:l_rows)
-
-!            else !do not use GPU
 
           do i=0,(istep-2)/tile_size
             l_col_beg = i*l_cols_per_tile+1
@@ -1170,21 +1094,6 @@ end subroutine
               if (l_row_end<l_row_beg) cycle
 
 
-              if(useGPU) then
-                a_offset = ((l_row_beg-1) + (l_col_beg - 1) * lda) * size_of_double_real_datatype
-                call cublas_dgemv('T',l_row_end-l_row_beg+1,l_col_end-l_col_beg+1,  &
-                                     1.0_rk8,a_dev + a_offset, lda,  &
-                                     v_row_dev + (l_row_beg - 1) * size_of_double_real_datatype, 1,  &
-                                     1.0_rk8, u_col_dev + (l_col_beg - 1) * size_of_double_real_datatype, 1)
-
-               if(i/=j) then
-                  call cublas_dgemv('N',l_row_end-l_row_beg+1,l_col_end-l_col_beg+1,  &
-                                      1.0_rk8,a_dev + a_offset, lda,  &
-                                      v_col_dev + (l_col_beg - 1) * size_of_double_real_datatype, 1,  &
-                                      1.0_rk8, u_row_dev + (l_row_beg - 1) * size_of_double_real_datatype, 1)
-                endif
-
-              else ! useGPU
                 call DGEMV('T', l_row_end-l_row_beg+1, l_col_end-l_col_beg+1,  &
                                       1.0_rk8, a_mat(l_row_beg, l_col_beg), lda,  &
                                       v_row(l_row_beg), 1,  &
@@ -1196,24 +1105,10 @@ end subroutine
                                         v_col(l_col_beg), 1,  &
                                         1.0_rk8, u_row(l_row_beg), 1)
                 endif
-              endif ! useGPU
 
 
             enddo  ! j=0,i
           enddo  ! i=0,(istep-2)/tile_size
-
-          if(useGPU) then
-
-          endif
-
-!              call DSYMV('U', l_cols,  &
-!                         1.d0, a_mat, ubound(a_mat,1),  &
-!                         v_row, 1,  &
-!                         0.d0, u_col, 1)
-
-!            endif ! useGPU
-
-
 
           if (n_stored_vecs>0) then
             call DGEMV('T', l_rows, 2*n_stored_vecs,   &
@@ -1276,10 +1171,6 @@ end subroutine
 ! If the limit of max_stored_uv is reached, calculate A + VU**T + UV**T
         if (n_stored_vecs==max_stored_uv .or. istep==3) then
 
-          if (useGPU) then
-
-          endif
-
           do i=0,(istep-2)/tile_size
             l_col_beg = i*l_cols_per_tile+1
             l_col_end = min(l_cols,(i+1)*l_cols_per_tile)
@@ -1288,18 +1179,10 @@ end subroutine
             if (l_col_end<l_col_beg .or. l_row_end<l_row_beg) &
               cycle
 
-            if (useGPU) then
-              call cublas_dgemm('N', 'T', l_row_end-l_row_beg+1, l_col_end-l_col_beg+1, 2*n_stored_vecs,   &
-                     1.0_rk8, vu_stored_rows_dev + (l_row_beg - 1) * size_of_double_real_datatype, max_local_rows,   &
-                     uv_stored_cols_dev + (l_col_beg - 1) * size_of_double_real_datatype, max_local_cols,  &
-                     1.0_rk8, a_dev + ((l_row_beg - 1) + (l_col_beg - 1) * lda) *  size_of_double_real_datatype, lda)
-            else !useGPU
-
               call DGEMM('N', 'T', l_row_end-l_row_beg+1, l_col_end-l_col_beg+1, 2*n_stored_vecs,  &
                                      1.0_rk8, vu_stored_rows(l_row_beg,1), ubound(vu_stored_rows,dim=1),   &
                                      uv_stored_cols(l_col_beg,1), ubound(uv_stored_cols,dim=1), &
                                      1.0_rk8, a_mat(l_row_beg,l_col_beg), lda)
-            endif !useGPU
           enddo
 
           n_stored_vecs = 0
@@ -1307,71 +1190,30 @@ end subroutine
         endif
 
         if (my_prow==prow(istep-1, nblk, np_rows) .and. my_pcol==pcol(istep-1, nblk, np_cols)) then
-          if (useGPU) then
-!a_mat(l_rows,l_cols) = a_dev(l_rows,l_cols)
-             a_offset = ((l_rows - 1) + lda * (l_cols - 1)) * size_of_double_real_datatype
-
-          endif
           if (n_stored_vecs>0) then
             a_mat(l_rows,l_cols) = a_mat(l_rows,l_cols) &
                         + dot_product(vu_stored_rows(l_rows,1:2*n_stored_vecs),uv_stored_cols(l_cols,1:2*n_stored_vecs))
           end if
           d_vec(istep-1) = a_mat(l_rows,l_cols)
 
-          if (useGPU) then
-!a_dev(l_rows,l_cols) = a_mat(l_rows,l_cols)
-
-          endif
         endif
 
       enddo ! main cycle over istep=na,3,-1
 
 ! Store e_vec(1)
       if (my_prow==prow(1, nblk, np_rows) .and. my_pcol==pcol(2, nblk, np_cols)) then
-        if(useGPU) then
-
-        else !useGPU
           e_vec(1) = a_mat(1,l_cols) ! use last l_cols value of loop above
-        endif !useGPU
       endif
 
 ! Store d_vec(1)
       if (my_prow==prow(1, nblk, np_rows) .and. my_pcol==pcol(1, nblk, np_cols)) then
-        if(useGPU) then
-
-        else !useGPU
           d_vec(1) = a_mat(1,1)
-        endif !useGPU
       endif
 
       deallocate(tmp, v_row, u_row, v_col, u_col, vu_stored_rows, uv_stored_cols, stat=istat, errmsg=errorMessage)
       if (istat .ne. 0) then
         print *,"tridiag_real: error when deallocating uv_stored_cols "//errorMessage
         stop
-      endif
-
-      if (useGPU) then
-! todo: should we leave a_mat on the device for further use?
-        successCUDA = cuda_free(a_dev)
-        call check_dealloc_CUDA_f("tridiag", 698, successCUDA)
-
-        successCUDA = cuda_free(v_row_dev)
-        call check_dealloc_CUDA_f("tridiag", 701, successCUDA)
-
-        successCUDA = cuda_free(u_row_dev)
-        call check_dealloc_CUDA_f("tridiag", 704, successCUDA)
-
-        successCUDA = cuda_free(v_col_dev)
-        call check_dealloc_CUDA_f("tridiag", 707, successCUDA)
-
-        successCUDA = cuda_free(u_col_dev)
-        call check_dealloc_CUDA_f("tridiag", 710, successCUDA)
-
-        successCUDA = cuda_free(vu_stored_rows_dev)
-        call check_dealloc_CUDA_f("tridiag", 713, successCUDA)
-
-        successCUDA = cuda_free(uv_stored_cols_dev)
-        call check_dealloc_CUDA_f("tridiag", 716, successCUDA)
       endif
 
 ! distribute the arrays d_vec and e_vec to all processors
@@ -1396,46 +1238,6 @@ end subroutine
         print *,"tridiag_real: error when deallocating tmp "//errorMessage
         stop
       endif
-
-
-!    contains
-
-!       subroutine print_a(prow, pcol)
-!         implicit none
-!
-!         integer, intent(in)      :: prow, pcol
-!         integer                  :: i
-!
-!         if((my_prow == prow) .and. (my_pcol == pcol)) then
-!            write(*, '(A,2I4.2)') "MATRIX A :", prow, pcol
-!            do i=1,size(a_mat,1)
-!              write(*,'(20G12.4)') a_mat(i,:)
-!            enddo
-!          endif
-!
-!       end subroutine
-!
-!       subroutine print_a_dev(prow, pcol)
-!         implicit none
-!
-!         integer, intent(in)      :: prow, pcol
-!         integer                  :: i
-!         real(kind=rk8) :: tmp(lda,matrixCols)
-!
-!
-!         tmp(:,:) = 0
-!
-!         if((my_prow == prow) .and. (my_pcol == pcol)) then
-!            successCUDA = cuda_memcpy(loc(tmp(1,1)), a_dev, lda * matrixCols * size_of_double_real_datatype, cudaMemcpyDeviceToHost)
-!            call check_memcpy_CUDA_f("tridiag", 775, successCUDA)
-!
-!            write(*, '(A,2I4.2)') "MATRIX A ON DEVICE:", prow, pcol
-!            do i=1,size(tmp,1)
-!              write(*,'(20G12.4)') tmp(i,:)
-!            enddo
-!          endif
-!
-!       end subroutine
 
 
     end subroutine tridiag_real_double
@@ -1475,7 +1277,6 @@ end subroutine
 !> \param useGPU      If true,  GPU version of the subroutine will be used
 !>
     subroutine trans_ev_real_double(na, nqc, a_mat, lda, tau, q_mat, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, useGPU)
-      use cuda_functions
       use, intrinsic :: iso_c_binding
 
 
@@ -1544,36 +1345,12 @@ end subroutine
       call check_alloc("trans_ev_real", "hvm", istat, errorMessage)
 
 
-      if (useGPU) then
-! todo: this is used only for copying hmv to device.. it should be possible to go without it
-        allocate(hvm1(max_local_rows*max_stored_rows), stat=istat, errmsg=errorMessage)
-        call check_alloc("trans_ev_real", "hvm1", istat, errorMessage)
-
-        successCUDA = cuda_malloc(tmat_dev, max_stored_rows * max_stored_rows * size_of_double_real_datatype)
-        call check_alloc_CUDA_f("trans_ev", 172, successCUDA)
-
-        successCUDA = cuda_malloc(hvm_dev, max_local_rows * max_stored_rows * size_of_double_real_datatype)
-        call check_alloc_CUDA_f("trans_ev", 175, successCUDA)
-
-        successCUDA = cuda_malloc(tmp_dev, max_local_cols * max_stored_rows * size_of_double_real_datatype)
-        call check_alloc_CUDA_f("trans_ev", 178, successCUDA)
-
-        successCUDA = cuda_malloc(q_dev, ldq * matrixCols * size_of_double_real_datatype)
-        call check_alloc_CUDA_f("trans_ev", 181, successCUDA)
-
-!         q_dev = q_mat
-
-      endif
-
       hvm = 0   ! Must be set to 0 !!!
       hvb = 0   ! Safety only
 
       l_cols = local_index(nqc, my_pcol, np_cols, nblk, -1) ! Local columns of q_mat
 
       nstor = 0
-      if (useGPU) then
-        hvn_ubnd = 0
-      endif
 
       do istep=1,na,nblk
         ics = MAX(istep,3)
@@ -1607,9 +1384,6 @@ end subroutine
         do ic=ics,ice
           l_rows = local_index(ic-1, my_prow, np_rows, nblk, -1) ! # rows of Householder vector
           hvm(1:l_rows,nstor+1) = hvb(nb+1:nb+l_rows)
-          if (useGPU) then
-            hvm_ubnd = l_rows
-          endif
           nstor = nstor+1
           nb = nb+l_rows
         enddo
@@ -1647,65 +1421,24 @@ end subroutine
             nc = nc+n
           enddo
 
-          if (useGPU) then
-! todo: is this reshape really neccessary?
-            hvm1(1:hvm_ubnd*nstor) = reshape(hvm(1:hvm_ubnd,1:nstor), (/ hvm_ubnd*nstor /))
-
-!hvm_dev(1:hvm_ubnd*nstor) = hvm1(1:hvm_ubnd*nstor)
-
-          endif
-
 ! Q = Q - V * T * V**T * Q
 
           if (l_rows>0) then
-            if(useGPU) then
-              call cublas_dgemm('T', 'N', nstor, l_cols, l_rows,  &
-                         1.0_rk8, hvm_dev, hvm_ubnd,  &
-                         q_dev, ldq,  &
-                         0.0_rk8, tmp_dev, nstor)
-
-            else
               call DGEMM('T', 'N', nstor, l_cols, l_rows,  &
                                      1.0_rk8, hvm, ubound(hvm,dim=1), &
                                      q_mat, ldq,  &
                                      0.0_rk8, tmp1, nstor)
-            endif
 
           else !l_rows>0
-            if (useGPU) then
-              successCUDA = cuda_memset(tmp_dev, 0, l_cols * nstor * size_of_double_real_datatype)
-              call check_memcpy_CUDA_f("trans_ev", 314, successCUDA)
-            else
               tmp1(1:l_cols*nstor) = 0
-            endif
           endif  !l_rows>0
 
 
-! In the legacy GPU version, this allreduce was ommited. But probably it has to be done for GPU + MPI
-! todo: does it need to be copied whole? Wouldn't be a part sufficient?
-          if (useGPU) then          
-
-          endif 
-          
           call mpi_allreduce(tmp1, tmp2, nstor*l_cols, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
 
 ! copy back tmp2 - after reduction...
-          if (useGPU) then          
-
-          endif 
-
 
           if (l_rows>0) then
-            if(useGPU) then 
-              call cublas_dtrmm('L', 'L', 'N', 'N', nstor, l_cols,  &
-                                            1.0_rk8, tmat_dev, max_stored_rows,  &
-                                            tmp_dev, nstor)
-              call cublas_dgemm('N', 'N' ,l_rows ,l_cols ,nstor,  &
-                                            -1.0_rk8, hvm_dev, hvm_ubnd,  &
-                                            tmp_dev, nstor,   &
-                                            1.0_rk8, q_dev, ldq)
-            else !useGPU
-
 ! tmp2 = tmat * tmp2
               call DTRMM('L', 'L', 'N', 'N', nstor, l_cols,   &
                                      1.0_rk8, tmat, max_stored_rows,  &
@@ -1717,7 +1450,6 @@ end subroutine
                                      1.0_rk8, q_mat, ldq)            
            
 
-            endif ! useGPU
           endif  ! l_rows>0
           nstor = 0
         endif  ! (nstor+nblk>max_stored_rows .or. istep+nblk>na .or. (na/np_rows<=256 .and. nstor>=32))
@@ -1728,31 +1460,6 @@ end subroutine
       if (istat .ne. 0) then
         print *,"trans_ev_real: error when deallocating hvm "//errorMessage
         stop
-      endif
-
-      if (useGPU) then
-!q_mat = q_dev
-
-        
-        deallocate(hvm1, stat=istat, errmsg=errorMessage)
-        if (istat .ne. 0) then
-          print *,"trans_ev_real: error when deallocating hvm1 "//errorMessage
-          stop
-        endif        
-        
-!deallocate(q_dev, tmp_dev, hvm_dev, tmat_dev)
-        successCUDA = cuda_free(q_dev)
-        call check_dealloc_CUDA_f("trans_ev", 406, successCUDA)
-
-        successCUDA = cuda_free(tmp_dev)
-        call check_dealloc_CUDA_f("trans_ev", 409, successCUDA)
-
-        successCUDA = cuda_free(hvm_dev)
-        call check_dealloc_CUDA_f("trans_ev", 412, successCUDA)
-
-        successCUDA = cuda_free(tmat_dev)
-        call check_dealloc_CUDA_f("trans_ev", 415, successCUDA)
-
       endif
 
     end subroutine trans_ev_real_double
@@ -2755,10 +2462,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           stop
         endif
 
-!        if (useGPU) then
-!          allocate(qtmp1_dev(MAX(1,l_rows),max_local_cols))
-!   endif
-
 ! Gather nonzero upper/lower components of old matrix Q
 ! which are needed for multiplication with new eigenvectors
 
@@ -2820,10 +2523,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
           endif
 
-!          if (useGPU) then
-!            qtmp1_dev(:,:) = qtmp1(:,:)
-!          endif
-
 ! Gather the parts in d1 and z which are fitting to qtmp1.
 ! This also delivers nnzu/nnzl for proc np_rem
 
@@ -2882,15 +2581,9 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
 ! Multiply old Q with eigenvectors (upper half)
 
-!            if (useGPU) then
-!              if(l_rnm>0 .and. ncnt>0 .and. nnzu>0) &
-!                 call dgemm('N','N',l_rnm,ncnt,nnzu,1.d0,qtmp1_dev,ubound(qtmp1_dev,1),ev,ubound(ev,1), &
-!                            1.d0,qtmp2(1,1),ubound(qtmp2,1))
-!       else
               if (l_rnm>0 .and. ncnt>0 .and. nnzu>0) &
                   call DGEMM('N', 'N', l_rnm, ncnt, nnzu, 1.0_rk8, qtmp1, ubound(qtmp1,dim=1), ev, ubound(ev,dim=1), &
                              1.0_rk8, qtmp2(1,1), ubound(qtmp2,dim=1))
-!            endif ! useGPU
 ! Compute eigenvectors of the rank-1 modified matrix.
 ! Parts for multiplying with lower half of Q:
 
@@ -2905,15 +2598,9 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
 ! Multiply old Q with eigenvectors (lower half)
 
-!            if (useGPU) then
-!              if(l_rows-l_rnm>0 .and. ncnt>0 .and. nnzl>0) &
-!                 call dgemm('N','N',l_rows-l_rnm,ncnt,nnzl,1.d0,qtmp1_dev(l_rnm+1,1),ubound(qtmp1_dev,1),ev,ubound(ev,1), &
-!                            1.d0,qtmp2(l_rnm+1,1),ubound(qtmp2,1))
-!       else
               if (l_rows-l_rnm>0 .and. ncnt>0 .and. nnzl>0) &
                  call DGEMM('N', 'N', l_rows-l_rnm, ncnt, nnzl, 1.0_rk8, qtmp1(l_rnm+1,1), ubound(qtmp1,dim=1), ev, &
                             ubound(ev,dim=1), 1.0_rk8, qtmp2(l_rnm+1,1), ubound(qtmp2,dim=1))
-!            endif ! useGPU
 ! Put partial result into (output) Q
 
              do i = 1, ncnt
@@ -3475,7 +3162,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 !>
     subroutine tridiag_complex_double(na, a_mat, lda, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols,  &
                                          d_vec, e_vec, tau, useGPU)
-      use cuda_functions
       use, intrinsic :: iso_c_binding
 
       use precision
@@ -3578,27 +3264,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       allocate(uv_stored_cols(max_local_cols,2*max_stored_uv), stat=istat, errmsg=errorMessage)
       call check_alloc("tridiag_complex", "uv_stored_cols", istat, errorMessage)
       
-      if (useGPU) then
-         successCUDA = cuda_malloc(v_row_dev, max_local_rows * size_of_double_complex_datatype)
-         call check_alloc_CUDA_f("tridiag", 213, successCUDA)
-         
-         successCUDA = cuda_malloc(u_row_dev, max_local_rows * size_of_double_complex_datatype)
-         call check_alloc_CUDA_f("tridiag", 216, successCUDA)
-        
-         successCUDA = cuda_malloc(v_col_dev, max_local_cols * size_of_double_complex_datatype)
-         call check_alloc_CUDA_f("tridiag", 219, successCUDA)
-         
-         successCUDA = cuda_malloc(u_col_dev, max_local_cols * size_of_double_complex_datatype)
-         call check_alloc_CUDA_f("tridiag", 222, successCUDA)
-
-         successCUDA = cuda_malloc(vu_stored_rows_dev, max_local_rows * 2 * max_stored_uv * size_of_double_complex_datatype)
-         call check_alloc_CUDA_f("tridiag", 225, successCUDA)
-
-         successCUDA = cuda_malloc(uv_stored_cols_dev, max_local_cols * 2 * max_stored_uv * size_of_double_complex_datatype)
-         call check_alloc_CUDA_f("tridiag", 228, successCUDA)
-      endif
-
-
       d_vec(:) = 0
       e_vec(:) = 0
       tau(:) = 0
@@ -3609,13 +3274,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local cols of a_mat
       if (my_prow==prow(na, nblk, np_rows) .and. my_pcol==pcol(na, nblk, np_cols)) &
         d_vec(na) = a_mat(l_rows,l_cols)
-
-      if (useGPU) then
-! allocate memmory for matrix A on the device and than copy the matrix
-        successCUDA = cuda_malloc(a_dev, lda * matrixCols * size_of_double_complex_datatype)
-        call check_alloc_CUDA_f("tridiag", 246, successCUDA)
-
-      endif
 
 ! main cycle of tridiagonalization
 ! in each step, 1 Householder vector is calculated
@@ -3636,13 +3294,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 ! remaining elements to all procs in current column
 
 ! copy l_cols + 1 column of A to v_row
-          if (useGPU) then
-            a_offset = l_cols * lda * size_of_double_complex_datatype
-! we use v_row on the host at the moment! successCUDA = cuda_memcpy(v_row_dev, a_dev + a_offset, (l_rows)*size_of_double_complex_datatype, cudaMemcpyDeviceToDevice)
-
-          else
             v_row(1:l_rows) = a_mat(1:l_rows,l_cols+1)
-          endif          
           
           if (n_stored_vecs>0 .and. l_rows>0) then
             aux(1:2*n_stored_vecs) = conjg(uv_stored_cols(l_cols+1,1:2*n_stored_vecs))
@@ -3706,16 +3358,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         u_col(1:l_cols) = 0
         u_row(1:l_rows) = 0
         if (l_rows>0 .and. l_cols>0) then
-          if(useGPU) then
-            successCUDA = cuda_memset(u_col_dev, 0, l_cols * size_of_double_complex_datatype)
-             call check_memcpy_CUDA_f("tridiag", 355, successCUDA)
-            successCUDA = cuda_memset(u_row_dev, 0, l_rows * size_of_double_complex_datatype)
-             call check_memcpy_CUDA_f("tridiag", 357, successCUDA)
-
-          endif
-
-
-
           do i=0,(istep-2)/tile_size
             l_col_beg = i*l_cols_per_tile+1
             l_col_end = min(l_cols,(i+1)*l_cols_per_tile)
@@ -3725,23 +3367,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
               l_row_end = min(l_rows,(j+1)*l_rows_per_tile)
               if (l_row_end<l_row_beg) cycle
 
-
-              if(useGPU) then 
-                       
-                a_offset = ((l_row_beg-1) + (l_col_beg - 1) * lda) * size_of_double_complex_datatype
-                call cublas_Zgemv('C',l_row_end-l_row_beg+1,l_col_end-l_col_beg+1,  &
-                                            CONE,a_dev + a_offset, lda,  &
-                                            v_row_dev + (l_row_beg - 1) * size_of_double_complex_datatype, 1,  &
-                                            CONE, u_col_dev + (l_col_beg - 1) * size_of_double_complex_datatype, 1)
- 
-                if(i/=j) then
-                  call cublas_Zgemv('N',l_row_end-l_row_beg+1,l_col_end-l_col_beg+1,  &
-                                              CONE, a_dev + a_offset, lda,  &
-                                              v_col_dev + (l_col_beg - 1) * size_of_double_complex_datatype, 1,  &
-                                              CONE, u_row_dev + (l_row_beg - 1) * size_of_double_complex_datatype, 1)
-                endif
-                 
-              else ! useGPU
 
                 call ZGEMV('C', l_row_end-l_row_beg+1, l_col_end-l_col_beg+1,  &
                                     CONE, a_mat(l_row_beg,l_col_beg), lda,  &
@@ -3754,18 +3379,11 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
                                       v_col(l_col_beg), 1,  &
                                       CONE, u_row(l_row_beg), 1)
                 endif
-              endif ! useGPU
 
 
             enddo  ! j=0,i
           enddo  ! i=0,(istep-2)/tile_size
           
-          if(useGPU) then 
-
-          endif
-
-
-
 
           if (n_stored_vecs>0) then
             call ZGEMV('C', l_rows, 2*n_stored_vecs,  &
@@ -3835,10 +3453,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 ! If the limit of max_stored_uv is reached, calculate A + VU**T + UV**T
         if (n_stored_vecs==max_stored_uv .or. istep==3) then
 
-          if (useGPU) then
-
-          endif
-
           do i=0,(istep-2)/tile_size
             l_col_beg = i*l_cols_per_tile+1
             l_col_end = min(l_cols,(i+1)*l_cols_per_tile)
@@ -3847,18 +3461,10 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
             if (l_col_end<l_col_beg .or. l_row_end<l_row_beg) &
               cycle
 
-            if (useGPU) then
-              call cublas_Zgemm('N', 'C', l_row_end-l_row_beg+1, l_col_end-l_col_beg+1, 2*n_stored_vecs,   &
-                             CONE, vu_stored_rows_dev + (l_row_beg - 1) * size_of_double_complex_datatype, max_local_rows,   &
-                             uv_stored_cols_dev + (l_col_beg - 1) * size_of_double_complex_datatype, max_local_cols,  &
-                             CONE, a_dev + ((l_row_beg - 1) + (l_col_beg - 1) * lda) *  size_of_double_complex_datatype, lda)
-            else !useGPU
-
               call ZGEMM('N', 'C', l_row_end-l_row_beg+1, l_col_end-l_col_beg+1, 2*n_stored_vecs,  &
                                   CONE, vu_stored_rows(l_row_beg,1), ubound(vu_stored_rows,dim=1),  &
                                   uv_stored_cols(l_col_beg,1), ubound(uv_stored_cols,dim=1),  &
                                   CONE, a_mat(l_row_beg,l_col_beg), lda)
-            endif !useGPU
           enddo
 
           n_stored_vecs = 0
@@ -3866,21 +3472,12 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         endif
 
         if (my_prow==prow(istep-1, nblk, np_rows) .and. my_pcol==pcol(istep-1, nblk, np_cols)) then
-          if (useGPU) then 
-!a_mat(l_rows,l_cols) = a_dev(l_rows,l_cols)
-             a_offset = ((l_rows - 1) + lda * (l_cols - 1)) * size_of_double_complex_datatype
-
-          endif
           if (n_stored_vecs>0) then
             a_mat(l_rows,l_cols) = a_mat(l_rows,l_cols) &
                         + dot_product(vu_stored_rows(l_rows,1:2*n_stored_vecs),uv_stored_cols(l_cols,1:2*n_stored_vecs))
           end if
           d_vec(istep-1) = a_mat(l_rows,l_cols)
 
-          if (useGPU) then
-!a_dev(l_rows,l_cols) = a_mat(l_rows,l_cols)
-
-          endif
         endif
 
       enddo ! main cycle over istep=na,3,-1
@@ -3890,12 +3487,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       if (my_pcol==pcol(2, nblk, np_cols)) then
         if (my_prow==prow(1, nblk, np_rows)) then
 ! We use last l_cols value of loop above
-          if(useGPU) then 
-
-            vrl = aux3(1)
-          else !useGPU
             vrl = a_mat(1,l_cols)
-          endif !useGPU
           call hh_transform_complex_double(vrl, 0.0_rk8, xf, tau(2))
           e_vec(1) = vrl
           
@@ -3912,12 +3504,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
 
       if (my_prow==prow(1, nblk, np_rows) .and. my_pcol==pcol(1, nblk, np_cols))  then
-        if(useGPU) then
-
-          d_vec(1) = DREAL(aux3(1))
-        else !useGPU
           d_vec(1) = DREAL(a_mat(1,1))
-        endif !useGPU
       endif
 
       deallocate(tmp, v_row, u_row, v_col, u_col, vu_stored_rows, uv_stored_cols, stat=istat, errmsg=errorMessage)
@@ -3926,32 +3513,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         stop
       endif
       
-      if (useGPU) then
-! todo: should we leave a_mat on the device for further use?
-        successCUDA = cuda_free(a_dev)
-        call check_dealloc_CUDA_f("tridiag", 659, successCUDA)
-     
-        successCUDA = cuda_free(v_row_dev)
-        call check_dealloc_CUDA_f("tridiag", 662, successCUDA)
-     
-   
-        successCUDA = cuda_free(u_row_dev)
-        call check_dealloc_CUDA_f("tridiag", 666, successCUDA)
-
-         
-        successCUDA = cuda_free(v_col_dev)
-        call check_dealloc_CUDA_f("tridiag", 670, successCUDA)
-         
-        successCUDA = cuda_free(u_col_dev)
-        call check_dealloc_CUDA_f("tridiag", 673, successCUDA)
-
-        successCUDA = cuda_free(vu_stored_rows_dev)
-        call check_dealloc_CUDA_f("tridiag", 676, successCUDA)
-
-        successCUDA = cuda_free(uv_stored_cols_dev)
-        call check_dealloc_CUDA_f("tridiag", 679, successCUDA)
-      endif
-
 ! distribute the arrays d_vec and e_vec to all processors
 
       allocate(tmp_real(na), stat=istat, errmsg=errorMessage)
@@ -4013,7 +3574,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 !> \param useGPU      If true,  GPU version of the subroutine will be used
 !>
     subroutine trans_ev_complex_double(na, nqc, a_mat, lda, tau, q_mat, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, useGPU)
-      use cuda_functions
       use, intrinsic :: iso_c_binding
 
       use precision
@@ -4085,36 +3645,12 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       l_cols = local_index(nqc, my_pcol, np_cols, nblk, -1) ! Local columns of q_mat
 
       nstor = 0
-      if (useGPU) then
-        hvn_ubnd = 0
-      endif
 
 ! In the complex case tau(2) /= 0
       if (my_prow == prow(1, nblk, np_rows)) then
         q_mat(1,1:l_cols) = q_mat(1,1:l_cols)*(CONE-tau(2))
       endif
 
-      if (useGPU) then
-! todo: this is used only for copying hmv to device.. it should be possible to go without it
-        allocate(hvm1(max_local_rows*max_stored_rows), stat=istat, errmsg=errorMessage)
-        call check_alloc("trans_ev_complex", "hvm1", istat, errorMessage)
-
-        successCUDA = cuda_malloc(tmat_dev, max_stored_rows * max_stored_rows * size_of_double_complex_datatype)
-        call check_alloc_CUDA_f("trans_ev", 189, successCUDA)
-
-        successCUDA = cuda_malloc(hvm_dev, max_local_rows * max_stored_rows * size_of_double_complex_datatype)
-        call check_alloc_CUDA_f("trans_ev", 192, successCUDA)
-
-        successCUDA = cuda_malloc(tmp_dev, max_local_cols * max_stored_rows * size_of_double_complex_datatype)
-        call check_alloc_CUDA_f("trans_ev", 195, successCUDA)
-
-        successCUDA = cuda_malloc(q_dev, ldq * matrixCols * size_of_double_complex_datatype)
-        call check_alloc_CUDA_f("trans_ev", 198, successCUDA)
-
-!         q_dev = q_mat
-
-      endif
-      
       do istep=1,na,nblk
 
         ics = MAX(istep,3)
@@ -4148,9 +3684,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         do ic=ics,ice
           l_rows = local_index(ic-1, my_prow, np_rows, nblk, -1) ! # rows of Householder vector
           hvm(1:l_rows,nstor+1) = hvb(nb+1:nb+l_rows)
-          if (useGPU) then
-            hvm_ubnd = l_rows
-          endif
           nstor = nstor+1
           nb = nb+l_rows
         enddo
@@ -4186,64 +3719,22 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
             nc = nc+n
           enddo
           
-          if (useGPU) then
-! todo: is this reshape really neccessary?
-            hvm1(1:hvm_ubnd*nstor) = reshape(hvm(1:hvm_ubnd,1:nstor), (/ hvm_ubnd*nstor /))
-
-!hvm_dev(1:hvm_ubnd*nstor) = hvm1(1:hvm_ubnd*nstor)
-
-          endif
-
 ! Q = Q - V * T * V**T * Q
 
           if (l_rows>0) then
-            if(useGPU) then
-              call cublas_Zgemm('C', 'N', nstor, l_cols, l_rows,  &
-                         CONE, hvm_dev, hvm_ubnd,  &
-                         q_dev, ldq,  &
-                         CZERO, tmp_dev, nstor)
-
-            else !useGPU
               call ZGEMM('C', 'N', nstor, l_cols, l_rows,  &
                                   CONE, hvm, ubound(hvm,dim=1), &
                                   q_mat, ldq,  &
                                   CZERO, tmp1 ,nstor)
-            endif !useGPU
           else !l_rows>0
-            if (useGPU) then
-              successCUDA = cuda_memset(tmp_dev, 0, l_cols * nstor * size_of_double_complex_datatype)
-              call check_memcpy_CUDA_f("trans_ev", 322, successCUDA)
-            else  
               tmp1(1:l_cols*nstor) = 0
-            endif 
           endif  !l_rows>0
 
 
-! In the legacy GPU version, this allreduce was ommited. But probably it has to be done for GPU + MPI
-! todo: does it need to be copied whole? Wouldn't be a part sufficient?
-          if (useGPU) then          
-
-          endif 
-          
           call mpi_allreduce(tmp1, tmp2, nstor*l_cols, MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_rows, mpierr)
 
 ! copy back tmp2 - after reduction...
-          if (useGPU) then          
-
-          endif 
-
-          
           if (l_rows>0) then
-            if(useGPU) then 
-              call cublas_Ztrmm('L', 'L', 'N', 'N', nstor, l_cols,  &
-                                            CONE, tmat_dev, max_stored_rows,  &
-                                            tmp_dev, nstor)
-              call cublas_Zgemm('N', 'N' ,l_rows ,l_cols ,nstor,  &
-                                            -CONE, hvm_dev, hvm_ubnd,  &
-                                            tmp_dev, nstor,   &
-                                            CONE, q_dev, ldq)
-            else  !useGPU
-
 ! tmp2 = tmat * tmp2
               call ZTRMM('L', 'L', 'N', 'N', nstor, l_cols,  &
                                   CONE, tmat, max_stored_rows,  &
@@ -4254,7 +3745,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
                                   tmp2, nstor,  &
                                   CONE, q_mat, ldq)
 
-            endif ! useGPU
           endif  ! l_rows>0
 
 !          if (l_rows>0) then
@@ -4272,31 +3762,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       if (istat .ne. 0) then
        print *,"trans_ev_complex: error when deallocating hvb "//errorMessage
        stop
-      endif
-
-      if (useGPU) then
-!q_mat = q_dev
-
- 
-        deallocate(hvm1, stat=istat, errmsg=errorMessage)
-        if (istat .ne. 0) then
-          print *,"trans_ev_complex: error when deallocating hvm1 "//errorMessage
-          stop
-        endif        
-        
-!deallocate(q_dev, tmp_dev, hvm_dev, tmat_dev)
-        successCUDA = cuda_free(q_dev)
-        call check_dealloc_CUDA_f("trans_ev", 420, successCUDA)
-
-        successCUDA = cuda_free(tmp_dev)
-        call check_dealloc_CUDA_f("trans_ev", 423, successCUDA)
-
-        successCUDA = cuda_free(hvm_dev)
-        call check_dealloc_CUDA_f("trans_ev", 426, successCUDA)
-
-        successCUDA = cuda_free(tmat_dev)
-        call check_dealloc_CUDA_f("trans_ev", 429, successCUDA)
-
       endif
 
     end subroutine trans_ev_complex_double
