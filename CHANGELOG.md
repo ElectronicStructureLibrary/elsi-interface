@@ -9,17 +9,20 @@
   density matrix extrapolation, and Gram-Schmidt orthogonalization of
   eigenvectors.
 * Extended the test suite to increase code coverage.
-* Fixed single precision calculations with an externally linked ELPA.
-* Fixed libOMM Cholesky flavor with random initial guess.
 
 ### Matrix formats
 * Added arbitrarily distributed coordinate (GENERIC\_COO) format.
 
 ### ELPA
 * Interface for externally linked ELPA compatible with ELPA 2018.11.
+* Fixed single precision calculations with an externally linked ELPA.
+* Fixed internal ELPA 2-stage real solver with AVX512 kernel.
 
 ### NTPoly
 * Updated redistributed NTPoly source code to version 2.1.
+
+### OMM
+* Fixed libOMM Cholesky flavor with random initial guess.
 
 ### PEXSI
 * Updated redistributed PEXSI source code to version 1.2.0.
