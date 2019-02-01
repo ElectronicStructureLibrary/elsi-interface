@@ -19,7 +19,7 @@
 * Fixed internal ELPA 2-stage real solver with AVX512 kernel.
 
 ### NTPoly
-* Updated redistributed NTPoly source code to version 2.1.
+* Updated redistributed NTPoly source code to version 2.2.
 
 ### OMM
 * Fixed libOMM Cholesky flavor with random initial guess.

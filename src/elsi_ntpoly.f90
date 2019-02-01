@@ -122,7 +122,8 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
       call elsi_get_time(t0)
 
       call DestructPermutation(ph%nt_perm)
-      call ConstructRandomPermutation(ph%nt_perm,ovlp%logical_matrix_dimension)
+      call ConstructRandomPermutation(ph%nt_perm,ovlp%logical_matrix_dimension,&
+           ph%nt_pgrid)
 
       ph%nt_options = SolverParameters_t(ph%nt_tol,ph%nt_filter,ph%nt_max_iter,&
          ph%nt_output,ph%nt_perm)
@@ -240,7 +241,8 @@ subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
 
    if(ph%solver /= NTPOLY_SOLVER) then
       call DestructPermutation(ph%nt_perm)
-      call ConstructRandomPermutation(ph%nt_perm,ovlp0%logical_matrix_dimension)
+      call ConstructRandomPermutation(ph%nt_perm,&
+           ovlp0%logical_matrix_dimension,ph%nt_pgrid)
 
       ph%nt_options = SolverParameters_t(ph%nt_tol,ph%nt_filter,ph%nt_max_iter,&
          ph%nt_output,ph%nt_perm)

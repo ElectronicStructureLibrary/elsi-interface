@@ -5,6 +5,8 @@
 MODULE PSMatrixModule
   USE DataTypesModule, ONLY : NTREAL, MPINTREAL, NTCOMPLEX, MPINTCOMPLEX, &
        & MPINTINTEGER
+  USE ErrorModule, ONLY : Error_t, ConstructError, SetGenericError, &
+       & CheckMPIError
   USE LoggingModule, ONLY : &
        & EnterSubLog, ExitSubLog, WriteElement, WriteListElement, WriteHeader
   USE MatrixMarketModule, ONLY : ParseMMHeader, MM_COMPLEX
@@ -85,6 +87,7 @@ MODULE PSMatrixModule
   PUBLIC :: ConjugateMatrix
   PUBLIC :: CommSplitMatrix
   PUBLIC :: ResizeMatrix
+  PUBLIC :: GatherMatrixToProcess
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTERFACE ConstructEmptyMatrix
      MODULE PROCEDURE ConstructEmptyMatrix_ps
@@ -167,6 +170,10 @@ MODULE PSMatrixModule
   END INTERFACE
   INTERFACE CommSplitMatrix
      MODULE PROCEDURE CommSplitMatrix_ps
+  END INTERFACE
+  INTERFACE GatherMatrixToProcess
+     MODULE PROCEDURE GatherMatrixToProcess_psr
+     MODULE PROCEDURE GatherMatrixToProcess_psc
   END INTERFACE
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Construct an empty sparse, distributed, matrix.
@@ -311,7 +318,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Fill The New Matrix
     CALL ConstructEmptyMatrix(new_mat, this%actual_matrix_dimension, grid, &
-         & new_mat%is_complex)
+         & this%is_complex)
     IF (this%is_complex) THEN
        CALL FillMatrixFromTripletList(new_mat, triplet_list_c)
     ELSE
@@ -367,13 +374,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: mpi_status(MPI_STATUS_SIZE)
     INTEGER :: full_buffer_counter
     LOGICAL :: end_of_buffer
-    LOGICAL :: error_occured
+    LOGICAL :: header_success
     INTEGER :: ierr
-
+    TYPE(Error_t) :: err
 
     IF (.NOT. PRESENT(process_grid_in)) THEN
        CALL ConstructMatrixFromMatrixMarket(this, file_name, global_grid)
     ELSE
+       CALL ConstructError(err)
        !! Setup Involves Just The Root Opening And Reading Parameter Data
        CALL StartTimer("MPI Read Text")
        CALL MPI_Type_size(MPI_CHARACTER, bytes_per_character, ierr)
@@ -381,34 +389,30 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           header_length = 0
           local_file_handler = 16
           OPEN(local_file_handler, file=file_name, iostat=ierr, status="old")
-          IF (ierr .EQ. 0) THEN
-             !! Parse the header.
-             READ(local_file_handler,fmt='(A)') input_buffer
-             error_occured = ParseMMHeader(input_buffer, sparsity_type, &
-                  & data_type, pattern_type)
-             header_length = header_length + LEN_TRIM(input_buffer) + 1
-             !! First Read In The Comment Lines
-             found_comment_line = .TRUE.
-             DO WHILE (found_comment_line)
-                READ(local_file_handler,fmt='(A)') input_buffer
-                !! +1 for newline
-                header_length = header_length + LEN_TRIM(input_buffer) + 1
-                IF (.NOT. input_buffer(1:1) .EQ. '%') THEN
-                   found_comment_line = .FALSE.
-                END IF
-             END DO
-             !! Get The Matrix Parameters
-             READ(input_buffer,*) matrix_rows, matrix_columns, total_values
-             CLOSE(local_file_handler)
-          ELSE
-             WRITE(*,*) file_name, " doesn't exist"
+          IF (ierr .NE. 0) THEN
+             CALL SetGenericError(err, TRIM(file_name)//" doesn't exist", .TRUE.)
           END IF
-       ELSE
-          ierr = 0
-       END IF
-
-       IF (ierr .NE. 0) THEN
-          CALL MPI_Abort(process_grid_in%global_comm, -1, ierr)
+          !! Parse the header.
+          READ(local_file_handler,fmt='(A)') input_buffer
+          header_success = ParseMMHeader(input_buffer, sparsity_type, &
+               & data_type, pattern_type)
+          IF (.NOT. header_success) THEN
+             CALL SetGenericError(err, "Invalid File Header", .TRUE.)
+          END IF
+          header_length = header_length + LEN_TRIM(input_buffer) + 1
+          !! First Read In The Comment Lines
+          found_comment_line = .TRUE.
+          DO WHILE (found_comment_line)
+             READ(local_file_handler,fmt='(A)') input_buffer
+             !! +1 for newline
+             header_length = header_length + LEN_TRIM(input_buffer) + 1
+             IF (.NOT. input_buffer(1:1) .EQ. '%') THEN
+                found_comment_line = .FALSE.
+             END IF
+          END DO
+          !! Get The Matrix Parameters
+          READ(input_buffer,*) matrix_rows, matrix_columns, total_values
+          CLOSE(local_file_handler)
        END IF
 
        !! Broadcast Parameters
@@ -454,7 +458,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                & MAX_LINE_LENGTH*bytes_per_character
           IF (local_offset + local_data_size_plus_buffer .GT. &
                & total_file_size) THEN
-             local_data_size_plus_buffer = (total_file_size - local_offset)
+             local_data_size_plus_buffer = total_file_size - local_offset
+          END IF
+          IF (this%process_grid%global_rank .EQ. &
+               & this%process_grid%total_processors-1) THEN
+             local_data_size_plus_buffer = total_file_size - local_offset
           END IF
        ELSE
           local_data_size_plus_buffer = 0
@@ -573,20 +581,18 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Temporary variables
     INTEGER :: mpi_status(MPI_STATUS_SIZE)
     INTEGER :: ierr
+    TYPE(Error_t) :: err
+    LOGICAL :: error_occured
 
     IF (.NOT. PRESENT(process_grid_in)) THEN
        CALL ConstructMatrixFromBinary(this, file_name, global_grid)
     ELSE
+       CALL ConstructError(err)
        CALL StartTimer("MPI Read Binary")
-
        CALL MPI_File_open(process_grid_in%global_comm, file_name, &
             & MPI_MODE_RDONLY, MPI_INFO_NULL, mpi_file_handler, ierr)
-       IF (ierr .NE. 0) THEN
-          IF (IsRoot(process_grid_in)) THEN
-             WRITE(*,*) file_name, " doesn't exist"
-          END IF
-          CALL MPI_Abort(process_grid_in%global_comm, -1, ierr)
-       END IF
+       error_occured = CheckMPIError(err, TRIM(file_name)//" doesn't exist", &
+            & ierr, .TRUE.)
 
        !! Get The Matrix Parameters
        IF (IsRoot(process_grid_in)) THEN
@@ -2169,65 +2175,19 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Optionally, you can pass a file to print to instead of the console.
     CHARACTER(len=*), OPTIONAL, INTENT(IN) :: file_name_in
     !! Temporary Variables
-    TYPE(Matrix_lsr) :: merged_local_data
-    TYPE(Matrix_lsr) :: merged_local_dataT
-    TYPE(Matrix_lsr) :: merged_columns
-    TYPE(Matrix_lsr) :: merged_columnsT
-    TYPE(Matrix_lsr) :: full_gathered
+    TYPE(Matrix_lsr) :: local_mat
 
-  !! Helpers For Communication
-  TYPE(ReduceHelper_t) :: row_helper
-  TYPE(ReduceHelper_t) :: column_helper
-
-  !! Merge all the local data
-  CALL MergeMatrixLocalBlocks(this, merged_local_data)
-
-  !! Merge Columns
-  CALL TransposeMatrix(merged_local_data, merged_local_dataT)
-  CALL ReduceAndComposeMatrixSizes(merged_local_dataT, &
-       & this%process_grid%column_comm, merged_columns, column_helper)
-  DO WHILE(.NOT. TestReduceSizeRequest(column_helper))
-  END DO
-  CALL ReduceAndComposeMatrixData(merged_local_dataT, &
-       & this%process_grid%column_comm, merged_columns, &
-       & column_helper)
-  DO WHILE(.NOT. TestReduceInnerRequest(column_helper))
-  END DO
-  DO WHILE(.NOT. TestReduceDataRequest(column_helper))
-  END DO
-  CALL ReduceAndComposeMatrixCleanup(merged_local_dataT, merged_columns, &
-       & column_helper)
-
-  !! Merge Rows
-  CALL TransposeMatrix(merged_columns,merged_columnsT)
-  CALL ReduceAndComposeMatrixSizes(merged_columnsT, &
-       & this%process_grid%row_comm, full_gathered, row_helper)
-  DO WHILE(.NOT. TestReduceSizeRequest(row_helper))
-  END DO
-  CALL ReduceAndComposeMatrixData(merged_columnsT, this%process_grid%row_comm, &
-       & full_gathered, row_helper)
-  DO WHILE(.NOT. TestReduceInnerRequest(row_helper))
-  END DO
-  DO WHILE(.NOT. TestReduceDataRequest(row_helper))
-  END DO
-  CALL ReduceAndComposeMatrixCleanup(merged_columnsT, full_gathered,row_helper)
-
-  !! Make these changes so that it prints the logical rows/columns
-  full_gathered%rows = this%actual_matrix_dimension
-  full_gathered%columns = this%actual_matrix_dimension
+  CALL GatherMatrixToProcess(this, local_mat, 0)
 
   IF (IsRoot(this%process_grid)) THEN
      IF (PRESENT(file_name_in)) THEN
-        CALL PrintMatrix(full_gathered, file_name_in)
+        CALL PrintMatrix(local_mat, file_name_in)
      ELSE
-        CALL PrintMatrix(full_gathered)
+        CALL PrintMatrix(local_mat)
      END IF
   END IF
 
-  CALL DestructMatrix(merged_local_data)
-  CALL DestructMatrix(merged_local_dataT)
-  CALL DestructMatrix(merged_columns)
-  CALL DestructMatrix(merged_columnsT)
+  CALL DestructMatrix(local_mat)
   END SUBROUTINE PrintMatrix_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Print matrix implementation (complex).
@@ -2237,65 +2197,19 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Optionally, you can pass a file to print to instead of the console.
     CHARACTER(len=*), OPTIONAL, INTENT(IN) :: file_name_in
     !! Temporary Variables
-    TYPE(Matrix_lsc) :: merged_local_data
-    TYPE(Matrix_lsc) :: merged_local_dataT
-    TYPE(Matrix_lsc) :: merged_columns
-    TYPE(Matrix_lsc) :: merged_columnsT
-    TYPE(Matrix_lsc) :: full_gathered
+    TYPE(Matrix_lsc) :: local_mat
 
-  !! Helpers For Communication
-  TYPE(ReduceHelper_t) :: row_helper
-  TYPE(ReduceHelper_t) :: column_helper
-
-  !! Merge all the local data
-  CALL MergeMatrixLocalBlocks(this, merged_local_data)
-
-  !! Merge Columns
-  CALL TransposeMatrix(merged_local_data, merged_local_dataT)
-  CALL ReduceAndComposeMatrixSizes(merged_local_dataT, &
-       & this%process_grid%column_comm, merged_columns, column_helper)
-  DO WHILE(.NOT. TestReduceSizeRequest(column_helper))
-  END DO
-  CALL ReduceAndComposeMatrixData(merged_local_dataT, &
-       & this%process_grid%column_comm, merged_columns, &
-       & column_helper)
-  DO WHILE(.NOT. TestReduceInnerRequest(column_helper))
-  END DO
-  DO WHILE(.NOT. TestReduceDataRequest(column_helper))
-  END DO
-  CALL ReduceAndComposeMatrixCleanup(merged_local_dataT, merged_columns, &
-       & column_helper)
-
-  !! Merge Rows
-  CALL TransposeMatrix(merged_columns,merged_columnsT)
-  CALL ReduceAndComposeMatrixSizes(merged_columnsT, &
-       & this%process_grid%row_comm, full_gathered, row_helper)
-  DO WHILE(.NOT. TestReduceSizeRequest(row_helper))
-  END DO
-  CALL ReduceAndComposeMatrixData(merged_columnsT, this%process_grid%row_comm, &
-       & full_gathered, row_helper)
-  DO WHILE(.NOT. TestReduceInnerRequest(row_helper))
-  END DO
-  DO WHILE(.NOT. TestReduceDataRequest(row_helper))
-  END DO
-  CALL ReduceAndComposeMatrixCleanup(merged_columnsT, full_gathered,row_helper)
-
-  !! Make these changes so that it prints the logical rows/columns
-  full_gathered%rows = this%actual_matrix_dimension
-  full_gathered%columns = this%actual_matrix_dimension
+  CALL GatherMatrixToProcess(this, local_mat, 0)
 
   IF (IsRoot(this%process_grid)) THEN
      IF (PRESENT(file_name_in)) THEN
-        CALL PrintMatrix(full_gathered, file_name_in)
+        CALL PrintMatrix(local_mat, file_name_in)
      ELSE
-        CALL PrintMatrix(full_gathered)
+        CALL PrintMatrix(local_mat)
      END IF
   END IF
 
-  CALL DestructMatrix(merged_local_data)
-  CALL DestructMatrix(merged_local_dataT)
-  CALL DestructMatrix(merged_columns)
-  CALL DestructMatrix(merged_columnsT)
+  CALL DestructMatrix(local_mat)
   END SUBROUTINE PrintMatrix_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> A utility routine that filters a sparse matrix.
@@ -3149,5 +3063,109 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructTripletList(tlist)
   CALL DestructTripletList(pruned)
   END SUBROUTINE ResizeMatrix_psc
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> This subroutine gathers the entire matrix into a local matrix on the
+  !! given process. This routine is used when printing, but also is useful for
+  !! debugging.
+  SUBROUTINE GatherMatrixToProcess_psr(this, local_mat, proc_id)
+    !> The matrix to gather.
+    TYPE(Matrix_ps), INTENT(IN) :: this
+    !> The full matrix, stored in a local matrix.
+    TYPE(Matrix_lsr), INTENT(INOUT) :: local_mat
+    !> Which process to gather on.
+    INTEGER, INTENT(IN) :: proc_id
+    !! Local Variables
+    TYPE(TripletList_r) :: tlist, sorted
+    TYPE(TripletList_r), DIMENSION(:), ALLOCATABLE :: slist
+
+  !! Local Variables
+  INTEGER :: list_size
+  INTEGER :: mat_dim
+  INTEGER :: II
+
+  !! Setup
+  mat_dim = this%actual_matrix_dimension
+
+  !! Local List
+  CALL GetMatrixTripletList(this, tlist)
+  list_size = tlist%CurrentSize
+
+  !! Send this to the target
+  ALLOCATE(slist(this%process_grid%slice_size))
+  CALL ConstructTripletList(slist(proc_id+1), tlist%CurrentSize)
+  DO II = 2, this%process_grid%slice_size
+     CALL ConstructTripletList(slist(II))
+  END DO
+  slist(proc_id+1)%data(:list_size) = tlist%data(:list_size)
+  CALL DestructTripletList(tlist)
+  CALL RedistributeTripletLists(slist, this%process_grid%within_slice_comm, &
+       & tlist)
+
+  !! Create the local matrix
+  IF (this%process_grid%within_slice_rank .EQ. proc_id) THEN
+     CALL SortTripletList(tlist, mat_dim, mat_dim, sorted, .TRUE.)
+     CALL ConstructMatrixFromTripletList(local_mat, sorted, &
+          & mat_dim, mat_dim)
+  END IF
+
+  !! Cleanup
+  CALL DestructTripletList(tlist)
+  CALL DestructTripletList(sorted)
+  DO II = 1, this%process_grid%slice_size
+     CALL DestructTripletList(slist(II))
+  END DO
+  END SUBROUTINE GatherMatrixToProcess_psr
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> This subroutine gathers the entire matrix into a local matrix on the
+  !! given process. This routine is used when printing, but also is useful for
+  !! debugging.
+  SUBROUTINE GatherMatrixToProcess_psc(this, local_mat, proc_id)
+    !> The matrix to gather.
+    TYPE(Matrix_ps), INTENT(IN) :: this
+    !> The full matrix, stored in a local matrix.
+    TYPE(Matrix_lsc), INTENT(INOUT) :: local_mat
+    !> Which process to gather on.
+    INTEGER, INTENT(IN) :: proc_id
+    !! Local Variables
+    TYPE(TripletList_c) :: tlist, sorted
+    TYPE(TripletList_c), DIMENSION(:), ALLOCATABLE :: slist
+
+  !! Local Variables
+  INTEGER :: list_size
+  INTEGER :: mat_dim
+  INTEGER :: II
+
+  !! Setup
+  mat_dim = this%actual_matrix_dimension
+
+  !! Local List
+  CALL GetMatrixTripletList(this, tlist)
+  list_size = tlist%CurrentSize
+
+  !! Send this to the target
+  ALLOCATE(slist(this%process_grid%slice_size))
+  CALL ConstructTripletList(slist(proc_id+1), tlist%CurrentSize)
+  DO II = 2, this%process_grid%slice_size
+     CALL ConstructTripletList(slist(II))
+  END DO
+  slist(proc_id+1)%data(:list_size) = tlist%data(:list_size)
+  CALL DestructTripletList(tlist)
+  CALL RedistributeTripletLists(slist, this%process_grid%within_slice_comm, &
+       & tlist)
+
+  !! Create the local matrix
+  IF (this%process_grid%within_slice_rank .EQ. proc_id) THEN
+     CALL SortTripletList(tlist, mat_dim, mat_dim, sorted, .TRUE.)
+     CALL ConstructMatrixFromTripletList(local_mat, sorted, &
+          & mat_dim, mat_dim)
+  END IF
+
+  !! Cleanup
+  CALL DestructTripletList(tlist)
+  CALL DestructTripletList(sorted)
+  DO II = 1, this%process_grid%slice_size
+     CALL DestructTripletList(slist(II))
+  END DO
+  END SUBROUTINE GatherMatrixToProcess_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE PSMatrixModule

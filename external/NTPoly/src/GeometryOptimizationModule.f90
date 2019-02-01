@@ -14,7 +14,7 @@ MODULE GeometryOptimizationModule
   USE PSMatrixModule, ONLY : Matrix_ps, DestructMatrix, ConstructEmptyMatrix, &
        & FillMatrixIdentity, PrintMatrixInformation, CopyMatrix
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters, &
-       & SolverParameters_init
+       & SolverParameters_init, DestructSolverParameters
   USE SquareRootSolversModule, ONLY : SquareRoot, InverseSquareRoot
   IMPLICIT NONE
   PRIVATE
@@ -163,7 +163,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     total_iterations = outer_counter-1
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
-       CALL WriteElement(key="Total_Iterations",value=total_iterations)
+       CALL WriteElement(key="Total_Iterations", value=total_iterations)
        CALL PrintMatrixInformation(NewDensity)
     END IF
 
@@ -171,6 +171,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%do_load_balancing) THEN
        CALL UndoPermuteMatrix(NewDensity, NewDensity, &
             & solver_parameters%BalancePermutation, memorypool_in=pool1)
+    END IF
+
+    IF (solver_parameters%be_verbose) THEN
+       CALL ExitSubLog
     END IF
 
     !! Cleanup
@@ -182,10 +186,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL DestructMatrix(AddBranch)
     CALL DestructMatrix(SubtractBranch)
     CALL DestructMatrixMemoryPool(pool1)
-
-    IF (solver_parameters%be_verbose) THEN
-       CALL ExitSubLog
-    END IF
+    CALL DestructSolverParameters(solver_parameters)
 
   END SUBROUTINE PurificationExtrapolate
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -239,13 +240,15 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL MatrixMultiply(TempMat, ISQMat, NewDensity, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool1)
 
-    CALL DestructMatrix(SQRMat)
-    CALL DestructMatrix(ISQMat)
-    CALL DestructMatrix(TempMat)
-
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF
+
+    !! Cleanup
+    CALL DestructMatrix(SQRMat)
+    CALL DestructMatrix(ISQMat)
+    CALL DestructMatrix(TempMat)
+    CALL DestructSolverParameters(solver_parameters)
 
   END SUBROUTINE LowdinExtrapolate
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

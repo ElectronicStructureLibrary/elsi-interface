@@ -15,7 +15,7 @@ MODULE SquareRootSolversModule
   USE PSMatrixModule, ONLY : Matrix_ps, ConstructEmptyMatrix, CopyMatrix, &
        & DestructMatrix, FillMatrixIdentity, PrintMatrixInformation
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters, &
-       & SolverParameters_init
+       & SolverParameters_init, DestructSolverParameters
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -49,6 +49,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL SquareRootSelector(InputMat, OutputMat, solver_parameters, .FALSE.)
     END IF
 
+    !! Cleanup
+    CALL DestructSolverParameters(solver_parameters)
+
   END SUBROUTINE SquareRoot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the inverse square root of a matrix.
@@ -72,11 +75,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
 
     IF (PRESENT(order_in)) THEN
-       CALL SquareRootSelector(InputMat, OutputMat, solver_parameters, .TRUE.,&
+       CALL SquareRootSelector(InputMat, OutputMat, solver_parameters, .TRUE., &
             & order_in)
     ELSE
        CALL SquareRootSelector(InputMat, OutputMat, solver_parameters, .TRUE.)
     END IF
+
+    !! Cleanup
+    CALL DestructSolverParameters(solver_parameters)
 
   END SUBROUTINE InverseSquareRoot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -225,7 +231,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END DO
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
-       CALL WriteElement(key="Total_Iterations",value=outer_counter)
+       CALL WriteElement(key="Total_Iterations", value=outer_counter)
        CALL PrintMatrixInformation(InverseSquareRootMat)
     END IF
 
@@ -398,9 +404,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             & threshold_in=solver_parameters%threshold,memory_pool_in=mpool)
 
        IF (solver_parameters%be_verbose) THEN
-          CALL WriteListElement(key="Round",value=outer_counter)
+          CALL WriteListElement(key="Round", value=outer_counter)
           CALL EnterSubLog
-          CALL WriteElement(key="Convergence",value=norm_value)
+          CALL WriteElement(key="Convergence", value=norm_value)
           CALL ExitSubLog
        END IF
 
@@ -410,7 +416,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END DO
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
-       CALL WriteElement(key="Total_Iterations",value=outer_counter)
+       CALL WriteElement(key="Total_Iterations", value=outer_counter)
        CALL PrintMatrixInformation(InverseSquareRootMat)
     END IF
 
