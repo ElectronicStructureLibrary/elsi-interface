@@ -47,7 +47,7 @@ subroutine elsi_decide_ev(ph,bh)
 
    character(len=*), parameter :: caller = "elsi_decide_ev"
 
-   if(ph%solver /= SIPS_SOLVER) then
+   if(ph%solver == AUTO_SOLVER) then
       ph%solver = ELPA_SOLVER
 
       write(msg,"(2X,A)") "ELPA selected"

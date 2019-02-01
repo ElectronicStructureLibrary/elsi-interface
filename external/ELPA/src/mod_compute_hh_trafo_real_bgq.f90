@@ -58,8 +58,6 @@ module compute_hh_trafo_real
          use, intrinsic :: iso_c_binding
          use elpa2_utilities
          use single_hh_trafo_real
-         use cuda_c_kernel
-         use cuda_functions
 
          implicit none
          real(kind=c_double), intent(inout) :: kernel_time  ! MPI_WTIME always needs double
@@ -85,22 +83,10 @@ module compute_hh_trafo_real
          real(kind=rk8)                :: w(nbw,6)
          real(kind=c_double)          :: ttt ! MPI_WTIME always needs double
 
-         if (THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_GPU) then
-! ncols - indicates the number of HH reflectors to apply; at least 1 must be available
-           if (ncols < 1) return
-         endif
-
            ttt = mpi_wtime()
 
          nl = merge(stripe_width, last_stripe_width, istripe<stripe_count)
 
-         if (THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_GPU) then
-           dev_offset = (0 + (a_off * stripe_width) + ( (istripe - 1) * stripe_width *a_dim2 )) *size_of_double_real_datatype
-           call launch_compute_hh_trafo_c_kernel_real_double(a_dev + dev_offset, bcast_buffer_dev, hh_dot_dev, &
-                                                      hh_tau_dev, nl, nbw, stripe_width, off, ncols)
-         else ! not CUDA kernel
-
-!FORTRAN CODE / X86 INRINISIC CODE / BG ASSEMBLER USING 2 HOUSEHOLDER VECTORS
                do j = ncols, 2, -2
                  w(:,1) = bcast_buffer(1:nbw,j+off)
                  w(:,2) = bcast_buffer(1:nbw,j+off-1)
@@ -112,8 +98,6 @@ module compute_hh_trafo_real
              if (j==1) call single_hh_trafo_real_cpu_double(a(1:stripe_width,1+off+a_off:1+off+a_off+nbw-1,istripe),           &
                                       bcast_buffer(1:nbw,off+1), nbw, nl,     &
                                       stripe_width)
-
-         endif ! GPU_KERNEL
 
            kernel_flops = kernel_flops + 4*int(nl,lik)*int(ncols,lik)*int(nbw,lik)
            kernel_time = kernel_time + mpi_wtime()-ttt

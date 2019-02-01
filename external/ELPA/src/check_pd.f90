@@ -57,12 +57,12 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-module CHECK_SINGULARITY
+module CHECK_PD
 
 ! Version 1.1.2, 2011-02-21
 
   use elpa_utilities
-  use elpa1, only : elpa_print_times, time_evp_back, time_evp_fwd, time_evp_solve
+  use elpa1, only : elpa_print_times
   use elpa2_utilities
   use elpa2
 
@@ -72,14 +72,14 @@ module CHECK_SINGULARITY
 
   ! The following routines are public:
 
-  public :: elpa_check_singularity_real_double
-  public :: elpa_check_singularity_complex_double
+  public :: elpa_check_pd_real_double
+  public :: elpa_check_pd_complex_double
 
 contains
 
-function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
-            mpi_comm_rows,mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing)&
-            result(success)
+function elpa_check_pd_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
+   mpi_comm_rows,mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing)&
+   result(success)
 
    use elpa_utilities
    use elpa1
@@ -87,8 +87,6 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    use elpa1_compute
    use elpa2_compute
    use elpa_mpi
-   use cuda_functions
-   use mod_check_for_gpu
    use, intrinsic :: iso_c_binding
 
    implicit none
@@ -113,7 +111,6 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    integer(kind=c_int)                :: istat
    logical                            :: do_useGPU,do_useGPU_4
    logical                            :: useQRActual
-   integer(kind=c_int)                :: numberOfGPUDevices
 
    call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
    call mpi_comm_size(mpi_comm_all,n_pes,mpierr)
@@ -128,25 +125,11 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    do_useGPU   = .false.
    do_useGPU_4 = .false.
 
-   THIS_REAL_ELPA_KERNEL = get_actual_real_kernel()
-
-   if(THIS_REAL_ELPA_KERNEL .eq. REAL_ELPA_KERNEL_GPU) then
-      if(nblk .ne. 128) then
-         print *, " ERROR: ELPA2 GPU kernel requires blocksize = 128. Exiting.."
-         stop
-      endif
-
-      ! 4th step
-      do_useGPU_4 = .true.
-   endif
+   THIS_REAL_ELPA_KERNEL = DEFAULT_REAL_ELPA_KERNEL
 
    ! Bandwidth must be a multiple of nblk
    ! Set to a value >= 32
-   if(do_useGPU) then
-      nbw = nblk
-   else
-      nbw = (63/nblk+1)*nblk
-   endif
+   nbw = (63/nblk+1)*nblk
    num_blocks = (na-1)/nbw+1
 
    allocate(tmat(nbw,nbw,num_blocks),stat=istat)
@@ -158,8 +141,8 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    ! Reduction full -> band
    ttt0 = MPI_Wtime()
    call bandred_real_double(na,a,a_dev,lda,nblk,nbw,matrixCols,num_blocks,&
-                            mpi_comm_rows,mpi_comm_cols,tmat,tmat_dev,wantDebug,&
-                            do_useGPU, success, useQRActual)
+        mpi_comm_rows,mpi_comm_cols,tmat,tmat_dev,wantDebug,do_useGPU,success,&
+        useQRActual)
    if(.not.(success)) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
@@ -173,8 +156,8 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    endif
 
    ttt0 = MPI_Wtime()
-   call tridiag_band_real_double(na,nbw,nblk,a,lda,ev,e,matrixCols,hh_trans_real,&
-                                 mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
+   call tridiag_band_real_double(na,nbw,nblk,a,lda,ev,e,matrixCols,&
+        hh_trans_real,mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
       write(use_unit,"(A,F10.3,A)") "  | Time band => tridiagonal    :",ttt1-ttt0," s"
@@ -185,7 +168,7 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    ! Solve tridiagonal system
    ttt0 = MPI_Wtime()
    call solve_tridi_double(na,nev,ev,e,q,ldq,nblk,matrixCols,mpi_comm_rows,&
-                           mpi_comm_cols,wantDebug,success)
+        mpi_comm_cols,wantDebug,success)
    if(.not.success) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
@@ -204,9 +187,9 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
    if(n_nonsing < na) then
       ! Back-transform 1
       ttt0 = MPI_Wtime()
-      call trans_ev_tridi_to_band_real_double(na,nev,nblk,nbw,q,q_dev,ldq,matrixCols,&
-                                              hh_trans_real,mpi_comm_rows,mpi_comm_cols,&
-                                              wantDebug,do_useGPU_4,success,THIS_REAL_ELPA_KERNEL)
+      call trans_ev_tridi_to_band_real_double(na,nev,nblk,nbw,q,q_dev,ldq,&
+           matrixCols,hh_trans_real,mpi_comm_rows,mpi_comm_cols,wantDebug,&
+           do_useGPU_4,success,THIS_REAL_ELPA_KERNEL)
       if(.not.success) return
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
@@ -216,9 +199,9 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
 
       ! Back-transform 2
       ttt0 = MPI_Wtime()
-      call trans_ev_band_to_full_real_double(na,nev,nblk,nbw,a,a_dev,lda,tmat,tmat_dev,q,&
-                                             q_dev,ldq,matrixCols,num_blocks,mpi_comm_rows,&
-                                             mpi_comm_cols,do_useGPU,useQRActual)
+      call trans_ev_band_to_full_real_double(na,nev,nblk,nbw,a,a_dev,lda,tmat,&
+           tmat_dev,q,q_dev,ldq,matrixCols,num_blocks,mpi_comm_rows,&
+           mpi_comm_cols,do_useGPU,useQRActual)
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
          write(use_unit,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
@@ -229,21 +212,11 @@ function elpa_check_singularity_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCol
       deallocate(tmat)
    endif
 
-   if(my_prow==0 .and. my_pcol==0) then
-      if(do_useGPU) then
-         if(do_useGPU_4) then
-            print *,"  GPU has been used for the 1st, 4th, 5th steps of ELPA2"
-         else
-            print *,"  GPU has been used for the 1st, 5th steps of ELPA2"
-         endif
-      endif
-   endif
-
 end function
 
-function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
-            mpi_comm_rows,mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing)&
-            result(success)
+function elpa_check_pd_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
+   mpi_comm_rows,mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing)&
+   result(success)
 
    use elpa_utilities
    use elpa1
@@ -251,8 +224,6 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
    use elpa1_compute
    use elpa2_compute
    use elpa_mpi
-   use cuda_functions
-   use mod_check_for_gpu
    use, intrinsic :: iso_c_binding
 
    implicit none
@@ -289,16 +260,7 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
    wantDebug   = .false.
    success     = .true.
 
-   THIS_COMPLEX_ELPA_KERNEL = get_actual_complex_kernel()
-
-   if(THIS_COMPLEX_ELPA_KERNEL .eq. COMPLEX_ELPA_KERNEL_GPU) then
-      if(nblk .ne. 128) then
-         print *, " ERROR: ELPA2 GPU kernel requires blocksize = 128. Exiting.."
-         stop
-      endif
-      ! 4th step
-      do_useGPU_4 = .true.
-   endif
+   THIS_COMPLEX_ELPA_KERNEL = DEFAULT_COMPLEX_ELPA_KERNEL
 
    ! Bandwidth must be a multiple of nblk
    ! Set to a value >= 32
@@ -313,8 +275,8 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
 
    ! Reduction full -> band
    ttt0 = MPI_Wtime()
-   call bandred_complex_double(na,a,lda,nblk,nbw,matrixCols,num_blocks,mpi_comm_rows,&
-                               mpi_comm_cols,tmat,wantDebug,do_useGPU,success)
+   call bandred_complex_double(na,a,lda,nblk,nbw,matrixCols,num_blocks,&
+        mpi_comm_rows,mpi_comm_cols,tmat,wantDebug,do_useGPU,success)
    if(.not.success) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
@@ -328,8 +290,8 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
    endif
 
    ttt0 = MPI_Wtime()
-   call tridiag_band_complex_double(na,nbw,nblk,a,lda,ev,e,matrixCols,hh_trans_complex,&
-                                    mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
+   call tridiag_band_complex_double(na,nbw,nblk,a,lda,ev,e,matrixCols,&
+        hh_trans_complex,mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
       write(use_unit,"(A,F10.3,A)") "  | Time band => tridiagonal    :",ttt1-ttt0," s"
@@ -349,8 +311,8 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
 
    ! Solve tridiagonal system
    ttt0 = MPI_Wtime()
-   call solve_tridi_double(na,nev,ev,e,q_real,ubound(q_real,dim=1),nblk,matrixCols,&
-                           mpi_comm_rows,mpi_comm_cols,wantDebug,success)
+   call solve_tridi_double(na,nev,ev,e,q_real,ubound(q_real,dim=1),nblk,&
+        matrixCols,mpi_comm_rows,mpi_comm_cols,wantDebug,success)
    if(.not.success) return
    ttt1 = MPI_Wtime()
    if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
@@ -372,10 +334,9 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
    if(n_nonsing < na) then
       ! Back-transform 1
       ttt0 = MPI_Wtime()
-      call trans_ev_tridi_to_band_complex_double(na,nev,nblk,nbw,q,ldq,matrixCols,&
-                                                 hh_trans_complex,mpi_comm_rows,&
-                                                 mpi_comm_cols,wantDebug,do_useGPU_4,&
-                                                 success,THIS_COMPLEX_ELPA_KERNEL)
+      call trans_ev_tridi_to_band_complex_double(na,nev,nblk,nbw,q,ldq,&
+           matrixCols,hh_trans_complex,mpi_comm_rows,mpi_comm_cols,wantDebug,&
+           do_useGPU_4,success,THIS_COMPLEX_ELPA_KERNEL)
       if(.not.success) return
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
@@ -385,9 +346,8 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
 
       ! Back-transform 2
       ttt0 = MPI_Wtime()
-      call trans_ev_band_to_full_complex_double(na,nev,nblk,nbw,a,lda,tmat,q,ldq,&
-                                                matrixCols,num_blocks,mpi_comm_rows,&
-                                                mpi_comm_cols,do_useGPU)
+      call trans_ev_band_to_full_complex_double(na,nev,nblk,nbw,a,lda,tmat,q,&
+           ldq,matrixCols,num_blocks,mpi_comm_rows,mpi_comm_cols,do_useGPU)
       ttt1 = MPI_Wtime()
       if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
          write(use_unit,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
@@ -398,16 +358,6 @@ function elpa_check_singularity_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrix
       deallocate(tmat)
    endif
 
-   if(my_prow==0 .and. my_pcol==0) then
-      if(do_useGPU) then
-         if(do_useGPU_4) then
-            print *,"  GPU has been used for the 1st, 4th, 5th steps of ELPA2"
-         else
-            print *,"  GPU has been used for the 1st, 5th steps of ELPA2"
-         endif
-      endif
-   endif
-
 end function
 
-end module CHECK_SINGULARITY
+end module CHECK_PD

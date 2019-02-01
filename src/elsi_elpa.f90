@@ -17,8 +17,7 @@ module ELSI_ELPA
        mpi_comm_self
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTILS, only: elsi_get_nnz,elsi_set_full_mat
-   use CHECK_SINGULARITY, only: elpa_check_singularity_real_double,&
-       elpa_check_singularity_complex_double
+   use CHECK_PD, only: elpa_check_pd_real_double,elpa_check_pd_complex_double
    use ELPA1, only: elpa_print_times,elpa_solve_evp_real_1stage_double,&
        elpa_solve_evp_complex_1stage_double,elpa_cholesky_real_double,&
        elpa_cholesky_complex_double,elpa_invert_trm_real_double,&
@@ -870,9 +869,9 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
       copy = mat
 
       ! Use modified ELPA2, which computes eigenvectors only for singular matrix
-      ok = elpa_check_singularity_real_double(ph%n_basis,ph%n_basis,copy,&
-         bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
-         ph%elpa_comm_col,bh%comm,ph%ill_tol,ph%n_good)
+      ok = elpa_check_pd_real_double(ph%n_basis,ph%n_basis,copy,bh%n_lrow,eval,&
+         evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
+         bh%comm,ph%ill_tol,ph%n_good)
 
       if(.not. ok) then
          call elsi_stop(bh,"Singularity check failed.",caller)
@@ -929,8 +928,8 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
       copy = mat
 
       ! Use modified ELPA2, which computes eigenvectors only for singular matrix
-      ok = elpa_check_singularity_complex_double(ph%n_basis,ph%n_basis,copy,&
-         bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
+      ok = elpa_check_pd_complex_double(ph%n_basis,ph%n_basis,copy,bh%n_lrow,&
+         eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
          ph%elpa_comm_col,bh%comm,ph%ill_tol,ph%n_good)
 
       if(.not. ok) then
