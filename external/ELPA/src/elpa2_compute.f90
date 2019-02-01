@@ -2321,9 +2321,17 @@ end subroutine
 
           stripe_width = (l_nev-1)/stripe_count + 1
 
-
-          stripe_width = ((stripe_width+3)/4)*4 ! Must be a multiple of 4 because of AVX/SSE memory alignment of 32 bytes
+          if((THIS_REAL_ELPA_KERNEL == REAL_ELPA_KERNEL_AVX512_BLOCK2) &
+             .or. (THIS_REAL_ELPA_KERNEL == REAL_ELPA_KERNEL_AVX512_BLOCK4) &
+             .or. (THIS_REAL_ELPA_KERNEL == REAL_ELPA_KERNEL_AVX512_BLOCK6)) then
+! Must be a multiple of 8 because of AVX512 memory alignment of 64 bytes
+! (8 * sizeof(double) == 64)
+             stripe_width = ((stripe_width+7)/8)*8
+          else
+! Must be a multiple of 4 because of AVX/SSE memory alignment of 32 bytes
 ! (4 * sizeof(double) == 32)
+             stripe_width = ((stripe_width+3)/4)*4
+          endif
 
         last_stripe_width = l_nev - (stripe_count-1)*stripe_width
       endif
@@ -5177,11 +5185,16 @@ end subroutine
 
           stripe_width = (l_nev-1)/stripe_count + 1
 
-
-
-          stripe_width = ((stripe_width+3)/4)*4 ! Must be a multiple of 2 because of AVX/SSE memory alignment of 32 bytes
+          if((THIS_COMPLEX_ELPA_KERNEL == COMPLEX_ELPA_KERNEL_AVX512_BLOCK1) &
+             .or. (THIS_COMPLEX_ELPA_KERNEL == COMPLEX_ELPA_KERNEL_AVX512_BLOCK2)) then
+! Must be a multiple of 4 because of AVX512 memory alignment of 64 bytes
+! (4 * sizeof(double complex) == 64)
+             stripe_width = ((stripe_width+7)/8)*8
+          else
+! Must be a multiple of 2 because of AVX/SSE memory alignment of 32 bytes
 ! (2 * sizeof(double complex) == 32)
-
+             stripe_width = ((stripe_width+3)/4)*4
+          endif
 
         last_stripe_width = l_nev - (stripe_count-1)*stripe_width
 
