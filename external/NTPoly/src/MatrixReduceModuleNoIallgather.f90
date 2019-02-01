@@ -642,7 +642,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Build Matrix Objects
   CALL ConstructEmptyMatrix(temporary_matrix,matrix%rows,matrix%columns)
-  CALL ConstructEmptyMatrix(sum_matrix,matrix%rows,matrix%columns)
+  CALL ConstructEmptyMatrix(sum_matrix,matrix%rows,matrix%columns,&
+       & zero_in=.TRUE.)
 
   !! Sum
   DO II = 1, helper%comm_size
@@ -712,7 +713,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Build Matrix Objects
   CALL ConstructEmptyMatrix(temporary_matrix,matrix%rows,matrix%columns)
-  CALL ConstructEmptyMatrix(sum_matrix,matrix%rows,matrix%columns)
+  CALL ConstructEmptyMatrix(sum_matrix,matrix%rows,matrix%columns,&
+       & zero_in=.TRUE.)
 
   !! Sum
   DO II = 1, helper%comm_size

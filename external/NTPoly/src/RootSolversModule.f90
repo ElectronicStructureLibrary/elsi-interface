@@ -18,7 +18,7 @@ MODULE RootSolversModule
   USE PSMatrixModule, ONLY : Matrix_ps, ConstructEmptyMatrix, CopyMatrix, &
        & DestructMatrix, FillMatrixIdentity, PrintMatrixInformation
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters, &
-       & SolverParameters_init
+       & SolverParameters_init, DestructSolverParameters
   USE SquareRootSolversModule, ONLY : SquareRoot, InverseSquareRoot
   IMPLICIT NONE
   PRIVATE
@@ -28,7 +28,8 @@ MODULE RootSolversModule
   PUBLIC :: ComputeInverseRoot
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute a general matrix root.
-  SUBROUTINE ComputeRoot(InputMat, OutputMat, root, solver_parameters_in)
+  RECURSIVE SUBROUTINE ComputeRoot(InputMat, OutputMat, root, &
+       & solver_parameters_in)
     !> The input matrix
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
     !> OutputMat = InputMat^1/root.
@@ -78,6 +79,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF
+
+    CALL DestructSolverParameters(solver_parameters)
 
   END SUBROUTINE ComputeRoot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -130,7 +133,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END SUBROUTINE ComputeRootImplementation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute a general inverse matrix root.
-  SUBROUTINE ComputeInverseRoot(InputMat, OutputMat, root, solver_parameters_in)
+  RECURSIVE SUBROUTINE ComputeInverseRoot(InputMat, OutputMat, root, &
+       & solver_parameters_in)
     !> The input matrix
     TYPE(Matrix_ps), INTENT(IN)  :: InputMat
     !> OutputMat = InputMat^-1/root.
@@ -179,6 +183,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
     END IF
+
+    CALL DestructSolverParameters(solver_parameters)
   END SUBROUTINE ComputeInverseRoot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute a general inverse matrix root for root > 4.
@@ -320,7 +326,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END DO
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
-       CALL WriteElement(key="Total_Iterations",value=outer_counter-1)
+       CALL WriteElement(key="Total_Iterations", value=outer_counter-1)
        CALL PrintMatrixInformation(OutputMat)
     END IF
 

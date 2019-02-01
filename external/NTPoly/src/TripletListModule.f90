@@ -12,6 +12,22 @@ MODULE TripletListModule
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> A data type for a list of triplets.
+  TYPE :: TripletList_r
+     !> Internal representation of the data.
+     TYPE(Triplet_r), DIMENSION(:), ALLOCATABLE :: DATA
+     !> Current number of elements in the triplet list
+     INTEGER :: CurrentSize
+  END TYPE TripletList_r
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> A data type for a list of triplets.
+  TYPE :: TripletList_c
+     !> Internal representation of the data.
+     TYPE(Triplet_c), DIMENSION(:), ALLOCATABLE :: DATA
+     !> Current number of elements in the triplet list
+     INTEGER :: CurrentSize
+  END TYPE TripletList_c
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: TripletList_r
   PUBLIC :: TripletList_c
   PUBLIC :: ConstructTripletList
@@ -91,22 +107,6 @@ MODULE TripletListModule
      MODULE PROCEDURE ConvertTripletListToReal
      MODULE PROCEDURE ConvertTripletListToComplex
   END INTERFACE
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> A data type for a list of triplets.
-  TYPE :: TripletList_r
-     !> Internal representation of the data.
-     TYPE(Triplet_r), DIMENSION(:), ALLOCATABLE :: DATA
-     !> Current number of elements in the triplet list
-     INTEGER :: CurrentSize
-  END TYPE TripletList_r
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> A data type for a list of triplets.
-  TYPE :: TripletList_c
-     !> Internal representation of the data.
-     TYPE(Triplet_c), DIMENSION(:), ALLOCATABLE :: DATA
-     !> Current number of elements in the triplet list
-     INTEGER :: CurrentSize
-  END TYPE TripletList_c
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Subroutine wrapper for constructing a triplet list.
   PURE SUBROUTINE ConstructTripletListSup_r(this, size_in)
