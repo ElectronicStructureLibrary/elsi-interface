@@ -356,7 +356,6 @@ subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
    integer(kind=i4), intent(in) :: row_ind(nnz_l) !< Row index
    integer(kind=i4), intent(in) :: col_ind(nnz_l) !< Column index
 
-   integer(kind=i4), allocatable :: perm(:)
    integer(kind=i8), allocatable :: gid(:) ! Global 1D id
 
    character(len=*), parameter :: caller = "elsi_set_coo"
@@ -383,7 +382,6 @@ subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
    call elsi_allocate(eh%bh,eh%col_ind_sp3,nnz_l,"col_ind_sp3",caller)
    call elsi_allocate(eh%bh,eh%perm_sp3,nnz_l,"perm_sp3",caller)
    call elsi_allocate(eh%bh,gid,nnz_l,"gid",caller)
-   call elsi_allocate(eh%bh,perm,nnz_l,"perm",caller)
 
    eh%row_ind_sp3 = row_ind
    eh%col_ind_sp3 = col_ind
@@ -392,11 +390,9 @@ subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
    gid = int(col_ind-1,kind=i8)*int(eh%ph%n_basis,kind=i8)+int(row_ind,kind=i8)
 
    ! Sort
-   call elsi_heapsort(nnz_l,gid,perm)
-   call elsi_heapsort(nnz_l,perm,eh%perm_sp3)
+   call elsi_heapsort(nnz_l,gid,eh%perm_sp3)
 
    call elsi_deallocate(eh%bh,gid,"gid")
-   call elsi_deallocate(eh%bh,perm,"perm")
 
    eh%bh%generic_coo_ready = .true.
 

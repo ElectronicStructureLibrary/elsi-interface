@@ -19,7 +19,7 @@ module ELSI_REDIST
        GetMatrixTripletList,ConstructTripletList,AppendToTripletList,&
        DestructTripletList
    use ELSI_PRECISION, only: r8,i4,i8
-   use ELSI_SORT, only: elsi_heapsort,elsi_permute
+   use ELSI_SORT, only: elsi_heapsort,elsi_permute,elsi_unpermute
    use ELSI_UTILS, only: elsi_get_nnz,elsi_get_gid,elsi_get_lid
 
    implicit none
@@ -7499,7 +7499,7 @@ subroutine elsi_blacs_to_generic_dm_real(ph,bh,dm_den,map_den,dm_sp,perm_sp)
    ! Sort
    call elsi_heapsort(bh%nnz_l_sp,gid,perm)
    call elsi_permute(bh%nnz_l_sp,perm,dm_sp)
-   call elsi_permute(bh%nnz_l_sp,perm_sp,dm_sp)
+   call elsi_unpermute(bh%nnz_l_sp,perm_sp,dm_sp)
 
    call elsi_deallocate(bh,gid,"gid")
    call elsi_deallocate(bh,perm,"perm")
@@ -7662,7 +7662,7 @@ subroutine elsi_blacs_to_generic_dm_cmplx(ph,bh,dm_den,map_den,dm_sp,perm_sp)
    ! Sort
    call elsi_heapsort(bh%nnz_l_sp,gid,perm)
    call elsi_permute(bh%nnz_l_sp,perm,dm_sp)
-   call elsi_permute(bh%nnz_l_sp,perm_sp,dm_sp)
+   call elsi_unpermute(bh%nnz_l_sp,perm_sp,dm_sp)
 
    call elsi_deallocate(bh,gid,"gid")
    call elsi_deallocate(bh,perm,"perm")
@@ -7820,7 +7820,7 @@ subroutine elsi_pexsi_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    ! Sort
    call elsi_heapsort(bh%nnz_l_sp3,gid,perm)
    call elsi_permute(bh%nnz_l_sp3,perm,dm_sp3)
-   call elsi_permute(bh%nnz_l_sp3,perm_sp3,dm_sp3)
+   call elsi_unpermute(bh%nnz_l_sp3,perm_sp3,dm_sp3)
 
    call elsi_deallocate(bh,gid,"gid")
    call elsi_deallocate(bh,perm,"perm")
@@ -7978,7 +7978,7 @@ subroutine elsi_pexsi_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    ! Sort
    call elsi_heapsort(bh%nnz_l_sp3,gid,perm)
    call elsi_permute(bh%nnz_l_sp3,perm,dm_sp3)
-   call elsi_permute(bh%nnz_l_sp3,perm_sp3,dm_sp3)
+   call elsi_unpermute(bh%nnz_l_sp3,perm_sp3,dm_sp3)
 
    call elsi_deallocate(bh,gid,"gid")
    call elsi_deallocate(bh,perm,"perm")
@@ -8220,7 +8220,7 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    ! Sort
    call elsi_heapsort(bh%nnz_l_sp,gid,perm)
    call elsi_permute(bh%nnz_l_sp,perm,dm_sp)
-   call elsi_permute(bh%nnz_l_sp,perm_sp,dm_sp)
+   call elsi_unpermute(bh%nnz_l_sp,perm_sp,dm_sp)
 
    call elsi_deallocate(bh,gid,"gid")
    call elsi_deallocate(bh,perm,"perm")
@@ -8404,7 +8404,7 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    ! Sort
    call elsi_heapsort(bh%nnz_l_sp,gid,perm)
    call elsi_permute(bh%nnz_l_sp,perm,dm_sp)
-   call elsi_permute(bh%nnz_l_sp,perm_sp,dm_sp)
+   call elsi_unpermute(bh%nnz_l_sp,perm_sp,dm_sp)
 
    call elsi_deallocate(bh,gid,"gid")
    call elsi_deallocate(bh,perm,"perm")
