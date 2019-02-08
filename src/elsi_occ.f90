@@ -16,6 +16,7 @@ module ELSI_OCC
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_PRECISION, only: r8,i4
+   use ELSI_SORT, only: elsi_heapsort,elsi_permute,elsi_unpermute
 
    implicit none
 
@@ -383,18 +384,21 @@ subroutine elsi_adjust_occ(ph,bh,n_state,n_spin,n_kpt,k_wt,eval,occ,diff)
    real(kind=r8), intent(inout) :: occ(n_state,n_spin,n_kpt)
    real(kind=r8), intent(inout) :: diff
 
-   real(kind=r8) :: min_eval
-   integer(kind=i4) :: max_id
+   integer(kind=i4) :: n_total
    integer(kind=i4) :: i_state
    integer(kind=i4) :: i_kpt
    integer(kind=i4) :: i_spin
    integer(kind=i4) :: i_val
 
-   real(kind=r8), allocatable :: eval_aux(:)
+   real(kind=r8), allocatable :: tmp(:)
+   integer(kind=i4), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_adjust_occ"
 
-   call elsi_allocate(bh,eval_aux,n_state*n_spin*n_kpt,"eval_aux",caller)
+   n_total = n_state*n_spin*n_kpt
+
+   call elsi_allocate(bh,tmp,n_total,"tmp",caller)
+   call elsi_allocate(bh,perm,n_total,"perm",caller)
 
    ! Put eval into a 1D array
    i_val = 0
@@ -403,28 +407,40 @@ subroutine elsi_adjust_occ(ph,bh,n_state,n_spin,n_kpt,k_wt,eval,occ,diff)
       do i_spin = 1,n_spin
          do i_state = 1,n_state
             i_val = i_val+1
-            eval_aux(i_val) = eval(i_state,i_spin,i_kpt)
+            tmp(i_val) = eval(i_state,i_spin,i_kpt)
          end do
       end do
    end do
 
-   min_eval = minval(eval_aux,1)
+   ! Sort eval
+   call elsi_heapsort(n_total,tmp,perm)
+
+   ! Put occ into a 1D array
+   i_val = 0
+
+   do i_kpt = 1,n_kpt
+      do i_spin = 1,n_spin
+         do i_state = 1,n_state
+            i_val = i_val+1
+            tmp(i_val) = occ(i_state,i_spin,i_kpt)
+         end do
+      end do
+   end do
+
+   call elsi_permute(n_total,perm,tmp)
 
    ! Remove error
-   do i_val = 1,n_state*n_spin*n_kpt
-      max_id = maxloc(eval_aux,1)
-      eval_aux(max_id) = min_eval-1.0_r8
+   do i_val = 1,n_total
+      i_kpt = (perm(i_val)-1)/(n_spin*n_state)+1
 
-      i_kpt = (max_id-1)/(n_spin*n_state)+1
-      i_spin = mod((max_id-1)/n_state,n_spin)+1
-      i_state = mod(max_id-1,n_state)+1
-
-      if(k_wt(i_kpt)*occ(i_state,i_spin,i_kpt) > diff) then
-         occ(i_state,i_spin,i_kpt) = occ(i_state,i_spin,i_kpt)-diff/k_wt(i_kpt)
-         diff = 0.0_r8
-      else
-         diff = diff-k_wt(i_kpt)*occ(i_state,i_spin,i_kpt)
-         occ(i_state,i_spin,i_kpt) = 0.0_r8
+      if(tmp(i_val) > 0.0_r8) then
+         if(k_wt(i_kpt)*tmp(i_val) > diff) then
+            tmp(i_val) = tmp(i_val)-diff/k_wt(i_kpt)
+            diff = 0.0_r8
+         else
+            diff = diff-k_wt(i_kpt)*tmp(i_val)
+            tmp(i_val) = 0.0_r8
+         end if
       end if
 
       if(diff <= ph%mu_tol) then
@@ -432,7 +448,22 @@ subroutine elsi_adjust_occ(ph,bh,n_state,n_spin,n_kpt,k_wt,eval,occ,diff)
       end if
    end do
 
-   call elsi_deallocate(bh,eval_aux,"eval_aux")
+   call elsi_unpermute(n_total,perm,tmp)
+
+   ! Put adjusted occ back into a 3D array
+   i_val = 0
+
+   do i_kpt = 1,n_kpt
+      do i_spin = 1,n_spin
+         do i_state = 1,n_state
+            i_val = i_val+1
+            occ(i_state,i_spin,i_kpt) = tmp(i_val)
+         end do
+      end do
+   end do
+
+   call elsi_deallocate(bh,tmp,"tmp")
+   call elsi_deallocate(bh,perm,"perm")
 
 end subroutine
 
