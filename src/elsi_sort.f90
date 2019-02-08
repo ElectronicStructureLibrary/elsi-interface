@@ -17,6 +17,7 @@ module ELSI_SORT
 
    public :: elsi_heapsort
    public :: elsi_permute
+   public :: elsi_unpermute
 
    interface swap
       module procedure swap_i8
@@ -28,11 +29,13 @@ module ELSI_SORT
    interface downheap
       module procedure downheap_i4
       module procedure downheap_i8
+      module procedure downheap_r8
    end interface
 
    interface elsi_heapsort
       module procedure heapsort_i4
       module procedure heapsort_i8
+      module procedure heapsort_r8
    end interface
 
    interface elsi_permute
@@ -41,7 +44,89 @@ module ELSI_SORT
       module procedure permute_c16
    end interface
 
+   interface elsi_unpermute
+      module procedure unpermute_r8
+      module procedure unpermute_c16
+   end interface
+
 contains
+
+!>
+!! This routine sorts a real(kind=r8) array by heapsort, returns an array of
+!! permutation.
+!!
+subroutine heapsort_r8(length,array,perm)
+
+   implicit none
+
+   integer(kind=i4), intent(in) :: length
+   real(kind=r8), intent(inout) :: array(length)
+   integer(kind=i4), intent(out) :: perm(length)
+
+   integer(kind=i4) :: top
+   integer(kind=i4) :: i
+
+   do i = 1,length
+      perm(i) = i
+   end do
+
+   top = length/2
+
+   do i = top,1,-1
+      call downheap(length,array,perm,i,length)
+   end do
+
+   i = length
+
+   do while(i > 1)
+      call swap(length,array,1,i)
+      call swap(length,perm,1,i)
+
+      i = i-1
+
+      call downheap(length,array,perm,1,i)
+   end do
+
+end subroutine
+
+!>
+!! This routine restores the max-heap structure.
+!!
+subroutine downheap_r8(length,a_r8,b_i4,top,bottom)
+
+   implicit none
+
+   integer(kind=i4), intent(in) :: length
+   real(kind=r8), intent(inout) :: a_r8(length)
+   integer(kind=i4), intent(inout) :: b_i4(length)
+   integer(kind=i4), intent(in) :: top
+   integer(kind=i4), intent(in) :: bottom
+
+   integer(kind=i4) :: v
+   integer(kind=i4) :: w
+
+   v = top
+   w = 2*v
+
+   do while(w <= bottom)
+      if(w+1 <= bottom) then
+         if(a_r8(w+1) > a_r8(w)) then
+            w = w+1
+         end if
+      end if
+
+      if(a_r8(v) >= a_r8(w)) then
+         return
+      else
+         call swap(length,a_r8,v,w)
+         call swap(length,b_i4,v,w)
+
+         v = w
+         w = 2*v
+      end if
+   end do
+
+end subroutine
 
 !>
 !! This routine sorts an integer(kind=i8) array by heapsort, returns an array of
@@ -257,6 +342,50 @@ subroutine permute_c16(length,perm,array)
 
    do i = 1,length
       work(i) = array(perm(i))
+   end do
+
+   array = work
+
+end subroutine
+
+!>
+!! This routine unpermutes a real(kind=r8) array.
+!!
+subroutine unpermute_r8(length,perm,array)
+
+   implicit none
+
+   integer(kind=i4), intent(in) :: length
+   integer(kind=i4), intent(in) :: perm(length)
+   real(kind=r8), intent(inout) :: array(length)
+
+   integer(kind=i4) :: i
+   real(kind=r8) :: work(length)
+
+   do i = 1,length
+      work(perm(i)) = array(i)
+   end do
+
+   array = work
+
+end subroutine
+
+!>
+!! This routine unpermutes a complex(kind=r8) array.
+!!
+subroutine unpermute_c16(length,perm,array)
+
+   implicit none
+
+   integer(kind=i4), intent(in) :: length
+   integer(kind=i4), intent(in) :: perm(length)
+   complex(kind=r8), intent(inout) :: array(length)
+
+   integer(kind=i4) :: i
+   complex(kind=r8) :: work(length)
+
+   do i = 1,length
+      work(perm(i)) = array(i)
    end do
 
    array = work
