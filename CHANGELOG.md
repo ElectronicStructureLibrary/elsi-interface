@@ -1,6 +1,6 @@
 # ELSI changelog
 
-## Not released
+## ELSI v2.2.0 (February 2019)
 
 ### ELSI interface
 
