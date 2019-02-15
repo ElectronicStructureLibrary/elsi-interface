@@ -99,11 +99,18 @@ subroutine test_dm_real_csc2(mpi_comm,solver,h_file,s_file)
            n_l_cols)
    call elsi_get_rw_header(rwh,header)
 
-   ! This is a limitation of this program, not a limitation of ELSI
+   ! Below is a requirement of this test (not a requirement of ELSI)
    if(mod(n_basis,n_proc) /= 0) then
       blk = 0
 
-      write(*,"(2X,A)") "Internal error"
+      if(myid == 0) then
+         write(*,"(2X,A)") "################################################"//&
+            "######################"
+         write(*,"(2X,A)") "##  This test requires number of MPI tasks to be"//&
+         " a divisor of 288!! ##"
+         write(*,"(2X,A)") "################################################"//&
+            "######################"
+      end if
       call MPI_Abort(mpi_comm,0,ierr)
       stop
    else

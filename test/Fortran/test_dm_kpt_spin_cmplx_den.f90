@@ -44,6 +44,8 @@ program test_dm_kpt_spin_cmplx_den
    integer(kind=i4) :: header(8)
 
    real(kind=r8) :: n_electrons
+   real(kind=r8) :: n_test
+   real(kind=r8) :: tmp
    real(kind=r8) :: e_test = 0.0_r8
    real(kind=r8) :: e_ref = 0.0_r8
    real(kind=r8) :: tol = 0.0_r8
@@ -53,8 +55,11 @@ program test_dm_kpt_spin_cmplx_den
    complex(kind=r8), allocatable :: ham(:,:)
    complex(kind=r8), allocatable :: ham_save(:,:)
    complex(kind=r8), allocatable :: ovlp(:,:)
+   complex(kind=r8), allocatable :: ovlp_save(:,:)
    complex(kind=r8), allocatable :: dm(:,:)
    complex(kind=r8), allocatable :: edm(:,:)
+
+   complex(kind=r8), external :: zdotc
 
    type(elsi_handle) :: eh
    type(elsi_rw_handle) :: rwh
@@ -98,14 +103,32 @@ program test_dm_kpt_spin_cmplx_den
       end if
    end if
 
-   ! Require at least 4 MPI tasks
-   if(mod(n_proc,4) /= 0) then
-      if(myid == 0) then
-         write(*,"(2X,A)") "#########################################################"
-         write(*,"(2X,A)") "##  Number of MPI tasks needs to be a multiple of 4!!  ##"
-         write(*,"(2X,A)") "#########################################################"
-         call MPI_Abort(mpi_comm,0,ierr)
-         stop
+   ! Below is a requirement of this test (not a requirement of ELSI)
+   if(solver == 3) then
+      if(mod(n_proc,8) /= 0) then
+         if(myid == 0) then
+            write(*,"(2X,A)") "#############################################"//&
+               "#########################"
+            write(*,"(2X,A)") "##  This test requires number of MPI tasks to"//&
+               " be a multiple of 8!!  ##"
+            write(*,"(2X,A)") "#############################################"//&
+               "#########################"
+            call MPI_Abort(mpi_comm,0,ierr)
+            stop
+         end if
+      end if
+   else
+      if(mod(n_proc,4) /= 0) then
+         if(myid == 0) then
+            write(*,"(2X,A)") "#############################################"//&
+               "#########################"
+            write(*,"(2X,A)") "##  This test requires number of MPI tasks to"//&
+               " be a multiple of 4!!  ##"
+            write(*,"(2X,A)") "#############################################"//&
+               "#########################"
+            call MPI_Abort(mpi_comm,0,ierr)
+            stop
+         end if
       end if
    end if
 
@@ -175,6 +198,7 @@ program test_dm_kpt_spin_cmplx_den
    allocate(ham(l_rows,l_cols))
    allocate(ham_save(l_rows,l_cols))
    allocate(ovlp(l_rows,l_cols))
+   allocate(ovlp_save(l_rows,l_cols))
    allocate(dm(l_rows,l_cols))
    allocate(edm(l_rows,l_cols))
 
@@ -186,6 +210,7 @@ program test_dm_kpt_spin_cmplx_den
    call elsi_finalize_rw(rwh)
 
    ham_save = ham
+   ovlp_save = ovlp
 
    t2 = MPI_Wtime()
 
@@ -215,7 +240,7 @@ program test_dm_kpt_spin_cmplx_den
    call elsi_set_mu_broaden_width(eh,1.0e-6_r8)
    call elsi_set_omm_n_elpa(eh,1)
    call elsi_set_pexsi_delta_e(eh,80.0_r8)
-   call elsi_set_pexsi_np_per_pole(eh,2)
+!   call elsi_set_pexsi_np_per_pole(eh,2)
 
    t1 = MPI_Wtime()
 
@@ -239,17 +264,84 @@ program test_dm_kpt_spin_cmplx_den
 
    t2 = MPI_Wtime()
 
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,*)
+   end if
+
+   ham = ham_save
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #3"
+      write(*,*)
+   end if
+
+   ! Reinit for a new geometry
+   call elsi_reinit(eh)
+   call elsi_set_elpa_solver(eh,1)
+   call elsi_set_omm_flavor(eh,2)
+   call elsi_set_ntpoly_method(eh,1)
+
+   ham = ham_save
+   ovlp = ovlp_save
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #4"
+      write(*,*)
+   end if
+
+   ham = ham_save
+
+   t1 = MPI_Wtime()
+
+   ! Solve again
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
+
+   t2 = MPI_Wtime()
+
+   if(myid == 0) then
+      write(*,"(2X,A)") "Finished SCF #5"
+      write(*,*)
+   end if
+
    ! Compute energy density matrix
    call elsi_get_edm_complex(eh,edm)
 
+   ! Compute electron count
+   tmp = real(zdotc(l_rows*l_cols,ovlp_save,1,dm,1),kind=r8)*k_weights(my_kpt)
+
+   call MPI_Reduce(tmp,n_test,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
+
    if(myid == 0) then
-      write(*,"(2X,A)") "Finished SCF #2"
+      write(*,"(2X,A)") "Finished SCF #5"
       write(*,"(2X,A,F10.3,A)") "| Time :",t2-t1,"s"
       write(*,*)
       write(*,"(2X,A)") "Finished test program"
       write(*,*)
       if(header(8) == 1111) then
-         if(abs(e_test-e_ref) < tol) then
+         write(*,"(2X,A)") "Band energy"
+         write(*,"(2X,A,F15.8)") "| This test :",e_test
+         write(*,"(2X,A,F15.8)") "| Reference :",e_ref
+         write(*,*)
+         write(*,"(2X,A)") "Electron count"
+         write(*,"(2X,A,F15.8)") "| This test :",n_test
+         write(*,"(2X,A,F15.8)") "| Reference :",n_electrons
+         write(*,*)
+         if(abs(e_test-e_ref) < tol .and. abs(n_test-n_electrons) < tol) then
             write(*,"(2X,A)") "Passed."
          else
             write(*,"(2X,A)") "Failed."
@@ -264,6 +356,7 @@ program test_dm_kpt_spin_cmplx_den
    deallocate(ham)
    deallocate(ham_save)
    deallocate(ovlp)
+   deallocate(ovlp_save)
    deallocate(dm)
    deallocate(edm)
 
