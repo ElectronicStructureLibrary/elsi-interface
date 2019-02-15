@@ -72,6 +72,11 @@ add_test_target(elsi_test_rw)
 SET_TARGET_PROPERTIES(elsi_test_rw
   PROPERTIES LINKER_LANGUAGE Fortran)
 
+ADD_EXECUTABLE(elsi_test_kpt Fortran/test_dm_kpt_spin_cmplx_den.f90)
+add_test_target(elsi_test_kpt)
+SET_TARGET_PROPERTIES(elsi_test_kpt
+  PROPERTIES LINKER_LANGUAGE Fortran)
+
 ### C tests ###
 IF(ENABLE_C_TESTS)
   LIST(APPEND ctest_src

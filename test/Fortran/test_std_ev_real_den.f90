@@ -32,12 +32,11 @@ program test_standard_ev_real
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: desc(9)
-   integer(kind=i4) :: info
    integer(kind=i4) :: n_basis
    integer(kind=i4) :: n_states
    integer(kind=i4) :: solver
-   integer(kind=i4) :: local_row
-   integer(kind=i4) :: local_col
+   integer(kind=i4) :: l_rows
+   integer(kind=i4) :: l_cols
    integer(kind=i4) :: ldm
    integer(kind=i4) :: n
 
@@ -121,19 +120,19 @@ program test_standard_ev_real
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
    call BLACS_Gridinfo(blacs_ctxt,nprow,npcol,myprow,mypcol)
 
-   local_row = numroc(n_basis,blk,myprow,0,nprow)
-   local_col = numroc(n_basis,blk,mypcol,0,npcol)
+   l_rows = numroc(n_basis,blk,myprow,0,nprow)
+   l_cols = numroc(n_basis,blk,mypcol,0,npcol)
 
-   ldm = max(local_row,1)
+   ldm = max(l_rows,1)
 
-   call descinit(desc,n_basis,n_basis,blk,blk,0,0,blacs_ctxt,ldm,info)
+   call descinit(desc,n_basis,n_basis,blk,blk,0,0,blacs_ctxt,ldm,ierr)
 
    ! Generate a random matrix
    call random_seed(size=n)
 
    allocate(seed(n))
-   allocate(mat_a(local_row,local_col))
-   allocate(mat_tmp(local_row,local_col))
+   allocate(mat_a(l_rows,l_cols))
+   allocate(mat_tmp(l_rows,l_cols))
 
    seed = myid
 
@@ -145,6 +144,7 @@ program test_standard_ev_real
 
    call pdtran(n_basis,n_basis,1.0_r8,mat_tmp,1,1,desc,1.0_r8,mat_a,1,1,desc)
 
+   deallocate(seed)
    deallocate(mat_tmp)
 
    if(myid == 0) then
@@ -158,7 +158,7 @@ program test_standard_ev_real
    call elsi_set_blacs(eh,blacs_ctxt,blk)
 
    allocate(mat_b(1,1)) ! Dummy allocation
-   allocate(evec(local_row,local_col))
+   allocate(evec(l_rows,l_cols))
    allocate(eval(n_basis))
 
    ! Customize ELSI
