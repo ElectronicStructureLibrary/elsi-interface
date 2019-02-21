@@ -65,9 +65,9 @@ s_{ij} & = \int d^3 r [\phi_i^*(\boldsymbol{r}) \phi_j(\boldsymbol{r})] .
 \ref{eq:generalized_evp} can thus be expressed in the following matrix form
 \begin{equation}
 \label{eq:generalized_evp_matrix}
-\boldsymbol{H} \boldsymbol{c} = \boldsymbol{\epsilon} \boldsymbol{S} \boldsymbol{c} .
+\boldsymbol{H} \boldsymbol{C} = \boldsymbol{S} \boldsymbol{C} \boldsymbol{\epsilon} .
 \end{equation}
-Here, the matrix $\boldsymbol{c}$ and diagonal matrix $\boldsymbol{\epsilon}$ contain the eigenvectors and eigenvalues, respectively, of the eigensystem of the matrices $\boldsymbol{H}$ and $\boldsymbol{S}$.
+Here, the matrix $\boldsymbol{C}$ and diagonal matrix $\boldsymbol{\epsilon}$ contain the eigenvectors and eigenvalues, respectively, of the eigensystem of the matrices $\boldsymbol{H}$ and $\boldsymbol{S}$.
 
 When using orthonormal basis sets (e.g. plane waves, multi-resolution wavelets), the eigenproblem described in \ref{eq:generalized_evp_matrix} reduces to a standard form where $s_{ij}=\delta_{ij}$.
 
@@ -136,18 +136,18 @@ The explicit solution of a generalized or standard eigenproblem is a well-studie
 \label{eq:cholesky}
 \boldsymbol{S} = \boldsymbol{L} \boldsymbol{L}^* ,
 \end{equation}
-where $\boldsymbol{L}$ is a lower triangular matrix.  Applying $\boldsymbol{L}$ to $\boldsymbol{H}$ and $\boldsymbol{c}$ in the following way
+where $\boldsymbol{L}$ is a lower triangular matrix.  Applying $\boldsymbol{L}$ to $\boldsymbol{H}$ and $\boldsymbol{C}$ in the following way
 \begin{equation}
 \label{eq:to_standard}
 \begin{split}
 \boldsymbol{\tilde{H}} & = \boldsymbol{L}^{-1} \boldsymbol{H} (\boldsymbol{L}^*)^{-1} ,\\
-\boldsymbol{\tilde{c}} & = \boldsymbol{L}^* \boldsymbol{c} ,
+\boldsymbol{\tilde{C}} & = \boldsymbol{L}^* \boldsymbol{C} ,
 \end{split}
 \end{equation}
 transforms \ref{eq:generalized_evp_matrix} to a standard eigenproblem
 \begin{equation}
 \label{eq:standard_evp}
-\boldsymbol{\tilde{H}} \boldsymbol{\tilde{c}} = \boldsymbol{\epsilon} \boldsymbol{\tilde{c}} .
+\boldsymbol{\tilde{H}} \boldsymbol{\tilde{C}} = \boldsymbol{\tilde{C}} \boldsymbol{\epsilon} .
 \end{equation}
 
 This standard eigenproblem is solved by further transforming it to a tridiagonal form
@@ -208,12 +208,12 @@ Only selected elements of the object $(\boldsymbol{H} - (z_l + \mu) \boldsymbol{
 The shift-and-invert spectral transformation method, implemented in the SLEPc library \cite{slepc_hernandez_2005}, transforms the eigenproblem \ref{eq:generalized_evp_matrix} by shifting the eigenspectrum:
 \begin{equation}
 \label{eq:shift}
-(\boldsymbol{H} - \boldsymbol{\sigma} \boldsymbol{S}) = (\boldsymbol{\epsilon} - \boldsymbol{\sigma}) \boldsymbol{S} \boldsymbol{c} ,
+(\boldsymbol{H} - \boldsymbol{\sigma} \boldsymbol{S}) \boldsymbol{C} = \boldsymbol{S} \boldsymbol{C} (\boldsymbol{\epsilon} - \boldsymbol{\sigma}) ,
 \end{equation}
 where $\boldsymbol{\sigma}$ is a diagonal matrix with diagonal elements all equal to the shift $\sigma$.  This shifted eigenproblem is converted to the standard form by inverting ($\boldsymbol{H} - \boldsymbol{\sigma S})$ and $(\boldsymbol{\epsilon - \sigma})$:
 \begin{equation}
 \label{eq:invert}
-(\boldsymbol{H} - \boldsymbol{\sigma S})^{-1} \boldsymbol{S} \boldsymbol{c} = (\boldsymbol{\epsilon - \sigma})^{-1} \boldsymbol{c} ,
+(\boldsymbol{H} - \boldsymbol{\sigma S})^{-1} \boldsymbol{S} \boldsymbol{C} = (\boldsymbol{\epsilon - \sigma})^{-1} \boldsymbol{C} ,
 \end{equation}
 If the shift can be chosen to be close to the target eigenvalue, \ref{eq:invert} makes the magnitude of the transformed eigenvalues large, accelerating the convergence of the iterative Krylov-Schur eigensolver used in SLEPc.
 
@@ -841,7 +841,7 @@ The distribution of matrix elements in the \textcolor{blue}{GENERIC\_COO} format
 When there is more than one \textbf{\textit{k}}-point and/or spin channel in the simulating system, the ELSI interface can be set up to support parallel calculation of the \textbf{\textit{k}}-points and/or spin channels.  The base case is a system isolated in space, e.g. free atoms, molecules, clusters, without spin-polarization.  In this case, there is one eigenproblem in each iteration of an SCF cycle.  When a spin-polarized periodic system is considered, \ref{eq:generalized_evp} should have an index $\alpha$ denoting the spin channel, and an index \textbf{\textit{k}} denoting points in reciprocal space:
 \begin{equation}
 \label{eq:spin_kpt_evp}
-\boldsymbol{H}_{\boldsymbol{k}}^\alpha \boldsymbol{c}_{\boldsymbol{k}}^\alpha = \boldsymbol{\epsilon}_{\boldsymbol{k}}^\alpha \boldsymbol{S}_{\boldsymbol{k}} \boldsymbol{c}_{\boldsymbol{k}}^\alpha .
+\boldsymbol{H}_{\boldsymbol{k}}^\alpha \boldsymbol{C}_{\boldsymbol{k}}^\alpha = \boldsymbol{S}_{\boldsymbol{k}} \boldsymbol{C}_{\boldsymbol{k}}^\alpha \boldsymbol{\epsilon}_{\boldsymbol{k}}^\alpha .
 \end{equation}
 In total, there are $N_\text{kpt} \times N_\text{spin}$ eigenproblems to solve.  They can be solved in an embarrassingly parallel fashion.  In ELSI, eigenproblems in \ref{eq:spin_kpt_evp} are considered as equivalent ``unit tasks''.  The available computer processes are divided into $N_\text{kpt} \times N_\text{spin}$ groups, each of which is responsible for one unit task.
 
