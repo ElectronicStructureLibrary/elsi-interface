@@ -169,7 +169,6 @@ subroutine elsi_reset_param(ph)
    ph%pexsi_first = .true.
    ph%pexsi_started = .false.
    ph%sips_n_elpa = 0
-   ph%sips_np_per_slice = UNSET
    ph%sips_n_slices = UNSET
    ph%sips_slice_type = 2
    ph%sips_buffer = 1.0e-2_r8
@@ -179,7 +178,9 @@ subroutine elsi_reset_param(ph)
    ph%sips_do_inertia = .true.
    ph%sips_first = .true.
    ph%sips_started = .false.
-   ph%nt_n_group = 1
+   ph%nt_n_layers = 1
+   ph%nt_n_prow = UNSET
+   ph%nt_n_pcol = UNSET
    ph%nt_method = 2
    ph%nt_isr = 5
    ph%nt_max_iter = 100

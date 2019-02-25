@@ -62,7 +62,6 @@ subroutine elsi_init_sips(ph,bh)
 
       if(ph%sips_n_slices == UNSET) then
          ! TODO: Number of slices
-         ph%sips_np_per_slice = 1
          ph%sips_n_slices = bh%n_procs
       end if
 

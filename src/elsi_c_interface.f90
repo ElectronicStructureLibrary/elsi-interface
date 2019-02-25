@@ -1288,6 +1288,22 @@ subroutine elsi_set_ntpoly_max_iter_c_wrapper(h_c,max_iter)&
 
 end subroutine
 
+subroutine elsi_set_ntpoly_n_layer_c_wrapper(h_c,n_layer)&
+   bind(C,name="c_elsi_set_ntpoly_n_layer")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: n_layer
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_ntpoly_n_layer(h_f,n_layer)
+
+end subroutine
+
 subroutine elsi_set_mu_broaden_scheme_c_wrapper(h_c,broaden_scheme)&
    bind(C,name="c_elsi_set_mu_broaden_scheme")
 

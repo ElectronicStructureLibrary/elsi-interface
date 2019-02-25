@@ -188,7 +188,6 @@ module ELSI_DATATYPE
 
       ! SLEPc-SIPs
       integer(kind=i4) :: sips_n_elpa
-      integer(kind=i4) :: sips_np_per_slice
       integer(kind=i4) :: sips_n_slices
       integer(kind=i4) :: sips_slice_type
       real(kind=r8) :: sips_buffer ! Buffer for adjusting interval
@@ -199,7 +198,9 @@ module ELSI_DATATYPE
       logical :: sips_started = .false.
 
       ! NTPoly
-      integer(kind=i4) :: nt_n_group
+      integer(kind=i4) :: nt_n_layers
+      integer(kind=i4) :: nt_n_prow
+      integer(kind=i4) :: nt_n_pcol
       integer(kind=i4) :: nt_method
       integer(kind=i4) :: nt_isr ! Method to find S^(-1/2)
       integer(kind=i4) :: nt_max_iter
