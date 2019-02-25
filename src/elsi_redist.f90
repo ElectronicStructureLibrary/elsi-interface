@@ -4849,10 +4849,11 @@ end subroutine
 !! This routine converts density matrix computed by NTPoly to 2D block-cyclic
 !! dense format.
 !!
-subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
+subroutine elsi_ntpoly_to_blacs_dm_real(ph,bh,dm_nt,dm_den)
 
    implicit none
 
+   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    type(Matrix_ps), intent(inout) :: dm_nt
    real(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
@@ -4894,38 +4895,42 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
 
    nnz_l_nt = dm_list%CurrentSize
 
-   call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
-   call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
    call elsi_allocate(bh,val_send,nnz_l_nt,"val_send",caller)
    call elsi_allocate(bh,row_send,nnz_l_nt,"row_send",caller)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   do i_val = 1,nnz_l_nt
-      ! Compute global id
-      row_send(i_val) = dm_list%data(i_val)%index_row
-      col_send(i_val) = dm_list%data(i_val)%index_column
-      val_send(i_val) = dm_list%data(i_val)%point_value
+   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+      call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
+      call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
 
-      ! Compute destination
-      p_row = mod((row_send(i_val)-1)/bh%blk,bh%n_prow)
-      p_col = mod((col_send(i_val)-1)/bh%blk,bh%n_pcol)
-      dest(i_val) = p_col+p_row*bh%n_pcol
+      do i_val = 1,nnz_l_nt
+         ! Compute global id
+         row_send(i_val) = dm_list%data(i_val)%index_row
+         col_send(i_val) = dm_list%data(i_val)%index_column
+         val_send(i_val) = dm_list%data(i_val)%point_value
 
-      ! Set send_count
-      send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
-   end do
+         ! Compute destination
+         p_row = mod((row_send(i_val)-1)/bh%blk,bh%n_prow)
+         p_col = mod((col_send(i_val)-1)/bh%blk,bh%n_pcol)
+         dest(i_val) = p_col+p_row*bh%n_pcol
+
+         ! Set send_count
+         send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+      end do
+
+      ! Sort
+      call elsi_heapsort(nnz_l_nt,dest,perm)
+      call elsi_permute(nnz_l_nt,perm,val_send)
+      call elsi_permute(nnz_l_nt,perm,row_send)
+      call elsi_permute(nnz_l_nt,perm,col_send)
+
+      call elsi_deallocate(bh,dest,"dest")
+      call elsi_deallocate(bh,perm,"perm")
+   end if
 
    call DestructTripletList(dm_list)
 
-   ! Sort
-   call elsi_heapsort(nnz_l_nt,dest,perm)
-   call elsi_permute(nnz_l_nt,perm,val_send)
-   call elsi_permute(nnz_l_nt,perm,row_send)
-   call elsi_permute(nnz_l_nt,perm,col_send)
-
-   call elsi_deallocate(bh,dest,"dest")
-   call elsi_deallocate(bh,perm,"perm")
    call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
    call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
@@ -5009,10 +5014,11 @@ end subroutine
 !! This routine converts density matrix computed by NTPoly to 2D block-cyclic
 !! dense format.
 !!
-subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
+subroutine elsi_ntpoly_to_blacs_dm_cmplx(ph,bh,dm_nt,dm_den)
 
    implicit none
 
+   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    type(Matrix_ps), intent(inout) :: dm_nt
    complex(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
@@ -5054,38 +5060,42 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
 
    nnz_l_nt = dm_list%CurrentSize
 
-   call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
-   call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
    call elsi_allocate(bh,val_send,nnz_l_nt,"val_send",caller)
    call elsi_allocate(bh,row_send,nnz_l_nt,"row_send",caller)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   do i_val = 1,nnz_l_nt
-      ! Compute global id
-      row_send(i_val) = dm_list%data(i_val)%index_row
-      col_send(i_val) = dm_list%data(i_val)%index_column
-      val_send(i_val) = dm_list%data(i_val)%point_value
+   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+      call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
+      call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
 
-      ! Compute destination
-      p_row = mod((row_send(i_val)-1)/bh%blk,bh%n_prow)
-      p_col = mod((col_send(i_val)-1)/bh%blk,bh%n_pcol)
-      dest(i_val) = p_col+p_row*bh%n_pcol
+      do i_val = 1,nnz_l_nt
+         ! Compute global id
+         row_send(i_val) = dm_list%data(i_val)%index_row
+         col_send(i_val) = dm_list%data(i_val)%index_column
+         val_send(i_val) = dm_list%data(i_val)%point_value
 
-      ! Set send_count
-      send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
-   end do
+         ! Compute destination
+         p_row = mod((row_send(i_val)-1)/bh%blk,bh%n_prow)
+         p_col = mod((col_send(i_val)-1)/bh%blk,bh%n_pcol)
+         dest(i_val) = p_col+p_row*bh%n_pcol
+
+         ! Set send_count
+         send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+      end do
+
+      ! Sort
+      call elsi_heapsort(nnz_l_nt,dest,perm)
+      call elsi_permute(nnz_l_nt,perm,val_send)
+      call elsi_permute(nnz_l_nt,perm,row_send)
+      call elsi_permute(nnz_l_nt,perm,col_send)
+
+      call elsi_deallocate(bh,dest,"dest")
+      call elsi_deallocate(bh,perm,"perm")
+   end if
 
    call DestructTripletList(dm_list)
 
-   ! Sort
-   call elsi_heapsort(nnz_l_nt,dest,perm)
-   call elsi_permute(nnz_l_nt,perm,val_send)
-   call elsi_permute(nnz_l_nt,perm,row_send)
-   call elsi_permute(nnz_l_nt,perm,col_send)
-
-   call elsi_deallocate(bh,dest,"dest")
-   call elsi_deallocate(bh,perm,"perm")
    call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
    call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
@@ -5384,19 +5394,21 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   do i_val = 1,nnz_l_nt
-      ! Compute global id
-      row_send(i_val) = dm_list%data(i_val)%index_row
-      col_send(i_val) = dm_list%data(i_val)%index_column
-      val_send(i_val) = dm_list%data(i_val)%point_value
+   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+      do i_val = 1,nnz_l_nt
+         ! Compute global id
+         row_send(i_val) = dm_list%data(i_val)%index_row
+         col_send(i_val) = dm_list%data(i_val)%index_column
+         val_send(i_val) = dm_list%data(i_val)%point_value
 
-      ! Compute destination
-      dest = (col_send(i_val)-1)/(ph%n_basis/bh%n_procs)
-      dest = min(dest,bh%n_procs-1)
+         ! Compute destination
+         dest = (col_send(i_val)-1)/(ph%n_basis/bh%n_procs)
+         dest = min(dest,bh%n_procs-1)
 
-      ! Set send_count
-      send_count(dest+1) = send_count(dest+1)+1
-   end do
+         ! Set send_count
+         send_count(dest+1) = send_count(dest+1)+1
+      end do
+   end if
 
    call DestructTripletList(dm_list)
 
@@ -5536,19 +5548,21 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   do i_val = 1,nnz_l_nt
-      ! Compute global id
-      row_send(i_val) = dm_list%data(i_val)%index_row
-      col_send(i_val) = dm_list%data(i_val)%index_column
-      val_send(i_val) = dm_list%data(i_val)%point_value
+   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+      do i_val = 1,nnz_l_nt
+         ! Compute global id
+         row_send(i_val) = dm_list%data(i_val)%index_row
+         col_send(i_val) = dm_list%data(i_val)%index_column
+         val_send(i_val) = dm_list%data(i_val)%point_value
 
-      ! Compute destination
-      dest = (col_send(i_val)-1)/(ph%n_basis/bh%n_procs)
-      dest = min(dest,bh%n_procs-1)
+         ! Compute destination
+         dest = (col_send(i_val)-1)/(ph%n_basis/bh%n_procs)
+         dest = min(dest,bh%n_procs-1)
 
-      ! Set send_count
-      send_count(dest+1) = send_count(dest+1)+1
-   end do
+         ! Set send_count
+         send_count(dest+1) = send_count(dest+1)+1
+      end do
+   end if
 
    call DestructTripletList(dm_list)
 
@@ -5807,10 +5821,11 @@ end subroutine
 !! This routine converts density matrix computed by NTPoly to 1D block-cyclic
 !! CSC format.
 !!
-subroutine elsi_ntpoly_to_siesta_dm_real(bh,dm_nt,dm_sp,row_ind,col_ptr)
+subroutine elsi_ntpoly_to_siesta_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
 
    implicit none
 
+   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    type(Matrix_ps), intent(inout) :: dm_nt
    real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
@@ -5853,36 +5868,40 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,dm_nt,dm_sp,row_ind,col_ptr)
 
    nnz_l_nt = dm_list%CurrentSize
 
-   call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
-   call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
    call elsi_allocate(bh,val_send,nnz_l_nt,"val_send",caller)
    call elsi_allocate(bh,row_send,nnz_l_nt,"row_send",caller)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   do i_val = 1,nnz_l_nt
-      ! Compute global id
-      row_send(i_val) = dm_list%data(i_val)%index_row
-      col_send(i_val) = dm_list%data(i_val)%index_column
-      val_send(i_val) = dm_list%data(i_val)%point_value
+   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+      call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
+      call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
 
-      ! Compute destination
-      dest(i_val) = mod((col_send(i_val)-1)/bh%blk_sp2,bh%n_procs)
+      do i_val = 1,nnz_l_nt
+         ! Compute global id
+         row_send(i_val) = dm_list%data(i_val)%index_row
+         col_send(i_val) = dm_list%data(i_val)%index_column
+         val_send(i_val) = dm_list%data(i_val)%point_value
 
-      ! Set send_count
-      send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
-   end do
+         ! Compute destination
+         dest(i_val) = mod((col_send(i_val)-1)/bh%blk_sp2,bh%n_procs)
+
+         ! Set send_count
+         send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+      end do
+
+      ! Sort
+      call elsi_heapsort(nnz_l_nt,dest,perm)
+      call elsi_permute(nnz_l_nt,perm,val_send)
+      call elsi_permute(nnz_l_nt,perm,row_send)
+      call elsi_permute(nnz_l_nt,perm,col_send)
+
+      call elsi_deallocate(bh,dest,"dest")
+      call elsi_deallocate(bh,perm,"perm")
+   end if
 
    call DestructTripletList(dm_list)
 
-   ! Sort
-   call elsi_heapsort(nnz_l_nt,dest,perm)
-   call elsi_permute(nnz_l_nt,perm,val_send)
-   call elsi_permute(nnz_l_nt,perm,row_send)
-   call elsi_permute(nnz_l_nt,perm,col_send)
-
-   call elsi_deallocate(bh,dest,"dest")
-   call elsi_deallocate(bh,perm,"perm")
    call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
    call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
@@ -5969,10 +5988,11 @@ end subroutine
 !! This routine converts density matrix computed by NTPoly to 1D block-cyclic
 !! CSC format.
 !!
-subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,dm_nt,dm_sp,row_ind,col_ptr)
+subroutine elsi_ntpoly_to_siesta_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
 
    implicit none
 
+   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    type(Matrix_ps), intent(inout) :: dm_nt
    complex(kind=r8), intent(out):: dm_sp(bh%nnz_l_sp)
@@ -6015,36 +6035,40 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,dm_nt,dm_sp,row_ind,col_ptr)
 
    nnz_l_nt = dm_list%CurrentSize
 
-   call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
-   call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
    call elsi_allocate(bh,val_send,nnz_l_nt,"val_send",caller)
    call elsi_allocate(bh,row_send,nnz_l_nt,"row_send",caller)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   do i_val = 1,nnz_l_nt
-      ! Compute global id
-      row_send(i_val) = dm_list%data(i_val)%index_row
-      col_send(i_val) = dm_list%data(i_val)%index_column
-      val_send(i_val) = dm_list%data(i_val)%point_value
+   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+      call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
+      call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
 
-      ! Compute destination
-      dest(i_val) = mod((col_send(i_val)-1)/bh%blk_sp2,bh%n_procs)
+      do i_val = 1,nnz_l_nt
+         ! Compute global id
+         row_send(i_val) = dm_list%data(i_val)%index_row
+         col_send(i_val) = dm_list%data(i_val)%index_column
+         val_send(i_val) = dm_list%data(i_val)%point_value
 
-      ! Set send_count
-      send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
-   end do
+         ! Compute destination
+         dest(i_val) = mod((col_send(i_val)-1)/bh%blk_sp2,bh%n_procs)
+
+         ! Set send_count
+         send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+      end do
+
+      ! Sort
+      call elsi_heapsort(nnz_l_nt,dest,perm)
+      call elsi_permute(nnz_l_nt,perm,val_send)
+      call elsi_permute(nnz_l_nt,perm,row_send)
+      call elsi_permute(nnz_l_nt,perm,col_send)
+
+      call elsi_deallocate(bh,dest,"dest")
+      call elsi_deallocate(bh,perm,"perm")
+   end if
 
    call DestructTripletList(dm_list)
 
-   ! Sort
-   call elsi_heapsort(nnz_l_nt,dest,perm)
-   call elsi_permute(nnz_l_nt,perm,val_send)
-   call elsi_permute(nnz_l_nt,perm,row_send)
-   call elsi_permute(nnz_l_nt,perm,col_send)
-
-   call elsi_deallocate(bh,dest,"dest")
-   call elsi_deallocate(bh,perm,"perm")
    call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
    call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
@@ -8106,63 +8130,69 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 
    nnz_l_nt = map_list%CurrentSize
 
-   call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
-   call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
    call elsi_allocate(bh,val_send,nnz_l_nt,"val_send",caller)
    call elsi_allocate(bh,row_send,nnz_l_nt,"row_send",caller)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   ! Compute destination
-   do i_val = 1,nnz_l_nt
-      dest(i_val) = nint(map_list%data(i_val)%point_value,kind=i4)
-      map_list%data(i_val)%point_value = 0.0_r8
-   end do
+   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+      call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
+      call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
 
-   i_val = 1
-   j_val = 1
+      ! Compute destination
+      do i_val = 1,nnz_l_nt
+         dest(i_val) = nint(map_list%data(i_val)%point_value,kind=i4)
+         map_list%data(i_val)%point_value = 0.0_r8
+      end do
 
-   do while(i_val <= nnz_l_nt .and. j_val <= dm_list%CurrentSize)
-      ! Compute global 1D id
-      i_row = map_list%data(i_val)%index_row
-      i_col = map_list%data(i_val)%index_column
-      gid_map = int(i_col-1,kind=i8)*int(ph%n_basis,kind=i8)+int(i_row,kind=i8)
-      i_row = dm_list%data(j_val)%index_row
-      i_col = dm_list%data(j_val)%index_column
-      gid_dm = int(i_col-1,kind=i8)*int(ph%n_basis,kind=i8)+int(i_row,kind=i8)
+      i_val = 1
+      j_val = 1
 
-      if(gid_map == gid_dm) then
-         map_list%data(i_val)%point_value = dm_list%data(j_val)%point_value
-         i_val = i_val+1
-         j_val = j_val+1
-      else if(gid_map > gid_dm) then
-         j_val = j_val+1
-      else
-         i_val = i_val+1
-      end if
-   end do
+      do while(i_val <= nnz_l_nt .and. j_val <= dm_list%CurrentSize)
+         ! Compute global 1D id
+         i_row = map_list%data(i_val)%index_row
+         i_col = map_list%data(i_val)%index_column
+         gid_map = int(i_col-1,kind=i8)*int(ph%n_basis,kind=i8)&
+            +int(i_row,kind=i8)
+         i_row = dm_list%data(j_val)%index_row
+         i_col = dm_list%data(j_val)%index_column
+         gid_dm = int(i_col-1,kind=i8)*int(ph%n_basis,kind=i8)&
+            +int(i_row,kind=i8)
 
-   do i_val = 1,nnz_l_nt
-      ! Compute global id
-      row_send(i_val) = map_list%data(i_val)%index_row
-      col_send(i_val) = map_list%data(i_val)%index_column
-      val_send(i_val) = map_list%data(i_val)%point_value
+         if(gid_map == gid_dm) then
+            map_list%data(i_val)%point_value = dm_list%data(j_val)%point_value
+            i_val = i_val+1
+            j_val = j_val+1
+         else if(gid_map > gid_dm) then
+            j_val = j_val+1
+         else
+            i_val = i_val+1
+         end if
+      end do
 
-      ! Set send_count
-      send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
-   end do
+      do i_val = 1,nnz_l_nt
+         ! Compute global id
+         row_send(i_val) = map_list%data(i_val)%index_row
+         col_send(i_val) = map_list%data(i_val)%index_column
+         val_send(i_val) = map_list%data(i_val)%point_value
+
+         ! Set send_count
+        send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+      end do
+
+      ! Sort
+      call elsi_heapsort(nnz_l_nt,dest,perm)
+      call elsi_permute(nnz_l_nt,perm,val_send)
+      call elsi_permute(nnz_l_nt,perm,row_send)
+      call elsi_permute(nnz_l_nt,perm,col_send)
+
+      call elsi_deallocate(bh,dest,"dest")
+      call elsi_deallocate(bh,perm,"perm")
+   end if
 
    call DestructTripletList(dm_list)
    call DestructTripletList(map_list)
 
-   ! Sort
-   call elsi_heapsort(nnz_l_nt,dest,perm)
-   call elsi_permute(nnz_l_nt,perm,val_send)
-   call elsi_permute(nnz_l_nt,perm,row_send)
-   call elsi_permute(nnz_l_nt,perm,col_send)
-
-   call elsi_deallocate(bh,dest,"dest")
-   call elsi_deallocate(bh,perm,"perm")
    call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
    call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
@@ -8290,63 +8320,69 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 
    nnz_l_nt = map_list%CurrentSize
 
-   call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
-   call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
    call elsi_allocate(bh,val_send,nnz_l_nt,"val_send",caller)
    call elsi_allocate(bh,row_send,nnz_l_nt,"row_send",caller)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   ! Compute destination
-   do i_val = 1,nnz_l_nt
-      dest(i_val) = nint(map_list%data(i_val)%point_value,kind=i4)
-      map_list%data(i_val)%point_value = (0.0_r8,0.0_r8)
-   end do
+   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+      call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
+      call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
 
-   i_val = 1
-   j_val = 1
+      ! Compute destination
+      do i_val = 1,nnz_l_nt
+         dest(i_val) = nint(map_list%data(i_val)%point_value,kind=i4)
+         map_list%data(i_val)%point_value = (0.0_r8,0.0_r8)
+      end do
 
-   do while(i_val <= nnz_l_nt .and. j_val <= dm_list%CurrentSize)
-      ! Compute global 1D id
-      i_row = map_list%data(i_val)%index_row
-      i_col = map_list%data(i_val)%index_column
-      gid_map = int(i_col-1,kind=i8)*int(ph%n_basis,kind=i8)+int(i_row,kind=i8)
-      i_row = dm_list%data(j_val)%index_row
-      i_col = dm_list%data(j_val)%index_column
-      gid_dm = int(i_col-1,kind=i8)*int(ph%n_basis,kind=i8)+int(i_row,kind=i8)
+      i_val = 1
+      j_val = 1
 
-      if(gid_map == gid_dm) then
-         map_list%data(i_val)%point_value = dm_list%data(j_val)%point_value
-         i_val = i_val+1
-         j_val = j_val+1
-      else if(gid_map > gid_dm) then
-         j_val = j_val+1
-      else
-         i_val = i_val+1
-      end if
-   end do
+      do while(i_val <= nnz_l_nt .and. j_val <= dm_list%CurrentSize)
+         ! Compute global 1D id
+         i_row = map_list%data(i_val)%index_row
+         i_col = map_list%data(i_val)%index_column
+         gid_map = int(i_col-1,kind=i8)*int(ph%n_basis,kind=i8)&
+            +int(i_row,kind=i8)
+         i_row = dm_list%data(j_val)%index_row
+         i_col = dm_list%data(j_val)%index_column
+         gid_dm = int(i_col-1,kind=i8)*int(ph%n_basis,kind=i8)&
+            +int(i_row,kind=i8)
 
-   do i_val = 1,nnz_l_nt
-      ! Compute global id
-      row_send(i_val) = map_list%data(i_val)%index_row
-      col_send(i_val) = map_list%data(i_val)%index_column
-      val_send(i_val) = map_list%data(i_val)%point_value
+         if(gid_map == gid_dm) then
+            map_list%data(i_val)%point_value = dm_list%data(j_val)%point_value
+            i_val = i_val+1
+            j_val = j_val+1
+         else if(gid_map > gid_dm) then
+            j_val = j_val+1
+         else
+            i_val = i_val+1
+         end if
+      end do
 
-      ! Set send_count
-      send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
-   end do
+      do i_val = 1,nnz_l_nt
+         ! Compute global id
+         row_send(i_val) = map_list%data(i_val)%index_row
+         col_send(i_val) = map_list%data(i_val)%index_column
+         val_send(i_val) = map_list%data(i_val)%point_value
+
+         ! Set send_count
+         send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+      end do
+
+      ! Sort
+      call elsi_heapsort(nnz_l_nt,dest,perm)
+      call elsi_permute(nnz_l_nt,perm,val_send)
+      call elsi_permute(nnz_l_nt,perm,row_send)
+      call elsi_permute(nnz_l_nt,perm,col_send)
+
+      call elsi_deallocate(bh,dest,"dest")
+      call elsi_deallocate(bh,perm,"perm")
+   end if
 
    call DestructTripletList(dm_list)
    call DestructTripletList(map_list)
 
-   ! Sort
-   call elsi_heapsort(nnz_l_nt,dest,perm)
-   call elsi_permute(nnz_l_nt,perm,val_send)
-   call elsi_permute(nnz_l_nt,perm,row_send)
-   call elsi_permute(nnz_l_nt,perm,col_send)
-
-   call elsi_deallocate(bh,dest,"dest")
-   call elsi_deallocate(bh,perm,"perm")
    call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
    call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)

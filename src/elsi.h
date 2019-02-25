@@ -263,6 +263,9 @@ void c_elsi_set_ntpoly_filter(elsi_handle handle_c,
 void c_elsi_set_ntpoly_max_iter(elsi_handle handle_c,
                                 int max_iter);
 
+void c_elsi_set_ntpoly_n_layer(elsi_handle handle_c,
+                               int n_layer);
+
 void c_elsi_set_mu_broaden_scheme(elsi_handle handle_c,
                                   int broaden_scheme);
 
