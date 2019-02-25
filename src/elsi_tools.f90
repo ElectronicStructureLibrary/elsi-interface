@@ -105,7 +105,7 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
 
       call elsi_update_dm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ovlp_copy,eh%ph%nt_ovlp,&
            eh%ph%nt_ham,eh%ph%nt_dm)
-      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
+      call elsi_ntpoly_to_blacs_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm)
       call CopyMatrix(eh%ph%nt_ovlp,eh%ph%nt_ovlp_copy)
    end select
 
@@ -146,7 +146,7 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
 
       call elsi_update_dm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ovlp_copy,eh%ph%nt_ovlp,&
            eh%ph%nt_ham,eh%ph%nt_dm)
-      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
+      call elsi_ntpoly_to_blacs_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm)
       call CopyMatrix(eh%ph%nt_ovlp,eh%ph%nt_ovlp_copy)
    end select
 
