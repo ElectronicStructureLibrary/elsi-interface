@@ -1,5 +1,11 @@
 # ELSI changelog
 
+## Not released
+
+### ELSI interface
+
+* Fixed LAPACK eigensolver for ill-conditioned overlap matrices.
+
 ## ELSI v2.2.0 (February 2019)
 
 ### ELSI interface

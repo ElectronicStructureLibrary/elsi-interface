@@ -1286,8 +1286,8 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(inout) :: d(ph%n_basis)
-   real(kind=r8), intent(inout) :: e(ph%n_basis)
-   real(kind=r8), intent(inout) :: q(ph%n_basis,ph%n_basis)
+   real(kind=r8), intent(inout) :: e(ph%n_good)
+   real(kind=r8), intent(inout) :: q(ph%n_good,ph%n_good)
    logical, intent(in) :: sing_check
 
    integer(kind=i4) :: ierr
@@ -1311,7 +1311,7 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
          call elsi_elpa_setup(ph,bh,.false.)
       end if
 
-      call ph%elpa_aux%solve_tridiagonal(d,e,q,ierr)
+      call ph%elpa_solve%solve_tridiagonal(d,e,q,ierr)
    end if
 
    if(ierr /= 0) then
