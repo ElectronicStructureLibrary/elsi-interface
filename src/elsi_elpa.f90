@@ -1126,8 +1126,8 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(inout) :: d(ph%n_basis)
-   real(kind=r8), intent(inout) :: e(ph%n_basis)
-   real(kind=r8), intent(inout) :: q(ph%n_basis,ph%n_basis)
+   real(kind=r8), intent(inout) :: e(ph%n_good)
+   real(kind=r8), intent(inout) :: q(ph%n_good,ph%n_good)
    logical, intent(in) :: sing_check
 
    logical :: ok
@@ -1138,8 +1138,8 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
       ok = elpa_solve_tridi_double(ph%n_basis,ph%n_basis,d,e,q,ph%n_basis,&
          bh%blk,ph%n_basis,mpi_comm_self,mpi_comm_self,.false.)
    else
-      ok = elpa_solve_tridi_double(ph%n_good,ph%n_states_solve,d,e,q,&
-         ph%n_basis,bh%blk,ph%n_basis,mpi_comm_self,mpi_comm_self,.false.)
+      ok = elpa_solve_tridi_double(ph%n_good,ph%n_states_solve,d,e,q,ph%n_good,&
+         bh%blk,ph%n_good,mpi_comm_self,mpi_comm_self,.false.)
    end if
 
    if(.not. ok) then

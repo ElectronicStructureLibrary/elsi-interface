@@ -248,7 +248,7 @@ subroutine elsi_decide_dm_core(ph,bh,sparsity)
          ph%solver = NTPOLY_SOLVER
          ph%decision_status = 2
 
-         write(msg,"(2X,A)") "NTPOLY selected"
+         write(msg,"(2X,A)") "NTPoly selected"
          call elsi_say(bh,msg)
       end if
 
