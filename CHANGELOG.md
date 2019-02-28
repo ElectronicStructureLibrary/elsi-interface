@@ -6,6 +6,9 @@
 
 * Fixed LAPACK eigensolver for ill-conditioned overlap matrices.
 
+### PEXSI
+* Updated redistributed SuperLU\_DIST source code to version 6.1.1.
+
 ## ELSI v2.2.0 (February 2019)
 
 ### ELSI interface
