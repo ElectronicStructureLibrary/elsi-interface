@@ -114,6 +114,8 @@ subroutine elsi_init_blacs(eh)
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: block_size
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_init_blacs"
 
    if(eh%ph%parallel_mode == MULTI_PROC .and. .not. eh%bh%blacs_ready) then
@@ -127,8 +129,8 @@ subroutine elsi_init_blacs(eh)
       npcol = eh%bh%n_procs/nprow
 
       if(max(nprow,npcol) > eh%ph%n_basis) then
-         call elsi_stop(eh%bh,"Matrix size is too small for this number of"//&
-              " MPI tasks.",caller)
+         write(msg,"(A)") "Number of MPI tasks too large."
+         call elsi_stop(eh%bh,msg,caller)
       end if
 
       ! Initialize BLACS
@@ -174,6 +176,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    integer(kind=i4) :: solver
    real(kind=r8) :: t0
    character(len=29) :: dt0
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_ev_real"
 
@@ -244,7 +247,8 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
            eh%ham_real_sp,eh%ovlp_real_sp,eval,eh%evec_real)
       call elsi_sips_to_blacs_ev(eh%ph,eh%bh,eh%evec_real,evec)
    case default
-      call elsi_stop(eh%bh,"Unsupported eigensolver.",caller)
+      write(msg,"(A)") "Unsupported eigensolver."
+      call elsi_stop(eh%bh,msg,caller)
    end select
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
@@ -268,6 +272,7 @@ subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
 
    real(kind=r8) :: t0
    character(len=29) :: dt0
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_ev_complex"
 
@@ -289,7 +294,8 @@ subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
               evec)
       end if
    case default
-      call elsi_stop(eh%bh,"Unsupported eigensolver.",caller)
+      write(msg,"(A)") "Unsupported eigensolver."
+      call elsi_stop(eh%bh,msg,caller)
    end select
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
@@ -314,6 +320,7 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
    integer(kind=i4) :: solver
    real(kind=r8) :: t0
    character(len=29) :: dt0
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_ev_real_sparse"
 
@@ -365,7 +372,8 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
          call elsi_generic_to_blacs_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp3,&
               eh%col_ind_sp3,eh%ham_real_den,eh%ovlp_real_den,eh%map_den)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%ham_real_den,&
@@ -441,12 +449,14 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
          call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
               eh%ham_real_sp,eh%ovlp_real_sp,eval,eh%evec_real)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_sips_to_blacs_ev(eh%ph,eh%bh,eh%evec_real,evec)
    case default
-      call elsi_stop(eh%bh,"Unsupported eigensolver.",caller)
+      write(msg,"(A)") "Unsupported eigensolver."
+      call elsi_stop(eh%bh,msg,caller)
    end select
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
@@ -470,6 +480,7 @@ subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
 
    real(kind=r8) :: t0
    character(len=29) :: dt0
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_ev_complex_sparse"
 
@@ -516,13 +527,15 @@ subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
          call elsi_generic_to_blacs_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp3,&
               eh%col_ind_sp3,eh%ham_cmplx_den,eh%ovlp_cmplx_den,eh%map_den)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%ham_cmplx_den,&
            eh%ovlp_cmplx_den,eval,evec)
    case default
-      call elsi_stop(eh%bh,"Unsupported eigensolver.",caller)
+      write(msg,"(A)") "Unsupported eigensolver."
+      call elsi_stop(eh%bh,msg,caller)
    end select
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
@@ -546,6 +559,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
    integer(kind=i4) :: solver
    real(kind=r8) :: t0
    character(len=29) :: dt0
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_dm_real"
 
@@ -763,7 +777,8 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_ntpoly_to_blacs_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
    case default
-      call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
+      write(msg,"(A)") "Unsupported density matrix solver."
+      call elsi_stop(eh%bh,msg,caller)
    end select
 
    eh%ph%edm_ready_real = .true.
@@ -818,6 +833,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
    integer(kind=i4) :: solver
    real(kind=r8) :: t0
    character(len=29) :: dt0
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_dm_complex"
 
@@ -970,7 +986,8 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_ntpoly_to_blacs_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
    case default
-      call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
+      write(msg,"(A)") "Unsupported density matrix solver."
+      call elsi_stop(eh%bh,msg,caller)
    end select
 
    eh%ph%edm_ready_cmplx = .true.
@@ -1025,6 +1042,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
    integer(kind=i4) :: solver
    real(kind=r8) :: t0
    character(len=29) :: dt0
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_dm_real_sparse"
 
@@ -1082,7 +1100,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_generic_to_blacs_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp3,&
               eh%col_ind_sp3,eh%ham_real_den,eh%ovlp_real_den,eh%map_den)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       if(.not. allocated(eh%eval)) then
@@ -1148,7 +1167,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_real_den,eh%map_den,&
               dm,eh%perm_sp3)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
@@ -1217,7 +1237,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_generic_to_blacs_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp3,&
               eh%col_ind_sp3,eh%ham_real_den,eh%ovlp_real_den,eh%map_den)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       if(allocated(eh%ovlp_real_copy)) then
@@ -1241,7 +1262,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_real_den,eh%map_den,&
               dm,eh%perm_sp3)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,OMM_SOLVER)
@@ -1326,7 +1348,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_pexsi_to_generic_dm(eh%ph,eh%bh,eh%dm_real_sp,&
               eh%row_ind_sp1,eh%col_ptr_sp1,eh%map_sp1,dm,eh%perm_sp3)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,PEXSI_SOLVER)
@@ -1443,7 +1466,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_sips_to_generic_dm(eh%ph,eh%bh,eh%dm_real_sp,eh%row_ind_sp1,&
               eh%col_ptr_sp1,eh%map_sp1,dm,eh%perm_sp3)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
@@ -1459,7 +1483,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp3,&
               eh%col_ind_sp3,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_map)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
@@ -1475,12 +1500,14 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%ph%nt_dm,eh%ph%nt_map,&
               dm,eh%perm_sp3)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
    case default
-      call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
+      write(msg,"(A)") "Unsupported density matrix solver."
+      call elsi_stop(eh%bh,msg,caller)
    end select
 
    eh%ph%edm_ready_real = .true.
@@ -1506,6 +1533,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
    integer(kind=i4) :: solver
    real(kind=r8) :: t0
    character(len=29) :: dt0
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_dm_complex_sparse"
 
@@ -1559,7 +1587,8 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_generic_to_blacs_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp3,&
               eh%col_ind_sp3,eh%ham_cmplx_den,eh%ovlp_cmplx_den,eh%map_den)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       if(.not. allocated(eh%eval)) then
@@ -1625,7 +1654,8 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_cmplx_den,eh%map_den,&
               dm,eh%perm_sp3)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
@@ -1695,7 +1725,8 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_generic_to_blacs_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp3,&
               eh%col_ind_sp3,eh%ham_cmplx_den,eh%ovlp_cmplx_den,eh%map_den)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       if(allocated(eh%ovlp_cmplx_copy)) then
@@ -1719,7 +1750,8 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_cmplx_den,eh%map_den,&
               dm,eh%perm_sp3)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,OMM_SOLVER)
@@ -1806,7 +1838,8 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_pexsi_to_generic_dm(eh%ph,eh%bh,eh%dm_cmplx_sp,&
               eh%row_ind_sp1,eh%col_ptr_sp1,eh%map_sp1,dm,eh%perm_sp3)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,PEXSI_SOLVER)
@@ -1824,7 +1857,8 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp3,&
               eh%col_ind_sp3,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_map)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
@@ -1840,12 +1874,14 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%ph%nt_dm,eh%ph%nt_map,&
               dm,eh%perm_sp3)
       case default
-         call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+         write(msg,"(A)") "Unsupported matrix format."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
    case default
-      call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
+      write(msg,"(A)") "Unsupported density matrix solver."
+      call elsi_stop(eh%bh,msg,caller)
    end select
 
    eh%ph%edm_ready_cmplx = .true.

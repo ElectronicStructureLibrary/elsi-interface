@@ -57,6 +57,7 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
    integer(kind=i4) :: i_kpt
    integer(kind=i4) :: i_spin
    integer(kind=i4) :: i_step
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_mu_and_occ"
 
@@ -102,7 +103,8 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
       i_step = i_step+1
 
       if(i_step > ph%mu_max_steps) then
-         call elsi_stop(bh,"Chemical potential not found.",caller)
+         write(msg,"(A)") "Chemical potential not found."
+         call elsi_stop(bh,msg,caller)
       end if
 
       mu_min = mu_min-0.5_r8*abs(e_max-e_min)
@@ -355,11 +357,11 @@ subroutine elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
       mu = mu_right
 
       ! ...with adjusted occupation numbers
-      write(msg,"(2X,A)") "Chemical potential cannot reach required accuracy."
+      write(msg,"(A)") "Chemical potential cannot reach required accuracy"
       call elsi_say(bh,msg)
-      write(msg,"(2X,A,E10.2,A)") "| Residual error :",diff_right
+      write(msg,"(A,E10.2,A)") "| Residual error :",diff_right
       call elsi_say(bh,msg)
-      write(msg,"(2X,A)") "Error will be removed from highest occupied states."
+      write(msg,"(A)") "Error will be removed from highest occupied states"
       call elsi_say(bh,msg)
 
       call elsi_adjust_occ(ph,bh,n_state,n_spin,n_kpt,k_wt,eval,occ,diff_right)

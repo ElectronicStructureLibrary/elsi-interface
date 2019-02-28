@@ -254,19 +254,23 @@ subroutine elsi_check_rw(bh,parallel_mode,n_basis,caller)
    integer(kind=i4), intent(in) :: n_basis
    character(len=*), intent(in) :: caller
 
+   character(len=200) :: msg
+
    if(parallel_mode < 0 .or. parallel_mode >= N_PARALLEL_MODES) then
-      call elsi_stop(bh,"Unsupported parallel mode.",caller)
+      write(msg,"(A)") "Unsupported parallel mode."
+      call elsi_stop(bh,msg,caller)
    end if
 
    if(parallel_mode == MULTI_PROC) then
       if(.not. bh%mpi_ready) then
-         call elsi_stop(bh,"MULTI_PROC parallel mode requires MPI.",caller)
+         write(msg,"(A)") "MULTI_PROC parallel mode requires MPI."
+         call elsi_stop(bh,msg,caller)
       end if
    end if
 
    if(n_basis < bh%n_procs) then
-      call elsi_stop(bh,"Matrix size too small for this number of MPI tasks.",&
-           caller)
+      write(msg,"(A)") "Number of MPI tasks too large."
+      call elsi_stop(bh,msg,caller)
    end if
 
 end subroutine
