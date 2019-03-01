@@ -225,7 +225,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
       write(msg,"(A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
       write(msg,"(A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
-         eval(ph%n_basis),",",eval(1)
+         eval(1),",",eval(ph%n_basis)
       call elsi_say(bh,msg)
       write(msg,"(A,I10)") "| Number of basis functions reduced to :",ph%n_good
       call elsi_say(bh,msg)
@@ -244,7 +244,7 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
       write(msg,"(A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
       write(msg,"(A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
-         eval(ph%n_basis),",",eval(1)
+         eval(1),",",eval(ph%n_basis)
       call elsi_say(bh,msg)
    end if
 
@@ -581,7 +581,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
       write(msg,"(A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
       write(msg,"(A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
-         eval(ph%n_basis),",",eval(1)
+         eval(1),",",eval(ph%n_basis)
       call elsi_say(bh,msg)
       write(msg,"(A,I10)") "| Number of basis functions reduced to :",ph%n_good
       call elsi_say(bh,msg)
@@ -600,7 +600,7 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
       write(msg,"(A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
       write(msg,"(A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
-         eval(ph%n_basis),",",eval(1)
+         eval(1),",",eval(ph%n_basis)
       call elsi_say(bh,msg)
    end if
 
@@ -972,6 +972,8 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
       end do
 
       ph%n_states_solve = min(ph%n_good,ph%n_states)
+      ph%ovlp_ev_min = eval(1)
+      ph%ovlp_ev_max = eval(ph%n_states)
    else
       if(.not. associated(ph%elpa_solve)) then
          call elsi_elpa_setup(ph,bh,.false.)
@@ -1070,6 +1072,8 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
       end do
 
       ph%n_states_solve = min(ph%n_good,ph%n_states)
+      ph%ovlp_ev_min = eval(1)
+      ph%ovlp_ev_max = eval(ph%n_states)
    else
       if(.not. associated(ph%elpa_solve)) then
          call elsi_elpa_setup(ph,bh,.false.)

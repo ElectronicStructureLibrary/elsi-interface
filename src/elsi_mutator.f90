@@ -40,7 +40,6 @@ module ELSI_MUTATOR
    public :: elsi_set_zero_def
    public :: elsi_set_illcond_check
    public :: elsi_set_illcond_tol
-   public :: elsi_set_illcond_abort
    public :: elsi_set_energy_gap
    public :: elsi_set_spectrum_width
    public :: elsi_set_dimensionality
@@ -86,6 +85,8 @@ module ELSI_MUTATOR
    public :: elsi_get_datestamp
    public :: elsi_get_solver
    public :: elsi_get_n_illcond
+   public :: elsi_get_ovlp_ev_min
+   public :: elsi_get_ovlp_ev_max
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_mu
@@ -100,6 +101,7 @@ module ELSI_MUTATOR
    public :: elsi_set_sing_check
    public :: elsi_set_sing_tol
    public :: elsi_set_sing_stop
+   public :: elsi_set_illcond_abort
    public :: elsi_set_sips_interval
    public :: elsi_set_log_tag
    public :: elsi_get_n_sing
@@ -1487,6 +1489,42 @@ subroutine elsi_get_n_illcond(eh,n_illcond)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    n_illcond = eh%ph%n_basis-eh%ph%n_good
+
+end subroutine
+
+!>
+!! This routine gets the lowest eigenvalue of the overlap matrix.
+!!
+subroutine elsi_get_ovlp_ev_min(eh,ev_min)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(out) :: ev_min !< Lowest eigenvalue
+
+   character(len=*), parameter :: caller = "elsi_get_ovlp_ev_min"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   ev_min = eh%ph%ovlp_ev_min
+
+end subroutine
+
+!>
+!! This routine gets the highest eigenvalue of the overlap matrix.
+!!
+subroutine elsi_get_ovlp_ev_max(eh,ev_max)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(out) :: ev_max !< Highest eigenvalue
+
+   character(len=*), parameter :: caller = "elsi_get_ovlp_ev_max"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   ev_max = eh%ph%ovlp_ev_max
 
 end subroutine
 

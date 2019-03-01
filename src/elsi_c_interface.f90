@@ -1472,6 +1472,38 @@ subroutine elsi_get_n_sing_c_wrapper(h_c,n_sing)&
 
 end subroutine
 
+subroutine elsi_get_ovlp_ev_min_c_wrapper(h_c,ev_min)&
+   bind(C,name="c_elsi_get_ovlp_ev_min")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   real(kind=c_double), intent(out) :: ev_min
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_get_ovlp_ev_min(h_f,ev_min)
+
+end subroutine
+
+subroutine elsi_get_ovlp_ev_max_c_wrapper(h_c,ev_max)&
+   bind(C,name="c_elsi_get_ovlp_ev_max")
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   real(kind=c_double), intent(out) :: ev_max
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_get_ovlp_ev_max(h_f,ev_max)
+
+end subroutine
+
 subroutine elsi_get_pexsi_mu_min_c_wrapper(h_c,mu_min)&
    bind(C,name="c_elsi_get_pexsi_mu_min")
 

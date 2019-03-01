@@ -98,6 +98,8 @@ subroutine elsi_reset_param(ph)
    ph%ill_tol = 1.0e-5_r8
    ph%ill_abort = .false.
    ph%n_good = UNSET
+   ph%ovlp_ev_min = 0.0_r8
+   ph%ovlp_ev_max = 0.0_r8
    ph%n_electrons = 0.0_r8
    ph%n_basis = UNSET
    ph%n_spins = 1
