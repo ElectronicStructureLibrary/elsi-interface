@@ -973,7 +973,7 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
 
       ph%n_states_solve = min(ph%n_good,ph%n_states)
       ph%ovlp_ev_min = eval(1)
-      ph%ovlp_ev_max = eval(ph%n_states)
+      ph%ovlp_ev_max = eval(ph%n_basis)
    else
       if(.not. associated(ph%elpa_solve)) then
          call elsi_elpa_setup(ph,bh,.false.)
@@ -1073,7 +1073,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
 
       ph%n_states_solve = min(ph%n_good,ph%n_states)
       ph%ovlp_ev_min = eval(1)
-      ph%ovlp_ev_max = eval(ph%n_states)
+      ph%ovlp_ev_max = eval(ph%n_basis)
    else
       if(.not. associated(ph%elpa_solve)) then
          call elsi_elpa_setup(ph,bh,.false.)

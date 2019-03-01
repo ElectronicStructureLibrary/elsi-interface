@@ -317,7 +317,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    call elsi_deallocate(bh,copy,"copy")
 
    ph%n_states_solve = min(ph%n_good,ph%n_states)
-   ph%ovlp_ev_min = eval(ph%n_states)
+   ph%ovlp_ev_min = eval(ph%n_basis)
    ph%ovlp_ev_max = eval(1)
 
    if(ph%n_good < ph%n_basis) then ! Singular
@@ -654,7 +654,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    call elsi_deallocate(bh,copy,"copy")
 
    ph%n_states_solve = min(ph%n_good,ph%n_states)
-   ph%ovlp_ev_min = eval(ph%n_states)
+   ph%ovlp_ev_min = eval(ph%n_basis)
    ph%ovlp_ev_max = eval(1)
 
    if(ph%n_good < ph%n_basis) then ! Singular

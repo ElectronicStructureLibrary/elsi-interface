@@ -57,8 +57,6 @@ module ELSI_MUTATOR
    public :: elsi_set_pexsi_np_symbo
    public :: elsi_set_pexsi_ordering
    public :: elsi_set_pexsi_temp
-   public :: elsi_set_pexsi_gap
-   public :: elsi_set_pexsi_delta_e
    public :: elsi_set_pexsi_mu_min
    public :: elsi_set_pexsi_mu_max
    public :: elsi_set_pexsi_inertia_tol
@@ -102,6 +100,8 @@ module ELSI_MUTATOR
    public :: elsi_set_sing_tol
    public :: elsi_set_sing_stop
    public :: elsi_set_illcond_abort
+   public :: elsi_set_pexsi_gap
+   public :: elsi_set_pexsi_delta_e
    public :: elsi_set_sips_interval
    public :: elsi_set_log_tag
    public :: elsi_get_n_sing
@@ -1338,44 +1338,6 @@ subroutine elsi_set_mu_mp_order(eh,mp_order)
 end subroutine
 
 !>
-!! This routine gets the lower bound of the chemical potential returned by the
-!! inertia counting in PEXSI.
-!!
-subroutine elsi_get_pexsi_mu_min(eh,mu_min)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(out) :: mu_min !< Lower bound of mu
-
-   character(len=*), parameter :: caller = "elsi_get_pexsi_mu_min"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   mu_min = eh%ph%pexsi_options%muMin0
-
-end subroutine
-
-!>
-!! This routine gets the upper bound of the chemical potential returned by the
-!! inertia counting in PEXSI.
-!!
-subroutine elsi_get_pexsi_mu_max(eh,mu_max)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(out) :: mu_max !< Upper bound of mu
-
-   character(len=*), parameter :: caller = "elsi_get_pexsi_mu_max"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   mu_max = eh%ph%pexsi_options%muMax0
-
-end subroutine
-
-!>
 !! This routine returns 0 if the input handle has not been initialized; returns
 !! 1 if it has been initialized.
 !!
@@ -1525,6 +1487,44 @@ subroutine elsi_get_ovlp_ev_max(eh,ev_max)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    ev_max = eh%ph%ovlp_ev_max
+
+end subroutine
+
+!>
+!! This routine gets the lower bound of the chemical potential returned by the
+!! inertia counting in PEXSI.
+!!
+subroutine elsi_get_pexsi_mu_min(eh,mu_min)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(out) :: mu_min !< Lower bound of mu
+
+   character(len=*), parameter :: caller = "elsi_get_pexsi_mu_min"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   mu_min = eh%ph%pexsi_options%muMin0
+
+end subroutine
+
+!>
+!! This routine gets the upper bound of the chemical potential returned by the
+!! inertia counting in PEXSI.
+!!
+subroutine elsi_get_pexsi_mu_max(eh,mu_max)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(out) :: mu_max !< Upper bound of mu
+
+   character(len=*), parameter :: caller = "elsi_get_pexsi_mu_max"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   mu_max = eh%ph%pexsi_options%muMax0
 
 end subroutine
 

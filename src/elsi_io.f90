@@ -119,7 +119,7 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       end select
 
       call fjson_start_object(jh)
-      call elsi_print_versioning(bh%uuid,jh)
+      call elsi_print_version_summary(bh%uuid,jh)
       call fjson_write_name_value(jh,"step",ph%n_calls)
       call fjson_write_name_value(jh,"total_step",ph%n_calls+ph%n_calls_all)
 
@@ -141,6 +141,7 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       call fjson_write_name_value(jh,"record_datetime",dt_record)
       call fjson_write_name_value(jh,"total_time",t1-t0)
       call elsi_print_handle_summary(ph,bh,jh)
+      call elsi_print_ovlp_summary(ph,jh)
       call fjson_write_name_value(jh,"solver_used",trim(solver_tag))
 
       select case(solver_use)
@@ -236,7 +237,7 @@ end subroutine
 !>
 !! This routine prints versioning information.
 !!
-subroutine elsi_print_versioning(uuid,jh)
+subroutine elsi_print_version_summary(uuid,jh)
 
    implicit none
 
@@ -249,7 +250,7 @@ subroutine elsi_print_versioning(uuid,jh)
    character(len=40) :: HOSTNAME
    character(len=20) :: DATETIME
 
-   character(len=*), parameter :: caller = "elsi_print_versioning"
+   character(len=*), parameter :: caller = "elsi_print_version_summary"
 
    call elsi_version_info(VERSION,DATESTAMP,COMMIT,HOSTNAME,DATETIME)
 
@@ -260,6 +261,53 @@ subroutine elsi_print_versioning(uuid,jh)
    call fjson_write_name_value(jh,"compiled_on_hostname",trim(HOSTNAME))
    call fjson_write_name_value(jh,"compiled_at_datetime",trim(DATETIME))
    call fjson_write_name_value(jh,"uuid",trim(uuid))
+
+end subroutine
+
+!>
+!! This routine prints information about the overlap matrix.
+!!
+subroutine elsi_print_ovlp_summary(ph,jh)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(fjson_handle), intent(inout) :: jh
+
+   character(len=*), parameter :: caller = "elsi_print_ovlp_summary"
+
+   call fjson_write_name_value(jh,"save_ovlp",ph%save_ovlp)
+   call fjson_write_name_value(jh,"unit_ovlp",ph%unit_ovlp)
+   call fjson_write_name_value(jh,"ill_check",ph%ill_check)
+   call fjson_write_name_value(jh,"ill_ovlp",ph%ill_ovlp)
+   call fjson_write_name_value(jh,"ill_tol",ph%ill_tol)
+   call fjson_write_name_value(jh,"n_illcond",ph%n_basis-ph%n_good)
+   call fjson_write_name_value(jh,"n_states_solve",ph%n_states_solve)
+   call fjson_write_name_value(jh,"ovlp_ev_min",ph%ovlp_ev_min)
+   call fjson_write_name_value(jh,"ovlp_ev_max",ph%ovlp_ev_max)
+
+end subroutine
+
+!>
+!! This routine prints out settings for ELPA.
+!!
+subroutine elsi_print_elpa_settings(ph,jh)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(fjson_handle), intent(inout) :: jh
+
+   character(len=*), parameter :: caller = "elsi_print_elpa_settings"
+
+   call fjson_start_name_object(jh,"solver_settings")
+   call fjson_write_name_value(jh,"elpa_solver",ph%elpa_solver)
+   call fjson_write_name_value(jh,"elpa_n_states",ph%n_states)
+   call fjson_write_name_value(jh,"elpa_n_single",ph%elpa_n_single)
+   call fjson_write_name_value(jh,"elpa_gpu",ph%elpa_gpu)
+   call fjson_write_name_value(jh,"elpa_gpu_kernels",ph%elpa_gpu_kernels)
+   call fjson_write_name_value(jh,"elpa_autotune",ph%elpa_autotune)
+   call fjson_finish_object(jh)
 
 end subroutine
 
@@ -283,29 +331,6 @@ subroutine elsi_print_ntpoly_settings(ph,jh)
    call fjson_write_name_value(jh,"nt_tol",ph%nt_tol)
    call fjson_write_name_value(jh,"nt_filter",ph%nt_filter)
    call fjson_write_name_value(jh,"nt_max_iter",ph%nt_max_iter)
-   call fjson_finish_object(jh)
-
-end subroutine
-
-!>
-!! This routine prints out settings for ELPA.
-!!
-subroutine elsi_print_elpa_settings(ph,jh)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(fjson_handle), intent(inout) :: jh
-
-   character(len=*), parameter :: caller = "elsi_print_elpa_settings"
-
-   call fjson_start_name_object(jh,"solver_settings")
-   call fjson_write_name_value(jh,"elpa_solver",ph%elpa_solver)
-   call fjson_write_name_value(jh,"elpa_n_states",ph%n_states)
-   call fjson_write_name_value(jh,"elpa_n_single",ph%elpa_n_single)
-   call fjson_write_name_value(jh,"elpa_gpu",ph%elpa_gpu)
-   call fjson_write_name_value(jh,"elpa_gpu_kernels",ph%elpa_gpu_kernels)
-   call fjson_write_name_value(jh,"elpa_autotune",ph%elpa_autotune)
    call fjson_finish_object(jh)
 
 end subroutine
