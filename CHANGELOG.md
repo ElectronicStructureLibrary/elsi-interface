@@ -1,6 +1,6 @@
 # ELSI changelog
 
-## Not released
+## v2.2.1 (March 2019)
 
 ### ELSI interface
 
@@ -9,7 +9,7 @@
 ### PEXSI
 * Updated redistributed SuperLU\_DIST source code to version 6.1.1.
 
-## ELSI v2.2.0 (February 2019)
+## v2.2.0 (February 2019)
 
 ### ELSI interface
 
@@ -37,7 +37,7 @@
 * Updated redistributed PEXSI source code to version 1.2.0.
 * Updated redistributed SuperLU\_DIST source code to version 6.1.0.
 
-## ELSI v2.1.0 (October 2018)
+## v2.1.0 (October 2018)
 
 ### ELSI interface
 * Adopted literature definition of the electronic entropy.
@@ -68,7 +68,7 @@
 ### SLEPc-SIPs
 * Updated interface to support PETSc 3.9.4 and SLEPc 3.9.2.
 
-## ELSI v2.0.2 (June 2018)
+## v2.0.2 (June 2018)
 
 ### PEXSI
 * Updated redistributed PEXSI source code to version 1.0.1, which fixes the
@@ -76,7 +76,7 @@
 * Downgraded redistributed (PT-)SCOTCH source code to version 6.0.0, as newer
   versions seem to be incompatible with PEXSI.
 
-## ELSI v2.0.1 (June 2018)
+## v2.0.1 (June 2018)
 
 ### ELSI interface
 * Switched to the [semantic versioning scheme](http://semver.org).
@@ -87,7 +87,7 @@
 * Depending on the choice of k-points, the complex PEXSI solver may fail at the
   inertia counting stage.
 
-## ELSI v2.0.0 (May 2018)
+## v2.0.0 (May 2018)
 
 ### ELSI interface
 * CMake build system has replaced the Makefile-based system.
@@ -128,7 +128,7 @@
   sparse matrix reordering library.
 * Removed ParMETIS as a mandatory external dependency for PEXSI.
 
-## ELSI v1.0.0 (May 2017)
+## v1.0.0 (May 2017)
 
 ### Solvers
 * ELPA (version 2016.11.001.pre)
