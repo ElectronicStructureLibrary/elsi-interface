@@ -50,7 +50,7 @@ subroutine elsi_decide_ev(ph,bh)
    if(ph%solver == AUTO_SOLVER) then
       ph%solver = ELPA_SOLVER
 
-      write(msg,"(2X,A)") "ELPA selected"
+      write(msg,"(A)") "ELPA selected"
       call elsi_say(bh,msg)
    end if
 
@@ -232,7 +232,7 @@ subroutine elsi_decide_dm_core(ph,bh,sparsity)
          ph%solver = ELPA_SOLVER
          ph%decision_status = 2
 
-         write(msg,"(2X,A)") "ELPA selected"
+         write(msg,"(A)") "ELPA selected"
          call elsi_say(bh,msg)
       end if
 
@@ -240,7 +240,7 @@ subroutine elsi_decide_dm_core(ph,bh,sparsity)
          ph%solver = PEXSI_SOLVER
          ph%decision_status = 2
 
-         write(msg,"(2X,A)") "PEXSI selected"
+         write(msg,"(A)") "PEXSI selected"
          call elsi_say(bh,msg)
       end if
 
@@ -248,7 +248,7 @@ subroutine elsi_decide_dm_core(ph,bh,sparsity)
          ph%solver = NTPOLY_SOLVER
          ph%decision_status = 2
 
-         write(msg,"(2X,A)") "NTPoly selected"
+         write(msg,"(A)") "NTPoly selected"
          call elsi_say(bh,msg)
       end if
 
@@ -287,20 +287,20 @@ subroutine elsi_decide_dm_core(ph,bh,sparsity)
 
          call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
-         write(msg,"(2X,A)") "Finished solver selection"
+         write(msg,"(A)") "Finished solver selection"
          call elsi_say(bh,msg)
 
          do i = 1,N_SOLVERS-1
             if(ph%decision_data(i) < 1.0e6_r8) then
                select case(i)
                case(ELPA_SOLVER)
-                  write(msg,"(2X,A,F10.3,A)") "| ELPA time :",&
+                  write(msg,"(A,F10.3,A)") "| ELPA time :",&
                      ph%decision_data(i)," s"
                case(PEXSI_SOLVER)
-                  write(msg,"(2X,A,F10.3,A)") "| PEXSI time :",&
+                  write(msg,"(A,F10.3,A)") "| PEXSI time :",&
                      ph%decision_data(i)," s"
                case(NTPOLY_SOLVER)
-                  write(msg,"(2X,A,F10.3,A)") "| NTPoly time :",&
+                  write(msg,"(A,F10.3,A)") "| NTPoly time :",&
                      ph%decision_data(i)," s"
                end select
 
@@ -310,11 +310,11 @@ subroutine elsi_decide_dm_core(ph,bh,sparsity)
 
          select case(ph%solver)
          case(ELPA_SOLVER)
-            write(msg,"(2X,A)") "ELPA selected"
+            write(msg,"(A)") "ELPA selected"
          case(PEXSI_SOLVER)
-            write(msg,"(2X,A)") "PEXSI selected"
+            write(msg,"(A)") "PEXSI selected"
          case(NTPOLY_SOLVER)
-            write(msg,"(2X,A)") "NTPoly selected"
+            write(msg,"(A)") "NTPoly selected"
          end select
 
          call elsi_say(bh,msg)

@@ -124,9 +124,9 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
             call elsi_get_time(t1)
 
-            write(msg,"(2X,A)") "Finished Cholesky decomposition"
+            write(msg,"(A)") "Finished Cholesky decomposition"
             call elsi_say(bh,msg)
-            write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+            write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
             call elsi_say(bh,msg)
          end if
 
@@ -150,7 +150,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    call elsi_get_time(t0)
 
-   write(msg,"(2X,A)") "Starting OMM density matrix solver"
+   write(msg,"(A)") "Starting OMM density matrix solver"
    call elsi_say(bh,msg)
 
    call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,new_ovlp,ph%ebs,dm_omm,&
@@ -166,9 +166,9 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished density matrix calculation"
+   write(msg,"(A)") "Finished density matrix calculation"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
    ph%omm_first = .false.
@@ -215,9 +215,9 @@ subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   write(msg,"(A)") "Finished energy density matrix calculation"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine
@@ -276,9 +276,9 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
             call elsi_get_time(t1)
 
-            write(msg,"(2X,A)") "Finished Cholesky decomposition"
+            write(msg,"(A)") "Finished Cholesky decomposition"
             call elsi_say(bh,msg)
-            write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+            write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
             call elsi_say(bh,msg)
          end if
 
@@ -302,7 +302,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    call elsi_get_time(t0)
 
-   write(msg,"(2X,A)") "Starting OMM density matrix solver"
+   write(msg,"(A)") "Starting OMM density matrix solver"
    call elsi_say(bh,msg)
 
    call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,new_ovlp,ph%ebs,dm_omm,&
@@ -318,9 +318,9 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished density matrix calculation"
+   write(msg,"(A)") "Finished density matrix calculation"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
    ph%omm_first = .false.
@@ -367,9 +367,9 @@ subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   write(msg,"(A)") "Finished energy density matrix calculation"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine

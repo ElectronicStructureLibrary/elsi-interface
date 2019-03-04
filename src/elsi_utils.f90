@@ -98,6 +98,8 @@ subroutine elsi_reset_param(ph)
    ph%ill_tol = 1.0e-5_r8
    ph%ill_abort = .false.
    ph%n_good = UNSET
+   ph%ovlp_ev_min = 0.0_r8
+   ph%ovlp_ev_max = 0.0_r8
    ph%n_electrons = 0.0_r8
    ph%n_basis = UNSET
    ph%n_spins = 1
@@ -257,29 +259,36 @@ subroutine elsi_check(ph,bh,caller)
    type(elsi_basic_t), intent(inout) :: bh
    character(len=*), intent(in) :: caller
 
+   character(len=200) :: msg
+
    ! General check of solver, parallel mode, matrix format
    if(ph%solver < 0 .or. ph%solver >= N_SOLVERS) then
-      call elsi_stop(bh,"Unsupported solver.",caller)
+      write(msg,"(A)") "Unsupported solver."
+      call elsi_stop(bh,msg,caller)
    end if
 
    if(ph%parallel_mode < 0 .or. ph%parallel_mode >= N_PARALLEL_MODES) then
-      call elsi_stop(bh,"Unsupported parallel mode.",caller)
+      write(msg,"(A)") "Unsupported parallel mode."
+      call elsi_stop(bh,msg,caller)
    end if
 
    if(ph%matrix_format < 0 .or. ph%matrix_format >= N_MATRIX_FORMATS) then
-      call elsi_stop(bh,"Unsupported matirx format.",caller)
+      write(msg,"(A)") "Unsupported matrix format."
+      call elsi_stop(bh,msg,caller)
    end if
 
    ! Spin
    if(ph%n_spins > 1 .and. .not. bh%mpi_all_ready) then
-      call elsi_stop(bh,"Calculations with two spin channels require a"//&
-           " global MPI communicator.",caller)
+      write(msg,"(A)") "Two spin channels requested, but global MPI"//&
+         " communicator not set up."
+      call elsi_stop(bh,msg,caller)
    end if
 
    ! k-point
    if(ph%n_kpts > 1 .and. .not. bh%mpi_all_ready) then
-      call elsi_stop(bh,"Calculations with multiple k-points require a"//&
-           " global MPI communicator.",caller)
+      write(msg,"(A)") "Multiple k-points requested, but global MPI"//&
+         " communicator not set up."
+      call elsi_stop(bh,msg,caller)
    end if
 
    if(.not. ph%spin_is_set) then
@@ -308,43 +317,52 @@ subroutine elsi_check(ph,bh,caller)
 
    if(ph%parallel_mode == MULTI_PROC) then
       if(.not. bh%mpi_ready) then
-         call elsi_stop(bh,"MULTI_PROC parallel mode requires MPI.",caller)
+         write(msg,"(A)") "MULTI_PROC parallel mode requires MPI."
+         call elsi_stop(bh,msg,caller)
       end if
    end if
 
    if(ph%matrix_format == BLACS_DENSE) then
       if(.not. bh%blacs_ready .and. ph%parallel_mode /= SINGLE_PROC) then
-         call elsi_stop(bh,"BLACS matrix format not properly set up.",caller)
+         write(msg,"(A)") "BLACS_DENSE matrix format requested but not"//&
+            " properly set up."
+         call elsi_stop(bh,msg,caller)
       end if
    else if(ph%matrix_format == SIESTA_CSC) then
       if(.not. bh%siesta_csc_ready) then
-         call elsi_stop(bh,"SIESTA_CSC matrix format not properly set up.",&
-              caller)
+         write(msg,"(A)") "SIESTA_CSC matrix format requested but not"//&
+            " properly set up."
+         call elsi_stop(bh,msg,caller)
       end if
 
       if(bh%blk_sp2 == UNSET) then
-         call elsi_stop(bh,"Block size should be set for SIESTA_CSC matrix"//&
-              " format.",caller)
+         write(msg,"(A)") "SIESTA_CSC matrix format requested but block size"//&
+            " not set."
+         call elsi_stop(bh,msg,caller)
       end if
    else if(ph%matrix_format == PEXSI_CSC) then
       if(.not. bh%pexsi_csc_ready) then
-         call elsi_stop(bh,"PEXSI_CSC matrix format not properly set up.",&
-              caller)
+         write(msg,"(A)") "PEXSI_CSC matrix format requested but not"//&
+            " properly set up."
+         call elsi_stop(bh,msg,caller)
       end if
 
       if(ph%solver == PEXSI_SOLVER .and. ph%pexsi_np_per_pole == UNSET) then
-         call elsi_stop(bh,"Number of MPI tasks per pole should be set for"//&
-              " PEXSI_CSC matrix format and PEXSI solver.",caller)
+         write(msg,"(A)") "PEXSI_CSC matrix format requested but number of"//&
+            " MPI tasks per pole not set."
+         call elsi_stop(bh,msg,caller)
       end if
 
       if(ph%solver == AUTO_SOLVER) then
-         call elsi_stop(bh,"Solver automatic selection not yet implemented"//&
-              " for PEXSI_CSC matrix format.",caller)
+         write(msg,"(A)") "Solver automatic selection not implemented for"//&
+            "PEXSI_CSC matrix format."
+         call elsi_stop(bh,msg,caller)
       end if
    else if(ph%matrix_format == GENERIC_COO) then
       if(.not. bh%generic_coo_ready) then
-         call elsi_stop(bh,"GENERIC_COO matrix format not properly set up.",&
-              caller)
+         write(msg,"(A)") "GENERIC_COO matrix format requested but not"//&
+            " properly set up."
+         call elsi_stop(bh,msg,caller)
       end if
    end if
 
@@ -356,55 +374,60 @@ subroutine elsi_check(ph,bh,caller)
    select case(ph%solver)
    case(OMM_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(bh,"libOMM requires MULTI_PROC parallel mode.",caller)
+         write(msg,"(A)") "libOMM requires MULTI_PROC parallel mode."
+         call elsi_stop(bh,msg,caller)
       end if
    case(PEXSI_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(bh,"PEXSI requires MULTI_PROC parallel mode.",caller)
+         write(msg,"(A)") "PEXSI requires MULTI_PROC parallel mode."
+         call elsi_stop(bh,msg,caller)
       end if
 
       if(mod(bh%n_procs,ph%pexsi_options%nPoints) /= 0) then
-         call elsi_stop(bh,"To use PEXSI, number of mu points must be a"//&
-              " divisor of number of MPI tasks.",caller)
+         write(msg,"(A)") "To use PEXSI, number of mu points must be a"//&
+            " divisor of total number of MPI tasks."
+         call elsi_stop(bh,msg,caller)
       end if
 
       if(ph%pexsi_np_per_pole /= UNSET) then
          if(mod(bh%n_procs,ph%pexsi_np_per_pole*ph%pexsi_options%nPoints) /= 0)&
             then
-            call elsi_stop(bh,"To use PEXSI, specified number of MPI tasks"//&
-                 " per pole times number of mu points must be a divisor of"//&
-                 " number of MPI tasks.",caller)
+            write(msg,"(A)") "To use PEXSI, number of MPI tasks per pole"//&
+               " times number of mu points must be a divisor of total number"//&
+               " of MPI tasks."
+            call elsi_stop(bh,msg,caller)
          end if
 
          if(ph%pexsi_np_per_pole*ph%pexsi_options%numPole&
             *ph%pexsi_options%nPoints < bh%n_procs) then
-            call elsi_stop(bh,"Specified number of MPI tasks per pole too"//&
-                 " small for this number of MPI tasks.",caller)
+            write(msg,"(A)") "Number of MPI tasks per pole too small."
+            call elsi_stop(bh,msg,caller)
          end if
       end if
    case(SIPS_SOLVER)
       if(ph%n_basis < bh%n_procs) then
-         call elsi_stop(bh,"Matrix size too small to use SLEPc-SIPs with"//&
-              " this number of MPI tasks.",caller)
+         write(msg,"(A)") "Number of MPI tasks too large."
+         call elsi_stop(bh,msg,caller)
       end if
 
       if(ph%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(bh,"SLEPc-SIPs requires MULTI_PROC parallel mode.",&
-              caller)
+         write(msg,"(A)") "SLEPc-SIPs requires MULTI_PROC parallel mode."
+         call elsi_stop(bh,msg,caller)
       end if
 
       if(ph%n_spins > 1) then
-         call elsi_stop(bh,"Calculations with two spin channels not yet"//&
-              " supported with SLEPc-SIPs.",caller)
+         write(msg,"(A)") "Two spin channels not supported with SLEPc-SIPs."
+         call elsi_stop(bh,msg,caller)
       end if
 
       if(ph%n_kpts > 1) then
-         call elsi_stop(bh,"Calculations with multiple k-points not yet"//&
-              " supported with SLEPc-SIPs.",caller)
+         write(msg,"(A)") "Multiple k-points not supported with SLEPc-SIPs."
+         call elsi_stop(bh,msg,caller)
       end if
    case(NTPOLY_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
-         call elsi_stop(bh,"NTPoly requires MULTI_PROC parallel mode.",caller)
+         write(msg,"(A)") "NTPoly requires MULTI_PROC parallel mode."
+         call elsi_stop(bh,msg,caller)
       end if
    end select
 
@@ -421,8 +444,11 @@ subroutine elsi_check_init(bh,init,caller)
    logical, intent(in) :: init
    character(len=*), intent(in) :: caller
 
+   character(len=200) :: msg
+
    if(.not. init) then
-      call elsi_stop(bh,"Invalid handle! Not initialized.",caller)
+      write(msg,"(A)") "Invalid handle! Not initialized."
+      call elsi_stop(bh,msg,caller)
    end if
 
 end subroutine
@@ -831,9 +857,9 @@ subroutine elsi_build_dm_real(ph,bh,row_map,col_map,occ,evec,dm)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished density matrix calculation"
+   write(msg,"(A)") "Finished density matrix calculation"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine
@@ -904,9 +930,9 @@ subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,occ,evec,dm)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished density matrix calculation"
+   write(msg,"(A)") "Finished density matrix calculation"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine
@@ -981,9 +1007,9 @@ subroutine elsi_build_edm_real(ph,bh,row_map,col_map,occ,eval,evec,edm)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   write(msg,"(A)") "Finished energy density matrix calculation"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine
@@ -1058,9 +1084,9 @@ subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,occ,eval,evec,edm)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished energy density matrix calculation"
+   write(msg,"(A)") "Finished energy density matrix calculation"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine
@@ -1149,9 +1175,9 @@ subroutine elsi_gram_schmidt_real(ph,bh,col_map,ovlp,evec)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished Gram-Schmidt orthonormalization"
+   write(msg,"(A)") "Finished Gram-Schmidt orthonormalization"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine
@@ -1244,9 +1270,9 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,col_map,ovlp,evec)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished Gram-Schmidt orthonormalization"
+   write(msg,"(A)") "Finished Gram-Schmidt orthonormalization"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine

@@ -96,6 +96,8 @@ module ELSI_DATATYPE
       real(kind=r8) :: ill_tol
       logical :: ill_abort ! Always stop if overlap is ill-conditioned?
       integer(kind=i4) :: n_good ! Number of non-ill-conditioned basis functions
+      real(kind=r8) :: ovlp_ev_min
+      real(kind=r8) :: ovlp_ev_max
 
       ! Physics
       real(kind=r8) :: n_electrons

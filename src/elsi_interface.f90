@@ -51,7 +51,6 @@ module ELSI
    public :: elsi_set_zero_def
    public :: elsi_set_illcond_check
    public :: elsi_set_illcond_tol
-   public :: elsi_set_illcond_abort
    public :: elsi_set_energy_gap
    public :: elsi_set_spectrum_width
    public :: elsi_set_dimensionality
@@ -97,6 +96,8 @@ module ELSI
    public :: elsi_get_datestamp
    public :: elsi_get_solver
    public :: elsi_get_n_illcond
+   public :: elsi_get_ovlp_ev_min
+   public :: elsi_get_ovlp_ev_max
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_mu
@@ -111,6 +112,7 @@ module ELSI
    public :: elsi_set_sing_check
    public :: elsi_set_sing_tol
    public :: elsi_set_sing_stop
+   public :: elsi_set_illcond_abort
    public :: elsi_set_sips_interval
    public :: elsi_set_log_tag
    public :: elsi_get_n_sing

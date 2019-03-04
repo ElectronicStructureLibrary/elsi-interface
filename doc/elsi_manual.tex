@@ -1122,7 +1122,6 @@ In all the subroutines listed below, the first argument (input and output) is an
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_zero\_def}(handle, zero\_def)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_illcond\_check}(handle, illcond\_check)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_illcond\_tol}(handle, illcond\_tol)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_illcond\_abort}(handle, illcond\_abort)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_energy\_gap}(handle, energy\_gap)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_spectrum\_width}(handle, spectrum\_width)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_dimensionality}(handle, dimensionality)]
@@ -1134,6 +1133,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sing\_check}(handle, sing\_check)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sing\_tol}(handle, sing\_tol)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sing\_stop}(handle, sing\_stop)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_illcond\_abort}(handle, illcond\_abort)]
 \end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
@@ -1156,8 +1156,6 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \textcolor{blue}{illcond\_tol}        & real double        & $10^{-5}$  & Eigenfunctions of the overlap matrix with eigenvalues smaller than this threshold will be removed to avoid ill-conditioning.  See remark 2.\\
 \hline
-\textcolor{blue}{illcond\_abort}      & integer            & 0          & If not 0, the code always stops if the overlap matrix is detected to be ill-conditioned.  See remark 2.\\
-\hline
 \textcolor{blue}{energy\_gap}         & real double        & 0          & Energy gap.  See remark 3.\\
 \hline
 \textcolor{blue}{spectrum\_width}     & real double        & $10^{3}$   & Width of the eigenspectrum.  See remark 3.\\
@@ -1172,13 +1170,15 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \textcolor{blue}{mu\_tol}             & real double        & $10^{-13}$ & The convergence tolerance (in terms of the absolute error in electron count) of the bisection algorithm employed to compute the occupation numbers and the Fermi level.\\
 \hline
-\textcolor{blue}{write\_unit}         & integer            & 6          & Deprecated; use \textcolor{blue}{elsi\_set\_output\_unit} instead.\\
+\textcolor{blue}{write\_unit}         & integer            & 6          & Deprecated.  Use \textcolor{blue}{elsi\_set\_output\_unit} instead.\\
 \hline
-\textcolor{blue}{sing\_check}         & integer            & 0          & Deprecated; use \textcolor{blue}{elsi\_set\_illcond\_check} instead.\\
+\textcolor{blue}{sing\_check}         & integer            & 0          & Deprecated.  Use \textcolor{blue}{elsi\_set\_illcond\_check} instead.\\
 \hline
-\textcolor{blue}{sing\_tol}           & real double        & $10^{-5}$  & Deprecated; use \textcolor{blue}{elsi\_set\_illcond\_tol} instead.\\
+\textcolor{blue}{sing\_tol}           & real double        & $10^{-5}$  & Deprecated.  Use \textcolor{blue}{elsi\_set\_illcond\_tol} instead.\\
 \hline
-\textcolor{blue}{sing\_stop}          & integer            & 0          & Deprecated; use \textcolor{blue}{elsi\_set\_illcond\_abort} instead.\\
+\textcolor{blue}{sing\_stop}          & integer            & 0          & Deprecated.  Use \textcolor{blue}{elsi\_set\_illcond\_abort} instead.\\
+\hline
+\textcolor{blue}{illcond\_abort}      & integer            & 0          & Deprecated.  No effect.\\
 \hline
 \end{tabular}
 
@@ -1289,13 +1289,12 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \textcolor{blue}{pexsi\_inertia\_tol}     & real double & 0.05  & Stopping criterion of inertia counting.  See remark 5.\\
 \hline
-\textcolor{blue}{pexsi\_gap}              & real double & 0.0   & Energy gap.  Deprecated; use \textcolor{blue}{elsi\_set\_energy\_gap} instead.  See remark 6.\\
+\textcolor{blue}{pexsi\_gap}              & real double & 0.0   & Deprecated.  Use \textcolor{blue}{elsi\_set\_energy\_gap} instead.  See remark 6.\\
 \hline
-\textcolor{blue}{pexsi\_delta\_e}         & real double & 10.0  & Width of eigenspectrum.  Deprecated; use \textcolor{blue}{elsi\_set\_spectrum\_width} instead.\\
+\textcolor{blue}{pexsi\_delta\_e}         & real double & 10.0  & Deprecated.  Use \textcolor{blue}{elsi\_set\_spectrum\_width} instead.\\
 \hline
 \end{tabular}
 
-\newpage
 \textbf{Remarks}
 
 \textbf{1)} In PEXSI, 20 poles are usually sufficient to get an accuracy that is comparable with the result obtained from diagonalization.  The chemical potential is determined by performing Fermi operator expansion at several chemical potential values (referred to as ``points'' by PEXSI developers) in an SCF step, then interpolating the results at all points to the final answer.  The \textcolor{blue}{pexsi\_n\_mu} parameter controls the number of chemical potential ``points'' to be evaluated.  2 points followed by a simple linear interpolation often yield reasonable results.
@@ -1369,9 +1368,9 @@ end do
 \hline
 \textcolor{blue}{sips\_n\_slice} & integer     & 1    & Number of slices.  See remark 3.\\
 \hline
-\textcolor{blue}{sips\_lower}    & real double & -2.0 & Deprecated; use \textcolor{blue}{elsi\_set\_sips\_ev\_min} instead.\\
+\textcolor{blue}{sips\_lower}    & real double & -2.0 & Deprecated.  Use \textcolor{blue}{elsi\_set\_sips\_ev\_min} instead.\\
 \hline
-\textcolor{blue}{sips\_upper}    & real double & 2.0  & Deprecated; use \textcolor{blue}{elsi\_set\_sips\_ev\_max} instead.\\
+\textcolor{blue}{sips\_upper}    & real double & 2.0  & Deprecated.  Use \textcolor{blue}{elsi\_set\_sips\_ev\_max} instead.\\
 \hline
 \end{tabular}
 
@@ -1421,6 +1420,8 @@ In all the subroutines listed below, the first argument (input and output) is an
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_version}(handle, major, minor, patch)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_datestamp}(handle, date\_stamp)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_n\_illcond}(handle, n\_illcond)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_ovlp\_ev\_min}(handle, ev\_min)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_ovlp\_ev\_max}(handle, ev\_max)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_mu}(handle, mu)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_entropy}(handle, ts)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_edm\_real}(handle, edm\_real)]
@@ -1446,27 +1447,33 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \textcolor{blue}{n\_illcond}           & integer                      & Number of eigenvalues of the overlap matrix that are smaller than the ill-conditioning tolerance.  See \ref{subsec:setter_elsi}.\\
 \hline
-\textcolor{blue}{mu}                   & real double                  & Chemical potential.  See remark 1.\\
+\textcolor{blue}{ev\_min}              & real double                  & Lowest eigenvalue of the overlap matrix.  See remark 1.\\
 \hline
-\textcolor{blue}{ts}                   & real double                  & Entropy.  See remark 1.\\
+\textcolor{blue}{ev\_max}              & real double                  & Highest eigenvalue of the overlap matrix.  See remark 1.\\
 \hline
-\textcolor{blue}{edm\_real}            & real double, rank-2 array    & Real energy-weighted density matrix in 2D block-cyclic dense format.  See remark 2.\\
+\textcolor{blue}{mu}                   & real double                  & Chemical potential.  See remark 2.\\
 \hline
-\textcolor{blue}{edm\_complex}         & complex double, rank-2 array & Complex energy-weighted density matrix in 2D block-cyclic dense format.  See remark 2.\\
+\textcolor{blue}{ts}                   & real double                  & Entropy.  See remark 2.\\
 \hline
-\textcolor{blue}{edm\_real\_sparse}    & real double, rank-1 array    & Non-zero values of the real density matrix in 1D block CSC format.  See remark 2.\\
+\textcolor{blue}{edm\_real}            & real double, rank-2 array    & Real energy-weighted density matrix in 2D block-cyclic dense format.  See remark 3.\\
 \hline
-\textcolor{blue}{edm\_complex\_sparse} & complex double, rank-1 array & Non-zero values of the complex density matrix in 1D block CSC format.  See remark 2.\\
+\textcolor{blue}{edm\_complex}         & complex double, rank-2 array & Complex energy-weighted density matrix in 2D block-cyclic dense format.  See remark 3.\\
 \hline
-\textcolor{blue}{n\_sing}              & integer                      & Deprecated; use \textcolor{blue}{elsi\_get\_n\_illcond} instead.\\
+\textcolor{blue}{edm\_real\_sparse}    & real double, rank-1 array    & Non-zero values of the real density matrix in 1D block CSC format.  See remark 3.\\
+\hline
+\textcolor{blue}{edm\_complex\_sparse} & complex double, rank-1 array & Non-zero values of the complex density matrix in 1D block CSC format.  See remark 3.\\
+\hline
+\textcolor{blue}{n\_sing}              & integer                      & Deprecated.  Use \textcolor{blue}{elsi\_get\_n\_illcond} instead.\\
 \hline
 \end{tabular}
 
 \textbf{Remarks}
 
-\textbf{1)} In ELSI, the chemical potential will only be available if one of the density matrix solver interfaces has been called, with ELPA, PEXSI, or NTPoly being the chosen solver.  The chemical potential can be retrieved by calling \textcolor{blue}{elsi\_get\_mu}.  The entropy will only be available if one of the density matrix solver interfaces has been called with ELPA being the chosen solver.  The user should avoid calling the subroutine when the chemical potential or the entropy is not ready.
+\textbf{1)} In ELSI, ill-conditioning check of the overlap matrix is enabled by default when ELPA is the chosen solver.  It may be disabled by calling \textcolor{blue}{elsi\_set\_illcond\_check}, and is automatically disabled when the chosen solver is not ELPA.  \textcolor{blue}{ev\_min} and \textcolor{blue}{ev\_max} are computed only if ill-conditioning check is enabled.  Otherwise the return value may be zero.
 
-\textbf{2)} In general, the energy-weighted density matrix is only needed in a late stage of an SCF cycle to evaluate forces.  It is, therefore, not calculated when any of the density matrix solver interface is called.  When the energy-weighted density matrix is actually needed, it can be requested by calling the \textcolor{blue}{elsi\_get\_edm} subroutines.  Note that these subroutines all have the requirement that the corresponding \textcolor{blue}{elsi\_dm} subroutine must have been invoked.  For instance, \textcolor{blue}{elsi\_get\_edm\_real\_sparse} only makes sense if \textcolor{blue}{elsi\_dm\_real\_sparse} has been successfully executed.
+\textbf{2)} In ELSI, the chemical potential will only be available if one of the density matrix solver interfaces has been called, with ELPA, PEXSI, or NTPoly being the chosen solver.  The chemical potential can be retrieved by calling \textcolor{blue}{elsi\_get\_mu}.  The entropy will only be available if one of the density matrix solver interfaces has been called with ELPA being the chosen solver.  The user should avoid calling the subroutine when the chemical potential or the entropy is not ready.
+
+\textbf{3)} In general, the energy-weighted density matrix is only needed in a late stage of an SCF cycle to evaluate forces.  It is, therefore, not calculated when any of the density matrix solver interface is called.  When the energy-weighted density matrix is actually needed, it can be requested by calling the \textcolor{blue}{elsi\_get\_edm} subroutines.  Note that these subroutines all have the requirement that the corresponding \textcolor{blue}{elsi\_dm} subroutine must have been invoked.  For instance, \textcolor{blue}{elsi\_get\_edm\_real\_sparse} only makes sense if \textcolor{blue}{elsi\_dm\_real\_sparse} has been successfully executed.
 
 \subsection{Getting Results from the PEXSI Solver}
 \label{subsec:getter_pexsi}
@@ -1543,6 +1550,7 @@ The following subroutines extrapolate density matrix in the n$^\text{th}$ geomet
 \hline
 \end{tabular}
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_extrapolate\_dm\_complex}(handle, ovlp, dm)]
 \end{labeling}
@@ -1567,11 +1575,9 @@ The following subroutines extrapolate density matrix in the n$^\text{th}$ geomet
 
 \section{Parallel Matrix I/O}
 \label{sec:rw}
-To test the solvers in ELSI, it is convenient to use matrices generated from actual electronic structure calculations.  There exist a number of libraries invented for high-performance parallel I/O that are particularly capable of reading and writing a large amount of data with hierarchical structures and complex metadata.  However, the I/O task in ELSI is very simple in terms of the complexity of the data to manipulate.  The data structure is simply arrays that represent matrices, with a few integers to define the dimension of the matrices.  In order to circumvent the unavoidable development and performance overhead associated with a high level I/O library, the parallel I/O functionality defined in the MPI standard is directly used to read and write matrices in ELSI.
+To test the solvers in ELSI, it is convenient to use matrices generated from actual electronic structure calculations.  There exist a number of libraries for high-performance parallel I/O that are particularly capable of reading and writing a large amount of data with hierarchical structures and complex metadata.  However, the data structure in ELSI is simply arrays that represent matrices, with a few integers to define the dimension of the matrices.  In order to circumvent the development and performance overhead associated with a high level I/O library, the parallel I/O functionality defined in the MPI standard is directly used to read and write matrices in ELSI.
 
-When ELSI runs in parallel with multiple MPI tasks, the matrices are distributed across tasks.  The choice of writing the distributed matrices into $N_\text{procs}$ separate files, where $N_\text{procs}$ is the number of MPI tasks, is not promising due to the difficulty of managing and post-processing a large number of files, especially with a different number of MPI tasks.  The implementation of matrix I/O in ELSI adopts collective MPI I/O routines to write data to (read data from) a single binary file, as if the data was gathered onto a single MPI task then written to one file (read from one file by one MPI task then scattered to all tasks).  The optimal I/O performance, both with MPI I/O and in general, is often obtained by making large and contiguous requests to access the file system, rather than small, non-contiguous, or random requests.  Therefore, before being written to file, matrices are always redistributed to a 1D block distribution.  This guarantees that each MPI task writes a contiguous trunk of data to a contiguous piece of file.  Similarly, matrices read from file are in a 1D block distribution, and can be redistributed automatically if needed.
-
-A matrix is always stored in the CSC format in an ELSI matrix file.  A dense matrix is automatically converted to the CSC format before writing to file, and can be converted back after reading from file.
+When ELSI runs in parallel with multiple MPI tasks, the matrices are distributed across tasks.  The choice of writing the distributed matrices into $N_\text{procs}$ separate files, where $N_\text{procs}$ is the number of MPI tasks, is not promising due to the difficulty of managing and post-processing a large number of files.  The implementation of matrix I/O in ELSI adopts collective MPI I/O routines to write data to (read data from) a single binary file, as if the data was gathered onto a single MPI task then written to one file (read from one file by one MPI task then scattered to all tasks).  The optimal I/O performance, both with MPI I/O and in general, is often obtained by making large and contiguous requests to access the file system, rather than small, non-contiguous, or random requests.  Therefore, before being written to file, matrices are always redistributed to a 1D block distribution.  This guarantees that each MPI task writes a contiguous trunk of data to a contiguous piece of file.  Similarly, matrices read from file are in a 1D block distribution, and can be redistributed automatically if needed.  A matrix is always stored in the CSC format in an ELSI matrix file.  A dense matrix is automatically converted to the CSC format before writing to file, and can be converted back after being read from file.
 
 Next, we present the API for parallel matrix I/O.
 
@@ -1674,6 +1680,8 @@ When a matrix I/O instance is no longer needed, its associated handle should be 
 \subsection{Writing Matrices}
 \label{subsec:rw_write}
 The following two subroutines write a dense matrix to file.  Before writing a dense matrix, MPI and BLACS should be set up properly using \textcolor{blue}{elsi\_set\_rw\_mpi} and \textcolor{blue}{elsi\_set\_rw\_blacs}.
+
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_write\_mat\_real}(handle, filename, mat)]
 \end{labeling}
@@ -1862,6 +1870,7 @@ The following three subroutines read a sparse matrix from file.  Before reading 
 \hline
 \end{tabular}
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_read\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
 \end{labeling}

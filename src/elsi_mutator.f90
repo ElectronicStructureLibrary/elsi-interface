@@ -40,7 +40,6 @@ module ELSI_MUTATOR
    public :: elsi_set_zero_def
    public :: elsi_set_illcond_check
    public :: elsi_set_illcond_tol
-   public :: elsi_set_illcond_abort
    public :: elsi_set_energy_gap
    public :: elsi_set_spectrum_width
    public :: elsi_set_dimensionality
@@ -58,8 +57,6 @@ module ELSI_MUTATOR
    public :: elsi_set_pexsi_np_symbo
    public :: elsi_set_pexsi_ordering
    public :: elsi_set_pexsi_temp
-   public :: elsi_set_pexsi_gap
-   public :: elsi_set_pexsi_delta_e
    public :: elsi_set_pexsi_mu_min
    public :: elsi_set_pexsi_mu_max
    public :: elsi_set_pexsi_inertia_tol
@@ -86,6 +83,8 @@ module ELSI_MUTATOR
    public :: elsi_get_datestamp
    public :: elsi_get_solver
    public :: elsi_get_n_illcond
+   public :: elsi_get_ovlp_ev_min
+   public :: elsi_get_ovlp_ev_max
    public :: elsi_get_pexsi_mu_min
    public :: elsi_get_pexsi_mu_max
    public :: elsi_get_mu
@@ -100,6 +99,9 @@ module ELSI_MUTATOR
    public :: elsi_set_sing_check
    public :: elsi_set_sing_tol
    public :: elsi_set_sing_stop
+   public :: elsi_set_illcond_abort
+   public :: elsi_set_pexsi_gap
+   public :: elsi_set_pexsi_delta_e
    public :: elsi_set_sips_interval
    public :: elsi_set_log_tag
    public :: elsi_get_n_sing
@@ -260,6 +262,8 @@ subroutine elsi_set_n_basis(eh,n_basis)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: n_basis !< Number of basis functions
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_n_basis"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -271,8 +275,9 @@ subroutine elsi_set_n_basis(eh,n_basis)
       eh%bh%n_lcol = n_basis
       eh%bh%blk = n_basis
    else
-      call elsi_stop(eh%bh,"Number of basis functions not allowed to change"//&
-           " in MULTI_PROC parallel mode.",caller)
+      write(msg,"(A)") "Number of basis functions not allowed to change in"//&
+         " MULTI_PROC parallel mode."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
 end subroutine
@@ -414,12 +419,15 @@ subroutine elsi_set_energy_gap(eh,gap)
    type(elsi_handle), intent(inout) :: eh !< Handle
    real(kind=r8), intent(in) :: gap !< Energy gap
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_energy_gap"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(gap < 0.0_r8) then
-      call elsi_stop(eh%bh,"Input value should not be negative.",caller)
+      write(msg,"(A)") "Input value cannot be negative."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%energy_gap = gap
@@ -437,12 +445,15 @@ subroutine elsi_set_spectrum_width(eh,width)
    type(elsi_handle), intent(inout) :: eh !< Handle
    real(kind=r8), intent(in) :: width !< Spectrum width
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_spectrum_width"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(width < 0.0_r8) then
-      call elsi_stop(eh%bh,"Input value should not be negative.",caller)
+      write(msg,"(A)") "Input value cannot be negative."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%spectrum_width = width
@@ -460,12 +471,15 @@ subroutine elsi_set_dimensionality(eh,dimensionality)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: dimensionality !< Dimensionality
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_dimensionality"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(dimensionality < 1 .or. dimensionality > 3) then
-      call elsi_stop(eh%bh,"Input value should be 1, 2, or 3.",caller)
+      write(msg,"(A)") "Input value should be 1, 2, or 3."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%dimensionality = dimensionality
@@ -482,12 +496,15 @@ subroutine elsi_set_elpa_solver(eh,solver)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: solver !< ELPA solver
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_elpa_solver"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(solver < 1 .or. solver > 2) then
-      call elsi_stop(eh%bh,"Invalid choice.",caller)
+      write(msg,"(A)") "Input value should be 1 or 2."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%elpa_solver = solver
@@ -599,12 +616,15 @@ subroutine elsi_set_omm_flavor(eh,flavor)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: flavor !< libOMM flavor
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_omm_flavor"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(flavor /= 0 .and. flavor /= 2) then
-      call elsi_stop(eh%bh,"Invalid choice.",caller)
+      write(msg,"(A)") "Input value should be 0 or 2."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%omm_flavor = flavor
@@ -643,12 +663,15 @@ subroutine elsi_set_omm_tol(eh,tol)
    type(elsi_handle), intent(inout) :: eh !< Handle
    real(kind=r8), intent(in) :: tol !< Tolerance of OMM minimization
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_omm_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(tol <= 0.0_r8) then
-      call elsi_stop(eh%bh,"Input value should be positive.",caller)
+      write(msg,"(A)") "Input value should be positive."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%omm_tol = tol
@@ -665,12 +688,15 @@ subroutine elsi_set_pexsi_n_mu(eh,n_mu)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: n_mu !< Number of mu points
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_pexsi_n_mu"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(n_mu < 1) then
-      call elsi_stop(eh%bh,"Input value should be at least 1.",caller)
+      write(msg,"(A)") "Input value cannot be smaller than 1."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%pexsi_options%nPoints = n_mu
@@ -687,12 +713,15 @@ subroutine elsi_set_pexsi_n_pole(eh,n_pole)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: n_pole !< Number of poles
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_pexsi_n_pole"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(n_pole < 1) then
-      call elsi_stop(eh%bh,"Input value should be at least 1.",caller)
+      write(msg,"(A)") "Input value cannot be smaller than 1."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%pexsi_options%numPole = n_pole
@@ -709,12 +738,15 @@ subroutine elsi_set_pexsi_np_per_pole(eh,np_per_pole)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: np_per_pole !< Number of tasks per pole
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_pexsi_np_per_pole"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(np_per_pole < 1) then
-      call elsi_stop(eh%bh,"Input value should be at least 1.",caller)
+      write(msg,"(A)") "Input value cannot be smaller than 1."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%pexsi_np_per_pole = np_per_pole
@@ -731,12 +763,15 @@ subroutine elsi_set_pexsi_np_symbo(eh,np_symbo)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: np_symbo !< Number of tasks for symbolic
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_pexsi_np_symbo"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(np_symbo < 1) then
-      call elsi_stop(eh%bh,"Input value should be at least 1.",caller)
+      write(msg,"(A)") "Input value cannot be smaller than 1."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%pexsi_options%npSymbFact = np_symbo
@@ -771,12 +806,15 @@ subroutine elsi_set_pexsi_temp(eh,temp)
    type(elsi_handle), intent(inout) :: eh !< Handle
    real(kind=r8), intent(in) :: temp !< Temperature
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_pexsi_temp"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(temp <= 0.0_r8) then
-      call elsi_stop(eh%bh,"Input value should be positive.",caller)
+      write(msg,"(A)") "Input value should be positive."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%pexsi_options%temperature = temp
@@ -830,12 +868,15 @@ subroutine elsi_set_pexsi_inertia_tol(eh,inertia_tol)
    type(elsi_handle), intent(inout) :: eh !< Handle
    real(kind=r8), intent(in) :: inertia_tol !< Inertia counting tolerance
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_pexsi_inertia_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(inertia_tol <= 0.0_r8) then
-      call elsi_stop(eh%bh,"Input value should be positive.",caller)
+      write(msg,"(A)") "Input value should be positive."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%pexsi_options%muInertiaTolerance = inertia_tol
@@ -874,6 +915,8 @@ subroutine elsi_set_sips_n_slice(eh,n_slice)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: n_slice !< Number of slices
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_sips_n_slice"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -881,8 +924,9 @@ subroutine elsi_set_sips_n_slice(eh,n_slice)
    if(mod(eh%bh%n_procs,n_slice) == 0) then
       eh%ph%sips_n_slices = n_slice
    else
-      call elsi_stop(eh%bh,"Input value should be a divisor of total number"//&
-           " of MPI tasks.",caller)
+      write(msg,"(A)") "Input value should be a divisor of total number of"//&
+         " MPI tasks."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
 end subroutine
@@ -897,12 +941,15 @@ subroutine elsi_set_sips_slice_type(eh,slice_type)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: slice_type !< Slice type
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_sips_slice_type"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(slice_type /= 0 .and. slice_type /= 2 .and. slice_type /= 4) then
-      call elsi_stop(eh%bh,"Invalid choice.",caller)
+      write(msg,"(A)") "Input value should be 0, 2, or 4."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%sips_slice_type = slice_type
@@ -920,12 +967,15 @@ subroutine elsi_set_sips_buffer(eh,buffer)
    type(elsi_handle), intent(inout) :: eh !< Handle
    real(kind=r8), intent(in) :: buffer !< Buffer to expand interval
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_sips_buffer"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(buffer <= 0.0_r8) then
-      call elsi_stop(eh%bh,"Input value should be positive.",caller)
+      write(msg,"(A)") "Input value should be positive."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%sips_buffer = buffer
@@ -942,12 +992,15 @@ subroutine elsi_set_sips_inertia_tol(eh,inertia_tol)
    type(elsi_handle), intent(inout) :: eh !< Handle
    real(kind=r8), intent(in) :: inertia_tol !< Stopping criterion
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_sips_inertia_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(inertia_tol <= 0.0_r8) then
-      call elsi_stop(eh%bh,"Input value should be positive.",caller)
+      write(msg,"(A)") "Input value should be positive."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%sips_inertia_tol = inertia_tol
@@ -1001,13 +1054,15 @@ subroutine elsi_set_sips_interval(eh,lower,upper)
    real(kind=r8), intent(in) :: lower !< Lower bound
    real(kind=r8), intent(in) :: upper !< Upper bound
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_sips_interval"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(lower > upper) then
-      call elsi_stop(eh%bh,"Lower bound should not be larger than upper"//&
-           " bound.",caller)
+   if(lower >= upper) then
+      write(msg,"(A)") "Lower bound must be smaller than upper bound."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%sips_interval(1) = lower
@@ -1025,12 +1080,15 @@ subroutine elsi_set_ntpoly_method(eh,method)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: method !< Purification method
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_ntpoly_method"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(method < 0 .or. method > 3) then
-      call elsi_stop(eh%bh,"Invalid choice.",caller)
+      write(msg,"(A)") "Input value should be 0, 1, 2, or 3."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%nt_method = method
@@ -1047,12 +1105,15 @@ subroutine elsi_set_ntpoly_isr(eh,isr)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: isr !< Inverse square root method
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_ntpoly_isr"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(isr /= 2 .and. isr /= 3 .and. isr /= 5) then
-      call elsi_stop(eh%bh,"Invalid choice.",caller)
+      write(msg,"(A)") "Input value should be 2, 3, or 5."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%nt_isr = isr
@@ -1069,12 +1130,15 @@ subroutine elsi_set_ntpoly_tol(eh,tol)
    type(elsi_handle), intent(inout) :: eh !< Handle
    real(kind=r8), intent(in) :: tol !< Tolerance
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_ntpoly_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(tol <= 0.0_r8) then
-      call elsi_stop(eh%bh,"Input value should be positive.",caller)
+      write(msg,"(A)") "Input value should be positive."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%nt_tol = tol
@@ -1109,12 +1173,15 @@ subroutine elsi_set_ntpoly_max_iter(eh,max_iter)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: max_iter !< Number of iterations
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_ntpoly_max_iter"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(max_iter < 1) then
-      call elsi_stop(eh%bh,"Input value should be at least 1.",caller)
+      write(msg,"(A)") "Input value cannot be smaller than 1."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%nt_max_iter = max_iter
@@ -1131,6 +1198,8 @@ subroutine elsi_set_ntpoly_n_layer(eh,n_layer)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: n_layer !< Number of process layers
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_ntpoly_n_layer"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -1138,8 +1207,9 @@ subroutine elsi_set_ntpoly_n_layer(eh,n_layer)
    if(mod(eh%bh%n_procs,n_layer) == 0) then
       eh%ph%nt_n_layers = n_layer
    else
-      call elsi_stop(eh%bh,"Input value should be a divisor of total number"//&
-           " of MPI tasks.",caller)
+      write(msg,"(A)") "Input value should be a divisor of total number of"//&
+         " MPI tasks."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
 end subroutine
@@ -1155,12 +1225,15 @@ subroutine elsi_set_mu_broaden_scheme(eh,broaden_scheme)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: broaden_scheme !< Broadening method
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_mu_broaden_method"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(broaden_scheme < 0 .or. broaden_scheme > 4) then
-      call elsi_stop(eh%bh,"Invalid choice.",caller)
+      write(msg,"(A)") "Input value should be 0, 1, 2, 3, or 4."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%mu_scheme = broaden_scheme
@@ -1178,12 +1251,15 @@ subroutine elsi_set_mu_broaden_width(eh,broaden_width)
    type(elsi_handle), intent(inout) :: eh !< Handle
    real(kind=r8), intent(in) :: broaden_width !< Broadening width
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_mu_broaden_width"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(broaden_width <= 0.0_r8) then
-      call elsi_stop(eh%bh,"Input value should be positive.",caller)
+      write(msg,"(A)") "Input value should be positive."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%mu_width = broaden_width
@@ -1201,12 +1277,15 @@ subroutine elsi_set_mu_tol(eh,tol)
    type(elsi_handle), intent(inout) :: eh !< Handle
    real(kind=r8), intent(in) :: tol !< Accuracy of mu
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_mu_tol"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(tol < 0.0_r8) then
-      call elsi_stop(eh%bh,"Input value should not be negative.",caller)
+      write(msg,"(A)") "Input value cannot be negative."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%mu_tol = tol
@@ -1243,53 +1322,18 @@ subroutine elsi_set_mu_mp_order(eh,mp_order)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: mp_order !< Order
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_mu_mp_order"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(mp_order < 0) then
-      call elsi_stop(eh%bh,"Input value should be at least 0.",caller)
+      write(msg,"(A)") "Input value cannot be negative."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%mu_mp_order = mp_order
-
-end subroutine
-
-!>
-!! This routine gets the lower bound of the chemical potential returned by the
-!! inertia counting in PEXSI.
-!!
-subroutine elsi_get_pexsi_mu_min(eh,mu_min)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(out) :: mu_min !< Lower bound of mu
-
-   character(len=*), parameter :: caller = "elsi_get_pexsi_mu_min"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   mu_min = eh%ph%pexsi_options%muMin0
-
-end subroutine
-
-!>
-!! This routine gets the upper bound of the chemical potential returned by the
-!! inertia counting in PEXSI.
-!!
-subroutine elsi_get_pexsi_mu_max(eh,mu_max)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(out) :: mu_max !< Upper bound of mu
-
-   character(len=*), parameter :: caller = "elsi_get_pexsi_mu_max"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   mu_max = eh%ph%pexsi_options%muMax0
 
 end subroutine
 
@@ -1411,6 +1455,80 @@ subroutine elsi_get_n_illcond(eh,n_illcond)
 end subroutine
 
 !>
+!! This routine gets the lowest eigenvalue of the overlap matrix.
+!!
+subroutine elsi_get_ovlp_ev_min(eh,ev_min)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(out) :: ev_min !< Lowest eigenvalue
+
+   character(len=*), parameter :: caller = "elsi_get_ovlp_ev_min"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   ev_min = eh%ph%ovlp_ev_min
+
+end subroutine
+
+!>
+!! This routine gets the highest eigenvalue of the overlap matrix.
+!!
+subroutine elsi_get_ovlp_ev_max(eh,ev_max)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(out) :: ev_max !< Highest eigenvalue
+
+   character(len=*), parameter :: caller = "elsi_get_ovlp_ev_max"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   ev_max = eh%ph%ovlp_ev_max
+
+end subroutine
+
+!>
+!! This routine gets the lower bound of the chemical potential returned by the
+!! inertia counting in PEXSI.
+!!
+subroutine elsi_get_pexsi_mu_min(eh,mu_min)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(out) :: mu_min !< Lower bound of mu
+
+   character(len=*), parameter :: caller = "elsi_get_pexsi_mu_min"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   mu_min = eh%ph%pexsi_options%muMin0
+
+end subroutine
+
+!>
+!! This routine gets the upper bound of the chemical potential returned by the
+!! inertia counting in PEXSI.
+!!
+subroutine elsi_get_pexsi_mu_max(eh,mu_max)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(out) :: mu_max !< Upper bound of mu
+
+   character(len=*), parameter :: caller = "elsi_get_pexsi_mu_max"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   mu_max = eh%ph%pexsi_options%muMax0
+
+end subroutine
+
+!>
 !! This routine gets the Fermi level (chemical potential).
 !!
 subroutine elsi_get_mu(eh,mu)
@@ -1457,6 +1575,7 @@ subroutine elsi_get_edm_real(eh,edm)
    real(kind=r8), intent(out) :: edm(eh%bh%n_lrow,eh%bh%n_lcol) !< Energy density matrix
 
    integer(kind=i4) :: solver_save
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_get_edm_real"
 
@@ -1495,13 +1614,15 @@ subroutine elsi_get_edm_real(eh,edm)
          call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
          call elsi_ntpoly_to_blacs_dm(eh%ph,eh%bh,eh%ph%nt_dm,edm)
       case default
-         call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
+         write(msg,"(A)") "Unsupported density matrix solver."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       eh%ph%edm_ready_real = .false.
    else
-      call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
-           " computed before density matrix.",caller)
+      write(msg,"(A)") "Energy-weighted density matrix cannot be computed"//&
+         " before density matrix."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%solver = solver_save
@@ -1519,6 +1640,7 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
    real(kind=r8), intent(out) :: edm(eh%bh%nnz_l_sp) !< Energy density matrix
 
    integer(kind=i4) :: solver_save
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_get_edm_real_sparse"
 
@@ -1554,7 +1676,8 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
             call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_real_den,&
                  eh%map_den,edm,eh%perm_sp3)
          case default
-            call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+            write(msg,"(A)") "Unsupported matrix format."
+            call elsi_stop(eh%bh,msg,caller)
          end select
       case(OMM_SOLVER)
          call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_real,eh%dm_real_den)
@@ -1570,7 +1693,8 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
             call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_real_den,&
                  eh%map_den,edm,eh%perm_sp3)
          case default
-            call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+            write(msg,"(A)") "Unsupported matrix format."
+            call elsi_stop(eh%bh,msg,caller)
          end select
       case(PEXSI_SOLVER)
          select case(eh%ph%matrix_format)
@@ -1588,7 +1712,8 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
             call elsi_pexsi_to_generic_dm(eh%ph,eh%bh,eh%dm_real_sp,&
                  eh%row_ind_sp1,eh%col_ptr_sp1,eh%map_sp1,edm,eh%perm_sp3)
          case default
-            call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+            write(msg,"(A)") "Unsupported matrix format."
+            call elsi_stop(eh%bh,msg,caller)
          end select
       case(SIPS_SOLVER)
          select case(eh%ph%matrix_format)
@@ -1607,7 +1732,8 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
             call elsi_sips_to_generic_dm(eh%ph,eh%bh,eh%dm_real_sp,&
                  eh%row_ind_sp1,eh%col_ptr_sp1,eh%map_sp1,edm,eh%perm_sp3)
          case default
-            call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+            write(msg,"(A)") "Unsupported matrix format."
+            call elsi_stop(eh%bh,msg,caller)
          end select
       case(NTPOLY_SOLVER)
          call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
@@ -1624,13 +1750,15 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
                  eh%ph%nt_map,edm,eh%perm_sp3)
          end select
       case default
-         call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
+         write(msg,"(A)") "Unsupported density matrix solver."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       eh%ph%edm_ready_real = .false.
    else
-      call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
-           " computed before density matrix.",caller)
+      write(msg,"(A)") "Energy-weighted density matrix cannot be computed"//&
+         " before density matrix."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%solver = solver_save
@@ -1648,6 +1776,7 @@ subroutine elsi_get_edm_complex(eh,edm)
    complex(kind=r8), intent(out) :: edm(eh%bh%n_lrow,eh%bh%n_lcol) !< Energy density matrix
 
    integer(kind=i4) :: solver_save
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_get_edm_complex"
 
@@ -1676,13 +1805,15 @@ subroutine elsi_get_edm_complex(eh,edm)
          call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
          call elsi_ntpoly_to_blacs_dm(eh%ph,eh%bh,eh%ph%nt_dm,edm)
       case default
-         call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
+         write(msg,"(A)") "Unsupported density matrix solver."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       eh%ph%edm_ready_cmplx = .false.
    else
-      call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
-           " computed before density matrix.",caller)
+      write(msg,"(A)") "Energy-weighted density matrix cannot be computed"//&
+         " before density matrix."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%solver = solver_save
@@ -1700,6 +1831,7 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
    complex(kind=r8), intent(out) :: edm(eh%bh%nnz_l_sp) !< Energy density matrix
 
    integer(kind=i4) :: solver_save
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_get_edm_complex_sparse"
 
@@ -1730,7 +1862,8 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
             call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_cmplx_den,&
                  eh%map_den,edm,eh%perm_sp3)
          case default
-            call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+            write(msg,"(A)") "Unsupported matrix format."
+            call elsi_stop(eh%bh,msg,caller)
          end select
       case(OMM_SOLVER)
          call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_cmplx,eh%dm_cmplx_den)
@@ -1746,7 +1879,8 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
             call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_cmplx_den,&
                  eh%map_den,edm,eh%perm_sp3)
          case default
-            call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+            write(msg,"(A)") "Unsupported matrix format."
+            call elsi_stop(eh%bh,msg,caller)
          end select
       case(PEXSI_SOLVER)
          select case(eh%ph%matrix_format)
@@ -1764,7 +1898,8 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
             call elsi_pexsi_to_generic_dm(eh%ph,eh%bh,eh%dm_cmplx_sp,&
                  eh%row_ind_sp1,eh%col_ptr_sp1,eh%map_sp1,edm,eh%perm_sp3)
          case default
-            call elsi_stop(eh%bh,"Unsupported matrix format.",caller)
+            write(msg,"(A)") "Unsupported matrix format."
+            call elsi_stop(eh%bh,msg,caller)
          end select
       case(NTPOLY_SOLVER)
          call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
@@ -1781,13 +1916,15 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
                  eh%ph%nt_map,edm,eh%perm_sp3)
          end select
       case default
-         call elsi_stop(eh%bh,"Unsupported density matrix solver.",caller)
+         write(msg,"(A)") "Unsupported density matrix solver."
+         call elsi_stop(eh%bh,msg,caller)
       end select
 
       eh%ph%edm_ready_cmplx = .false.
    else
-      call elsi_stop(eh%bh,"Energy-weighted density matrix cannot be"//&
-           " computed before density matrix.",caller)
+      write(msg,"(A)") "Energy-weighted density matrix cannot be computed"//&
+         " before density matrix."
+      call elsi_stop(eh%bh,msg,caller)
    end if
 
    eh%ph%solver = solver_save

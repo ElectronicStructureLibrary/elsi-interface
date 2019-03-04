@@ -68,9 +68,8 @@ function c_string_to_f_string(string_c) result(string_f)
 
 end function
 
-subroutine elsi_init_c_wrapper(h_c,solver,parallel_mode,matrix_format,n_basis,&
-   n_electron,n_state)&
-   bind(C,name="c_elsi_init")
+subroutine c_elsi_init(h_c,solver,parallel_mode,matrix_format,n_basis,&
+   n_electron,n_state) bind(C)
 
    implicit none
 
@@ -93,8 +92,7 @@ subroutine elsi_init_c_wrapper(h_c,solver,parallel_mode,matrix_format,n_basis,&
 
 end subroutine
 
-subroutine elsi_set_mpi_c_wrapper(h_c,mpi_comm)&
-   bind(C,name="c_elsi_set_mpi")
+subroutine c_elsi_set_mpi(h_c,mpi_comm) bind(C)
 
    implicit none
 
@@ -109,8 +107,7 @@ subroutine elsi_set_mpi_c_wrapper(h_c,mpi_comm)&
 
 end subroutine
 
-subroutine elsi_set_mpi_global_c_wrapper(h_c,mpi_comm_global)&
-   bind(C,name="c_elsi_set_mpi_global")
+subroutine c_elsi_set_mpi_global(h_c,mpi_comm_global) bind(C)
 
    implicit none
 
@@ -125,8 +122,7 @@ subroutine elsi_set_mpi_global_c_wrapper(h_c,mpi_comm_global)&
 
 end subroutine
 
-subroutine elsi_set_spin_c_wrapper(h_c,n_spin,i_spin)&
-   bind(C,name="c_elsi_set_spin")
+subroutine c_elsi_set_spin(h_c,n_spin,i_spin) bind(C)
 
    implicit none
 
@@ -142,8 +138,7 @@ subroutine elsi_set_spin_c_wrapper(h_c,n_spin,i_spin)&
 
 end subroutine
 
-subroutine elsi_set_kpoint_c_wrapper(h_c,n_kpt,i_kpt,i_wt)&
-   bind(C,name="c_elsi_set_kpoint")
+subroutine c_elsi_set_kpoint(h_c,n_kpt,i_kpt,i_wt) bind(C)
 
    implicit none
 
@@ -160,8 +155,7 @@ subroutine elsi_set_kpoint_c_wrapper(h_c,n_kpt,i_kpt,i_wt)&
 
 end subroutine
 
-subroutine elsi_set_blacs_c_wrapper(h_c,blacs_ctxt,block_size)&
-   bind(C,name="c_elsi_set_blacs")
+subroutine c_elsi_set_blacs(h_c,blacs_ctxt,block_size) bind(C)
 
    implicit none
 
@@ -177,8 +171,7 @@ subroutine elsi_set_blacs_c_wrapper(h_c,blacs_ctxt,block_size)&
 
 end subroutine
 
-subroutine elsi_set_csc_c_wrapper(h_c,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)&
-   bind(C,name="c_elsi_set_csc")
+subroutine c_elsi_set_csc(h_c,nnz_g,nnz_l,n_lcol,row_ind,col_ptr) bind(C)
 
    implicit none
 
@@ -197,8 +190,7 @@ subroutine elsi_set_csc_c_wrapper(h_c,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)&
 
 end subroutine
 
-subroutine elsi_set_csc_blk_c_wrapper(h_c,blk)&
-   bind(C,name="c_elsi_set_csc_blk")
+subroutine c_elsi_set_csc_blk(h_c,blk) bind(C)
 
    implicit none
 
@@ -213,8 +205,7 @@ subroutine elsi_set_csc_blk_c_wrapper(h_c,blk)&
 
 end subroutine
 
-subroutine elsi_set_coo_c_wrapper(h_c,nnz_g,nnz_l,row_ind,col_ind)&
-   bind(C,name="c_elsi_set_coo")
+subroutine c_elsi_set_coo(h_c,nnz_g,nnz_l,row_ind,col_ind) bind(C)
 
    implicit none
 
@@ -232,8 +223,7 @@ subroutine elsi_set_coo_c_wrapper(h_c,nnz_g,nnz_l,row_ind,col_ind)&
 
 end subroutine
 
-subroutine elsi_reinit_c_wrapper(h_c)&
-   bind(C,name="c_elsi_reinit")
+subroutine c_elsi_reinit(h_c) bind(C)
 
    implicit none
 
@@ -247,8 +237,7 @@ subroutine elsi_reinit_c_wrapper(h_c)&
 
 end subroutine
 
-subroutine elsi_finalize_c_wrapper(h_c)&
-   bind(C,name="c_elsi_finalize")
+subroutine c_elsi_finalize(h_c) bind(C)
 
    implicit none
 
@@ -262,8 +251,7 @@ subroutine elsi_finalize_c_wrapper(h_c)&
 
 end subroutine
 
-subroutine elsi_ev_real_c_wrapper(h_c,ham_c,ovlp_c,eval_c,evec_c)&
-   bind(C,name="c_elsi_ev_real")
+subroutine c_elsi_ev_real(h_c,ham_c,ovlp_c,eval_c,evec_c) bind(C)
 
    implicit none
 
@@ -298,8 +286,7 @@ subroutine elsi_ev_real_c_wrapper(h_c,ham_c,ovlp_c,eval_c,evec_c)&
 
 end subroutine
 
-subroutine elsi_ev_complex_c_wrapper(h_c,ham_c,ovlp_c,eval_c,evec_c)&
-   bind(C,name="c_elsi_ev_complex")
+subroutine c_elsi_ev_complex(h_c,ham_c,ovlp_c,eval_c,evec_c) bind(C)
 
    implicit none
 
@@ -334,8 +321,7 @@ subroutine elsi_ev_complex_c_wrapper(h_c,ham_c,ovlp_c,eval_c,evec_c)&
 
 end subroutine
 
-subroutine elsi_ev_real_sparse_c_wrapper(h_c,ham_c,ovlp_c,eval_c,evec_c)&
-   bind(C,name="c_elsi_ev_real_sparse")
+subroutine c_elsi_ev_real_sparse(h_c,ham_c,ovlp_c,eval_c,evec_c) bind(C)
 
    implicit none
 
@@ -372,8 +358,7 @@ subroutine elsi_ev_real_sparse_c_wrapper(h_c,ham_c,ovlp_c,eval_c,evec_c)&
 
 end subroutine
 
-subroutine elsi_ev_complex_sparse_c_wrapper(h_c,ham_c,ovlp_c,eval_c,evec_c)&
-   bind(C,name="c_elsi_ev_complex_sparse")
+subroutine c_elsi_ev_complex_sparse(h_c,ham_c,ovlp_c,eval_c,evec_c) bind(C)
 
    implicit none
 
@@ -410,8 +395,7 @@ subroutine elsi_ev_complex_sparse_c_wrapper(h_c,ham_c,ovlp_c,eval_c,evec_c)&
 
 end subroutine
 
-subroutine elsi_dm_real_c_wrapper(h_c,ham_c,ovlp_c,dm_c,energy)&
-   bind(C,name="c_elsi_dm_real")
+subroutine c_elsi_dm_real(h_c,ham_c,ovlp_c,dm_c,energy) bind(C)
 
    implicit none
 
@@ -442,8 +426,7 @@ subroutine elsi_dm_real_c_wrapper(h_c,ham_c,ovlp_c,dm_c,energy)&
 
 end subroutine
 
-subroutine elsi_dm_complex_c_wrapper(h_c,ham_c,ovlp_c,dm_c,energy)&
-   bind(C,name="c_elsi_dm_complex")
+subroutine c_elsi_dm_complex(h_c,ham_c,ovlp_c,dm_c,energy) bind(C)
 
    implicit none
 
@@ -474,8 +457,7 @@ subroutine elsi_dm_complex_c_wrapper(h_c,ham_c,ovlp_c,dm_c,energy)&
 
 end subroutine
 
-subroutine elsi_dm_real_sparse_c_wrapper(h_c,ham_c,ovlp_c,dm_c,energy)&
-   bind(C,name="c_elsi_dm_real_sparse")
+subroutine c_elsi_dm_real_sparse(h_c,ham_c,ovlp_c,dm_c,energy) bind(C)
 
    implicit none
 
@@ -504,8 +486,7 @@ subroutine elsi_dm_real_sparse_c_wrapper(h_c,ham_c,ovlp_c,dm_c,energy)&
 
 end subroutine
 
-subroutine elsi_dm_complex_sparse_c_wrapper(h_c,ham_c,ovlp_c,dm_c,energy)&
-   bind(C,name="c_elsi_dm_complex_sparse")
+subroutine c_elsi_dm_complex_sparse(h_c,ham_c,ovlp_c,dm_c,energy) bind(C)
 
    implicit none
 
@@ -534,8 +515,7 @@ subroutine elsi_dm_complex_sparse_c_wrapper(h_c,ham_c,ovlp_c,dm_c,energy)&
 
 end subroutine
 
-subroutine elsi_set_output_c_wrapper(h_c,output)&
-   bind(C,name="c_elsi_set_output")
+subroutine c_elsi_set_output(h_c,output) bind(C)
 
    implicit none
 
@@ -550,8 +530,7 @@ subroutine elsi_set_output_c_wrapper(h_c,output)&
 
 end subroutine
 
-subroutine elsi_set_output_log_c_wrapper(h_c,output_log)&
-   bind(C,name="c_elsi_set_output_log")
+subroutine c_elsi_set_output_log(h_c,output_log) bind(C)
 
    implicit none
 
@@ -566,8 +545,7 @@ subroutine elsi_set_output_log_c_wrapper(h_c,output_log)&
 
 end subroutine
 
-subroutine elsi_set_n_basis_c_wrapper(h_c,n_basis)&
-   bind(C,name="c_elsi_set_n_basis")
+subroutine c_elsi_set_n_basis(h_c,n_basis) bind(C)
 
    implicit none
 
@@ -582,8 +560,7 @@ subroutine elsi_set_n_basis_c_wrapper(h_c,n_basis)&
 
 end subroutine
 
-subroutine elsi_set_save_ovlp_c_wrapper(h_c,save_ovlp)&
-   bind(C,name="c_elsi_set_save_ovlp")
+subroutine c_elsi_set_save_ovlp(h_c,save_ovlp) bind(C)
 
    implicit none
 
@@ -598,8 +575,7 @@ subroutine elsi_set_save_ovlp_c_wrapper(h_c,save_ovlp)&
 
 end subroutine
 
-subroutine elsi_set_unit_ovlp_c_wrapper(h_c,unit_ovlp)&
-   bind(C,name="c_elsi_set_unit_ovlp")
+subroutine c_elsi_set_unit_ovlp(h_c,unit_ovlp) bind(C)
 
    implicit none
 
@@ -614,8 +590,7 @@ subroutine elsi_set_unit_ovlp_c_wrapper(h_c,unit_ovlp)&
 
 end subroutine
 
-subroutine elsi_set_zero_def_c_wrapper(h_c,zero_def)&
-   bind(C,name="c_elsi_set_zero_def")
+subroutine c_elsi_set_zero_def(h_c,zero_def) bind(C)
 
    implicit none
 
@@ -630,8 +605,7 @@ subroutine elsi_set_zero_def_c_wrapper(h_c,zero_def)&
 
 end subroutine
 
-subroutine elsi_set_illcond_check_c_wrapper(h_c,illcond_check)&
-   bind(C,name="c_elsi_set_illcond_check")
+subroutine c_elsi_set_illcond_check(h_c,illcond_check) bind(C)
 
    implicit none
 
@@ -646,8 +620,7 @@ subroutine elsi_set_illcond_check_c_wrapper(h_c,illcond_check)&
 
 end subroutine
 
-subroutine elsi_set_illcond_tol_c_wrapper(h_c,illcond_tol)&
-   bind(C,name="c_elsi_set_illcond_tol")
+subroutine c_elsi_set_illcond_tol(h_c,illcond_tol) bind(C)
 
    implicit none
 
@@ -662,8 +635,7 @@ subroutine elsi_set_illcond_tol_c_wrapper(h_c,illcond_tol)&
 
 end subroutine
 
-subroutine elsi_set_illcond_abort_c_wrapper(h_c,illcond_abort)&
-   bind(C,name="c_elsi_set_illcond_abort")
+subroutine c_elsi_set_illcond_abort(h_c,illcond_abort) bind(C)
 
    implicit none
 
@@ -678,8 +650,7 @@ subroutine elsi_set_illcond_abort_c_wrapper(h_c,illcond_abort)&
 
 end subroutine
 
-subroutine elsi_set_sing_check_c_wrapper(h_c,sing_check)&
-   bind(C,name="c_elsi_set_sing_check")
+subroutine c_elsi_set_sing_check(h_c,sing_check) bind(C)
 
    implicit none
 
@@ -694,8 +665,7 @@ subroutine elsi_set_sing_check_c_wrapper(h_c,sing_check)&
 
 end subroutine
 
-subroutine elsi_set_sing_tol_c_wrapper(h_c,sing_tol)&
-   bind(C,name="c_elsi_set_sing_tol")
+subroutine c_elsi_set_sing_tol(h_c,sing_tol) bind(C)
 
    implicit none
 
@@ -710,8 +680,7 @@ subroutine elsi_set_sing_tol_c_wrapper(h_c,sing_tol)&
 
 end subroutine
 
-subroutine elsi_set_sing_stop_c_wrapper(h_c,sing_stop)&
-   bind(C,name="c_elsi_set_sing_stop")
+subroutine c_elsi_set_sing_stop(h_c,sing_stop) bind(C)
 
    implicit none
 
@@ -726,8 +695,7 @@ subroutine elsi_set_sing_stop_c_wrapper(h_c,sing_stop)&
 
 end subroutine
 
-subroutine elsi_set_energy_gap_c_wrapper(h_c,gap)&
-   bind(C,name="c_elsi_set_energy_gap")
+subroutine c_elsi_set_energy_gap(h_c,gap) bind(C)
 
    implicit none
 
@@ -742,8 +710,7 @@ subroutine elsi_set_energy_gap_c_wrapper(h_c,gap)&
 
 end subroutine
 
-subroutine elsi_set_spectrum_width_c_wrapper(h_c,width)&
-   bind(C,name="c_elsi_set_spectrum_width")
+subroutine c_elsi_set_spectrum_width(h_c,width) bind(C)
 
    implicit none
 
@@ -758,8 +725,7 @@ subroutine elsi_set_spectrum_width_c_wrapper(h_c,width)&
 
 end subroutine
 
-subroutine elsi_set_dimensionality_c_wrapper(h_c,dimensionality)&
-   bind(C,name="c_elsi_set_dimensionality")
+subroutine c_elsi_set_dimensionality(h_c,dimensionality) bind(C)
 
    implicit none
 
@@ -774,8 +740,7 @@ subroutine elsi_set_dimensionality_c_wrapper(h_c,dimensionality)&
 
 end subroutine
 
-subroutine elsi_set_elpa_solver_c_wrapper(h_c,solver)&
-   bind(C,name="c_elsi_set_elpa_solver")
+subroutine c_elsi_set_elpa_solver(h_c,solver) bind(C)
 
    implicit none
 
@@ -790,8 +755,7 @@ subroutine elsi_set_elpa_solver_c_wrapper(h_c,solver)&
 
 end subroutine
 
-subroutine elsi_set_elpa_n_single_c_wrapper(h_c,n_single)&
-   bind(C,name="c_elsi_set_elpa_n_single")
+subroutine c_elsi_set_elpa_n_single(h_c,n_single) bind(C)
 
    implicit none
 
@@ -806,8 +770,7 @@ subroutine elsi_set_elpa_n_single_c_wrapper(h_c,n_single)&
 
 end subroutine
 
-subroutine elsi_set_elpa_gpu_c_wrapper(h_c,gpu)&
-   bind(C,name="c_elsi_set_elpa_gpu")
+subroutine c_elsi_set_elpa_gpu(h_c,gpu) bind(C)
 
    implicit none
 
@@ -822,8 +785,7 @@ subroutine elsi_set_elpa_gpu_c_wrapper(h_c,gpu)&
 
 end subroutine
 
-subroutine elsi_set_elpa_gpu_kernels_c_wrapper(h_c,gpu_kernels)&
-   bind(C,name="c_elsi_set_elpa_gpu_kernels")
+subroutine c_elsi_set_elpa_gpu_kernels(h_c,gpu_kernels) bind(C)
 
    implicit none
 
@@ -838,8 +800,7 @@ subroutine elsi_set_elpa_gpu_kernels_c_wrapper(h_c,gpu_kernels)&
 
 end subroutine
 
-subroutine elsi_set_elpa_autotune_c_wrapper(h_c,autotune)&
-   bind(C,name="c_elsi_set_elpa_autotune")
+subroutine c_elsi_set_elpa_autotune(h_c,autotune) bind(C)
 
    implicit none
 
@@ -854,8 +815,7 @@ subroutine elsi_set_elpa_autotune_c_wrapper(h_c,autotune)&
 
 end subroutine
 
-subroutine elsi_set_omm_flavor_c_wrapper(h_c,flavor)&
-   bind(C,name="c_elsi_set_omm_flavor")
+subroutine c_elsi_set_omm_flavor(h_c,flavor) bind(C)
 
    implicit none
 
@@ -870,8 +830,7 @@ subroutine elsi_set_omm_flavor_c_wrapper(h_c,flavor)&
 
 end subroutine
 
-subroutine elsi_set_omm_n_elpa_c_wrapper(h_c,n_elpa)&
-   bind(C,name="c_elsi_set_omm_n_elpa")
+subroutine c_elsi_set_omm_n_elpa(h_c,n_elpa) bind(C)
 
    implicit none
 
@@ -886,8 +845,7 @@ subroutine elsi_set_omm_n_elpa_c_wrapper(h_c,n_elpa)&
 
 end subroutine
 
-subroutine elsi_set_omm_tol_c_wrapper(h_c,tol)&
-   bind(C,name="c_elsi_set_omm_tol")
+subroutine c_elsi_set_omm_tol(h_c,tol) bind(C)
 
    implicit none
 
@@ -902,8 +860,7 @@ subroutine elsi_set_omm_tol_c_wrapper(h_c,tol)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_n_mu_c_wrapper(h_c,n_mu)&
-   bind(C,name="c_elsi_set_pexsi_n_mu")
+subroutine c_elsi_set_pexsi_n_mu(h_c,n_mu) bind(C)
 
    implicit none
 
@@ -918,8 +875,7 @@ subroutine elsi_set_pexsi_n_mu_c_wrapper(h_c,n_mu)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_n_pole_c_wrapper(h_c,n_pole)&
-   bind(C,name="c_elsi_set_pexsi_n_pole")
+subroutine c_elsi_set_pexsi_n_pole(h_c,n_pole) bind(C)
 
    implicit none
 
@@ -934,8 +890,7 @@ subroutine elsi_set_pexsi_n_pole_c_wrapper(h_c,n_pole)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_np_per_pole_c_wrapper(h_c,np_per_pole)&
-   bind(C,name="c_elsi_set_pexsi_np_per_pole")
+subroutine c_elsi_set_pexsi_np_per_pole(h_c,np_per_pole) bind(C)
 
    implicit none
 
@@ -950,8 +905,7 @@ subroutine elsi_set_pexsi_np_per_pole_c_wrapper(h_c,np_per_pole)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_np_symbo_c_wrapper(h_c,np_symbo)&
-   bind(C,name="c_elsi_set_pexsi_np_symbo")
+subroutine c_elsi_set_pexsi_np_symbo(h_c,np_symbo) bind(C)
 
    implicit none
 
@@ -966,8 +920,7 @@ subroutine elsi_set_pexsi_np_symbo_c_wrapper(h_c,np_symbo)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_ordering_c_wrapper(h_c,ordering)&
-   bind(C,name="c_elsi_set_pexsi_ordering")
+subroutine c_elsi_set_pexsi_ordering(h_c,ordering) bind(C)
 
    implicit none
 
@@ -982,8 +935,7 @@ subroutine elsi_set_pexsi_ordering_c_wrapper(h_c,ordering)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_temp_c_wrapper(h_c,temp)&
-   bind(C,name="c_elsi_set_pexsi_temp")
+subroutine c_elsi_set_pexsi_temp(h_c,temp) bind(C)
 
    implicit none
 
@@ -998,8 +950,7 @@ subroutine elsi_set_pexsi_temp_c_wrapper(h_c,temp)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_gap_c_wrapper(h_c,gap)&
-   bind(C,name="c_elsi_set_pexsi_gap")
+subroutine c_elsi_set_pexsi_gap(h_c,gap) bind(C)
 
    implicit none
 
@@ -1014,8 +965,7 @@ subroutine elsi_set_pexsi_gap_c_wrapper(h_c,gap)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_delta_e_c_wrapper(h_c,delta_e)&
-   bind(C,name="c_elsi_set_pexsi_delta_e")
+subroutine c_elsi_set_pexsi_delta_e(h_c,delta_e) bind(C)
 
    implicit none
 
@@ -1030,8 +980,7 @@ subroutine elsi_set_pexsi_delta_e_c_wrapper(h_c,delta_e)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_mu_min_c_wrapper(h_c,mu_min)&
-   bind(C,name="c_elsi_set_pexsi_mu_min")
+subroutine c_elsi_set_pexsi_mu_min(h_c,mu_min) bind(C)
 
    implicit none
 
@@ -1046,8 +995,7 @@ subroutine elsi_set_pexsi_mu_min_c_wrapper(h_c,mu_min)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_mu_max_c_wrapper(h_c,mu_max)&
-   bind(C,name="c_elsi_set_pexsi_mu_max")
+subroutine c_elsi_set_pexsi_mu_max(h_c,mu_max) bind(C)
 
    implicit none
 
@@ -1062,8 +1010,7 @@ subroutine elsi_set_pexsi_mu_max_c_wrapper(h_c,mu_max)&
 
 end subroutine
 
-subroutine elsi_set_pexsi_inertia_tol_c_wrapper(h_c,inertia_tol)&
-   bind(C,name="c_elsi_set_pexsi_inertia_tol")
+subroutine c_elsi_set_pexsi_inertia_tol(h_c,inertia_tol) bind(C)
 
    implicit none
 
@@ -1078,8 +1025,7 @@ subroutine elsi_set_pexsi_inertia_tol_c_wrapper(h_c,inertia_tol)&
 
 end subroutine
 
-subroutine elsi_set_sips_n_elpa_c_wrapper(h_c,n_elpa)&
-   bind(C,name="c_elsi_set_sips_n_elpa")
+subroutine c_elsi_set_sips_n_elpa(h_c,n_elpa) bind(C)
 
    implicit none
 
@@ -1094,8 +1040,7 @@ subroutine elsi_set_sips_n_elpa_c_wrapper(h_c,n_elpa)&
 
 end subroutine
 
-subroutine elsi_set_sips_n_slice_c_wrapper(h_c,n_slice)&
-   bind(C,name="c_elsi_set_sips_n_slice")
+subroutine c_elsi_set_sips_n_slice(h_c,n_slice) bind(C)
 
    implicit none
 
@@ -1110,8 +1055,7 @@ subroutine elsi_set_sips_n_slice_c_wrapper(h_c,n_slice)&
 
 end subroutine
 
-subroutine elsi_set_sips_slice_type_c_wrapper(h_c,slice_type)&
-   bind(C,name="c_elsi_set_sips_slice_type")
+subroutine c_elsi_set_sips_slice_type(h_c,slice_type) bind(C)
 
    implicit none
 
@@ -1126,8 +1070,7 @@ subroutine elsi_set_sips_slice_type_c_wrapper(h_c,slice_type)&
 
 end subroutine
 
-subroutine elsi_set_sips_buffer_c_wrapper(h_c,buffer)&
-   bind(C,name="c_elsi_set_sips_buffer")
+subroutine c_elsi_set_sips_buffer(h_c,buffer) bind(C)
 
    implicit none
 
@@ -1142,8 +1085,7 @@ subroutine elsi_set_sips_buffer_c_wrapper(h_c,buffer)&
 
 end subroutine
 
-subroutine elsi_set_sips_inertia_tol_c_wrapper(h_c,inertia_tol)&
-   bind(C,name="c_elsi_set_sips_inertia_tol")
+subroutine c_elsi_set_sips_inertia_tol(h_c,inertia_tol) bind(C)
 
    implicit none
 
@@ -1158,8 +1100,7 @@ subroutine elsi_set_sips_inertia_tol_c_wrapper(h_c,inertia_tol)&
 
 end subroutine
 
-subroutine elsi_set_sips_ev_min_c_wrapper(h_c,ev_min)&
-   bind(C,name="c_elsi_set_sips_ev_min")
+subroutine c_elsi_set_sips_ev_min(h_c,ev_min) bind(C)
 
    implicit none
 
@@ -1174,8 +1115,7 @@ subroutine elsi_set_sips_ev_min_c_wrapper(h_c,ev_min)&
 
 end subroutine
 
-subroutine elsi_set_sips_ev_max_c_wrapper(h_c,ev_max)&
-   bind(C,name="c_elsi_set_sips_ev_max")
+subroutine c_elsi_set_sips_ev_max(h_c,ev_max) bind(C)
 
    implicit none
 
@@ -1190,8 +1130,7 @@ subroutine elsi_set_sips_ev_max_c_wrapper(h_c,ev_max)&
 
 end subroutine
 
-subroutine elsi_set_sips_interval_c_wrapper(h_c,lower,upper)&
-   bind(C,name="c_elsi_set_sips_interval")
+subroutine c_elsi_set_sips_interval(h_c,lower,upper) bind(C)
 
    implicit none
 
@@ -1208,8 +1147,7 @@ subroutine elsi_set_sips_interval_c_wrapper(h_c,lower,upper)&
 
 end subroutine
 
-subroutine elsi_set_ntpoly_method_c_wrapper(h_c,method)&
-   bind(C,name="c_elsi_set_ntpoly_method")
+subroutine c_elsi_set_ntpoly_method(h_c,method) bind(C)
 
    implicit none
 
@@ -1224,8 +1162,7 @@ subroutine elsi_set_ntpoly_method_c_wrapper(h_c,method)&
 
 end subroutine
 
-subroutine elsi_set_ntpoly_isr_c_wrapper(h_c,isr)&
-   bind(C,name="c_elsi_set_ntpoly_isr")
+subroutine c_elsi_set_ntpoly_isr(h_c,isr) bind(C)
 
    implicit none
 
@@ -1240,8 +1177,7 @@ subroutine elsi_set_ntpoly_isr_c_wrapper(h_c,isr)&
 
 end subroutine
 
-subroutine elsi_set_ntpoly_tol_c_wrapper(h_c,tol)&
-   bind(C,name="c_elsi_set_ntpoly_tol")
+subroutine c_elsi_set_ntpoly_tol(h_c,tol) bind(C)
 
    implicit none
 
@@ -1256,8 +1192,7 @@ subroutine elsi_set_ntpoly_tol_c_wrapper(h_c,tol)&
 
 end subroutine
 
-subroutine elsi_set_ntpoly_filter_c_wrapper(h_c,filter)&
-   bind(C,name="c_elsi_set_ntpoly_filter")
+subroutine c_elsi_set_ntpoly_filter(h_c,filter) bind(C)
 
    implicit none
 
@@ -1272,8 +1207,7 @@ subroutine elsi_set_ntpoly_filter_c_wrapper(h_c,filter)&
 
 end subroutine
 
-subroutine elsi_set_ntpoly_max_iter_c_wrapper(h_c,max_iter)&
-   bind(C,name="c_elsi_set_ntpoly_max_iter")
+subroutine c_elsi_set_ntpoly_max_iter(h_c,max_iter) bind(C)
 
    implicit none
 
@@ -1288,8 +1222,7 @@ subroutine elsi_set_ntpoly_max_iter_c_wrapper(h_c,max_iter)&
 
 end subroutine
 
-subroutine elsi_set_ntpoly_n_layer_c_wrapper(h_c,n_layer)&
-   bind(C,name="c_elsi_set_ntpoly_n_layer")
+subroutine c_elsi_set_ntpoly_n_layer(h_c,n_layer) bind(C)
 
    implicit none
 
@@ -1304,8 +1237,7 @@ subroutine elsi_set_ntpoly_n_layer_c_wrapper(h_c,n_layer)&
 
 end subroutine
 
-subroutine elsi_set_mu_broaden_scheme_c_wrapper(h_c,broaden_scheme)&
-   bind(C,name="c_elsi_set_mu_broaden_scheme")
+subroutine c_elsi_set_mu_broaden_scheme(h_c,broaden_scheme) bind(C)
 
    implicit none
 
@@ -1320,8 +1252,7 @@ subroutine elsi_set_mu_broaden_scheme_c_wrapper(h_c,broaden_scheme)&
 
 end subroutine
 
-subroutine elsi_set_mu_broaden_width_c_wrapper(h_c,broaden_width)&
-   bind(C,name="c_elsi_set_mu_broaden_width")
+subroutine c_elsi_set_mu_broaden_width(h_c,broaden_width) bind(C)
 
    implicit none
 
@@ -1336,8 +1267,7 @@ subroutine elsi_set_mu_broaden_width_c_wrapper(h_c,broaden_width)&
 
 end subroutine
 
-subroutine elsi_set_mu_tol_c_wrapper(h_c,tol)&
-   bind(C,name="c_elsi_set_mu_tol")
+subroutine c_elsi_set_mu_tol(h_c,tol) bind(C)
 
    implicit none
 
@@ -1352,8 +1282,7 @@ subroutine elsi_set_mu_tol_c_wrapper(h_c,tol)&
 
 end subroutine
 
-subroutine elsi_set_mu_spin_degen_c_wrapper(h_c,spin_degen)&
-   bind(C,name="c_elsi_set_mu_spin_degen")
+subroutine c_elsi_set_mu_spin_degen(h_c,spin_degen) bind(C)
 
    implicit none
 
@@ -1368,8 +1297,7 @@ subroutine elsi_set_mu_spin_degen_c_wrapper(h_c,spin_degen)&
 
 end subroutine
 
-subroutine elsi_set_mu_mp_order_c_wrapper(h_c,mp_order)&
-   bind(C,name="c_elsi_set_mu_mp_order")
+subroutine c_elsi_set_mu_mp_order(h_c,mp_order) bind(C)
 
    implicit none
 
@@ -1384,8 +1312,7 @@ subroutine elsi_set_mu_mp_order_c_wrapper(h_c,mp_order)&
 
 end subroutine
 
-subroutine elsi_get_initialized_c_wrapper(h_c,initialized)&
-   bind(C,name="c_elsi_get_initialized")
+subroutine c_elsi_get_initialized(h_c,initialized) bind(C)
 
    implicit none
 
@@ -1400,8 +1327,7 @@ subroutine elsi_get_initialized_c_wrapper(h_c,initialized)&
 
 end subroutine
 
-subroutine elsi_get_version_c_wrapper(major,minor,patch)&
-   bind(C,name="c_elsi_get_version")
+subroutine c_elsi_get_version(major,minor,patch) bind(C)
 
    implicit none
 
@@ -1413,8 +1339,7 @@ subroutine elsi_get_version_c_wrapper(major,minor,patch)&
 
 end subroutine
 
-subroutine elsi_get_datestamp_c_wrapper(datestamp)&
-   bind(C,name="c_elsi_get_datestamp")
+subroutine c_elsi_get_datestamp(datestamp) bind(C)
 
    implicit none
 
@@ -1424,8 +1349,7 @@ subroutine elsi_get_datestamp_c_wrapper(datestamp)&
 
 end subroutine
 
-subroutine elsi_get_solver_c_wrapper(h_c,solver)&
-   bind(C,name="c_elsi_get_solver")
+subroutine c_elsi_get_solver(h_c,solver) bind(C)
 
    implicit none
 
@@ -1440,8 +1364,7 @@ subroutine elsi_get_solver_c_wrapper(h_c,solver)&
 
 end subroutine
 
-subroutine elsi_get_n_illcond_c_wrapper(h_c,n_illcond)&
-   bind(C,name="c_elsi_get_n_illcond")
+subroutine c_elsi_get_n_illcond(h_c,n_illcond) bind(C)
 
    implicit none
 
@@ -1456,8 +1379,7 @@ subroutine elsi_get_n_illcond_c_wrapper(h_c,n_illcond)&
 
 end subroutine
 
-subroutine elsi_get_n_sing_c_wrapper(h_c,n_sing)&
-   bind(C,name="c_elsi_get_n_sing")
+subroutine c_elsi_get_n_sing(h_c,n_sing) bind(C)
 
    implicit none
 
@@ -1472,8 +1394,37 @@ subroutine elsi_get_n_sing_c_wrapper(h_c,n_sing)&
 
 end subroutine
 
-subroutine elsi_get_pexsi_mu_min_c_wrapper(h_c,mu_min)&
-   bind(C,name="c_elsi_get_pexsi_mu_min")
+subroutine c_elsi_get_ovlp_ev_min(h_c,ev_min) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   real(kind=c_double), intent(out) :: ev_min
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_get_ovlp_ev_min(h_f,ev_min)
+
+end subroutine
+
+subroutine c_elsi_get_ovlp_ev_max(h_c,ev_max) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   real(kind=c_double), intent(out) :: ev_max
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_get_ovlp_ev_max(h_f,ev_max)
+
+end subroutine
+
+subroutine c_elsi_get_pexsi_mu_min(h_c,mu_min) bind(C)
 
    implicit none
 
@@ -1488,8 +1439,7 @@ subroutine elsi_get_pexsi_mu_min_c_wrapper(h_c,mu_min)&
 
 end subroutine
 
-subroutine elsi_get_pexsi_mu_max_c_wrapper(h_c,mu_max)&
-   bind(C,name="c_elsi_get_pexsi_mu_max")
+subroutine c_elsi_get_pexsi_mu_max(h_c,mu_max) bind(C)
 
    implicit none
 
@@ -1504,8 +1454,7 @@ subroutine elsi_get_pexsi_mu_max_c_wrapper(h_c,mu_max)&
 
 end subroutine
 
-subroutine elsi_get_mu_c_wrapper(h_c,mu)&
-   bind(C,name="c_elsi_get_mu")
+subroutine c_elsi_get_mu(h_c,mu) bind(C)
 
    implicit none
 
@@ -1520,8 +1469,7 @@ subroutine elsi_get_mu_c_wrapper(h_c,mu)&
 
 end subroutine
 
-subroutine elsi_get_entropy_c_wrapper(h_c,entropy)&
-   bind(C,name="c_elsi_get_entropy")
+subroutine c_elsi_get_entropy(h_c,entropy) bind(C)
 
    implicit none
 
@@ -1536,8 +1484,7 @@ subroutine elsi_get_entropy_c_wrapper(h_c,entropy)&
 
 end subroutine
 
-subroutine elsi_get_edm_real_c_wrapper(h_c,edm_c)&
-   bind(C,name="c_elsi_get_edm_real")
+subroutine c_elsi_get_edm_real(h_c,edm_c) bind(C)
 
    implicit none
 
@@ -1561,8 +1508,7 @@ subroutine elsi_get_edm_real_c_wrapper(h_c,edm_c)&
 
 end subroutine
 
-subroutine elsi_get_edm_complex_c_wrapper(h_c,edm_c)&
-   bind(C,name="c_elsi_get_edm_complex")
+subroutine c_elsi_get_edm_complex(h_c,edm_c) bind(C)
 
    implicit none
 
@@ -1586,8 +1532,7 @@ subroutine elsi_get_edm_complex_c_wrapper(h_c,edm_c)&
 
 end subroutine
 
-subroutine elsi_get_edm_real_sparse_c_wrapper(h_c,edm_c)&
-   bind(C,name="c_elsi_get_edm_real_sparse")
+subroutine c_elsi_get_edm_real_sparse(h_c,edm_c) bind(C)
 
    implicit none
 
@@ -1609,8 +1554,7 @@ subroutine elsi_get_edm_real_sparse_c_wrapper(h_c,edm_c)&
 
 end subroutine
 
-subroutine elsi_get_edm_complex_sparse_c_wrapper(h_c,edm_c)&
-   bind(C,name="c_elsi_get_edm_complex_sparse")
+subroutine c_elsi_get_edm_complex_sparse(h_c,edm_c) bind(C)
 
    implicit none
 
@@ -1632,8 +1576,7 @@ subroutine elsi_get_edm_complex_sparse_c_wrapper(h_c,edm_c)&
 
 end subroutine
 
-subroutine elsi_orthonormalize_ev_real_c_wrapper(h_c,ovlp_c,evec_c)&
-   bind(C,name="c_elsi_orthonormalize_ev_real")
+subroutine c_elsi_orthonormalize_ev_real(h_c,ovlp_c,evec_c) bind(C)
 
    implicit none
 
@@ -1660,8 +1603,7 @@ subroutine elsi_orthonormalize_ev_real_c_wrapper(h_c,ovlp_c,evec_c)&
 
 end subroutine
 
-subroutine elsi_orthonormalize_ev_complex_c_wrapper(h_c,ovlp_c,evec_c)&
-   bind(C,name="c_elsi_orthonormalize_ev_complex")
+subroutine c_elsi_orthonormalize_ev_complex(h_c,ovlp_c,evec_c) bind(C)
 
    implicit none
 
@@ -1688,8 +1630,7 @@ subroutine elsi_orthonormalize_ev_complex_c_wrapper(h_c,ovlp_c,evec_c)&
 
 end subroutine
 
-subroutine elsi_extrapolate_dm_real_c_wrapper(h_c,ovlp_c,dm_c)&
-   bind(C,name="c_elsi_extrapolate_dm_real")
+subroutine c_elsi_extrapolate_dm_real(h_c,ovlp_c,dm_c) bind(C)
 
    implicit none
 
@@ -1716,8 +1657,7 @@ subroutine elsi_extrapolate_dm_real_c_wrapper(h_c,ovlp_c,dm_c)&
 
 end subroutine
 
-subroutine elsi_extrapolate_dm_complex_c_wrapper(h_c,ovlp_c,dm_c)&
-   bind(C,name="c_elsi_extrapolate_dm_complex")
+subroutine c_elsi_extrapolate_dm_complex(h_c,ovlp_c,dm_c) bind(C)
 
    implicit none
 
@@ -1744,8 +1684,7 @@ subroutine elsi_extrapolate_dm_complex_c_wrapper(h_c,ovlp_c,dm_c)&
 
 end subroutine
 
-subroutine elsi_init_rw_c_wrapper(h_c,rw_task,parallel_mode,n_basis,n_electron)&
-   bind(C,name="c_elsi_init_rw")
+subroutine c_elsi_init_rw(h_c,rw_task,parallel_mode,n_basis,n_electron) bind(C)
 
    implicit none
 
@@ -1765,8 +1704,7 @@ subroutine elsi_init_rw_c_wrapper(h_c,rw_task,parallel_mode,n_basis,n_electron)&
 
 end subroutine
 
-subroutine elsi_set_rw_mpi_c_wrapper(h_c,mpi_comm)&
-   bind(C,name="c_elsi_set_rw_mpi")
+subroutine c_elsi_set_rw_mpi(h_c,mpi_comm) bind(C)
 
    implicit none
 
@@ -1781,8 +1719,7 @@ subroutine elsi_set_rw_mpi_c_wrapper(h_c,mpi_comm)&
 
 end subroutine
 
-subroutine elsi_set_rw_blacs_c_wrapper(h_c,blacs_ctxt,block_size)&
-   bind(C,name="c_elsi_set_rw_blacs")
+subroutine c_elsi_set_rw_blacs(h_c,blacs_ctxt,block_size) bind(C)
 
    implicit none
 
@@ -1798,8 +1735,7 @@ subroutine elsi_set_rw_blacs_c_wrapper(h_c,blacs_ctxt,block_size)&
 
 end subroutine
 
-subroutine elsi_set_rw_csc_c_wrapper(h_c,nnz_g,nnz_l,n_lcol)&
-   bind(C,name="c_elsi_set_rw_csc")
+subroutine c_elsi_set_rw_csc(h_c,nnz_g,nnz_l,n_lcol) bind(C)
 
    implicit none
 
@@ -1816,8 +1752,7 @@ subroutine elsi_set_rw_csc_c_wrapper(h_c,nnz_g,nnz_l,n_lcol)&
 
 end subroutine
 
-subroutine elsi_finalize_rw_c_wrapper(h_c)&
-   bind(C,name="c_elsi_finalize_rw")
+subroutine c_elsi_finalize_rw(h_c) bind(C)
 
    implicit none
 
@@ -1831,8 +1766,7 @@ subroutine elsi_finalize_rw_c_wrapper(h_c)&
 
 end subroutine
 
-subroutine elsi_set_rw_zero_def_c_wrapper(h_c,zero_def)&
-   bind(C,name="c_elsi_set_rw_zero_def")
+subroutine c_elsi_set_rw_zero_def(h_c,zero_def) bind(C)
 
    implicit none
 
@@ -1847,9 +1781,8 @@ subroutine elsi_set_rw_zero_def_c_wrapper(h_c,zero_def)&
 
 end subroutine
 
-subroutine elsi_read_mat_dim_c_wrapper(h_c,name_c,n_electrons,n_basis,n_lrow,&
-   n_lcol)&
-   bind(C,name="c_elsi_read_mat_dim")
+subroutine c_elsi_read_mat_dim(h_c,name_c,n_electrons,n_basis,n_lrow,n_lcol)&
+   bind(C)
 
    implicit none
 
@@ -1872,9 +1805,8 @@ subroutine elsi_read_mat_dim_c_wrapper(h_c,name_c,n_electrons,n_basis,n_lrow,&
 
 end subroutine
 
-subroutine elsi_read_mat_dim_sparse_c_wrapper(h_c,name_c,n_electrons,n_basis,&
-   nnz_g,nnz_l,n_lcol)&
-   bind(C,name="c_elsi_read_mat_dim_sparse")
+subroutine c_elsi_read_mat_dim_sparse(h_c,name_c,n_electrons,n_basis,nnz_g,&
+   nnz_l,n_lcol) bind(C)
 
    implicit none
 
@@ -1899,8 +1831,7 @@ subroutine elsi_read_mat_dim_sparse_c_wrapper(h_c,name_c,n_electrons,n_basis,&
 
 end subroutine
 
-subroutine elsi_read_mat_real_c_wrapper(h_c,name_c,mat_c)&
-   bind(C,name="c_elsi_read_mat_real")
+subroutine c_elsi_read_mat_real(h_c,name_c,mat_c) bind(C)
 
    implicit none
 
@@ -1929,9 +1860,8 @@ subroutine elsi_read_mat_real_c_wrapper(h_c,name_c,mat_c)&
 
 end subroutine
 
-subroutine elsi_read_mat_real_sparse_c_wrapper(h_c,name_c,row_ind_c,col_ptr_c,&
-   mat_c)&
-   bind(C,name="c_elsi_read_mat_real_sparse")
+subroutine c_elsi_read_mat_real_sparse(h_c,name_c,row_ind_c,col_ptr_c,mat_c)&
+   bind(C)
 
    implicit none
 
@@ -1966,8 +1896,7 @@ subroutine elsi_read_mat_real_sparse_c_wrapper(h_c,name_c,row_ind_c,col_ptr_c,&
 
 end subroutine
 
-subroutine elsi_write_mat_real_c_wrapper(h_c,name_c,mat_c)&
-   bind(C,name="c_elsi_write_mat_real")
+subroutine c_elsi_write_mat_real(h_c,name_c,mat_c) bind(C)
 
    implicit none
 
@@ -1996,9 +1925,8 @@ subroutine elsi_write_mat_real_c_wrapper(h_c,name_c,mat_c)&
 
 end subroutine
 
-subroutine elsi_write_mat_real_sparse_c_wrapper(h_c,name_c,row_ind_c,col_ptr_c,&
-   mat_c)&
-   bind(C,name="c_elsi_write_mat_real_sparse")
+subroutine c_elsi_write_mat_real_sparse(h_c,name_c,row_ind_c,col_ptr_c,mat_c)&
+   bind(C)
 
    implicit none
 
@@ -2033,8 +1961,7 @@ subroutine elsi_write_mat_real_sparse_c_wrapper(h_c,name_c,row_ind_c,col_ptr_c,&
 
 end subroutine
 
-subroutine elsi_read_mat_complex_c_wrapper(h_c,name_c,mat_c)&
-   bind(C,name="c_elsi_read_mat_complex")
+subroutine c_elsi_read_mat_complex(h_c,name_c,mat_c) bind(C)
 
    implicit none
 
@@ -2063,9 +1990,8 @@ subroutine elsi_read_mat_complex_c_wrapper(h_c,name_c,mat_c)&
 
 end subroutine
 
-subroutine elsi_read_mat_complex_sparse_c_wrapper(h_c,name_c,row_ind_c,&
-   col_ptr_c,mat_c)&
-   bind(C,name="c_elsi_read_mat_complex_sparse")
+subroutine c_elsi_read_mat_complex_sparse(h_c,name_c,row_ind_c,col_ptr_c,mat_c)&
+   bind(C)
 
    implicit none
 
@@ -2100,8 +2026,7 @@ subroutine elsi_read_mat_complex_sparse_c_wrapper(h_c,name_c,row_ind_c,&
 
 end subroutine
 
-subroutine elsi_write_mat_complex_c_wrapper(h_c,name_c,mat_c)&
-   bind(C,name="c_elsi_write_mat_complex")
+subroutine c_elsi_write_mat_complex(h_c,name_c,mat_c) bind(C)
 
    implicit none
 
@@ -2130,9 +2055,8 @@ subroutine elsi_write_mat_complex_c_wrapper(h_c,name_c,mat_c)&
 
 end subroutine
 
-subroutine elsi_write_mat_complex_sparse_c_wrapper(h_c,name_c,row_ind_c,&
-   col_ptr_c,mat_c)&
-   bind(C,name="c_elsi_write_mat_complex_sparse")
+subroutine c_elsi_write_mat_complex_sparse(h_c,name_c,row_ind_c,col_ptr_c,&
+   mat_c) bind(C)
 
    implicit none
 

@@ -14,7 +14,6 @@ module ELSI_LAPACK
    use ELSI_ELPA, only: elsi_elpa_tridiag
    use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
 
    implicit none
@@ -81,9 +80,9 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
 
       call elsi_get_time(t1)
 
-      write(msg,"(2X,A)") "Finished Cholesky decomposition"
+      write(msg,"(A)") "Finished Cholesky decomposition"
       call elsi_say(bh,msg)
-      write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+      write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,msg)
    end if
 
@@ -122,9 +121,9 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished transformation to standard eigenproblem"
+   write(msg,"(A)") "Finished transformation to standard eigenproblem"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine
@@ -168,9 +167,9 @@ subroutine elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished back-transformation of eigenvectors"
+   write(msg,"(A)") "Finished back-transformation of eigenvectors"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine
@@ -208,7 +207,7 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
    ! Solve
    call elsi_get_time(t0)
 
-   write(msg,"(2X,A)") "Starting LAPACK eigensolver"
+   write(msg,"(A)") "Starting LAPACK eigensolver"
    call elsi_say(bh,msg)
 
    call elsi_allocate(bh,offd,ph%n_good,"offd",caller)
@@ -235,9 +234,9 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished solving standard eigenproblem"
+   write(msg,"(A)") "Finished solving standard eigenproblem"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
    ! Back-transform eigenvectors
@@ -318,22 +317,18 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    call elsi_deallocate(bh,copy,"copy")
 
    ph%n_states_solve = min(ph%n_good,ph%n_states)
+   ph%ovlp_ev_min = eval(ph%n_basis)
+   ph%ovlp_ev_max = eval(1)
 
    if(ph%n_good < ph%n_basis) then ! Singular
       ph%ill_ovlp = .true.
 
-      write(msg,"(2X,A)") "Overlap matrix is singular"
+      write(msg,"(A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
-      write(msg,"(2X,A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
+      write(msg,"(A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
          eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,msg)
-
-      if(ph%ill_abort) then
-         call elsi_stop(bh,"Overlap matrix is singular.",caller)
-      end if
-
-      write(msg,"(2X,A,I10)") "| Number of basis functions reduced to :",&
-         ph%n_good
+      write(msg,"(A,I10)") "| Number of basis functions reduced to :",ph%n_good
       call elsi_say(bh,msg)
 
       ! Overlap matrix is overwritten with scaled eigenvectors
@@ -344,18 +339,18 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    else
       ph%ill_ovlp = .false.
 
-      write(msg,"(2X,A)") "Overlap matrix is not singular"
+      write(msg,"(A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
-      write(msg,"(2X,A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
+      write(msg,"(A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
          eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,msg)
    end if
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished singularity check of overlap matrix"
+   write(msg,"(A)") "Finished singularity check of overlap matrix"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine
@@ -411,9 +406,9 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
 
       call elsi_get_time(t1)
 
-      write(msg,"(2X,A)") "Finished Cholesky decomposition"
+      write(msg,"(A)") "Finished Cholesky decomposition"
       call elsi_say(bh,msg)
-      write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+      write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,msg)
    end if
 
@@ -454,9 +449,9 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished transformation to standard eigenproblem"
+   write(msg,"(A)") "Finished transformation to standard eigenproblem"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine
@@ -501,9 +496,9 @@ subroutine elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished back-transformation of eigenvectors"
+   write(msg,"(A)") "Finished back-transformation of eigenvectors"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine
@@ -542,7 +537,7 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    ! Solve
    call elsi_get_time(t0)
 
-   write(msg,"(2X,A)") "Starting LAPACK eigensolver"
+   write(msg,"(A)") "Starting LAPACK eigensolver"
    call elsi_say(bh,msg)
 
    call elsi_allocate(bh,offd,ph%n_good,"offd",caller)
@@ -573,9 +568,9 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished solving standard eigenproblem"
+   write(msg,"(A)") "Finished solving standard eigenproblem"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
    ! Back-transform eigenvectors
@@ -659,22 +654,18 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    call elsi_deallocate(bh,copy,"copy")
 
    ph%n_states_solve = min(ph%n_good,ph%n_states)
+   ph%ovlp_ev_min = eval(ph%n_basis)
+   ph%ovlp_ev_max = eval(1)
 
    if(ph%n_good < ph%n_basis) then ! Singular
       ph%ill_ovlp = .true.
 
-      write(msg,"(2X,A)") "Overlap matrix is singular"
+      write(msg,"(A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
-      write(msg,"(2X,A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
+      write(msg,"(A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
          eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,msg)
-
-      if(ph%ill_abort) then
-         call elsi_stop(bh,"Overlap matrix is singular.",caller)
-      end if
-
-      write(msg,"(2X,A,I10)") "| Number of basis functions reduced to :",&
-         ph%n_good
+      write(msg,"(A,I10)") "| Number of basis functions reduced to :",ph%n_good
       call elsi_say(bh,msg)
 
       ! Overlap matrix is overwritten with scaled eigenvectors
@@ -685,18 +676,18 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    else
       ph%ill_ovlp = .false.
 
-      write(msg,"(2X,A)") "Overlap matrix is not singular"
+      write(msg,"(A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
-      write(msg,"(2X,A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
+      write(msg,"(A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
          eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,msg)
    end if
 
    call elsi_get_time(t1)
 
-   write(msg,"(2X,A)") "Finished singularity check of overlap matrix"
+   write(msg,"(A)") "Finished singularity check of overlap matrix"
    call elsi_say(bh,msg)
-   write(msg,"(2X,A,F10.3,A)") "| Time :",t1-t0," s"
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
 end subroutine

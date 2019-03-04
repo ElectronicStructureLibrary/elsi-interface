@@ -299,6 +299,12 @@ void c_elsi_get_n_illcond(elsi_handle handle_c,
 void c_elsi_get_n_sing(elsi_handle handle_c,
                        int *n_sing);
 
+void c_elsi_get_ovlp_ev_min(elsi_handle handle_c,
+                            double *ev_min);
+
+void c_elsi_get_ovlp_ev_max(elsi_handle handle_c,
+                            double *ev_max);
+
 void c_elsi_get_pexsi_mu_min(elsi_handle handle_c,
                              double *mu_min);
 
