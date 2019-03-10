@@ -31,8 +31,6 @@ module ELSI_UTILS
    public :: elsi_get_gid
    public :: elsi_get_lid
    public :: elsi_get_nnz
-   public :: elsi_trace_mat
-   public :: elsi_trace_mat_mat
    public :: elsi_set_full_mat
    public :: elsi_build_dm
    public :: elsi_build_edm
@@ -41,16 +39,6 @@ module ELSI_UTILS
    interface elsi_get_nnz
       module procedure elsi_get_nnz_real
       module procedure elsi_get_nnz_cmplx
-   end interface
-
-   interface elsi_trace_mat
-      module procedure elsi_trace_mat_real
-      module procedure elsi_trace_mat_cmplx
-   end interface
-
-   interface elsi_trace_mat_mat
-      module procedure elsi_trace_mat_mat_real
-      module procedure elsi_trace_mat_mat_cmplx
    end interface
 
    interface elsi_set_full_mat
@@ -549,132 +537,6 @@ subroutine elsi_get_nnz_cmplx(def0,n_row,n_col,mat,nnz)
          end if
       end do
    end do
-
-end subroutine
-
-!>
-!! This routine computes the trace of a matrix. The size of the matrix is
-!! restricted to be identical to Hamiltonian.
-!!
-subroutine elsi_trace_mat_real(ph,bh,row_map,col_map,mat,trace)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
-   real(kind=r8), intent(in) :: mat(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: trace
-
-   integer(kind=i4) :: i
-   integer(kind=i4) :: ierr
-   real(kind=r8) :: l_trace ! Local result
-
-   character(len=*), parameter :: caller = "elsi_trace_mat_real"
-
-   l_trace = 0.0_r8
-
-   do i = 1,ph%n_basis
-      if(row_map(i) > 0 .and. col_map(i) > 0) then
-         l_trace = l_trace + mat(row_map(i),col_map(i))
-      end if
-   end do
-
-   call MPI_Allreduce(l_trace,trace,1,mpi_real8,mpi_sum,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-end subroutine
-
-!>
-!! This routine computes the trace of a matrix. The size of the matrix is
-!! restricted to be identical to Hamiltonian.
-!!
-subroutine elsi_trace_mat_cmplx(ph,bh,row_map,col_map,mat,trace)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
-   complex(kind=r8), intent(in) :: mat(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: trace
-
-   integer(kind=i4) :: i
-   integer(kind=i4) :: ierr
-   complex(kind=r8) :: l_trace ! Local result
-
-   character(len=*), parameter :: caller = "elsi_trace_mat_cmplx"
-
-   l_trace = (0.0_r8,0.0_r8)
-
-   do i = 1,ph%n_basis
-      if(row_map(i) > 0 .and. col_map(i) > 0) then
-         l_trace = l_trace + mat(row_map(i),col_map(i))
-      end if
-   end do
-
-   call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-end subroutine
-
-!>
-!! This routine computes the trace of the product of two matrices. The size of
-!! the two matrices is restricted to be identical to Hamiltonian.
-!!
-subroutine elsi_trace_mat_mat_real(bh,mat1,mat2,trace)
-
-   implicit none
-
-   type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(in) :: mat1(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(in) :: mat2(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: trace
-
-   real(kind=r8) :: l_trace ! Local result
-   integer(kind=i4) :: ierr
-
-   real(kind=r8), external :: ddot
-
-   character(len=*), parameter :: caller = "elsi_trace_mat_mat_real"
-
-   l_trace = ddot(bh%n_lrow*bh%n_lcol,mat1,1,mat2,1)
-
-   call MPI_Allreduce(l_trace,trace,1,mpi_real8,mpi_sum,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-end subroutine
-
-!>
-!! This routine computes the trace of the product of two matrices. The size of
-!! the two matrices is restricted to be identical to Hamiltonian.
-!!
-subroutine elsi_trace_mat_mat_cmplx(bh,mat1,mat2,trace)
-
-   implicit none
-
-   type(elsi_basic_t), intent(in) :: bh
-   complex(kind=r8), intent(in) :: mat1(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(in) :: mat2(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: trace
-
-   complex(kind=r8) :: l_trace ! Local result
-   integer(kind=i4) :: ierr
-
-   complex(kind=r8), external :: zdotc
-
-   character(len=*), parameter :: caller = "elsi_trace_mat_mat_cmplx"
-
-   l_trace = zdotc(bh%n_lrow*bh%n_lcol,mat1,1,mat2,1)
-
-   call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
 end subroutine
 
