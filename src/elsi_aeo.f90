@@ -15,7 +15,7 @@ module ELSI_ELPA
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4
    use ELSI_PRECISION, only: r4,r8,i4
-   use ELSI_UTILS, only: elsi_get_nnz,elsi_set_full_mat
+   use ELSI_UTILS, only: elsi_get_nnz,elsi_get_gid,elsi_set_full_mat
    use ELPA, only: elpa_t,elpa_init,elpa_allocate,elpa_deallocate,&
        elpa_autotune_deallocate,ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
        ELPA_2STAGE_REAL_GPU,ELPA_2STAGE_COMPLEX_GPU,ELPA_2STAGE_REAL_DEFAULT,&
@@ -108,14 +108,12 @@ end subroutine
 !! This routine transforms a generalized eigenproblem to standard and returns
 !! the Cholesky factor for later use.
 !!
-subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
+subroutine elsi_to_standard_evp_real(ph,bh,ham,ovlp,eval,evec)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
@@ -129,7 +127,7 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    if(ph%elpa_first) then
       if(ph%ill_check) then
-         call elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
+         call elsi_check_singularity_real(ph,bh,ovlp,eval,evec)
       end if
 
       if(ph%n_good == ph%n_basis) then ! Not singular
@@ -173,7 +171,7 @@ subroutine elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
       call elsi_elpa_multiply(ph,bh,"U","U",ph%n_basis,ovlp,evec,ham)
 
-      call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,ham)
+      call elsi_set_full_mat(ph,bh,UT_MAT,ham)
    end if
 
    call elsi_get_time(t1)
@@ -195,21 +193,20 @@ end subroutine
 !! scaled eigenvectors if singular, which can be used to transform the
 !! generalized eigenproblem to the standard form.
 !!
-subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
+subroutine elsi_check_singularity_real(ph,bh,ovlp,eval,evec)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
    real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   real(kind=r8) :: ev_sqrt
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: i
+   integer(kind=i4) :: gid
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_check_singularity_real"
@@ -231,12 +228,10 @@ subroutine elsi_check_singularity_real(ph,bh,col_map,ovlp,eval,evec)
       call elsi_say(bh,msg)
 
       ! Overlap matrix is overwritten with scaled eigenvectors
-      do i = ph%n_basis-ph%n_good+1,ph%n_basis
-         ev_sqrt = sqrt(eval(i))
+      do i = 1,bh%n_lcol
+         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
-         if(col_map(i) > 0) then
-            ovlp(:,col_map(i)) = evec(:,col_map(i))/ev_sqrt
-         end if
+         ovlp(:,i) = evec(:,i)/sqrt(eval(gid))
       end do
    else
       ph%ill_ovlp = .false.
@@ -314,14 +309,12 @@ end subroutine
 !>
 !! This routine interfaces to ELPA.
 !!
-subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
+subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
@@ -347,7 +340,7 @@ subroutine elsi_solve_elpa_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
-      call elsi_to_standard_evp_real(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
+      call elsi_to_standard_evp_real(ph,bh,ham,ovlp,eval,evec)
    end if
 
    call elsi_get_time(t0)
@@ -384,14 +377,12 @@ end subroutine
 !! This routine extrapolates density matrix using Cholesky decomposition of the
 !! old and new overlap matrices.
 !!
-subroutine elsi_update_dm_elpa_real(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
+subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    real(kind=r8), intent(inout) :: ovlp0(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp1(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
@@ -438,7 +429,7 @@ subroutine elsi_update_dm_elpa_real(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
    ! ovlp1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
    call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm,ovlp1)
 
-   call elsi_set_full_mat(ph,bh,LT_MAT,row_map,col_map,ovlp1)
+   call elsi_set_full_mat(ph,bh,LT_MAT,ovlp1)
 
    ! dm = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
    dm = ovlp1
@@ -464,14 +455,12 @@ end subroutine
 !! This routine transforms a generalized eigenproblem to standard and returns
 !! the Cholesky factor for later use.
 !!
-subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
+subroutine elsi_to_standard_evp_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
@@ -485,7 +474,7 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    if(ph%elpa_first) then
       if(ph%ill_check) then
-         call elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
+         call elsi_check_singularity_cmplx(ph,bh,ovlp,eval,evec)
       end if
 
       if(ph%n_good == ph%n_basis) then ! Not singular
@@ -529,7 +518,7 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
       call elsi_elpa_multiply(ph,bh,"U","U",ph%n_basis,ovlp,evec,ham)
 
-      call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,ham)
+      call elsi_set_full_mat(ph,bh,UT_MAT,ham)
    end if
 
    call elsi_get_time(t1)
@@ -551,21 +540,20 @@ end subroutine
 !! scaled eigenvectors if singular, which can be used to transform the
 !! generalized eigenproblem to the standard form.
 !!
-subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
+subroutine elsi_check_singularity_cmplx(ph,bh,ovlp,eval,evec)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
    complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
-   real(kind=r8) :: ev_sqrt
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: i
+   integer(kind=i4) :: gid
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_check_singularity_cmplx"
@@ -587,12 +575,10 @@ subroutine elsi_check_singularity_cmplx(ph,bh,col_map,ovlp,eval,evec)
       call elsi_say(bh,msg)
 
       ! Overlap matrix is overwritten with scaled eigenvectors
-      do i = ph%n_basis-ph%n_good+1,ph%n_basis
-         ev_sqrt = sqrt(eval(i))
+      do i = 1,bh%n_lcol
+         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
-         if(col_map(i) > 0) then
-            ovlp(:,col_map(i)) = evec(:,col_map(i))/ev_sqrt
-         end if
+         ovlp(:,i) = evec(:,i)/sqrt(eval(gid))
       end do
    else
       ph%ill_ovlp = .false.
@@ -670,14 +656,12 @@ end subroutine
 !>
 !! This routine interfaces to ELPA.
 !!
-subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
+subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
@@ -703,7 +687,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
 
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
-      call elsi_to_standard_evp_cmplx(ph,bh,row_map,col_map,ham,ovlp,eval,evec)
+      call elsi_to_standard_evp_cmplx(ph,bh,ham,ovlp,eval,evec)
    end if
 
    call elsi_get_time(t0)
@@ -740,14 +724,12 @@ end subroutine
 !! This routine extrapolates density matrix using Cholesky decomposition of the
 !! old and new overlap matrices.
 !!
-subroutine elsi_update_dm_elpa_cmplx(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
+subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    complex(kind=r8), intent(inout) :: ovlp0(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp1(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
@@ -794,7 +776,7 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,row_map,col_map,ovlp0,ovlp1,dm)
    ! ovlp1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
    call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm,ovlp1)
 
-   call elsi_set_full_mat(ph,bh,LT_MAT,row_map,col_map,ovlp1)
+   call elsi_set_full_mat(ph,bh,LT_MAT,ovlp1)
 
    ! dm = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
    dm = ovlp1

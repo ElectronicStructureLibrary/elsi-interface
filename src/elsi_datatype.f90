@@ -257,8 +257,6 @@ module ELSI_DATATYPE
       real(kind=r8), allocatable :: ovlp_real_copy(:,:)
       complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
       real(kind=r8), allocatable :: occ(:,:,:)
-      integer(kind=i4), allocatable :: row_map(:)
-      integer(kind=i4), allocatable :: col_map(:)
       integer(kind=i4), allocatable :: map_den(:,:)
       integer(kind=i4), allocatable :: map_sp1(:)
       integer(kind=i4), allocatable :: perm_sp3(:)

@@ -47,7 +47,7 @@ subroutine elsi_orthonormalize_ev_real(eh,ovlp,evec)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   call elsi_gram_schmidt(eh%ph,eh%bh,eh%col_map,ovlp,evec)
+   call elsi_gram_schmidt(eh%ph,eh%bh,ovlp,evec)
 
 end subroutine
 
@@ -66,7 +66,7 @@ subroutine elsi_orthonormalize_ev_complex(eh,ovlp,evec)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   call elsi_gram_schmidt(eh%ph,eh%bh,eh%col_map,ovlp,evec)
+   call elsi_gram_schmidt(eh%ph,eh%bh,ovlp,evec)
 
 end subroutine
 
@@ -87,8 +87,7 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      call elsi_update_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-           eh%ovlp_real_copy,ovlp,dm)
+      call elsi_update_dm_elpa(eh%ph,eh%bh,eh%ovlp_real_copy,ovlp,dm)
 
       eh%ovlp_real_copy = ovlp
    case default
@@ -128,8 +127,7 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      call elsi_update_dm_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-           eh%ovlp_cmplx_copy,ovlp,dm)
+      call elsi_update_dm_elpa(eh%ph,eh%bh,eh%ovlp_cmplx_copy,ovlp,dm)
 
       eh%ovlp_cmplx_copy = ovlp
    case default

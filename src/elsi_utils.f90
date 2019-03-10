@@ -31,8 +31,6 @@ module ELSI_UTILS
    public :: elsi_get_gid
    public :: elsi_get_lid
    public :: elsi_get_nnz
-   public :: elsi_trace_mat
-   public :: elsi_trace_mat_mat
    public :: elsi_set_full_mat
    public :: elsi_build_dm
    public :: elsi_build_edm
@@ -41,16 +39,6 @@ module ELSI_UTILS
    interface elsi_get_nnz
       module procedure elsi_get_nnz_real
       module procedure elsi_get_nnz_cmplx
-   end interface
-
-   interface elsi_trace_mat
-      module procedure elsi_trace_mat_real
-      module procedure elsi_trace_mat_cmplx
-   end interface
-
-   interface elsi_trace_mat_mat
-      module procedure elsi_trace_mat_mat_real
-      module procedure elsi_trace_mat_mat_cmplx
    end interface
 
    interface elsi_set_full_mat
@@ -454,7 +442,7 @@ subroutine elsi_check_init(bh,init,caller)
 end subroutine
 
 !>
-!! This routine gets the global index from the local index of a 2D block-cyclic
+!! This routine gets the global index from the local index of a block-cyclic
 !! distribution.
 !!
 subroutine elsi_get_gid(myid,n_procs,blk,lid,gid)
@@ -474,7 +462,7 @@ subroutine elsi_get_gid(myid,n_procs,blk,lid,gid)
 end subroutine
 
 !>
-!! This routine gets the local index from the global index of a 2D block-cyclic
+!! This routine gets the local index from the global index of a block-cyclic
 !! distribution.
 !!
 subroutine elsi_get_lid(n_procs,blk,gid,lid)
@@ -553,179 +541,63 @@ subroutine elsi_get_nnz_cmplx(def0,n_row,n_col,mat,nnz)
 end subroutine
 
 !>
-!! This routine computes the trace of a matrix. The size of the matrix is
-!! restricted to be identical to Hamiltonian.
-!!
-subroutine elsi_trace_mat_real(ph,bh,row_map,col_map,mat,trace)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
-   real(kind=r8), intent(in) :: mat(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: trace
-
-   integer(kind=i4) :: i
-   integer(kind=i4) :: ierr
-   real(kind=r8) :: l_trace ! Local result
-
-   character(len=*), parameter :: caller = "elsi_trace_mat_real"
-
-   l_trace = 0.0_r8
-
-   do i = 1,ph%n_basis
-      if(row_map(i) > 0 .and. col_map(i) > 0) then
-         l_trace = l_trace + mat(row_map(i),col_map(i))
-      end if
-   end do
-
-   call MPI_Allreduce(l_trace,trace,1,mpi_real8,mpi_sum,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-end subroutine
-
-!>
-!! This routine computes the trace of a matrix. The size of the matrix is
-!! restricted to be identical to Hamiltonian.
-!!
-subroutine elsi_trace_mat_cmplx(ph,bh,row_map,col_map,mat,trace)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
-   complex(kind=r8), intent(in) :: mat(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: trace
-
-   integer(kind=i4) :: i
-   integer(kind=i4) :: ierr
-   complex(kind=r8) :: l_trace ! Local result
-
-   character(len=*), parameter :: caller = "elsi_trace_mat_cmplx"
-
-   l_trace = (0.0_r8,0.0_r8)
-
-   do i = 1,ph%n_basis
-      if(row_map(i) > 0 .and. col_map(i) > 0) then
-         l_trace = l_trace + mat(row_map(i),col_map(i))
-      end if
-   end do
-
-   call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-end subroutine
-
-!>
-!! This routine computes the trace of the product of two matrices. The size of
-!! the two matrices is restricted to be identical to Hamiltonian.
-!!
-subroutine elsi_trace_mat_mat_real(bh,mat1,mat2,trace)
-
-   implicit none
-
-   type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(in) :: mat1(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(in) :: mat2(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: trace
-
-   real(kind=r8) :: l_trace ! Local result
-   integer(kind=i4) :: ierr
-
-   real(kind=r8), external :: ddot
-
-   character(len=*), parameter :: caller = "elsi_trace_mat_mat_real"
-
-   l_trace = ddot(bh%n_lrow*bh%n_lcol,mat1,1,mat2,1)
-
-   call MPI_Allreduce(l_trace,trace,1,mpi_real8,mpi_sum,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-end subroutine
-
-!>
-!! This routine computes the trace of the product of two matrices. The size of
-!! the two matrices is restricted to be identical to Hamiltonian.
-!!
-subroutine elsi_trace_mat_mat_cmplx(bh,mat1,mat2,trace)
-
-   implicit none
-
-   type(elsi_basic_t), intent(in) :: bh
-   complex(kind=r8), intent(in) :: mat1(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(in) :: mat2(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: trace
-
-   complex(kind=r8) :: l_trace ! Local result
-   integer(kind=i4) :: ierr
-
-   complex(kind=r8), external :: zdotc
-
-   character(len=*), parameter :: caller = "elsi_trace_mat_mat_cmplx"
-
-   l_trace = zdotc(bh%n_lrow*bh%n_lcol,mat1,1,mat2,1)
-
-   call MPI_Allreduce(l_trace,trace,1,mpi_complex16,mpi_sum,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-end subroutine
-
-!>
 !! This routine symmetrizes an upper or lower triangular matrix. The size of
 !! the matrix should be the same as the Hamiltonian matrix.
 !!
-subroutine elsi_set_full_mat_real(ph,bh,uplo,row_map,col_map,mat)
+subroutine elsi_set_full_mat_real(ph,bh,uplo,mat)
 
    implicit none
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: uplo
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    real(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
    integer(kind=i4) :: j
+   integer(kind=i4) :: g_row
+   integer(kind=i4) :: g_col
 
    real(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_set_full_mat_real"
+
+   if(uplo == UT_MAT) then
+      do j = 1,bh%n_lcol
+         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,j,g_col)
+
+         do i = 1,bh%n_lrow
+            call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i,g_row)
+
+            if(g_row == g_col) then
+               mat(i,j) = 0.5_r8*mat(i,j)
+            else if(g_row > g_col) then
+               mat(i,j) = 0.0_r8
+            end if
+         end do
+      end do
+   else
+      do j = 1,bh%n_lcol
+         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,j,g_col)
+
+         do i = 1,bh%n_lrow
+            call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i,g_row)
+
+            if(g_row == g_col) then
+               mat(i,j) = 0.5_r8*mat(i,j)
+            else if(g_row < g_col) then
+               mat(i,j) = 0.0_r8
+            end if
+         end do
+      end do
+   end if
 
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp",caller)
 
    call pdtran(ph%n_basis,ph%n_basis,1.0_r8,mat,1,1,bh%desc,0.0_r8,tmp,1,1,&
         bh%desc)
 
-   if(uplo == UT_MAT) then
-      do j = 1,ph%n_basis-1
-         if(col_map(j) > 0) then
-            do i = j+1,ph%n_basis
-               if(row_map(i) > 0) then
-                  mat(row_map(i),col_map(j)) = tmp(row_map(i),col_map(j))
-               end if
-            end do
-         end if
-      end do
-   else if(uplo == LT_MAT) then
-      do j = 2,ph%n_basis
-         if(col_map(j) > 0) then
-            do i = 1,j-1
-               if(row_map(i) > 0) then
-                  mat(row_map(i),col_map(j)) = tmp(row_map(i),col_map(j))
-               end if
-            end do
-         end if
-      end do
-   end if
+   mat = mat+tmp(:,1:bh%n_lcol)
 
    call elsi_deallocate(bh,tmp,"tmp")
 
@@ -735,58 +607,74 @@ end subroutine
 !! This routine symmetrizes an upper or lower triangular matrix. The size of
 !! the matrix should be the same as the Hamiltonian matrix.
 !!
-subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,row_map,col_map,mat)
+subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,mat)
 
    implicit none
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: uplo
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    complex(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
    integer(kind=i4) :: j
+   integer(kind=i4) :: g_row
+   integer(kind=i4) :: g_col
 
    complex(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_set_full_mat_cmplx"
+
+   if(uplo == UT_MAT) then
+      do j = 1,bh%n_lcol
+         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,j,g_col)
+
+         do i = 1,bh%n_lrow
+            call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i,g_row)
+
+            if(g_row == g_col) then
+               mat(i,j) = (0.5_r8,0.0_r8)*mat(i,j)
+            else if(g_row > g_col) then
+               mat(i,j) = (0.0_r8,0.0_r8)
+            end if
+         end do
+      end do
+   else
+      do j = 1,bh%n_lcol
+         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,j,g_col)
+
+         do i = 1,bh%n_lrow
+            call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i,g_row)
+
+            if(g_row == g_col) then
+               mat(i,j) = (0.5_r8,0.0_r8)*mat(i,j)
+            else if(g_row < g_col) then
+               mat(i,j) = (0.0_r8,0.0_r8)
+            end if
+         end do
+      end do
+   end if
 
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp",caller)
 
    call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),mat,1,1,bh%desc,&
         (0.0_r8,0.0_r8),tmp,1,1,bh%desc)
 
-   if(uplo == UT_MAT) then
-      do j = 1,ph%n_basis-1
-         if(col_map(j) > 0) then
-            do i = j+1,ph%n_basis
-               if(row_map(i) > 0) then
-                  mat(row_map(i),col_map(j)) = tmp(row_map(i),col_map(j))
-               end if
-            end do
-         end if
-      end do
-   else if(uplo == LT_MAT) then
-      do j = 2,ph%n_basis
-         if(col_map(j) > 0) then
-            do i = 1,j-1
-               if(row_map(i) > 0) then
-                  mat(row_map(i),col_map(j)) = tmp(row_map(i),col_map(j))
-               end if
-            end do
-         end if
-      end do
-   end if
+   mat = mat+tmp(:,1:bh%n_lcol)
 
    call elsi_deallocate(bh,tmp,"tmp")
 
    ! Make diagonal real
-   do j = 1,ph%n_basis
-      if(col_map(j) > 0 .and. row_map(j) > 0) then
-         mat(row_map(j),col_map(j)) = real(mat(row_map(j),col_map(j)),kind=r8)
-      end if
+   do j = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,j,g_col)
+
+      do i = 1,bh%n_lrow
+         call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i,g_row)
+
+         if(g_row == g_col) then
+            mat(i,j) = real(mat(i,j),kind=r8)
+         end if
+      end do
    end do
 
 end subroutine
@@ -795,19 +683,18 @@ end subroutine
 !! This routine constructs the density matrix from occupation numbers and
 !! eigenvectors.
 !!
-subroutine elsi_build_dm_real(ph,bh,row_map,col_map,occ,evec,dm)
+subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
 
    implicit none
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: dm(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
+   integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -834,13 +721,15 @@ subroutine elsi_build_dm_real(ph,bh,row_map,col_map,occ,evec,dm)
 
    tmp = evec
 
-   do i = 1,ph%n_states_solve
-      if(factor(i) > 0.0_r8) then
-         if(col_map(i) > 0) then
-            tmp(:,col_map(i)) = tmp(:,col_map(i))*factor(i)
+   do i = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
+
+      if(gid <= ph%n_states_solve) then
+         if(factor(gid) > 0.0_r8) then
+            tmp(:,i) = tmp(:,i)*factor(gid)
+         else
+            tmp(:,i) = 0.0_r8
          end if
-      else if(col_map(i) /= 0) then
-         tmp(:,col_map(i)) = 0.0_r8
       end if
    end do
 
@@ -853,7 +742,7 @@ subroutine elsi_build_dm_real(ph,bh,row_map,col_map,occ,evec,dm)
    call elsi_deallocate(bh,factor,"factor")
    call elsi_deallocate(bh,tmp,"tmp")
 
-   call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,dm)
+   call elsi_set_full_mat(ph,bh,UT_MAT,dm)
 
    call elsi_get_time(t1)
 
@@ -868,19 +757,18 @@ end subroutine
 !! This routine constructs the density matrix from occupation numbers and
 !! eigenvectors.
 !!
-subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,occ,evec,dm)
+subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
 
    implicit none
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    real(kind=r8), intent(in) :: occ(ph%n_states)
    complex(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: dm(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
+   integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -907,13 +795,15 @@ subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,occ,evec,dm)
 
    tmp = evec
 
-   do i = 1,ph%n_states_solve
-      if(factor(i) > 0.0_r8) then
-         if(col_map(i) > 0) then
-            tmp(:,col_map(i)) = tmp(:,col_map(i))*factor(i)
+   do i = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
+
+      if(gid <= ph%n_states_solve) then
+         if(factor(gid) > 0.0_r8) then
+            tmp(:,i) = tmp(:,i)*factor(gid)
+         else
+            tmp(:,i) = (0.0_r8,0.0_r8)
          end if
-      else if(col_map(i) /= 0) then
-         tmp(:,col_map(i)) = (0.0_r8,0.0_r8)
       end if
    end do
 
@@ -926,7 +816,7 @@ subroutine elsi_build_dm_cmplx(ph,bh,row_map,col_map,occ,evec,dm)
    call elsi_deallocate(bh,factor,"factor")
    call elsi_deallocate(bh,tmp,"tmp")
 
-   call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,dm)
+   call elsi_set_full_mat(ph,bh,UT_MAT,dm)
 
    call elsi_get_time(t1)
 
@@ -941,20 +831,19 @@ end subroutine
 !! This routine constructs the energy-weighted density matrix from occupation
 !! numbers, eigenvalues, and eigenvectors.
 !!
-subroutine elsi_build_edm_real(ph,bh,row_map,col_map,occ,eval,evec,edm)
+subroutine elsi_build_edm_real(ph,bh,occ,eval,evec,edm)
 
    implicit none
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(in) :: eval(ph%n_states)
    real(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: edm(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
+   integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -984,13 +873,15 @@ subroutine elsi_build_edm_real(ph,bh,row_map,col_map,occ,eval,evec,edm)
 
    tmp = evec
 
-   do i = 1,ph%n_states_solve
-      if(factor(i) > 0.0_r8) then
-         if(col_map(i) > 0) then
-            tmp(:,col_map(i)) = tmp(:,col_map(i))*factor(i)
+   do i = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
+
+      if(gid <= ph%n_states_solve) then
+         if(factor(gid) > 0.0_r8) then
+            tmp(:,i) = tmp(:,i)*factor(gid)
+         else
+            tmp(:,i) = 0.0_r8
          end if
-      else if(col_map(i) /= 0) then
-         tmp(:,col_map(i)) = 0.0_r8
       end if
    end do
 
@@ -1003,7 +894,7 @@ subroutine elsi_build_edm_real(ph,bh,row_map,col_map,occ,eval,evec,edm)
    call elsi_deallocate(bh,factor,"factor")
    call elsi_deallocate(bh,tmp,"tmp")
 
-   call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,edm)
+   call elsi_set_full_mat(ph,bh,UT_MAT,edm)
 
    call elsi_get_time(t1)
 
@@ -1018,20 +909,19 @@ end subroutine
 !! This routine constructs the energy-weighted density matrix from occupation
 !! numbers, eigenvalues, and eigenvectors.
 !!
-subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,occ,eval,evec,edm)
+subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
 
    implicit none
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: row_map(ph%n_basis)
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(in) :: eval(ph%n_states)
    complex(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: edm(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i
+   integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -1061,13 +951,15 @@ subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,occ,eval,evec,edm)
 
    tmp = evec
 
-   do i = 1,ph%n_states_solve
-      if(factor(i) > 0.0_r8) then
-         if(col_map(i) > 0) then
-            tmp(:,col_map(i)) = tmp(:,col_map(i))*factor(i)
+   do i = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
+
+      if(gid <= ph%n_states_solve) then
+         if(factor(gid) > 0.0_r8) then
+            tmp(:,i) = tmp(:,i)*factor(gid)
+         else
+            tmp(:,i) = (0.0_r8,0.0_r8)
          end if
-      else if(col_map(i) /= 0) then
-         tmp(:,col_map(i)) = (0.0_r8,0.0_r8)
       end if
    end do
 
@@ -1080,7 +972,7 @@ subroutine elsi_build_edm_cmplx(ph,bh,row_map,col_map,occ,eval,evec,edm)
    call elsi_deallocate(bh,factor,"factor")
    call elsi_deallocate(bh,tmp,"tmp")
 
-   call elsi_set_full_mat(ph,bh,UT_MAT,row_map,col_map,edm)
+   call elsi_set_full_mat(ph,bh,UT_MAT,edm)
 
    call elsi_get_time(t1)
 
@@ -1095,17 +987,17 @@ end subroutine
 !! This routine orthonormalizes eigenvectors with respect to an overlap matrix
 !! using a modified Gram-Schmidt algorithm.
 !!
-subroutine elsi_gram_schmidt_real(ph,bh,col_map,ovlp,evec)
+subroutine elsi_gram_schmidt_real(ph,bh,ovlp,evec)
 
    implicit none
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: j
+   integer(kind=i4) :: lid
    integer(kind=i4) :: i_done
    integer(kind=i4) :: n_block
    real(kind=r8) :: norm
@@ -1151,9 +1043,11 @@ subroutine elsi_gram_schmidt_real(ph,bh,col_map,ovlp,evec)
 
       call pddot(ph%n_basis,norm,tmp2,1,j,bh%desc,1,evec,1,j,bh%desc,1)
 
-      if(col_map(j) > 0) then
-         evec(:,col_map(j)) = evec(:,col_map(j))/sqrt(norm)
-         tmp2(:,col_map(j)) = tmp2(:,col_map(j))/sqrt(norm)
+      if(mod((j-1)/bh%blk,bh%n_pcol) == bh%my_pcol) then
+         call elsi_get_lid(bh%n_pcol,bh%blk,j,lid)
+
+         evec(:,lid) = evec(:,lid)/sqrt(norm)
+         tmp2(:,lid) = tmp2(:,lid)/sqrt(norm)
       end if
 
       if(j-i_done == n_block .and. j < ph%n_states) then
@@ -1186,17 +1080,17 @@ end subroutine
 !! This routine orthonormalizes eigenvectors with respect to an overlap matrix
 !! using a modified Gram-Schmidt algorithm.
 !!
-subroutine elsi_gram_schmidt_cmplx(ph,bh,col_map,ovlp,evec)
+subroutine elsi_gram_schmidt_cmplx(ph,bh,ovlp,evec)
 
    implicit none
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: col_map(ph%n_basis)
    complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: j
+   integer(kind=i4) :: lid
    integer(kind=i4) :: i_done
    integer(kind=i4) :: n_block
    complex(kind=r8) :: norm
@@ -1244,9 +1138,11 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,col_map,ovlp,evec)
 
       call pzdotc(ph%n_basis,norm,tmp2,1,j,bh%desc,1,evec,1,j,bh%desc,1)
 
-      if(col_map(j) > 0) then
-         evec(:,col_map(j)) = evec(:,col_map(j))/sqrt(real(norm,kind=r8))
-         tmp2(:,col_map(j)) = tmp2(:,col_map(j))/sqrt(real(norm,kind=r8))
+      if(mod((j-1)/bh%blk,bh%n_pcol) == bh%my_pcol) then
+         call elsi_get_lid(bh%n_pcol,bh%blk,j,lid)
+
+         evec(:,lid) = evec(:,lid)/sqrt(real(norm,kind=r8))
+         tmp2(:,lid) = tmp2(:,lid)/sqrt(real(norm,kind=r8))
       end if
 
       if(j-i_done == n_block .and. j < ph%n_states) then

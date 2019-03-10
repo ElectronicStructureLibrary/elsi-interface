@@ -1596,9 +1596,8 @@ subroutine elsi_get_edm_real(eh,edm)
    if(eh%ph%edm_ready_real) then
       select case(eh%ph%solver)
       case(ELPA_SOLVER)
-         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%eval(1:eh%ph%n_states),&
-              eh%evec_real,edm)
+         call elsi_build_edm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
+              eh%eval(1:eh%ph%n_states),eh%evec_real,edm)
       case(OMM_SOLVER)
          call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_real,edm)
       case(PEXSI_SOLVER)
@@ -1661,9 +1660,8 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
    if(eh%ph%edm_ready_real) then
       select case(eh%ph%solver)
       case(ELPA_SOLVER)
-         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%eval(1:eh%ph%n_states),&
-              eh%evec_real,eh%dm_real_den)
+         call elsi_build_edm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
+              eh%eval(1:eh%ph%n_states),eh%evec_real,eh%dm_real_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
@@ -1792,9 +1790,8 @@ subroutine elsi_get_edm_complex(eh,edm)
    if(eh%ph%edm_ready_cmplx) then
       select case(eh%ph%solver)
       case(ELPA_SOLVER)
-         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%eval(1:eh%ph%n_states),&
-              eh%evec_cmplx,edm)
+         call elsi_build_edm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
+              eh%eval(1:eh%ph%n_states),eh%evec_cmplx,edm)
       case(OMM_SOLVER)
          call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_cmplx,edm)
       case(PEXSI_SOLVER)
@@ -1847,9 +1844,8 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
    if(eh%ph%edm_ready_cmplx) then
       select case(eh%ph%solver)
       case(ELPA_SOLVER)
-         call elsi_build_edm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%eval(1:eh%ph%n_states),&
-              eh%evec_cmplx,eh%dm_cmplx_den)
+         call elsi_build_edm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
+              eh%eval(1:eh%ph%n_states),eh%evec_cmplx,eh%dm_cmplx_den)
 
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
