@@ -229,25 +229,6 @@ subroutine elsi_set_blacs(eh,blacs_ctxt,block_size)
       call descinit(eh%bh%desc,eh%ph%n_basis,eh%ph%n_basis,eh%bh%blk,eh%bh%blk,&
            0,0,eh%bh%blacs_ctxt,max(1,eh%bh%n_lrow),ierr)
 
-      ! Create global-local mapping
-      call elsi_allocate(eh%bh,eh%row_map,eh%ph%n_basis,"row_map",caller)
-      call elsi_allocate(eh%bh,eh%col_map,eh%ph%n_basis,"col_map",caller)
-
-      i_row = 0
-      i_col = 0
-
-      do i = 1,eh%ph%n_basis
-         if(mod((i-1)/eh%bh%blk,eh%bh%n_prow) == eh%bh%my_prow) then
-            i_row = i_row+1
-            eh%row_map(i) = i_row
-         end if
-
-         if(mod((i-1)/eh%bh%blk,eh%bh%n_pcol) == eh%bh%my_pcol) then
-            i_col = i_col+1
-            eh%col_map(i) = i_col
-         end if
-      end do
-
       eh%bh%blacs_ready = .true.
    end if
 
@@ -658,14 +639,6 @@ subroutine elsi_cleanup(eh)
 
    if(allocated(eh%occ)) then
       call elsi_deallocate(eh%bh,eh%occ,"occ")
-   end if
-
-   if(allocated(eh%row_map)) then
-      call elsi_deallocate(eh%bh,eh%row_map,"row_map")
-   end if
-
-   if(allocated(eh%col_map)) then
-      call elsi_deallocate(eh%bh,eh%col_map,"col_map")
    end if
 
    if(allocated(eh%omm_c_real)) then

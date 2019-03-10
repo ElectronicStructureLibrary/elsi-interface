@@ -208,8 +208,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
          call elsi_solve_lapack(eh%ph,eh%bh,ham,ovlp,eval,evec)
       else
          call elsi_init_elpa(eh%ph,eh%bh)
-         call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,eval,&
-              evec)
+         call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eval,evec)
       end if
    case(SIPS_SOLVER)
       call elsi_init_sips(eh%ph,eh%bh)
@@ -290,8 +289,7 @@ subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
          call elsi_solve_lapack(eh%ph,eh%bh,ham,ovlp,eval,evec)
       else
          call elsi_init_elpa(eh%ph,eh%bh)
-         call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,eval,&
-              evec)
+         call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eval,evec)
       end if
    case default
       write(msg,"(A)") "Unsupported eigensolver."
@@ -376,8 +374,8 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%ham_real_den,&
-           eh%ovlp_real_den,eval,evec)
+      call elsi_solve_elpa(eh%ph,eh%bh,eh%ham_real_den,eh%ovlp_real_den,eval,&
+           evec)
    case(SIPS_SOLVER)
       call elsi_init_sips(eh%ph,eh%bh)
 
@@ -531,8 +529,8 @@ subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%ham_cmplx_den,&
-           eh%ovlp_cmplx_den,eval,evec)
+      call elsi_solve_elpa(eh%ph,eh%bh,eh%ham_cmplx_den,eh%ovlp_cmplx_den,eval,&
+           evec)
    case default
       write(msg,"(A)") "Unsupported eigensolver."
       call elsi_stop(eh%bh,msg,caller)
@@ -616,8 +614,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
          end if
       end if
 
-      call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,eh%eval,&
-           eh%evec_real)
+      call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eh%eval,eh%evec_real)
 
       if(eh%ph%decision_status == 1) then
          ham = ovlp
@@ -626,8 +623,8 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       end if
 
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
-      call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-           eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%evec_real,dm)
+      call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
+           eh%evec_real,dm)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
    case(OMM_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
@@ -886,8 +883,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
          end if
       end if
 
-      call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,ham,ovlp,eh%eval,&
-           eh%evec_cmplx)
+      call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eh%eval,eh%evec_cmplx)
 
       if(eh%ph%decision_status == 1) then
          ham = ovlp
@@ -896,8 +892,8 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       end if
 
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
-      call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-           eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%evec_cmplx,dm)
+      call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
+           eh%evec_cmplx,dm)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
    case(OMM_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
@@ -1140,8 +1136,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          end if
       end if
 
-      call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%ham_real_den,&
-           eh%ovlp_real_den,eh%eval,eh%evec_real)
+      call elsi_solve_elpa(eh%ph,eh%bh,eh%ham_real_den,eh%ovlp_real_den,&
+           eh%eval,eh%evec_real)
 
       if(eh%ph%decision_status == 1) then
          if(.not. allocated(eh%ovlp_real_copy)) then
@@ -1153,8 +1149,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
       end if
 
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
-      call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-           eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%evec_real,eh%dm_real_den)
+      call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
+           eh%evec_real,eh%dm_real_den)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
@@ -1627,8 +1623,8 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          end if
       end if
 
-      call elsi_solve_elpa(eh%ph,eh%bh,eh%row_map,eh%col_map,eh%ham_cmplx_den,&
-           eh%ovlp_cmplx_den,eh%eval,eh%evec_cmplx)
+      call elsi_solve_elpa(eh%ph,eh%bh,eh%ham_cmplx_den,eh%ovlp_cmplx_den,&
+           eh%eval,eh%evec_cmplx)
 
       if(eh%ph%decision_status == 1) then
          if(.not. allocated(eh%ovlp_cmplx_copy)) then
@@ -1640,8 +1636,8 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
       end if
 
       call elsi_get_occ(eh%ph,eh%bh,eh%eval,eh%occ)
-      call elsi_build_dm(eh%ph,eh%bh,eh%row_map,eh%col_map,&
-           eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%evec_cmplx,eh%dm_cmplx_den)
+      call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
+           eh%evec_cmplx,eh%dm_cmplx_den)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
