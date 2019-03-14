@@ -53,7 +53,7 @@ module ELSI_PEXSI
 contains
 
 !>
-!! This routine initializes PEXSI and its processor grid.
+!! Initialize PEXSI.
 !!
 subroutine elsi_init_pexsi(ph,bh)
 
@@ -156,7 +156,7 @@ subroutine elsi_init_pexsi(ph,bh)
 end subroutine
 
 !>
-!! This routine interfaces to PEXSI.
+!! Interface to PEXSI.
 !!
 subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
@@ -532,7 +532,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 end subroutine
 
 !>
-!! This routine computes the energy-weighted density matrix.
+!! Compute the energy-weighted density matrix.
 !!
 subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
 
@@ -693,7 +693,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
 end subroutine
 
 !>
-!! This routine interfaces to PEXSI.
+!! Interface to PEXSI.
 !!
 subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
@@ -1073,7 +1073,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 end subroutine
 
 !>
-!! This routine computes the energy-weighted density matrix.
+!! Compute the energy-weighted density matrix.
 !!
 subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
 
@@ -1234,7 +1234,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
 end subroutine
 
 !>
-!! This routine sets default PEXSI parameters.
+!! Set default PEXSI parameters.
 !!
 subroutine elsi_set_pexsi_default(ph)
 
@@ -1250,7 +1250,7 @@ subroutine elsi_set_pexsi_default(ph)
 end subroutine
 
 !>
-!! This routine cleans up PEXSI.
+!! Clean up PEXSI.
 !!
 subroutine elsi_cleanup_pexsi(ph)
 

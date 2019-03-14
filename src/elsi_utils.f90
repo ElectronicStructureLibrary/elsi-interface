@@ -26,6 +26,7 @@ module ELSI_UTILS
 
    public :: elsi_check
    public :: elsi_check_init
+   public :: elsi_check_read
    public :: elsi_reset_param
    public :: elsi_reset_basic
    public :: elsi_get_gid
@@ -64,7 +65,7 @@ module ELSI_UTILS
 contains
 
 !>
-!! This routine resets ELSI runtime parameters.
+!! Reset ELSI runtime parameters.
 !!
 subroutine elsi_reset_param(ph)
 
@@ -183,7 +184,7 @@ subroutine elsi_reset_param(ph)
 end subroutine
 
 !>
-!! This routine resets ELSI basic information.
+!! Reset ELSI basic information.
 !!
 subroutine elsi_reset_basic(bh)
 
@@ -236,8 +237,8 @@ subroutine elsi_reset_basic(bh)
 end subroutine
 
 !>
-!! This routine guarantees that there are no unsupported or mutually conflicting
-!! parameters before running actual calculations.
+!! Ensure there are no unsupported or mutually conflicting parameters before
+!! running actual calculations.
 !!
 subroutine elsi_check(ph,bh,caller)
 
@@ -422,7 +423,7 @@ subroutine elsi_check(ph,bh,caller)
 end subroutine
 
 !>
-!! This routine checks whether a handle has been properly initialized.
+!! Check if a handle has been properly initialized.
 !!
 subroutine elsi_check_init(bh,init,caller)
 
@@ -442,8 +443,29 @@ subroutine elsi_check_init(bh,init,caller)
 end subroutine
 
 !>
-!! This routine gets the global index from the local index of a block-cyclic
-!! distribution.
+!! Check if a Fortran read statement is successful.
+!!
+subroutine elsi_check_read(bh,ierr,kwd)
+
+   implicit none
+
+   type(elsi_basic_t), intent(in) :: bh
+   integer(kind=i4), intent(in) :: ierr
+   character(len=*), intent(in) :: kwd
+
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_check_read"
+
+   if(ierr /= 0) then
+      write(msg,"(3A)") "Failed to parse input keyword ",kwd,"."
+      call elsi_stop(bh,msg,caller)
+   end if
+
+end subroutine
+
+!>
+!! Get the global index from the local index of a block-cyclic distribution.
 !!
 subroutine elsi_get_gid(myid,n_procs,blk,lid,gid)
 
@@ -462,8 +484,7 @@ subroutine elsi_get_gid(myid,n_procs,blk,lid,gid)
 end subroutine
 
 !>
-!! This routine gets the local index from the global index of a block-cyclic
-!! distribution.
+!! Get the local index from the global index of a block-cyclic distribution.
 !!
 subroutine elsi_get_lid(n_procs,blk,gid,lid)
 
@@ -481,7 +502,7 @@ subroutine elsi_get_lid(n_procs,blk,gid,lid)
 end subroutine
 
 !>
-!! This routine counts the number of non_zero elements in a matrix.
+!! Count the number of nonzero elements in a matrix.
 !!
 subroutine elsi_get_nnz_real(def0,n_row,n_col,mat,nnz)
 
@@ -511,7 +532,7 @@ subroutine elsi_get_nnz_real(def0,n_row,n_col,mat,nnz)
 end subroutine
 
 !>
-!! This routine counts the number of non_zero elements in a matrix.
+!! Count the number of nonzero elements in a matrix.
 !!
 subroutine elsi_get_nnz_cmplx(def0,n_row,n_col,mat,nnz)
 
@@ -541,8 +562,7 @@ subroutine elsi_get_nnz_cmplx(def0,n_row,n_col,mat,nnz)
 end subroutine
 
 !>
-!! This routine symmetrizes an upper or lower triangular matrix. The size of
-!! the matrix should be the same as the Hamiltonian matrix.
+!! Symmetrize an upper or lower triangular matrix.
 !!
 subroutine elsi_set_full_mat_real(ph,bh,uplo,mat)
 
@@ -604,8 +624,7 @@ subroutine elsi_set_full_mat_real(ph,bh,uplo,mat)
 end subroutine
 
 !>
-!! This routine symmetrizes an upper or lower triangular matrix. The size of
-!! the matrix should be the same as the Hamiltonian matrix.
+!! Symmetrize an upper or lower triangular matrix.
 !!
 subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,mat)
 
@@ -680,8 +699,7 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,mat)
 end subroutine
 
 !>
-!! This routine constructs the density matrix from occupation numbers and
-!! eigenvectors.
+!! Construct the density matrix from occupation numbers and eigenvectors.
 !!
 subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
 
@@ -754,8 +772,7 @@ subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
 end subroutine
 
 !>
-!! This routine constructs the density matrix from occupation numbers and
-!! eigenvectors.
+!! Construct the density matrix from occupation numbers and eigenvectors.
 !!
 subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
 
@@ -828,8 +845,8 @@ subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
 end subroutine
 
 !>
-!! This routine constructs the energy-weighted density matrix from occupation
-!! numbers, eigenvalues, and eigenvectors.
+!! Construct the energy-weighted density matrix from occupation numbers,
+!! eigenvalues, and eigenvectors.
 !!
 subroutine elsi_build_edm_real(ph,bh,occ,eval,evec,edm)
 
@@ -906,8 +923,8 @@ subroutine elsi_build_edm_real(ph,bh,occ,eval,evec,edm)
 end subroutine
 
 !>
-!! This routine constructs the energy-weighted density matrix from occupation
-!! numbers, eigenvalues, and eigenvectors.
+!! Construct the energy-weighted density matrix from occupation numbers,
+!! eigenvalues, and eigenvectors.
 !!
 subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
 
@@ -984,8 +1001,8 @@ subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
 end subroutine
 
 !>
-!! This routine orthonormalizes eigenvectors with respect to an overlap matrix
-!! using a modified Gram-Schmidt algorithm.
+!! Orthonormalize eigenvectors with respect to an overlap matrix using a
+!! modified Gram-Schmidt algorithm.
 !!
 subroutine elsi_gram_schmidt_real(ph,bh,ovlp,evec)
 
@@ -1077,8 +1094,8 @@ subroutine elsi_gram_schmidt_real(ph,bh,ovlp,evec)
 end subroutine
 
 !>
-!! This routine orthonormalizes eigenvectors with respect to an overlap matrix
-!! using a modified Gram-Schmidt algorithm.
+!! Orthonormalize eigenvectors with respect to an overlap matrix using a
+!! modified Gram-Schmidt algorithm.
 !!
 subroutine elsi_gram_schmidt_cmplx(ph,bh,ovlp,evec)
 

@@ -29,7 +29,7 @@ module ELSI_OCC
 contains
 
 !>
-!! This routine computes the chemical potential and occupation numbers.
+!! Compute the chemical potential and occupation numbers.
 !!
 subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
    mu)
@@ -123,9 +123,8 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
 end subroutine
 
 !>
-!! This routine computes the number of electrons for a given chemical potential,
-!! and returns the error in the number of electrons. The occupation numbers are
-!! updated as well.
+!! Compute the number of electrons for a given chemical potential, return the
+!! error in the number of electrons. The occupation numbers are updated as well.
 !!
 subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_wt,eval,&
    occ,mu,diff)
@@ -279,7 +278,7 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_wt,eval,&
 end subroutine
 
 !>
-!! This routine computes the chemical potential using a bisection algorithm.
+!! Compute the chemical potential using a bisection algorithm.
 !!
 subroutine elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
    mu_min,mu_max,mu)
@@ -370,7 +369,7 @@ subroutine elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
 end subroutine
 
 !>
-!! This routine cancels the small error in number of electrons.
+!! Cancel the small error in number of electrons.
 !!
 subroutine elsi_adjust_occ(ph,bh,n_state,n_spin,n_kpt,k_wt,eval,occ,diff)
 
@@ -470,7 +469,7 @@ subroutine elsi_adjust_occ(ph,bh,n_state,n_spin,n_kpt,k_wt,eval,occ,diff)
 end subroutine
 
 !>
-!! This routine computes the entropy.
+!! Compute the electronic entropy.
 !!
 subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
 
@@ -599,8 +598,7 @@ subroutine elsi_entropy(ph,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
 end subroutine
 
 !>
-!! This routine computes the occupation numbers to be used internally to
-!! construct density matrices.
+!! Compute the occupation numbers to be used to construct density matrices.
 !!
 subroutine elsi_get_occ(ph,bh,eval,occ)
 

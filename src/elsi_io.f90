@@ -35,7 +35,7 @@ module ELSI_IO
 contains
 
 !>
-!! This routine prints a message.
+!! Print a message.
 !!
 subroutine elsi_say(bh,msg)
 
@@ -53,7 +53,7 @@ subroutine elsi_say(bh,msg)
 end subroutine
 
 !>
-!! This routine adds an entry to the log file.
+!! Add an entry to the log file.
 !!
 subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
 
@@ -169,7 +169,7 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
 end subroutine
 
 !>
-!! This routine prints the state of the handle.
+!! Print the state of the handle.
 !!
 subroutine elsi_print_handle_summary(ph,bh,jh)
 
@@ -235,7 +235,7 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
 end subroutine
 
 !>
-!! This routine prints versioning information.
+!! Print versioning information.
 !!
 subroutine elsi_print_version_summary(uuid,jh)
 
@@ -265,7 +265,7 @@ subroutine elsi_print_version_summary(uuid,jh)
 end subroutine
 
 !>
-!! This routine prints information about the overlap matrix.
+!! Print information about the overlap matrix.
 !!
 subroutine elsi_print_ovlp_summary(ph,jh)
 
@@ -289,7 +289,7 @@ subroutine elsi_print_ovlp_summary(ph,jh)
 end subroutine
 
 !>
-!! This routine prints out settings for ELPA.
+!! Print settings for ELPA.
 !!
 subroutine elsi_print_elpa_settings(ph,jh)
 
@@ -312,7 +312,7 @@ subroutine elsi_print_elpa_settings(ph,jh)
 end subroutine
 
 !>
-!! This routine prints out settings for NTPoly.
+!! Print settings for NTPoly.
 !!
 subroutine elsi_print_ntpoly_settings(ph,jh)
 
@@ -336,7 +336,7 @@ subroutine elsi_print_ntpoly_settings(ph,jh)
 end subroutine
 
 !>
-!! This routine prints out settings for libOMM.
+!! Print settings for libOMM.
 !!
 subroutine elsi_print_omm_settings(ph,jh)
 
@@ -357,7 +357,7 @@ subroutine elsi_print_omm_settings(ph,jh)
 end subroutine
 
 !>
-!! This routine prints out settings for PEXSI.
+!! Print settings for PEXSI.
 !!
 subroutine elsi_print_pexsi_settings(ph,jh)
 
@@ -395,7 +395,7 @@ subroutine elsi_print_pexsi_settings(ph,jh)
 end subroutine
 
 !>
-!! This routine prints out settings for SLEPc-SIPs.
+!! Print settings for SLEPc-SIPs.
 !!
 subroutine elsi_print_sips_settings(ph,jh)
 
@@ -417,7 +417,7 @@ subroutine elsi_print_sips_settings(ph,jh)
 end subroutine
 
 !>
-!! This routine prints out settings for the dense matrix format.
+!! Print settings for the dense matrix format.
 !!
 subroutine elsi_print_dense_settings(bh,jh)
 
@@ -438,7 +438,7 @@ subroutine elsi_print_dense_settings(bh,jh)
 end subroutine
 
 !>
-!! This routine prints out settings for the sparse matrix format.
+!! Print settings for the sparse matrix formats.
 !!
 subroutine elsi_print_sparse_settings(bh,jh)
 
@@ -460,7 +460,7 @@ subroutine elsi_print_sparse_settings(bh,jh)
 end subroutine
 
 !>
-!! This routine prints a final output.
+!! Print a final summary.
 !!
 subroutine elsi_final_print(ph,bh)
 
@@ -585,7 +585,7 @@ subroutine elsi_final_print(ph,bh)
 end subroutine
 
 !>
-!! This routine gets the current wallclock time.
+!! Get the current wallclock time.
 !! (Taken from FHI-aims with permission of copyright holders)
 !!
 subroutine elsi_get_time(wtime)

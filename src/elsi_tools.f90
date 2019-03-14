@@ -33,7 +33,7 @@ module ELSI_TOOLS
 contains
 
 !>
-!! This routine orthonormalizes eigenvectors with respect to an overlap matrix.
+!! Orthonormalize eigenvectors with respect to an overlap matrix.
 !!
 subroutine elsi_orthonormalize_ev_real(eh,ovlp,evec)
 
@@ -52,7 +52,7 @@ subroutine elsi_orthonormalize_ev_real(eh,ovlp,evec)
 end subroutine
 
 !>
-!! This routine orthonormalizes eigenvectors with respect to an overlap matrix.
+!! Orthonormalize eigenvectors with respect to an overlap matrix.
 !!
 subroutine elsi_orthonormalize_ev_complex(eh,ovlp,evec)
 
@@ -71,7 +71,7 @@ subroutine elsi_orthonormalize_ev_complex(eh,ovlp,evec)
 end subroutine
 
 !>
-!! This routine extrapolates density matrix for a new overlap.
+!! Extrapolate density matrix for a new overlap.
 !!
 subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
 
@@ -111,7 +111,7 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
 end subroutine
 
 !>
-!! This routine extrapolates density matrix for a new overlap.
+!! Extrapolate density matrix for a new overlap.
 !!
 subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
 
@@ -151,7 +151,7 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
 end subroutine
 
 !>
-!! This routine computes the chemical potential and occupation numbers.
+!! Compute the chemical potential and occupation numbers.
 !!
 subroutine elsi_compute_mu_and_occ(eh,n_electron,n_state,n_spin,n_kpt,k_wt,&
    eval,occ,mu)
@@ -176,7 +176,7 @@ subroutine elsi_compute_mu_and_occ(eh,n_electron,n_state,n_spin,n_kpt,k_wt,&
 end subroutine
 
 !>
-!! This routine computes the entropy.
+!! Compute the electronic entropy.
 !!
 subroutine elsi_compute_entropy(eh,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
 

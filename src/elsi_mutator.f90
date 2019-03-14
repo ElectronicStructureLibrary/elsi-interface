@@ -23,12 +23,13 @@ module ELSI_MUTATOR
        elsi_pexsi_to_generic_dm,elsi_pexsi_to_siesta_dm,elsi_sips_to_blacs_dm,&
        elsi_sips_to_generic_dm,elsi_sips_to_siesta_dm
    use ELSI_SIPS, only: elsi_build_edm_sips
-   use ELSI_UTILS, only: elsi_check_init,elsi_build_edm
+   use ELSI_UTILS, only: elsi_check_init,elsi_check_read,elsi_build_edm
 
    implicit none
 
    private
 
+   public :: elsi_set_input_file
    public :: elsi_set_output
    public :: elsi_set_output_unit
    public :: elsi_set_output_log
@@ -139,6 +140,241 @@ module ELSI_MUTATOR
    end interface
 
 contains
+
+!>
+!! This routine sets runtime parameters from a file.
+!!
+subroutine elsi_set_input_file(eh,f_name)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   character(len=*), intent(in) :: f_name !< File name
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: n_line
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: val_i4
+   real(kind=r8) :: val_r8
+   character(len=200) :: msg
+   character(len=20) :: kwd
+
+   character(len=*), parameter :: caller = "elsi_set_input_file"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   open(313,file=f_name,status="OLD",action="READ",iostat=ierr)
+
+   if(ierr /= 0) then
+      write(msg,"(3A)") "Failed to open input file ",f_name,"."
+      call elsi_stop(eh%bh,msg,caller)
+   end if
+
+   do
+      read(313,"(A)",iostat=ierr) msg
+
+      if(ierr < 0) then
+         exit
+      else if(ierr > 0) then
+         write(msg,"(3A)") "Failed to parse input file ",f_name,"."
+         call elsi_stop(eh%bh,msg,caller)
+      end if
+
+      do i = 1,len(trim(msg))
+         select case(msg(i:i))
+         case("{","}","[","]",":",",",'"')
+            msg(i:i) = " "
+         end select
+      end do
+
+      read(msg,*,iostat=ierr) kwd
+
+      if(ierr /= 0 .or. kwd(1:1) == "#") then
+         cycle
+      end if
+
+      select case(kwd)
+      case("output")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_output(eh,val_i4)
+      case("output_unit")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_output_unit(eh,val_i4)
+      case("output_log")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_output_log(eh,val_i4)
+      case("save_ovlp")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_save_ovlp(eh,val_i4)
+      case("unit_ovlp")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_unit_ovlp(eh,val_i4)
+      case("zero_def")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_zero_def(eh,val_r8)
+      case("illcond_check")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_illcond_check(eh,val_i4)
+      case("illcond_tol")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_illcond_tol(eh,val_r8)
+      case("energy_gap")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_energy_gap(eh,val_r8)
+      case("spectrum_width")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_spectrum_width(eh,val_r8)
+      case("dimensionality")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_dimensionality(eh,val_i4)
+      case("elpa_solver")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_elpa_solver(eh,val_i4)
+      case("elpa_n_single")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_elpa_n_single(eh,val_i4)
+      case("elpa_gpu")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_elpa_gpu(eh,val_i4)
+      case("elpa_gpu_kernels")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_elpa_gpu_kernels(eh,val_i4)
+      case("elpa_autotune")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_elpa_autotune(eh,val_i4)
+      case("omm_flavor")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_omm_flavor(eh,val_i4)
+      case("omm_n_elpa")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_omm_n_elpa(eh,val_i4)
+      case("omm_tol")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_omm_tol(eh,val_r8)
+      case("pexsi_n_mu")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_pexsi_n_mu(eh,val_i4)
+      case("pexsi_n_pole")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_pexsi_n_pole(eh,val_i4)
+      case("pexsi_np_per_pole")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_pexsi_np_per_pole(eh,val_i4)
+      case("pexsi_np_symbo")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_pexsi_np_symbo(eh,val_i4)
+      case("pexsi_inertia_tol")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_pexsi_inertia_tol(eh,val_r8)
+      case("sips_n_elpa")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_sips_n_elpa(eh,val_i4)
+      case("sips_n_slice")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_sips_n_slice(eh,val_i4)
+      case("sips_ev_min")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_sips_ev_min(eh,val_r8)
+      case("sips_ev_max")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_sips_ev_max(eh,val_r8)
+      case("ntpoly_method")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_ntpoly_method(eh,val_i4)
+      case("ntpoly_tol")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_ntpoly_tol(eh,val_r8)
+      case("ntpoly_filter")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_ntpoly_filter(eh,val_r8)
+      case("mu_broaden_scheme")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_mu_broaden_scheme(eh,val_i4)
+      case("mu_broaden_width")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_mu_broaden_width(eh,val_r8)
+      case("mu_tol")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_mu_tol(eh,val_r8)
+      case("mu_mp_order")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_mu_mp_order(eh,val_i4)
+      end select
+   end do
+
+   close(313)
+
+end subroutine
 
 !>
 !! This routine sets the output level of ELSI.

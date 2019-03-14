@@ -207,8 +207,8 @@ module ELSI_REDIST
 contains
 
 !>
-!! This routine gets local number of nonzero elements in matrices in 1D block
-!! CSC format converted from 2D block-cyclic dense format.
+!! Get local number of nonzero elements in matrices in 1D block CSC format
+!! converted from 2D block-cyclic dense format.
 !!
 subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
 
@@ -280,8 +280,8 @@ subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
 end subroutine
 
 !>
-!! This routine gets local number of nonzero elements in matrices in 1D block
-!! CSC format converted from 2D block-cyclic dense format.
+!! Get local number of nonzero elements in matrices in 1D block CSC format
+!! converted from 2D block-cyclic dense format.
 !!
 subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
 
@@ -353,8 +353,8 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in 2D block-
-!! cyclic dense format to 1D block CSC format.
+!! Convert Halmitonian and overlap matrices stored in 2D block-cyclic dense
+!! format to 1D block CSC format.
 !!
 subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    row_ind,col_ptr)
@@ -682,8 +682,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in 2D block-
-!! cyclic dense format to 1D block CSC format.
+!! Convert Halmitonian and overlap matrices stored in 2D block-cyclic dense
+!! format to 1D block CSC format.
 !!
 subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    row_ind,col_ptr)
@@ -1011,8 +1011,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 end subroutine
 
 !>
-!! This routine converts density matrix computed by PEXSI, stored in 1D block
-!! CSC format to 2D block-cyclic dense format.
+!! Convert density matrix computed by PEXSI, stored in 1D block CSC format to
+!! 2D block-cyclic dense format.
 !!
 subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
@@ -1200,8 +1200,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 end subroutine
 
 !>
-!! This routine converts density matrix computed by PEXSI, stored in 1D block
-!! CSC format to 2D block-cyclic dense format.
+!! Convert density matrix computed by PEXSI, stored in 1D block CSC format to 2D
+!! block-cyclic dense format.
 !!
 subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
@@ -1389,8 +1389,8 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 end subroutine
 
 !>
-!! This routine gets local number of nonzero elements in matrices in 1D block
-!! CSC format converted from 2D block-cyclic dense format.
+!! Get local number of nonzero elements in matrices in 1D block CSC format
+!! converted from 2D block-cyclic dense format.
 !!
 subroutine elsi_blacs_to_sips_hs_dim_real(ph,bh,ham_den,ovlp_den)
 
@@ -1460,8 +1460,8 @@ subroutine elsi_blacs_to_sips_hs_dim_real(ph,bh,ham_den,ovlp_den)
 end subroutine
 
 !>
-!! This routine gets local number of nonzero elements in matrices in 1D block
-!! CSC format converted from 2D block-cyclic dense format.
+!! Get local number of nonzero elements in matrices in 1D block CSC format
+!! converted from 2D block-cyclic dense format.
 !!
 subroutine elsi_blacs_to_sips_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
 
@@ -1531,8 +1531,8 @@ subroutine elsi_blacs_to_sips_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in 2D block-
-!! cyclic dense format to 1D block CSC format.
+!! Convert Halmitonian and overlap matrices stored in 2D block-cyclic dense
+!! format to 1D block CSC format.
 !!
 subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    row_ind,col_ptr)
@@ -1753,8 +1753,8 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in 2D block-
-!! cyclic dense format to 1D block CSC format.
+!! Convert Halmitonian and overlap matrices stored in 2D block-cyclic dense
+!! format to 1D block CSC format.
 !!
 subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    row_ind,col_ptr)
@@ -1975,8 +1975,8 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in 1D block CSC
-!! format to 2D block-cyclic dense format.
+!! Convert Halmitonian and overlap matrices stored in 1D block CSC format to 2D
+!! block-cyclic dense format.
 !!
 subroutine elsi_sips_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    ham_den,ovlp_den)
@@ -2186,8 +2186,8 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in 1D block CSC
-!! format to 2D block-cyclic dense format.
+!! Convert Halmitonian and overlap matrices stored in 1D block CSC format to 2D
+!! block-cyclic dense format.
 !!
 subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    ham_den,ovlp_den)
@@ -2397,8 +2397,8 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 end subroutine
 
 !>
-!! This routine converts eigenvectors stored in 1D block dense format to 2D
-!! block-cyclic dense format.
+!! Convert eigenvectors stored in 1D block dense format to 2D block-cyclic dense
+!! format.
 !!
 subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
 
@@ -2571,8 +2571,8 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
 end subroutine
 
 !>
-!! This routine converts density matrix in 2D block-cyclic dense format to 1D
-!! block CSC format.
+!! Convert density matrix in 2D block-cyclic dense format to 1D block CSC
+!! format.
 !!
 subroutine elsi_blacs_to_sips_dm_real(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
 
@@ -2727,8 +2727,8 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
 end subroutine
 
 !>
-!! This routine converts density matrix in 2D block-cyclic dense format to 1D
-!! block CSC format.
+!! Convert density matrix in 2D block-cyclic dense format to 1D block CSC
+!! format.
 !!
 subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
 
@@ -2883,8 +2883,8 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in 1D block-
-!! cyclic CSC format to 2D block-cyclic dense format.
+!! Convert Halmitonian and overlap matrices stored in 1D block-cyclic CSC format
+!! to 2D block-cyclic dense format.
 !!
 subroutine elsi_siesta_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    ham_den,ovlp_den)
@@ -3095,8 +3095,8 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in 1D block-
-!! cyclic CSC format to 2D block-cyclic dense format.
+!! Convert Halmitonian and overlap matrices stored in 1D block-cyclic CSC format
+!! to 2D block-cyclic dense format.
 !!
 subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    ham_den,ovlp_den)
@@ -3307,8 +3307,8 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 end subroutine
 
 !>
-!! This routine converts density matrix in 2D block-cyclic dense format to 1D
-!! block-cyclic CSC format.
+!! Convert density matrix in 2D block-cyclic dense format to 1D block-cyclic CSC
+!! format.
 !!
 subroutine elsi_blacs_to_siesta_dm_real(bh,dm_den,dm_sp,row_ind,col_ptr)
 
@@ -3473,8 +3473,8 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,dm_den,dm_sp,row_ind,col_ptr)
 end subroutine
 
 !>
-!! This routine converts density matrix in 2D block-cyclic dense format to 1D
-!! block-cyclic CSC format.
+!! Convert density matrix in 2D block-cyclic dense format to 1D block-cyclic CSC
+!! format.
 !!
 subroutine elsi_blacs_to_siesta_dm_cmplx(bh,dm_den,dm_sp,row_ind,col_ptr)
 
@@ -3639,8 +3639,8 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,dm_den,dm_sp,row_ind,col_ptr)
 end subroutine
 
 !>
-!! This routine gets local number of nonzero elements in matrices in 1D block
-!! CSC format converted from 1D block-cyclic dense format.
+!! Get local number of nonzero elements in matrices in 1D block CSC format
+!! converted from 1D block-cyclic dense format.
 !!
 subroutine elsi_siesta_to_pexsi_hs_dim(ph,bh,col_ptr2)
 
@@ -3685,8 +3685,8 @@ subroutine elsi_siesta_to_pexsi_hs_dim(ph,bh,col_ptr2)
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in 1D block-
-!! cyclic CSC format to 1D block CSC format.
+!! Convert Halmitonian and overlap matrices stored in 1D block-cyclic CSC format
+!! to 1D block CSC format.
 !!
 subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    col_ptr2,ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
@@ -3877,8 +3877,8 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in 1D block-
-!! cyclic CSC format to 1D block CSC format.
+!! Convert Halmitonian and overlap matrices stored in 1D block-cyclic CSC format
+!! to 1D block CSC format.
 !!
 subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    col_ptr2,ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
@@ -4069,8 +4069,8 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
 end subroutine
 
 !>
-!! This routine converts density matrix computed by PEXSI, stored in 1D block
-!! CSC format to 1D block-cyclic CSC format.
+!! Convert density matrix computed by PEXSI, stored in 1D block CSC format to 1D
+!! block-cyclic CSC format.
 !!
 subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    row_ind2,col_ptr2)
@@ -4236,8 +4236,8 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
 end subroutine
 
 !>
-!! This routine converts density matrix computed by PEXSI, stored in 1D block
-!! CSC format to 1D block-cyclic CSC format.
+!! Convert density matrix computed by PEXSI, stored in 1D block CSC format to 1D
+!! block-cyclic CSC format.
 !!
 subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    row_ind2,col_ptr2)
@@ -4403,8 +4403,8 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
 end subroutine
 
 !>
-!! This routine converts density matrix computed by SLEPc-SIPs, stored in 1D
-!! block CSC format to 2D block-cyclic dense format.
+!! Convert density matrix computed by SLEPc-SIPs, stored in 1D block CSC format
+!! to 2D block-cyclic dense format.
 !!
 subroutine elsi_sips_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
@@ -4428,8 +4428,8 @@ subroutine elsi_sips_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 end subroutine
 
 !>
-!! This routine converts density matrix computed by SLEPc-SIPs, stored in 1D
-!! block CSC format to 2D block-cyclic dense format.
+!! Convert density matrix computed by SLEPc-SIPs, stored in 1D block CSC format
+!! to 2D block-cyclic dense format.
 !!
 subroutine elsi_sips_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
@@ -4453,8 +4453,8 @@ subroutine elsi_sips_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 end subroutine
 
 !>
-!! This routine converts density matrix computed by SLPEc-SIPs, stored in 1D
-!! block CSC format to 1D block-cyclic CSC format.
+!! Convert density matrix computed by SLPEc-SIPs, stored in 1D block CSC format
+!! to 1D block-cyclic CSC format.
 !!
 subroutine elsi_sips_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    row_ind2,col_ptr2)
@@ -4482,8 +4482,8 @@ subroutine elsi_sips_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
 end subroutine
 
 !>
-!! This routine converts density matrix computed by SLEPc-SIPs, stored in 1D
-!! block CSC format to 1D block-cyclic CSC format.
+!! Convert density matrix computed by SLEPc-SIPs, stored in 1D block CSC format
+!! to 1D block-cyclic CSC format.
 !!
 subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    row_ind2,col_ptr2)
@@ -4511,8 +4511,8 @@ subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
 end subroutine
 
 !>
-!! This routine gets local number of nonzero elements in matrices in 1D block
-!! CSC format converted from 1D block-cyclic dense format.
+!! Get local number of nonzero elements in matrices in 1D block CSC format
+!! converted from 1D block-cyclic dense format.
 !!
 subroutine elsi_siesta_to_sips_hs_dim(ph,bh,col_ptr2)
 
@@ -4556,8 +4556,8 @@ subroutine elsi_siesta_to_sips_hs_dim(ph,bh,col_ptr2)
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in 1D block-
-!! cyclic CSC format to 1D block CSC format.
+!! Convert Halmitonian and overlap matrices stored in 1D block-cyclic CSC format
+!! to 1D block CSC format.
 !!
 subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    col_ptr2,ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
@@ -4587,8 +4587,8 @@ subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in 1D block-
-!! cyclic CSC format to 1D block CSC format.
+!! Convert Halmitonian and overlap matrices stored in 1D block-cyclic CSC format
+!! to 1D block CSC format.
 !!
 subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    col_ptr2,ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
@@ -4618,8 +4618,8 @@ subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
 end subroutine
 
 !>
-!! This routine constructs Halmitonian and overlep matrices in NTPoly format
-!! from matrices stored in 2D block-cyclic dense format.
+!! Construct Halmitonian and overlep matrices in NTPoly format from matrices
+!! stored in 2D block-cyclic dense format.
 !!
 subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
 
@@ -4732,8 +4732,8 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
 end subroutine
 
 !>
-!! This routine constructs Halmitonian and overlep matrices in NTPoly format
-!! from matrices stored in 2D block-cyclic dense format.
+!! Construct Halmitonian and overlep matrices in NTPoly format from matrices
+!! stored in 2D block-cyclic dense format.
 !!
 subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
 
@@ -4846,8 +4846,7 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
 end subroutine
 
 !>
-!! This routine converts density matrix computed by NTPoly to 2D block-cyclic
-!! dense format.
+!! Convert density matrix computed by NTPoly to 2D block-cyclic dense format.
 !!
 subroutine elsi_ntpoly_to_blacs_dm_real(ph,bh,dm_nt,dm_den)
 
@@ -5011,8 +5010,7 @@ subroutine elsi_ntpoly_to_blacs_dm_real(ph,bh,dm_nt,dm_den)
 end subroutine
 
 !>
-!! This routine converts density matrix computed by NTPoly to 2D block-cyclic
-!! dense format.
+!! Convert density matrix computed by NTPoly to 2D block-cyclic dense format.
 !!
 subroutine elsi_ntpoly_to_blacs_dm_cmplx(ph,bh,dm_nt,dm_den)
 
@@ -5176,8 +5174,8 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(ph,bh,dm_nt,dm_den)
 end subroutine
 
 !>
-!! This routine constructs Halmitonian and overlep matrices in NTPoly format
-!! from matrices stored in 1D block CSC format.
+!! Construct Halmitonian and overlep matrices in NTPoly format from matrices
+!! stored in 1D block CSC format.
 !!
 subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    ham_nt,ovlp_nt)
@@ -5258,8 +5256,8 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 end subroutine
 
 !>
-!! This routine constructs Halmitonian and overlep matrices in NTPoly format
-!! from matrices stored in 1D block CSC format.
+!! Construct Halmitonian and overlep matrices in NTPoly format from matrices
+!! stored in 1D block CSC format.
 !!
 subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    ham_nt,ovlp_nt)
@@ -5340,8 +5338,7 @@ subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 end subroutine
 
 !>
-!! This routine converts density matrix computed by NTPoly to 1D block CSC
-!! format.
+!! Convert density matrix computed by NTPoly to 1D block CSC format.
 !!
 subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
 
@@ -5494,8 +5491,7 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
 end subroutine
 
 !>
-!! This routine converts density matrix computed by NTPoly to 1D block CSC
-!! format.
+!! Convert density matrix computed by NTPoly to 1D block CSC format.
 !!
 subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
 
@@ -5648,8 +5644,8 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
 end subroutine
 
 !>
-!! This routine constructs Halmitonian and overlep matrices in NTPoly format
-!! from matrices stored in 1D block-cyclic CSC format.
+!! Construct Halmitonian and overlep matrices in NTPoly format from matrices
+!! stored in 1D block-cyclic CSC format.
 !!
 subroutine elsi_siesta_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    ham_nt,ovlp_nt)
@@ -5733,8 +5729,8 @@ subroutine elsi_siesta_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 end subroutine
 
 !>
-!! This routine constructs Halmitonian and overlep matrices in NTPoly format
-!! from matrices stored in 1D block-cyclic CSC format.
+!! Construct Halmitonian and overlep matrices in NTPoly format from matrices
+!! stored in 1D block-cyclic CSC format.
 !!
 subroutine elsi_siesta_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    ham_nt,ovlp_nt)
@@ -5818,8 +5814,7 @@ subroutine elsi_siesta_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 end subroutine
 
 !>
-!! This routine converts density matrix computed by NTPoly to 1D block-cyclic
-!! CSC format.
+!! Convert density matrix computed by NTPoly to 1D block-cyclic CSC format.
 !!
 subroutine elsi_ntpoly_to_siesta_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
 
@@ -5985,8 +5980,7 @@ subroutine elsi_ntpoly_to_siesta_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
 end subroutine
 
 !>
-!! This routine converts density matrix computed by NTPoly to 1D block-cyclic
-!! CSC format.
+!! Convert density matrix computed by NTPoly to 1D block-cyclic CSC format.
 !!
 subroutine elsi_ntpoly_to_siesta_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
 
@@ -6152,8 +6146,8 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in generic COO
-!! format to 2D block-cyclic dense format.
+!! Convert Halmitonian and overlap matrices stored in generic COO format to 2D
+!! block-cyclic dense format.
 !!
 subroutine elsi_generic_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    ham_den,ovlp_den,map_den)
@@ -6384,8 +6378,8 @@ subroutine elsi_generic_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in generic COO
-!! format to 2D block-cyclic dense format.
+!! Convert Halmitonian and overlap matrices stored in generic COO format to 2D
+!! block-cyclic dense format.
 !!
 subroutine elsi_generic_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    ham_den,ovlp_den,map_den)
@@ -6616,8 +6610,8 @@ subroutine elsi_generic_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
 end subroutine
 
 !>
-!! This routine constructs Halmitonian and overlep matrices in NTPoly format
-!! from matrices stored in generic COO format.
+!! Construct Halmitonian and overlep matrices in NTPoly format from matrices
+!! stored in generic COO format.
 !!
 subroutine elsi_generic_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    ham_nt,ovlp_nt,map_nt)
@@ -6706,8 +6700,8 @@ subroutine elsi_generic_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
 end subroutine
 
 !>
-!! This routine constructs Halmitonian and overlep matrices in NTPoly format
-!! from matrices stored in generic COO format.
+!! Construct Halmitonian and overlep matrices in NTPoly format from matrices
+!! stored in generic COO format.
 !!
 subroutine elsi_generic_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,&
    col_ind,ham_nt,ovlp_nt,map_nt)
@@ -6796,8 +6790,8 @@ subroutine elsi_generic_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,&
 end subroutine
 
 !>
-!! This routine gets local number of nonzero elements in matrices in 1D block
-!! CSC format converted from generic COO format.
+!! Get local number of nonzero elements in matrices in 1D block CSC format
+!! converted from generic COO format.
 !!
 subroutine elsi_generic_to_pexsi_hs_dim(ph,bh,col_ind3)
 
@@ -6839,8 +6833,8 @@ subroutine elsi_generic_to_pexsi_hs_dim(ph,bh,col_ind3)
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in generic COO
-!! format to 1D block CSC format.
+!! Convert Halmitonian and overlap matrices stored in generic COO format to 1D
+!! block CSC format.
 !!
 subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    col_ind3,ham_sp1,ovlp_sp1,row_ind1,col_ptr1,map_sp1)
@@ -7055,8 +7049,8 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in generic COO
-!! format to 1D block CSC format.
+!! Convert Halmitonian and overlap matrices stored in generic COO format to 1D
+!! block CSC format.
 !!
 subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    col_ind3,ham_sp1,ovlp_sp1,row_ind1,col_ptr1,map_sp1)
@@ -7271,8 +7265,8 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
 end subroutine
 
 !>
-!! This routine gets local number of nonzero elements in matrices in 1D block
-!! CSC format converted from generic COO format.
+!! Get local number of nonzero elements in matrices in 1D block CSC format
+!! converted from generic COO format.
 !!
 subroutine elsi_generic_to_sips_hs_dim(ph,bh,col_ind3)
 
@@ -7313,8 +7307,8 @@ subroutine elsi_generic_to_sips_hs_dim(ph,bh,col_ind3)
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in generic COO
-!! format to 1D block CSC format.
+!! Convert Halmitonian and overlap matrices stored in generic COO format to 1D
+!! block CSC format.
 !!
 subroutine elsi_generic_to_sips_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    col_ind3,ham_sp1,ovlp_sp1,row_ind1,col_ptr1,map_sp1)
@@ -7345,8 +7339,8 @@ subroutine elsi_generic_to_sips_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
 end subroutine
 
 !>
-!! This routine converts Halmitonian and overlap matrices stored in generic COO
-!! format to 1D block CSC format.
+!! Convert Halmitonian and overlap matrices stored in generic COO format to 1D
+!! block CSC format.
 !!
 subroutine elsi_generic_to_sips_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    col_ind3,ham_sp1,ovlp_sp1,row_ind1,col_ptr1,map_sp1)
@@ -7377,8 +7371,7 @@ subroutine elsi_generic_to_sips_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
 end subroutine
 
 !>
-!! This routine converts density matrix in 2D block-cyclic dense format to
-!! generic COO format.
+!! Convert density matrix in 2D block-cyclic dense format to generic COO format.
 !!
 subroutine elsi_blacs_to_generic_dm_real(ph,bh,dm_den,map_den,dm_sp,perm_sp)
 
@@ -7540,8 +7533,7 @@ subroutine elsi_blacs_to_generic_dm_real(ph,bh,dm_den,map_den,dm_sp,perm_sp)
 end subroutine
 
 !>
-!! This routine converts density matrix in 2D block-cyclic dense format to
-!! generic COO format.
+!! Convert density matrix in 2D block-cyclic dense format to generic COO format.
 !!
 subroutine elsi_blacs_to_generic_dm_cmplx(ph,bh,dm_den,map_den,dm_sp,perm_sp)
 
@@ -7703,8 +7695,7 @@ subroutine elsi_blacs_to_generic_dm_cmplx(ph,bh,dm_den,map_den,dm_sp,perm_sp)
 end subroutine
 
 !>
-!! This routine converts density matrix stored in 1D block CSC format to generic
-!! COO format.
+!! Convert density matrix stored in 1D block CSC format to generic COO format.
 !!
 subroutine elsi_pexsi_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    map_sp1,dm_sp3,perm_sp3)
@@ -7861,8 +7852,7 @@ subroutine elsi_pexsi_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,&
 end subroutine
 
 !>
-!! This routine converts density matrix stored in 1D block CSC format to generic
-!! COO format.
+!! Convert density matrix stored in 1D block CSC format to generic COO format.
 !!
 subroutine elsi_pexsi_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    map_sp1,dm_sp3,perm_sp3)
@@ -8019,8 +8009,7 @@ subroutine elsi_pexsi_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
 end subroutine
 
 !>
-!! This routine converts density matrix stored in 1D block CSC format to generic
-!! COO format.
+!! Convert density matrix stored in 1D block CSC format to generic COO format.
 !!
 subroutine elsi_sips_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,&
    dm_sp3,perm_sp3)
@@ -8048,8 +8037,7 @@ subroutine elsi_sips_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,&
 end subroutine
 
 !>
-!! This routine converts density matrix stored in 1D block CSC format to generic
-!! COO format.
+!! Convert density matrix stored in 1D block CSC format to generic COO format.
 !!
 subroutine elsi_sips_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    map_sp1,dm_sp3,perm_sp3)
@@ -8077,8 +8065,7 @@ subroutine elsi_sips_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
 end subroutine
 
 !>
-!! This routine converts density matrix computed by NTPoly to generic COO
-!! format.
+!! Convert density matrix computed by NTPoly to generic COO format.
 !!
 subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 
@@ -8267,8 +8254,7 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 end subroutine
 
 !>
-!! This routine converts density matrix computed by NTPoly to generic COO
-!! format.
+!! Convert density matrix computed by NTPoly to generic COO format.
 !!
 subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 

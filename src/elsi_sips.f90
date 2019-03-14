@@ -46,7 +46,7 @@ module ELSI_SIPS
 contains
 
 !>
-!! This routine initializes SLEPc-SIPs.
+!! Initialize SLEPc-SIPs.
 !!
 subroutine elsi_init_sips(ph,bh)
 
@@ -83,7 +83,7 @@ subroutine elsi_init_sips(ph,bh)
 end subroutine
 
 !>
-!! This routine interfaces to SLEPc-SIPs.
+!! Interface to SLEPc-SIPs.
 !!
 subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
@@ -274,7 +274,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine constructs the density matrix.
+!! Construct the density matrix.
 !!
 subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 
@@ -308,7 +308,7 @@ subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 end subroutine
 
 !>
-!! This routine constructs the energy-weighted density matrix.
+!! Construct the energy-weighted density matrix.
 !!
 subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
 
@@ -342,7 +342,7 @@ subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
 end subroutine
 
 !>
-!! This routine cleans up SLEPc-SIPs.
+!! Clean up SLEPc-SIPs.
 !!
 subroutine elsi_cleanup_sips(ph)
 

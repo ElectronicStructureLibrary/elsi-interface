@@ -41,7 +41,7 @@ module ELSI_OMM
 contains
 
 !>
-!! This routine initializes libOMM.
+!! Initialize libOMM.
 !!
 subroutine elsi_init_omm(ph,bh)
 
@@ -71,7 +71,7 @@ subroutine elsi_init_omm(ph,bh)
 end subroutine
 
 !>
-!! This routine interfaces to libOMM.
+!! Interface to libOMM.
 !!
 subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
@@ -176,7 +176,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 end subroutine
 
 !>
-!! This routine computes the energy-weighted density matrix.
+!! Compute the energy-weighted density matrix.
 !!
 subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
 
@@ -223,7 +223,7 @@ subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
 end subroutine
 
 !>
-!! This routine interfaces to libOMM.
+!! Interface to libOMM.
 !!
 subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
@@ -328,7 +328,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 end subroutine
 
 !>
-!! This routine computes the energy-weighted density matrix.
+!! Compute the energy-weighted density matrix.
 !!
 subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
 
@@ -375,7 +375,7 @@ subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
 end subroutine
 
 !>
-!! This routine cleans up libOMM.
+!! Clean up libOMM.
 !!
 subroutine elsi_cleanup_omm(ph)
 

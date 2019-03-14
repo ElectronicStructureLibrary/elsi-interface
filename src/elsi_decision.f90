@@ -34,7 +34,7 @@ module ELSI_DECISION
 contains
 
 !>
-!! This routine decides which eigensolver to use.
+!! Decide which eigensolver to use.
 !!
 subroutine elsi_decide_ev(ph,bh)
 
@@ -57,7 +57,7 @@ subroutine elsi_decide_ev(ph,bh)
 end subroutine
 
 !>
-!! This routine decides which density matrix solver to use.
+!! Decide which density matrix solver to use.
 !!
 subroutine elsi_decide_dm_real(ph,bh,mat)
 
@@ -99,7 +99,7 @@ subroutine elsi_decide_dm_real(ph,bh,mat)
 end subroutine
 
 !>
-!! This routine decides which density matrix solver to use.
+!! Decide which density matrix solver to use.
 !!
 subroutine elsi_decide_dm_cmplx(ph,bh,mat)
 
@@ -141,7 +141,7 @@ subroutine elsi_decide_dm_cmplx(ph,bh,mat)
 end subroutine
 
 !>
-!! This routine decides which density matrix solver to use.
+!! Decide which density matrix solver to use.
 !!
 subroutine elsi_decide_dm_sparse(ph,bh)
 
@@ -172,7 +172,7 @@ subroutine elsi_decide_dm_sparse(ph,bh)
 end subroutine
 
 !>
-!! This routine decides which density matrix solver to use.
+!! Decide which density matrix solver to use.
 !!
 subroutine elsi_decide_dm_core(ph,bh,sparsity)
 

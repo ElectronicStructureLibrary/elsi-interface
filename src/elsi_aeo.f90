@@ -67,7 +67,7 @@ module ELSI_ELPA
 contains
 
 !>
-!! This routine initializes ELPA.
+!! Initialize ELPA.
 !!
 subroutine elsi_init_elpa(ph,bh)
 
@@ -105,8 +105,8 @@ subroutine elsi_init_elpa(ph,bh)
 end subroutine
 
 !>
-!! This routine transforms a generalized eigenproblem to standard and returns
-!! the Cholesky factor for later use.
+!! Transform a generalized eigenproblem to standard and return the Cholesky
+!! factor for later use.
 !!
 subroutine elsi_to_standard_evp_real(ph,bh,ham,ovlp,eval,evec)
 
@@ -188,10 +188,10 @@ subroutine elsi_to_standard_evp_real(ph,bh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine checks the singularity of overlap matrix by computing all its
-!! eigenvalues. On exit, S is not modified if not singular, or is overwritten by
-!! scaled eigenvectors if singular, which can be used to transform the
-!! generalized eigenproblem to the standard form.
+!! Check the singularity of overlap matrix by computing all its eigenvalues. On
+!! exit, S is not modified if not singular, or is overwritten by scaled
+!! eigenvectors if singular, which can be used to transform the generalized
+!! eigenproblem to the standard form.
 !!
 subroutine elsi_check_singularity_real(ph,bh,ovlp,eval,evec)
 
@@ -253,8 +253,8 @@ subroutine elsi_check_singularity_real(ph,bh,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine back-transforms eigenvectors in the standard form to the
-!! original generalized form.
+!! Back-transform eigenvectors in the standard form to the original generalized
+!! form.
 !!
 subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
 
@@ -307,7 +307,7 @@ subroutine elsi_to_original_ev_real(ph,bh,ham,ovlp,evec)
 end subroutine
 
 !>
-!! This routine interfaces to ELPA.
+!! Interface to ELPA.
 !!
 subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
 
@@ -374,8 +374,8 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine extrapolates density matrix using Cholesky decomposition of the
-!! old and new overlap matrices.
+!! Extrapolate density matrix using Cholesky decomposition of the old and new
+!! overlap matrices.
 !!
 subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm)
 
@@ -452,8 +452,8 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm)
 end subroutine
 
 !>
-!! This routine transforms a generalized eigenproblem to standard and returns
-!! the Cholesky factor for later use.
+!! Transform a generalized eigenproblem to standard and return the Cholesky
+!! factor for later use.
 !!
 subroutine elsi_to_standard_evp_cmplx(ph,bh,ham,ovlp,eval,evec)
 
@@ -535,10 +535,10 @@ subroutine elsi_to_standard_evp_cmplx(ph,bh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine checks the singularity of overlap matrix by computing all its
-!! eigenvalues. On exit, S is not modified if not singular, or is overwritten by
-!! scaled eigenvectors if singular, which can be used to transform the
-!! generalized eigenproblem to the standard form.
+!! Check the singularity of overlap matrix by computing all its eigenvalues. On
+!! exit, S is not modified if not singular, or is overwritten by scaled
+!! eigenvectors if singular, which can be used to transform the generalized
+!! eigenproblem to the standard form.
 !!
 subroutine elsi_check_singularity_cmplx(ph,bh,ovlp,eval,evec)
 
@@ -600,8 +600,8 @@ subroutine elsi_check_singularity_cmplx(ph,bh,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine back-transforms eigenvectors in the standard form to the
-!! original generalized form.
+!! Back-transform eigenvectors in the standard form to the original generalized
+!! form.
 !!
 subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
 
@@ -654,7 +654,7 @@ subroutine elsi_to_original_ev_cmplx(ph,bh,ham,ovlp,evec)
 end subroutine
 
 !>
-!! This routine interfaces to ELPA.
+!! Interface to ELPA.
 !!
 subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
 
@@ -721,8 +721,8 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine extrapolates density matrix using Cholesky decomposition of the
-!! old and new overlap matrices.
+!! Extrapolate density matrix using Cholesky decomposition of the old and new
+!! overlap matrices.
 !!
 subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm)
 
@@ -799,7 +799,7 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm)
 end subroutine
 
 !>
-!! This routine sets up an instance of ELPA.
+!! Set up an instance of ELPA.
 !!
 subroutine elsi_elpa_setup(ph,bh,is_aux)
 
@@ -909,7 +909,7 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
 end subroutine
 
 !>
-!! This routine interfaces to ELPA eigensolver.
+!! Interface to ELPA eigensolver.
 !!
 subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
 
@@ -1009,7 +1009,7 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
 end subroutine
 
 !>
-!! This routine interfaces to ELPA eigensolver.
+!! Interface to ELPA eigensolver.
 !!
 subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
 
@@ -1109,7 +1109,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
 end subroutine
 
 !>
-!! This routine interfaces to ELPA Cholesky decomposition.
+!! Interface to ELPA Cholesky decomposition.
 !!
 subroutine elsi_elpa_cholesky_real(ph,bh,mat)
 
@@ -1134,7 +1134,7 @@ subroutine elsi_elpa_cholesky_real(ph,bh,mat)
 end subroutine
 
 !>
-!! This routine interfaces to ELPA Cholesky decomposition.
+!! Interface to ELPA Cholesky decomposition.
 !!
 subroutine elsi_elpa_cholesky_cmplx(ph,bh,mat)
 
@@ -1159,7 +1159,7 @@ subroutine elsi_elpa_cholesky_cmplx(ph,bh,mat)
 end subroutine
 
 !>
-!! This routine interfaces to ELPA matrix inversion.
+!! Interface to ELPA matrix inversion.
 !!
 subroutine elsi_elpa_invert_real(ph,bh,mat)
 
@@ -1184,7 +1184,7 @@ subroutine elsi_elpa_invert_real(ph,bh,mat)
 end subroutine
 
 !>
-!! This routine interfaces to ELPA matrix inversion.
+!! Interface to ELPA matrix inversion.
 !!
 subroutine elsi_elpa_invert_cmplx(ph,bh,mat)
 
@@ -1209,7 +1209,7 @@ subroutine elsi_elpa_invert_cmplx(ph,bh,mat)
 end subroutine
 
 !>
-!! This routine interfaces to ELPA matrix multiplication.
+!! Interface to ELPA matrix multiplication.
 !!
 subroutine elsi_elpa_multiply_real(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
 
@@ -1240,7 +1240,7 @@ subroutine elsi_elpa_multiply_real(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
 end subroutine
 
 !>
-!! This routine interfaces to ELPA matrix multiplication.
+!! Interface to ELPA matrix multiplication.
 !!
 subroutine elsi_elpa_multiply_cmplx(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
 
@@ -1271,7 +1271,7 @@ subroutine elsi_elpa_multiply_cmplx(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
 end subroutine
 
 !>
-!! This routine interfaces to ELPA tridiagonal solver.
+!! Interface to ELPA tridiagonal solver.
 !!
 subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
 
@@ -1318,7 +1318,7 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
 end subroutine
 
 !>
-!! This routine cleans up ELPA.
+!! Clean up ELPA.
 !!
 subroutine elsi_cleanup_elpa(ph)
 

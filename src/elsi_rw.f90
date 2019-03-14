@@ -50,7 +50,7 @@ module ELSI_RW
 contains
 
 !>
-!! This routine initializes a handle for reading and writing matrices.
+!! Initialize a handle for reading and writing matrices.
 !!
 subroutine elsi_init_rw(rwh,task,parallel_mode,n_basis,n_electron)
 
@@ -84,7 +84,7 @@ subroutine elsi_init_rw(rwh,task,parallel_mode,n_basis,n_electron)
 end subroutine
 
 !>
-!! This routine finalizes a handle.
+!! Finalize a handle.
 !!
 subroutine elsi_finalize_rw(rwh)
 
@@ -101,7 +101,7 @@ subroutine elsi_finalize_rw(rwh)
 end subroutine
 
 !>
-!! This routine sets the MPI communicator.
+!! Set the MPI communicator.
 !!
 subroutine elsi_set_rw_mpi(rwh,mpi_comm)
 
@@ -128,7 +128,7 @@ subroutine elsi_set_rw_mpi(rwh,mpi_comm)
 end subroutine
 
 !>
-!! This routine sets the BLACS context and the block size.
+!! Set the BLACS context and the block size.
 !!
 subroutine elsi_set_rw_blacs(rwh,blacs_ctxt,block_size)
 
@@ -166,7 +166,7 @@ subroutine elsi_set_rw_blacs(rwh,blacs_ctxt,block_size)
 end subroutine
 
 !>
-!! This routine sets the sparsity pattern.
+!! Set the sparsity pattern.
 !!
 subroutine elsi_set_rw_csc(rwh,nnz_g,nnz_l_sp,n_lcol_sp)
 
@@ -188,7 +188,7 @@ subroutine elsi_set_rw_csc(rwh,nnz_g,nnz_l_sp,n_lcol_sp)
 end subroutine
 
 !>
-!! This routine sets the threshold to define "zero".
+!! Set the threshold to define "zero".
 !!
 subroutine elsi_set_rw_zero_def(rwh,zero_def)
 
@@ -206,7 +206,7 @@ subroutine elsi_set_rw_zero_def(rwh,zero_def)
 end subroutine
 
 !>
-!! This routine sets a matrix file header.
+!! Set a matrix file header.
 !!
 subroutine elsi_set_rw_header(rwh,header_user)
 
@@ -224,7 +224,7 @@ subroutine elsi_set_rw_header(rwh,header_user)
 end subroutine
 
 !>
-!! This routine gets a matrix file header.
+!! Get a matrix file header.
 !!
 subroutine elsi_get_rw_header(rwh,header_user)
 
@@ -242,8 +242,8 @@ subroutine elsi_get_rw_header(rwh,header_user)
 end subroutine
 
 !>
-!! This routine guarantees that there are no unsupported or mutually conflicting
-!! parameters before reading or writing data.
+!! Ensure there are no unsupported or mutually conflicting parameters before
+!! reading or writing data.
 !!
 subroutine elsi_check_rw(bh,parallel_mode,n_basis,caller)
 
@@ -276,7 +276,7 @@ subroutine elsi_check_rw(bh,parallel_mode,n_basis,caller)
 end subroutine
 
 !>
-!! This routine resets rw.
+!! Reset rw handle.
 !!
 subroutine elsi_reset_rw(rwh)
 
@@ -297,8 +297,7 @@ subroutine elsi_reset_rw(rwh)
 end subroutine
 
 !>
-!! This routine reads the dimensions of a 2D block-cyclic dense matrix from
-!! file.
+!! Read the dimensions of a 2D block-cyclic dense matrix from file.
 !!
 subroutine elsi_read_mat_dim(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
 
@@ -324,7 +323,7 @@ subroutine elsi_read_mat_dim(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
 end subroutine
 
 !>
-!! This routine reads a 2D block-cyclic dense matrix from file.
+!! Read a 2D block-cyclic dense matrix from file.
 !!
 subroutine elsi_read_mat_real(rwh,f_name,mat)
 
@@ -348,7 +347,7 @@ subroutine elsi_read_mat_real(rwh,f_name,mat)
 end subroutine
 
 !>
-!! This routine writes a 2D block-cyclic dense matrix to file.
+!! Write a 2D block-cyclic dense matrix to file.
 !!
 subroutine elsi_write_mat_real(rwh,f_name,mat)
 
@@ -372,7 +371,7 @@ subroutine elsi_write_mat_real(rwh,f_name,mat)
 end subroutine
 
 !>
-!! This routine reads a 2D block-cyclic dense matrix from file.
+!! Read a 2D block-cyclic dense matrix from file.
 !!
 subroutine elsi_read_mat_complex(rwh,f_name,mat)
 
@@ -396,7 +395,7 @@ subroutine elsi_read_mat_complex(rwh,f_name,mat)
 end subroutine
 
 !>
-!! This routine writes a 2D block-cyclic dense matrix to file.
+!! Write a 2D block-cyclic dense matrix to file.
 !!
 subroutine elsi_write_mat_complex(rwh,f_name,mat)
 
@@ -420,8 +419,7 @@ subroutine elsi_write_mat_complex(rwh,f_name,mat)
 end subroutine
 
 !>
-!! This routine reads the dimensions of a 2D block-cyclic dense matrix from
-!! file.
+!! Read the dimensions of a 2D block-cyclic dense matrix from file.
 !!
 subroutine elsi_read_mat_dim_mp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
 
@@ -495,7 +493,7 @@ subroutine elsi_read_mat_dim_mp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
 end subroutine
 
 !>
-!! This routine reads the dimensions of a 1D block CSC matrix from file.
+!! Read the dimensions of a 1D block CSC matrix from file.
 !!
 subroutine elsi_read_mat_dim_sparse(rwh,f_name,n_electron,n_basis,nnz_g,&
    nnz_l_sp,n_lcol_sp)
@@ -596,7 +594,7 @@ subroutine elsi_read_mat_dim_sparse(rwh,f_name,n_electron,n_basis,nnz_g,&
 end subroutine
 
 !>
-!! This routine reads a 2D block-cyclic dense matrix from file.
+!! Read a 2D block-cyclic dense matrix from file.
 !!
 subroutine elsi_read_mat_real_mp(rwh,f_name,mat)
 
@@ -706,7 +704,7 @@ subroutine elsi_read_mat_real_mp(rwh,f_name,mat)
 end subroutine
 
 !>
-!! This routine reads a 1D block CSC matrix from file.
+!! Read a 1D block CSC matrix from file.
 !!
 subroutine elsi_read_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
 
@@ -780,7 +778,7 @@ subroutine elsi_read_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
 end subroutine
 
 !>
-!! This routine reads a 2D block-cyclic dense matrix from file.
+!! Read a 2D block-cyclic dense matrix from file.
 !!
 subroutine elsi_read_mat_complex_mp(rwh,f_name,mat)
 
@@ -890,7 +888,7 @@ subroutine elsi_read_mat_complex_mp(rwh,f_name,mat)
 end subroutine
 
 !>
-!! This routine reads a 1D block CSC matrix from file.
+!! Read a 1D block CSC matrix from file.
 !!
 subroutine elsi_read_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
 
@@ -964,7 +962,7 @@ subroutine elsi_read_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
 end subroutine
 
 !>
-!! This routine writes a 2D block-cyclic dense matrix to file.
+!! Write a 2D block-cyclic dense matrix to file.
 !!
 subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
 
@@ -1090,7 +1088,7 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
 end subroutine
 
 !>
-!! This routine writes a 2D block-cyclic dense matrix to file.
+!! Write a 2D block-cyclic dense matrix to file.
 !!
 subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
 
@@ -1216,7 +1214,7 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
 end subroutine
 
 !>
-!! This routine writes a 1D block CSC matrix to file.
+!! Write a 1D block CSC matrix to file.
 !!
 subroutine elsi_write_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
 
@@ -1318,7 +1316,7 @@ subroutine elsi_write_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
 end subroutine
 
 !>
-!! This routine writes a 1D block CSC matrix to file.
+!! Write a 1D block CSC matrix to file.
 !!
 subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
 
@@ -1420,8 +1418,7 @@ subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
 end subroutine
 
 !>
-!! This routine reads the dimensions of a 2D block-cyclic dense matrix from
-!! file.
+!! Read the dimensions of a 2D block-cyclic dense matrix from file.
 !!
 subroutine elsi_read_mat_dim_sp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
 
@@ -1462,7 +1459,7 @@ subroutine elsi_read_mat_dim_sp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
 end subroutine
 
 !>
-!! This routine reads a 2D block-cyclic dense matrix from file.
+!! Read a 2D block-cyclic dense matrix from file.
 !!
 subroutine elsi_read_mat_real_sp(rwh,f_name,mat)
 
@@ -1544,7 +1541,7 @@ subroutine elsi_read_mat_real_sp(rwh,f_name,mat)
 end subroutine
 
 !>
-!! This routine reads a 2D block-cyclic dense matrix from file.
+!! Read a 2D block-cyclic dense matrix from file.
 !!
 subroutine elsi_read_mat_complex_sp(rwh,f_name,mat)
 
@@ -1626,7 +1623,7 @@ subroutine elsi_read_mat_complex_sp(rwh,f_name,mat)
 end subroutine
 
 !>
-!! This routine writes a 2D block-cyclic dense matrix to file.
+!! Write a 2D block-cyclic dense matrix to file.
 !!
 subroutine elsi_write_mat_real_sp(rwh,f_name,mat)
 
@@ -1717,7 +1714,7 @@ subroutine elsi_write_mat_real_sp(rwh,f_name,mat)
 end subroutine
 
 !>
-!! This routine writes a 2D block-cyclic dense matrix to file.
+!! Write a 2D block-cyclic dense matrix to file.
 !!
 subroutine elsi_write_mat_complex_sp(rwh,f_name,mat)
 

@@ -60,7 +60,7 @@ module ELSI_SOLVER
 contains
 
 !>
-!! This routine gets the band structure energy.
+!! Get the band structure energy.
 !!
 subroutine elsi_get_band_energy(ph,bh,ebs,solver)
 
@@ -100,8 +100,8 @@ subroutine elsi_get_band_energy(ph,bh,ebs,solver)
 end subroutine
 
 !>
-!! This routine initializes BLACS, in case that the user selects a sparse format
-!! and BLACS is still used internally.
+!! Initialize BLACS, in case that the user selects a sparse format and BLACS is
+!! still needed internally.
 !!
 subroutine elsi_init_blacs(eh)
 
@@ -159,9 +159,8 @@ subroutine elsi_init_blacs(eh)
 end subroutine
 
 !>
-!! This routine computes the eigenvalues and eigenvectors. Note the
-!! intent(inout) - it is because everything has the potential to be reused in
-!! the next call.
+!! Compute the eigenvalues and eigenvectors. Note the intent(inout), everything
+!! may be reused in the next call.
 !!
 subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
 
@@ -255,9 +254,8 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine computes the eigenvalues and eigenvectors. Note the
-!! intent(inout) - it is because everything has the potential to be reused in
-!! the next call.
+!! Compute the eigenvalues and eigenvectors. Note the intent(inout), everything
+!! may be reused in the next call.
 !!
 subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
 
@@ -301,9 +299,8 @@ subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine computes the eigenvalues and eigenvectors. Note the
-!! intent(inout) - it is because everything has the potential to be reused in
-!! the next call.
+!! Compute the eigenvalues and eigenvectors. Note the intent(inout), everything
+!! may be reused in the next call.
 !!
 subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
 
@@ -462,9 +459,8 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine computes the eigenvalues and eigenvectors. Note the
-!! intent(inout) - it is because everything has the potential to be reused in
-!! the next call.
+!! Compute the eigenvalues and eigenvectors. Note the intent(inout), everything
+!! may be reused in the next call.
 !!
 subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
 
@@ -541,8 +537,8 @@ subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine computes the density matrix. Note the intent(inout) - it is
-!! because everything has the potential to be reused in the next call.
+!! Compute the density matrix. Note the intent(inout), everything may be reused
+!! in the next call.
 !!
 subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
 
@@ -814,8 +810,8 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
 end subroutine
 
 !>
-!! This routine computes the density matrix. Note the intent(inout) - it is
-!! because everything has the potential to be reused in the next call.
+!! Compute the density matrix. Note the intent(inout), everything may be reused
+!! in the next call.
 !!
 subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
 
@@ -1022,8 +1018,8 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
 end subroutine
 
 !>
-!! This routine computes the density matrix. Note the intent(inout) - it is
-!! because everything has the potential to be reused in the next call.
+!! Compute the density matrix. Note the intent(inout), everything may be reused
+!! in the next call.
 !!
 subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
 
@@ -1513,8 +1509,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
 end subroutine
 
 !>
-!! This routine computes the density matrix. Note the intent(inout) - it is
-!! because everything has the potential to be reused in the next call.
+!! Compute the density matrix. Note the intent(inout), everything may be reused
+!! in the next call.
 !!
 subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
 

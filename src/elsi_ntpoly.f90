@@ -50,7 +50,7 @@ module ELSI_NTPOLY
 contains
 
 !>
-!! This routine initializes NTPoly.
+!! Initialize NTPoly.
 !!
 subroutine elsi_init_ntpoly(ph,bh)
 
@@ -103,7 +103,7 @@ subroutine elsi_init_ntpoly(ph,bh)
 end subroutine
 
 !>
-!! This routine interfaces to NTPoly.
+!! Interface to NTPoly.
 !!
 subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 
@@ -184,7 +184,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 end subroutine
 
 !>
-!! This routine computes the energy-weighted density matrix.
+!! Compute the energy-weighted density matrix.
 !!
 subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
 
@@ -223,7 +223,7 @@ subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
 end subroutine
 
 !>
-!! This routine extrapolates density matrix using Lowdin decomposition of the
+!! Extrapolate density matrix using Lowdin decomposition of the
 !! old and new overlap matrices or 2nd order trace resetting purification.
 !!
 subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
@@ -266,7 +266,7 @@ subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
 end subroutine
 
 !>
-!! This routine cleans up NTPoly.
+!! Clean up NTPoly.
 !!
 subroutine elsi_cleanup_ntpoly(ph)
 
