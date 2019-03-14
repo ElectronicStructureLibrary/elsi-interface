@@ -50,6 +50,8 @@ subroutine test_ev_cmplx_csc2(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
+   logical :: file_exist
+
    complex(kind=r8), allocatable :: ham(:)
    complex(kind=r8), allocatable :: ovlp(:)
    complex(kind=r8), allocatable :: evec(:,:)
@@ -65,6 +67,8 @@ subroutine test_ev_cmplx_csc2(mpi_comm,solver,h_file,s_file)
 
    ! Reference values
    real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
+
+   character(len=*), parameter :: file_name = "elsi.in"
 
    integer(kind=i4), external :: numroc
 
@@ -165,6 +169,12 @@ subroutine test_ev_cmplx_csc2(mpi_comm,solver,h_file,s_file)
    call elsi_set_output(eh,2)
    call elsi_set_output_log(eh,1)
    call elsi_set_mu_broaden_width(eh,1.0e-6_r8)
+
+   inquire(file=file_name,exist=file_exist)
+
+   if(file_exist) then
+      call elsi_set_input_file(eh,file_name)
+   end if
 
    t1 = MPI_Wtime()
 
