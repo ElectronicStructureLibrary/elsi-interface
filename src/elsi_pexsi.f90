@@ -142,7 +142,7 @@ subroutine elsi_init_pexsi(ph,bh)
          ph%pexsi_n_pcol,log_id,ierr)
 
       if(ierr /= 0) then
-         write(msg,"(A)") "Initialization failed."
+         write(msg,"(A)") "Initialization failed"
          call elsi_stop(bh,msg,caller)
       end if
 
@@ -211,7 +211,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    end if
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Failed to load matrices."
+      write(msg,"(A)") "Failed to load matrices"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -237,7 +237,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    end if
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Symbolic factorization failed."
+      write(msg,"(A)") "Symbolic factorization failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -333,7 +333,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_say(bh,msg)
 
       if(ierr /= 0) then
-         write(msg,"(A)") "Inertia counting failed."
+         write(msg,"(A)") "Inertia counting failed"
          call elsi_stop(bh,msg,caller)
       end if
    end if
@@ -391,7 +391,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call elsi_say(bh,msg)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Fermi operator calculation failed."
+      write(msg,"(A)") "Fermi operator calculation failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -407,7 +407,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call f_ppexsi_retrieve_real_dm(ph%pexsi_plan,tmp,local_energy,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Failed to get density matirx."
+      write(msg,"(A)") "Failed to get density matirx"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -569,7 +569,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
         ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Energy density matrix correction failed."
+      write(msg,"(A)") "Energy density matrix correction failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -580,7 +580,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
         local_energy,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Failed to get energy density matirx."
+      write(msg,"(A)") "Failed to get energy density matirx"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -751,7 +751,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    end if
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Failed to load matirces."
+      write(msg,"(A)") "Failed to load matirces"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -777,7 +777,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    end if
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Symbolic factorization failed."
+      write(msg,"(A)") "Symbolic factorization failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -873,7 +873,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_say(bh,msg)
 
       if(ierr /= 0) then
-         write(msg,"(A)") "Inertia counting failed."
+         write(msg,"(A)") "Inertia counting failed"
          call elsi_stop(bh,msg,caller)
       end if
    end if
@@ -931,7 +931,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call elsi_say(bh,msg)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Fermi operator calculation failed."
+      write(msg,"(A)") "Fermi operator calculation failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -947,7 +947,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call f_ppexsi_retrieve_complex_dm(ph%pexsi_plan,tmp,local_energy,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Failed to get density matirx."
+      write(msg,"(A)") "Failed to get density matirx"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1110,7 +1110,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
         ph%pexsi_options,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Energy density matrix correction failed."
+      write(msg,"(A)") "Energy density matrix correction failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1121,7 +1121,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
         local_energy,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Failed to get energy density matirx."
+      write(msg,"(A)") "Failed to get energy density matirx"
       call elsi_stop(bh,msg,caller)
    end if
 

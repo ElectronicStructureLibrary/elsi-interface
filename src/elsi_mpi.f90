@@ -71,7 +71,7 @@ subroutine elsi_check_mpi(bh,routine,ierr,caller)
    character(len=200) :: msg
 
    if(ierr /= MPI_SUCCESS) then
-      write(msg,"(2A)") routine," failed."
+      write(msg,"(2A)") trim(routine)," failed"
 
       call elsi_stop(bh,msg,caller)
    end if

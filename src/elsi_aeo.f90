@@ -85,7 +85,7 @@ subroutine elsi_init_elpa(ph,bh)
       ierr = elpa_init(20180525)
 
       if(ierr /= 0) then
-         write(msg,"(A)") "Initialization failed."
+         write(msg,"(A)") "Initialization failed"
          call elsi_stop(bh,msg,caller)
       end if
 
@@ -830,7 +830,7 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
       ierr = ph%elpa_aux%setup()
 
       if(ierr /= 0) then
-         write(msg,"(A)") "ELPA setup failed."
+         write(msg,"(A)") "ELPA setup failed"
          call elsi_stop(bh,msg,caller)
       end if
 
@@ -850,7 +850,7 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
       ierr = ph%elpa_solve%setup()
 
       if(ierr /= 0) then
-         write(msg,"(A)") "ELPA setup failed."
+         write(msg,"(A)") "ELPA setup failed"
          call elsi_stop(bh,msg,caller)
       end if
 
@@ -941,7 +941,7 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
       call ph%elpa_aux%eigenvectors(copy,eval,evec,ierr)
 
       if(ierr /= 0) then
-         write(msg,"(A)") "Singularity check failed."
+         write(msg,"(A)") "Singularity check failed"
          call elsi_stop(bh,msg,caller)
       end if
 
@@ -1001,7 +1001,7 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
       end if
 
       if(ierr /= 0) then
-         write(msg,"(A)") "ELPA eigensolver failed."
+         write(msg,"(A)") "ELPA eigensolver failed"
          call elsi_stop(bh,msg,caller)
       end if
    end if
@@ -1041,7 +1041,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
       call ph%elpa_aux%eigenvectors(copy,eval,evec,ierr)
 
       if(ierr /= 0) then
-         write(msg,"(A)") "Singularity check failed."
+         write(msg,"(A)") "Singularity check failed"
          call elsi_stop(bh,msg,caller)
       end if
 
@@ -1101,7 +1101,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
       end if
 
       if(ierr /= 0) then
-         write(msg,"(A)") "ELPA eigensolver failed."
+         write(msg,"(A)") "ELPA eigensolver failed"
          call elsi_stop(bh,msg,caller)
       end if
    end if
@@ -1127,7 +1127,7 @@ subroutine elsi_elpa_cholesky_real(ph,bh,mat)
    call ph%elpa_aux%cholesky(mat,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Cholesky factorization failed."
+      write(msg,"(A)") "Cholesky factorization failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1152,7 +1152,7 @@ subroutine elsi_elpa_cholesky_cmplx(ph,bh,mat)
    call ph%elpa_aux%cholesky(mat,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Cholesky factorization failed."
+      write(msg,"(A)") "Cholesky factorization failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1177,7 +1177,7 @@ subroutine elsi_elpa_invert_real(ph,bh,mat)
    call ph%elpa_aux%invert_triangular(mat,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Matrix inversion failed."
+      write(msg,"(A)") "Matrix inversion failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1202,7 +1202,7 @@ subroutine elsi_elpa_invert_cmplx(ph,bh,mat)
    call ph%elpa_aux%invert_triangular(mat,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Matrix inversion failed."
+      write(msg,"(A)") "Matrix inversion failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1233,7 +1233,7 @@ subroutine elsi_elpa_multiply_real(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
         bh%n_lcol,mat_c,bh%n_lrow,bh%n_lcol,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Matrix multiplication failed."
+      write(msg,"(A)") "Matrix multiplication failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1264,7 +1264,7 @@ subroutine elsi_elpa_multiply_cmplx(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
         bh%n_lcol,mat_c,bh%n_lrow,bh%n_lcol,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Matrix multiplication failed."
+      write(msg,"(A)") "Matrix multiplication failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1292,7 +1292,7 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
    ierr = elpa_init(20180525)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Initialization failed."
+      write(msg,"(A)") "Initialization failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1311,7 +1311,7 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
    end if
 
    if(ierr /= 0) then
-      write(msg,"(A)") "ELPA tridiagonal solver failed."
+      write(msg,"(A)") "ELPA tridiagonal solver failed"
       call elsi_stop(bh,msg,caller)
    end if
 

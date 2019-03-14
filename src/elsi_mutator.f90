@@ -166,7 +166,7 @@ subroutine elsi_set_input_file(eh,f_name)
    open(313,file=f_name,status="OLD",action="READ",iostat=ierr)
 
    if(ierr /= 0) then
-      write(msg,"(3A)") "Failed to open input file ",f_name,"."
+      write(msg,"(2A)") "Failed to open input file ",trim(f_name)
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -176,7 +176,7 @@ subroutine elsi_set_input_file(eh,f_name)
       if(ierr < 0) then
          exit
       else if(ierr > 0) then
-         write(msg,"(3A)") "Failed to parse input file ",f_name,"."
+         write(msg,"(2A)") "Failed to parse input file ",trim(f_name)
          call elsi_stop(eh%bh,msg,caller)
       end if
 
@@ -512,7 +512,7 @@ subroutine elsi_set_n_basis(eh,n_basis)
       eh%bh%blk = n_basis
    else
       write(msg,"(A)") "Number of basis functions not allowed to change in"//&
-         " MULTI_PROC parallel mode."
+         " MULTI_PROC parallel mode"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -662,7 +662,7 @@ subroutine elsi_set_energy_gap(eh,gap)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(gap < 0.0_r8) then
-      write(msg,"(A)") "Input value cannot be negative."
+      write(msg,"(A)") "Input value cannot be negative"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -688,7 +688,7 @@ subroutine elsi_set_spectrum_width(eh,width)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(width < 0.0_r8) then
-      write(msg,"(A)") "Input value cannot be negative."
+      write(msg,"(A)") "Input value cannot be negative"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -714,7 +714,7 @@ subroutine elsi_set_dimensionality(eh,dimensionality)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(dimensionality < 1 .or. dimensionality > 3) then
-      write(msg,"(A)") "Input value should be 1, 2, or 3."
+      write(msg,"(A)") "Input value should be 1, 2, or 3"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -739,7 +739,7 @@ subroutine elsi_set_elpa_solver(eh,solver)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(solver < 1 .or. solver > 2) then
-      write(msg,"(A)") "Input value should be 1 or 2."
+      write(msg,"(A)") "Input value should be 1 or 2"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -859,7 +859,7 @@ subroutine elsi_set_omm_flavor(eh,flavor)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(flavor /= 0 .and. flavor /= 2) then
-      write(msg,"(A)") "Input value should be 0 or 2."
+      write(msg,"(A)") "Input value should be 0 or 2"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -906,7 +906,7 @@ subroutine elsi_set_omm_tol(eh,tol)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(tol <= 0.0_r8) then
-      write(msg,"(A)") "Input value should be positive."
+      write(msg,"(A)") "Input value should be positive"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -931,7 +931,7 @@ subroutine elsi_set_pexsi_n_mu(eh,n_mu)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(n_mu < 1) then
-      write(msg,"(A)") "Input value cannot be smaller than 1."
+      write(msg,"(A)") "Input value cannot be smaller than 1"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -956,7 +956,7 @@ subroutine elsi_set_pexsi_n_pole(eh,n_pole)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(n_pole < 1) then
-      write(msg,"(A)") "Input value cannot be smaller than 1."
+      write(msg,"(A)") "Input value cannot be smaller than 1"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -981,7 +981,7 @@ subroutine elsi_set_pexsi_np_per_pole(eh,np_per_pole)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(np_per_pole < 1) then
-      write(msg,"(A)") "Input value cannot be smaller than 1."
+      write(msg,"(A)") "Input value cannot be smaller than 1"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1006,7 +1006,7 @@ subroutine elsi_set_pexsi_np_symbo(eh,np_symbo)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(np_symbo < 1) then
-      write(msg,"(A)") "Input value cannot be smaller than 1."
+      write(msg,"(A)") "Input value cannot be smaller than 1"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1049,7 +1049,7 @@ subroutine elsi_set_pexsi_temp(eh,temp)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(temp <= 0.0_r8) then
-      write(msg,"(A)") "Input value should be positive."
+      write(msg,"(A)") "Input value should be positive"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1111,7 +1111,7 @@ subroutine elsi_set_pexsi_inertia_tol(eh,inertia_tol)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(inertia_tol <= 0.0_r8) then
-      write(msg,"(A)") "Input value should be positive."
+      write(msg,"(A)") "Input value should be positive"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1161,7 +1161,7 @@ subroutine elsi_set_sips_n_slice(eh,n_slice)
       eh%ph%sips_n_slices = n_slice
    else
       write(msg,"(A)") "Input value should be a divisor of total number of"//&
-         " MPI tasks."
+         " MPI tasks"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1184,7 +1184,7 @@ subroutine elsi_set_sips_slice_type(eh,slice_type)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(slice_type /= 0 .and. slice_type /= 2 .and. slice_type /= 4) then
-      write(msg,"(A)") "Input value should be 0, 2, or 4."
+      write(msg,"(A)") "Input value should be 0, 2, or 4"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1210,7 +1210,7 @@ subroutine elsi_set_sips_buffer(eh,buffer)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(buffer <= 0.0_r8) then
-      write(msg,"(A)") "Input value should be positive."
+      write(msg,"(A)") "Input value should be positive"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1235,7 +1235,7 @@ subroutine elsi_set_sips_inertia_tol(eh,inertia_tol)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(inertia_tol <= 0.0_r8) then
-      write(msg,"(A)") "Input value should be positive."
+      write(msg,"(A)") "Input value should be positive"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1297,7 +1297,7 @@ subroutine elsi_set_sips_interval(eh,lower,upper)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(lower >= upper) then
-      write(msg,"(A)") "Lower bound must be smaller than upper bound."
+      write(msg,"(A)") "Lower bound must be smaller than upper bound"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1323,7 +1323,7 @@ subroutine elsi_set_ntpoly_method(eh,method)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(method < 0 .or. method > 3) then
-      write(msg,"(A)") "Input value should be 0, 1, 2, or 3."
+      write(msg,"(A)") "Input value should be 0, 1, 2, or 3"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1348,7 +1348,7 @@ subroutine elsi_set_ntpoly_isr(eh,isr)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(isr /= 2 .and. isr /= 3 .and. isr /= 5) then
-      write(msg,"(A)") "Input value should be 2, 3, or 5."
+      write(msg,"(A)") "Input value should be 2, 3, or 5"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1373,7 +1373,7 @@ subroutine elsi_set_ntpoly_tol(eh,tol)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(tol <= 0.0_r8) then
-      write(msg,"(A)") "Input value should be positive."
+      write(msg,"(A)") "Input value should be positive"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1416,7 +1416,7 @@ subroutine elsi_set_ntpoly_max_iter(eh,max_iter)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(max_iter < 1) then
-      write(msg,"(A)") "Input value cannot be smaller than 1."
+      write(msg,"(A)") "Input value cannot be smaller than 1"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1444,7 +1444,7 @@ subroutine elsi_set_ntpoly_n_layer(eh,n_layer)
       eh%ph%nt_n_layers = n_layer
    else
       write(msg,"(A)") "Input value should be a divisor of total number of"//&
-         " MPI tasks."
+         " MPI tasks"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1468,7 +1468,7 @@ subroutine elsi_set_mu_broaden_scheme(eh,broaden_scheme)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(broaden_scheme < 0 .or. broaden_scheme > 4) then
-      write(msg,"(A)") "Input value should be 0, 1, 2, 3, or 4."
+      write(msg,"(A)") "Input value should be 0, 1, 2, 3, or 4"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1494,7 +1494,7 @@ subroutine elsi_set_mu_broaden_width(eh,broaden_width)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(broaden_width <= 0.0_r8) then
-      write(msg,"(A)") "Input value should be positive."
+      write(msg,"(A)") "Input value should be positive"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1520,7 +1520,7 @@ subroutine elsi_set_mu_tol(eh,tol)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(tol < 0.0_r8) then
-      write(msg,"(A)") "Input value cannot be negative."
+      write(msg,"(A)") "Input value cannot be negative"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1565,7 +1565,7 @@ subroutine elsi_set_mu_mp_order(eh,mp_order)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(mp_order < 0) then
-      write(msg,"(A)") "Input value cannot be negative."
+      write(msg,"(A)") "Input value cannot be negative"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1849,14 +1849,14 @@ subroutine elsi_get_edm_real(eh,edm)
          call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
          call elsi_ntpoly_to_blacs_dm(eh%ph,eh%bh,eh%ph%nt_dm,edm)
       case default
-         write(msg,"(A)") "Unsupported density matrix solver."
+         write(msg,"(A)") "Unsupported density matrix solver"
          call elsi_stop(eh%bh,msg,caller)
       end select
 
       eh%ph%edm_ready_real = .false.
    else
       write(msg,"(A)") "Energy-weighted density matrix cannot be computed"//&
-         " before density matrix."
+         " before density matrix"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1910,7 +1910,7 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
             call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_real_den,&
                  eh%map_den,edm,eh%perm_sp3)
          case default
-            write(msg,"(A)") "Unsupported matrix format."
+            write(msg,"(A)") "Unsupported matrix format"
             call elsi_stop(eh%bh,msg,caller)
          end select
       case(OMM_SOLVER)
@@ -1927,7 +1927,7 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
             call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_real_den,&
                  eh%map_den,edm,eh%perm_sp3)
          case default
-            write(msg,"(A)") "Unsupported matrix format."
+            write(msg,"(A)") "Unsupported matrix format"
             call elsi_stop(eh%bh,msg,caller)
          end select
       case(PEXSI_SOLVER)
@@ -1946,7 +1946,7 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
             call elsi_pexsi_to_generic_dm(eh%ph,eh%bh,eh%dm_real_sp,&
                  eh%row_ind_sp1,eh%col_ptr_sp1,eh%map_sp1,edm,eh%perm_sp3)
          case default
-            write(msg,"(A)") "Unsupported matrix format."
+            write(msg,"(A)") "Unsupported matrix format"
             call elsi_stop(eh%bh,msg,caller)
          end select
       case(SIPS_SOLVER)
@@ -1966,7 +1966,7 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
             call elsi_sips_to_generic_dm(eh%ph,eh%bh,eh%dm_real_sp,&
                  eh%row_ind_sp1,eh%col_ptr_sp1,eh%map_sp1,edm,eh%perm_sp3)
          case default
-            write(msg,"(A)") "Unsupported matrix format."
+            write(msg,"(A)") "Unsupported matrix format"
             call elsi_stop(eh%bh,msg,caller)
          end select
       case(NTPOLY_SOLVER)
@@ -1984,14 +1984,14 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
                  eh%ph%nt_map,edm,eh%perm_sp3)
          end select
       case default
-         write(msg,"(A)") "Unsupported density matrix solver."
+         write(msg,"(A)") "Unsupported density matrix solver"
          call elsi_stop(eh%bh,msg,caller)
       end select
 
       eh%ph%edm_ready_real = .false.
    else
       write(msg,"(A)") "Energy-weighted density matrix cannot be computed"//&
-         " before density matrix."
+         " before density matrix"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -2038,14 +2038,14 @@ subroutine elsi_get_edm_complex(eh,edm)
          call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
          call elsi_ntpoly_to_blacs_dm(eh%ph,eh%bh,eh%ph%nt_dm,edm)
       case default
-         write(msg,"(A)") "Unsupported density matrix solver."
+         write(msg,"(A)") "Unsupported density matrix solver"
          call elsi_stop(eh%bh,msg,caller)
       end select
 
       eh%ph%edm_ready_cmplx = .false.
    else
       write(msg,"(A)") "Energy-weighted density matrix cannot be computed"//&
-         " before density matrix."
+         " before density matrix"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -2094,7 +2094,7 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
             call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_cmplx_den,&
                  eh%map_den,edm,eh%perm_sp3)
          case default
-            write(msg,"(A)") "Unsupported matrix format."
+            write(msg,"(A)") "Unsupported matrix format"
             call elsi_stop(eh%bh,msg,caller)
          end select
       case(OMM_SOLVER)
@@ -2111,7 +2111,7 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
             call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_cmplx_den,&
                  eh%map_den,edm,eh%perm_sp3)
          case default
-            write(msg,"(A)") "Unsupported matrix format."
+            write(msg,"(A)") "Unsupported matrix format"
             call elsi_stop(eh%bh,msg,caller)
          end select
       case(PEXSI_SOLVER)
@@ -2130,7 +2130,7 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
             call elsi_pexsi_to_generic_dm(eh%ph,eh%bh,eh%dm_cmplx_sp,&
                  eh%row_ind_sp1,eh%col_ptr_sp1,eh%map_sp1,edm,eh%perm_sp3)
          case default
-            write(msg,"(A)") "Unsupported matrix format."
+            write(msg,"(A)") "Unsupported matrix format"
             call elsi_stop(eh%bh,msg,caller)
          end select
       case(NTPOLY_SOLVER)
@@ -2148,14 +2148,14 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
                  eh%ph%nt_map,edm,eh%perm_sp3)
          end select
       case default
-         write(msg,"(A)") "Unsupported density matrix solver."
+         write(msg,"(A)") "Unsupported density matrix solver"
          call elsi_stop(eh%bh,msg,caller)
       end select
 
       eh%ph%edm_ready_cmplx = .false.
    else
       write(msg,"(A)") "Energy-weighted density matrix cannot be computed"//&
-         " before density matrix."
+         " before density matrix"
       call elsi_stop(eh%bh,msg,caller)
    end if
 

@@ -103,7 +103,7 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
       i_step = i_step+1
 
       if(i_step > ph%mu_max_steps) then
-         write(msg,"(A)") "Chemical potential not found."
+         write(msg,"(A)") "Chemical potential not found"
          call elsi_stop(bh,msg,caller)
       end if
 

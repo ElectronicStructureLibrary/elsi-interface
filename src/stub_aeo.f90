@@ -40,7 +40,7 @@ subroutine elpa_dummy()
 
    implicit none
 
-   write(*,"(A)") "**Error! An ELPA stub routine was called."
+   write(*,"(A)") "**Error! An ELPA stub routine was called"
    stop
 
 end subroutine
@@ -49,7 +49,7 @@ subroutine elpa_autotune_dummy()
 
    implicit none
 
-   write(*,"(A)") "**Error! An ELPA stub routine was called."
+   write(*,"(A)") "**Error! An ELPA stub routine was called"
    stop
 
 end subroutine

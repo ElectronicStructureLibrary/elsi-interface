@@ -97,16 +97,22 @@ subroutine elsi_init_elpa(ph,bh)
       ph%elpa_started = .true.
 
       if(ph%elpa_gpu) then
+         ph%elpa_gpu = .false.
+
          write(msg,"(A)") "No ELPA GPU acceleration available"
          call elsi_say(bh,msg)
       end if
 
       if(ph%elpa_n_single > 0) then
+         ph%elpa_n_single = 0
+
          write(msg,"(A)") "No single precision ELPA available"
          call elsi_say(bh,msg)
       end if
 
       if(ph%elpa_autotune) then
+         ph%elpa_autotune = 0
+
          write(msg,"(A)") "No ELPA auto-tuning available"
          call elsi_say(bh,msg)
       end if
@@ -844,7 +850,7 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
          bh%comm,ph%ill_tol,ph%n_good)
 
       if(.not. ok) then
-         write(msg,"(A)") "Singularity check failed."
+         write(msg,"(A)") "Singularity check failed"
          call elsi_stop(bh,msg,caller)
       end if
 
@@ -868,7 +874,7 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
       end if
 
       if(.not. ok) then
-         write(msg,"(A)") "ELPA eigensolver failed."
+         write(msg,"(A)") "ELPA eigensolver failed"
          call elsi_stop(bh,msg,caller)
       end if
    end if
@@ -907,7 +913,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
          ph%elpa_comm_col,bh%comm,ph%ill_tol,ph%n_good)
 
       if(.not. ok) then
-         write(msg,"(A)") "Singularity check failed."
+         write(msg,"(A)") "Singularity check failed"
          call elsi_stop(bh,msg,caller)
       end if
 
@@ -931,7 +937,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
       end if
 
       if(.not. ok) then
-         write(msg,"(A)") "ELPA eigensolver failed."
+         write(msg,"(A)") "ELPA eigensolver failed"
          call elsi_stop(bh,msg,caller)
       end if
    end if
@@ -958,7 +964,7 @@ subroutine elsi_elpa_cholesky_real(ph,bh,mat)
       ph%elpa_comm_row,ph%elpa_comm_col,.false.)
 
    if(.not. ok) then
-      write(msg,"(A)") "Cholesky factorization failed."
+      write(msg,"(A)") "Cholesky factorization failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -984,7 +990,7 @@ subroutine elsi_elpa_cholesky_cmplx(ph,bh,mat)
       ph%elpa_comm_row,ph%elpa_comm_col,.false.)
 
    if(.not. ok) then
-      write(msg,"(A)") "Cholesky factorization failed."
+      write(msg,"(A)") "Cholesky factorization failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1010,7 +1016,7 @@ subroutine elsi_elpa_invert_real(ph,bh,mat)
       ph%elpa_comm_row,ph%elpa_comm_col,.false.)
 
    if(.not. ok) then
-      write(msg,"(A)") "Matrix inversion failed."
+      write(msg,"(A)") "Matrix inversion failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1036,7 +1042,7 @@ subroutine elsi_elpa_invert_cmplx(ph,bh,mat)
       bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,.false.)
 
    if(.not. ok) then
-      write(msg,"(A)") "Matrix inversion failed."
+      write(msg,"(A)") "Matrix inversion failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1068,7 +1074,7 @@ subroutine elsi_elpa_multiply_real(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
       ph%elpa_comm_col,mat_c,bh%n_lrow,bh%n_lcol)
 
    if(.not. ok) then
-      write(msg,"(A)") "Matrix multiplication failed."
+      write(msg,"(A)") "Matrix multiplication failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1100,7 +1106,7 @@ subroutine elsi_elpa_multiply_cmplx(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
       ph%elpa_comm_col,mat_c,bh%n_lrow,bh%n_lcol)
 
    if(.not. ok) then
-      write(msg,"(A)") "Matrix multiplication failed."
+      write(msg,"(A)") "Matrix multiplication failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1134,7 +1140,7 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
    end if
 
    if(.not. ok) then
-      write(msg,"(A)") "ELPA tridiagonal solver failed."
+      write(msg,"(A)") "ELPA tridiagonal solver failed"
       call elsi_stop(bh,msg,caller)
    end if
 
