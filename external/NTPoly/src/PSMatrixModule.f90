@@ -371,7 +371,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL) :: realval, cval
     INTEGER :: bytes_per_character
     LOGICAL :: found_comment_line
-    INTEGER :: mpi_status(MPI_STATUS_SIZE)
+    INTEGER :: message_status(MPI_STATUS_SIZE)
     INTEGER :: full_buffer_counter
     LOGICAL :: end_of_buffer
     LOGICAL :: header_success
@@ -474,7 +474,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        !! Do Actual Reading
        CALL MPI_File_read_at_all(mpi_file_handler, local_offset, &
             & mpi_input_buffer, INT(local_data_size_plus_buffer), &
-            & MPI_CHARACTER, mpi_status, ierr)
+            & MPI_CHARACTER, message_status, ierr)
 
        !! Trim Off The Half Read Line At The Start
        IF (.NOT. this%process_grid%global_rank .EQ. &
@@ -579,7 +579,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER(KIND=MPI_OFFSET_KIND) :: header_size
     INTEGER :: bytes_per_int, bytes_per_data
     !! Temporary variables
-    INTEGER :: mpi_status(MPI_STATUS_SIZE)
+    INTEGER :: message_status(MPI_STATUS_SIZE)
     INTEGER :: ierr
     TYPE(Error_t) :: err
     LOGICAL :: error_occured
@@ -598,7 +598,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        IF (IsRoot(process_grid_in)) THEN
           local_offset = 0
           CALL MPI_File_read_at(mpi_file_handler, local_offset, &
-               & matrix_information, 4, MPINTINTEGER, mpi_status, ierr)
+               & matrix_information, 4, MPINTINTEGER, message_status, ierr)
           matrix_rows = matrix_information(1)
           matrix_columns = matrix_information(2)
           total_values = matrix_information(3)
@@ -650,11 +650,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        IF (this%is_complex) THEN
           CALL ConstructTripletList(triplet_list_c, local_triplets)
           CALL MPI_File_read_all(mpi_file_handler, triplet_list_c%data, &
-               & local_triplets, triplet_mpi_type, mpi_status,ierr)
+               & local_triplets, triplet_mpi_type, message_status,ierr)
        ELSE
           CALL ConstructTripletList(triplet_list_r, local_triplets)
           CALL MPI_File_read_all(mpi_file_handler, triplet_list_r%data, &
-               & local_triplets, triplet_mpi_type, mpi_status,ierr)
+               & local_triplets, triplet_mpi_type, message_status,ierr)
        END IF
        CALL MPI_File_close(mpi_file_handler,ierr)
        CALL StopTimer("MPI Read Binary")
@@ -710,7 +710,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Temporary Variables
   INTEGER :: bytes_per_int, bytes_per_entry
   INTEGER, DIMENSION(4) :: header_buffer
-  INTEGER :: mpi_status(MPI_STATUS_SIZE)
+  INTEGER :: message_status(MPI_STATUS_SIZE)
   INTEGER(KIND=MPI_OFFSET_KIND) :: zero_offset = 0
   INTEGER :: counter
   INTEGER :: ierr
@@ -754,7 +754,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
            header_buffer(4) = 0
         END IF
         CALL MPI_File_write_at(mpi_file_handler, zero_offset, header_buffer, &
-             & 4, MPINTINTEGER, mpi_status,ierr)
+             & 4, MPINTINTEGER, message_status,ierr)
      END IF
      !! Write The Rest
      CALL MPI_File_set_view(mpi_file_handler,write_offset,triplet_mpi_type,&
@@ -793,7 +793,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Temporary Variables
   INTEGER :: bytes_per_int, bytes_per_entry
   INTEGER, DIMENSION(4) :: header_buffer
-  INTEGER :: mpi_status(MPI_STATUS_SIZE)
+  INTEGER :: message_status(MPI_STATUS_SIZE)
   INTEGER(KIND=MPI_OFFSET_KIND) :: zero_offset = 0
   INTEGER :: counter
   INTEGER :: ierr
@@ -837,7 +837,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
            header_buffer(4) = 0
         END IF
         CALL MPI_File_write_at(mpi_file_handler, zero_offset, header_buffer, &
-             & 4, MPINTINTEGER, mpi_status,ierr)
+             & 4, MPINTINTEGER, message_status,ierr)
      END IF
      !! Write The Rest
      CALL MPI_File_set_view(mpi_file_handler,write_offset,triplet_mpi_type,&
@@ -885,7 +885,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER, PARAMETER :: MAX_LINE_LENGTH = 1024
   !! Local MPI Variables
   INTEGER :: mpi_file_handler
-  INTEGER :: mpi_status(MPI_STATUS_SIZE)
+  INTEGER :: message_status(MPI_STATUS_SIZE)
   INTEGER, DIMENSION(:), ALLOCATABLE :: local_values_buffer
   !! Local Data
   INTEGER :: triplet_list_string_length
@@ -983,10 +983,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      IF (this%process_grid%within_slice_rank .EQ. 0) THEN
         header_offset = 0
         CALL MPI_File_write_at(mpi_file_handler,header_offset,header_line1, &
-             & LEN(header_line1), MPI_CHARACTER, mpi_status,ierr)
+             & LEN(header_line1), MPI_CHARACTER, message_status,ierr)
         header_offset = header_offset + LEN(header_line1)
         CALL MPI_File_write_at(mpi_file_handler,header_offset,header_line2, &
-             & LEN(header_line2), MPI_CHARACTER, mpi_status,ierr)
+             & LEN(header_line2), MPI_CHARACTER, message_status,ierr)
      END IF
      !! Write Local Data
      CALL MPI_File_set_view(mpi_file_handler,write_offset,MPI_CHARACTER,&
@@ -1016,7 +1016,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER, PARAMETER :: MAX_LINE_LENGTH = 1024
   !! Local MPI Variables
   INTEGER :: mpi_file_handler
-  INTEGER :: mpi_status(MPI_STATUS_SIZE)
+  INTEGER :: message_status(MPI_STATUS_SIZE)
   INTEGER, DIMENSION(:), ALLOCATABLE :: local_values_buffer
   !! Local Data
   INTEGER :: triplet_list_string_length
@@ -1116,10 +1116,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      IF (this%process_grid%within_slice_rank .EQ. 0) THEN
         header_offset = 0
         CALL MPI_File_write_at(mpi_file_handler,header_offset,header_line1, &
-             & LEN(header_line1), MPI_CHARACTER, mpi_status,ierr)
+             & LEN(header_line1), MPI_CHARACTER, message_status,ierr)
         header_offset = header_offset + LEN(header_line1)
         CALL MPI_File_write_at(mpi_file_handler,header_offset,header_line2, &
-             & LEN(header_line2), MPI_CHARACTER, mpi_status,ierr)
+             & LEN(header_line2), MPI_CHARACTER, message_status,ierr)
      END IF
      !! Write Local Data
      CALL MPI_File_set_view(mpi_file_handler,write_offset,MPI_CHARACTER,&
