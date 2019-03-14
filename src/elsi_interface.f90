@@ -40,6 +40,7 @@ module ELSI
    public :: elsi_finalize
 
    ! Mutator
+   public :: elsi_set_input_file
    public :: elsi_set_output
    public :: elsi_set_output_unit
    public :: elsi_set_output_log
