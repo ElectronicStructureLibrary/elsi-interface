@@ -5,17 +5,17 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides interfaces to ELPA.
+!! Interfaces to ELPA-AEO.
 !!
 module ELSI_ELPA
 
    use ELSI_CONSTANTS, only: LT_MAT,UT_MAT,UNSET,ELPA_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4
+   use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r4,r8,i4
-   use ELSI_UTILS, only: elsi_get_nnz,elsi_get_gid,elsi_set_full_mat
+   use ELSI_UTIL, only: elsi_get_nnz,elsi_get_gid,elsi_set_full_mat
    use ELPA, only: elpa_t,elpa_init,elpa_allocate,elpa_deallocate,&
        elpa_autotune_deallocate,ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
        ELPA_2STAGE_REAL_GPU,ELPA_2STAGE_COMPLEX_GPU,ELPA_2STAGE_REAL_DEFAULT,&

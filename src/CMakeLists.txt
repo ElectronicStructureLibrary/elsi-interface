@@ -15,8 +15,9 @@ LIST(APPEND elsi_src
   elsi_constants.f90
   elsi_datatype.f90
   elsi_decision.f90
+  elsi_geo.f90
+  elsi_input.f90
   elsi_interface.f90
-  elsi_io.f90
   elsi_lapack.f90
   elsi_malloc.f90
   elsi_mpi.f90
@@ -24,6 +25,7 @@ LIST(APPEND elsi_src
   elsi_ntpoly.f90
   elsi_occ.f90
   elsi_omm.f90
+  elsi_output.f90
   elsi_pexsi.f90
   elsi_precision.f90
   elsi_redist.f90
@@ -32,8 +34,7 @@ LIST(APPEND elsi_src
   elsi_sips.f90
   elsi_solver.f90
   elsi_sort.f90
-  elsi_tools.f90
-  elsi_utils.f90)
+  elsi_util.f90)
 
 SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/elsi_version.f90
   PROPERTIES GENERATED TRUE)

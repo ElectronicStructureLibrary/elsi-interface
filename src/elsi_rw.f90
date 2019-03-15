@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module performs parallel matrix IO.
+!! Perform parallel matrix IO.
 !!
 module ELSI_RW
 
@@ -22,7 +22,7 @@ module ELSI_RW
    use ELSI_REDIST, only: elsi_sips_to_blacs_dm,elsi_blacs_to_sips_hs,&
        elsi_blacs_to_sips_hs_dim
    use ELSI_SETUP, only: elsi_init,elsi_set_mpi,elsi_set_blacs,elsi_cleanup
-   use ELSI_UTILS, only: elsi_get_nnz,elsi_reset_basic,elsi_check_init
+   use ELSI_UTIL, only: elsi_get_nnz,elsi_reset_basic,elsi_check_init
 
    implicit none
 

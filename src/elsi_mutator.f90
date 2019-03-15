@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides routines for modifying ELSI and solver parameters.
+!! Provide routines to modify parameters of the ELSI interface and the solvers.
 !!
 module ELSI_MUTATOR
 
@@ -23,13 +23,12 @@ module ELSI_MUTATOR
        elsi_pexsi_to_generic_dm,elsi_pexsi_to_siesta_dm,elsi_sips_to_blacs_dm,&
        elsi_sips_to_generic_dm,elsi_sips_to_siesta_dm
    use ELSI_SIPS, only: elsi_build_edm_sips
-   use ELSI_UTILS, only: elsi_check_init,elsi_check_read,elsi_build_edm
+   use ELSI_UTIL, only: elsi_check_init,elsi_build_edm
 
    implicit none
 
    private
 
-   public :: elsi_set_input_file
    public :: elsi_set_output
    public :: elsi_set_output_unit
    public :: elsi_set_output_log
@@ -142,242 +141,7 @@ module ELSI_MUTATOR
 contains
 
 !>
-!! This routine sets runtime parameters from a file.
-!!
-subroutine elsi_set_input_file(eh,f_name)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   character(len=*), intent(in) :: f_name !< File name
-
-   integer(kind=i4) :: i
-   integer(kind=i4) :: n_line
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: val_i4
-   real(kind=r8) :: val_r8
-   character(len=200) :: msg
-   character(len=20) :: kwd
-
-   character(len=*), parameter :: caller = "elsi_set_input_file"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   open(313,file=f_name,status="OLD",action="READ",iostat=ierr)
-
-   if(ierr /= 0) then
-      write(msg,"(2A)") "Failed to open input file ",trim(f_name)
-      call elsi_stop(eh%bh,msg,caller)
-   end if
-
-   do
-      read(313,"(A)",iostat=ierr) msg
-
-      if(ierr < 0) then
-         exit
-      else if(ierr > 0) then
-         write(msg,"(2A)") "Failed to parse input file ",trim(f_name)
-         call elsi_stop(eh%bh,msg,caller)
-      end if
-
-      do i = 1,len(trim(msg))
-         select case(msg(i:i))
-         case("{","}","[","]",":",",",'"')
-            msg(i:i) = " "
-         end select
-      end do
-
-      read(msg,*,iostat=ierr) kwd
-
-      if(ierr /= 0 .or. kwd(1:1) == "#") then
-         cycle
-      end if
-
-      select case(kwd)
-      case("output")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_output(eh,val_i4)
-      case("output_unit")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_output_unit(eh,val_i4)
-      case("output_log")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_output_log(eh,val_i4)
-      case("save_ovlp")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_save_ovlp(eh,val_i4)
-      case("unit_ovlp")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_unit_ovlp(eh,val_i4)
-      case("zero_def")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_zero_def(eh,val_r8)
-      case("illcond_check")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_illcond_check(eh,val_i4)
-      case("illcond_tol")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_illcond_tol(eh,val_r8)
-      case("energy_gap")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_energy_gap(eh,val_r8)
-      case("spectrum_width")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_spectrum_width(eh,val_r8)
-      case("dimensionality")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_dimensionality(eh,val_i4)
-      case("elpa_solver")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_elpa_solver(eh,val_i4)
-      case("elpa_n_single")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_elpa_n_single(eh,val_i4)
-      case("elpa_gpu")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_elpa_gpu(eh,val_i4)
-      case("elpa_gpu_kernels")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_elpa_gpu_kernels(eh,val_i4)
-      case("elpa_autotune")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_elpa_autotune(eh,val_i4)
-      case("omm_flavor")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_omm_flavor(eh,val_i4)
-      case("omm_n_elpa")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_omm_n_elpa(eh,val_i4)
-      case("omm_tol")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_omm_tol(eh,val_r8)
-      case("pexsi_n_mu")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_pexsi_n_mu(eh,val_i4)
-      case("pexsi_n_pole")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_pexsi_n_pole(eh,val_i4)
-      case("pexsi_np_per_pole")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_pexsi_np_per_pole(eh,val_i4)
-      case("pexsi_np_symbo")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_pexsi_np_symbo(eh,val_i4)
-      case("pexsi_inertia_tol")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_pexsi_inertia_tol(eh,val_r8)
-      case("sips_n_elpa")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_sips_n_elpa(eh,val_i4)
-      case("sips_n_slice")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_sips_n_slice(eh,val_i4)
-      case("sips_ev_min")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_sips_ev_min(eh,val_r8)
-      case("sips_ev_max")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_sips_ev_max(eh,val_r8)
-      case("ntpoly_method")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_ntpoly_method(eh,val_i4)
-      case("ntpoly_tol")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_ntpoly_tol(eh,val_r8)
-      case("ntpoly_filter")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_ntpoly_filter(eh,val_r8)
-      case("mu_broaden_scheme")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_mu_broaden_scheme(eh,val_i4)
-      case("mu_broaden_width")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_mu_broaden_width(eh,val_r8)
-      case("mu_tol")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_mu_tol(eh,val_r8)
-      case("mu_mp_order")
-         read(msg,*,iostat=ierr) kwd,val_i4
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_mu_mp_order(eh,val_i4)
-      end select
-   end do
-
-   close(313)
-
-end subroutine
-
-!>
-!! This routine sets the output level of ELSI.
+!! Set the output level of ELSI.
 !!
 subroutine elsi_set_output(eh,output)
 
@@ -419,7 +183,7 @@ subroutine elsi_set_output(eh,output)
 end subroutine
 
 !>
-!! This routine sets the unit to be used by ELSI output.
+!! Set the unit to be used by ELSI output.
 !!
 subroutine elsi_set_output_unit(eh,print_unit)
 
@@ -437,7 +201,7 @@ subroutine elsi_set_output_unit(eh,print_unit)
 end subroutine
 
 !>
-!! This routine sets whether a log file should be output.
+!! Set whether a log file should be output.
 !!
 subroutine elsi_set_output_log(eh,output_log)
 
@@ -455,7 +219,7 @@ subroutine elsi_set_output_log(eh,output_log)
 end subroutine
 
 !>
-!! This routine sets a custom tag for the JSON log file.
+!! Set a custom tag for the JSON log file.
 !!
 subroutine elsi_set_output_tag(eh,output_tag)
 
@@ -471,7 +235,7 @@ subroutine elsi_set_output_tag(eh,output_tag)
 end subroutine
 
 !>
-!! This routine sets the UUID.
+!! Set a UUID.
 !!
 subroutine elsi_set_uuid(eh,uuid)
 
@@ -488,8 +252,7 @@ subroutine elsi_set_uuid(eh,uuid)
 end subroutine
 
 !>
-!! This routine sets a new number of basis functions. Only allowed in
-!! SINGLE_PROC mode.
+!! Set a new number of basis functions. Only allowed in SINGLE_PROC mode.
 !!
 subroutine elsi_set_n_basis(eh,n_basis)
 
@@ -519,8 +282,8 @@ subroutine elsi_set_n_basis(eh,n_basis)
 end subroutine
 
 !>
-!! This routine sets whether to save the overlap matrix or its Cholesky factor
-!! for density matrix extrapolation.
+!! Set whether to save the overlap matrix or its Cholesky factor for density
+!! matrix extrapolation.
 !!
 subroutine elsi_set_save_ovlp(eh,save_ovlp)
 
@@ -542,7 +305,7 @@ subroutine elsi_set_save_ovlp(eh,save_ovlp)
 end subroutine
 
 !>
-!! This routine sets the overlap matrix to be identity.
+!! Set the overlap matrix to be identity.
 !!
 subroutine elsi_set_unit_ovlp(eh,unit_ovlp)
 
@@ -564,7 +327,7 @@ subroutine elsi_set_unit_ovlp(eh,unit_ovlp)
 end subroutine
 
 !>
-!! This routine sets the threshold to define "zero".
+!! Set the threshold to define "zero".
 !!
 subroutine elsi_set_zero_def(eh,zero_def)
 
@@ -582,7 +345,7 @@ subroutine elsi_set_zero_def(eh,zero_def)
 end subroutine
 
 !>
-!! This routine sets whether ill-conditioning should be checked.
+!! Set whether ill-conditioning should be checked.
 !!
 subroutine elsi_set_illcond_check(eh,illcond_check)
 
@@ -606,7 +369,7 @@ subroutine elsi_set_illcond_check(eh,illcond_check)
 end subroutine
 
 !>
-!! This routine sets the tolerance of ill-conditioning.
+!! Set the tolerance of ill-conditioning.
 !!
 subroutine elsi_set_illcond_tol(eh,illcond_tol)
 
@@ -624,7 +387,7 @@ subroutine elsi_set_illcond_tol(eh,illcond_tol)
 end subroutine
 
 !>
-!! This routine sets whether to abort in case of ill-conditioning.
+!! Set whether to abort in case of ill-conditioning.
 !!
 subroutine elsi_set_illcond_abort(eh,illcond_abort)
 
@@ -646,7 +409,7 @@ subroutine elsi_set_illcond_abort(eh,illcond_abort)
 end subroutine
 
 !>
-!! This routine sets an estimate of the band (or HOMO/LUMO) gap.
+!! Set an estimate of the band (or HOMO/LUMO) gap.
 !!
 subroutine elsi_set_energy_gap(eh,gap)
 
@@ -672,7 +435,7 @@ subroutine elsi_set_energy_gap(eh,gap)
 end subroutine
 
 !>
-!! This routine sets an estimate of the eigenspectrum width.
+!! Set an estimate of the eigenspectrum width.
 !!
 subroutine elsi_set_spectrum_width(eh,width)
 
@@ -698,7 +461,7 @@ subroutine elsi_set_spectrum_width(eh,width)
 end subroutine
 
 !>
-!! This routine sets the dimensionality of the simulating system.
+!! Set the dimensionality of the simulating system.
 !!
 subroutine elsi_set_dimensionality(eh,dimensionality)
 
@@ -723,7 +486,7 @@ subroutine elsi_set_dimensionality(eh,dimensionality)
 end subroutine
 
 !>
-!! This routine sets the ELPA solver.
+!! Set the ELPA solver.
 !!
 subroutine elsi_set_elpa_solver(eh,solver)
 
@@ -748,7 +511,7 @@ subroutine elsi_set_elpa_solver(eh,solver)
 end subroutine
 
 !>
-!! This routine sets the number of single precision steps with ELPA.
+!! Set the number of single precision steps with ELPA.
 !!
 subroutine elsi_set_elpa_n_single(eh,n_single)
 
@@ -770,9 +533,9 @@ subroutine elsi_set_elpa_n_single(eh,n_single)
 end subroutine
 
 !>
-!! This routine sets whether GPU acceleration (not including GPU kernels for
-!! back-transforming eigenvectors) should be enabled in ELPA. No effect if no
-!! GPU acceleration available.
+!! Set whether GPU acceleration (not including GPU kernels for back-transforming
+!! eigenvectors) should be enabled in ELPA. No effect if no GPU acceleration
+!! available.
 !!
 subroutine elsi_set_elpa_gpu(eh,gpu)
 
@@ -794,9 +557,9 @@ subroutine elsi_set_elpa_gpu(eh,gpu)
 end subroutine
 
 !>
-!! This routine sets whether GPU acceleration (including GPU kernels for back-
-!! transforming eigenvectors) should be enabled in ELPA. No effect if no GPU
-!! acceleration available.
+!! Set whether GPU acceleration (including GPU kernels for back-transforming
+!! eigenvectors) should be enabled in ELPA. No effect if no GPU acceleration
+!! available.
 !!
 subroutine elsi_set_elpa_gpu_kernels(eh,gpu_kernels)
 
@@ -820,8 +583,8 @@ subroutine elsi_set_elpa_gpu_kernels(eh,gpu_kernels)
 end subroutine
 
 !>
-!! This routine sets whether auto-tuning should be enabled in ELPA. No effect if
-!! no auto-tuning available.
+!! Set whether auto-tuning should be enabled in ELPA. No effect if no
+!! auto-tuning available.
 !!
 subroutine elsi_set_elpa_autotune(eh,autotune)
 
@@ -843,7 +606,7 @@ subroutine elsi_set_elpa_autotune(eh,autotune)
 end subroutine
 
 !>
-!! This routine sets the flavor of libOMM.
+!! Set the flavor of libOMM.
 !!
 subroutine elsi_set_omm_flavor(eh,flavor)
 
@@ -868,7 +631,7 @@ subroutine elsi_set_omm_flavor(eh,flavor)
 end subroutine
 
 !>
-!! This routine sets the number of ELPA steps when using libOMM.
+!! Set the number of ELPA steps when using libOMM.
 !!
 subroutine elsi_set_omm_n_elpa(eh,n_elpa)
 
@@ -890,7 +653,7 @@ subroutine elsi_set_omm_n_elpa(eh,n_elpa)
 end subroutine
 
 !>
-!! This routine sets the tolerance of OMM minimization.
+!! Set the tolerance of OMM minimization.
 !!
 subroutine elsi_set_omm_tol(eh,tol)
 
@@ -915,7 +678,7 @@ subroutine elsi_set_omm_tol(eh,tol)
 end subroutine
 
 !>
-!! This routine sets the number of mu points when using PEXSI driver 2.
+!! Set the number of mu points when using PEXSI driver 2.
 !!
 subroutine elsi_set_pexsi_n_mu(eh,n_mu)
 
@@ -940,7 +703,7 @@ subroutine elsi_set_pexsi_n_mu(eh,n_mu)
 end subroutine
 
 !>
-!! This routine sets the number of poles in the pole expansion.
+!! Set the number of poles in the pole expansion.
 !!
 subroutine elsi_set_pexsi_n_pole(eh,n_pole)
 
@@ -965,7 +728,7 @@ subroutine elsi_set_pexsi_n_pole(eh,n_pole)
 end subroutine
 
 !>
-!! This routine sets the number of MPI tasks assigned for one pole.
+!! Set the number of MPI tasks assigned for one pole.
 !!
 subroutine elsi_set_pexsi_np_per_pole(eh,np_per_pole)
 
@@ -990,7 +753,7 @@ subroutine elsi_set_pexsi_np_per_pole(eh,np_per_pole)
 end subroutine
 
 !>
-!! This routine sets the number of MPI tasks for the symbolic factorization.
+!! Set the number of MPI tasks for the symbolic factorization.
 !!
 subroutine elsi_set_pexsi_np_symbo(eh,np_symbo)
 
@@ -1015,7 +778,7 @@ subroutine elsi_set_pexsi_np_symbo(eh,np_symbo)
 end subroutine
 
 !>
-!! This routine sets the matrix reordering method.
+!! Set the matrix reordering method.
 !!
 subroutine elsi_set_pexsi_ordering(eh,ordering)
 
@@ -1033,7 +796,7 @@ subroutine elsi_set_pexsi_ordering(eh,ordering)
 end subroutine
 
 !>
-!! This routine sets the electronic temperature in PEXSI.
+!! Set the electronic temperature in PEXSI.
 !!
 subroutine elsi_set_pexsi_temp(eh,temp)
 
@@ -1058,7 +821,7 @@ subroutine elsi_set_pexsi_temp(eh,temp)
 end subroutine
 
 !>
-!! This routine sets the lower bound of the chemical potential in PEXSI.
+!! Set the lower bound of the chemical potential in PEXSI.
 !!
 subroutine elsi_set_pexsi_mu_min(eh,mu_min)
 
@@ -1076,7 +839,7 @@ subroutine elsi_set_pexsi_mu_min(eh,mu_min)
 end subroutine
 
 !>
-!! This routine sets the upper bound of the chemical potential in PEXSI.
+!! Set the upper bound of the chemical potential in PEXSI.
 !!
 subroutine elsi_set_pexsi_mu_max(eh,mu_max)
 
@@ -1094,8 +857,8 @@ subroutine elsi_set_pexsi_mu_max(eh,mu_max)
 end subroutine
 
 !>
-!! This routine sets the tolerance of the estimation of the chemical potential
-!! in the inertia counting procedure.
+!! Set the tolerance of the estimation of the chemical potential in the inertia
+!! counting procedure.
 !!
 subroutine elsi_set_pexsi_inertia_tol(eh,inertia_tol)
 
@@ -1120,7 +883,7 @@ subroutine elsi_set_pexsi_inertia_tol(eh,inertia_tol)
 end subroutine
 
 !>
-!! This routine sets the number of ELPA steps when using SLEPc-SIPs.
+!! Set the number of ELPA steps when using SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_n_elpa(eh,n_elpa)
 
@@ -1142,7 +905,7 @@ subroutine elsi_set_sips_n_elpa(eh,n_elpa)
 end subroutine
 
 !>
-!! This routine sets the number of slices in SLEPc-SIPs.
+!! Set the number of slices in SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_n_slice(eh,n_slice)
 
@@ -1168,7 +931,7 @@ subroutine elsi_set_sips_n_slice(eh,n_slice)
 end subroutine
 
 !>
-!! This routine sets the type of slices to be used in SLEPc-SIPs.
+!! Set the type of slices to be used in SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_slice_type(eh,slice_type)
 
@@ -1193,8 +956,7 @@ subroutine elsi_set_sips_slice_type(eh,slice_type)
 end subroutine
 
 !>
-!! This routine sets a small buffer to expand the eigenvalue interval in
-!! SLEPc-SIPs.
+!! Set a small buffer to expand the eigenvalue interval in SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_buffer(eh,buffer)
 
@@ -1219,7 +981,7 @@ subroutine elsi_set_sips_buffer(eh,buffer)
 end subroutine
 
 !>
-!! This routine sets the tolerance to stop inertia counting in SLEPc-SIPs.
+!! Set the tolerance to stop inertia counting in SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_inertia_tol(eh,inertia_tol)
 
@@ -1244,7 +1006,7 @@ subroutine elsi_set_sips_inertia_tol(eh,inertia_tol)
 end subroutine
 
 !>
-!! This routine sets the lower bound of the interval to be solved by SLEPc-SIPs.
+!! Set the lower bound of the interval to be solved by SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_ev_min(eh,ev_min)
 
@@ -1262,7 +1024,7 @@ subroutine elsi_set_sips_ev_min(eh,ev_min)
 end subroutine
 
 !>
-!! This routine sets the upper bound of the interval to be solved by SLEPc-SIPs.
+!! Set the upper bound of the interval to be solved by SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_ev_max(eh,ev_max)
 
@@ -1280,7 +1042,7 @@ subroutine elsi_set_sips_ev_max(eh,ev_max)
 end subroutine
 
 !>
-!! This routine sets the global interval to be solved by SLEPc-SIPs.
+!! Set the global interval to be solved by SLEPc-SIPs.
 !!
 subroutine elsi_set_sips_interval(eh,lower,upper)
 
@@ -1307,7 +1069,7 @@ subroutine elsi_set_sips_interval(eh,lower,upper)
 end subroutine
 
 !>
-!! This routine sets the density matrix purification method in NTPoly.
+!! Set the density matrix purification method in NTPoly.
 !!
 subroutine elsi_set_ntpoly_method(eh,method)
 
@@ -1332,7 +1094,7 @@ subroutine elsi_set_ntpoly_method(eh,method)
 end subroutine
 
 !>
-!! This routine sets the inverse square root method in NTPoly.
+!! Set the inverse square root method in NTPoly.
 !!
 subroutine elsi_set_ntpoly_isr(eh,isr)
 
@@ -1357,7 +1119,7 @@ subroutine elsi_set_ntpoly_isr(eh,isr)
 end subroutine
 
 !>
-!! This routine sets the tolerance of the density matrix purification.
+!! Set the tolerance of the density matrix purification.
 !!
 subroutine elsi_set_ntpoly_tol(eh,tol)
 
@@ -1382,7 +1144,7 @@ subroutine elsi_set_ntpoly_tol(eh,tol)
 end subroutine
 
 !>
-!! This routine sets the threshold to filter intermediate results in NTPoly.
+!! Set the threshold to filter intermediate results in NTPoly.
 !!
 subroutine elsi_set_ntpoly_filter(eh,filter)
 
@@ -1400,7 +1162,7 @@ subroutine elsi_set_ntpoly_filter(eh,filter)
 end subroutine
 
 !>
-!! This routine sets the maximum number of density matrix purification steps.
+!! Set the maximum number of density matrix purification steps.
 !!
 subroutine elsi_set_ntpoly_max_iter(eh,max_iter)
 
@@ -1425,7 +1187,7 @@ subroutine elsi_set_ntpoly_max_iter(eh,max_iter)
 end subroutine
 
 !>
-!! This routine sets the number of layers in the 3D process grid of NTPoly.
+!! Set the number of layers in the 3D process grid of NTPoly.
 !!
 subroutine elsi_set_ntpoly_n_layer(eh,n_layer)
 
@@ -1451,8 +1213,8 @@ subroutine elsi_set_ntpoly_n_layer(eh,n_layer)
 end subroutine
 
 !>
-!! This routine sets the broadening scheme to determine the chemical potential
-!! and the occupation numbers.
+!! Set the broadening scheme to determine the chemical potential and the
+!! occupation numbers.
 !!
 subroutine elsi_set_mu_broaden_scheme(eh,broaden_scheme)
 
@@ -1477,8 +1239,8 @@ subroutine elsi_set_mu_broaden_scheme(eh,broaden_scheme)
 end subroutine
 
 !>
-!! This routine sets the broadening width to determine the chemical potential
-!! and the occupation numbers.
+!! Set the broadening width to determine the chemical potential and the
+!! occupation numbers.
 !!
 subroutine elsi_set_mu_broaden_width(eh,broaden_width)
 
@@ -1503,8 +1265,8 @@ subroutine elsi_set_mu_broaden_width(eh,broaden_width)
 end subroutine
 
 !>
-!! This routine sets the desired accuracy of the determination of the chemical
-!! potential and the occupation numbers.
+!! Set the desired accuracy of the determination of the chemical potential and
+!! the occupation numbers.
 !!
 subroutine elsi_set_mu_tol(eh,tol)
 
@@ -1529,8 +1291,8 @@ subroutine elsi_set_mu_tol(eh,tol)
 end subroutine
 
 !>
-!! This routine sets the spin degeneracy in the determination of the chemical
-!! potential and the occupation numbers.
+!! Set the spin degeneracy in the determination of the chemical potential and
+!! the occupation numbers.
 !!
 subroutine elsi_set_mu_spin_degen(eh,spin_degen)
 
@@ -1549,7 +1311,7 @@ subroutine elsi_set_mu_spin_degen(eh,spin_degen)
 end subroutine
 
 !>
-!! This routine sets the order of the Methfessel-Paxton broadening scheme.
+!! Set the order of the Methfessel-Paxton broadening scheme.
 !!
 subroutine elsi_set_mu_mp_order(eh,mp_order)
 
@@ -1574,8 +1336,7 @@ subroutine elsi_set_mu_mp_order(eh,mp_order)
 end subroutine
 
 !>
-!! This routine returns 0 if the input handle has not been initialized; returns
-!! 1 if it has been initialized.
+!! Return 0 if the input handle has not been initialized; return 1 otherwise.
 !!
 subroutine elsi_get_initialized(eh,initialized)
 
@@ -1595,7 +1356,7 @@ subroutine elsi_get_initialized(eh,initialized)
 end subroutine
 
 !>
-!! This routine returns the version number of ELSI.
+!! Return the version number of ELSI.
 !!
 subroutine elsi_get_version(major,minor,patch)
 
@@ -1627,7 +1388,7 @@ subroutine elsi_get_version(major,minor,patch)
 end subroutine
 
 !>
-!! This routine returns the date stamp of ELSI source code.
+!! Return the date stamp of ELSI source code.
 !!
 subroutine elsi_get_datestamp(datestamp)
 
@@ -1650,7 +1411,7 @@ subroutine elsi_get_datestamp(datestamp)
 end subroutine
 
 !>
-!! This routine gets the currently selected solver.
+!! Get the currently selected solver.
 !!
 subroutine elsi_get_solver(eh,solver)
 
@@ -1672,8 +1433,7 @@ subroutine elsi_get_solver(eh,solver)
 end subroutine
 
 !>
-!! This routine gets the number of basis functions that are removed due to
-!! ill-conditioning.
+!! Get the number of basis functions that are removed due to ill-conditioning.
 !!
 subroutine elsi_get_n_illcond(eh,n_illcond)
 
@@ -1691,7 +1451,7 @@ subroutine elsi_get_n_illcond(eh,n_illcond)
 end subroutine
 
 !>
-!! This routine gets the lowest eigenvalue of the overlap matrix.
+!! Get the lowest eigenvalue of the overlap matrix.
 !!
 subroutine elsi_get_ovlp_ev_min(eh,ev_min)
 
@@ -1709,7 +1469,7 @@ subroutine elsi_get_ovlp_ev_min(eh,ev_min)
 end subroutine
 
 !>
-!! This routine gets the highest eigenvalue of the overlap matrix.
+!! Get the highest eigenvalue of the overlap matrix.
 !!
 subroutine elsi_get_ovlp_ev_max(eh,ev_max)
 
@@ -1727,8 +1487,8 @@ subroutine elsi_get_ovlp_ev_max(eh,ev_max)
 end subroutine
 
 !>
-!! This routine gets the lower bound of the chemical potential returned by the
-!! inertia counting in PEXSI.
+!! Get the lower bound of the chemical potential returned by the inertia
+!! counting in PEXSI.
 !!
 subroutine elsi_get_pexsi_mu_min(eh,mu_min)
 
@@ -1746,8 +1506,8 @@ subroutine elsi_get_pexsi_mu_min(eh,mu_min)
 end subroutine
 
 !>
-!! This routine gets the upper bound of the chemical potential returned by the
-!! inertia counting in PEXSI.
+!! Get the upper bound of the chemical potential returned by the inertia
+!! counting in PEXSI.
 !!
 subroutine elsi_get_pexsi_mu_max(eh,mu_max)
 
@@ -1765,7 +1525,7 @@ subroutine elsi_get_pexsi_mu_max(eh,mu_max)
 end subroutine
 
 !>
-!! This routine gets the Fermi level (chemical potential).
+!! Get the Fermi level (chemical potential).
 !!
 subroutine elsi_get_mu(eh,mu)
 
@@ -1783,7 +1543,7 @@ subroutine elsi_get_mu(eh,mu)
 end subroutine
 
 !>
-!! This routine gets the entropy.
+!! Get the electronic entropy.
 !!
 subroutine elsi_get_entropy(eh,entropy)
 
@@ -1801,7 +1561,7 @@ subroutine elsi_get_entropy(eh,entropy)
 end subroutine
 
 !>
-!! This routine gets the energy-weighted density matrix.
+!! Get the energy-weighted density matrix.
 !!
 subroutine elsi_get_edm_real(eh,edm)
 
@@ -1865,7 +1625,7 @@ subroutine elsi_get_edm_real(eh,edm)
 end subroutine
 
 !>
-!! This routine gets the energy-weighted density matrix.
+!! Get the energy-weighted density matrix.
 !!
 subroutine elsi_get_edm_real_sparse(eh,edm)
 
@@ -2000,7 +1760,7 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
 end subroutine
 
 !>
-!! This routine gets the energy-weighted density matrix.
+!! Get the energy-weighted density matrix.
 !!
 subroutine elsi_get_edm_complex(eh,edm)
 
@@ -2054,7 +1814,7 @@ subroutine elsi_get_edm_complex(eh,edm)
 end subroutine
 
 !>
-!! This routine gets the energy-weighted density matrix.
+!! Get the energy-weighted density matrix.
 !!
 subroutine elsi_get_edm_complex_sparse(eh,edm)
 

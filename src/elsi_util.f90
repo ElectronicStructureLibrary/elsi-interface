@@ -5,19 +5,19 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module contains a collection of basic utility routines.
+!! Contain a collection of utility routines.
 !!
-module ELSI_UTILS
+module ELSI_UTIL
 
    use ELSI_CONSTANTS, only: UNSET,UT_MAT,LT_MAT,N_SOLVERS,N_PARALLEL_MODES,&
        N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
        SIESTA_CSC,GENERIC_COO,AUTO_SOLVER,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
        SIPS_SOLVER,NTPOLY_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
        mpi_complex16,mpi_comm_self
+   use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: i4,r8
 
    implicit none
@@ -26,7 +26,6 @@ module ELSI_UTILS
 
    public :: elsi_check
    public :: elsi_check_init
-   public :: elsi_check_read
    public :: elsi_reset_param
    public :: elsi_reset_basic
    public :: elsi_get_gid
@@ -437,28 +436,6 @@ subroutine elsi_check_init(bh,init,caller)
 
    if(.not. init) then
       write(msg,"(A)") "Handle not initialized"
-      call elsi_stop(bh,msg,caller)
-   end if
-
-end subroutine
-
-!>
-!! Check if a Fortran read statement is successful.
-!!
-subroutine elsi_check_read(bh,ierr,kwd)
-
-   implicit none
-
-   type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(in) :: ierr
-   character(len=*), intent(in) :: kwd
-
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_check_read"
-
-   if(ierr /= 0) then
-      write(msg,"(2A)") "Failed to parse input keyword ",trim(kwd)
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1190,4 +1167,4 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,ovlp,evec)
 
 end subroutine
 
-end module ELSI_UTILS
+end module ELSI_UTIL

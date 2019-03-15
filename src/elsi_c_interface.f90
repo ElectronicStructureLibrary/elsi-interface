@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module contains the C interfaces of ELSI.
+!! Provide C interfaces of ELSI.
 !!
 module ELSI_C_INTERFACE
 

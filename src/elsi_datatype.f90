@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module contains variables accessible in ELSI and related modules.
+!! Provide derived types used in ELSI.
 !!
 module ELSI_DATATYPE
 

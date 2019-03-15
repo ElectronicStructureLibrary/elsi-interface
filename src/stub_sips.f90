@@ -5,8 +5,8 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module is only compiled when the actual SLEPc-SIPs is not available, to
-!! make the SLEPc-SIPs part of ELSI compile.
+!! Provide stub routines which are only compiled when the actual SLEPc-SIPs is
+!! not available.
 !!
 module M_SIPS
 

@@ -5,16 +5,16 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides routines for chemical potential determination.
+!! Determine occupation numbers, chemical potential, and electronic entropy.
 !!
 module ELSI_OCC
 
    use ELSI_CONSTANTS, only: GAUSSIAN,FERMI,METHFESSEL_PAXTON,COLD,CUBIC,&
        SQRT_PI,INVERT_SQRT_PI
-   use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_IO, only: elsi_say
+   use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
+   use ELSI_OUTPUT, only: elsi_say
    use ELSI_PRECISION, only: r8,i4
    use ELSI_SORT, only: elsi_heapsort,elsi_permute,elsi_unpermute
 
@@ -25,6 +25,8 @@ module ELSI_OCC
    public :: elsi_mu_and_occ
    public :: elsi_entropy
    public :: elsi_get_occ
+   public :: elsi_compute_mu_and_occ
+   public :: elsi_compute_entropy
 
 contains
 
@@ -686,6 +688,54 @@ subroutine elsi_get_occ(ph,bh,eval,occ)
 
    call elsi_deallocate(bh,eval_all,"eval_all")
    call elsi_deallocate(bh,k_wt,"k_wt")
+
+end subroutine
+
+!>
+!! Compute the chemical potential and occupation numbers.
+!!
+subroutine elsi_compute_mu_and_occ(eh,n_electron,n_state,n_spin,n_kpt,k_wt,&
+   eval,occ,mu)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: eh !< Handle
+   real(kind=r8), intent(in) :: n_electron !< Number of electrons
+   integer(kind=i4), intent(in) :: n_state !< Number of states
+   integer(kind=i4), intent(in) :: n_spin !< Number of spins
+   integer(kind=i4), intent(in) :: n_kpt !< Number of k-points
+   real(kind=r8), intent(in) :: k_wt(n_kpt) !< K-points weights
+   real(kind=r8), intent(in) :: eval(n_state,n_spin,n_kpt) !< Eigenvalues
+   real(kind=r8), intent(out) :: occ(n_state,n_spin,n_kpt) !< Occupation members
+   real(kind=r8), intent(out) :: mu !< Chemical potential
+
+   character(len=*), parameter :: caller = "elsi_compute_mu_and_occ"
+
+   call elsi_mu_and_occ(eh%ph,eh%bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,&
+        occ,mu)
+
+end subroutine
+
+!>
+!! Compute the electronic entropy.
+!!
+subroutine elsi_compute_entropy(eh,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: eh !< Handle
+   integer(kind=i4), intent(in) :: n_state !< Number of states
+   integer(kind=i4), intent(in) :: n_spin !< Number of spins
+   integer(kind=i4), intent(in) :: n_kpt !< Number of k-points
+   real(kind=r8), intent(in) :: k_wt(n_kpt) !< K-points weights
+   real(kind=r8), intent(in) :: eval(n_state,n_spin,n_kpt) !< Eigenvalues
+   real(kind=r8), intent(in) :: occ(n_state,n_spin,n_kpt) !< Occupation numbers
+   real(kind=r8), intent(in) :: mu !< Input chemical potential
+   real(kind=r8), intent(out) :: ts !< Entropy
+
+   character(len=*), parameter :: caller = "elsi_compute_entropy"
+
+   call elsi_entropy(eh%ph,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
 
 end subroutine
 

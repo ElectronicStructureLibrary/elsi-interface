@@ -5,15 +5,15 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides interfaces to NTPoly.
+!! Provide interfaces to NTPoly.
 !!
 module ELSI_NTPOLY
 
    use ELSI_CONSTANTS, only: NTPOLY_SOLVER,NTPOLY_PM,NTPOLY_TC2,NTPOLY_TRS4,&
        NTPOLY_HPCP
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MPI, only: elsi_check_mpi,mpi_logical
+   use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use NTPOLY, only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,LowdinExtrapolate,&
        Matrix_ps,ConstructEmptyMatrix,DestructMatrix,CopyMatrix,ScaleMatrix,&

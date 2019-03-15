@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides implementations of the heapsort algorithm.
+!! Provide implementations of the heapsort algorithm.
 !!
 module ELSI_SORT
 

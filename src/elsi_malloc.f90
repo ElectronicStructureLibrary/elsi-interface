@@ -5,13 +5,14 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module contains customized allocate and deallocate.
+!! Provide wrapped allocate and deallocate routines with basic error handling
+!! and memory usage output.
 !!
 module ELSI_MALLOC
 
    use ELSI_DATATYPE, only: elsi_basic_t
-   use ELSI_IO, only: elsi_say
    use ELSI_MPI, only: elsi_stop
+   use ELSI_OUTPUT, only: elsi_say
    use ELSI_PRECISION, only: i4,i8,r4,r8
 
    implicit none

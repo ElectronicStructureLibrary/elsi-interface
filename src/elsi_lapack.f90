@@ -5,15 +5,14 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module interfaces to LAPACK routines that solve a generalized
-!! eigenproblem in serial.
+!! Interface to LAPACK.
 !!
 module ELSI_LAPACK
 
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_ELPA, only: elsi_elpa_tridiag
-   use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
+   use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
 
    implicit none

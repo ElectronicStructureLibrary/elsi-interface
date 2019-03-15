@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This subroutine returns details about ELSI's versioning.
+!! Return details about ELSI's versioning.
 !!
 subroutine elsi_version_info(version,datestamp,commit,hostname,datetime)
 
@@ -26,7 +26,7 @@ subroutine elsi_version_info(version,datestamp,commit,hostname,datetime)
 end subroutine
 
 !>
-!! This subroutine returns details about ELSI's solver libraries.
+!! Return details about ELSI's installation.
 !!
 subroutine elsi_solver_info(have_aeo,have_pexsi,have_sips)
 

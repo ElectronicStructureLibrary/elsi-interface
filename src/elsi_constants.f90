@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module contains constants used in ELSI.
+!! Contain constants used in ELSI.
 !!
 module ELSI_CONSTANTS
 

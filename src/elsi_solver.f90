@@ -5,9 +5,8 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module contains subroutines to solve an eigenproblem or to compute the
-!! density matrix, using one of the solvers: ELPA, libOMM, PEXSI, SLEPc-SIPs,
-!! and NTPoly.
+!! Provide interface routines to solve an eigenproblem or to compute the density
+!! matrix, using one of the solvers: ELPA, libOMM, PEXSI, SLEPc-SIPs, NTPoly.
 !!
 module ELSI_SOLVER
 
@@ -16,13 +15,13 @@ module ELSI_SOLVER
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_DECISION, only: elsi_decide_ev,elsi_decide_dm
    use ELSI_ELPA, only: elsi_init_elpa,elsi_solve_elpa
-   use ELSI_IO, only: elsi_add_log,elsi_get_time,fjson_get_datetime_rfc3339
    use ELSI_LAPACK, only: elsi_solve_lapack
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_solve_ntpoly
    use ELSI_OCC, only: elsi_get_occ
    use ELSI_OMM, only: elsi_init_omm,elsi_solve_omm
+   use ELSI_OUTPUT, only: elsi_add_log,elsi_get_time,fjson_get_datetime_rfc3339
    use ELSI_PEXSI, only: elsi_init_pexsi,elsi_solve_pexsi
    use ELSI_PRECISION, only: r8,i4
    use ELSI_REDIST, only: elsi_blacs_to_generic_dm,elsi_blacs_to_ntpoly_hs,&
@@ -42,7 +41,7 @@ module ELSI_SOLVER
        elsi_sips_to_siesta_dm
    use ELSI_SETUP, only: elsi_set_blacs
    use ELSI_SIPS, only: elsi_init_sips,elsi_solve_sips,elsi_build_dm_sips
-   use ELSI_UTILS, only: elsi_check,elsi_check_init,elsi_build_dm
+   use ELSI_UTIL, only: elsi_check,elsi_check_init,elsi_build_dm
 
    implicit none
 

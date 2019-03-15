@@ -5,17 +5,17 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides interfaces to libOMM.
+!! Provide interfaces to libOMM.
 !!
 module ELSI_OMM
 
    use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_ELPA, only: elsi_elpa_cholesky,elsi_elpa_invert
-   use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_integer4
+   use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_UTILS, only: elsi_get_nnz
+   use ELSI_UTIL, only: elsi_get_nnz
    use MATRIXSWITCH, only: matrix,m_register_pdbc,ms_scalapack_setup,&
        m_deallocate
 

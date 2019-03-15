@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module contains a collection of basic utility routines related to MPI.
+!! Provide a collection of MPI-related utility routines.
 !!
 module ELSI_MPI
 

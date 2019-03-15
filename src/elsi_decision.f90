@@ -5,18 +5,18 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module decides which eigensolver or density matrix solver to use, when
-!! it is not specified by the user.
+!! Decide which eigensolver or density matrix solver to use, when it is not
+!! specified by the user.
 !!
 module ELSI_DECISION
 
    use ELSI_CONSTANTS, only: N_SOLVERS,AUTO_SOLVER,ELPA_SOLVER,PEXSI_SOLVER,&
        SIPS_SOLVER,NTPOLY_SOLVER,UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_IO, only: elsi_say
    use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_integer4,mpi_real8
+   use ELSI_OUTPUT, only: elsi_say
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_UTILS, only: elsi_get_nnz
+   use ELSI_UTIL, only: elsi_get_nnz
 
    implicit none
 

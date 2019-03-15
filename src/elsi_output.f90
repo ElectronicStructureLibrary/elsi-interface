@@ -5,9 +5,9 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module performs IO to stdout and files.
+!! Manage output to stdout and/or a JSON log file.
 !!
-module ELSI_IO
+module ELSI_OUTPUT
 
    use ELSI_CONSTANTS, only: MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
        SIESTA_CSC,GENERIC_COO,ELPA_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
@@ -775,4 +775,4 @@ subroutine elsi_init_random_seed()
 
 end subroutine
 
-end module ELSI_IO
+end module ELSI_OUTPUT

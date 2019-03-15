@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides routines for setting up an ELSI instance.
+!! Provide routines to set up an ELSI instance.
 !!
 module ELSI_SETUP
 
@@ -13,16 +13,16 @@ module ELSI_SETUP
        MULTI_PROC,PEXSI_CSC,SIESTA_CSC,UNSET
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_cleanup_elpa
-   use ELSI_IO, only: elsi_final_print,fjson_close_file,fjson_finish_array,&
-       fjson_reset_fj_handle
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_NTPOLY, only: elsi_cleanup_ntpoly
    use ELSI_OMM, only: elsi_cleanup_omm
+   use ELSI_OUTPUT, only: elsi_final_print,fjson_close_file,fjson_finish_array,&
+       fjson_reset_fj_handle
    use ELSI_PEXSI, only: elsi_set_pexsi_default,elsi_cleanup_pexsi
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SIPS, only: elsi_cleanup_sips
    use ELSI_SORT, only: elsi_heapsort
-   use ELSI_UTILS, only: elsi_check_init,elsi_reset_param,elsi_reset_basic
+   use ELSI_UTIL, only: elsi_check_init,elsi_reset_param,elsi_reset_basic
 
    implicit none
 

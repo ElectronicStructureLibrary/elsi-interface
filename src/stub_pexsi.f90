@@ -5,8 +5,8 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module is only compiled when the actual PEXSI is not available,
-!! to make the PEXSI part of ELSI compile.
+!! Provide stub routines which are only compiled when the actual PEXSI is not
+!! available.
 !!
 module F_PPEXSI_INTERFACE
 
