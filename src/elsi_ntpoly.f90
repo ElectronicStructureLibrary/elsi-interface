@@ -5,15 +5,15 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides interfaces to NTPoly.
+!! Provide interfaces to NTPoly.
 !!
 module ELSI_NTPOLY
 
    use ELSI_CONSTANTS, only: NTPOLY_SOLVER,NTPOLY_PM,NTPOLY_TC2,NTPOLY_TRS4,&
        NTPOLY_HPCP
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MPI, only: elsi_check_mpi,mpi_logical
+   use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use NTPOLY, only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,LowdinExtrapolate,&
        Matrix_ps,ConstructEmptyMatrix,DestructMatrix,CopyMatrix,ScaleMatrix,&
@@ -50,7 +50,7 @@ module ELSI_NTPOLY
 contains
 
 !>
-!! This routine initializes NTPoly.
+!! Initialize NTPoly.
 !!
 subroutine elsi_init_ntpoly(ph,bh)
 
@@ -103,7 +103,7 @@ subroutine elsi_init_ntpoly(ph,bh)
 end subroutine
 
 !>
-!! This routine interfaces to NTPoly.
+!! Interface to NTPoly.
 !!
 subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 
@@ -184,7 +184,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 end subroutine
 
 !>
-!! This routine computes the energy-weighted density matrix.
+!! Compute the energy-weighted density matrix.
 !!
 subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
 
@@ -223,7 +223,7 @@ subroutine elsi_compute_edm_ntpoly(ph,bh,ham,edm)
 end subroutine
 
 !>
-!! This routine extrapolates density matrix using Lowdin decomposition of the
+!! Extrapolate density matrix using Lowdin decomposition of the
 !! old and new overlap matrices or 2nd order trace resetting purification.
 !!
 subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
@@ -266,7 +266,7 @@ subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
 end subroutine
 
 !>
-!! This routine cleans up NTPoly.
+!! Clean up NTPoly.
 !!
 subroutine elsi_cleanup_ntpoly(ph)
 

@@ -5,13 +5,14 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module contains customized allocate and deallocate.
+!! Provide wrapped allocate and deallocate routines with basic error handling
+!! and memory usage output.
 !!
 module ELSI_MALLOC
 
    use ELSI_DATATYPE, only: elsi_basic_t
-   use ELSI_IO, only: elsi_say
    use ELSI_MPI, only: elsi_stop
+   use ELSI_OUTPUT, only: elsi_say
    use ELSI_PRECISION, only: i4,i8,r4,r8
 
    implicit none
@@ -56,7 +57,7 @@ module ELSI_MALLOC
 contains
 
 !>
-!! This routine allocates a 1D array with real(kind=r4).
+!! Allocate a 1D array with real(kind=r4).
 !!
 subroutine elsi_allocate_real4_1d(bh,array,dim_1,label,caller)
 
@@ -91,7 +92,7 @@ subroutine elsi_allocate_real4_1d(bh,array,dim_1,label,caller)
 end subroutine
 
 !>
-!! This routine allocates a 1D array with real(kind=r8).
+!! Allocate a 1D array with real(kind=r8).
 !!
 subroutine elsi_allocate_real8_1d(bh,array,dim_1,label,caller)
 
@@ -126,7 +127,7 @@ subroutine elsi_allocate_real8_1d(bh,array,dim_1,label,caller)
 end subroutine
 
 !>
-!! This routine allocates a 1D array with integer(kind=i4).
+!! Allocate a 1D array with integer(kind=i4).
 !!
 subroutine elsi_allocate_integer4_1d(bh,array,dim_1,label,caller)
 
@@ -161,7 +162,7 @@ subroutine elsi_allocate_integer4_1d(bh,array,dim_1,label,caller)
 end subroutine
 
 !>
-!! This routine allocates a 1D array with integer(kind=i8).
+!! Allocate a 1D array with integer(kind=i8).
 !!
 subroutine elsi_allocate_integer8_1d(bh,array,dim_1,label,caller)
 
@@ -196,7 +197,7 @@ subroutine elsi_allocate_integer8_1d(bh,array,dim_1,label,caller)
 end subroutine
 
 !>
-!! This routine allocates a 1D array with complex(kind=r8).
+!! Allocate a 1D array with complex(kind=r8).
 !!
 subroutine elsi_allocate_complex16_1d(bh,array,dim_1,label,caller)
 
@@ -231,7 +232,7 @@ subroutine elsi_allocate_complex16_1d(bh,array,dim_1,label,caller)
 end subroutine
 
 !>
-!! This routine allocates a 2D array of real(kind=r4).
+!! Allocate a 2D array of real(kind=r4).
 !!
 subroutine elsi_allocate_real4_2d(bh,array,dim_1,dim_2,label,caller)
 
@@ -267,7 +268,7 @@ subroutine elsi_allocate_real4_2d(bh,array,dim_1,dim_2,label,caller)
 end subroutine
 
 !>
-!! This routine allocates a 2D array of real(kind=r8).
+!! Allocate a 2D array of real(kind=r8).
 !!
 subroutine elsi_allocate_real8_2d(bh,array,dim_1,dim_2,label,caller)
 
@@ -303,7 +304,7 @@ subroutine elsi_allocate_real8_2d(bh,array,dim_1,dim_2,label,caller)
 end subroutine
 
 !>
-!! This routine allocates a 2D array of integer(kind=i4).
+!! Allocate a 2D array of integer(kind=i4).
 !!
 subroutine elsi_allocate_integer4_2d(bh,array,dim_1,dim_2,label,caller)
 
@@ -339,7 +340,7 @@ subroutine elsi_allocate_integer4_2d(bh,array,dim_1,dim_2,label,caller)
 end subroutine
 
 !>
-!! This routine allocates a 2D array of complex(kind=r4).
+!! Allocate a 2D array of complex(kind=r4).
 !!
 subroutine elsi_allocate_complex8_2d(bh,array,dim_1,dim_2,label,caller)
 
@@ -375,7 +376,7 @@ subroutine elsi_allocate_complex8_2d(bh,array,dim_1,dim_2,label,caller)
 end subroutine
 
 !>
-!! This routine allocates a 2D array of complex(kind=r8).
+!! Allocate a 2D array of complex(kind=r8).
 !!
 subroutine elsi_allocate_complex16_2d(bh,array,dim_1,dim_2,label,caller)
 
@@ -411,7 +412,7 @@ subroutine elsi_allocate_complex16_2d(bh,array,dim_1,dim_2,label,caller)
 end subroutine
 
 !>
-!! This routine allocates a 3D array of real(kind=r8).
+!! Allocate a 3D array of real(kind=r8).
 !!
 subroutine elsi_allocate_real8_3d(bh,array,dim_1,dim_2,dim_3,label,caller)
 
@@ -448,7 +449,7 @@ subroutine elsi_allocate_real8_3d(bh,array,dim_1,dim_2,dim_3,label,caller)
 end subroutine
 
 !>
-!! This routine allocates a 3D array of integer(kind=i4).
+!! Allocate a 3D array of integer(kind=i4).
 !!
 subroutine elsi_allocate_integer4_3d(bh,array,dim_1,dim_2,dim_3,label,caller)
 
@@ -485,7 +486,7 @@ subroutine elsi_allocate_integer4_3d(bh,array,dim_1,dim_2,dim_3,label,caller)
 end subroutine
 
 !>
-!! This routine allocates a 3D array of complex(kind=r8).
+!! Allocate a 3D array of complex(kind=r8).
 !!
 subroutine elsi_allocate_complex16_3d(bh,array,dim_1,dim_2,dim_3,label,caller)
 
@@ -522,7 +523,7 @@ subroutine elsi_allocate_complex16_3d(bh,array,dim_1,dim_2,dim_3,label,caller)
 end subroutine
 
 !>
-!! This routine deallocates a 1D array with real(kind=r4).
+!! Deallocate a 1D array with real(kind=r4).
 !!
 subroutine elsi_deallocate_real4_1d(bh,array,label)
 
@@ -544,7 +545,7 @@ subroutine elsi_deallocate_real4_1d(bh,array,label)
 end subroutine
 
 !>
-!! This routine deallocates a 1D array with real(kind=r8).
+!! Deallocate a 1D array with real(kind=r8).
 !!
 subroutine elsi_deallocate_real8_1d(bh,array,label)
 
@@ -566,7 +567,7 @@ subroutine elsi_deallocate_real8_1d(bh,array,label)
 end subroutine
 
 !>
-!! This routine deallocates a 1D array with integer(kind=i4).
+!! Deallocate a 1D array with integer(kind=i4).
 !!
 subroutine elsi_deallocate_integer4_1d(bh,array,label)
 
@@ -588,7 +589,7 @@ subroutine elsi_deallocate_integer4_1d(bh,array,label)
 end subroutine
 
 !>
-!! This routine deallocates a 1D array with integer(kind=i8).
+!! Deallocate a 1D array with integer(kind=i8).
 !!
 subroutine elsi_deallocate_integer8_1d(bh,array,label)
 
@@ -610,7 +611,7 @@ subroutine elsi_deallocate_integer8_1d(bh,array,label)
 end subroutine
 
 !>
-!! This routine deallocates a 1D array with complex(kind=r8).
+!! Deallocate a 1D array with complex(kind=r8).
 !!
 subroutine elsi_deallocate_complex16_1d(bh,array,label)
 
@@ -632,7 +633,7 @@ subroutine elsi_deallocate_complex16_1d(bh,array,label)
 end subroutine
 
 !>
-!! This routine deallocates a 2D array with real(kind=r4).
+!! Deallocate a 2D array with real(kind=r4).
 !!
 subroutine elsi_deallocate_real4_2d(bh,array,label)
 
@@ -654,7 +655,7 @@ subroutine elsi_deallocate_real4_2d(bh,array,label)
 end subroutine
 
 !>
-!! This routine deallocates a 2D array with real(kind=r8).
+!! Deallocate a 2D array with real(kind=r8).
 !!
 subroutine elsi_deallocate_real8_2d(bh,array,label)
 
@@ -676,7 +677,7 @@ subroutine elsi_deallocate_real8_2d(bh,array,label)
 end subroutine
 
 !>
-!! This routine deallocates a 2D array with integer(kind=i4).
+!! Deallocate a 2D array with integer(kind=i4).
 !!
 subroutine elsi_deallocate_integer4_2d(bh,array,label)
 
@@ -698,7 +699,7 @@ subroutine elsi_deallocate_integer4_2d(bh,array,label)
 end subroutine
 
 !>
-!! This routine deallocates a 2D array with complex(kind=r4).
+!! Deallocate a 2D array with complex(kind=r4).
 !!
 subroutine elsi_deallocate_complex8_2d(bh,array,label)
 
@@ -721,7 +722,7 @@ end subroutine
 
 !>
 !>
-!! This routine deallocates a 2D array with complex(kind=r8).
+!! Deallocate a 2D array with complex(kind=r8).
 !!
 subroutine elsi_deallocate_complex16_2d(bh,array,label)
 
@@ -743,7 +744,7 @@ subroutine elsi_deallocate_complex16_2d(bh,array,label)
 end subroutine
 
 !>
-!! This routine deallocates a 3D array with real(kind=r8).
+!! Deallocate a 3D array with real(kind=r8).
 !!
 subroutine elsi_deallocate_real8_3d(bh,array,label)
 
@@ -765,7 +766,7 @@ subroutine elsi_deallocate_real8_3d(bh,array,label)
 end subroutine
 
 !>
-!! This routine deallocates a 3D array with integer(kind=i4).
+!! Deallocate a 3D array with integer(kind=i4).
 !!
 subroutine elsi_deallocate_integer4_3d(bh,array,label)
 
@@ -787,7 +788,7 @@ subroutine elsi_deallocate_integer4_3d(bh,array,label)
 end subroutine
 
 !>
-!! This routine deallocates a 3D array with complex(kind=r8).
+!! Deallocate a 3D array with complex(kind=r8).
 !!
 subroutine elsi_deallocate_complex16_3d(bh,array,label)
 

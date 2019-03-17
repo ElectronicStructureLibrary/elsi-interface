@@ -10,13 +10,13 @@
 module ELSI
 
    use ELSI_DATATYPE, only: elsi_handle,elsi_rw_handle
-   use ELSI_IO
+   use ELSI_GEO
+   use ELSI_INPUT
    use ELSI_MUTATOR
    use ELSI_OCC
    use ELSI_RW
    use ELSI_SETUP
    use ELSI_SOLVER
-   use ELSI_TOOLS
 
    implicit none
 
@@ -40,6 +40,7 @@ module ELSI
    public :: elsi_finalize
 
    ! Mutator
+   public :: elsi_set_input_file
    public :: elsi_set_output
    public :: elsi_set_output_unit
    public :: elsi_set_output_log
@@ -127,7 +128,7 @@ module ELSI
    public :: elsi_dm_real_sparse
    public :: elsi_dm_complex_sparse
 
-   ! Auxiliary
+   ! Tool
    public :: elsi_orthonormalize_ev_real
    public :: elsi_orthonormalize_ev_complex
    public :: elsi_extrapolate_dm_real

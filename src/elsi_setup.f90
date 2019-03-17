@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides routines for setting up an ELSI instance.
+!! Provide routines to set up an ELSI instance.
 !!
 module ELSI_SETUP
 
@@ -13,16 +13,16 @@ module ELSI_SETUP
        MULTI_PROC,PEXSI_CSC,SIESTA_CSC,UNSET
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_cleanup_elpa
-   use ELSI_IO, only: elsi_final_print,fjson_close_file,fjson_finish_array,&
-       fjson_reset_fj_handle
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_NTPOLY, only: elsi_cleanup_ntpoly
    use ELSI_OMM, only: elsi_cleanup_omm
+   use ELSI_OUTPUT, only: elsi_final_print,fjson_close_file,fjson_finish_array,&
+       fjson_reset_fj_handle
    use ELSI_PEXSI, only: elsi_set_pexsi_default,elsi_cleanup_pexsi
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SIPS, only: elsi_cleanup_sips
    use ELSI_SORT, only: elsi_heapsort
-   use ELSI_UTILS, only: elsi_check_init,elsi_reset_param,elsi_reset_basic
+   use ELSI_UTIL, only: elsi_check_init,elsi_reset_param,elsi_reset_basic
 
    implicit none
 
@@ -44,9 +44,9 @@ module ELSI_SETUP
 contains
 
 !>
-!! This routine initializes ELSI with user's choice of solver, parallel mode,
-!! matrix format, number of basis functions (global size of Hamiltonian), number
-!! of electrons, and number of states.
+!! Initialize ELSI with user's choice of solver, parallel mode, matrix format,
+!! number of basis functions (global size of Hamiltonian), number of electrons,
+!! and number of states.
 !!
 subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    n_state)
@@ -97,8 +97,8 @@ subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
 end subroutine
 
 !>
-!! This routine sets the MPI communicator to be used to solve one eigenproblem
-!! (i.e., one spin channel, one k-point).
+!! Set the MPI communicator to be used to solve one eigenproblem (one spin
+!! channel, one k-point).
 !!
 subroutine elsi_set_mpi(eh,comm)
 
@@ -125,8 +125,8 @@ subroutine elsi_set_mpi(eh,comm)
 end subroutine
 
 !>
-!! This routine sets the global MPI communicator to be used to exchange
-!! information across all spin channels and k-points.
+!! Set the global MPI communicator to be used to exchange information across all
+!! spin channels and k-points.
 !!
 subroutine elsi_set_mpi_global(eh,comm_all)
 
@@ -153,8 +153,8 @@ subroutine elsi_set_mpi_global(eh,comm_all)
 end subroutine
 
 !>
-!! This routine sets the number of spin channels and the index of the spin
-!! channel the calling process is solving.
+!! Set the number of spin channels and the index of the spin channel the calling
+!! process is solving.
 !!
 subroutine elsi_set_spin(eh,n_spin,i_spin)
 
@@ -170,8 +170,8 @@ subroutine elsi_set_spin(eh,n_spin,i_spin)
 end subroutine
 
 !>
-!! This routine sets the number of k-points, and the index and weight of the
-!! k-point the calling process is solving.
+!! Set the number of k-points, and the index and weight of the k-point the
+!! calling process is solving.
 !!
 subroutine elsi_set_kpoint(eh,n_kpt,i_kpt,i_wt)
 
@@ -189,8 +189,7 @@ subroutine elsi_set_kpoint(eh,n_kpt,i_kpt,i_wt)
 end subroutine
 
 !>
-!! This routine sets the BLACS context and block size, necessary for the
-!! BLACS_DENSE matrix format.
+!! Set the BLACS context and block size used by the BLACS_DENSE matrix format.
 !!
 subroutine elsi_set_blacs(eh,blacs_ctxt,block_size)
 
@@ -235,11 +234,10 @@ subroutine elsi_set_blacs(eh,blacs_ctxt,block_size)
 end subroutine
 
 !>
-!! This routine sets the global number of non-zero matrix elements, local number
-!! of non-zeros matrix elements, local number of matrix columns, row index
-!! array, and column pointer array. These variables are collectively referred to
-!! as CSC sparsity pattern, necessary for the PEXSI_CSC and SIESTA_CSC matrix
-!! formats.
+!! Set the global number of nonzero matrix elements, local number of nonzero
+!! matrix elements, local number of matrix columns, row index array, and column
+!! pointer array. These variables are collectively referred to as the CSC
+!! sparsity pattern, used by the PEXSI_CSC and SIESTA_CSC matrix formats.
 !!
 subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
@@ -304,7 +302,7 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 end subroutine
 
 !>
-!! This routine sets the block size in 1D block-cyclic distributed CSC format.
+!! Set the block size in 1D block-cyclic distributed CSC format.
 !!
 subroutine elsi_set_csc_blk(eh,blk)
 
@@ -322,10 +320,10 @@ subroutine elsi_set_csc_blk(eh,blk)
 end subroutine
 
 !>
-!! This routine sets the global number of non-zero matrix elements, local number
-!! of non-zeros matrix elements, row index array, and column index array. These
-!! variables are collectively referred to as COO sparsity pattern, necessary for
-!! the GENERIC_COO matrix format.
+!! Set the global number of nonzero matrix elements, local number of nonzero
+!! matrix elements, row index array, and column index array. These variables are
+!! collectively referred to as COO sparsity pattern, used by the GENERIC_COO
+!! matrix format.
 !!
 subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
 
@@ -380,7 +378,7 @@ subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
 end subroutine
 
 !>
-!! This routine starts a new geometry step, which usually means a new overlap.
+!! Start a new geometry step, which usually means a new overlap.
 !!
 subroutine elsi_reinit(eh)
 
@@ -507,7 +505,7 @@ subroutine elsi_reinit(eh)
 end subroutine
 
 !>
-!! This routine finalizes ELSI.
+!! Finalize ELSI.
 !!
 subroutine elsi_finalize(eh)
 
@@ -526,7 +524,7 @@ subroutine elsi_finalize(eh)
 end subroutine
 
 !>
-!! This routine frees memory.
+!! Free memory.
 !!
 subroutine elsi_cleanup(eh)
 

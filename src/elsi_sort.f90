@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides implementations of the heapsort algorithm.
+!! Provide implementations of the heapsort algorithm.
 !!
 module ELSI_SORT
 
@@ -52,8 +52,7 @@ module ELSI_SORT
 contains
 
 !>
-!! This routine sorts a real(kind=r8) array by heapsort, returns an array of
-!! permutation.
+!! Sort a real(kind=r8) array by heapsort, returns an array of permutation.
 !!
 subroutine heapsort_r8(length,array,perm)
 
@@ -90,7 +89,7 @@ subroutine heapsort_r8(length,array,perm)
 end subroutine
 
 !>
-!! This routine restores the max-heap structure.
+!! Restore the max-heap structure.
 !!
 subroutine downheap_r8(length,a_r8,b_i4,top,bottom)
 
@@ -129,8 +128,7 @@ subroutine downheap_r8(length,a_r8,b_i4,top,bottom)
 end subroutine
 
 !>
-!! This routine sorts an integer(kind=i8) array by heapsort, returns an array of
-!! permutation.
+!! Sort an integer(kind=i8) array by heapsort, returns an array of permutation.
 !!
 subroutine heapsort_i8(length,array,perm)
 
@@ -167,7 +165,7 @@ subroutine heapsort_i8(length,array,perm)
 end subroutine
 
 !>
-!! This routine restores the max-heap structure.
+!! Restore the max-heap structure.
 !!
 subroutine downheap_i8(length,a_i8,b_i4,top,bottom)
 
@@ -206,8 +204,7 @@ subroutine downheap_i8(length,a_i8,b_i4,top,bottom)
 end subroutine
 
 !>
-!! This routine sorts an integer(kind=i4) array by heapsort, returns an array of
-!! permutation.
+!! Sort an integer(kind=i4) array by heapsort, returns an array of permutation.
 !!
 subroutine heapsort_i4(length,array,perm)
 
@@ -244,7 +241,7 @@ subroutine heapsort_i4(length,array,perm)
 end subroutine
 
 !>
-!! This routine restores the max-heap structure.
+!! Restore the max-heap structure.
 !!
 subroutine downheap_i4(length,a_i4,b_i4,top,bottom)
 
@@ -283,7 +280,7 @@ subroutine downheap_i4(length,a_i4,b_i4,top,bottom)
 end subroutine
 
 !>
-!! This routine permutes an integer(kind=i4) array.
+!! Permute an integer(kind=i4) array.
 !!
 subroutine permute_i4(length,perm,array)
 
@@ -305,7 +302,7 @@ subroutine permute_i4(length,perm,array)
 end subroutine
 
 !>
-!! This routine permutes a real(kind=r8) array.
+!! Permute a real(kind=r8) array.
 !!
 subroutine permute_r8(length,perm,array)
 
@@ -327,7 +324,7 @@ subroutine permute_r8(length,perm,array)
 end subroutine
 
 !>
-!! This routine permutes a complex(kind=r8) array.
+!! Permute a complex(kind=r8) array.
 !!
 subroutine permute_c16(length,perm,array)
 
@@ -349,7 +346,7 @@ subroutine permute_c16(length,perm,array)
 end subroutine
 
 !>
-!! This routine unpermutes a real(kind=r8) array.
+!! Unpermute a real(kind=r8) array.
 !!
 subroutine unpermute_r8(length,perm,array)
 
@@ -371,7 +368,7 @@ subroutine unpermute_r8(length,perm,array)
 end subroutine
 
 !>
-!! This routine unpermutes a complex(kind=r8) array.
+!! Unpermute a complex(kind=r8) array.
 !!
 subroutine unpermute_c16(length,perm,array)
 
@@ -393,7 +390,7 @@ subroutine unpermute_c16(length,perm,array)
 end subroutine
 
 !>
-!! This routine swaps two numbers in an integer(kind=i8) array.
+!! Swap two numbers in an integer(kind=i8) array.
 !!
 subroutine swap_i8(length,array,i,j)
 
@@ -413,7 +410,7 @@ subroutine swap_i8(length,array,i,j)
 end subroutine
 
 !>
-!! This routine swaps two numbers in an integer(kind=i4) array.
+!! Swap two numbers in an integer(kind=i4) array.
 !!
 subroutine swap_i4(length,array,i,j)
 
@@ -433,7 +430,7 @@ subroutine swap_i4(length,array,i,j)
 end subroutine
 
 !>
-!! This routine swaps two numbers in a real(kind=r8) array.
+!! Swap two numbers in a real(kind=r8) array.
 !!
 subroutine swap_r8(length,array,i,j)
 
@@ -453,7 +450,7 @@ subroutine swap_r8(length,array,i,j)
 end subroutine
 
 !>
-!! This routine swaps two numbers in a complex(kind=r8) array.
+!! Swap two numbers in a complex(kind=r8) array.
 !!
 subroutine swap_c16(length,array,i,j)
 

@@ -5,8 +5,8 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module is only compiled when the actual ELPA-AEO is not available,
-!! to make the ELPA-AEO part of ELSI compile.
+!! Provide stub routines which are only compiled when the actual ELPA-AEO is not
+!! available.
 !!
 module ELPA
 
@@ -40,7 +40,7 @@ subroutine elpa_dummy()
 
    implicit none
 
-   write(*,"(A)") "**Error! An ELPA stub routine was called."
+   write(*,"(A)") "**Error! An ELPA stub routine was called"
    stop
 
 end subroutine
@@ -49,7 +49,7 @@ subroutine elpa_autotune_dummy()
 
    implicit none
 
-   write(*,"(A)") "**Error! An ELPA stub routine was called."
+   write(*,"(A)") "**Error! An ELPA stub routine was called"
    stop
 
 end subroutine

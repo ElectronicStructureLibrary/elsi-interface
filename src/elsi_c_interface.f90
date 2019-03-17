@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module contains the C interfaces of ELSI.
+!! Provide C interfaces of ELSI.
 !!
 module ELSI_C_INTERFACE
 
@@ -19,54 +19,33 @@ module ELSI_C_INTERFACE
 contains
 
 !>
-!! This routine encodes the standard convention that 0 is .false., any other
-!! integer is .true..
+!! Convert a C string into a Fortran string. A Fortran string is NOT a character
+!! array without a NULL character.
 !!
-function c_int_to_f_logical(int_c) result(logical_f)
+subroutine str_c2f(str_c,str_f)
 
    implicit none
 
-   integer(kind=c_int), intent(in) :: int_c
-   logical :: logical_f
+   character(kind=c_char,len=1), intent(in) :: str_c(*)
+   character(len=:), allocatable, intent(out) :: str_f
 
-   if(int_c == 0) then
-     logical_f = .false.
-   else
-     logical_f = .true.
-   end if
+   integer(kind=c_int) :: str_f_len
 
-end function
-
-!>
-!! This routine converts a C string into a Fortran string. A Fortran string is
-!! NOT just a character array without a NULL character. A Fortran string (i.e.
-!! char(*)) is a separate data type from a character array (i.e. char,
-!! dimension(*)) and they are NOT interoperable in interfaces.
-!!
-function c_string_to_f_string(string_c) result(string_f)
-
-   implicit none
-
-   character(kind=c_char,len=1), intent(in) :: string_c(*)
-   character(len=:), allocatable :: string_f
-
-   integer(kind=c_int) :: string_f_len
-
-   string_f_len = 0
+   str_f_len = 0
 
    do
-     if(string_c(string_f_len+1) == C_NULL_CHAR) then
+     if(str_c(str_f_len+1) == C_NULL_CHAR) then
         exit
      end if
 
-     string_f_len = string_f_len+1
+     str_f_len = str_f_len+1
    end do
 
-   allocate(character(len=string_f_len) :: string_f)
+   allocate(character(len=str_f_len) :: str_f)
 
-   string_f = transfer(string_c(1:string_f_len),string_f)
+   str_f = transfer(str_c(1:str_f_len),str_f)
 
-end function
+end subroutine
 
 subroutine c_elsi_init(h_c,solver,parallel_mode,matrix_format,n_basis,&
    n_electron,n_state) bind(C)
@@ -512,6 +491,25 @@ subroutine c_elsi_dm_complex_sparse(h_c,ham_c,ovlp_c,dm_c,energy) bind(C)
    call c_f_pointer(dm_c,dm_f,shape=[nnz_l])
 
    call elsi_dm_complex_sparse(h_f,ham_f,ovlp_f,dm_f,energy)
+
+end subroutine
+
+subroutine c_elsi_set_input_file(h_c,name_c) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   character(kind=c_char,len=1), intent(in) :: name_c(*)
+
+   type(elsi_handle), pointer :: h_f
+
+   character(len=:), allocatable :: name_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call str_c2f(name_c,name_f)
+
+   call elsi_set_input_file(h_f,name_f)
 
 end subroutine
 
@@ -1787,7 +1785,7 @@ subroutine c_elsi_read_mat_dim(h_c,name_c,n_electrons,n_basis,n_lrow,n_lcol)&
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   character(kind=c_char,len=1) :: name_c(128)
+   character(kind=c_char,len=1), intent(in) :: name_c(*)
    real(kind=c_double), intent(out) :: n_electrons
    integer(kind=c_int), intent(out) :: n_basis
    integer(kind=c_int), intent(out) :: n_lrow
@@ -1799,7 +1797,7 @@ subroutine c_elsi_read_mat_dim(h_c,name_c,n_electrons,n_basis,n_lrow,n_lcol)&
 
    call c_f_pointer(h_c,h_f)
 
-   name_f = c_string_to_f_string(name_c)
+   call str_c2f(name_c,name_f)
 
    call elsi_read_mat_dim(h_f,name_f,n_electrons,n_basis,n_lrow,n_lcol)
 
@@ -1811,7 +1809,7 @@ subroutine c_elsi_read_mat_dim_sparse(h_c,name_c,n_electrons,n_basis,nnz_g,&
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   character(kind=c_char,len=1) :: name_c(128)
+   character(kind=c_char,len=1), intent(in) :: name_c(*)
    real(kind=c_double), intent(out) :: n_electrons
    integer(kind=c_int), intent(out) :: n_basis
    integer(kind=c_int), intent(out) :: nnz_g
@@ -1824,7 +1822,7 @@ subroutine c_elsi_read_mat_dim_sparse(h_c,name_c,n_electrons,n_basis,nnz_g,&
 
    call c_f_pointer(h_c,h_f)
 
-   name_f = c_string_to_f_string(name_c)
+   call str_c2f(name_c,name_f)
 
    call elsi_read_mat_dim_sparse(h_f,name_f,n_electrons,n_basis,nnz_g,nnz_l,&
         n_lcol)
@@ -1836,7 +1834,7 @@ subroutine c_elsi_read_mat_real(h_c,name_c,mat_c) bind(C)
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   character(kind=c_char,len=1) :: name_c(128)
+   character(kind=c_char,len=1), intent(in) :: name_c(*)
    type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle), pointer :: h_f
@@ -1854,7 +1852,7 @@ subroutine c_elsi_read_mat_real(h_c,name_c,mat_c) bind(C)
 
    call c_f_pointer(mat_c,mat_f,shape=[lrow,lcol])
 
-   name_f = c_string_to_f_string(name_c)
+   call str_c2f(name_c,name_f)
 
    call elsi_read_mat_real(h_f,name_f,mat_f)
 
@@ -1866,7 +1864,7 @@ subroutine c_elsi_read_mat_real_sparse(h_c,name_c,row_ind_c,col_ptr_c,mat_c)&
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   character(kind=c_char,len=1) :: name_c(128)
+   character(kind=c_char,len=1), intent(in) :: name_c(*)
    type(c_ptr), value, intent(in) :: row_ind_c
    type(c_ptr), value, intent(in) :: col_ptr_c
    type(c_ptr), value, intent(in) :: mat_c
@@ -1890,7 +1888,7 @@ subroutine c_elsi_read_mat_real_sparse(h_c,name_c,row_ind_c,col_ptr_c,mat_c)&
    call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
    call c_f_pointer(mat_c,mat_f,shape=[nnz_l])
 
-   name_f = c_string_to_f_string(name_c)
+   call str_c2f(name_c,name_f)
 
    call elsi_read_mat_real_sparse(h_f,name_f,row_ind_f,col_ptr_f,mat_f)
 
@@ -1901,7 +1899,7 @@ subroutine c_elsi_write_mat_real(h_c,name_c,mat_c) bind(C)
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   character(kind=c_char,len=1) :: name_c(128)
+   character(kind=c_char,len=1), intent(in) :: name_c(*)
    type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle), pointer :: h_f
@@ -1919,7 +1917,7 @@ subroutine c_elsi_write_mat_real(h_c,name_c,mat_c) bind(C)
 
    call c_f_pointer(mat_c,mat_f,shape=[lrow,lcol])
 
-   name_f = c_string_to_f_string(name_c)
+   call str_c2f(name_c,name_f)
 
    call elsi_write_mat_real(h_f,name_f,mat_f)
 
@@ -1931,7 +1929,7 @@ subroutine c_elsi_write_mat_real_sparse(h_c,name_c,row_ind_c,col_ptr_c,mat_c)&
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   character(kind=c_char,len=1) :: name_c(128)
+   character(kind=c_char,len=1), intent(in) :: name_c(*)
    type(c_ptr), value, intent(in) :: row_ind_c
    type(c_ptr), value, intent(in) :: col_ptr_c
    type(c_ptr), value, intent(in) :: mat_c
@@ -1955,7 +1953,7 @@ subroutine c_elsi_write_mat_real_sparse(h_c,name_c,row_ind_c,col_ptr_c,mat_c)&
    call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
    call c_f_pointer(mat_c,mat_f,shape=[nnz_l])
 
-   name_f = c_string_to_f_string(name_c)
+   call str_c2f(name_c,name_f)
 
    call elsi_write_mat_real_sparse(h_f,name_f,row_ind_f,col_ptr_f,mat_f)
 
@@ -1966,7 +1964,7 @@ subroutine c_elsi_read_mat_complex(h_c,name_c,mat_c) bind(C)
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   character(kind=c_char,len=1) :: name_c(128)
+   character(kind=c_char,len=1), intent(in) :: name_c(*)
    type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle), pointer :: h_f
@@ -1984,7 +1982,7 @@ subroutine c_elsi_read_mat_complex(h_c,name_c,mat_c) bind(C)
 
    call c_f_pointer(mat_c,mat_f,shape=[lrow,lcol])
 
-   name_f = c_string_to_f_string(name_c)
+   call str_c2f(name_c,name_f)
 
    call elsi_read_mat_complex(h_f,name_f,mat_f)
 
@@ -1996,7 +1994,7 @@ subroutine c_elsi_read_mat_complex_sparse(h_c,name_c,row_ind_c,col_ptr_c,mat_c)&
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   character(kind=c_char,len=1) :: name_c(128)
+   character(kind=c_char,len=1), intent(in) :: name_c(*)
    type(c_ptr), value, intent(in) :: row_ind_c
    type(c_ptr), value, intent(in) :: col_ptr_c
    type(c_ptr), value, intent(in) :: mat_c
@@ -2020,7 +2018,7 @@ subroutine c_elsi_read_mat_complex_sparse(h_c,name_c,row_ind_c,col_ptr_c,mat_c)&
    call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
    call c_f_pointer(mat_c,mat_f,shape=[nnz_l])
 
-   name_f = c_string_to_f_string(name_c)
+   call str_c2f(name_c,name_f)
 
    call elsi_read_mat_complex_sparse(h_f,name_f,row_ind_f,col_ptr_f,mat_f)
 
@@ -2031,7 +2029,7 @@ subroutine c_elsi_write_mat_complex(h_c,name_c,mat_c) bind(C)
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   character(kind=c_char,len=1) :: name_c(128)
+   character(kind=c_char,len=1), intent(in) :: name_c(*)
    type(c_ptr), value, intent(in) :: mat_c
 
    type(elsi_rw_handle), pointer :: h_f
@@ -2049,7 +2047,7 @@ subroutine c_elsi_write_mat_complex(h_c,name_c,mat_c) bind(C)
 
    call c_f_pointer(mat_c,mat_f,shape=[lrow,lcol])
 
-   name_f = c_string_to_f_string(name_c)
+   call str_c2f(name_c,name_f)
 
    call elsi_write_mat_complex(h_f,name_f,mat_f)
 
@@ -2061,7 +2059,7 @@ subroutine c_elsi_write_mat_complex_sparse(h_c,name_c,row_ind_c,col_ptr_c,&
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   character(kind=c_char,len=1) :: name_c(128)
+   character(kind=c_char,len=1), intent(in) :: name_c(*)
    type(c_ptr), value, intent(in) :: row_ind_c
    type(c_ptr), value, intent(in) :: col_ptr_c
    type(c_ptr), value, intent(in) :: mat_c
@@ -2085,7 +2083,7 @@ subroutine c_elsi_write_mat_complex_sparse(h_c,name_c,row_ind_c,col_ptr_c,&
    call c_f_pointer(col_ptr_c,col_ptr_f,shape=[lcol+1])
    call c_f_pointer(mat_c,mat_f,shape=[nnz_l])
 
-   name_f = c_string_to_f_string(name_c)
+   call str_c2f(name_c,name_f)
 
    call elsi_write_mat_complex_sparse(h_f,name_f,row_ind_f,col_ptr_f,mat_f)
 

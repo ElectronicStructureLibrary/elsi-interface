@@ -5,15 +5,15 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides interfaces to PEXSI.
+!! Interface to PEXSI.
 !!
 module ELSI_PEXSI
 
    use ELSI_CONSTANTS, only: UNSET,PEXSI_SOLVER,PEXSI_CSC
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,mpi_complex16
+   use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_initialize,&
        f_ppexsi_set_default_options,f_ppexsi_load_real_hs_matrix,&
@@ -53,7 +53,7 @@ module ELSI_PEXSI
 contains
 
 !>
-!! This routine initializes PEXSI and its processor grid.
+!! Initialize PEXSI.
 !!
 subroutine elsi_init_pexsi(ph,bh)
 
@@ -142,7 +142,7 @@ subroutine elsi_init_pexsi(ph,bh)
          ph%pexsi_n_pcol,log_id,ierr)
 
       if(ierr /= 0) then
-         write(msg,"(A)") "Initialization failed."
+         write(msg,"(A)") "Initialization failed"
          call elsi_stop(bh,msg,caller)
       end if
 
@@ -156,7 +156,7 @@ subroutine elsi_init_pexsi(ph,bh)
 end subroutine
 
 !>
-!! This routine interfaces to PEXSI.
+!! Interface to PEXSI.
 !!
 subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
@@ -211,7 +211,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    end if
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Failed to load matrices."
+      write(msg,"(A)") "Failed to load matrices"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -237,7 +237,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    end if
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Symbolic factorization failed."
+      write(msg,"(A)") "Symbolic factorization failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -333,7 +333,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_say(bh,msg)
 
       if(ierr /= 0) then
-         write(msg,"(A)") "Inertia counting failed."
+         write(msg,"(A)") "Inertia counting failed"
          call elsi_stop(bh,msg,caller)
       end if
    end if
@@ -391,7 +391,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call elsi_say(bh,msg)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Fermi operator calculation failed."
+      write(msg,"(A)") "Fermi operator calculation failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -407,7 +407,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call f_ppexsi_retrieve_real_dm(ph%pexsi_plan,tmp,local_energy,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Failed to get density matirx."
+      write(msg,"(A)") "Failed to get density matirx"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -532,7 +532,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 end subroutine
 
 !>
-!! This routine computes the energy-weighted density matrix.
+!! Compute the energy-weighted density matrix.
 !!
 subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
 
@@ -569,7 +569,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
         ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Energy density matrix correction failed."
+      write(msg,"(A)") "Energy density matrix correction failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -580,7 +580,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
         local_energy,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Failed to get energy density matirx."
+      write(msg,"(A)") "Failed to get energy density matirx"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -693,7 +693,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
 end subroutine
 
 !>
-!! This routine interfaces to PEXSI.
+!! Interface to PEXSI.
 !!
 subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
@@ -751,7 +751,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    end if
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Failed to load matirces."
+      write(msg,"(A)") "Failed to load matirces"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -777,7 +777,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    end if
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Symbolic factorization failed."
+      write(msg,"(A)") "Symbolic factorization failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -873,7 +873,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_say(bh,msg)
 
       if(ierr /= 0) then
-         write(msg,"(A)") "Inertia counting failed."
+         write(msg,"(A)") "Inertia counting failed"
          call elsi_stop(bh,msg,caller)
       end if
    end if
@@ -931,7 +931,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call elsi_say(bh,msg)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Fermi operator calculation failed."
+      write(msg,"(A)") "Fermi operator calculation failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -947,7 +947,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call f_ppexsi_retrieve_complex_dm(ph%pexsi_plan,tmp,local_energy,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Failed to get density matirx."
+      write(msg,"(A)") "Failed to get density matirx"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1073,7 +1073,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 end subroutine
 
 !>
-!! This routine computes the energy-weighted density matrix.
+!! Compute the energy-weighted density matrix.
 !!
 subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
 
@@ -1110,7 +1110,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
         ph%pexsi_options,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Energy density matrix correction failed."
+      write(msg,"(A)") "Energy density matrix correction failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1121,7 +1121,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
         local_energy,ierr)
 
    if(ierr /= 0) then
-      write(msg,"(A)") "Failed to get energy density matirx."
+      write(msg,"(A)") "Failed to get energy density matirx"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -1234,7 +1234,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
 end subroutine
 
 !>
-!! This routine sets default PEXSI parameters.
+!! Set default PEXSI parameters.
 !!
 subroutine elsi_set_pexsi_default(ph)
 
@@ -1250,7 +1250,7 @@ subroutine elsi_set_pexsi_default(ph)
 end subroutine
 
 !>
-!! This routine cleans up PEXSI.
+!! Clean up PEXSI.
 !!
 subroutine elsi_cleanup_pexsi(ph)
 

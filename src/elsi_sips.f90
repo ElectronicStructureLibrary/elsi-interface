@@ -5,15 +5,15 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides interfaces to SIPS.
+!! Interface to SIPS.
 !!
 module ELSI_SIPS
 
    use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop
+   use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use M_SIPS, only: sips_initialize,sips_load_ham_ovlp,sips_load_ham,&
        sips_update_ham,sips_set_eps,sips_update_eps,sips_set_slices,&
@@ -46,7 +46,7 @@ module ELSI_SIPS
 contains
 
 !>
-!! This routine initializes SLEPc-SIPs.
+!! Initialize SLEPc-SIPs.
 !!
 subroutine elsi_init_sips(ph,bh)
 
@@ -83,7 +83,7 @@ subroutine elsi_init_sips(ph,bh)
 end subroutine
 
 !>
-!! This routine interfaces to SLEPc-SIPs.
+!! Interface to SLEPc-SIPs.
 !!
 subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
@@ -230,7 +230,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    call sips_solve_eps(ph%n_states,n_solved)
 
    if(n_solved < ph%n_states) then
-      write(msg,"(A)") "SLEPc-SIPs solver failed."
+      write(msg,"(A)") "SLEPc-SIPs solver failed"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -274,7 +274,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine constructs the density matrix.
+!! Construct the density matrix.
 !!
 subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 
@@ -308,7 +308,7 @@ subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 end subroutine
 
 !>
-!! This routine constructs the energy-weighted density matrix.
+!! Construct the energy-weighted density matrix.
 !!
 subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
 
@@ -342,7 +342,7 @@ subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
 end subroutine
 
 !>
-!! This routine cleans up SLEPc-SIPs.
+!! Clean up SLEPc-SIPs.
 !!
 subroutine elsi_cleanup_sips(ph)
 

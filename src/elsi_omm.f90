@@ -5,17 +5,17 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides interfaces to libOMM.
+!! Provide interfaces to libOMM.
 !!
 module ELSI_OMM
 
    use ELSI_CONSTANTS, only: UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_ELPA, only: elsi_elpa_cholesky,elsi_elpa_invert
-   use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_integer4
+   use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_UTILS, only: elsi_get_nnz
+   use ELSI_UTIL, only: elsi_get_nnz
    use MATRIXSWITCH, only: matrix,m_register_pdbc,ms_scalapack_setup,&
        m_deallocate
 
@@ -41,7 +41,7 @@ module ELSI_OMM
 contains
 
 !>
-!! This routine initializes libOMM.
+!! Initialize libOMM.
 !!
 subroutine elsi_init_omm(ph,bh)
 
@@ -71,7 +71,7 @@ subroutine elsi_init_omm(ph,bh)
 end subroutine
 
 !>
-!! This routine interfaces to libOMM.
+!! Interface to libOMM.
 !!
 subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
@@ -176,7 +176,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 end subroutine
 
 !>
-!! This routine computes the energy-weighted density matrix.
+!! Compute the energy-weighted density matrix.
 !!
 subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
 
@@ -223,7 +223,7 @@ subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
 end subroutine
 
 !>
-!! This routine interfaces to libOMM.
+!! Interface to libOMM.
 !!
 subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
@@ -328,7 +328,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 end subroutine
 
 !>
-!! This routine computes the energy-weighted density matrix.
+!! Compute the energy-weighted density matrix.
 !!
 subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
 
@@ -375,7 +375,7 @@ subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
 end subroutine
 
 !>
-!! This routine cleans up libOMM.
+!! Clean up libOMM.
 !!
 subroutine elsi_cleanup_omm(ph)
 

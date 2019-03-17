@@ -5,19 +5,17 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module contains wrappers of internal helper routines in order to make
-!! these routines easily usable from outside ELSI.
+!! Perform wavefunction and density matrix extrapolation between geometry steps.
 !!
-module ELSI_TOOLS
+module ELSI_GEO
 
    use ELSI_CONSTANTS, only: ELPA_SOLVER
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_update_dm_elpa
    use ELSI_NTPOLY, only: elsi_update_dm_ntpoly,CopyMatrix
-   use ELSI_OCC, only: elsi_mu_and_occ,elsi_entropy
    use ELSI_PRECISION, only: i4,r8
    use ELSI_REDIST, only: elsi_blacs_to_ntpoly_hs,elsi_ntpoly_to_blacs_dm
-   use ELSI_UTILS, only: elsi_check_init,elsi_gram_schmidt
+   use ELSI_UTIL, only: elsi_check_init,elsi_gram_schmidt
 
    implicit none
 
@@ -27,13 +25,11 @@ module ELSI_TOOLS
    public :: elsi_orthonormalize_ev_complex
    public :: elsi_extrapolate_dm_real
    public :: elsi_extrapolate_dm_complex
-   public :: elsi_compute_mu_and_occ
-   public :: elsi_compute_entropy
 
 contains
 
 !>
-!! This routine orthonormalizes eigenvectors with respect to an overlap matrix.
+!! Orthonormalize eigenvectors with respect to an overlap matrix.
 !!
 subroutine elsi_orthonormalize_ev_real(eh,ovlp,evec)
 
@@ -52,7 +48,7 @@ subroutine elsi_orthonormalize_ev_real(eh,ovlp,evec)
 end subroutine
 
 !>
-!! This routine orthonormalizes eigenvectors with respect to an overlap matrix.
+!! Orthonormalize eigenvectors with respect to an overlap matrix.
 !!
 subroutine elsi_orthonormalize_ev_complex(eh,ovlp,evec)
 
@@ -71,7 +67,7 @@ subroutine elsi_orthonormalize_ev_complex(eh,ovlp,evec)
 end subroutine
 
 !>
-!! This routine extrapolates density matrix for a new overlap.
+!! Extrapolate density matrix for a new overlap.
 !!
 subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
 
@@ -111,7 +107,7 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
 end subroutine
 
 !>
-!! This routine extrapolates density matrix for a new overlap.
+!! Extrapolate density matrix for a new overlap.
 !!
 subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
 
@@ -150,52 +146,4 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
 
 end subroutine
 
-!>
-!! This routine computes the chemical potential and occupation numbers.
-!!
-subroutine elsi_compute_mu_and_occ(eh,n_electron,n_state,n_spin,n_kpt,k_wt,&
-   eval,occ,mu)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   real(kind=r8), intent(in) :: n_electron !< Number of electrons
-   integer(kind=i4), intent(in) :: n_state !< Number of states
-   integer(kind=i4), intent(in) :: n_spin !< Number of spins
-   integer(kind=i4), intent(in) :: n_kpt !< Number of k-points
-   real(kind=r8), intent(in) :: k_wt(n_kpt) !< K-points weights
-   real(kind=r8), intent(in) :: eval(n_state,n_spin,n_kpt) !< Eigenvalues
-   real(kind=r8), intent(out) :: occ(n_state,n_spin,n_kpt) !< Occupation members
-   real(kind=r8), intent(out) :: mu !< Chemical potential
-
-   character(len=*), parameter :: caller = "elsi_compute_mu_and_occ"
-
-   call elsi_mu_and_occ(eh%ph,eh%bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,&
-        occ,mu)
-
-end subroutine
-
-!>
-!! This routine computes the entropy.
-!!
-subroutine elsi_compute_entropy(eh,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   integer(kind=i4), intent(in) :: n_state !< Number of states
-   integer(kind=i4), intent(in) :: n_spin !< Number of spins
-   integer(kind=i4), intent(in) :: n_kpt !< Number of k-points
-   real(kind=r8), intent(in) :: k_wt(n_kpt) !< K-points weights
-   real(kind=r8), intent(in) :: eval(n_state,n_spin,n_kpt) !< Eigenvalues
-   real(kind=r8), intent(in) :: occ(n_state,n_spin,n_kpt) !< Occupation numbers
-   real(kind=r8), intent(in) :: mu !< Input chemical potential
-   real(kind=r8), intent(out) :: ts !< Entropy
-
-   character(len=*), parameter :: caller = "elsi_compute_entropy"
-
-   call elsi_entropy(eh%ph,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
-
-end subroutine
-
-end module
+end module ELSI_GEO

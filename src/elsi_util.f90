@@ -5,19 +5,19 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module contains a collection of basic utility routines.
+!! Contain a collection of utility routines.
 !!
-module ELSI_UTILS
+module ELSI_UTIL
 
    use ELSI_CONSTANTS, only: UNSET,UT_MAT,LT_MAT,N_SOLVERS,N_PARALLEL_MODES,&
        N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
        SIESTA_CSC,GENERIC_COO,AUTO_SOLVER,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
        SIPS_SOLVER,NTPOLY_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
        mpi_complex16,mpi_comm_self
+   use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: i4,r8
 
    implicit none
@@ -64,7 +64,7 @@ module ELSI_UTILS
 contains
 
 !>
-!! This routine resets ELSI runtime parameters.
+!! Reset ELSI runtime parameters.
 !!
 subroutine elsi_reset_param(ph)
 
@@ -183,7 +183,7 @@ subroutine elsi_reset_param(ph)
 end subroutine
 
 !>
-!! This routine resets ELSI basic information.
+!! Reset ELSI basic information.
 !!
 subroutine elsi_reset_basic(bh)
 
@@ -236,8 +236,8 @@ subroutine elsi_reset_basic(bh)
 end subroutine
 
 !>
-!! This routine guarantees that there are no unsupported or mutually conflicting
-!! parameters before running actual calculations.
+!! Ensure there are no unsupported or mutually conflicting parameters before
+!! running actual calculations.
 !!
 subroutine elsi_check(ph,bh,caller)
 
@@ -251,31 +251,31 @@ subroutine elsi_check(ph,bh,caller)
 
    ! General check of solver, parallel mode, matrix format
    if(ph%solver < 0 .or. ph%solver >= N_SOLVERS) then
-      write(msg,"(A)") "Unsupported solver."
+      write(msg,"(A)") "Unsupported solver"
       call elsi_stop(bh,msg,caller)
    end if
 
    if(ph%parallel_mode < 0 .or. ph%parallel_mode >= N_PARALLEL_MODES) then
-      write(msg,"(A)") "Unsupported parallel mode."
+      write(msg,"(A)") "Unsupported parallel mode"
       call elsi_stop(bh,msg,caller)
    end if
 
    if(ph%matrix_format < 0 .or. ph%matrix_format >= N_MATRIX_FORMATS) then
-      write(msg,"(A)") "Unsupported matrix format."
+      write(msg,"(A)") "Unsupported matrix format"
       call elsi_stop(bh,msg,caller)
    end if
 
    ! Spin
    if(ph%n_spins > 1 .and. .not. bh%mpi_all_ready) then
       write(msg,"(A)") "Two spin channels requested, but global MPI"//&
-         " communicator not set up."
+         " communicator not set up"
       call elsi_stop(bh,msg,caller)
    end if
 
    ! k-point
    if(ph%n_kpts > 1 .and. .not. bh%mpi_all_ready) then
       write(msg,"(A)") "Multiple k-points requested, but global MPI"//&
-         " communicator not set up."
+         " communicator not set up"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -305,7 +305,7 @@ subroutine elsi_check(ph,bh,caller)
 
    if(ph%parallel_mode == MULTI_PROC) then
       if(.not. bh%mpi_ready) then
-         write(msg,"(A)") "MULTI_PROC parallel mode requires MPI."
+         write(msg,"(A)") "MULTI_PROC parallel mode requires MPI"
          call elsi_stop(bh,msg,caller)
       end if
    end if
@@ -313,43 +313,43 @@ subroutine elsi_check(ph,bh,caller)
    if(ph%matrix_format == BLACS_DENSE) then
       if(.not. bh%blacs_ready .and. ph%parallel_mode /= SINGLE_PROC) then
          write(msg,"(A)") "BLACS_DENSE matrix format requested but not"//&
-            " properly set up."
+            " properly set up"
          call elsi_stop(bh,msg,caller)
       end if
    else if(ph%matrix_format == SIESTA_CSC) then
       if(.not. bh%siesta_csc_ready) then
          write(msg,"(A)") "SIESTA_CSC matrix format requested but not"//&
-            " properly set up."
+            " properly set up"
          call elsi_stop(bh,msg,caller)
       end if
 
       if(bh%blk_sp2 == UNSET) then
          write(msg,"(A)") "SIESTA_CSC matrix format requested but block size"//&
-            " not set."
+            " not set"
          call elsi_stop(bh,msg,caller)
       end if
    else if(ph%matrix_format == PEXSI_CSC) then
       if(.not. bh%pexsi_csc_ready) then
          write(msg,"(A)") "PEXSI_CSC matrix format requested but not"//&
-            " properly set up."
+            " properly set up"
          call elsi_stop(bh,msg,caller)
       end if
 
       if(ph%solver == PEXSI_SOLVER .and. ph%pexsi_np_per_pole == UNSET) then
          write(msg,"(A)") "PEXSI_CSC matrix format requested but number of"//&
-            " MPI tasks per pole not set."
+            " MPI tasks per pole not set"
          call elsi_stop(bh,msg,caller)
       end if
 
       if(ph%solver == AUTO_SOLVER) then
          write(msg,"(A)") "Solver automatic selection not implemented for"//&
-            "PEXSI_CSC matrix format."
+            "PEXSI_CSC matrix format"
          call elsi_stop(bh,msg,caller)
       end if
    else if(ph%matrix_format == GENERIC_COO) then
       if(.not. bh%generic_coo_ready) then
          write(msg,"(A)") "GENERIC_COO matrix format requested but not"//&
-            " properly set up."
+            " properly set up"
          call elsi_stop(bh,msg,caller)
       end if
    end if
@@ -362,18 +362,18 @@ subroutine elsi_check(ph,bh,caller)
    select case(ph%solver)
    case(OMM_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
-         write(msg,"(A)") "libOMM requires MULTI_PROC parallel mode."
+         write(msg,"(A)") "libOMM requires MULTI_PROC parallel mode"
          call elsi_stop(bh,msg,caller)
       end if
    case(PEXSI_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
-         write(msg,"(A)") "PEXSI requires MULTI_PROC parallel mode."
+         write(msg,"(A)") "PEXSI requires MULTI_PROC parallel mode"
          call elsi_stop(bh,msg,caller)
       end if
 
       if(mod(bh%n_procs,ph%pexsi_options%nPoints) /= 0) then
          write(msg,"(A)") "To use PEXSI, number of mu points must be a"//&
-            " divisor of total number of MPI tasks."
+            " divisor of total number of MPI tasks"
          call elsi_stop(bh,msg,caller)
       end if
 
@@ -382,39 +382,39 @@ subroutine elsi_check(ph,bh,caller)
             then
             write(msg,"(A)") "To use PEXSI, number of MPI tasks per pole"//&
                " times number of mu points must be a divisor of total number"//&
-               " of MPI tasks."
+               " of MPI tasks"
             call elsi_stop(bh,msg,caller)
          end if
 
          if(ph%pexsi_np_per_pole*ph%pexsi_options%numPole&
             *ph%pexsi_options%nPoints < bh%n_procs) then
-            write(msg,"(A)") "Number of MPI tasks per pole too small."
+            write(msg,"(A)") "Number of MPI tasks per pole too small"
             call elsi_stop(bh,msg,caller)
          end if
       end if
    case(SIPS_SOLVER)
       if(ph%n_basis < bh%n_procs) then
-         write(msg,"(A)") "Number of MPI tasks too large."
+         write(msg,"(A)") "Number of MPI tasks too large"
          call elsi_stop(bh,msg,caller)
       end if
 
       if(ph%parallel_mode /= MULTI_PROC) then
-         write(msg,"(A)") "SLEPc-SIPs requires MULTI_PROC parallel mode."
+         write(msg,"(A)") "SLEPc-SIPs requires MULTI_PROC parallel mode"
          call elsi_stop(bh,msg,caller)
       end if
 
       if(ph%n_spins > 1) then
-         write(msg,"(A)") "Two spin channels not supported with SLEPc-SIPs."
+         write(msg,"(A)") "Two spin channels not supported with SLEPc-SIPs"
          call elsi_stop(bh,msg,caller)
       end if
 
       if(ph%n_kpts > 1) then
-         write(msg,"(A)") "Multiple k-points not supported with SLEPc-SIPs."
+         write(msg,"(A)") "Multiple k-points not supported with SLEPc-SIPs"
          call elsi_stop(bh,msg,caller)
       end if
    case(NTPOLY_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
-         write(msg,"(A)") "NTPoly requires MULTI_PROC parallel mode."
+         write(msg,"(A)") "NTPoly requires MULTI_PROC parallel mode"
          call elsi_stop(bh,msg,caller)
       end if
    end select
@@ -422,7 +422,7 @@ subroutine elsi_check(ph,bh,caller)
 end subroutine
 
 !>
-!! This routine checks whether a handle has been properly initialized.
+!! Check if a handle has been properly initialized.
 !!
 subroutine elsi_check_init(bh,init,caller)
 
@@ -435,15 +435,14 @@ subroutine elsi_check_init(bh,init,caller)
    character(len=200) :: msg
 
    if(.not. init) then
-      write(msg,"(A)") "Invalid handle! Not initialized."
+      write(msg,"(A)") "Handle not initialized"
       call elsi_stop(bh,msg,caller)
    end if
 
 end subroutine
 
 !>
-!! This routine gets the global index from the local index of a block-cyclic
-!! distribution.
+!! Get the global index from the local index of a block-cyclic distribution.
 !!
 subroutine elsi_get_gid(myid,n_procs,blk,lid,gid)
 
@@ -462,8 +461,7 @@ subroutine elsi_get_gid(myid,n_procs,blk,lid,gid)
 end subroutine
 
 !>
-!! This routine gets the local index from the global index of a block-cyclic
-!! distribution.
+!! Get the local index from the global index of a block-cyclic distribution.
 !!
 subroutine elsi_get_lid(n_procs,blk,gid,lid)
 
@@ -481,7 +479,7 @@ subroutine elsi_get_lid(n_procs,blk,gid,lid)
 end subroutine
 
 !>
-!! This routine counts the number of non_zero elements in a matrix.
+!! Count the number of nonzero elements in a matrix.
 !!
 subroutine elsi_get_nnz_real(def0,n_row,n_col,mat,nnz)
 
@@ -511,7 +509,7 @@ subroutine elsi_get_nnz_real(def0,n_row,n_col,mat,nnz)
 end subroutine
 
 !>
-!! This routine counts the number of non_zero elements in a matrix.
+!! Count the number of nonzero elements in a matrix.
 !!
 subroutine elsi_get_nnz_cmplx(def0,n_row,n_col,mat,nnz)
 
@@ -541,8 +539,7 @@ subroutine elsi_get_nnz_cmplx(def0,n_row,n_col,mat,nnz)
 end subroutine
 
 !>
-!! This routine symmetrizes an upper or lower triangular matrix. The size of
-!! the matrix should be the same as the Hamiltonian matrix.
+!! Symmetrize an upper or lower triangular matrix.
 !!
 subroutine elsi_set_full_mat_real(ph,bh,uplo,mat)
 
@@ -604,8 +601,7 @@ subroutine elsi_set_full_mat_real(ph,bh,uplo,mat)
 end subroutine
 
 !>
-!! This routine symmetrizes an upper or lower triangular matrix. The size of
-!! the matrix should be the same as the Hamiltonian matrix.
+!! Symmetrize an upper or lower triangular matrix.
 !!
 subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,mat)
 
@@ -680,8 +676,7 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,mat)
 end subroutine
 
 !>
-!! This routine constructs the density matrix from occupation numbers and
-!! eigenvectors.
+!! Construct the density matrix from occupation numbers and eigenvectors.
 !!
 subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
 
@@ -754,8 +749,7 @@ subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
 end subroutine
 
 !>
-!! This routine constructs the density matrix from occupation numbers and
-!! eigenvectors.
+!! Construct the density matrix from occupation numbers and eigenvectors.
 !!
 subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
 
@@ -828,8 +822,8 @@ subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
 end subroutine
 
 !>
-!! This routine constructs the energy-weighted density matrix from occupation
-!! numbers, eigenvalues, and eigenvectors.
+!! Construct the energy-weighted density matrix from occupation numbers,
+!! eigenvalues, and eigenvectors.
 !!
 subroutine elsi_build_edm_real(ph,bh,occ,eval,evec,edm)
 
@@ -906,8 +900,8 @@ subroutine elsi_build_edm_real(ph,bh,occ,eval,evec,edm)
 end subroutine
 
 !>
-!! This routine constructs the energy-weighted density matrix from occupation
-!! numbers, eigenvalues, and eigenvectors.
+!! Construct the energy-weighted density matrix from occupation numbers,
+!! eigenvalues, and eigenvectors.
 !!
 subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
 
@@ -984,8 +978,8 @@ subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
 end subroutine
 
 !>
-!! This routine orthonormalizes eigenvectors with respect to an overlap matrix
-!! using a modified Gram-Schmidt algorithm.
+!! Orthonormalize eigenvectors with respect to an overlap matrix using a
+!! modified Gram-Schmidt algorithm.
 !!
 subroutine elsi_gram_schmidt_real(ph,bh,ovlp,evec)
 
@@ -1077,8 +1071,8 @@ subroutine elsi_gram_schmidt_real(ph,bh,ovlp,evec)
 end subroutine
 
 !>
-!! This routine orthonormalizes eigenvectors with respect to an overlap matrix
-!! using a modified Gram-Schmidt algorithm.
+!! Orthonormalize eigenvectors with respect to an overlap matrix using a
+!! modified Gram-Schmidt algorithm.
 !!
 subroutine elsi_gram_schmidt_cmplx(ph,bh,ovlp,evec)
 
@@ -1173,4 +1167,4 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,ovlp,evec)
 
 end subroutine
 
-end module ELSI_UTILS
+end module ELSI_UTIL

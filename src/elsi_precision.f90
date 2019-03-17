@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module provides choices of precisions.
+!! Define precision constants used across ELSI.
 !!
 module ELSI_PRECISION
 

@@ -45,6 +45,8 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
+   logical :: file_exist
+
    real(kind=r8), allocatable :: ham(:)
    real(kind=r8), allocatable :: ovlp(:)
    real(kind=r8), allocatable :: dm(:)
@@ -52,8 +54,6 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
 
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
-
-   real(kind=r8), external :: ddot
 
    type(elsi_handle) :: eh
    type(elsi_rw_handle) :: rwh
@@ -64,6 +64,10 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
    real(kind=r8), parameter :: e_sips = -2622.88214509316_r8
    real(kind=r8), parameter :: e_ntpoly = -2622.88214509311_r8
+
+   character(len=*), parameter :: file_name = "elsi.in"
+
+   real(kind=r8), external :: ddot
 
    call MPI_Comm_size(mpi_comm,n_proc,ierr)
    call MPI_Comm_rank(mpi_comm,myid,ierr)
@@ -174,6 +178,12 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    call elsi_set_pexsi_delta_e(eh,80.0_r8)
    call elsi_set_pexsi_np_per_pole(eh,2)
    call elsi_set_sips_n_elpa(eh,1)
+
+   inquire(file=file_name,exist=file_exist)
+
+   if(file_exist) then
+      call elsi_set_input_file(eh,file_name)
+   end if
 
    t1 = MPI_Wtime()
 

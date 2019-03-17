@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module contains a collection of basic utility routines related to MPI.
+!! Provide a collection of MPI-related utility routines.
 !!
 module ELSI_MPI
 
@@ -71,7 +71,7 @@ subroutine elsi_check_mpi(bh,routine,ierr,caller)
    character(len=200) :: msg
 
    if(ierr /= MPI_SUCCESS) then
-      write(msg,"(2A)") routine," failed."
+      write(msg,"(2A)") trim(routine)," failed"
 
       call elsi_stop(bh,msg,caller)
    end if

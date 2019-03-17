@@ -5,15 +5,14 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! This module interfaces to LAPACK routines that solve a generalized
-!! eigenproblem in serial.
+!! Interface to LAPACK.
 !!
 module ELSI_LAPACK
 
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_ELPA, only: elsi_elpa_tridiag
-   use ELSI_IO, only: elsi_say,elsi_get_time
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
+   use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
 
    implicit none
@@ -30,8 +29,8 @@ module ELSI_LAPACK
 contains
 
 !>
-!! This routine transforms a generalized eigenproblem to standard and returns
-!! the Cholesky factor for later use.
+!! Transform a generalized eigenproblem to standard and return the Cholesky
+!! factor for later use.
 !!
 subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
 
@@ -129,8 +128,8 @@ subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine back-transforms eigenvectors in the standard form to the
-!! original generalized form.
+!! Back-transform eigenvectors in the standard form to the original generalized
+!! form.
 !!
 subroutine elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
 
@@ -175,7 +174,7 @@ subroutine elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
 end subroutine
 
 !>
-!! This routine interfaces to LAPACK.
+!! Interface to LAPACK.
 !!
 subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
 
@@ -247,10 +246,10 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine checks the singularity of overlap matrix by computing all its
-!! eigenvalues. On exit, S is not modified if not singular, or is overwritten by
-!! scaled eigenvectors if singular, which can be used to transform the
-!! generalized eigenproblem to the standard form.
+!! Check the singularity of overlap matrix by computing all its eigenvalues. On
+!! exit, S is not modified if not singular, or is overwritten by scaled
+!! eigenvectors if singular, which can be used to transform the generalized
+!! eigenproblem to the standard form.
 !!
 subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
 
@@ -356,8 +355,8 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine transforms a generalized eigenproblem to standard and returns
-!! the Cholesky factor for later use.
+!! Transform a generalized eigenproblem to standard and return the Cholesky
+!! factor for later use.
 !!
 subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
 
@@ -457,8 +456,8 @@ subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine back-transforms eigenvectors in the standard form to the
-!! original generalized form.
+!! Back-transform eigenvectors in the standard form to the original generalized
+!! form.
 !!
 subroutine elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
 
@@ -504,7 +503,7 @@ subroutine elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
 end subroutine
 
 !>
-!! This routine interfaces to LAPACK.
+!! Interface to LAPACK.
 !!
 subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
 
@@ -581,10 +580,10 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! This routine checks the singularity of overlap matrix by computing all its
-!! eigenvalues. On exit, S is not modified if not singular, or is overwritten by
-!! scaled eigenvectors if singular, which can be used to transform the
-!! generalized eigenproblem to the standard form.
+!! Check the singularity of overlap matrix by computing all its eigenvalues. On
+!! exit, S is not modified if not singular, or is overwritten by scaled
+!! eigenvectors if singular, which can be used to transform the generalized
+!! eigenproblem to the standard form.
 !!
 subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
 

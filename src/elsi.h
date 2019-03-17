@@ -115,6 +115,9 @@ void c_elsi_dm_complex_sparse(elsi_handle handle_c,
                               double _Complex *dm,
                               double *energy);
 
+void c_elsi_set_input_file(elsi_handle handle_c,
+                           char *name_c);
+
 void c_elsi_set_output(elsi_handle handle_c,
                        int output);
 
