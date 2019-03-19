@@ -111,7 +111,7 @@ subroutine elsi_init_elpa(ph,bh)
       end if
 
       if(ph%elpa_autotune) then
-         ph%elpa_autotune = 0
+         ph%elpa_autotune = .false.
 
          write(msg,"(A)") "No ELPA auto-tuning available"
          call elsi_say(bh,msg)
