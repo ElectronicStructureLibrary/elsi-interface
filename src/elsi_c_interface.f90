@@ -1628,6 +1628,64 @@ subroutine c_elsi_orthonormalize_ev_complex(h_c,ovlp_c,evec_c) bind(C)
 
 end subroutine
 
+subroutine c_elsi_orthonormalize_ev_real_sparse(h_c,ovlp_c,evec_c) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: ovlp_c
+   type(c_ptr), value, intent(in) :: evec_c
+
+   type(elsi_handle), pointer :: h_f
+   real(kind=c_double), pointer :: ovlp_f(:)
+   real(kind=c_double), pointer :: evec_f(:,:)
+
+   integer(kind=c_int) :: nnz_l
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(h_c,h_f)
+
+   nnz_l = h_f%bh%nnz_l_sp
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
+
+   call elsi_orthonormalize_ev_real_sparse(h_f,ovlp_f,evec_f)
+
+end subroutine
+
+subroutine c_elsi_orthonormalize_ev_complex_sparse(h_c,ovlp_c,evec_c) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: ovlp_c
+   type(c_ptr), value, intent(in) :: evec_c
+
+   type(elsi_handle), pointer :: h_f
+   complex(kind=c_double), pointer :: ovlp_f(:)
+   complex(kind=c_double), pointer :: evec_f(:,:)
+
+   integer(kind=c_int) :: nnz_l
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(h_c,h_f)
+
+   nnz_l = h_f%bh%nnz_l_sp
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
+
+   call elsi_orthonormalize_ev_complex_sparse(h_f,ovlp_f,evec_f)
+
+end subroutine
+
 subroutine c_elsi_extrapolate_dm_real(h_c,ovlp_c,dm_c) bind(C)
 
    implicit none
@@ -1679,6 +1737,56 @@ subroutine c_elsi_extrapolate_dm_complex(h_c,ovlp_c,dm_c) bind(C)
    call c_f_pointer(dm_c,dm_f,shape=[lrow,lcol])
 
    call elsi_extrapolate_dm_complex(h_f,ovlp_f,dm_f)
+
+end subroutine
+
+subroutine c_elsi_extrapolate_dm_real_sparse(h_c,ovlp_c,dm_c) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: ovlp_c
+   type(c_ptr), value, intent(in) :: dm_c
+
+   type(elsi_handle), pointer :: h_f
+   real(kind=c_double), pointer :: ovlp_f(:)
+   real(kind=c_double), pointer :: dm_f(:)
+
+   integer(kind=c_int) :: nnz_l
+
+   call c_f_pointer(h_c,h_f)
+
+   nnz_l = h_f%bh%nnz_l_sp
+
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
+   call c_f_pointer(dm_c,dm_f,shape=[nnz_l])
+
+   call elsi_extrapolate_dm_real_sparse(h_f,ovlp_f,dm_f)
+
+end subroutine
+
+subroutine c_elsi_extrapolate_dm_complex_sparse(h_c,ovlp_c,dm_c) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: ovlp_c
+   type(c_ptr), value, intent(in) :: dm_c
+
+   type(elsi_handle), pointer :: h_f
+   complex(kind=c_double), pointer :: ovlp_f(:)
+   complex(kind=c_double), pointer :: dm_f(:)
+
+   integer(kind=c_int) :: nnz_l
+
+   call c_f_pointer(h_c,h_f)
+
+   nnz_l = h_f%bh%nnz_l_sp
+
+   call c_f_pointer(ovlp_c,ovlp_f,shape=[nnz_l])
+   call c_f_pointer(dm_c,dm_f,shape=[nnz_l])
+
+   call elsi_extrapolate_dm_complex_sparse(h_f,ovlp_f,dm_f)
 
 end subroutine
 

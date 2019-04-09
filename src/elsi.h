@@ -340,6 +340,14 @@ void c_elsi_orthonormalize_ev_complex(elsi_handle handle_c,
                                       double _Complex *ovlp,
                                       double _Complex *evec);
 
+void c_elsi_orthonormalize_ev_real_sparse(elsi_handle handle_c,
+                                          double *ovlp,
+                                          double *evec);
+
+void c_elsi_orthonormalize_ev_complex_sparse(elsi_handle handle_c,
+                                             double _Complex *ovlp,
+                                             double _Complex *evec);
+
 void c_elsi_extrapolate_dm_real(elsi_handle handle_c,
                                 double *ovlp,
                                 double *dm);
@@ -347,6 +355,14 @@ void c_elsi_extrapolate_dm_real(elsi_handle handle_c,
 void c_elsi_extrapolate_dm_complex(elsi_handle handle_c,
                                    double _Complex *ovlp,
                                    double _Complex *dm);
+
+void c_elsi_extrapolate_dm_real_sparse(elsi_handle handle_c,
+                                       double *ovlp,
+                                       double *dm);
+
+void c_elsi_extrapolate_dm_complex_sparse(elsi_handle handle_c,
+                                          double _Complex *ovlp,
+                                          double _Complex *dm);
 
 void c_elsi_init_rw(elsi_rw_handle *handle_c,
                     int rw_task,
