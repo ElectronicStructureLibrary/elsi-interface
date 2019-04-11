@@ -1297,17 +1297,34 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
    end if
 
    if(sing_check) then
-      if(.not. associated(ph%elpa_aux)) then
-         call elsi_elpa_setup(ph,bh,.true.)
-      end if
-
+      call elsi_elpa_setup(ph,bh,.true.)
       call ph%elpa_aux%solve_tridiagonal(d,e,q,ierr)
+      call elpa_deallocate(ph%elpa_aux)
+
+      nullify(ph%elpa_aux)
    else
-      if(.not. associated(ph%elpa_solve)) then
-         call elsi_elpa_setup(ph,bh,.false.)
+      ph%elpa_solve => elpa_allocate()
+
+      call ph%elpa_solve%set("na",ph%n_good,ierr)
+      call ph%elpa_solve%set("nev",ph%n_states_solve,ierr)
+      call ph%elpa_solve%set("nblk",bh%blk,ierr)
+      call ph%elpa_solve%set("local_nrows",ph%n_good,ierr)
+      call ph%elpa_solve%set("local_ncols",ph%n_good,ierr)
+      call ph%elpa_solve%set("mpi_comm_parent",bh%comm,ierr)
+      call ph%elpa_solve%set("process_row",bh%my_prow,ierr)
+      call ph%elpa_solve%set("process_col",bh%my_pcol,ierr)
+
+      ierr = ph%elpa_solve%setup()
+
+      if(ierr /= 0) then
+         write(msg,"(A)") "ELPA setup failed"
+         call elsi_stop(bh,msg,caller)
       end if
 
       call ph%elpa_solve%solve_tridiagonal(d,e,q,ierr)
+      call elpa_deallocate(ph%elpa_solve)
+
+      nullify(ph%elpa_solve)
    end if
 
    if(ierr /= 0) then
