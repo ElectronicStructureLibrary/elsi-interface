@@ -3,8 +3,9 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module for handling locally stored CSR matrices.
 MODULE SMatrixModule
-  USE DataTypesModule, ONLY: NTREAL, NTCOMPLEX
-  USE MatrixMarketModule, ONLY : ParseMMHeader
+  USE DataTypesModule, ONLY: NTREAL, NTCOMPLEX, NTLONG
+  USE MatrixMarketModule, ONLY : ParseMMHeader, WriteMMSize, WriteMMLine, &
+       & MAX_LINE_LENGTH
   USE TripletListModule
   USE TripletModule, ONLY : Triplet_r, Triplet_c
   IMPLICIT NONE
@@ -1399,6 +1400,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER :: file_handler
   INTEGER :: counter
   INTEGER :: size_of_this
+  CHARACTER(LEN=MAX_LINE_LENGTH) :: tempstr
 
   !! Process Optional Parameters
   IF (PRESENT(file_name_in)) THEN
@@ -1416,11 +1418,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   WRITE(file_handler,'(A)') "%%MatrixMarket matrix coordinate real general"
 
   WRITE(file_handler,'(A)') "%"
-  WRITE(file_handler,*) this%rows, this%columns, size_of_this
+  CALL WriteMMSize(tempstr, this%rows, this%columns, &
+       & INT(size_of_this, KIND=NTLONG))
+  WRITE(file_handler,'(A)') ADJUSTL(TRIM(tempstr))
   DO counter = 1,size_of_this
-     WRITE(file_handler,*) triplet_list%data(counter)%index_row, &
+     CALL WriteMMLine(tempstr, triplet_list%data(counter)%index_row, &
           & triplet_list%data(counter)%index_column, &
-          & triplet_list%data(counter)%point_value
+          & triplet_list%data(counter)%point_value)
+     WRITE(file_handler,'(A)') ADJUSTL(TRIM(tempstr))
   END DO
 
   IF (PRESENT(file_name_in)) THEN
@@ -1443,6 +1448,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER :: file_handler
   INTEGER :: counter
   INTEGER :: size_of_this
+  CHARACTER(LEN=MAX_LINE_LENGTH) :: tempstr
 
   !! Process Optional Parameters
   IF (PRESENT(file_name_in)) THEN
@@ -1460,12 +1466,15 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   WRITE(file_handler,'(A)') "%%MatrixMarket matrix coordinate complex general"
 
   WRITE(file_handler,'(A)') "%"
-  WRITE(file_handler,*) this%rows, this%columns, size_of_this
+  CALL WriteMMSize(tempstr, this%rows, this%columns, &
+       & INT(size_of_this, KIND=NTLONG))
+  WRITE(file_handler,'(A)') ADJUSTL(TRIM(tempstr))
   DO counter = 1,size_of_this
-     WRITE(file_handler,*) triplet_list%data(counter)%index_row, &
+     CALL WriteMMLine(tempstr, triplet_list%data(counter)%index_row, &
           & triplet_list%data(counter)%index_column, &
           & REAL(triplet_list%data(counter)%point_value), &
-          & AIMAG(triplet_list%data(counter)%point_value)
+          & AIMAG(triplet_list%data(counter)%point_value))
+     WRITE(file_handler,'(A)') ADJUSTL(TRIM(tempstr))
   END DO
 
   IF (PRESENT(file_name_in)) THEN

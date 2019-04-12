@@ -272,7 +272,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             &  pool, 1, solver_parameters)
     END IF
     IF (solver_parameters%be_verbose) THEN
-       CALL ExitSubLog
        CALL PrintMatrixInformation(OutputMat)
     END IF
 

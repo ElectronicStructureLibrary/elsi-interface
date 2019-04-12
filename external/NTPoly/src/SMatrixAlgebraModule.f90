@@ -97,7 +97,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END SUBROUTINE ScaleMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Will scale a sparse matrix by a constant.
-    !> Will scale a sparse matrix by a constant.
   PURE SUBROUTINE ScaleMatrix_lsc_c(matA,constant)
     !> Matrix A.
     TYPE(Matrix_lsc), INTENT(INOUT) :: matA
@@ -419,6 +418,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   END SUBROUTINE DotMatrix_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> Product = sum(MatA^H[ij]*MatB[ij])
   PURE SUBROUTINE DotMatrix_lsc(matA, matB, product)
     !> Matrix A.
     TYPE(Matrix_lsc), INTENT(IN) :: matA
@@ -443,9 +443,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Multiply two matrices together, and add to the third.
   !> C := alpha*matA*op( matB ) + beta*matC
-  !! @param[inout] blocked_memory_pool_in
-  SUBROUTINE GemmMatrix_lsr(matA, matB, matC, IsATransposed_in, IsBTransposed_in, &
-       & alpha_in, beta_in, threshold_in, blocked_memory_pool_in)
+  SUBROUTINE GemmMatrix_lsr(matA, matB, matC, IsATransposed_in, &
+       & IsBTransposed_in, alpha_in, beta_in, threshold_in, &
+       & blocked_memory_pool_in)
     !> Matrix A.
     TYPE(Matrix_lsr), INTENT(IN)  :: matA
     !> Matrix B.
@@ -817,7 +817,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   END SUBROUTINE MatrixGrandSum_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Calculates the matrix product if we've determined to do sparse-sparse.
+  !> Calculates the matrix product if using sparse-sparse algorithm.
   PURE SUBROUTINE SparseBranch_lsr(matA, matB, matC, IsATransposed, &
        & IsBTransposed, alpha, threshold, blocked_memory_pool)
     !> Matrix A.
@@ -862,7 +862,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & blocked_memory_pool%columns, blocked_memory_pool%rows, matC)
   END SUBROUTINE SparseBranch_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Calculates the matrix product if we've determined to do sparse-sparse.
+  !> Calculates the matrix product if using the sparse-sparse algorithm.
   PURE SUBROUTINE SparseBranch_lsc(matA, matB, matC, IsATransposed, &
        & IsBTransposed, alpha, threshold, blocked_memory_pool)
     !> Matrix A.
@@ -907,7 +907,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & blocked_memory_pool%columns, blocked_memory_pool%rows, matC)
   END SUBROUTINE SparseBranch_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Calculate the matrix product if we've determined to do dense-dense.
+  !> Calculate the matrix product using the dense-dense algorithm.
   SUBROUTINE DenseBranch_lsr(matA, matB, matC, IsATransposed, IsBTransposed, &
        & alpha, threshold)
     !> Matrix A.
@@ -960,7 +960,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructMatrix(DenseC)
   END SUBROUTINE DenseBranch_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Calculate the matrix product if we've determined to do dense-dense.
+  !> Calculate the matrix product using the dense-dense algorithm.
   SUBROUTINE DenseBranch_lsc(matA, matB, matC, IsATransposed, IsBTransposed, &
        & alpha, threshold)
     !> Matrix A.
