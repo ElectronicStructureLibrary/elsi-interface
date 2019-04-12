@@ -1503,6 +1503,66 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
 
    eh%ph%edm_ready_real = .true.
 
+   ! Save information for density matrix extrapolation
+   if(eh%ph%save_ovlp) then
+      if(eh%ph%solver == ELPA_SOLVER) then
+         if(.not. allocated(eh%ovlp_real_copy)) then
+            call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
+                 eh%bh%n_lcol,"ovlp_real_copy",caller)
+
+            eh%ovlp_real_copy = eh%ovlp_real_den
+         end if
+
+         eh%ham_real_den = eh%dm_real_den
+      else
+         if(.not. allocated(eh%ph%nt_ovlp_copy%local_data_r)) then
+            call elsi_init_ntpoly(eh%ph,eh%bh)
+
+            eh%ph%unit_ovlp = .true.
+
+            select case(eh%ph%matrix_format)
+            case(PEXSI_CSC)
+               eh%ph%first_sips_to_ntpoly = .true.
+
+               call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+            case(SIESTA_CSC)
+               eh%ph%first_siesta_to_ntpoly = .true.
+
+               call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
+                    eh%row_ind_sp2,eh%col_ptr_sp2,eh%ph%nt_ovlp_copy,&
+                    eh%ph%nt_ham)
+            case(GENERIC_COO)
+               eh%ph%first_generic_to_ntpoly = .true.
+
+               call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
+                    eh%row_ind_sp3,eh%col_ind_sp3,eh%ph%nt_ovlp_copy,&
+                    eh%ph%nt_ham,eh%ph%nt_map)
+            case default
+               write(msg,"(A)") "Unsupported matrix format"
+               call elsi_stop(eh%bh,msg,caller)
+            end select
+
+            eh%ph%unit_ovlp = .false.
+         end if
+
+         select case(eh%ph%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp1,&
+                 eh%col_ptr_sp1,eh%ph%nt_ham,eh%ph%nt_ovlp_copy)
+         case(SIESTA_CSC)
+            call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp2,&
+                 eh%col_ptr_sp2,eh%ph%nt_ham,eh%ph%nt_ovlp_copy)
+         case(GENERIC_COO)
+            call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp3,&
+                 eh%col_ind_sp3,eh%ph%nt_ham,eh%ph%nt_ovlp_copy,eh%ph%nt_map)
+         case default
+            write(msg,"(A)") "Unsupported matrix format"
+            call elsi_stop(eh%bh,msg,caller)
+         end select
+      end if
+   end if
+
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
 
 end subroutine
@@ -1876,6 +1936,66 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
    end select
 
    eh%ph%edm_ready_cmplx = .true.
+
+   ! Save information for density matrix extrapolation
+   if(eh%ph%save_ovlp) then
+      if(eh%ph%solver == ELPA_SOLVER) then
+         if(.not. allocated(eh%ovlp_cmplx_copy)) then
+            call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
+                 eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
+
+            eh%ovlp_cmplx_copy = eh%ovlp_cmplx_den
+         end if
+
+         eh%ham_cmplx_den = eh%dm_cmplx_den
+      else
+         if(.not. allocated(eh%ph%nt_ovlp_copy%local_data_r)) then
+            call elsi_init_ntpoly(eh%ph,eh%bh)
+
+            eh%ph%unit_ovlp = .true.
+
+            select case(eh%ph%matrix_format)
+            case(PEXSI_CSC)
+               eh%ph%first_sips_to_ntpoly = .true.
+
+               call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,eh%row_ind_sp1,&
+                    eh%col_ptr_sp1,eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+            case(SIESTA_CSC)
+               eh%ph%first_siesta_to_ntpoly = .true.
+
+               call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
+                    eh%row_ind_sp2,eh%col_ptr_sp2,eh%ph%nt_ovlp_copy,&
+                    eh%ph%nt_ham)
+            case(GENERIC_COO)
+               eh%ph%first_generic_to_ntpoly = .true.
+
+               call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
+                    eh%row_ind_sp3,eh%col_ind_sp3,eh%ph%nt_ovlp_copy,&
+                    eh%ph%nt_ham,eh%ph%nt_map)
+            case default
+               write(msg,"(A)") "Unsupported matrix format"
+               call elsi_stop(eh%bh,msg,caller)
+            end select
+
+            eh%ph%unit_ovlp = .false.
+         end if
+
+         select case(eh%ph%matrix_format)
+         case(PEXSI_CSC)
+            call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp1,&
+                 eh%col_ptr_sp1,eh%ph%nt_ham,eh%ph%nt_ovlp_copy)
+         case(SIESTA_CSC)
+            call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp2,&
+                 eh%col_ptr_sp2,eh%ph%nt_ham,eh%ph%nt_ovlp_copy)
+         case(GENERIC_COO)
+            call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp3,&
+                 eh%col_ind_sp3,eh%ph%nt_ham,eh%ph%nt_ovlp_copy,eh%ph%nt_map)
+         case default
+            write(msg,"(A)") "Unsupported matrix format"
+            call elsi_stop(eh%bh,msg,caller)
+         end select
+      end if
+   end if
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
 
