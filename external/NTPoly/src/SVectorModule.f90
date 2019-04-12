@@ -2,8 +2,8 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module for handling compressed vectors.
-!! Compressed vectors are stored in two lists. The first is a list of indices,
-!! the second a list of values.
+!> Compressed vectors are stored in two lists. The first is a list of indices,
+!> the second a list of values.
 MODULE SVectorModule
   USE DataTypesModule, ONLY : NTREAL, NTCOMPLEX
   IMPLICIT NONE

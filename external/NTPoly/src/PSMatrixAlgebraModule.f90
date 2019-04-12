@@ -285,7 +285,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (matA%is_complex) THEN
   CALL StartTimer("GEMM")
 
-  !! The threshold needs to be smaller if we're doing a sliced version
+  !! The threshold needs to be smaller if we are doing a sliced version
   !! because you might flush a value that would be kept in the summed version.
   IF (matA%process_grid%num_process_slices .GT. 1) THEN
      working_threshold = threshold/(matA%process_grid%num_process_slices*1000)
@@ -358,7 +358,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         CASE(LocalGatherA)
            ATasks(II) = TaskRunningA
            !$OMP TASK DEFAULT(SHARED), PRIVATE(JJ2), FIRSTPRIVATE(II)
-           !! First Align The Data We're Working With
+           !! First Align The Data We Are Working With
            DO JJ2=1, &
                 & matAB%process_grid%number_of_blocks_columns/ &
                 & matAB%process_grid%num_process_slices
@@ -412,7 +412,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         CASE(LocalGatherB)
            BTasks(JJ) = TaskRunningB
            !$OMP TASK DEFAULT(SHARED), PRIVATE(II2), FIRSTPRIVATE(JJ)
-           !! First Transpose The Data We're Working With
+           !! First Transpose The Data We Are Working With
            DO II2=1, matAB%process_grid%number_of_blocks_rows/&
                 & matAB%process_grid%num_process_slices
               CALL TransposeMatrix(matB%local_data_c(duplicate_start_row+&
@@ -578,7 +578,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ELSE
   CALL StartTimer("GEMM")
 
-  !! The threshold needs to be smaller if we're doing a sliced version
+  !! The threshold needs to be smaller if we are doing a sliced version
   !! because you might flush a value that would be kept in the summed version.
   IF (matA%process_grid%num_process_slices .GT. 1) THEN
      working_threshold = threshold/(matA%process_grid%num_process_slices*1000)
@@ -651,7 +651,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         CASE(LocalGatherA)
            ATasks(II) = TaskRunningA
            !$OMP TASK DEFAULT(SHARED), PRIVATE(JJ2), FIRSTPRIVATE(II)
-           !! First Align The Data We're Working With
+           !! First Align The Data We Are Working With
            DO JJ2=1, &
                 & matAB%process_grid%number_of_blocks_columns/ &
                 & matAB%process_grid%num_process_slices
@@ -705,7 +705,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         CASE(LocalGatherB)
            BTasks(JJ) = TaskRunningB
            !$OMP TASK DEFAULT(SHARED), PRIVATE(II2), FIRSTPRIVATE(JJ)
-           !! First Transpose The Data We're Working With
+           !! First Transpose The Data We Are Working With
            DO II2=1, matAB%process_grid%number_of_blocks_rows/&
                 & matAB%process_grid%num_process_slices
               CALL TransposeMatrix(matB%local_data_r(duplicate_start_row+&
@@ -912,7 +912,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Sum up the elements in a matrix into a single value.
   SUBROUTINE MatrixGrandSum_psc(this, sum)
-    !! Parameters
     !> The matrix to compute.
     TYPE(Matrix_ps), INTENT(IN)  :: this
     !> The sum of all elements.
@@ -953,7 +952,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Elementwise multiplication. C_ij = A_ij * B_ij.
   !> Also known as a Hadamard product.
   RECURSIVE SUBROUTINE PairwiseMultiplyMatrix_ps(matA, matB, matC)
-    !! Parameters
     !> Matrix A.
     TYPE(Matrix_ps), INTENT(IN)  :: matA
     !> Matrix B.
@@ -1005,7 +1003,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the norm of a distributed sparse matrix along the rows.
   FUNCTION MatrixNorm_ps(this) RESULT(norm_value)
-    !! Parameters
     !> The matrix to compute the norm of.
     TYPE(Matrix_ps), INTENT(IN) :: this
     !> The norm value of the full distributed sparse matrix.
@@ -1237,7 +1234,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the trace of the matrix.
   SUBROUTINE MatrixTrace_psr(this, trace_value)
-    !! Parameters
     !> The matrix to compute the trace of.
     TYPE(Matrix_ps), INTENT(IN) :: this
     !> The trace value of the full distributed sparse matrix.
