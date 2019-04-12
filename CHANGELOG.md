@@ -3,7 +3,7 @@
 ## Not released
 
 ### NTPoly
-* Updated redistributed NTPoly source code to version 2.2.1.
+* Updated redistributed NTPoly source code to version 2.3.
 
 ## v2.2.1 (March 2019)
 
