@@ -397,11 +397,13 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm)
 
    call elsi_get_time(t0)
 
-   ! ovlp1 = U_1
-   call elsi_elpa_cholesky(ph,bh,ovlp1)
+   if(ph%elpa_first) then
+      ! ovlp1 = U_1
+      call elsi_elpa_cholesky(ph,bh,ovlp1)
 
-   ! ovlp1 = U_1^(-1)
-   call elsi_elpa_invert(ph,bh,ovlp1)
+      ! ovlp1 = U_1^(-1)
+      call elsi_elpa_invert(ph,bh,ovlp1)
+   end if
 
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
@@ -744,11 +746,13 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm)
 
    call elsi_get_time(t0)
 
-   ! ovlp1 = U_1
-   call elsi_elpa_cholesky(ph,bh,ovlp1)
+   if(ph%elpa_first) then
+      ! ovlp1 = U_1
+      call elsi_elpa_cholesky(ph,bh,ovlp1)
 
-   ! ovlp1 = U_1^(-1)
-   call elsi_elpa_invert(ph,bh,ovlp1)
+      ! ovlp1 = U_1^(-1)
+      call elsi_elpa_invert(ph,bh,ovlp1)
+   end if
 
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
