@@ -222,7 +222,7 @@ program test_dm_kpt_spin_cmplx_den
    end if
 
    ! Initialize ELSI
-   n_states = int(n_electrons,kind=i4)
+   n_states = min(int(n_electrons,kind=i4),n_basis)
 
    call elsi_init(eh,solver,1,0,n_basis,n_electrons,n_states)
    call elsi_set_mpi(eh,mpi_comm_group)

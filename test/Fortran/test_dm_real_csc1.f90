@@ -163,7 +163,7 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    end if
 
    ! Initialize ELSI
-   n_states = int(n_electrons,kind=i4)
+   n_states = min(int(n_electrons,kind=i4),n_basis)
 
    call elsi_init(eh,solver,1,1,n_basis,n_electrons,n_states)
    call elsi_set_mpi(eh,mpi_comm)

@@ -93,7 +93,13 @@ void test_ev_real_den_c(MPI_Comm comm,
 
    c_elsi_finalize_rw(rwh);
 
-   n_states = n_electrons;
+   if (n_electrons > n_basis) {
+       n_states = n_basis;
+   }
+   else {
+       n_states = n_electrons;
+   }
+
 
    // Initialize ELSI
    if (n_proc == 1) {

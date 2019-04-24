@@ -134,7 +134,7 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
    end if
 
    ! Initialize ELSI
-   n_states = int(n_electrons,kind=i4)
+   n_states = min(int(n_electrons,kind=i4),n_basis)
    weight(1) = 1.0_r8
 
    if(n_proc == 1) then
