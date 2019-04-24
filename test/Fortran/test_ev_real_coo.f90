@@ -154,7 +154,7 @@ subroutine test_ev_real_coo(mpi_comm,solver,h_file,s_file)
    end do
 
    ! Initialize ELSI
-   n_states = int(n_electrons,kind=i4)
+   n_states = min(int(n_electrons,kind=i4),n_basis)
    weight(1) = 1.0_r8
 
    call elsi_init(eh,solver,1,3,n_basis,n_electrons,n_states)
