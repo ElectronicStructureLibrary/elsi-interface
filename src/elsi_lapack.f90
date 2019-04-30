@@ -26,64 +26,94 @@ module ELSI_LAPACK
       module procedure elsi_solve_lapack_cmplx
    end interface
 
+   interface elsi_check_ovlp_sp
+      module procedure elsi_check_ovlp_sp_real
+      module procedure elsi_check_ovlp_sp_cmplx
+   end interface
+
+   interface elsi_factor_ovlp_sp
+      module procedure elsi_factor_ovlp_sp_real
+      module procedure elsi_factor_ovlp_sp_cmplx
+   end interface
+
+   interface elsi_reduce_evp_sp
+      module procedure elsi_reduce_evp_sp_real
+      module procedure elsi_reduce_evp_sp_cmplx
+   end interface
+
+   interface elsi_back_ev_sp
+      module procedure elsi_back_ev_sp_real
+      module procedure elsi_back_ev_sp_cmplx
+   end interface
+
 contains
 
 !>
-!! Transform a generalized eigenproblem to standard and return the Cholesky
-!! factor for later use.
+!! Cholesky factorize the overlap matrix in place.
 !!
-subroutine elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
+subroutine elsi_factor_ovlp_sp_real(ph,bh,ovlp)
 
    implicit none
 
-   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: ierr
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_factor_ovlp_sp_real"
+
+   call elsi_get_time(t0)
+
+   ! Erase the lower triangle
+   do i = 1,ph%n_basis
+      do j= 1,i-1
+         ovlp(i,j) = 0.0_r8
+      end do
+   end do
+
+   ! S = U
+   call dpotrf("U",ph%n_basis,ovlp,ph%n_basis,ierr)
+
+   ! S = U^(-1)
+   call dtrtri("U","N",ph%n_basis,ovlp,ph%n_basis,ierr)
+
+   call elsi_get_time(t1)
+
+   write(msg,"(A)") "Finished Cholesky decomposition"
+   call elsi_say(bh,msg)
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
+end subroutine
+
+!>
+!! Transform a generalized eigenproblem to standard form using Cholesky or eigen
+!! decomposition of the overlap matrix.
+!!
+subroutine elsi_reduce_evp_sp_real(ph,bh,ham,ovlp,evec)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: nwork
    integer(kind=i4) :: n
-   integer(kind=i4) :: i
-   integer(kind=i4) :: j
-   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    integer(kind=i4), parameter :: nblk = 128
-   character(len=*), parameter :: caller = "elsi_to_standard_evp_sp_real"
-
-   if(ph%ill_check) then
-      call elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
-   end if
-
-   if(ph%n_good == ph%n_basis) then ! Not singular
-      call elsi_get_time(t0)
-
-      ph%ill_ovlp = .false.
-
-      ! Erase the lower triangle
-      do i = 1,ph%n_basis
-         do j= 1,i-1
-            ovlp(i,j) = 0.0_r8
-         end do
-      end do
-
-      ! S = U
-      call dpotrf("U",ph%n_basis,ovlp,ph%n_basis,ierr)
-
-      ! S = U^(-1)
-      call dtrtri("U","N",ph%n_basis,ovlp,ph%n_basis,ierr)
-
-      call elsi_get_time(t1)
-
-      write(msg,"(A)") "Finished Cholesky decomposition"
-      call elsi_say(bh,msg)
-      write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
-      call elsi_say(bh,msg)
-   end if
+   character(len=*), parameter :: caller = "elsi_reduce_evp_sp_real"
 
    call elsi_get_time(t0)
 
@@ -131,7 +161,7 @@ end subroutine
 !! Back-transform eigenvectors in the standard form to the original generalized
 !! form.
 !!
-subroutine elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
+subroutine elsi_back_ev_sp_real(ph,bh,ovlp,evec)
 
    implicit none
 
@@ -146,7 +176,7 @@ subroutine elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
 
    real(kind=r8), allocatable :: tmp(:,:)
 
-   character(len=*), parameter :: caller = "elsi_to_original_ev_sp_real"
+   character(len=*), parameter :: caller = "elsi_back_ev_sp_real"
 
    call elsi_get_time(t0)
 
@@ -200,7 +230,15 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
 
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
-      call elsi_to_standard_evp_sp_real(ph,bh,ham,ovlp,eval,evec)
+      if(ph%ill_check) then
+         call elsi_check_ovlp_sp(ph,bh,ovlp,eval,evec)
+      end if
+
+      if(ph%n_good == ph%n_basis) then ! Not singular
+         call elsi_factor_ovlp_sp(ph,bh,ovlp)
+      end if
+
+      call elsi_reduce_evp_sp(ph,bh,ham,ovlp,evec)
    end if
 
    ! Solve
@@ -240,18 +278,16 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
 
    ! Back-transform eigenvectors
    if(.not. ph%unit_ovlp) then
-      call elsi_to_original_ev_sp_real(ph,bh,ovlp,evec)
+      call elsi_back_ev_sp(ph,bh,ovlp,evec)
    end if
 
 end subroutine
 
 !>
-!! Check the singularity of overlap matrix by computing all its eigenvalues. On
-!! exit, S is not modified if not singular, or is overwritten by scaled
-!! eigenvectors if singular, which can be used to transform the generalized
-!! eigenproblem to the standard form.
+!! Check the singularity of overlap matrix by computing all its eigenvalues. If
+!! S is singular, it is overwritten by its eigen decomposition on exit.
 !!
-subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
+subroutine elsi_check_ovlp_sp_real(ph,bh,ovlp,eval,evec)
 
    implicit none
 
@@ -273,7 +309,7 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
    real(kind=r8), allocatable :: tmp(:,:)
    real(kind=r8), allocatable :: copy(:,:)
 
-   character(len=*), parameter :: caller = "elsi_check_singularity_sp_real"
+   character(len=*), parameter :: caller = "elsi_check_ovlp_sp_real"
 
    call elsi_get_time(t0)
 
@@ -355,61 +391,71 @@ subroutine elsi_check_singularity_sp_real(ph,bh,ovlp,eval,evec)
 end subroutine
 
 !>
-!! Transform a generalized eigenproblem to standard and return the Cholesky
-!! factor for later use.
+!! Cholesky factorize the overlap matrix in place.
 !!
-subroutine elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
+subroutine elsi_factor_ovlp_sp_cmplx(ph,bh,ovlp)
 
    implicit none
 
-   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: ierr
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_factor_ovlp_sp_cmplx"
+
+   call elsi_get_time(t0)
+
+   ! Erase the lower triangle
+   do i = 1,ph%n_basis
+      do j= 1,i-1
+         ovlp(i,j) = (0.0_r8,0.0_r8)
+      end do
+   end do
+
+   ! S = U
+   call zpotrf("U",ph%n_basis,ovlp,ph%n_basis,ierr)
+
+   ! S = U^(-1)
+   call ztrtri("U","N",ph%n_basis,ovlp,ph%n_basis,ierr)
+
+   call elsi_get_time(t1)
+
+   write(msg,"(A)") "Finished Cholesky decomposition"
+   call elsi_say(bh,msg)
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
+end subroutine
+
+!>
+!! Transform a generalized eigenproblem to standard form using Cholesky or eigen
+!! decomposition of the overlap matrix.
+!!
+subroutine elsi_reduce_evp_sp_cmplx(ph,bh,ham,ovlp,evec)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: nwork
    integer(kind=i4) :: n
-   integer(kind=i4) :: i
-   integer(kind=i4) :: j
-   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    integer(kind=i4), parameter :: nblk = 128
-   character(len=*), parameter :: caller = "elsi_to_standard_evp_sp_cmplx"
-
-   if(ph%ill_check) then
-      call elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
-   end if
-
-   if(ph%n_good == ph%n_basis) then ! Not singular
-      call elsi_get_time(t0)
-
-      ph%ill_ovlp = .false.
-
-      ! Erase the lower triangle
-      do i = 1,ph%n_basis
-         do j= 1,i-1
-            ovlp(i,j) = (0.0_r8,0.0_r8)
-         end do
-      end do
-
-      ! S = U
-      call zpotrf("U",ph%n_basis,ovlp,ph%n_basis,ierr)
-
-      ! S = U^(-1)
-      call ztrtri("U","N",ph%n_basis,ovlp,ph%n_basis,ierr)
-
-      call elsi_get_time(t1)
-
-      write(msg,"(A)") "Finished Cholesky decomposition"
-      call elsi_say(bh,msg)
-      write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
-      call elsi_say(bh,msg)
-   end if
+   character(len=*), parameter :: caller = "elsi_reduce_evp_sp_cmplx"
 
    call elsi_get_time(t0)
 
@@ -459,7 +505,7 @@ end subroutine
 !! Back-transform eigenvectors in the standard form to the original generalized
 !! form.
 !!
-subroutine elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
+subroutine elsi_back_ev_sp_cmplx(ph,bh,ovlp,evec)
 
    implicit none
 
@@ -474,7 +520,7 @@ subroutine elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
 
    complex(kind=r8), allocatable :: tmp(:,:)
 
-   character(len=*), parameter :: caller = "elsi_to_original_ev_sp_cmplx"
+   character(len=*), parameter :: caller = "elsi_back_ev_sp_cmplx"
 
    call elsi_get_time(t0)
 
@@ -530,7 +576,15 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
-      call elsi_to_standard_evp_sp_cmplx(ph,bh,ham,ovlp,eval,evec)
+      if(ph%ill_check) then
+         call elsi_check_ovlp_sp(ph,bh,ovlp,eval,evec)
+      end if
+
+      if(ph%n_good == ph%n_basis) then ! Not singular
+         call elsi_factor_ovlp_sp(ph,bh,ovlp)
+      end if
+
+      call elsi_reduce_evp_sp(ph,bh,ham,ovlp,evec)
    end if
 
    ! Solve
@@ -574,18 +628,16 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    ! Back-transform eigenvectors
    if(.not. ph%unit_ovlp) then
-      call elsi_to_original_ev_sp_cmplx(ph,bh,ovlp,evec)
+      call elsi_back_ev_sp(ph,bh,ovlp,evec)
    end if
 
 end subroutine
 
 !>
-!! Check the singularity of overlap matrix by computing all its eigenvalues. On
-!! exit, S is not modified if not singular, or is overwritten by scaled
-!! eigenvectors if singular, which can be used to transform the generalized
-!! eigenproblem to the standard form.
+!! Check the singularity of overlap matrix by computing all its eigenvalues. If
+!! S is singular, it is overwritten by its eigen decomposition on exit.
 !!
-subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
+subroutine elsi_check_ovlp_sp_cmplx(ph,bh,ovlp,eval,evec)
 
    implicit none
 
@@ -608,7 +660,7 @@ subroutine elsi_check_singularity_sp_cmplx(ph,bh,ovlp,eval,evec)
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
    complex(kind=r8), allocatable :: copy(:,:)
 
-   character(len=*), parameter :: caller = "elsi_check_singularity_sp_cmplx"
+   character(len=*), parameter :: caller = "elsi_check_ovlp_sp_cmplx"
 
    call elsi_get_time(t0)
 
