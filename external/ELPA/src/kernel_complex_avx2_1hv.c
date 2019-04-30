@@ -80,12 +80,10 @@
 #define _mm256_FMSUBADD_pd(a,b,c) _mm256_fmsubadd_pd(a,b,c)
 #endif
 
-
 //Forward declaration
 static  __forceinline void hh_trafo_complex_kernel_12_AVX_1hv_double(double complex* q, double complex* hh, int nb, int ldq);
 static  __forceinline void hh_trafo_complex_kernel_8_AVX_1hv_double(double complex* q, double complex* hh, int nb, int ldq);
 static  __forceinline void hh_trafo_complex_kernel_4_AVX_1hv_double(double complex* q, double complex* hh, int nb, int ldq);
-
 
 void single_hh_trafo_complex_avx_avx2_1hv_double(double complex* q, double complex* hh, int* pnb, int* pnq, int* pldq)
 {

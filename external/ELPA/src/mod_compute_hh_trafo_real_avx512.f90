@@ -75,12 +75,11 @@ module compute_hh_trafo_real
 
          integer(kind=c_intptr_t)     :: a_dev
          integer(kind=c_intptr_t)     :: bcast_buffer_dev
-         integer(kind=c_size_t)       :: dev_offset
          integer(kind=c_intptr_t)     :: hh_dot_dev
          integer(kind=c_intptr_t)     :: hh_tau_dev
 ! Private variables in OMP regions (my_thread) should better be in the argument list!
          integer(kind=ik)             :: off, ncols, istripe
-         integer(kind=ik)             :: j, nl, jj, jjj
+         integer(kind=ik)             :: j, nl
          real(kind=rk8)                :: w(nbw,6)
          real(kind=c_double)          :: ttt ! MPI_WTIME always needs double
 

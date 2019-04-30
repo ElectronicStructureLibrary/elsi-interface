@@ -246,7 +246,6 @@ function elpa_check_pd_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    logical                               :: success,wantDebug
    integer(kind=c_int)                   :: istat
    logical                               :: do_useGPU,do_useGPU_4
-   integer(kind=c_int)                   :: numberOfGPUDevices
 
    call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
    call mpi_comm_size(mpi_comm_all,n_pes,mpierr)

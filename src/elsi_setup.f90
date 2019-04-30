@@ -199,9 +199,6 @@ subroutine elsi_set_blacs(eh,blacs_ctxt,block_size)
    integer(kind=i4), intent(in) :: blacs_ctxt !< BLACS context
    integer(kind=i4), intent(in) :: block_size !< Block size
 
-   integer(kind=i4) :: i
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
    integer(kind=i4) :: ierr
 
    integer(kind=i4), external :: numroc

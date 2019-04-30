@@ -11,7 +11,7 @@ module ELSI_GEO
 
    use ELSI_CONSTANTS, only: ELPA_SOLVER,PEXSI_CSC,SIESTA_CSC,GENERIC_COO
    use ELSI_DATATYPE, only: elsi_handle
-   use ELSI_ELPA, only: elsi_init_elpa,elsi_update_dm_elpa
+   use ELSI_ELPA, only: elsi_update_dm_elpa
    use ELSI_MALLOC, only: elsi_allocate
    use ELSI_MPI, only: elsi_stop
    use ELSI_NTPOLY, only: elsi_update_dm_ntpoly,CopyMatrix
@@ -200,7 +200,6 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_update_dm_elpa(eh%ph,eh%bh,eh%ovlp_real_copy,ovlp,dm)
 
       eh%ovlp_real_copy = ovlp
@@ -244,7 +243,6 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_update_dm_elpa(eh%ph,eh%bh,eh%ovlp_cmplx_copy,ovlp,dm)
 
       eh%ovlp_cmplx_copy = ovlp
@@ -290,8 +288,6 @@ subroutine elsi_extrapolate_dm_real_sparse(eh,ovlp,dm)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      call elsi_init_elpa(eh%ph,eh%bh)
-
       eh%ph%unit_ovlp = .true.
 
       select case(eh%ph%matrix_format)
@@ -399,8 +395,6 @@ subroutine elsi_extrapolate_dm_complex_sparse(eh,ovlp,dm)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      call elsi_init_elpa(eh%ph,eh%bh)
-
       eh%ph%unit_ovlp = .true.
 
       select case(eh%ph%matrix_format)

@@ -50,8 +50,6 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-
-
 ! ELPA2 -- 2-stage solver for ELPA
 !
 ! Copyright of the original code rests with the authors inside the ELPA
@@ -59,16 +57,12 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-
 module ELPA2_compute
-
-! Version 1.1.2, 2011-02-21
 
   use ELPA_utilities
   USE ELPA1_compute
   use elpa1, only : elpa_print_times, time_evp_back, time_evp_fwd, time_evp_solve
   use elpa2_utilities
-  use elpa_pdgeqrf
   use precision
   use elpa_mpi
   use aligned_mem
@@ -82,44 +76,20 @@ module ELPA2_compute
   public :: trans_ev_tridi_to_band_real_double
   public :: trans_ev_band_to_full_real_double
 
-
-
   public :: bandred_complex_double
   public :: tridiag_band_complex_double
   public :: trans_ev_tridi_to_band_complex_double
   public :: trans_ev_band_to_full_complex_double
 
-
   public :: band_band_real_double
   public :: divide_band
 
-  integer(kind=ik), public :: which_qr_decomposition = 1     ! defines, which QR-decomposition algorithm will be used
-! 0 for unblocked
-! 1 for blocked (maxrank: nblk)
   contains
-
-! real double precision first
-
-
-
-
-
 
 ! --------------------------------------------------------------------------------------------------
 ! redist_band: redistributes band from 2D block cyclic form to 1D band
 
-
-
-
 subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm, r_ab)
-
-
-
-
-
-
-
-
 
    use precision
    implicit none
@@ -128,27 +98,16 @@ subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, matrixCols, mpi_comm
 
    real(kind=rk8), intent(in)        :: r_a(lda, matrixCols)
 
-
-
-
-
    real(kind=rk8), intent(out)       :: r_ab(:,:)
 
-
-
-
    integer(kind=ik), allocatable    :: ncnt_s(:), nstart_s(:), ncnt_r(:), nstart_r(:), &
-                                       global_id(:,:), global_id_tmp(:,:), block_limits(:)
+                                       global_id(:,:), block_limits(:)
 
    real(kind=rk8), allocatable       :: r_sbuf(:,:,:), r_rbuf(:,:,:), r_buf(:,:)
-
-
 
    integer(kind=ik)                 :: i, j, my_pe, n_pes, my_prow, np_rows, my_pcol, np_cols, &
                                        nfact, np, npr, npc, mpierr, is, js
    integer(kind=ik)                 :: nblocks_total, il, jl, l_rows, l_cols, n_off
-
-
 
    call mpi_comm_rank(mpi_comm,my_pe,mpierr)
    call mpi_comm_size(mpi_comm,n_pes,mpierr)
@@ -158,7 +117,6 @@ subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, matrixCols, mpi_comm
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
    call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
 
-
 ! Get global_id mapping 2D procssor coordinates to global id
 
    allocate(global_id(0:np_rows-1,0:np_cols-1))
@@ -166,11 +124,7 @@ subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, matrixCols, mpi_comm
    global_id(:,:) = 0
    global_id(my_prow, my_pcol) = my_pe
 
-
-
    call mpi_allreduce(mpi_in_place, global_id, np_rows*np_cols, mpi_integer, mpi_sum, mpi_comm, mpierr)
-
-
 
 ! Set work distribution
 
@@ -179,12 +133,10 @@ subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, matrixCols, mpi_comm
    allocate(block_limits(0:n_pes))
    call divide_band(nblocks_total, n_pes, block_limits)
 
-
    allocate(ncnt_s(0:n_pes-1))
    allocate(nstart_s(0:n_pes-1))
    allocate(ncnt_r(0:n_pes-1))
    allocate(nstart_r(0:n_pes-1))
-
 
    nfact = nbw/nblk
 
@@ -205,11 +157,8 @@ subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, matrixCols, mpi_comm
 
 ! Allocate send buffer
 
-
    allocate(r_sbuf(nblk,nblk,sum(ncnt_s)))
    r_sbuf(:,:,:) = 0.
-
-
 
 ! Determine start offsets in send buffer
 
@@ -235,9 +184,7 @@ subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, matrixCols, mpi_comm
            jl = MIN(nblk,l_rows-js)
            il = MIN(nblk,l_cols-is)
 
-
            r_sbuf(1:jl,1:il,nstart_s(np)) = r_a(js+1:js+jl,is+1:is+il)
-
 
          endif
        enddo
@@ -258,10 +205,7 @@ subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, matrixCols, mpi_comm
 
 ! Allocate receive buffer
 
-
    allocate(r_rbuf(nblk,nblk,sum(ncnt_r)))
-
-
 
 ! Set send counts/send offsets, receive counts/receive offsets
 ! now actually in variables, not in blocks
@@ -282,19 +226,7 @@ subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, matrixCols, mpi_comm
 
 ! Exchange all data with MPI_Alltoallv
 
-
-
-
-
-
     call MPI_Alltoallv(r_sbuf, ncnt_s, nstart_s, MPI_REAL8, r_rbuf, ncnt_r, nstart_r, MPI_REAL8, mpi_comm, mpierr)
-
-
-
-
-
-
-
 
 ! set band from receive buffer
 
@@ -305,10 +237,7 @@ subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, matrixCols, mpi_comm
      nstart_r(i) = nstart_r(i-1) + ncnt_r(i-1)
    enddo
 
-
    allocate(r_buf((nfact+1)*nblk,nblk))
-
-
 
 ! n_off: Offset of ab within band
    n_off = block_limits(my_pe)*nbw
@@ -322,12 +251,10 @@ subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, matrixCols, mpi_comm
 
        r_buf(i*nblk+1:i*nblk+nblk,:) = transpose(r_rbuf(:,:,nstart_r(np)))
 
-
      enddo
      do i=1,MIN(nblk,na-j*nblk)
 
        r_ab(1:nbw+1,i+j*nblk-n_off) = r_buf(i:i+nbw,i)
-
 
      enddo
    enddo
@@ -337,75 +264,32 @@ subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, matrixCols, mpi_comm
    deallocate(global_id)
    deallocate(block_limits)
 
-
    deallocate(r_sbuf, r_rbuf, r_buf)
 
-
-
-
-
-
 end subroutine
-
-
-
-
-
-
-! single precision
-
-
-! double precision
-
-
-
-
-
 
 ! --------------------------------------------------------------------------------------------------
 ! redist_band: redistributes band from 2D block cyclic form to 1D band
 
-
-
-
-
-
 subroutine redist_band_complex_double(c_a, lda, na, nblk, nbw, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm, c_ab)
-
-
-
-
-
-
 
    use precision
    implicit none
 
    integer(kind=ik), intent(in)     :: lda, na, nblk, nbw, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm
 
-
    complex(kind=ck8), intent(in)     :: c_a(lda, matrixCols)
-
-
-
-
-
 
    complex(kind=ck8), intent(out)    :: c_ab(:,:)
 
-
    integer(kind=ik), allocatable    :: ncnt_s(:), nstart_s(:), ncnt_r(:), nstart_r(:), &
-                                       global_id(:,:), global_id_tmp(:,:), block_limits(:)
-
-
+                                       global_id(:,:), block_limits(:)
 
    complex(kind=ck8), allocatable    :: c_sbuf(:,:,:), c_rbuf(:,:,:), c_buf(:,:)
 
    integer(kind=ik)                 :: i, j, my_pe, n_pes, my_prow, np_rows, my_pcol, np_cols, &
                                        nfact, np, npr, npc, mpierr, is, js
    integer(kind=ik)                 :: nblocks_total, il, jl, l_rows, l_cols, n_off
-
-
 
    call mpi_comm_rank(mpi_comm,my_pe,mpierr)
    call mpi_comm_size(mpi_comm,n_pes,mpierr)
@@ -415,7 +299,6 @@ subroutine redist_band_complex_double(c_a, lda, na, nblk, nbw, matrixCols, mpi_c
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
    call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
 
-
 ! Get global_id mapping 2D procssor coordinates to global id
 
    allocate(global_id(0:np_rows-1,0:np_cols-1))
@@ -423,11 +306,7 @@ subroutine redist_band_complex_double(c_a, lda, na, nblk, nbw, matrixCols, mpi_c
    global_id(:,:) = 0
    global_id(my_prow, my_pcol) = my_pe
 
-
-
    call mpi_allreduce(mpi_in_place, global_id, np_rows*np_cols, mpi_integer, mpi_sum, mpi_comm, mpierr)
-
-
 
 ! Set work distribution
 
@@ -436,12 +315,10 @@ subroutine redist_band_complex_double(c_a, lda, na, nblk, nbw, matrixCols, mpi_c
    allocate(block_limits(0:n_pes))
    call divide_band(nblocks_total, n_pes, block_limits)
 
-
    allocate(ncnt_s(0:n_pes-1))
    allocate(nstart_s(0:n_pes-1))
    allocate(ncnt_r(0:n_pes-1))
    allocate(nstart_r(0:n_pes-1))
-
 
    nfact = nbw/nblk
 
@@ -462,11 +339,8 @@ subroutine redist_band_complex_double(c_a, lda, na, nblk, nbw, matrixCols, mpi_c
 
 ! Allocate send buffer
 
-
-
    allocate(c_sbuf(nblk,nblk,sum(ncnt_s)))
    c_sbuf(:,:,:) = 0.
-
 
 ! Determine start offsets in send buffer
 
@@ -491,8 +365,6 @@ subroutine redist_band_complex_double(c_a, lda, na, nblk, nbw, matrixCols, mpi_c
            is = ((i+j)/np_cols)*nblk
            jl = MIN(nblk,l_rows-js)
            il = MIN(nblk,l_cols-is)
-
-
 
            c_sbuf(1:jl,1:il,nstart_s(np)) = c_a(js+1:js+jl,is+1:is+il)
 
@@ -515,10 +387,7 @@ subroutine redist_band_complex_double(c_a, lda, na, nblk, nbw, matrixCols, mpi_c
 
 ! Allocate receive buffer
 
-
-
    allocate(c_rbuf(nblk,nblk,sum(ncnt_r)))
-
 
 ! Set send counts/send offsets, receive counts/receive offsets
 ! now actually in variables, not in blocks
@@ -539,20 +408,7 @@ subroutine redist_band_complex_double(c_a, lda, na, nblk, nbw, matrixCols, mpi_c
 
 ! Exchange all data with MPI_Alltoallv
 
-
-
-
-
-
-
-
     call MPI_Alltoallv(c_sbuf, ncnt_s, nstart_s, MPI_COMPLEX16, c_rbuf, ncnt_r, nstart_r, MPI_COMPLEX16, mpi_comm, mpierr)
-
-
-
-
-
-
 
 ! set band from receive buffer
 
@@ -563,10 +419,7 @@ subroutine redist_band_complex_double(c_a, lda, na, nblk, nbw, matrixCols, mpi_c
      nstart_r(i) = nstart_r(i-1) + ncnt_r(i-1)
    enddo
 
-
-
    allocate(c_buf((nfact+1)*nblk,nblk))
-
 
 ! n_off: Offset of ab within band
    n_off = block_limits(my_pe)*nbw
@@ -578,12 +431,10 @@ subroutine redist_band_complex_double(c_a, lda, na, nblk, nbw, matrixCols, mpi_c
        np = global_id(npr,npc)
        nstart_r(np) = nstart_r(np) + 1
 
-
        c_buf(i*nblk+1:i*nblk+nblk,:) = conjg(transpose(c_rbuf(:,:,nstart_r(np))))
 
      enddo
      do i=1,MIN(nblk,na-j*nblk)
-
 
        c_ab(1:nbw+1,i+j*nblk-n_off) = c_buf(i:i+nbw,i)
 
@@ -594,100 +445,9 @@ subroutine redist_band_complex_double(c_a, lda, na, nblk, nbw, matrixCols, mpi_c
    deallocate(ncnt_r, nstart_r)
    deallocate(global_id)
    deallocate(block_limits)
-
-
-
    deallocate(c_sbuf, c_rbuf, c_buf)
 
-
-
-
-
 end subroutine
-
-
-
-
-
-
-
-
-
-
-! real double precision
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     subroutine bandred_real_double(na, a, a_dev, lda, nblk, nbw, matrixCols, numBlocks, mpi_comm_rows, mpi_comm_cols, &
                             tmat, tmat_dev, wantDebug, useGPU, success, useQR)
@@ -724,7 +484,6 @@ end subroutine
       use, intrinsic :: iso_c_binding
       use elpa1_compute
 
-
       use precision
       implicit none
 
@@ -732,35 +491,23 @@ end subroutine
 
       real(kind=rk8)              :: a(lda,*), tmat(nbw,nbw,*)
 
-      real(kind=rk8)              :: eps
       logical, intent(in)                   :: useGPU
 
       integer(kind=ik)                      :: my_prow, my_pcol, np_rows, np_cols, mpierr
-      integer(kind=ik)                      :: l_cols, l_rows, vmrCols
+      integer(kind=ik)                      :: l_cols, l_rows
       integer(kind=ik)                      :: i, j, lcs, lce, lrs, lre, lc, lr, cur_pcol, n_cols, nrow
-      integer(kind=ik)                      :: istep, ncol, lch, lcx, nlc, mynlc
+      integer(kind=ik)                      :: istep, ncol, lch, lcx, nlc
       integer(kind=ik)                      :: tile_size, l_rows_tile, l_cols_tile
 
       real(kind=rk8)              :: vnorm2, xf, aux1(nbw), aux2(nbw), vrl, tau, vav(nbw,nbw)
 
-      real(kind=rk8), allocatable :: tmpCUDA(:),  vmrCUDA(:),  umcCUDA(:)
       real(kind=rk8), allocatable :: tmpCPU(:,:), vmrCPU(:,:), umcCPU(:,:)
       real(kind=rk8), allocatable :: vr(:)
-! needed for blocked QR decomposition
-      integer(kind=ik)                      :: PQRPARAM(11), work_size
-      real(kind=rk8)              :: dwork_size(1)
-      real(kind=rk8), allocatable :: work_blocked(:), tauvector(:), blockheuristic(:)
 
 ! a_dev is passed from bandred_real to trans_ev_band
-      integer(kind=C_intptr_T)              :: a_dev, vmr_dev, umc_dev, tmat_dev, vav_dev
+      integer(kind=C_intptr_T)              :: a_dev, vmr_dev, umc_dev, tmat_dev
 
       integer(kind=ik), external            :: numroc
-
-      integer(kind=ik)                      :: ierr
-      integer(kind=ik)                      :: cur_l_rows, cur_l_cols, vmr_size, umc_size
-      integer(kind=c_size_t)                :: lc_start, lc_end
-      integer(kind=ik)                      :: lr_end
-      integer(kind=ik)                      :: na_cols !, na_rows
 
       logical, intent(in)                   :: wantDebug
       logical, intent(out)                  :: success
@@ -770,10 +517,7 @@ end subroutine
 
       logical, intent(in)                   :: useQR
 
-      integer(kind=ik)                      :: mystart, myend, m_way, n_way, work_per_thread, m_id, n_id, n_threads, &
-                                               ii, pp, transformChunkSize
-
-
+      integer(kind=ik)                      :: n_way
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -782,11 +526,9 @@ end subroutine
 
       success = .true.
 
-
       successCUDA = .true.
       umc_dev = 0
       vmr_dev = 0
-
 
 ! Semibandwith nbw must be a multiple of blocksize nblk
       if (mod(nbw,nblk)/=0) then
@@ -809,55 +551,6 @@ end subroutine
 
       l_rows_tile = tile_size/np_rows ! local rows of a tile
       l_cols_tile = tile_size/np_cols ! local cols of a tile
-
-      if (useQR) then
-
-        if (which_qr_decomposition == 1) then
-          call qr_pqrparam_init(pqrparam(1:11),    nblk,'M',0,   nblk,'M',0,   nblk,'M',1,'s')
-          allocate(tauvector(na), stat=istat, errmsg=errorMessage)
-          if (istat .ne. 0) then
-            print *,"bandred_real: error when allocating tauvector "//errorMessage
-            stop
-          endif
-
-          allocate(blockheuristic(nblk), stat=istat, errmsg=errorMessage)
-          if (istat .ne. 0) then
-            print *,"bandred_real: error when allocating blockheuristic "//errorMessage
-            stop
-          endif
-
-          l_rows = local_index(na, my_prow, np_rows, nblk, -1)
-          allocate(vmrCPU(max(l_rows,1),na), stat=istat, errmsg=errorMessage)
-          if (istat .ne. 0) then
-            print *,"bandred_real: error when allocating vmrCPU "//errorMessage
-            stop
-          endif
-
-          vmrCols = na
-
-
-          call qr_pdgeqrf_2dcomm_double(a(1:lda,1:matrixCols), matrixCols, lda, vmrCPU(1:max(l_rows,1),1:vmrCols), max(l_rows,1), &
-                                 vmrCols, tauvector(1:na), na, tmat(1:nbw,1:nbw,1), nbw, &
-                                 nbw, dwork_size(1:1), 1, -1, na, nbw, nblk, nblk, na, na, 1, 0, PQRPARAM(1:11), &
-                                 mpi_comm_rows, mpi_comm_cols, blockheuristic)
-
-
-          work_size = dwork_size(1)
-          allocate(work_blocked(work_size), stat=istat, errmsg=errorMessage)
-          if (istat .ne. 0) then
-            print *,"bandred_real: error when allocating work_blocked "//errorMessage
-            stop
-          endif
-          work_blocked = 0.0_rk8
-          deallocate(vmrCPU, stat=istat, errmsg=errorMessage)
-          if (istat .ne. 0) then
-            print *,"bandred_real: error when deallocating vmrCPU "//errorMessage
-            stop
-          endif
-
-        endif ! which_qr_decomposition
-
-      endif ! useQr
 
       do istep = (na-1)/nbw, 1, -1
 
@@ -893,22 +586,6 @@ end subroutine
 
 ! Reduce current block to lower triangular form
 
-        if (useQR) then
-          if (which_qr_decomposition == 1) then
-            vmrCols = 2*n_cols
-
-            call qr_pdgeqrf_2dcomm_double(a(1:lda,1:matrixCols), lda, matrixCols, vmrCPU(1:max(l_rows,1),1:vmrCols) ,   &
-                                    max(l_rows,1), vmrCols, tauvector(1:na), na, &
-                                     tmat(1:nbw,1:nbw,istep), nbw, nbw, work_blocked(1:work_size), work_size, &
-                                     work_size, na, n_cols, nblk, nblk,        &
-                                     istep*nbw+n_cols-nbw, istep*nbw+n_cols, 1,&
-                                     0, PQRPARAM(1:11), mpi_comm_rows, mpi_comm_cols,&
-                                     blockheuristic)
-
-          endif
-
-       else !useQR
-
          do lc = n_cols, 1, -1
 
            ncol = istep*nbw + lc ! absolute column number of householder vector
@@ -938,12 +615,7 @@ end subroutine
                aux1(2) = 0.0_rk8
              endif
 
-
-
              call mpi_allreduce(aux1, aux2, 2, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
-
-
-
 
              vnorm2 = aux2(1)
              vrl    = aux2(2)
@@ -968,10 +640,7 @@ end subroutine
 
            vr(lr+1) = tau
 
-
            call MPI_Bcast(vr, lr+1, MPI_REAL8, cur_pcol, mpi_comm_cols, mpierr)
-
-
 
              vmrCPU(1:lr,lc) = vr(1:lr)
 
@@ -982,8 +651,6 @@ end subroutine
 ! Local dot product
 
            aux1 = 0
-
-
 
            nlc = 0 ! number of local columns
            do j=1,lc-1
@@ -996,9 +663,7 @@ end subroutine
 
 ! Get global dot products
 
-
            if (nlc>0) call mpi_allreduce(aux1, aux2, nlc, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
-
 
 ! Transform
 
@@ -1031,7 +696,6 @@ end subroutine
              tmat(lc,lc+1:n_cols,istep) = -tau * vav(lc+1:n_cols,lc)
            endif
          enddo
-       endif
 
 ! Transpose vmr -> vmc (stored in umc, second half)
 
@@ -1145,12 +809,8 @@ end subroutine
              stop
            endif
 
-
-
            call mpi_allreduce(umcCPU, tmpCPU, l_cols*n_cols, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
            umcCPU(1:l_cols,1:n_cols) = tmpCPU(1:l_cols,1:n_cols)
-
-
 
            deallocate(tmpCPU, stat=istat, errmsg=errorMessage)
            if (istat .ne. 0) then
@@ -1184,8 +844,6 @@ end subroutine
 
 ! A = A - V*U**T - U*V**T
 
-
-
          do i=0,(istep*nbw-1)/tile_size
            lcs = i*l_cols_tile+1
            lce = min(l_cols,(i+1)*l_cols_tile)
@@ -1195,7 +853,6 @@ end subroutine
                        vmrCPU, ubound(vmrCPU,dim=1), umcCPU(lcs,1), ubound(umcCPU,dim=1), &
                        1.0_rk8, a(1,lcs), lda)
          enddo
-
 
          if (allocated(vr)) then
            deallocate(vr, stat=istat, errmsg=errorMessage)
@@ -1247,24 +904,6 @@ end subroutine
        endif
      endif
 
-     if (useQR) then
-       if (which_qr_decomposition == 1) then
-         deallocate(work_blocked, stat=istat, errmsg=errorMessage)
-         if (istat .ne. 0) then
-           print *,"bandred_real: error when deallocating work_blocked "//errorMessage
-           stop
-         endif
-
-         deallocate(tauvector, stat=istat, errmsg=errorMessage)
-         if (istat .ne. 0) then
-           print *,"bandred_real: error when deallocating tauvector "//errorMessage
-           stop
-         endif
-       endif
-     endif
-
-
-
    end subroutine bandred_real_double ! slower for gpu on 10000 10000 ???
 
     subroutine symm_matrix_allreduce_double(n,a,lda,ldb,comm)
@@ -1283,15 +922,11 @@ end subroutine
       integer(kind=ik)             :: i, nc, mpierr
       real(kind=rk8)     :: h1(n*n), h2(n*n)
 
-
-
       nc = 0
       do i=1,n
         h1(nc+1:nc+i) = a(1:i,i)
         nc = nc+i
       enddo
-
-
 
       call mpi_allreduce(h1, h2, nc, MPI_REAL8, MPI_SUM, comm, mpierr)
 
@@ -1302,15 +937,12 @@ end subroutine
         nc = nc+i
       enddo
 
-
 !      nc = 0
 !      do i=1,n
 !        a(1:i,i) = h2(nc+1:nc+i)
 !        a(i,1:i-1) = a(1:i-1,i)
 !        nc = nc+i
 !      enddo
-
-
 
     end subroutine symm_matrix_allreduce_double
 
@@ -1359,7 +991,6 @@ end subroutine
 
       real(kind=rk8)               :: a(lda,*), q(ldq,*), tmat(nbw,nbw,*)
 
-
       integer(kind=C_intptr_T)               :: a_dev ! passed from bandred_real at the moment not used since copied in bandred_real
 
       integer(kind=ik)                       :: my_prow, my_pcol, np_rows, np_cols, mpierr
@@ -1374,7 +1005,7 @@ end subroutine
 ! q is changed in trans_ev_tridi on the host, copied to device and passed here. this can be adapted
 ! tmp_dev is first used in this routine
 ! tmat_dev is passed along from bandred_real
-      integer(kind=C_intptr_T)               :: hvm_dev, q_dev, tmp_dev, tmat_dev
+      integer(kind=C_intptr_T)               :: q_dev, tmat_dev
 
       integer(kind=ik)                       :: i
 
@@ -1386,8 +1017,6 @@ end subroutine
       logical                                :: successCUDA
 
       successCUDA = .true.
-
-
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -1456,10 +1085,7 @@ end subroutine
 
             if (lc==n_cols .or. mod(ncol,nblk)==0) then
 
-
               call MPI_Bcast(hvb(ns+1), nb-ns, MPI_REAL8, pcol(ncol, nblk, np_cols), mpi_comm_cols, mpierr)
-
-
 
               ns = nb
             endif
@@ -1491,17 +1117,12 @@ end subroutine
               call DGEMM('T', 'N', t_rows, t_cols, l_rows, 1.0_rk8, hvm(1,1), max_local_rows, hvm(1,(i-1)*nbw+1), &
                         max_local_rows, 0.0_rk8, t_tmp, cwy_blocking)
 
-
-
               call mpi_allreduce(t_tmp, t_tmp2, cwy_blocking*nbw, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
-
 
               call DTRMM('L', 'U', 'N', 'N', t_rows, t_cols, 1.0_rk8, tmat_complete, cwy_blocking, t_tmp2, cwy_blocking)
               call DTRMM('R', 'U', 'N', 'N', t_rows, t_cols, -1.0_rk8, tmat_complete(t_rows+1,t_rows+1), cwy_blocking, &
                          t_tmp2, cwy_blocking)
               tmat_complete(1:t_rows,t_rows+1:t_rows+t_cols) = t_tmp2(1:t_rows,1:t_cols)
-
-
 
 !              call DTRMM('L', 'U', 'N', 'N', t_rows, t_cols, 1.0_rk8, tmat_complete, cwy_blocking, t_tmp2, cwy_blocking)
 !              call DTRMM('R', 'U', 'N', 'N', t_rows, t_cols, -1.0_rk8, tmat_complete(t_rows+1,t_rows+1), cwy_blocking, &
@@ -1522,18 +1143,13 @@ end subroutine
             tmp1(1:l_cols*n_cols) = 0.0_rk8
           endif ! l_rows>0
 
-
-
           call mpi_allreduce(tmp1, tmp2, n_cols*l_cols, MPI_REAL8, MPI_SUM, mpi_comm_rows ,mpierr)
-
-
 
           if (l_rows>0) then
             call DTRMM('L', 'U', 'T', 'N', n_cols, l_cols, 1.0_rk8, tmat_complete, cwy_blocking, tmp2, n_cols)
             call DGEMM('N', 'N', l_rows, l_cols, n_cols, -1.0_rk8, hvm, ubound(hvm,dim=1), tmp2, n_cols, 1.0_rk8, q, ldq)
 
           endif
-
 
 !          if (l_rows>0) then
 !            call DTRMM('L', 'U', 'T', 'N', n_cols, l_cols, 1.0_rk8, tmat_complete, cwy_blocking, tmp2, n_cols)
@@ -1552,17 +1168,6 @@ end subroutine
         print *,"trans_ev_band_to_full_real: error when deallocating hvm "//errorMessage
         stop
       endif
-
-      if (useQr) then
-        deallocate(tmat_complete, t_tmp, t_tmp2, stat=istat, errmsg=errorMessage)
-        if (istat .ne. 0) then
-          print *,"trans_ev_band_to_full_real: error when deallocating tmat_complete, t_tmp, t_tmp2 "//errorMessage
-          stop
-        endif
-
-      endif
-
-
 
     end subroutine trans_ev_band_to_full_real_double
 
@@ -1608,7 +1213,7 @@ end subroutine
       real(kind=rk8)                 :: vnorm2, hv(nb), tau, x, h(nb), ab_s(1+nb), hv_s(nb), hv_new(nb), tau_new, hf
       real(kind=rk8)                 :: hd(nb), hs(nb)
 
-      integer(kind=ik)                         :: i, j, n, nc, nr, ns, ne, istep, iblk, nblocks_total, nblocks, nt
+      integer(kind=ik)                         :: i, n, nc, nr, ns, ne, istep, iblk, nblocks_total, nblocks, nt
       integer(kind=ik)                         :: my_pe, n_pes, mpierr
       integer(kind=ik)                         :: my_prow, np_rows, my_pcol, np_cols
       integer(kind=ik)                         :: ireq_ab, ireq_hv
@@ -1619,13 +1224,8 @@ end subroutine
       integer(kind=ik), allocatable            :: block_limits(:)
       real(kind=rk8), allocatable    :: ab(:,:), hh_gath(:,:,:), hh_send(:,:,:)
 
-
       integer                                  :: istat
       character(200)                           :: errorMessage
-
-
-
-
 
       call mpi_comm_rank(mpi_comm,my_pe,mpierr)
       call mpi_comm_size(mpi_comm,n_pes,mpierr)
@@ -1643,19 +1243,10 @@ end subroutine
         stop
       endif
 
-
       global_id(:,:) = 0
       global_id(my_prow, my_pcol) = my_pe
 
-
-
-
-
-
       call mpi_allreduce(mpi_in_place, global_id, np_rows*np_cols, mpi_integer, mpi_sum, mpi_comm, mpierr)
-
-
-
 
 ! Total number of blocks in the band:
 
@@ -1724,7 +1315,6 @@ end subroutine
         stop
       endif
 
-
 ! Allocate and init MPI requests
 
       allocate(ireq_hhr(num_chunks), stat=istat, errmsg=errorMessage) ! Recv requests
@@ -1748,11 +1338,8 @@ end subroutine
         if (mod(n-1,np_cols) == my_pcol .and. local_size>0 .and. nx>1) then
           num_chunks  = num_chunks+1
 
-
           call mpi_irecv(hh_trans_real(1,num_hh_vecs+1), nb*local_size, MPI_REAL8, nt, &
                            10+n-block_limits(nt), mpi_comm, ireq_hhr(num_chunks), mpierr)
-
-
 
           num_hh_vecs = num_hh_vecs + local_size
         endif
@@ -1811,8 +1398,6 @@ end subroutine
         call determine_workload(na-(iblk+block_limits(my_pe)-1)*nb, nb, np_rows, snd_limits(:,iblk))
       enddo
 
-
-
 ! ---------------------------------------------------------------------------
 ! Start of calculations
 
@@ -1823,18 +1408,11 @@ end subroutine
 ! Only the PE owning the diagonal does that (sending 1 element of the subdiagonal block also)
         ab_s(1:nb+1) = ab(1:nb+1,na_s-n_off)
 
-
         call mpi_isend(ab_s, nb+1, MPI_REAL8, my_pe-1, 1, mpi_comm, ireq_ab, mpierr)
-
 
       endif
 
-
-
-
-
       do istep=1,na-1
-
 
         if (my_pe==0) then
           n = MIN(na-na_s,nb) ! number of rows to be reduced
@@ -1859,16 +1437,7 @@ end subroutine
           if (na>na_s) then
 ! Receive Householder vector from previous task, from PE owning subdiagonal
 
-
-
-
-
-
             call mpi_recv(hv, nb, MPI_REAL8, my_pe-1, 2, mpi_comm, MPI_STATUS_IGNORE, mpierr)
-
-
-
-
 
             tau = hv(1)
             hv(1) = 1.0_rk8
@@ -1881,8 +1450,6 @@ end subroutine
           ab(:,nblocks*nb+1:(nblocks+1)*nb) = 0.0_rk8
           n_off = n_off + nb
         endif
-
-
 
           do iblk=1,nblocks
             ns = na_s + (iblk-1)*nb - n_off ! first column in block
@@ -1897,26 +1464,18 @@ end subroutine
             hh_gath(1   ,hh_cnt(iblk),iblk) = tau
             hh_gath(2:nb,hh_cnt(iblk),iblk) = hv(2:nb)
 
-
             if (hh_cnt(iblk) == snd_limits(hh_dst(iblk)+1,iblk)-snd_limits(hh_dst(iblk),iblk)) then
 ! Wait for last transfer to finish
 
-
-
               call mpi_wait(ireq_hhs(iblk), MPI_STATUS_IGNORE, mpierr)
-
 
 ! Copy vectors into send buffer
               hh_send(:,1:hh_cnt(iblk),iblk) = hh_gath(:,1:hh_cnt(iblk),iblk)
 ! Send to destination
 
-
-
               call mpi_isend(hh_send(1,1,iblk), nb*hh_cnt(iblk), MPI_REAL8, &
                            global_id(hh_dst(iblk), mod(iblk+block_limits(my_pe)-1,np_cols)), &
                            10+iblk, mpi_comm, ireq_hhs(iblk), mpierr)
-
-
 
 ! Reset counter and increase destination row
               hh_cnt(iblk) = 0.0_rk8
@@ -1950,12 +1509,7 @@ end subroutine
 
 ! ... then request last column ...
 
-
-
               call mpi_recv(ab(1,ne), nb+1, MPI_REAL8, my_pe+1, 1, mpi_comm, MPI_STATUS_IGNORE, mpierr)
-
-
-
 
 ! ... and complete the result
               hs(1:nr) = hs(1:nr) + ab(2:nr+1,ne)*tau*hv(nb)
@@ -1991,21 +1545,12 @@ end subroutine
 
               if (iblk==nblocks) then
 
-
-
                 call mpi_wait(ireq_hv,MPI_STATUS_IGNORE,mpierr)
-
-
-
 
                 hv_s(1) = tau_new
                 hv_s(2:) = hv_new(2:)
 
-
-
                 call mpi_isend(hv_s, nb, MPI_REAL8, my_pe+1, 2, mpi_comm, ireq_hv, mpierr)
-
-
 
               endif
 
@@ -2024,22 +1569,11 @@ end subroutine
 
 ! ... send it away ...
 
-
-
-
               call mpi_wait(ireq_ab,MPI_STATUS_IGNORE,mpierr)
-
-
-
 
               ab_s(1:nb+1) = ab(1:nb+1,ns)
 
-
-
-
               call mpi_isend(ab_s, nb+1, MPI_REAL8, my_pe-1, 1, mpi_comm, ireq_ab, mpierr)
-
-
 
 ! ... and calculate remaining columns with rank-2 update
               if (nc>1) call DSYR2('L', nc-1, -1.0_rk8, hd(2), 1, hv(2), 1, ab(1,ns+1), 2*nb-1)
@@ -2073,14 +1607,9 @@ end subroutine
 
           enddo
 
-
       enddo ! istep
 
 ! Finish the last outstanding requests
-
-
-
-
 
       call mpi_wait(ireq_ab,MPI_STATUS_IGNORE,mpierr)
       call mpi_wait(ireq_hv,MPI_STATUS_IGNORE,mpierr)
@@ -2088,14 +1617,7 @@ end subroutine
       call mpi_waitall(nblocks, ireq_hhs, MPI_STATUSES_IGNORE, mpierr)
       call mpi_waitall(num_chunks, ireq_hhr, MPI_STATUSES_IGNORE, mpierr)
 
-
-
-
-
-
-
       call mpi_barrier(mpi_comm,mpierr)
-
 
       deallocate(ab, stat=istat, errmsg=errorMessage)
       if (istat .ne. 0) then
@@ -2138,7 +1660,6 @@ end subroutine
          print *,"tridiag_band_real: error when allocating global_id"//errorMessage
          stop
        endif
-
 
     end subroutine tridiag_band_real_double
 
@@ -2186,7 +1707,6 @@ end subroutine
 
       integer(kind=c_intptr_t)                 :: q_dev
 
-
       real(kind=rk8), intent(in)     :: hh_trans_real(:,:)
       integer(kind=ik)                         :: np_rows, my_prow, np_cols, my_pcol
 
@@ -2200,45 +1720,24 @@ end subroutine
       integer(kind=ik)                         :: a_off, current_tv_off, max_blk_size
       integer(kind=ik)                         :: mpierr, src, src_offset, dst, offset, nfact, num_blk
 
-
-
       logical                                  :: flag
-
 
       real(kind=rk8), pointer        :: aIntern(:,:,:)
 
-      real(kind=rk8)                 :: a_real
       type(c_ptr)                              :: aIntern_ptr
       real(kind=rk8)   , allocatable :: row(:)
-      real(kind=rk8)   , allocatable :: row_group(:,:)
-
 
       real(kind=rk8), allocatable    :: top_border_send_buffer(:,:,:), top_border_recv_buffer(:,:,:)
       real(kind=rk8), allocatable    :: bottom_border_send_buffer(:,:,:), bottom_border_recv_buffer(:,:,:)
 
       real(kind=rk8), allocatable    :: result_buffer(:,:,:)
       real(kind=rk8), allocatable    :: bcast_buffer(:,:)
-      integer(kind=ik)                         :: tmp
-
-!      real*8, allocatable, device              :: a_dev(:,:,:)
-!      real*8, allocatable, device              :: bcast_buffer_dev(:,:)
-!      real*8, allocatable, device              :: row_dev(:)
-!      real*8, allocatable, device              :: row_group_dev(:,:)
-!      real*8, allocatable, device              :: hh_dot_dev(:)
-!      real*8, allocatable, device              :: hh_tau_dev(:)
 
       integer(kind=c_intptr_t)                 :: aIntern_dev
       integer(kind=c_intptr_t)                 :: bcast_buffer_dev
-      integer(kind=c_size_t)                   :: num
-      integer(kind=c_size_t)                   :: dev_offset, dev_offset_1
 
-
-      integer(kind=c_intptr_t)                 :: row_dev
-      integer(kind=c_intptr_t)                 :: row_group_dev
       integer(kind=c_intptr_t)                 :: hh_dot_dev
       integer(kind=c_intptr_t)                 :: hh_tau_dev
-      Integer(kind=ik)                         :: top, chunk, this_chunk
-      integer(kind=ik)                         :: row_group_size, unpack_idx
 
       integer(kind=ik)                         :: n_off
       integer(kind=ik), allocatable            :: result_send_request(:), result_recv_request(:), limits(:)
@@ -2252,11 +1751,9 @@ end subroutine
       integer(kind=ik), parameter              :: result_recv_tag = 333
 
 ! Just for measuring the kernel performance
-      real(kind=c_double)                      :: kernel_time, kernel_time_recv ! MPI_WTIME always needs double
+      real(kind=c_double)                      :: kernel_time
 ! long integer
-      integer(kind=lik)                        :: kernel_flops, kernel_flops_recv
-
-
+      integer(kind=lik)                        :: kernel_flops
 
       logical, intent(in)                      :: wantDebug
       logical                                  :: success
@@ -2266,17 +1763,11 @@ end subroutine
 
       integer(kind=C_SIZE_T)                   :: aux_int
 
-
       successCUDA = .true.
-
-
-
 
       success = .true.
       kernel_time = 0.0
       kernel_flops = 0
-
-
 
       call MPI_Comm_rank(mpi_comm_rows, my_prow, mpierr)
       call MPI_Comm_size(mpi_comm_rows, np_rows, mpierr)
@@ -2296,7 +1787,6 @@ end subroutine
 
       nfact = nbw / nblk
 
-
 ! local number of eigenvectors
       l_nev = local_index(nev, my_pcol, np_cols, nblk, -1)
 
@@ -2310,10 +1800,7 @@ end subroutine
 ! Suggested stripe width is 48 since 48*64 real*8 numbers should fit into
 ! every primary cache
 
-
-
           stripe_width = 48 ! Must be a multiple of 4
-
 
           stripe_count = (l_nev-1)/stripe_width + 1
 
@@ -2361,7 +1848,6 @@ end subroutine
 
         aIntern(:,:,:) = 0.0_rk8
 
-
       allocate(row(l_nev), stat=istat, errmsg=errorMessage)
       if (istat .ne. 0) then
         print *,"trans_ev_tridi_to_band_real: error when allocating row"//errorMessage
@@ -2375,8 +1861,6 @@ end subroutine
 ! The peculiar way it is done below is due to the fact that the last row should be
 ! ready first since it is the first one to start below
 
-
-
       do ip = np_rows-1, 0, -1
         if (my_prow == ip) then
 ! Receive my rows which have not yet been received
@@ -2387,20 +1871,13 @@ end subroutine
 
                 call MPI_Recv(row, l_nev, MPI_REAL8, src, 0, mpi_comm_rows, MPI_STATUS_IGNORE, mpierr)
 
-
-
                 call unpack_row_real_cpu_double(aIntern, row,i-limits(ip), stripe_count, stripe_width, last_stripe_width)
-
 
             elseif (src==my_prow) then
               src_offset = src_offset+1
               row(:) = q(src_offset, 1:l_nev)
 
-
-
                 call unpack_row_real_cpu_double(aIntern, row,i-limits(ip),  stripe_count, stripe_width, last_stripe_width)
-
-
 
             endif
           enddo
@@ -2413,9 +1890,7 @@ end subroutine
                 src_offset = src_offset+1
                 row(:) = q(src_offset, 1:l_nev)
 
-
                 call MPI_Send(row, l_nev, MPI_REAL8, dst, 0, mpi_comm_rows, mpierr)
-
 
               endif
             enddo
@@ -2430,9 +1905,7 @@ end subroutine
               src_offset = src_offset+1
               row(:) = q(src_offset, 1:l_nev)
 
-
               call MPI_Send(row, l_nev, MPI_REAL8, ip, 0, mpi_comm_rows, mpierr)
-
 
             endif
           enddo
@@ -2442,7 +1915,6 @@ end subroutine
             if (src == ip) then
 
                 call MPI_Recv(row, l_nev, MPI_REAL8, src, 0, mpi_comm_rows, MPI_STATUS_IGNORE, mpierr)
-
 
                 call unpack_row_real_cpu_double(aIntern, row,i-limits(my_prow), stripe_count, stripe_width, last_stripe_width)
 
@@ -2474,7 +1946,6 @@ end subroutine
         stop
       endif
 
-
       result_send_request(:) = MPI_REQUEST_NULL
       result_recv_request(:) = MPI_REQUEST_NULL
 
@@ -2483,10 +1954,8 @@ end subroutine
       if (my_prow > 0 .and. l_nev>0) then ! note: row 0 always sends
         do j = 1, min(num_result_buffers, num_result_blocks)
 
-
           call MPI_Irecv(result_buffer(1,1,j), l_nev*nblk, MPI_REAL8, 0, result_recv_tag, &
                               mpi_comm_rows, result_recv_request(j), mpierr)
-
 
         enddo
       endif
@@ -2519,14 +1988,10 @@ end subroutine
          stop
        endif
 
-
       top_send_request(:) = MPI_REQUEST_NULL
       top_recv_request(:) = MPI_REQUEST_NULL
       bottom_send_request(:) = MPI_REQUEST_NULL
       bottom_recv_request(:) = MPI_REQUEST_NULL
-
-
-
 
        allocate(top_border_send_buffer(stripe_width, nbw, stripe_count), stat=istat, errmsg=errorMessage)
        if (istat .ne. 0) then
@@ -2556,8 +2021,6 @@ end subroutine
       top_border_recv_buffer(:,:,:) = 0.0_rk8
       bottom_border_send_buffer(:,:,:) = 0.0_rk8
       bottom_border_recv_buffer(:,:,:) = 0.0_rk8
-
-
 
       allocate(bcast_buffer(nbw, max_blk_size), stat=istat, errmsg=errorMessage)
        if (istat .ne. 0) then
@@ -2605,16 +2068,8 @@ end subroutine
         if (sweep==0 .and. current_n_end < current_n .and. l_nev > 0) then
           do i = 1, stripe_count
 
-
-
-
-
             call MPI_Irecv(bottom_border_recv_buffer(1,1,i), nbw*stripe_width, MPI_REAL8, my_prow+1, bottom_recv_tag, &
                         mpi_comm_rows, bottom_recv_request(i), mpierr)
-
-
-
-
 
           enddo
         endif
@@ -2625,11 +2080,7 @@ end subroutine
             current_tv_off = current_tv_off + current_local_n
           endif
 
-
           call mpi_bcast(bcast_buffer, nbw*current_local_n, MPI_REAL8, mod(sweep,np_cols), mpi_comm_cols, mpierr)
-
-
-
 
         else ! (current_local_n > 1) then
 
@@ -2644,35 +2095,19 @@ end subroutine
 
           do i = 1, stripe_count
 
-
 !wait_b
             if (current_n_end < current_n) then
 
-
-
-
-
               call MPI_Wait(bottom_recv_request(i), MPI_STATUS_IGNORE, mpierr)
-
-
 
               n_off = current_local_n+a_off
 
                 aIntern(:,n_off+1:n_off+nbw,i) = bottom_border_recv_buffer(:,1:nbw,i)
 
-
            if (next_n_end < next_n) then
-
-
-
-
 
              call MPI_Irecv(bottom_border_recv_buffer(1,1,i), nbw*stripe_width, MPI_REAL8, my_prow+1, bottom_recv_tag, &
                                    mpi_comm_rows, bottom_recv_request(i), mpierr)
-
-
-
-
 
            endif
          endif
@@ -2682,12 +2117,7 @@ end subroutine
 !wait_t
            if (top_msg_length>0) then
 
-
-
-
              call MPI_Wait(top_recv_request(i), MPI_STATUS_IGNORE, mpierr)
-
-
 
                aIntern(:,a_off+1:a_off+top_msg_length,i) = top_border_recv_buffer(:,1:top_msg_length,i)
 
@@ -2700,14 +2130,9 @@ end subroutine
                                           hh_tau_dev, kernel_flops, kernel_time, 0, current_local_n, i,          &
                                           last_stripe_width, THIS_REAL_ELPA_KERNEL)
 
-
 !send_b
 
-
-
-
            call MPI_Wait(bottom_send_request(i), MPI_STATUS_IGNORE, mpierr)
-
 
            if (bottom_msg_length>0) then
              n_off = current_local_n+nbw-bottom_msg_length+a_off
@@ -2716,8 +2141,6 @@ end subroutine
 
              call MPI_Isend(bottom_border_send_buffer(1,1,i), bottom_msg_length*stripe_width, MPI_REAL8, my_prow+1, &
                             top_recv_tag, mpi_comm_rows, bottom_send_request(i), mpierr)
-
-
 
            endif
 
@@ -2732,10 +2155,7 @@ end subroutine
                                        last_stripe_width, THIS_REAL_ELPA_KERNEL)
 !send_b
 
-
-
         call MPI_Wait(bottom_send_request(i), MPI_STATUS_IGNORE, mpierr)
-
 
         if (bottom_msg_length > 0) then
           n_off = current_local_n+nbw-bottom_msg_length+a_off
@@ -2745,9 +2165,7 @@ end subroutine
           call MPI_Isend(bottom_border_send_buffer(1,1,i), bottom_msg_length*stripe_width, MPI_REAL8, my_prow+1, &
                          top_recv_tag, mpi_comm_rows, bottom_send_request(i), mpierr)
 
-
         endif
-
 
 !compute
 
@@ -2757,15 +2175,10 @@ end subroutine
                                        current_local_n-top_msg_length-bottom_msg_length, i,                       &
                                        last_stripe_width, THIS_REAL_ELPA_KERNEL)
 
-
 !wait_t
         if (top_msg_length>0) then
 
-
-
-
           call MPI_Wait(top_recv_request(i), MPI_STATUS_IGNORE, mpierr)
-
 
             aIntern(:,a_off+1:a_off+top_msg_length,i) = top_border_recv_buffer(:,1:top_msg_length,i)
 
@@ -2783,35 +2196,20 @@ end subroutine
       if (next_top_msg_length > 0) then
 !request top_border data
 
-
-
-
         call MPI_Irecv(top_border_recv_buffer(1,1,i), next_top_msg_length*stripe_width, MPI_REAL8, my_prow-1, &
                        top_recv_tag, mpi_comm_rows, top_recv_request(i), mpierr)
-
-
-
-
 
       endif
 
 !send_t
       if (my_prow > 0) then
 
-
-
-
         call MPI_Wait(top_send_request(i), MPI_STATUS_IGNORE, mpierr)
-
 
           top_border_send_buffer(:,1:nbw,i) = aIntern(:,a_off+1:a_off+nbw,i)
 
-
         call MPI_Isend(top_border_send_buffer(1,1,i), nbw*stripe_width, MPI_REAL8, my_prow-1, bottom_recv_tag, &
                        mpi_comm_rows, top_send_request(i), mpierr)
-
-
-
 
       endif
 
@@ -2819,25 +2217,11 @@ end subroutine
       if (stripe_count > 1) then
         if (i>1) then
 
-
-
-
-
           call MPI_Wait(top_recv_request(i-1), MPI_STATUS_IGNORE, mpierr)
-
-
-
 
         else
 
-
-
-
-
           call MPI_Wait(top_recv_request(stripe_count), MPI_STATUS_IGNORE, mpierr)
-
-
-
 
         endif
       endif
@@ -2850,13 +2234,7 @@ end subroutine
 ! wait for last top_send_request
     do i = 1, stripe_count
 
-
-
-
       call MPI_Wait(top_send_request(i), MPI_STATUS_IGNORE, mpierr)
-
-
-
 
       enddo
     endif
@@ -2873,16 +2251,7 @@ end subroutine
 
         nbuf = mod(num_blk, num_result_buffers) + 1 ! buffer number to get this block
 
-
-
-
-
-
         call MPI_Wait(result_send_request(nbuf), MPI_STATUS_IGNORE, mpierr)
-
-
-
-
 
         dst = mod(num_blk, np_rows)
 
@@ -2903,11 +2272,8 @@ end subroutine
 
             enddo
 
-
           call MPI_Isend(result_buffer(1,1,nbuf), l_nev*nblk, MPI_REAL8, dst, &
                                     result_recv_tag, mpi_comm_rows, result_send_request(nbuf), mpierr)
-
-
 
         endif ! (dst == 0)
       enddo  !j=0, nfact-1
@@ -2926,32 +2292,13 @@ end subroutine
 
         if (next_local_n > 0) then
 
-
-
-
-
           call MPI_Test(result_recv_request(nbuf), flag, MPI_STATUS_IGNORE, mpierr)
-
-
-
-
-
 
           if (.not.flag) exit
 
         else ! (next_local_n > 0)
 
-
-
-
-
-
           call MPI_Wait(result_recv_request(nbuf), MPI_STATUS_IGNORE, mpierr)
-
-
-
-
-
 
         endif ! (next_local_n > 0)
 
@@ -2963,17 +2310,12 @@ end subroutine
 
 ! Queue result buffer again if there are outstanding blocks left
 
-
-
         if (j+num_result_buffers < num_result_blocks) &
             call MPI_Irecv(result_buffer(1,1,nbuf), l_nev*nblk, MPI_REAL8, 0, result_recv_tag, &
                          mpi_comm_rows, result_recv_request(nbuf), mpierr)
 ! carefull the "recieve" has to be done at the corresponding wait or send
 !         if (j+num_result_buffers < num_result_blocks) &
 !                result_buffer(1:l_nev*nblk,1,nbuf) =  result_buffer(1:l_nev*nblk,1,nbuf)
-
-
-
 
       enddo ! j = num_bufs_recvd, num_result_blocks-1
       num_bufs_recvd = j
@@ -2998,8 +2340,6 @@ end subroutine
              enddo
          enddo ! stripe_count
 
-
-
          a_off = 0
        endif
 
@@ -3014,25 +2354,12 @@ end subroutine
 
      if (my_prow == 0) then
 
-
-
-
-
-
        call MPI_Waitall(num_result_buffers, result_send_request, MPI_STATUSES_IGNORE, mpierr)
-
-
-
-
 
      endif
 
      if (ANY(result_send_request /= MPI_REQUEST_NULL)) write(error_unit,*) '*** ERROR result_send_request ***',my_prow,my_pcol
      if (ANY(result_recv_request /= MPI_REQUEST_NULL)) write(error_unit,*) '*** ERROR result_recv_request ***',my_prow,my_pcol
-
-
-
-
 
 ! deallocate all working space
 
@@ -3123,11 +2450,9 @@ end subroutine
        stop
      endif
 
-
      return
 
     end subroutine trans_ev_tridi_to_band_real_double
-
 
     subroutine determine_workload(na, nb, nprocs, limits)
 
@@ -3138,8 +2463,6 @@ end subroutine
       integer(kind=ik), intent(out) :: limits(0:nprocs)
 
       integer(kind=ik)              :: i
-
-
 
       if (na <= 0) then
         limits(:) = 0
@@ -3158,7 +2481,6 @@ end subroutine
          enddo
       endif
 
-
     end subroutine
 
 !---------------------------------------------------------------------------------------------------
@@ -3174,8 +2496,6 @@ end subroutine
       integer(kind=ik), intent(out) :: block_limits(0:n_pes)
 
       integer(kind=ik)              :: n, nblocks, nblocks_left
-
-
 
       block_limits(0) = 0
       if (nblocks_total < n_pes) then
@@ -3197,11 +2517,7 @@ end subroutine
         enddo
       endif
 
-
-
     end subroutine
-
-
 
     subroutine band_band_real_double(na, nb, nbCol, nb2, nb2Col, ab, ab2, d, e, mpi_comm)
 !-------------------------------------------------------------------------------
@@ -3259,10 +2575,9 @@ end subroutine
 !      integer(kind=ik), allocatable            :: mpi_statuses(:,:)
       integer(kind=ik), allocatable            :: block_limits(:), block_limits2(:), ireq_ab2(:)
 
-      integer(kind=ik)                         :: j, nc, nr, ns, ne, iblk
+      integer(kind=ik)                         :: nc, nr, ns, ne, iblk
       integer(kind=ik)                         :: istat
       character(200)                           :: errorMessage
-
 
 !      if (na .lt. 2*nb) then
 !        print *,"na lt 2*nb ",na,2*nb
@@ -3281,10 +2596,8 @@ end subroutine
 !        stop
 !      endif
 
-
       call mpi_comm_rank(mpi_comm,my_pe,mpierr)
       call mpi_comm_size(mpi_comm,n_pes,mpierr)
-
 
 ! Total number of blocks in the band:
       nblocks_total = (na-1)/nb + 1
@@ -3316,9 +2629,6 @@ end subroutine
         stop
       endif
 
-
-
-
       ireq_ab2 = MPI_REQUEST_NULL
 
       if (nb2>1) then
@@ -3327,8 +2637,6 @@ end subroutine
           call mpi_irecv(ab2(1,i*nb2+1), 2*nb2*nb2, MPI_REAL8, 0, 3, mpi_comm, ireq_ab2(i+1), mpierr)
         enddo
       endif
-
-
 
 ! n_off: Offset of ab within band
       n_off = block_limits(my_pe)*nb
@@ -3350,10 +2658,7 @@ end subroutine
           ab_s(1:nb+1,i) = ab(1:nb+1,na_s-n_off+i-1)
         enddo
 
-
-
         call mpi_isend(ab_s, (nb+1)*nb2, MPI_REAL8, my_pe-1, 1, mpi_comm, ireq_ab, mpierr)
-
 
       endif
 
@@ -3393,11 +2698,7 @@ end subroutine
               dest = dest+1
             endif
 
-
             call mpi_send(ab_s2, 2*nb2*nb2, MPI_REAL8, dest, 3, mpi_comm, mpierr)
-
-
-
 
           endif
 
@@ -3405,11 +2706,7 @@ end subroutine
           if (na>na_s+nb2-1) then
 ! Receive Householder vectors from previous task, from PE owning subdiagonal
 
-
             call mpi_recv(hv, nb*nb2, MPI_REAL8, my_pe-1, 2, mpi_comm, MPI_STATUS_IGNORE, mpierr)
-
-
-
 
             do i=1,nb2
               tau(i) = hv(i,i)
@@ -3439,10 +2736,7 @@ end subroutine
             if (iblk==nblocks .and. nc==nb) then
 !request last nb2 columns
 
-
               call mpi_recv(ab_r,(nb+1)*nb2, MPI_REAL8, my_pe+1, 1, mpi_comm, MPI_STATUS_IGNORE, mpierr)
-
-
 
               do i=1,nb2
                 ab(1:nb+1,ne+i-1) = ab_r(:,i)
@@ -3463,21 +2757,14 @@ end subroutine
 !send hh-vector
               if (iblk==nblocks) then
 
-
-
                 call mpi_wait(ireq_hv,MPI_STATUS_IGNORE,mpierr)
-
-
 
                 hv_s = hv_new
                 do i=1,nb2
                   hv_s(i,i) = tau_new(i)
                 enddo
 
-
                 call mpi_isend(hv_s,nb*nb2, MPI_REAL8, my_pe+1, 2, mpi_comm, ireq_hv, mpierr)
-
-
 
               endif
             endif
@@ -3487,20 +2774,13 @@ end subroutine
             if (my_pe>0 .and. iblk==1) then
 !send first nb2 columns to previous PE
 
-
-
               call mpi_wait(ireq_ab,MPI_STATUS_IGNORE,mpierr)
-
-
 
               do i=1,nb2
                 ab_s(1:nb+1,i) = ab(1:nb+1,ns+i-1)
               enddo
 
-
               call mpi_isend(ab_s,(nb+1)*nb2, MPI_REAL8, my_pe-1, 1, mpi_comm, ireq_ab, mpierr)
-
-
 
             endif
 
@@ -3516,8 +2796,6 @@ end subroutine
         enddo
 
 ! Finish the last outstanding requests
-
-
 
         call mpi_wait(ireq_ab,MPI_STATUS_IGNORE,mpierr)
         call mpi_wait(ireq_hv,MPI_STATUS_IGNORE,mpierr)
@@ -3535,9 +2813,6 @@ end subroutine
 !        endif
 
         call mpi_barrier(mpi_comm,mpierr)
-
-
-
 
         deallocate(block_limits, stat=istat, errmsg=errorMessage)
         if (istat .ne. 0) then
@@ -3557,12 +2832,9 @@ end subroutine
           stop
         endif
 
-
-
     end subroutine
 
     subroutine wy_gen_double(n, nb, W, Y, tau, mem, lda)
-
 
       use precision
       implicit none
@@ -3576,8 +2848,6 @@ end subroutine
 
       integer(kind=ik)             :: i
 
-
-
    W(1:n,1) = tau(1)*Y(1:n,1)
    do i=2,nb
      W(1:n,i) = tau(i)*Y(1:n,i)
@@ -3588,7 +2858,6 @@ end subroutine
     end subroutine
 
     subroutine wy_left_double(n, m, nb, A, lda, W, Y, mem, lda2)
-
 
       use precision
       implicit none
@@ -3602,16 +2871,12 @@ end subroutine
       real(kind=rk8), intent(in)    :: Y(m,nb)    !blocked transformation matrix Y
       real(kind=rk8), intent(inout) :: mem(n,nb)  !memory for a temporary matrix of size n x nb
 
-
-
    call DGEMM('T', 'N', nb, n, m, 1.0_rk8, W, lda2, A, lda, 0.0_rk8, mem, nb)
    call DGEMM('N', 'N', m, n, nb, -1.0_rk8, Y, lda2, mem, nb, 1.0_rk8, A, lda)
-
 
     end subroutine
 
     subroutine wy_right_double(n, m, nb, A, lda, W, Y, mem, lda2)
-
 
       use precision
       implicit none
@@ -3625,18 +2890,12 @@ end subroutine
       real(kind=rk8), intent(in)    :: Y(m,nb)    !blocked transformation matrix Y
       real(kind=rk8), intent(inout) :: mem(n,nb)  !memory for a temporary matrix of size n x nb
 
-
-
-
    call DGEMM('N', 'N', n, nb, m, 1.0_rk8, A, lda, W, lda2, 0.0_rk8, mem, n)
    call DGEMM('N', 'T', n, m, nb, -1.0_rk8, mem, n, Y, lda2, 1.0_rk8, A, lda)
-
-
 
     end subroutine
 
     subroutine wy_symm_double(n, nb, A, lda, W, Y, mem, mem2, lda2)
-
 
       use precision
       implicit none
@@ -3650,31 +2909,16 @@ end subroutine
       real(kind=rk8)                :: mem(n,nb)  !memory for a temporary matrix of size n x nb
       real(kind=rk8)                :: mem2(nb,nb)    !memory for a temporary matrix of size nb x nb
 
-
-
    call DSYMM('L', 'L', n, nb, 1.0_rk8, A, lda, W, lda2, 0.0_rk8, mem, n)
    call DGEMM('T', 'N', nb, nb, n, 1.0_rk8, mem, n, W, lda2, 0.0_rk8, mem2, nb)
    call DGEMM('N', 'N', n, nb, nb, -0.5_rk8, Y, lda2, mem2, nb, 1.0_rk8, mem, n)
    call DSYR2K('L', 'N', n, nb, -1.0_rk8, Y, lda2, mem, n, 1.0_rk8, A, lda)
 
-
-
     end subroutine
-
-
-
-
 
 ! real single precision
 
-
 ! complex double precision
-
-
-
-
-
-
 
     subroutine bandred_complex_double(na, a, lda, nblk, nbw, matrixCols, numBlocks, mpi_comm_rows, mpi_comm_cols, tmat, wantDebug, &
                              useGPU, success)
@@ -3719,10 +2963,7 @@ end subroutine
 
       complex(kind=ck8)              :: a(lda,*), tmat(nbw,nbw,*)
 
-
-
       complex(kind=ck8), parameter   :: CZERO = (0.0_rk8, 0.0_rk8), CONE = (1.0_rk8, 0.0_rk8)
-
 
       integer(kind=ik)                            :: my_prow, my_pcol, np_rows, np_cols, mpierr
       integer(kind=ik)                            :: l_cols, l_rows
@@ -3734,13 +2975,9 @@ end subroutine
       complex(kind=ck8)              :: xf, aux1(nbw), aux2(nbw), vrl, tau, vav(nbw,nbw)
 
       complex(kind=ck8), allocatable :: tmp(:,:), vr(:), vmr(:,:), umc(:,:)
-      integer(kind=c_intptr_t)                    :: umc_dev, tmat_dev,vav_dev,vmr_dev,a_dev
-      integer(kind=ik)                            :: cur_l_rows, cur_l_cols,vmr_size ,umc_size
-      integer(kind=c_size_t)                      :: lc_start, lc_end, lr_end, lce_1, lcs_1,lre_1
-      integer(kind=ik)                            :: na_rows, na_cols
+      integer(kind=c_intptr_t)                    :: umc_dev, vmr_dev,a_dev
 
       integer(kind=ik), external                  :: numroc
-
 
       logical, intent(in)                         :: wantDebug
       logical, intent(out)                        :: success
@@ -3748,22 +2985,16 @@ end subroutine
       integer(kind=ik)                            :: istat
       logical                                     :: successCUDA
 
-
       istat = 0
       a_dev = 0
       umc_dev = 0
       vmr_dev = 0
       successCUDA = .true.
 
-
-
-
-
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
       call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
-
 
       success = .true.
 
@@ -3816,11 +3047,9 @@ end subroutine
             stop
           endif
 
-
         vmr(1:l_rows,1:n_cols) = 0._ck4
         vr(:) = 0._ck4
         tmat(:,:,istep) = 0._ck4
-
 
 ! Reduce current block to lower triangular form
 
@@ -3855,13 +3084,7 @@ end subroutine
 
             endif
 
-
-
-
             call mpi_allreduce(aux1, aux2, 2, MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_rows, mpierr)
-
-
-
 
             vnorm2 = aux2(1)
             vrl    = aux2(2)
@@ -3889,13 +3112,7 @@ end subroutine
 
           vr(lr+1) = tau
 
-
-
-
           call MPI_Bcast(vr, lr+1, MPI_DOUBLE_COMPLEX, cur_pcol, mpi_comm_cols, mpierr)
-
-
-
 
           vmr(1:lr,lc) = vr(1:lr)
           tau = vr(lr+1)
@@ -3906,7 +3123,6 @@ end subroutine
 ! Local dot product
 
           aux1 = 0._ck8
-
 
           nlc = 0 ! number of local columns
           do j=1,lc-1
@@ -3919,11 +3135,7 @@ end subroutine
 
 ! Get global dot products
 
-
-
-
           if (nlc>0) call mpi_allreduce(aux1, aux2, nlc, MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_rows, mpierr)
-
 
 ! Transform
 
@@ -3935,9 +3147,6 @@ end subroutine
               a(1:lr,lcx) = a(1:lr,lcx) - conjg(tau)*aux2(nlc)*vr(1:lr)
             endif
           enddo
-
-
-
 
 !
 !          ! Transform
@@ -3962,8 +3171,6 @@ end subroutine
            call zherk('U', 'C', n_cols, l_rows, CONE, vmr, ubound(vmr,dim=1), CZERO, vav, ubound(vav,dim=1))
         call herm_matrix_allreduce_double(n_cols,vav, nbw,nbw,mpi_comm_rows)
 
-
-
 ! Calculate triangular matrix T for block Householder Transformation
 
         do lc=n_cols,1,-1
@@ -3981,7 +3188,6 @@ end subroutine
         call elpa_transpose_vectors_complex_double  (vmr, ubound(vmr,dim=1), mpi_comm_rows, &
                                       umc(1,n_cols+1), ubound(umc,dim=1), mpi_comm_cols, &
                                       1, istep*nbw, n_cols, nblk)
-
 
 ! Calculate umc = A**T * vmr
 ! Note that the distributed A has to be transposed
@@ -4026,7 +3232,6 @@ end subroutine
 
         endif
 
-
         if (l_cols>0) then
           allocate(tmp(l_cols,n_cols), stat=istat, errmsg=errorMessage)
           if (istat .ne. 0) then
@@ -4034,11 +3239,7 @@ end subroutine
             stop
           endif
 
-
-
           call mpi_allreduce(umc, tmp, l_cols*n_cols, MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_rows, mpierr)
-
-
 
           umc(1:l_cols,1:n_cols) = tmp(1:l_cols,1:n_cols)
           deallocate(tmp, stat=istat, errmsg=errorMessage)
@@ -4048,12 +3249,9 @@ end subroutine
           endif
         endif
 
-
-
 ! U = U * Tmat**T
           call ztrmm('Right', 'Upper', 'C', 'Nonunit', l_cols, n_cols, CONE, tmat(1,1,istep), ubound(tmat,dim=1), &
                      umc, ubound(umc,dim=1))
-
 
 ! VAV = Tmat * V**T * A * V * Tmat**T = (U*Tmat**T)**T * V * Tmat**T
 
@@ -4061,8 +3259,6 @@ end subroutine
                      ubound(umc,dim=1), CZERO, vav, ubound(vav,dim=1))
           call ztrmm('Right', 'Upper', 'C', 'Nonunit', n_cols, n_cols, CONE, tmat(1,1,istep), &
                      ubound(tmat,dim=1), vav, ubound(vav,dim=1))
-
-
 
           call herm_matrix_allreduce_double(n_cols,vav,nbw,nbw,mpi_comm_cols)
 
@@ -4072,7 +3268,6 @@ end subroutine
                      vav, ubound(vav,dim=1), CONE, umc, ubound(umc,dim=1))
 
 ! Transpose umc -> umr (stored in vmr, second half)
-
 
           call elpa_transpose_vectors_complex_double  (umc, ubound(umc,dim=1), mpi_comm_cols, &
                                                 vmr(1,n_cols+1), ubound(vmr,dim=1), mpi_comm_rows, &
@@ -4115,14 +3310,9 @@ end subroutine
              endif
            endif
 
-
        enddo ! istep
 
-
-
      end subroutine bandred_complex_double
-
-
 
      subroutine herm_matrix_allreduce_double(n,a,lda,ldb,comm)
 
@@ -4130,7 +3320,6 @@ end subroutine
 !  herm_matrix_allreduce: Does an mpi_allreduce for a hermitian matrix A.
 !  On entry, only the upper half of A needs to be set
 !  On exit, the complete matrix is set
-
 
       use precision
       implicit none
@@ -4140,20 +3329,13 @@ end subroutine
       integer(kind=ik)               :: i, nc, mpierr
       complex(kind=ck8) :: h1(n*n), h2(n*n)
 
-
-
        nc = 0
        do i=1,n
          h1(nc+1:nc+i) = a(1:i,i)
          nc = nc+i
        enddo
 
-
-
-
        call mpi_allreduce(h1, h2, nc, MPI_DOUBLE_COMPLEX, MPI_SUM, comm, mpierr)
-
-
 
        nc = 0
        do i=1,n
@@ -4162,9 +3344,6 @@ end subroutine
          nc = nc+i
        enddo
 
-
-
-
 !       nc = 0
 !       do i=1,n
 !         a(1:i,i) = h2(nc+1:nc+i)
@@ -4172,16 +3351,10 @@ end subroutine
 !         nc = nc+i
 !       enddo
 
-
-
-
      end subroutine herm_matrix_allreduce_double
-
-
 
      subroutine trans_ev_band_to_full_complex_double(na, nqc, nblk, nbw, a, lda, tmat, q, ldq, matrixCols, numBlocks, &
                                          mpi_comm_rows, mpi_comm_cols, useGPU)
-
 
 !-------------------------------------------------------------------------------
 !  trans_ev_band_to_full_complex:
@@ -4228,10 +3401,7 @@ end subroutine
 
       complex(kind=ck8)               :: a(lda,*), q(ldq,*), tmat(nbw,nbw,*)
 
-
-
        complex(kind=ck8), parameter   :: CZERO = (0.0_rk8,0.0_rk8), CONE = (1.0_rk8,0.0_rk8)
-
 
        integer(kind=ik)                            :: my_prow, my_pcol, np_rows, np_cols, mpierr
        integer(kind=ik)                            :: max_blocks_row, max_blocks_col, max_local_rows, max_local_cols
@@ -4240,23 +3410,16 @@ end subroutine
 
        complex(kind=ck8), allocatable :: tmp1(:), tmp2(:), hvb(:), hvm(:,:)
 
-       integer(kind=ik)                            :: i
-       integer(kind=C_intptr_T)                    :: hvm_dev, q_dev, tmat_dev, tmp_dev
-
        integer(kind=ik)                            :: istat
        character(200)                              :: errorMessage
        logical                                     :: successCUDA
 
        successCUDA = .true.
 
-
-
-
        call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
        call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
        call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
        call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
-
 
        max_blocks_row = ((na -1)/nblk)/np_rows + 1  ! Rows of A
        max_blocks_col = ((nqc-1)/nblk)/np_cols + 1  ! Columns of q!
@@ -4315,14 +3478,7 @@ end subroutine
 
            if (lc==n_cols .or. mod(ncol,nblk)==0) then
 
-
-
-
-
              call MPI_Bcast(hvb(ns+1), nb-ns, MPI_DOUBLE_COMPLEX, pcol(ncol, nblk, np_cols), mpi_comm_cols, mpierr)
-
-
-
 
              ns = nb
            endif
@@ -4353,15 +3509,9 @@ end subroutine
 
            tmp1(1:l_cols*n_cols) = 0._ck8
 
-
          endif
 
-
-
-
          call mpi_allreduce(tmp1, tmp2, n_cols*l_cols, MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_rows, mpierr)
-
-
 
          if (l_rows>0) then
 
@@ -4381,11 +3531,8 @@ end subroutine
 
      end subroutine trans_ev_band_to_full_complex_double
 
-
-
     subroutine tridiag_band_complex_double(na, nb, nblk, a, lda, d, e, matrixCols, hh_trans_complex, &
                                     mpi_comm_rows, mpi_comm_cols, mpi_comm)
-
 
 !-------------------------------------------------------------------------------
 ! tridiag_band_complex:
@@ -4428,7 +3575,7 @@ end subroutine
       complex(kind=ck8)               :: hv(nb), tau, x, h(nb), ab_s(1+nb), hv_s(nb), hv_new(nb), tau_new, hf
       complex(kind=ck8)               :: hd(nb), hs(nb)
 
-      integer(kind=ik)                             :: i, j, n, nc, nr, ns, ne, istep, iblk, nblocks_total, nblocks, nt
+      integer(kind=ik)                             :: i, n, nc, nr, ns, ne, istep, iblk, nblocks_total, nblocks, nt
       integer(kind=ik)                             :: my_pe, n_pes, mpierr
       integer(kind=ik)                             :: my_prow, np_rows, my_pcol, np_cols
       integer(kind=ik)                             :: ireq_ab, ireq_hv
@@ -4441,11 +3588,8 @@ end subroutine
       integer(kind=ik)                             :: istat
       character(200)                               :: errorMessage
 
-
 !   ! dummies for calling redist_band
 !   real*8                   :: r_a(1,1), r_ab(1,1)
-
-
 
       call mpi_comm_rank(mpi_comm,my_pe,mpierr)
       call mpi_comm_size(mpi_comm,n_pes,mpierr)
@@ -4463,10 +3607,7 @@ end subroutine
       global_id(:,:) = 0
       global_id(my_prow, my_pcol) = my_pe
 
-
       call mpi_allreduce(mpi_in_place, global_id, np_rows*np_cols, mpi_integer, mpi_sum, mpi_comm, mpierr)
-
-
 
 ! Total number of blocks in the band:
 
@@ -4494,8 +3635,6 @@ end subroutine
       endif
 
       ab = 0 ! needed for lower half, the extra block should also be set to 0 for safety
-
-
 
 ! n_off: Offset of ab within band
       n_off = block_limits(my_pe)*nb
@@ -4562,12 +3701,8 @@ end subroutine
         if (mod(n-1,np_cols) == my_pcol .and. local_size>0 .and. nx>1) then
           num_chunks  = num_chunks+1
 
-
-
           call mpi_irecv(hh_trans_complex(1,num_hh_vecs+1), nb*local_size, MPI_COMPLEX16, nt, &
                            10+n-block_limits(nt), mpi_comm, ireq_hhr(num_chunks), mpierr)
-
-
 
           num_hh_vecs = num_hh_vecs + local_size
         endif
@@ -4593,10 +3728,8 @@ end subroutine
         stop
       endif
 
-
       hh_gath(:,:,:) = 0._ck8
       hh_send(:,:,:) = 0._ck8
-
 
 ! Some counters
 
@@ -4629,8 +3762,6 @@ end subroutine
         call determine_workload(na-(iblk+block_limits(my_pe)-1)*nb, nb, np_rows, snd_limits(:,iblk))
       enddo
 
-
-
 ! ---------------------------------------------------------------------------
 ! Start of calculations
 
@@ -4641,16 +3772,9 @@ end subroutine
 ! Only the PE owning the diagonal does that (sending 1 element of the subdiagonal block also)
         ab_s(1:nb+1) = ab(1:nb+1,na_s-n_off)
 
-
-
         call mpi_isend(ab_s, nb+1, MPI_COMPLEX16, my_pe-1, 1, mpi_comm, ireq_ab, mpierr)
 
-
-
       endif
-
-
-
 
       do istep=1,na-1
 
@@ -4670,8 +3794,6 @@ end subroutine
 
         call hh_transform_complex_double(ab(2,na_s-n_off),vnorm2,hf,tau)
 
-
-
         hv(1) = 1._ck8
 
         hv(2:n) = ab(3:n+1,na_s-n_off)*hf
@@ -4688,15 +3810,7 @@ end subroutine
         if (na>na_s) then
 ! Receive Householder vector from previous task, from PE owning subdiagonal
 
-
-
-
-
           call mpi_recv(hv, nb, MPI_COMPLEX16, my_pe-1, 2, mpi_comm, MPI_STATUS_IGNORE, mpierr)
-
-
-
-
 
           tau = hv(1)
 
@@ -4712,7 +3826,6 @@ end subroutine
         n_off = n_off + nb
       endif
 
-
         do iblk=1,nblocks
 
           ns = na_s + (iblk-1)*nb - n_off ! first column in block
@@ -4727,27 +3840,18 @@ end subroutine
           hh_gath(1   ,hh_cnt(iblk),iblk) = tau
           hh_gath(2:nb,hh_cnt(iblk),iblk) = hv(2:nb)
 
-
-
           if (hh_cnt(iblk) == snd_limits(hh_dst(iblk)+1,iblk)-snd_limits(hh_dst(iblk),iblk)) then
 ! Wait for last transfer to finish
 
-
-
             call mpi_wait(ireq_hhs(iblk), MPI_STATUS_IGNORE, mpierr)
-
 
 ! Copy vectors into send buffer
             hh_send(:,1:hh_cnt(iblk),iblk) = hh_gath(:,1:hh_cnt(iblk),iblk)
 ! Send to destination
 
-
-
             call mpi_isend(hh_send(1,1,iblk), nb*hh_cnt(iblk), MPI_COMPLEX16, &
                             global_id(hh_dst(iblk), mod(iblk+block_limits(my_pe)-1,np_cols)), &
                             10+iblk, mpi_comm, ireq_hhs(iblk), mpierr)
-
-
 
 ! Reset counter and increase destination row
             hh_cnt(iblk) = 0
@@ -4760,11 +3864,9 @@ end subroutine
 ! and sends the Householder vector and the first column as early
 ! as possible.
 
-
           nc = MIN(na-ns-n_off+1,nb) ! number of columns in diagonal block
           nr = MIN(na-nb-ns-n_off+1,nb) ! rows in subdiagonal block (may be < 0!!!)
 ! Note that nr>=0 implies that diagonal block is full (nc==nb)!
-
 
 ! Multiply diagonal block and subdiagonal block with Householder vector
 
@@ -4784,12 +3886,7 @@ end subroutine
 ! ... then request last column ...
 ! ... then request last column ...
 
-
-
             call mpi_recv(ab(1,ne), nb+1, MPI_COMPLEX16, my_pe+1, 1, mpi_comm, MPI_STATUS_IGNORE, mpierr)
-
-
-
 
 ! ... and complete the result
             hs(1:nr) = hs(1:nr) + ab(2:nr+1,ne)*tau*hv(nb)
@@ -4801,7 +3898,6 @@ end subroutine
             if (nr>0) call ZGEMV('N', nr, nb, tau, ab(nb+1,ns), 2*nb-1, hv, 1, (0.0_rk8,0.0_rk8), hs, 1)
 
           endif
-
 
 ! Calculate first column of subdiagonal block and calculate new
 ! Householder transformation for this column
@@ -4820,11 +3916,7 @@ end subroutine
 
                 vnorm2 = sum(real(ab(nb+2:nb+nr,ns),kind=rk8)**2+dimag(ab(nb+2:nb+nr,ns))**2)
 
-
-
                 call hh_transform_complex_double(ab(nb+1,ns),vnorm2,hf,tau_new)
-
-
 
                 hv_new(1) = 1._ck8
                 hv_new(2:nr) = ab(nb+2:nb+nr,ns)*hf
@@ -4836,34 +3928,21 @@ end subroutine
 
               if (iblk==nblocks) then
 
-
-
                 call mpi_wait(ireq_hv,MPI_STATUS_IGNORE,mpierr)
-
-
-
 
                 hv_s(1) = tau_new
                 hv_s(2:) = hv_new(2:)
 
-
-
-
                 call mpi_isend(hv_s, nb, MPI_COMPLEX16, my_pe+1, 2 ,mpi_comm, ireq_hv, mpierr)
-
-
-
 
               endif
 
             endif
 
-
 ! Transform diagonal block
            x = dot_product(hv(1:nc),hd(1:nc))*conjg(tau)
 
            hd(1:nc) = hd(1:nc) - 0.5_rk8*x*hv(1:nc)
-
 
            if (my_pe>0 .and. iblk==1) then
 
@@ -4874,22 +3953,11 @@ end subroutine
 
 ! ... send it away ...
 
-
-
-
-
              call mpi_wait(ireq_ab,MPI_STATUS_IGNORE,mpierr)
-
-
 
              ab_s(1:nb+1) = ab(1:nb+1,ns)
 
-
-
              call mpi_isend(ab_s, nb+1, MPI_COMPLEX16, my_pe-1, 1, mpi_comm, ireq_ab, mpierr)
-
-
-
 
 ! ... and calculate remaining columns with rank-2 update
              if (nc>1) then
@@ -4906,7 +3974,6 @@ end subroutine
            endif
 
 ! Do the remaining double Householder transformation on the subdiagonal block cols 2 ... nb
-
 
            if (nr>0) then
              if (nr>1) then
@@ -4937,23 +4004,13 @@ end subroutine
 
 ! Finish the last outstanding requests
 
-
-
-
      call mpi_wait(ireq_ab,MPI_STATUS_IGNORE,mpierr)
      call mpi_wait(ireq_hv,MPI_STATUS_IGNORE,mpierr)
 
      call mpi_waitall(nblocks, ireq_hhs, MPI_STATUSES_IGNORE, mpierr)
      call mpi_waitall(num_chunks, ireq_hhr, MPI_STATUSES_IGNORE, mpierr)
 
-
-
-
-
-
-
      call mpi_barrier(mpi_comm,mpierr)
-
 
      deallocate(ab, stat=istat, errmsg=errorMessage)
      if (istat .ne. 0) then
@@ -4997,15 +4054,11 @@ end subroutine
         stop
       endif
 
-
     end subroutine tridiag_band_complex_double ! has to be checked for GPU
-
-
 
     subroutine trans_ev_tridi_to_band_complex_double(na, nev, nblk, nbw, q, ldq, matrixCols,  &
                                               hh_trans_complex, mpi_comm_rows, mpi_comm_cols, &
                                               wantDebug, useGPU, success, THIS_COMPLEX_ELPA_KERNEL)
-
 
 !-------------------------------------------------------------------------------
 !  trans_ev_tridi_to_band_complex:
@@ -5048,7 +4101,6 @@ end subroutine
 
       complex(kind=ck8)              :: hh_trans_complex(:,:)
       integer(kind=ik)                            :: np_rows, my_prow, np_cols, my_pcol
-      integer(kind=ik)                            :: tmp
 
       integer(kind=ik)                            :: i, j, ip, sweep, nbuf, l_nev, a_dim2
       integer(kind=ik)                            :: current_n, current_local_n, current_n_start, current_n_end
@@ -5061,32 +4113,14 @@ end subroutine
       integer(kind=ik)                            :: mpierr, src, src_offset, dst, offset, nfact, num_blk
       logical                                     :: flag
 
-
       complex(kind=ck8), pointer     :: aIntern(:,:,:)
 
-      complex(kind=ck8)              :: a_complex
       type(c_ptr)                                 :: aIntern_ptr
       complex(kind=ck8), allocatable :: row(:)
-      complex(kind=ck8), allocatable :: row_group(:,:)
-
 
       complex(kind=ck8), allocatable :: top_border_send_buffer(:,:,:), top_border_recv_buffer(:,:,:)
       complex(kind=ck8), allocatable :: bottom_border_send_buffer(:,:,:), bottom_border_recv_buffer(:,:,:)
 
-      integer(kind=c_intptr_t)                    :: aIntern_dev
-      integer(kind=c_intptr_t)                    :: bcast_buffer_dev
-      integer(kind=c_size_t)                      :: num
-      integer(kind=c_size_t)                      :: dev_offset, dev_offset_1, dev_offset_2
-
-
-      integer(kind=c_intptr_t)                    :: row_dev
-      integer(kind=c_intptr_t)                    :: row_group_dev
-      integer(kind=c_intptr_t)                    :: hh_tau_dev
-      integer(kind=c_intptr_t)                    :: hh_dot_dev
-      integer(kind=ik)                            :: row_group_size, unpack_idx
-      integer(kind=ik)                            :: n_times
-
-      integer(kind=ik)                            :: top, chunk, this_chunk
       complex(kind=ck8), allocatable :: result_buffer(:,:,:)
       complex(kind=ck8), allocatable :: bcast_buffer(:,:)
 
@@ -5095,21 +4129,7 @@ end subroutine
       integer(kind=ik), allocatable               :: top_send_request(:), bottom_send_request(:)
       integer(kind=ik), allocatable               :: top_recv_request(:), bottom_recv_request(:)
 
-
-
       integer(kind=ik), external                  :: numroc
-
-      integer(kind=ik)                            :: na_rows, na_cols
-!    real*8                                       :: ttt0, ttt1, ttt2, t2_compute_kernel, t0_compute_kernel,t1_compute_kernel, &
-!                                                    t0_mpi_time, t1_mpi_time,t2_mpi_time
-!    real*8                                       :: t0_cpu_code,t1_cpu_code,t2_cpu_code,t0_block_time,t1_block_time,t2_block_time,t0_cuda_memcpy
-!    real*8                                       :: t0_inner_do_time, t1_inner_do_time , t2_inner_do_time,t0_outer_do_time ,t1_outer_do_time , &
-!                                                    t2_outer_do_time ,t0_result_time ,t1_result_time, t2_result_time,t0_mpi_recv_time,         &
-!                                                    t1_mpi_recv_time,t2_mpi_recv_time
-!   real*8                                        :: t1_mpi_wait_time,t0_mpi_wait_time,t2_mpi_wait_time,t1_memcpy_time,t0_memcpy_time,t2_memcpy_time, &
-!                                                    t1_mpi_irecv_time,t0_mpi_irecv_time,t2_mpi_irecv_time,t0_mpi_outer_wait_time,t1_mpi_outer_wait_time,&
-!                                                    t2_mpi_outer_wait_time, time0
-!   real*4                                        :: time1
 
 ! MPI send/recv tags, arbitrary
 
@@ -5117,12 +4137,10 @@ end subroutine
       integer(kind=ik), parameter                 :: top_recv_tag    = 222
       integer(kind=ik), parameter                 :: result_recv_tag = 333
 
-
-
 ! Just for measuring the kernel performance
-      real(kind=c_double)                         :: kernel_time, kernel_time_recv  ! MPI_WTIME always needs double
+      real(kind=c_double)                         :: kernel_time
 ! long integer
-      integer(kind=lik)                           :: kernel_flops, kernel_flops_recv
+      integer(kind=lik)                           :: kernel_flops
 
       logical, intent(in)                         :: wantDebug
       integer(kind=ik)                            :: istat
@@ -5134,14 +4152,8 @@ end subroutine
 
       successCUDA = .true.
 
-
-
-
-
       kernel_time = 0.0
       kernel_flops = 0
-
-
 
       call MPI_Comm_rank(mpi_comm_rows, my_prow, mpierr)
       call MPI_Comm_size(mpi_comm_rows, np_rows, mpierr)
@@ -5163,7 +4175,6 @@ end subroutine
 
       nfact = nbw / nblk
 
-
 ! local number of eigenvectors
       l_nev = local_index(nev, my_pcol, np_cols, nblk, -1)
 
@@ -5179,9 +4190,7 @@ end subroutine
 
         stripe_count = (l_nev-1)/stripe_width + 1
 
-
 ! Adapt stripe width so that last one doesn't get too small
-
 
           stripe_width = (l_nev-1)/stripe_count + 1
 
@@ -5214,9 +4223,6 @@ end subroutine
 
       a_dim2 = max_blk_size + nbw
 
-
-
-
         aux_int = int(stripe_width*a_dim2*stripe_count*16,kind=C_SIZE_T)
 
         if (posix_memalign(aIntern_ptr, 64_C_SIZE_T, aux_int) /= 0) then
@@ -5229,8 +4235,6 @@ end subroutine
 !        allocate(aIntern(stripe_width,a_dim2,stripe_count), stat=istat, errmsg=errorMessage)
 
         aIntern(:,:,:) = 0
-
-
 
       allocate(row(l_nev), stat=istat, errmsg=errorMessage)
       if (istat .ne. 0) then
@@ -5246,7 +4250,6 @@ end subroutine
 ! The peculiar way it is done below is due to the fact that the last row should be
 ! ready first since it is the first one to start below
 
-
       do ip = np_rows-1, 0, -1
         if (my_prow == ip) then
 ! Receive my rows which have not yet been received
@@ -5255,9 +4258,6 @@ end subroutine
             src = mod((i-1)/nblk, np_rows)
             if (src < my_prow) then
 
-
-
-
                 call MPI_Recv(row, l_nev, MPI_COMPLEX16, src, 0, mpi_comm_rows, MPI_STATUS_IGNORE, mpierr)
 
                 call unpack_row_complex_cpu_double(aIntern, row,i-limits(ip), stripe_count, stripe_width, last_stripe_width)
@@ -5265,8 +4265,6 @@ end subroutine
             elseif (src==my_prow) then
               src_offset = src_offset+1
                 row(:) = q(src_offset, 1:l_nev)
-
-
 
                 call unpack_row_complex_cpu_double(aIntern, row,i-limits(ip), stripe_count, stripe_width, last_stripe_width)
 
@@ -5280,14 +4278,7 @@ end subroutine
                   src_offset = src_offset+1
                   row(:) = q(src_offset, 1:l_nev)
 
-
-
-
-
                   call MPI_Send(row, l_nev, MPI_COMPLEX16, dst, 0, mpi_comm_rows, mpierr)
-
-
-
 
               endif
             enddo
@@ -5301,12 +4292,7 @@ end subroutine
               src_offset = src_offset+1
               row(:) = q(src_offset, 1:l_nev)
 
-
-
-
               call MPI_Send(row, l_nev, MPI_COMPLEX16, ip, 0, mpi_comm_rows, mpierr)
-
-
 
             endif
           enddo
@@ -5315,11 +4301,7 @@ end subroutine
             src = mod((i-1)/nblk, np_rows)
             if (src == ip) then
 
-
-
-
                 call MPI_Recv(row, l_nev, MPI_COMPLEX16, src, 0, mpi_comm_rows, MPI_STATUS_IGNORE, mpierr)
-
 
                 call unpack_row_complex_cpu_double(aIntern, row,i-limits(my_prow), stripe_count, stripe_width, last_stripe_width)
 
@@ -5351,14 +4333,10 @@ end subroutine
         stop
       endif
 
-
       result_send_request(:) = MPI_REQUEST_NULL
       result_recv_request(:) = MPI_REQUEST_NULL
 
-
 ! Queue up buffers
-
-
 
       if (my_prow > 0 .and. l_nev>0) then ! note: row 0 always sends
         do j = 1, min(num_result_buffers, num_result_blocks)
@@ -5368,7 +4346,6 @@ end subroutine
 
         enddo
       endif
-
 
       num_bufs_recvd = 0 ! No buffers received yet
 
@@ -5398,13 +4375,10 @@ end subroutine
         stop
       endif
 
-
       top_send_request(:) = MPI_REQUEST_NULL
       top_recv_request(:) = MPI_REQUEST_NULL
       bottom_send_request(:) = MPI_REQUEST_NULL
       bottom_recv_request(:) = MPI_REQUEST_NULL
-
-
 
       allocate(top_border_send_buffer(stripe_width, nbw, stripe_count), stat=istat, errmsg=errorMessage)
       if (istat .ne. 0) then
@@ -5430,14 +4404,10 @@ end subroutine
         stop
       endif
 
-
       top_border_send_buffer(:,:,:) = 0._ck8
       top_border_recv_buffer(:,:,:) = 0._ck8
       bottom_border_send_buffer(:,:,:) = 0._ck8
       bottom_border_recv_buffer(:,:,:) = 0._ck8
-
-
-
 
 ! Initialize broadcast buffer
 
@@ -5450,7 +4420,6 @@ end subroutine
 
       current_tv_off = 0 ! Offset of next row to be broadcast
 
-
 ! ------------------- start of work loop -------------------
 
       a_off = 0 ! offset in A (to avoid unnecessary shifts)
@@ -5458,11 +4427,7 @@ end subroutine
       top_msg_length = 0
       bottom_msg_length = 0
 
-
-
       do sweep = 0, (na-1)/nbw
-
-
 
         current_n = na - sweep*nbw
         call determine_workload(current_n, nbw, np_rows, limits)
@@ -5488,28 +4453,14 @@ end subroutine
           next_top_msg_length = 0
         endif
 
-
-
         if (sweep==0 .and. current_n_end < current_n .and. l_nev > 0) then
           do i = 1, stripe_count
-
-
-
-
-
 
             call MPI_Irecv(bottom_border_recv_buffer(1,1,i), nbw*stripe_width, MPI_COMPLEX16, my_prow+1, bottom_recv_tag, &
                            mpi_comm_rows, bottom_recv_request(i), mpierr)
 
-
-
-
-
-
-
           enddo
         endif
-
 
         if (current_local_n > 1) then
           if (my_pcol == mod(sweep,np_cols)) then
@@ -5517,69 +4468,33 @@ end subroutine
             current_tv_off = current_tv_off + current_local_n
           endif
 
-
-
-
           call mpi_bcast(bcast_buffer, nbw*current_local_n, MPI_COMPLEX16, mod(sweep,np_cols), mpi_comm_cols, mpierr)
-
-
-
 
         else
 ! for current_local_n == 1 the one and only HH vector is 0 and not stored in hh_trans_complex
 
           bcast_buffer(:,1) = 0._ck8
 
-
         endif
-
-
 
         if (l_nev == 0) cycle
 
           if (current_local_n > 0) then
 
-
             do i = 1, stripe_count
-
-
 
 !wait_b
               if (current_n_end < current_n) then
 
-
-
-
-
-
                 call MPI_Wait(bottom_recv_request(i), MPI_STATUS_IGNORE, mpierr)
-
-
-
-
-
-
-
-
 
                 n_off = current_local_n+a_off
                   aIntern(:,n_off+1:n_off+nbw,i) = bottom_border_recv_buffer(:,1:nbw,i)
 
-
-
                 if (next_n_end < next_n) then
-
-
-
-
-
 
                   call MPI_Irecv(bottom_border_recv_buffer(1,1,i), nbw*stripe_width, MPI_COMPLEX16, my_prow+1, bottom_recv_tag, &
                                      mpi_comm_rows, bottom_recv_request(i), mpierr)
-
-
-
-
 
                 endif
               endif
@@ -5589,16 +4504,9 @@ end subroutine
 !wait_t
                 if (top_msg_length>0) then
 
-
-
-
-
-
                   call MPI_Wait(top_recv_request(i), MPI_STATUS_IGNORE, mpierr)
 
-
                     aIntern(:,a_off+1:a_off+top_msg_length,i) = top_border_recv_buffer(:,1:top_msg_length,i)
-
 
                 endif
 
@@ -5609,37 +4517,17 @@ end subroutine
                                                     0, current_local_n, i, last_stripe_width,                          &
                                                     THIS_COMPLEX_ELPA_KERNEL)
 
-
 !send_b
 
-
-
-
-
-
                 call MPI_Wait(bottom_send_request(i), MPI_STATUS_IGNORE, mpierr)
-
-
-
-
-
-
 
                 if (bottom_msg_length>0) then
                   n_off = current_local_n+nbw-bottom_msg_length+a_off
 
-
-
                     bottom_border_send_buffer(:,1:bottom_msg_length,i) = aIntern(:,n_off+1:n_off+bottom_msg_length,i)
-
-
 
                   call MPI_Isend(bottom_border_send_buffer(1,1,i), bottom_msg_length*stripe_width, MPI_COMPLEX16, my_prow+1, &
                               top_recv_tag, mpi_comm_rows, bottom_send_request(i), mpierr)
-
-
-
-
 
                 endif
 
@@ -5647,48 +4535,26 @@ end subroutine
 
 !compute
 
-
-
                 call compute_hh_trafo_complex_cpu_double(aIntern, stripe_width, a_dim2, stripe_count,              &
                                                   a_off, nbw, max_blk_size, bcast_buffer, kernel_flops, kernel_time, &
                                                   current_local_n - bottom_msg_length, bottom_msg_length, i,         &
                                                   last_stripe_width, THIS_COMPLEX_ELPA_KERNEL)
 
-
 !send_b
-
-
-
-
-
-
 
               call MPI_Wait(bottom_send_request(i), MPI_STATUS_IGNORE, mpierr)
 
-
-
-
-
-
               if (bottom_msg_length > 0) then
                 n_off = current_local_n+nbw-bottom_msg_length+a_off
-
 
                   bottom_border_send_buffer(:,1:bottom_msg_length,i) = aIntern(:,n_off+1:n_off+bottom_msg_length,i)
 
                 call MPI_Isend(bottom_border_send_buffer(1,1,i), bottom_msg_length*stripe_width, MPI_COMPLEX16, my_prow+1, &
                               top_recv_tag, mpi_comm_rows, bottom_send_request(i), mpierr)
 
-
-
-
-
-
               endif
 
 !compute
-
-
 
                call compute_hh_trafo_complex_cpu_double(aIntern, stripe_width, a_dim2, stripe_count,                  &
                                                  a_off, nbw, max_blk_size, bcast_buffer, kernel_flops, kernel_time,   &
@@ -5698,13 +4564,7 @@ end subroutine
 !wait_t
               if (top_msg_length>0) then
 
-
-
-
-
-
                 call MPI_Wait(top_recv_request(i), MPI_STATUS_IGNORE, mpierr)
-
 
                   aIntern(:,a_off+1:a_off+top_msg_length,i) = top_border_recv_buffer(:,1:top_msg_length,i)
 
@@ -5712,66 +4572,30 @@ end subroutine
 
 !compute
 
-
-
                 call compute_hh_trafo_complex_cpu_double(aIntern, stripe_width, a_dim2, stripe_count,               &
                                                   a_off, nbw, max_blk_size, bcast_buffer, kernel_flops, kernel_time,  &
                                                   0, top_msg_length, i, last_stripe_width,                            &
                                                   THIS_COMPLEX_ELPA_KERNEL)
-
-
-
 
             endif
 
             if (next_top_msg_length > 0) then
 !request top_border data
 
-
-
-
-
-
               call MPI_Irecv(top_border_recv_buffer(1,1,i), next_top_msg_length*stripe_width, MPI_COMPLEX16, my_prow-1, &
                                top_recv_tag, mpi_comm_rows, top_recv_request(i), mpierr)
-
-
-
-
-
 
             endif
 
 !send_t
             if (my_prow > 0) then
 
-
-
-
-
-
               call MPI_Wait(top_send_request(i), MPI_STATUS_IGNORE, mpierr)
-
-
-
-
-
-
-
-
 
                 top_border_send_buffer(:,1:nbw,i) = aIntern(:,a_off+1:a_off+nbw,i)
 
-
-
-
               call MPI_Isend(top_border_send_buffer(1,1,i), nbw*stripe_width, MPI_COMPLEX16, my_prow-1, bottom_recv_tag, &
                                mpi_comm_rows, top_send_request(i), mpierr)
-
-
-
-
-
 
             endif
 
@@ -5780,51 +4604,29 @@ end subroutine
             if (stripe_count > 1) then
               if (i>1) then
 
-
-
-
                 call MPI_Wait(top_recv_request(i-1), MPI_STATUS_IGNORE, mpierr)
-
-
-
 
               else
 
-
-
-
                 call MPI_Wait(top_recv_request(stripe_count), MPI_STATUS_IGNORE, mpierr)
-
-
-
 
               endif
             endif
 
           enddo
 
-
-
           top_msg_length = next_top_msg_length
 
         else
 ! wait for last top_send_request
 
-
           do i = 1, stripe_count
 
-
-
-
             call MPI_Wait(top_send_request(i), MPI_STATUS_IGNORE, mpierr)
-
-
-
 
           enddo
 
         endif
-
 
 ! Care about the result
 
@@ -5839,49 +4641,27 @@ end subroutine
 
             nbuf = mod(num_blk, num_result_buffers) + 1 ! buffer number to get this block
 
-
-
-
-
             call MPI_Wait(result_send_request(nbuf), MPI_STATUS_IGNORE, mpierr)
-
-
-
-
 
             dst = mod(num_blk, np_rows)
 
             if (dst == 0) then
                 do i = 1, min(na - num_blk*nblk, nblk)
 
-
-
                   call pack_row_complex_cpu_double(aIntern, row, j*nblk+i+a_off, stripe_width, last_stripe_width, stripe_count)
-
-
 
                   q((num_blk/np_rows)*nblk+i,1:l_nev) = row(:)
                 enddo
             else
                 do i = 1, nblk
 
-
-
                   call pack_row_complex_cpu_double(aIntern, result_buffer(:,i,nbuf),j*nblk+i+a_off, stripe_width, &
                                             last_stripe_width, stripe_count)
 
-
-
                 enddo
-
-
-
-
 
               call MPI_Isend(result_buffer(1,1,nbuf), l_nev*nblk, MPI_COMPLEX16, dst, &
                                    result_recv_tag, mpi_comm_rows, result_send_request(nbuf), mpierr)
-
-
 
             endif
           enddo
@@ -5900,25 +4680,12 @@ end subroutine
 
             if (next_local_n > 0) then
 
-
-
-
               call MPI_Test(result_recv_request(nbuf), flag, MPI_STATUS_IGNORE, mpierr)
-
-
-
 
               if (.not.flag) exit
             else
 
-
-
-
               call MPI_Wait(result_recv_request(nbuf), MPI_STATUS_IGNORE, mpierr)
-
-
-
-
 
             endif
 
@@ -5930,21 +4697,15 @@ end subroutine
 
 ! Queue result buffer again if there are outstanding blocks left
 
-
               if (j+num_result_buffers < num_result_blocks) &
-
 
                call MPI_Irecv(result_buffer(1,1,nbuf), l_nev*nblk, MPI_COMPLEX16, 0, result_recv_tag, &
                               mpi_comm_rows, result_recv_request(nbuf), mpierr)
-
-
-
 
             enddo
             num_bufs_recvd = j
 
           endif
-
 
 ! Shift the remaining rows to the front of A (if necessary)
 
@@ -5971,8 +4732,6 @@ end subroutine
           endif
         enddo
 
-
-
 ! Just for safety:
 
         if (ANY(top_send_request    /= MPI_REQUEST_NULL)) write(error_unit,*) '*** ERROR top_send_request ***',my_prow,my_pcol
@@ -5980,26 +4739,14 @@ end subroutine
         if (ANY(top_recv_request    /= MPI_REQUEST_NULL)) write(error_unit,*) '*** ERROR top_recv_request ***',my_prow,my_pcol
         if (ANY(bottom_recv_request /= MPI_REQUEST_NULL)) write(error_unit,*) '*** ERROR bottom_recv_request ***',my_prow,my_pcol
 
-
         if (my_prow == 0) then
-
-
-
-
 
           call MPI_Waitall(num_result_buffers, result_send_request, MPI_STATUSES_IGNORE, mpierr)
 
-
-
-
         endif
-
 
         if (ANY(result_send_request /= MPI_REQUEST_NULL)) write(error_unit,*) '*** ERROR result_send_request ***',my_prow,my_pcol
         if (ANY(result_recv_request /= MPI_REQUEST_NULL)) write(error_unit,*) '*** ERROR result_recv_request ***',my_prow,my_pcol
-
-
-
 
 ! deallocate all working space
 
@@ -6093,13 +4840,6 @@ end subroutine
        return
 end subroutine
 
-
-
-
-
-
-
 ! complex single precision
-
 
 end module ELPA2_compute

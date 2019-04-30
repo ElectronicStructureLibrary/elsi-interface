@@ -12,7 +12,6 @@ module kernel_interfaces
    end subroutine
  end interface
 
-
  interface
    subroutine double_hh_trafo_real_avx512_2hv_double(q, hh, pnb, pnq, pldq, pldh) &
                  bind(C, name="double_hh_trafo_real_avx512_2hv_double")

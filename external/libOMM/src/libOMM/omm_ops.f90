@@ -1162,9 +1162,7 @@ subroutine dcalc_PW_precon(T,scale_T,P)
 
   !**** INTERNAL ********************************!
 
-  integer :: i, ot
-
-  real(dp) :: s
+  integer :: ot
 
   !**********************************************!
 
@@ -1198,7 +1196,7 @@ subroutine zcalc_PW_precon(T,scale_T,P)
 
   !**** INTERNAL ********************************!
 
-  integer :: i, ot
+  integer :: ot
 
   !**********************************************!
 

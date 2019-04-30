@@ -77,7 +77,6 @@
 !>
 !> \author T. Auckenthaler, Volker Blum, A. Heinecke, L. Huedepohl, R. Johanni, Werner Jürgens, and A. Marek
 
-
 !> \brief Fortran module which provides the routines to use the one-stage ELPA solver
 module ELPA1
   use, intrinsic :: iso_c_binding
@@ -104,7 +103,6 @@ module ELPA1
   public :: solve_evp_complex_1stage             !< Driver routine for complex double-precision eigenvalue problem
   public :: solve_evp_complex_1stage_double      !< Driver routine for complex double-precision eigenvalue problem
 
-
 ! imported from elpa1_auxilliary
 
   public :: elpa_mult_at_b_real_double       !< Multiply double-precision real matrices A**T * B
@@ -127,10 +125,6 @@ module ELPA1
 
   public :: elpa_solve_tridi_double          !< Solve a double-precision tridiagonal eigensystem with divide and conquer method
 
-
-
-
-
 ! Timing results, set by every call to solve_evp_xxx
 
   real(kind=c_double), public :: time_evp_fwd    !< time for forward transformations (to tridiagonal form)
@@ -138,7 +132,6 @@ module ELPA1
   real(kind=c_double), public :: time_evp_back   !< time for back transformations of eigenvectors
 
   logical, public :: elpa_print_times = .false. !< Set elpa_print_times to .true. for explicit timing outputs
-
 
 !> \brief get_elpa_row_col_comms:  old, deprecated interface, will be deleted. Use "elpa_get_communicators"
 !> \details
@@ -211,7 +204,6 @@ module ELPA1
 !>
 !>  \result                     success
 
-
   interface solve_evp_real
     module procedure elpa_solve_evp_real_1stage_double
   end interface
@@ -260,7 +252,6 @@ module ELPA1
   interface solve_evp_real_1stage_double
     module procedure elpa_solve_evp_real_1stage_double
   end interface
-
 
 !> \brief solve_evp_complex: old, deprecated Fortran function to solve the complex eigenvalue problem with 1-stage solver. will be deleted at some point. Better use "solve_evp_complex_1stage" or "elpa_solve_evp_complex"
 !>
@@ -376,11 +367,6 @@ module ELPA1
     module procedure elpa_solve_evp_complex_1stage_double
   end interface
 
-
-
-
-
-
 contains
 
 !-------------------------------------------------------------------------------
@@ -402,7 +388,6 @@ contains
 !> \param  mpi_comm_cols     Communicator for communicating within columns of processes (out)
 !> \result mpierr            integer error value of mpi_comm_split function
 
-
 function elpa_get_communicators(mpi_comm_global, my_prow, my_pcol, mpi_comm_rows, mpi_comm_cols) result(mpierr)
 ! use precision
    use elpa_mpi
@@ -423,7 +408,6 @@ function elpa_get_communicators(mpi_comm_global, my_prow, my_pcol, mpi_comm_rows
    call mpi_comm_split(mpi_comm_global,my_prow,my_pcol,mpi_comm_cols,mpierr)
 
 end function elpa_get_communicators
-
 
 !> \brief elpa_solve_evp_real_1stage_double: Fortran function to solve the real double-precision eigenvalue problem with 1-stage solver
 !>
@@ -461,11 +445,6 @@ end function elpa_get_communicators
 !>
 !>  \result                     success
 
-
-
-
-
-
 function elpa_solve_evp_real_1stage_double(na, nev, a, lda, ev, q, ldq, nblk, &
                                            matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm_all, &
                                            useGPU) result(success)
@@ -487,17 +466,12 @@ function elpa_solve_evp_real_1stage_double(na, nev, a, lda, ev, q, ldq, nblk, &
    logical                                      :: success
 
    logical                                      :: do_useGPU
-   integer(kind=ik)                             :: numberOfGPUDevices
 
    integer(kind=c_int)                          :: my_pe, n_pes, my_prow, my_pcol, mpierr
    real(kind=c_double), allocatable        :: e(:), tau(:)
    real(kind=c_double)                          :: ttt0, ttt1 ! MPI_WTIME always needs double
    logical, save                                :: firstCall = .true.
    logical                                      :: wantDebug
-
-
-
-
 
    call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
    call mpi_comm_size(mpi_comm_all,n_pes,mpierr)
@@ -548,20 +522,7 @@ function elpa_solve_evp_real_1stage_double(na, nev, a, lda, ev, q, ldq, nblk, &
 
    deallocate(e, tau)
 
-
-
 end function elpa_solve_evp_real_1stage_double
-
-
-
-
-
-
-
-
-
-
-
 
 !> \brief elpa_solve_evp_complex_1stage_double: Fortran function to solve the complex double-precision eigenvalue problem with 1-stage solver
 !>
@@ -629,11 +590,6 @@ function elpa_solve_evp_complex_1stage_double(na, nev, a, lda, ev, q, ldq, nblk,
    logical                                         :: wantDebug
 
    logical                                         :: do_useGPU
-   integer(kind=ik)                                :: numberOfGPUDevices
-
-
-
-
 
    call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
    call mpi_comm_size(mpi_comm_all,n_pes,mpierr)
@@ -642,7 +598,6 @@ function elpa_solve_evp_complex_1stage_double(na, nev, a, lda, ev, q, ldq, nblk,
    call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
    call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
    call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
-
 
    success = .true.
 
@@ -694,14 +649,6 @@ function elpa_solve_evp_complex_1stage_double(na, nev, a, lda, ev, q, ldq, nblk,
    deallocate(q_real)
    deallocate(e, tau)
 
-
 end function elpa_solve_evp_complex_1stage_double
-
-
-
-
-
-
-
 
 end module ELPA1

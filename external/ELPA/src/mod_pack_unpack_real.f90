@@ -44,15 +44,11 @@
 module pack_unpack_real
   implicit none
 
-
   public pack_row_real_cpu_double, unpack_row_real_cpu_double
 
   contains
 
-
         subroutine pack_row_real_cpu_double(a, row, n, stripe_width, last_stripe_width, stripe_count)
-
-
 
           use precision
           implicit none
@@ -65,23 +61,13 @@ module pack_unpack_real
 
           integer(kind=ik)             :: i, noff, nl
 
-
-
-
-
           do i=1,stripe_count
             nl = merge(stripe_width, last_stripe_width, i<stripe_count)
             noff = (i-1)*stripe_width
             row(noff+1:noff+nl) = a(1:nl,n,i)
           enddo
 
-
-
-
-
         end subroutine pack_row_real_cpu_double
-
-
 
         subroutine unpack_row_real_cpu_double(a, row, n, stripe_count, stripe_width, last_stripe_width)
 
@@ -93,17 +79,12 @@ module pack_unpack_real
          real(kind=rk8)                :: a(:,:,:)
          integer(kind=ik)             :: i, noff, nl
 
-
-
           do i=1,stripe_count
             nl = merge(stripe_width, last_stripe_width, i<stripe_count)
             noff = (i-1)*stripe_width
             a(1:nl,n,i) = row(noff+1:noff+nl)
           enddo
 
-
         end subroutine unpack_row_real_cpu_double
-
-
 
 end module

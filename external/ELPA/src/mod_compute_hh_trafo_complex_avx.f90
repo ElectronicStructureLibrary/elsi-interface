@@ -72,14 +72,12 @@ module compute_hh_trafo_complex
 
 ! Private variables in OMP regions (my_thread) should better be in the argument list!
 
-           integer(kind=ik)             :: off, ncols, istripe, j, nl, jj
+           integer(kind=ik)             :: off, ncols, istripe, j, nl
            real(kind=c_double)          :: ttt  ! MPI_WTIME always needs double
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !        Currently (on Sandy Bridge), single is faster than double
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-           complex(kind=ck8)            :: w(nbw,2)
 
            nl = merge(stripe_width, last_stripe_width, istripe<stripe_count)
 

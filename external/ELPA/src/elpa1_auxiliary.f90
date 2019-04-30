@@ -53,7 +53,7 @@
 !> \brief Fortran module which provides helper routines for matrix calculations
 module ELPA1_AUXILIARY
   use elpa_utilities
-  
+
   implicit none
 
   public :: elpa_mult_at_b_real_double      !< Multiply double-precision real matrices A**T * B
@@ -76,10 +76,6 @@ module ELPA1_AUXILIARY
 
   public :: elpa_solve_tridi_double         !< Solve tridiagonal eigensystem for a double-precision matrix with divide and conquer method
   public :: solve_tridi                     !< Old, deprecated interface to solve tridiagonal eigensystem for a double-precision matrix with divide and conquer method
-
-
-
-
 
 !> \brief  cholesky_real: old, deprecated interface for Cholesky factorization of a double-precision real symmetric matrix
 !> \details
@@ -135,7 +131,6 @@ module ELPA1_AUXILIARY
 !> \param  mpi_comm_cols        MPI communicator for columns
 !> \param wantDebug             logical, more debug information on failure
 !> \result succes               logical, reports success or failure
-
 
   interface cholesky_complex
     module procedure elpa_cholesky_real_double
@@ -229,7 +224,6 @@ module ELPA1_AUXILIARY
     module procedure elpa_mult_ah_b_complex_double
   end interface
 
-
 !> \brief  solve_tridi: Old, deprecated interface to solve a double-precision tridiagonal eigensystem for a double-precision matrix with divide and conquer method
 !> \details
 !>
@@ -269,11 +263,6 @@ module ELPA1_AUXILIARY
 !> \param wantDebug             logical, more debug information on failure
 !> \param succes                logical, reports success or failure
 
-
-
-
-
-
    function elpa_cholesky_real_double(na, a, lda, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, &
                                             wantDebug) result(success)
      use elpa1_compute
@@ -299,9 +288,6 @@ module ELPA1_AUXILIARY
       logical                       :: success
       integer(kind=ik)              :: istat
       character(200)                :: errorMessage
-
-
-
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -404,14 +390,7 @@ module ELPA1_AUXILIARY
             enddo
           endif
 
-
-
-
           call MPI_Bcast(tmp1, nblk*(nblk+1)/2, MPI_REAL8, pcol(n, nblk, np_cols), mpi_comm_cols, mpierr)
-
-
-
-
 
           nc = 0
           do i=1,nblk
@@ -429,14 +408,9 @@ module ELPA1_AUXILIARY
 
           if (my_prow==prow(n, nblk, np_rows)) tmatc(l_colx:l_cols,i) = a(l_row1+i-1,l_colx:l_cols)
 
-
-
           if (l_cols-l_colx+1>0) &
 
               call MPI_Bcast(tmatc(l_colx,i), l_cols-l_colx+1, MPI_REAL8, prow(n, nblk, np_rows), mpi_comm_rows, mpierr)
-
-
-
 
         enddo
 ! this has to be checked since it was changed substantially when doing type safe
@@ -444,7 +418,6 @@ module ELPA1_AUXILIARY
         call elpa_transpose_vectors_real_double  (tmatc, ubound(tmatc,dim=1), mpi_comm_cols, &
                                       tmatr, ubound(tmatr,dim=1), mpi_comm_rows, &
                                       n, na, nblk, nblk)
-
 
         do i=0,(na-1)/tile_size
           lcs = max(l_colx,i*l_cols_tile+1)
@@ -478,14 +451,7 @@ module ELPA1_AUXILIARY
         endif
       enddo
 
-
     end function elpa_cholesky_real_double
-
-
-
-
-
-
 
 !> \brief  elpa_invert_trm_real_double: Inverts a double-precision real upper triangular matrix
 !> \details
@@ -523,8 +489,6 @@ module ELPA1_AUXILIARY
        logical                      :: success
        integer(kind=ik)             :: istat
        character(200)               :: errorMessage
-
-
 
        call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
        call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -566,7 +530,6 @@ module ELPA1_AUXILIARY
        tmat1 = 0
        tmat2 = 0
 
-
        ns = ((na-1)/nblk)*nblk + 1
 
        do n = ns,1,-nblk
@@ -599,11 +562,7 @@ module ELPA1_AUXILIARY
              enddo
            endif
 
-
-
            call MPI_Bcast(tmp1, nb*(nb+1)/2, MPI_REAL8, pcol(n, nblk, np_cols), mpi_comm_cols, mpierr)
-
-
 
            nc = 0
            do i=1,nb
@@ -628,21 +587,14 @@ module ELPA1_AUXILIARY
 
            do i=1,nb
 
-
-
              call MPI_Bcast(tmat1(1,i), l_row1-1, MPI_REAL8, pcol(n, nblk, np_cols), mpi_comm_cols, mpierr)
-
-
 
            enddo
          endif
 
-
          if (l_cols-l_col1+1>0) &
 
             call MPI_Bcast(tmat2(1,l_col1), (l_cols-l_col1+1)*nblk, MPI_REAL8, prow(n, nblk, np_rows), mpi_comm_rows, mpierr)
-
-
 
          if (l_row1>1 .and. l_cols-l_col1+1>0) &
 
@@ -658,13 +610,6 @@ module ELPA1_AUXILIARY
          stop
        endif
      end function elpa_invert_trm_real_double
-
-
-
-
-
-
-
 
 !> \brief  elpa_cholesky_complex_double: Cholesky factorization of a double-precision complex hermitian matrix
 !> \details
@@ -706,7 +651,6 @@ module ELPA1_AUXILIARY
       logical                          :: success
       integer(kind=ik)                 :: istat
       character(200)                   :: errorMessage
-
 
       success = .true.
 
@@ -809,12 +753,7 @@ module ELPA1_AUXILIARY
             enddo
           endif
 
-
-
           call MPI_Bcast(tmp1, nblk*(nblk+1)/2, MPI_DOUBLE_COMPLEX, pcol(n, nblk, np_cols), mpi_comm_cols, mpierr)
-
-
-
 
           nc = 0
           do i=1,nblk
@@ -833,13 +772,10 @@ module ELPA1_AUXILIARY
 
           if (my_prow==prow(n, nblk, np_rows)) tmatc(l_colx:l_cols,i) = conjg(a(l_row1+i-1,l_colx:l_cols))
 
-
           if (l_cols-l_colx+1>0) &
 
                 call MPI_Bcast(tmatc(l_colx,i), l_cols-l_colx+1, MPI_DOUBLE_COMPLEX, prow(n, nblk, np_rows), &
                                mpi_comm_rows, mpierr)
-
-
 
         enddo
 ! this has to be checked since it was changed substantially when doing type safe
@@ -880,15 +816,7 @@ module ELPA1_AUXILIARY
         endif
       enddo
 
-
     end function elpa_cholesky_complex_double
-
-
-
-
-
-
-
 
 !> \brief  elpa_invert_trm_complex_double: Inverts a double-precision complex upper triangular matrix
 !> \details
@@ -926,7 +854,6 @@ module ELPA1_AUXILIARY
        logical                          :: success
        integer(kind=ik)                 :: istat
        character(200)                   :: errorMessage
-
 
        call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
        call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -1000,11 +927,7 @@ module ELPA1_AUXILIARY
              enddo
            endif
 
-
-
            call MPI_Bcast(tmp1, nb*(nb+1)/2, MPI_DOUBLE_COMPLEX, pcol(n, nblk, np_cols), mpi_comm_cols, mpierr)
-
-
 
            nc = 0
            do i=1,nb
@@ -1029,23 +952,15 @@ module ELPA1_AUXILIARY
 
            do i=1,nb
 
-
-
              call MPI_Bcast(tmat1(1,i), l_row1-1, MPI_DOUBLE_COMPLEX, pcol(n, nblk, np_cols), mpi_comm_cols, mpierr)
-
-
 
            enddo
          endif
-
 
          if (l_cols-l_col1+1>0) &
 
            call MPI_Bcast(tmat2(1,l_col1), (l_cols-l_col1+1)*nblk, MPI_DOUBLE_COMPLEX, prow(n, nblk, np_rows), &
                           mpi_comm_rows, mpierr)
-
-
-
 
          if (l_row1>1 .and. l_cols-l_col1+1>0) &
 
@@ -1061,15 +976,7 @@ module ELPA1_AUXILIARY
          stop
        endif
 
-
-
     end function elpa_invert_trm_complex_double
-
-
-
-
-
-
 
 !> \brief  mult_at_b_real_double: Performs C : = A**T * B
 !>         where   A is a square matrix (na,na) which is optionally upper or lower triangular
@@ -1130,8 +1037,6 @@ module ELPA1_AUXILIARY
       integer(kind=ik)              :: istat
       character(200)                :: errorMessage
       logical                       :: success
-
-
 
       success = .true.
 
@@ -1261,11 +1166,7 @@ module ELPA1_AUXILIARY
 
 ! Broadcast block column
 
-
-
           call MPI_Bcast(aux_bc, n_aux_bc, MPI_REAL8, np_bc, mpi_comm_cols, mpierr)
-
-
 
 ! Insert what we got in aux_mat
 
@@ -1308,22 +1209,16 @@ module ELPA1_AUXILIARY
                 call dgemm('T', 'N', nstor, lce-lcs+1, lre-lrs+1, 1.0_rk8, aux_mat(lrs,1), ubound(aux_mat,dim=1), &
                              b(lrs,lcs), ldb, 0.0_rk8, tmp1, nstor)
 
-
               else
                 tmp1 = 0
               endif
 
 ! Sum up the results and send to processor row np
 
-
-
               call mpi_reduce(tmp1, tmp2, nstor*(lce-lcs+1), MPI_REAL8, MPI_SUM, np, mpi_comm_rows, mpierr)
-
 
 ! Put the result into C
               if (my_prow==np) c(nr_done+1:nr_done+nstor,lcs:lce) = tmp2(1:nstor,lcs:lce)
-
-
 
               deallocate(tmp1,tmp2, stat=istat, errmsg=errorMessage)
               if (istat .ne. 0) then
@@ -1346,16 +1241,7 @@ module ELPA1_AUXILIARY
        stop
       endif
 
-
-
     end function elpa_mult_at_b_real_double
-
-
-
-
-
-
-
 
 !> \brief  elpa_mult_ah_b_complex_double: Performs C : = A**H * B
 !>         where   A is a square matrix (na,na) which is optionally upper or lower triangular
@@ -1420,8 +1306,6 @@ module ELPA1_AUXILIARY
       character(200)                :: errorMessage
       logical                       :: success
 
-
-
       success = .true.
 
 !      if (na .lt. lda) then
@@ -1449,12 +1333,10 @@ module ELPA1_AUXILIARY
 !        stop
 !      endif
 
-
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
       call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
-
 
       l_rows = local_index(na,  my_prow, np_rows, nblk, -1) ! Local rows of a and b
       l_cols = local_index(ncb, my_pcol, np_cols, nblk, -1) ! Local cols of b
@@ -1552,11 +1434,7 @@ module ELPA1_AUXILIARY
 
 ! Broadcast block column
 
-
-
           call MPI_Bcast(aux_bc, n_aux_bc, MPI_DOUBLE_COMPLEX, np_bc, mpi_comm_cols, mpierr)
-
-
 
 ! Insert what we got in aux_mat
 
@@ -1605,16 +1483,10 @@ module ELPA1_AUXILIARY
 
 ! Sum up the results and send to processor row np
 
-
-
                call mpi_reduce(tmp1, tmp2, nstor*(lce-lcs+1), MPI_DOUBLE_COMPLEX, MPI_SUM, np, mpi_comm_rows, mpierr)
-
-
 
 ! Put the result into C
                if (my_prow==np) c(nr_done+1:nr_done+nstor,lcs:lce) = tmp2(1:nstor,lcs:lce)
-
-
 
 !               ! Put the result into C
 !               if (my_prow==np) c(nr_done+1:nr_done+nstor,lcs:lce) = tmp2(1:nstor,lcs:lce)
@@ -1640,12 +1512,7 @@ module ELPA1_AUXILIARY
         stop
       endif
 
-
-
     end function elpa_mult_ah_b_complex_double
-
-
-
 
 !> \brief  elpa_solve_tridi_double: Solve tridiagonal eigensystem for a double-precision matrix with divide and conquer method
 !> \details
@@ -1685,11 +1552,6 @@ module ELPA1_AUXILIARY
                                       mpi_comm_rows, mpi_comm_cols, wantDebug, success)
 
     end function
-
-
-
-
-
 
 end module elpa1_auxiliary
 

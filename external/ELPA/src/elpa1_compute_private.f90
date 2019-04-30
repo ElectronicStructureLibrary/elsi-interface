@@ -74,8 +74,6 @@ module ELPA1_COMPUTE
     module procedure trans_ev_real_double
   end interface
 
-
-
   public :: tridiag_complex_double            ! Transform complex hermitian matrix to tridiagonal form
   public :: tridiag_complex
   public :: trans_ev_complex_double           ! Transform eigenvectors of a tridiagonal matrix back
@@ -88,8 +86,6 @@ module ELPA1_COMPUTE
   interface trans_ev_complex
     module procedure trans_ev_complex_double
   end interface
-
-
 
   public :: hh_transform_real_double
   public :: hh_transform_real
@@ -110,8 +106,6 @@ module ELPA1_COMPUTE
     module procedure elpa_transpose_vectors_real_double
   end interface
 
-
-
   public :: hh_transform_complex_double
   public :: hh_transform_complex
   public :: elpa_reduce_add_vectors_complex_double
@@ -131,27 +125,11 @@ module ELPA1_COMPUTE
     module procedure elpa_transpose_vectors_complex_double
   end interface
 
-
-
   contains
 
 ! real double precision first
 
-
-
-
-
-
-
-
-
-
 subroutine elpa_transpose_vectors_real_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvs,nvr,nvc,nblk)
-
-
-
-
-
 
 !-------------------------------------------------------------------------------
 ! This routine transposes an array of vectors which are distributed in
@@ -177,12 +155,9 @@ subroutine elpa_transpose_vectors_real_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,com
 
 !   use ELPA1 ! for least_common_multiple
 
-
    use elpa_mpi
 
    implicit none
-
-
 
    integer(kind=ik), intent(in)              :: ld_s, comm_s, ld_t, comm_t, nvs, nvr, nvc, nblk
    REAL(kind=rk8), intent(in)                      :: vmat_s(ld_s,nvc)
@@ -194,15 +169,10 @@ subroutine elpa_transpose_vectors_real_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,com
    integer(kind=ik)                          :: lcm_s_t, nblks_tot, nblks_comm, nblks_skip
    integer(kind=ik)                          :: auxstride
 
-
-
-
-
    call mpi_comm_rank(comm_s,myps,mpierr)
    call mpi_comm_size(comm_s,nps ,mpierr)
    call mpi_comm_rank(comm_t,mypt,mpierr)
    call mpi_comm_size(comm_t,npt ,mpierr)
-
 
 ! The basic idea of this routine is that for every block (in the block cyclic
 ! distribution), the processor within comm_t which owns the diagonal
@@ -248,24 +218,7 @@ subroutine elpa_transpose_vectors_real_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,com
             enddo
          endif
 
-
-
-
-
-
-
-
-
-
-
          call MPI_Bcast(aux, nblks_comm*nblk*nvc, MPI_REAL8, ips, comm_s, mpierr)
-
-
-
-
-
-
-
 
 !         k = 0
          do lc=1,nvc
@@ -286,17 +239,7 @@ subroutine elpa_transpose_vectors_real_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,com
 
 end subroutine
 
-
-
-
-
-
 subroutine elpa_reduce_add_vectors_real_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvr,nvc,nblk)
-
-
-
-
-
 
 !-------------------------------------------------------------------------------
 ! This routine does a reduce of all vectors in vmat_s over the communicator comm_t.
@@ -322,11 +265,9 @@ subroutine elpa_reduce_add_vectors_real_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,co
    use precision
 !   use ELPA1 ! for least_common_multiple
 
-
    use elpa_mpi
 
    implicit none
-
 
    integer(kind=ik), intent(in)              :: ld_s, comm_s, ld_t, comm_t, nvr, nvc, nblk
    REAL(kind=rk8), intent(in)                      :: vmat_s(ld_s,nvc)
@@ -336,15 +277,12 @@ subroutine elpa_reduce_add_vectors_real_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,co
    integer(kind=ik)                          :: myps, mypt, nps, npt
    integer(kind=ik)                          :: n, lc, k, i, ips, ipt, ns, nl, mpierr
    integer(kind=ik)                          :: lcm_s_t, nblks_tot
-   integer(kind=ik)                          :: auxstride, tylerk, error_unit
-
-
+   integer(kind=ik)                          :: auxstride
 
    call mpi_comm_rank(comm_s,myps,mpierr)
    call mpi_comm_size(comm_s,nps ,mpierr)
    call mpi_comm_rank(comm_t,mypt,mpierr)
    call mpi_comm_size(comm_t,npt ,mpierr)
-
 
 ! Look to elpa_transpose_vectors for the basic idea!
 
@@ -383,24 +321,7 @@ subroutine elpa_reduce_add_vectors_real_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,co
 
          k = nvc * auxstride
 
-
-
-
-
-
-
-
          if(k>0) call mpi_reduce(aux1, aux2, k, MPI_REAL8, MPI_SUM, ipt, comm_t, mpierr)
-
-
-
-
-
-
-
-
-
-
 
          if (mypt == ipt) then
 !            k = 0
@@ -420,39 +341,16 @@ subroutine elpa_reduce_add_vectors_real_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,co
 
    enddo
 
-
    deallocate(aux1)
    deallocate(aux2)
 
-
 end subroutine
-
-
-
-
-
-
 
 ! single precision
 
-
 ! double precision
 
-
-
-
-
-
-
-
-
-
-
-
 subroutine elpa_transpose_vectors_complex_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvs,nvr,nvc,nblk)
-
-
-
 
 !-------------------------------------------------------------------------------
 ! This routine transposes an array of vectors which are distributed in
@@ -478,12 +376,9 @@ subroutine elpa_transpose_vectors_complex_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,
 
 !   use ELPA1 ! for least_common_multiple
 
-
    use elpa_mpi
 
    implicit none
-
-
 
    integer(kind=ik), intent(in)              :: ld_s, comm_s, ld_t, comm_t, nvs, nvr, nvc, nblk
    COMPLEX(kind=ck8), intent(in)                      :: vmat_s(ld_s,nvc)
@@ -495,15 +390,10 @@ subroutine elpa_transpose_vectors_complex_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,
    integer(kind=ik)                          :: lcm_s_t, nblks_tot, nblks_comm, nblks_skip
    integer(kind=ik)                          :: auxstride
 
-
-
-
-
    call mpi_comm_rank(comm_s,myps,mpierr)
    call mpi_comm_size(comm_s,nps ,mpierr)
    call mpi_comm_rank(comm_t,mypt,mpierr)
    call mpi_comm_size(comm_t,npt ,mpierr)
-
 
 ! The basic idea of this routine is that for every block (in the block cyclic
 ! distribution), the processor within comm_t which owns the diagonal
@@ -549,24 +439,7 @@ subroutine elpa_transpose_vectors_complex_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,
             enddo
          endif
 
-
-
-
-
-
-
-
-
          call MPI_Bcast(aux, nblks_comm*nblk*nvc, MPI_DOUBLE_COMPLEX, ips, comm_s, mpierr)
-
-
-
-
-
-
-
-
-
 
 !         k = 0
          do lc=1,nvc
@@ -587,17 +460,7 @@ subroutine elpa_transpose_vectors_complex_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,
 
 end subroutine
 
-
-
-
-
-
-
-
 subroutine elpa_reduce_add_vectors_complex_double(vmat_s,ld_s,comm_s,vmat_t,ld_t,comm_t,nvr,nvc,nblk)
-
-
-
 
 !-------------------------------------------------------------------------------
 ! This routine does a reduce of all vectors in vmat_s over the communicator comm_t.
@@ -623,11 +486,9 @@ subroutine elpa_reduce_add_vectors_complex_double(vmat_s,ld_s,comm_s,vmat_t,ld_t
    use precision
 !   use ELPA1 ! for least_common_multiple
 
-
    use elpa_mpi
 
    implicit none
-
 
    integer(kind=ik), intent(in)              :: ld_s, comm_s, ld_t, comm_t, nvr, nvc, nblk
    COMPLEX(kind=ck8), intent(in)                      :: vmat_s(ld_s,nvc)
@@ -637,15 +498,12 @@ subroutine elpa_reduce_add_vectors_complex_double(vmat_s,ld_s,comm_s,vmat_t,ld_t
    integer(kind=ik)                          :: myps, mypt, nps, npt
    integer(kind=ik)                          :: n, lc, k, i, ips, ipt, ns, nl, mpierr
    integer(kind=ik)                          :: lcm_s_t, nblks_tot
-   integer(kind=ik)                          :: auxstride, tylerk, error_unit
-
-
+   integer(kind=ik)                          :: auxstride
 
    call mpi_comm_rank(comm_s,myps,mpierr)
    call mpi_comm_size(comm_s,nps ,mpierr)
    call mpi_comm_rank(comm_t,mypt,mpierr)
    call mpi_comm_size(comm_t,npt ,mpierr)
-
 
 ! Look to elpa_transpose_vectors for the basic idea!
 
@@ -684,24 +542,7 @@ subroutine elpa_reduce_add_vectors_complex_double(vmat_s,ld_s,comm_s,vmat_t,ld_t
 
          k = nvc * auxstride
 
-
-
-
-
-
-
-
-
-
          if(k>0) call mpi_reduce(aux1, aux2, k, MPI_DOUBLE_COMPLEX, MPI_SUM, ipt, comm_t, mpierr)
-
-
-
-
-
-
-
-
 
          if (mypt == ipt) then
 !            k = 0
@@ -721,104 +562,14 @@ subroutine elpa_reduce_add_vectors_complex_double(vmat_s,ld_s,comm_s,vmat_t,ld_t
 
    enddo
 
-
    deallocate(aux1)
    deallocate(aux2)
 
-
 end subroutine
-
-
-
-
-
-
-
-
 
 ! real double precision
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 !cannot use "elpa1_compute_real_template.X90" because filename with path can be too long for gfortran (max line length)
-
-
-
-
-
-
 
 !> \brief Reduces a distributed symmetric matrix to tridiagonal form (like Scalapack Routine PDSYTRD)
 !>
@@ -862,11 +613,10 @@ end subroutine
 
       real(kind=rk8), intent(inout) :: a_mat(lda,*)
 
-
       integer(kind=ik), parameter :: max_stored_uv = 32
 
 ! id in processor row and column and total numbers of processor rows and columns
-      integer(kind=ik)            :: my_prow, my_pcol, np_rows, np_cols, my_rank
+      integer(kind=ik)            :: my_prow, my_pcol, np_rows, np_cols
       integer(kind=ik)            :: mpierr
 
       integer(kind=ik)            :: totalblocks, max_loc_block_rows, max_loc_block_cols, max_local_rows, max_local_cols
@@ -877,14 +627,10 @@ end subroutine
       integer(kind=ik)            :: l_cols, l_rows
 
       integer(kind=C_intptr_T)    :: a_dev, v_row_dev, v_col_dev, u_row_dev, u_col_dev, vu_stored_rows_dev, uv_stored_cols_dev
-      logical                     :: successCUDA
 
       integer(kind=ik)            :: n_stored_vecs
       integer(kind=ik)            :: istep, i, j, l_col_beg, l_col_end, l_row_beg, l_row_end
       integer(kind=ik)            :: tile_size, l_rows_per_tile, l_cols_per_tile
-      integer(kind=c_size_t)      :: a_offset
-
-
 
       real(kind=rk8)               :: vav, vnorm2, x, aux(2*max_stored_uv), aux1(2), aux2(2), vrl, xf
 
@@ -903,10 +649,8 @@ end subroutine
 ! pattern: u1,v1,u2,v2,u3,v3,....
       real(kind=rk8), allocatable  :: uv_stored_cols(:,:)
 
-
       integer(kind=ik)            :: istat
       character(200)              :: errorMessage
-
 
       a_dev     = 0
       v_row_dev = 0
@@ -915,7 +659,6 @@ end subroutine
       u_row_dev = 0
       vu_stored_rows_dev = 0
       uv_stored_cols_dev = 0
-
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -977,8 +720,6 @@ end subroutine
       allocate(u_col(max_local_cols), stat=istat, errmsg=errorMessage)
       call check_alloc("tridiag_real", "u_col", istat, errorMessage)
 
-
-
       tmp = 0
       v_row = 0
       u_row = 0
@@ -1037,7 +778,6 @@ end subroutine
                aux1(2) = 0.
             endif
 
-
             call mpi_allreduce(aux1, aux2, 2, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
 
           vnorm2 = aux2(1)
@@ -1062,10 +802,8 @@ end subroutine
           v_row(l_rows+1) = tau(istep)
          endif !(my_pcol==pcol(istep, nblk, np_cols))
 
-
 ! Broadcast the Householder vector (and tau) along columns
          call MPI_Bcast(v_row, l_rows+1, MPI_REAL8, pcol(istep, nblk, np_cols), mpi_comm_cols, mpierr)
-
 
 !recover tau, which has been broadcasted together with v_row
         tau(istep) =  v_row(l_rows+1)
@@ -1093,7 +831,6 @@ end subroutine
               l_row_end = min(l_rows,(j+1)*l_rows_per_tile)
               if (l_row_end<l_row_beg) cycle
 
-
                 call DGEMV('T', l_row_end-l_row_beg+1, l_col_end-l_col_beg+1,  &
                                       1.0_rk8, a_mat(l_row_beg, l_col_beg), lda,  &
                                       v_row(l_row_beg), 1,  &
@@ -1105,7 +842,6 @@ end subroutine
                                         v_col(l_col_beg), 1,  &
                                         1.0_rk8, u_row(l_row_beg), 1)
                 endif
-
 
             enddo  ! j=0,i
           enddo  ! i=0,(istep-2)/tile_size
@@ -1151,7 +887,6 @@ end subroutine
            x = dot_product(v_col(1:l_cols),u_col(1:l_cols))
 
         call mpi_allreduce(x, vav, 1, MPI_REAL8, MPI_SUM, mpi_comm_cols, mpierr)
-
 
 ! store u and v in the matrices U and V
 ! these matrices are stored combined in one here
@@ -1239,9 +974,7 @@ end subroutine
         stop
       endif
 
-
     end subroutine tridiag_real_double
-
 
 !> \brief Transforms the eigenvectors of a tridiagonal matrix back
 !>                     to the eigenvectors of the original matrix
@@ -1279,7 +1012,6 @@ end subroutine
     subroutine trans_ev_real_double(na, nqc, a_mat, lda, tau, q_mat, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, useGPU)
       use, intrinsic :: iso_c_binding
 
-
       use precision
       implicit none
 
@@ -1295,21 +1027,13 @@ end subroutine
       integer(kind=ik)           :: my_prow, my_pcol, np_rows, np_cols, mpierr
       integer(kind=ik)           :: totalblocks, max_blocks_row, max_blocks_col, max_local_rows, max_local_cols
       integer(kind=ik)           :: l_cols, l_rows, l_colh, nstor
-      integer(kind=ik)           :: istep, i, n, nc, ic, ics, ice, nb, cur_pcol      
-      integer(kind=ik)           :: hvn_ubnd, hvm_ubnd
+      integer(kind=ik)           :: istep, n, nc, ic, ics, ice, nb, cur_pcol
 
       real(kind=rk8), allocatable :: tmp1(:), tmp2(:), hvb(:), hvm(:,:)
-      real(kind=rk8), allocatable :: tmat(:,:), h1(:), h2(:), hvm1(:)
+      real(kind=rk8), allocatable :: tmat(:,:), h1(:), h2(:)
       integer(kind=ik)           :: istat
       character(200)             :: errorMessage
 
-      integer(kind=C_intptr_T)    :: q_dev, tmp_dev, hvm_dev, tmat_dev
-      logical                     :: successCUDA
-
-      
-!write(*,*) "na", na, "nqc", nqc, "lda", lda, "ldq", ldq, "matrixCols", matrixCols
-      
-      
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
@@ -1344,7 +1068,6 @@ end subroutine
       allocate(hvm(max_local_rows,max_stored_rows), stat=istat, errmsg=errorMessage)
       call check_alloc("trans_ev_real", "hvm", istat, errorMessage)
 
-
       hvm = 0   ! Must be set to 0 !!!
       hvb = 0   ! Safety only
 
@@ -1365,7 +1088,6 @@ end subroutine
           l_colh = local_index(ic  , my_pcol, np_cols, nblk, -1) ! Column of Householder vector
           l_rows = local_index(ic-1, my_prow, np_rows, nblk, -1) ! # rows of Householder vector
 
-
           if (my_pcol==cur_pcol) then
             hvb(nb+1:nb+l_rows) = a_mat(1:l_rows,l_colh)
             if (my_prow==prow(ic-1, nblk, np_rows)) then
@@ -1375,7 +1097,6 @@ end subroutine
 
           nb = nb+l_rows
         enddo
-
 
         if (nb>0) &
             call MPI_Bcast(hvb, nb, MPI_REAL8, cur_pcol, mpi_comm_cols, mpierr)
@@ -1433,7 +1154,6 @@ end subroutine
               tmp1(1:l_cols*nstor) = 0
           endif  !l_rows>0
 
-
           call mpi_allreduce(tmp1, tmp2, nstor*l_cols, MPI_REAL8, MPI_SUM, mpi_comm_rows, mpierr)
 
 ! copy back tmp2 - after reduction...
@@ -1447,8 +1167,7 @@ end subroutine
               call DGEMM('N', 'N', l_rows, l_cols, nstor,   &
                                      -1.0_rk8, hvm, ubound(hvm,dim=1),  &
                                      tmp2, nstor,   &
-                                     1.0_rk8, q_mat, ldq)            
-           
+                                     1.0_rk8, q_mat, ldq)
 
           endif  ! l_rows>0
           nstor = 0
@@ -1464,10 +1183,8 @@ end subroutine
 
     end subroutine trans_ev_real_double
 
-
 subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm_rows, &
                                            mpi_comm_cols, wantDebug, success )
-
 
       use precision
       implicit none
@@ -1667,7 +1384,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
            nmid = limits(np_off+np1) - noff
            nlen = limits(np_off+nprocs) - noff
 
-
            if (my_pcol==np_off) then
              do n=np_off+np1,np_off+nprocs-1
                call mpi_send(d(noff+1), nmid, MPI_REAL8, n, 1, mpi_comm_cols, mpierr)
@@ -1724,7 +1440,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       real(kind=rk8)                 :: d(na), e(na)
 
       real(kind=rk8)                 :: q(ldq,*)
-
 
       integer(kind=ik), parameter   :: min_submatrix_size = 16 ! Minimum size of the submatrices to be used
 
@@ -1800,7 +1515,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
           call solve_tridi_single_problem_double(nlen,d(noff+1),e(noff+1), &
                                     q(nqoff+noff+1,noff+1),ubound(q,dim=1), wantDebug, success)
-                                    
+
           if (.not.(success)) return
         enddo
 
@@ -1829,7 +1544,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           nlen = limits(my_prow+1)-noff ! Size of subproblem
           call solve_tridi_single_problem_double(nlen,d(noff+1),e(noff+1),qmat1, &
                                     ubound(qmat1,dim=1), wantDebug, success)
-                                    
+
           if (.not.(success)) return
         endif
 
@@ -1845,7 +1560,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           call MPI_Bcast(qmat2, max_size*max_size, MPI_REAL8, np, mpi_comm_rows, mpierr)
 
           do i=1,nlen
-
 
             call distribute_global_column_double(qmat2(1,i), q(1,noff+i), nqoff+noff, nlen, my_prow, np_rows, nblk)
 
@@ -1923,7 +1637,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
      real(kind=rk8), allocatable    :: work(:), qtmp(:), ds(:), es(:)
      real(kind=rk8)                 :: dtmp
 
-     integer(kind=ik)              :: i, j, lwork, liwork, info, mpierr
+     integer(kind=ik)              :: i, j, lwork, liwork, info
      integer(kind=ik), allocatable :: iwork(:)
 
      logical, intent(in)           :: wantDebug
@@ -2024,10 +1738,8 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
     end subroutine solve_tridi_single_problem_double
 
-
     subroutine merge_systems_double( na, nm, d, e, q, ldq, nqoff, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, &
                           l_col, p_col, l_col_out, p_col_out, npc_0, npc_n, wantDebug, success)
-
 
       use precision
       implicit none
@@ -2042,8 +1754,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       logical, intent(in)           :: wantDebug
       logical, intent(out)          :: success
 
-      integer(kind=ik), parameter   :: max_strip=128      
-      
+      integer(kind=ik), parameter   :: max_strip=128
 
       real(kind=rk8)                 :: DLAMCH, DLAPY2
       real(kind=rk8)                 :: beta, sig, s, c, t, tau, rho, eps, tol, &
@@ -2053,7 +1764,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       real(kind=rk8)                 :: d1u(na), zu(na), d1l(na), zl(na)
       real(kind=rk8), allocatable    :: qtmp1(:,:), qtmp2(:,:), ev(:,:)
 
-
       integer(kind=ik)              :: i, j, na1, na2, l_rows, l_cols, l_rqs, l_rqe, &
                                        l_rqm, ns, info
       integer(kind=ik)              :: l_rnm, nnzu, nnzl, ndef, ncnt, max_local_cols, &
@@ -2061,16 +1771,12 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       integer(kind=ik)              :: my_proc, n_procs, my_prow, my_pcol, np_rows, &
                                        np_cols, mpierr
 
-      integer(kind=ik)              :: my_mpi_status(mpi_status_size)
-
       integer(kind=ik)              :: np_next, np_prev, np_rem
       integer(kind=ik)              :: idx(na), idx1(na), idx2(na)
       integer(kind=ik)              :: coltyp(na), idxq1(na), idxq2(na)
 
       integer(kind=ik)              :: istat
       character(200)                :: errorMessage
-
-
 
       success = .true.
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
@@ -2111,7 +1817,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       n_procs = np_rows*npc_n
       my_proc = my_prow*npc_n + (my_pcol-npc_0) ! Row major
 
-
 ! Local limits of the rows of Q
 
       l_rqs = local_index(nqoff+1 , my_prow, np_rows, nblk, +1) ! First row of Q
@@ -2120,7 +1825,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
       l_rnm  = l_rqm-l_rqs+1 ! Number of local rows <= nm
       l_rows = l_rqe-l_rqs+1 ! Total number of local rows
-
 
 ! My number of local columns
 
@@ -2251,7 +1955,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 ! The above relations may not hold exactly due to numeric differences
 ! so they have to be enforced in order not to get troubles with sorting.
 
-
             if (d1new<D1(na1)  ) d1new = D1(na1)
             if (d1new>D(idx(i))) d1new = D(idx(i))
 
@@ -2359,7 +2062,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
 ! Compute updated z
 
-
           do j=1,na1
             if (i/=j)  z(j) = z(j)*( delta(j) / (d1(j)-d1(i)) )
           enddo
@@ -2381,7 +2083,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           endif
         enddo
 
-
         call global_product_double(z, na1)
         z(1:na1) = SIGN( SQRT( -z(1:na1) ), z1(1:na1) )
 
@@ -2391,7 +2092,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
 ! Calculate scale factors for eigenvectors
         ev_scale(:) = 0.0_rk8
-
 
         DO i = my_proc+1, na1, n_procs ! work distributed over all processors
 
@@ -2404,7 +2104,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           call add_tmp_double(d1, dbase, ddiff, z, ev_scale(i), na1,i)
 !         ev_scale(i) = ev_scale_val
         enddo
-
 
         call global_gather_double(ev_scale, na1)
 ! Add the deflated eigenvalues
@@ -2424,7 +2123,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           return
         endif
 ! Eigenvector calculations
-
 
 ! Calculate the number of columns in the new local matrix Q
 ! which are updated from non-deflated/deflated eigenvectors.
@@ -2617,8 +2315,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         endif
       endif
 
-
-
       return
 
       contains
@@ -2754,7 +2450,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
                                tmp, l_rows, MPI_REAL8, pc1, 1,         &
                                mpi_comm_cols, MPI_STATUS_IGNORE, mpierr)
 
-
             q(l_rqs:l_rqe,lc2) = tmp(1:l_rows)*qtrans(1,2) + q(l_rqs:l_rqe,lc2)*qtrans(2,2)
           endif
         end subroutine transform_columns_double
@@ -2788,7 +2483,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           if (npc_n==np_cols) then
 
             call mpi_allreduce(tmp, z, n, MPI_REAL8, MPI_SUM, mpi_comm_cols, mpierr)
-
 
             return
           endif
@@ -2885,7 +2579,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
     end subroutine merge_systems_double
 
- 
     subroutine v_add_s_double(v,n,s)
       use precision
       implicit none
@@ -2971,7 +2664,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 !  DLAM   (output) DOUBLE PRECISION
 !         The computed lambda_I, the I-th updated eigenvalue.
 !-------------------------------------------------------------------------------
-
 
       use precision
       implicit none
@@ -3092,45 +2784,9 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
      endif
     end subroutine hh_transform_real_double
 
-
-
-
-
 ! real single precision
 
-
 ! complex double precision
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 !> \brief Reduces a distributed symmetric matrix to tridiagonal form (like Scalapack Routine PDSYTRD)
 !>
@@ -3181,17 +2837,13 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       complex(kind=ck8), parameter   :: CZERO = (0.0_rk8,0.0_rk8), CONE = (1.0_rk8,0.0_rk8)
 
       integer(kind=ik)              :: my_prow, my_pcol, np_rows, np_cols, mpierr
-      
+
       integer(kind=ik)              :: totalblocks, max_loc_block_rows, max_loc_block_cols, max_local_rows, max_local_cols
       integer(kind=ik)              :: l_cols, l_rows, n_stored_vecs
       integer(kind=ik)              :: istep, i, j, l_col_beg, l_col_end, l_row_beg, l_row_end
       integer(kind=ik)              :: tile_size, l_rows_per_tile, l_cols_per_tile
-      integer(kind=c_size_t)        :: a_offset
 
       integer(kind=C_intptr_T)    :: a_dev, v_row_dev, v_col_dev, u_row_dev, u_col_dev, vu_stored_rows_dev, uv_stored_cols_dev
-      logical                     :: successCUDA
-      
-
 
       real(kind=rk8)                 :: vnorm2
       complex(kind=ck8)              :: vav, xc, aux(2*max_stored_uv),  aux1(2), aux2(2), aux3(1), vrl, xf
@@ -3201,10 +2853,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       real(kind=rk8), allocatable    :: tmp_real(:)
       integer(kind=ik)              :: istat
       character(200)                :: errorMessage
-      
-! todo: remove
-      complex(kind=ck8)     :: tmp_print(10)
-
 
       a_dev     = 0
       v_row_dev = 0
@@ -3215,12 +2863,11 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       uv_stored_cols_dev = 0
       aux3 = 0
 
-
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
       call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
       call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
-      
+
 ! Matrix is split into tiles; work is done only for tiles on the diagonal or above
       tile_size = nblk*least_common_multiple(np_rows,np_cols) ! minimum global tile size
       tile_size = ((128*max(np_rows,np_cols)-1)/tile_size+1)*tile_size ! make local tiles at least 128 wide
@@ -3250,8 +2897,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       allocate(u_col(max_local_cols), stat=istat, errmsg=errorMessage)
       call check_alloc("tridiag_complex", "u_col", istat, errorMessage)
 
-
-      
       tmp = 0
       v_row = 0
       u_row = 0
@@ -3263,7 +2908,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
       allocate(uv_stored_cols(max_local_cols,2*max_stored_uv), stat=istat, errmsg=errorMessage)
       call check_alloc("tridiag_complex", "uv_stored_cols", istat, errorMessage)
-      
+
       d_vec(:) = 0
       e_vec(:) = 0
       tau(:) = 0
@@ -3295,7 +2940,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
 ! copy l_cols + 1 column of A to v_row
             v_row(1:l_rows) = a_mat(1:l_rows,l_cols+1)
-          
+
           if (n_stored_vecs>0 .and. l_rows>0) then
             aux(1:2*n_stored_vecs) = conjg(uv_stored_cols(l_cols+1,1:2*n_stored_vecs))
             call ZGEMV('N', l_rows, 2*n_stored_vecs,  &
@@ -3330,17 +2975,14 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           endif
 
 ! store Householder vector for back transformation
-          a_mat(1:l_rows,l_cols+1) = v_row(1:l_rows) 
+          a_mat(1:l_rows,l_cols+1) = v_row(1:l_rows)
 
 ! add tau after the end of actuall v_row, to be broadcasted with it
           v_row(l_rows+1) = tau(istep)
          endif !(my_pcol==pcol(istep, nblk, np_cols))
 
-
 ! Broadcast the Householder vector (and tau) along columns
          call MPI_Bcast(v_row, l_rows+1, MPI_DOUBLE_COMPLEX, pcol(istep, nblk, np_cols), mpi_comm_cols, mpierr)
-
-
 
 !recover tau, which has been broadcasted together with v_row
         tau(istep) =  v_row(l_rows+1)
@@ -3367,7 +3009,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
               l_row_end = min(l_rows,(j+1)*l_rows_per_tile)
               if (l_row_end<l_row_beg) cycle
 
-
                 call ZGEMV('C', l_row_end-l_row_beg+1, l_col_end-l_col_beg+1,  &
                                     CONE, a_mat(l_row_beg,l_col_beg), lda,  &
                                     v_row(l_row_beg), 1,  &
@@ -3380,10 +3021,8 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
                                       CONE, u_row(l_row_beg), 1)
                 endif
 
-
             enddo  ! j=0,i
           enddo  ! i=0,(istep-2)/tile_size
-          
 
           if (n_stored_vecs>0) then
             call ZGEMV('C', l_rows, 2*n_stored_vecs,  &
@@ -3415,7 +3054,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
           call mpi_allreduce(tmp, u_col, l_cols, MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_rows, mpierr)
 
-
         endif
 
 !        call elpa_transpose_vectors  (u_col, 2*ubound(u_col,dim=1), mpi_comm_cols, &
@@ -3433,7 +3071,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
            xc = dot_product(v_col(1:l_cols),u_col(1:l_cols))
 
         call mpi_allreduce(xc, vav, 1 , MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_cols, mpierr)
-
 
 ! store u and v in the matrices U and V
 ! these matrices are stored combined in one here
@@ -3490,18 +3127,15 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
             vrl = a_mat(1,l_cols)
           call hh_transform_complex_double(vrl, 0.0_rk8, xf, tau(2))
           e_vec(1) = vrl
-          
+
           a_mat(1,l_cols) = 1. ! for consistency only
         endif
-
 
         call mpi_bcast(tau(2), 1, MPI_DOUBLE_COMPLEX, prow(1, nblk, np_rows), mpi_comm_rows, mpierr)
 
       endif
 
-
       call mpi_bcast(tau(2), 1, MPI_DOUBLE_COMPLEX, pcol(2, nblk, np_cols), mpi_comm_cols, mpierr)
-
 
       if (my_prow==prow(1, nblk, np_rows) .and. my_pcol==pcol(1, nblk, np_cols))  then
           d_vec(1) = DREAL(a_mat(1,1))
@@ -3512,7 +3146,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
         print *,"tridiag_complex: error when deallocating tmp "//errorMessage
         stop
       endif
-      
+
 ! distribute the arrays d_vec and e_vec to all processors
 
       allocate(tmp_real(na), stat=istat, errmsg=errorMessage)
@@ -3537,8 +3171,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       endif
 
     end subroutine tridiag_complex_double
-
-
 
 !> \brief Transforms the eigenvectors of a tridiagonal matrix back
 !>                     to the eigenvectors of the original matrix
@@ -3593,16 +3225,12 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       integer(kind=ik)              :: my_prow, my_pcol, np_rows, np_cols, mpierr
       integer(kind=ik)              :: totalblocks, max_blocks_row, max_blocks_col, max_local_rows, max_local_cols
       integer(kind=ik)              :: l_cols, l_rows, l_colh, nstor
-      integer(kind=ik)              :: istep, i, n, nc, ic, ics, ice, nb, cur_pcol
-      integer(kind=ik)              :: hvn_ubnd, hvm_ubnd
+      integer(kind=ik)              :: istep, n, nc, ic, ics, ice, nb, cur_pcol
 
       complex(kind=ck8), allocatable :: tmp1(:), tmp2(:), hvb(:), hvm(:,:)
-      complex(kind=ck8), allocatable :: tmat(:,:), h1(:), h2(:), hvm1(:)
+      complex(kind=ck8), allocatable :: tmat(:,:), h1(:), h2(:)
       integer(kind=ik)              :: istat
       character(200)                :: errorMessage
-      
-      integer(kind=C_intptr_T)    :: q_dev, tmp_dev, hvm_dev, tmat_dev
-      logical                     :: successCUDA
 
       call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
       call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
@@ -3665,7 +3293,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           l_colh = local_index(ic  , my_pcol, np_cols, nblk, -1) ! Column of Householder vector
           l_rows = local_index(ic-1, my_prow, np_rows, nblk, -1) ! # rows of Householder vector
 
-
           if (my_pcol==cur_pcol) then
             hvb(nb+1:nb+l_rows) = a_mat(1:l_rows,l_colh)
             if (my_prow==prow(ic-1, nblk, np_rows)) then
@@ -3675,7 +3302,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
           nb = nb+l_rows
         enddo
-
 
         if (nb>0) &
            call MPI_Bcast(hvb, nb, MPI_DOUBLE_COMPLEX, cur_pcol, mpi_comm_cols, mpierr)
@@ -3705,7 +3331,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
           if (nc>0) call mpi_allreduce(h1, h2, nc, MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_rows, mpierr)
 
-
 ! Calculate triangular matrix T
 
           nc = 0
@@ -3718,7 +3343,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
             tmat(n+1,n+1) = tau(ice-nstor+n+1)
             nc = nc+n
           enddo
-          
+
 ! Q = Q - V * T * V**T * Q
 
           if (l_rows>0) then
@@ -3729,7 +3354,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
           else !l_rows>0
               tmp1(1:l_cols*nstor) = 0
           endif  !l_rows>0
-
 
           call mpi_allreduce(tmp1, tmp2, nstor*l_cols, MPI_DOUBLE_COMPLEX, MPI_SUM, mpi_comm_rows, mpierr)
 
@@ -3754,8 +3378,8 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 !          endif
 
           nstor = 0
-        endif        
-        
+        endif
+
       enddo ! istep=1,na,nblk
 
       deallocate(tmat, h1, h2, tmp1, tmp2, hvb, hvm, stat=istat, errmsg=errorMessage)
@@ -3779,7 +3403,7 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
       complex(kind=ck8), intent(out)   :: xf, tau
 
       real(kind=rk8)                   :: ALPHR, ALPHI, BETA
-      
+
       ALPHR = real( ALPHA, kind=rk8 )
       ALPHI = DIMAG( ALPHA )
       if ( XNORM_SQ==0. .AND. ALPHI==0. ) then
@@ -3812,14 +3436,6 @@ subroutine solve_tridi_double( na, nev, d, e, q, ldq, nblk, matrixCols, mpi_comm
 
     end subroutine hh_transform_complex_double
 
-
-
-
-
-
-
-
 ! complex single precision
-
 
 end module ELPA1_compute

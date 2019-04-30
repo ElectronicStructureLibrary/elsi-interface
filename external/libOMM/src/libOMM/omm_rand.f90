@@ -18,8 +18,6 @@ contains
 
         implicit none
         integer :: seed
-        character(10) :: system_time
-        real(dp) :: rtime
         seed=123456
 
     end function omm_rand_seed
