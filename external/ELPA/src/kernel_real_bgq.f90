@@ -97,7 +97,6 @@
 
   end subroutine double_hh_trafo_bgq_double
 
-
   ! --------------------------------------------------------------------------------------------------
   ! The following kernels perform the Householder transformation on Q for 24/16/8/4 rows.
   ! --------------------------------------------------------------------------------------------------
@@ -479,7 +478,6 @@
     VECTOR(REAL(8))::QPX_x1, QPX_x2, QPX_y1, QPX_y2
     VECTOR(REAL(8))::QPX_q1, QPX_q2
     VECTOR(REAL(8))::QPX_h1, QPX_h2, QPX_tau1, QPX_tau2, QPX_s
-
 
     call alignx(32,q)
 

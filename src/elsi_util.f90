@@ -310,13 +310,14 @@ subroutine elsi_check(ph,bh,caller)
       end if
    end if
 
-   if(ph%matrix_format == BLACS_DENSE) then
+   select case(ph%matrix_format)
+   case(BLACS_DENSE)
       if(.not. bh%blacs_ready .and. ph%parallel_mode /= SINGLE_PROC) then
          write(msg,"(A)") "BLACS_DENSE matrix format requested but not"//&
             " properly set up"
          call elsi_stop(bh,msg,caller)
       end if
-   else if(ph%matrix_format == SIESTA_CSC) then
+   case(SIESTA_CSC)
       if(.not. bh%siesta_csc_ready) then
          write(msg,"(A)") "SIESTA_CSC matrix format requested but not"//&
             " properly set up"
@@ -328,7 +329,7 @@ subroutine elsi_check(ph,bh,caller)
             " not set"
          call elsi_stop(bh,msg,caller)
       end if
-   else if(ph%matrix_format == PEXSI_CSC) then
+   case(PEXSI_CSC)
       if(.not. bh%pexsi_csc_ready) then
          write(msg,"(A)") "PEXSI_CSC matrix format requested but not"//&
             " properly set up"
@@ -346,13 +347,13 @@ subroutine elsi_check(ph,bh,caller)
             "PEXSI_CSC matrix format"
          call elsi_stop(bh,msg,caller)
       end if
-   else if(ph%matrix_format == GENERIC_COO) then
+   case(GENERIC_COO)
       if(.not. bh%generic_coo_ready) then
          write(msg,"(A)") "GENERIC_COO matrix format requested but not"//&
             " properly set up"
          call elsi_stop(bh,msg,caller)
       end if
-   end if
+   end select
 
    if(ph%unit_ovlp) then
       ph%save_ovlp = .false.

@@ -1,18 +1,11 @@
 module single_hh_trafo_real
   implicit none
 
-
   public single_hh_trafo_real_cpu_double
-
-
-
 
   contains
 
-
     subroutine single_hh_trafo_real_cpu_double(q, hh, nb, nq, ldq)
-
-
 
       use precision
 ! Perform single real Householder transformation.
@@ -26,8 +19,6 @@ module single_hh_trafo_real
       real(kind=rk8), intent(in)      :: hh(1:nb)
       integer(kind=ik)               :: i
       real(kind=rk8)                  :: v(nq)
-
-
 
 ! v = q * hh
       v(:) = q(1:nq,1)
@@ -44,8 +35,6 @@ module single_hh_trafo_real
         q(1:nq,i) = q(1:nq,i) - v(:) * hh(i)
       enddo
 
-
     end subroutine
-
 
 end module

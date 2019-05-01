@@ -59,12 +59,7 @@ module complex_generic_kernel
   private
   public single_hh_trafo_complex_generic_double
 
-
   contains
-
-
-
-
 
 ! the Intel compiler creates a temp array copy of array q!
 ! this should be prevented, if possible without using assumed size arrays
@@ -80,13 +75,7 @@ module complex_generic_kernel
     complex(kind=ck8), intent(inout) :: q(ldq,*)
     complex(kind=ck8), intent(in)    :: hh(*)
 
-
     integer(kind=ik)                :: i
-
-
-
-
-
 
 ! Safety only:
 
@@ -98,11 +87,7 @@ module complex_generic_kernel
 
     do i=1,nq-8,12
 
-
-
        call hh_trafo_complex_kernel_12_double(q(i,1),hh, nb, ldq)
-
-
 
     enddo
 
@@ -110,33 +95,17 @@ module complex_generic_kernel
 
     if(nq-i+1 > 4) then
 
-
-
        call hh_trafo_complex_kernel_8_double(q(i,1),hh, nb, ldq)
-
-
 
     else if(nq-i+1 > 0) then
 
-
-
        call hh_trafo_complex_kernel_4_double(q(i,1),hh, nb, ldq)
 
-
-
     endif
-
-
-
-
-
-
-
 
   end subroutine single_hh_trafo_complex_generic_double
 
 ! --------------------------------------------------------------------------------------------------
-
 
   subroutine double_hh_trafo_complex_generic_double(q, hh, nb, nq, ldq, ldh)
 
@@ -155,10 +124,6 @@ module complex_generic_kernel
 
 ! Safety only:
 
-
-
-
-
     if(mod(ldq,4) /= 0) STOP 'double_hh_trafo: ldq not divisible by 4!'
 
 ! Calculate dot product of the two Householder vectors
@@ -174,21 +139,13 @@ module complex_generic_kernel
 
     do i=1,nq,4
 
-
-
        call hh_trafo_complex_kernel_4_2hv_double(q(i,1),hh, nb, ldq, ldh, s)
-
-
 
     enddo
 
 !do i=1,nq-8,12
 
-
-
 !   call hh_trafo_complex_kernel_12_2hv(q(i,1),hh, nb, ldq, ldh, s)
-
-
 
 !enddo
 
@@ -196,33 +153,17 @@ module complex_generic_kernel
 
 !if(nq-i+1 > 4) then
 
-
-
 !   call hh_trafo_complex_kernel_8_2hv(q(i,1),hh, nb, ldq, ldh, s)
-
-
 
 !else if(nq-i+1 > 0) then
 
-
-
 !   call hh_trafo_complex_kernel_4_2hv(q(i:ldq,1:nb+1),hh(1:ldh,1:2), nb, ldq, ldh, s)
 
-
-
 !endif
-
-
-
-
-
-
-
 
   end subroutine double_hh_trafo_complex_generic_double
 
 ! --------------------------------------------------------------------------------------------------
-
 
   subroutine hh_trafo_complex_kernel_12_double(q, hh, nb, ldq)
 
@@ -238,11 +179,6 @@ module complex_generic_kernel
     complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6, x7, x8, x9, xa, xb, xc
     complex(kind=ck8)                :: h1, tau1
     integer(kind=ik)                :: i
-
-
-
-
-
 
     x1 = q(1,1)
     x2 = q(2,1)
@@ -320,17 +256,9 @@ module complex_generic_kernel
        q(12,i) = q(12,i) + xc*h1
     enddo
 
-
-
-
-
-
-
-
   end subroutine hh_trafo_complex_kernel_12_double
 
 ! --------------------------------------------------------------------------------------------------
-
 
   subroutine hh_trafo_complex_kernel_8_double(q, hh, nb, ldq)
 
@@ -346,11 +274,6 @@ module complex_generic_kernel
     complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6, x7, x8
     complex(kind=ck8)                :: h1, tau1
     integer(kind=ik)                :: i
-
-
-
-
-
 
     x1 = q(1,1)
     x2 = q(2,1)
@@ -408,17 +331,9 @@ module complex_generic_kernel
        q(8,i) = q(8,i) + x8*h1
     enddo
 
-
-
-
-
-
-
-
   end subroutine hh_trafo_complex_kernel_8_double
 
 ! --------------------------------------------------------------------------------------------------
-
 
   subroutine hh_trafo_complex_kernel_4_double(q, hh, nb, ldq)
 
@@ -434,12 +349,6 @@ module complex_generic_kernel
     complex(kind=ck8)                :: x1, x2, x3, x4
     complex(kind=ck8)                :: h1, tau1
     integer(kind=ik)                :: i
-
-
-
-
-
-
 
     x1 = q(1,1)
     x2 = q(2,1)
@@ -477,17 +386,9 @@ module complex_generic_kernel
        q(4,i) = q(4,i) + x4*h1
     enddo
 
-
-
-
-
-
-
-
   end subroutine hh_trafo_complex_kernel_4_double
 
 ! --------------------------------------------------------------------------------------------------
-
 
   subroutine hh_trafo_complex_kernel_4_2hv_double(q, hh, nb, ldq, ldh, s)
 
@@ -505,11 +406,6 @@ module complex_generic_kernel
     complex(kind=ck8)                :: x1, x2, x3, x4, y1, y2, y3, y4
     complex(kind=ck8)                :: h1, h2, tau1, tau2
     integer(kind=ik)                :: i
-
-
-
-
-
 
     x1 = q(1,2)
     x2 = q(2,2)
@@ -580,18 +476,9 @@ module complex_generic_kernel
     q(3,nb+1) = q(3,nb+1) + x3*hh(nb,1)
     q(4,nb+1) = q(4,nb+1) + x4*hh(nb,1)
 
-
-
-
-
-
-
-
   end subroutine hh_trafo_complex_kernel_4_2hv_double
 
-
 ! --------------------------------------------------------------------------------------------------
-
 
   subroutine hh_trafo_complex_kernel_8_2hv_double(q, hh, nb, ldq, ldh, s)
 
@@ -609,12 +496,6 @@ module complex_generic_kernel
     complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6 ,x7, x8, y1, y2, y3, y4, y5, y6, y7, y8
     complex(kind=ck8)                :: h1, h2, tau1, tau2
     integer(kind=ik)                :: i
-
-
-
-
-
-
 
     x1 = q(1,2)
     x2 = q(2,2)
@@ -730,17 +611,9 @@ module complex_generic_kernel
     q(7,nb+1) = q(7,nb+1) + x7*hh(nb,1)
     q(8,nb+1) = q(8,nb+1) + x8*hh(nb,1)
 
-
-
-
-
-
-
-
   end subroutine hh_trafo_complex_kernel_8_2hv_double
 
 ! --------------------------------------------------------------------------------------------------
-
 
   subroutine hh_trafo_complex_kernel_12_2hv_double(q, hh, nb, ldq, ldh, s)
 
@@ -759,11 +632,6 @@ module complex_generic_kernel
                                        y7, y8, y9, y10, y11, y12
     complex(kind=ck8)                :: h1, h2, tau1, tau2
     integer(kind=ik)                :: i
-
-
-
-
-
 
     x1 = q(1,2)
     x2 = q(2,2)
@@ -922,19 +790,7 @@ module complex_generic_kernel
     q(11,nb+1) = q(11,nb+1) + x11*hh(nb,1)
     q(12,nb+1) = q(12,nb+1) + x12*hh(nb,1)
 
-
-
-
-
-
-
-
   end subroutine hh_trafo_complex_kernel_12_2hv_double
-
-
-
-
-
 
 end module complex_generic_kernel
 ! --------------------------------------------------------------------------------------------------

@@ -154,31 +154,32 @@ subroutine elsi_set_output(eh,output)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(output <= 0) then
-      eh%bh%print_info = 0
-      eh%ph%omm_output = .false.
-      eh%ph%pexsi_options%verbosity = 1
-      eh%ph%elpa_output = .false.
-      eh%ph%nt_output = .false.
-   else if(output == 1) then
+   select case(output)
+   case(1)
       eh%bh%print_info = 1
       eh%ph%omm_output = .false.
       eh%ph%pexsi_options%verbosity = 1
       eh%ph%elpa_output = .false.
       eh%ph%nt_output = .false.
-   else if(output == 2) then
+   case(2)
       eh%bh%print_info = 2
       eh%ph%omm_output = .true.
       eh%ph%pexsi_options%verbosity = 2
       eh%ph%elpa_output = .true.
       eh%ph%nt_output = .true.
-   else
+   case(3)
       eh%bh%print_info = 3
       eh%ph%omm_output = .true.
       eh%ph%pexsi_options%verbosity = 2
       eh%ph%elpa_output = .true.
       eh%ph%nt_output = .true.
-   end if
+   case default
+      eh%bh%print_info = 0
+      eh%ph%omm_output = .false.
+      eh%ph%pexsi_options%verbosity = 1
+      eh%ph%elpa_output = .false.
+      eh%ph%nt_output = .false.
+   end select
 
 end subroutine
 

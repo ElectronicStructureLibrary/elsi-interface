@@ -422,7 +422,6 @@ static __forceinline void hh_trafo_complex_kernel_20_AVX512_1hv_double(double co
 	}
 }
 
-
 static __forceinline void hh_trafo_complex_kernel_16_AVX512_1hv_double(double complex* q, double complex* hh, int nb, int ldq)
 {
 	double* q_dbl = (double*)q;

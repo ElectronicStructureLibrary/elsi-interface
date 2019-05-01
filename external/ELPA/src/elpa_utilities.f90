@@ -221,14 +221,14 @@ module ELPA_utilities
 
  subroutine check_alloc(function_name, variable_name, istat, errorMessage)
     use precision
-    
+
     implicit none
-    
+
     character(len=*), intent(in)    :: function_name
     character(len=*), intent(in)    :: variable_name
     integer(kind=ik), intent(in)    :: istat
     character(len=*), intent(in)    :: errorMessage
-    
+
     if (istat .ne. 0) then
       print *, function_name, ": error when allocating ", variable_name, " ", errorMessage
       stop

@@ -135,7 +135,6 @@ void double_hh_trafo_real_avx512_2hv_double(double* q, double* hh, int* pnb, int
 	__AVX512_DATATYPE x3 = _AVX512_LOAD(&q[ldq+2*offset]);
 	__AVX512_DATATYPE x4 = _AVX512_LOAD(&q[ldq+3*offset]);
 
-
 	__AVX512_DATATYPE h1 = _AVX512_SET1(hh[ldh+1]);
 	__AVX512_DATATYPE h2;
 
@@ -178,7 +177,6 @@ void double_hh_trafo_real_avx512_2hv_double(double* q, double* hh, int* pnb, int
 	x3 = _AVX512_FMA(q3, h1, x3);
 	q4 = _AVX512_LOAD(&q[(nb*ldq)+3*offset]);
 	x4 = _AVX512_FMA(q4, h1, x4);
-
 
 	/////////////////////////////////////////////////////
 	// Rank-2 update of Q [24 x nb+1]

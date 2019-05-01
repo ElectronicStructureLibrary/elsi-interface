@@ -94,7 +94,6 @@ module compute_hh_trafo_real
                                           stripe_width, nbw)
                enddo
 
-
              if (j==1) call single_hh_trafo_real_cpu_double(a(1:stripe_width,1+off+a_off:1+off+a_off+nbw-1,istripe),           &
                                       bcast_buffer(1:nbw,off+1), nbw, nl,     &
                                       stripe_width)

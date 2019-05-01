@@ -54,19 +54,8 @@
 !
 ! --------------------------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-
 ! the intel compiler creates a temp copy of array q!
 ! this should be prevented if possible without using assumed size arrays
-
 
   subroutine double_hh_trafo_generic_double(q, hh, nb, nq, ldq, ldh)
 
@@ -80,15 +69,12 @@
     real(kind=rk8), intent(inout)      :: q(ldq,*)
     real(kind=rk8), intent(in)         :: hh(ldh,*)
 
-
     real(kind=rk8)                     :: s
     integer(kind=ik)                  :: i
 
 !    equivalence(q(1,1),q_complex(1,1))
 
 ! Safety only:
-
-
 
     if(mod(ldq,4) /= 0) STOP 'double_hh_trafo: ldq not divisible by 4!'
 
@@ -101,16 +87,11 @@
 
 ! Do the Householder transformations
 
-
 ! Always a multiple of 4 Q-rows is transformed, even if nq is smaller
 
     do i=1,nq-8,12
 
-
-
        call hh_trafo_kernel_12_generic_double(q(i,1),hh, nb, ldq, ldh, s)
-
-
 
     enddo
 
@@ -118,30 +99,13 @@
 
     if(nq-i+1 > 4) then
 
-
-
        call hh_trafo_kernel_8_generic_double(q(i,1),hh, nb, ldq, ldh, s)
-
-
-
-
 
     else if(nq-i+1 > 0) then
 
-
-
        call hh_trafo_kernel_4_generic_double(q(i,1),hh, nb, ldq, ldh, s)
 
-
-
     endif
-
-
-
-
-
-
-
 
   end subroutine double_hh_trafo_generic_double
 
@@ -151,7 +115,6 @@
 ! This is a hint for compilers that packed arithmetic can be used for Q
 ! (relevant for Intel SSE and BlueGene double hummer CPUs).
 ! --------------------------------------------------------------------------------------------------
-
 
   subroutine hh_trafo_kernel_12_generic_double(q, hh, nb, ldq, ldh, s)
 
@@ -166,18 +129,10 @@
 
     real(kind=rk8), intent(in)       :: s
 
-
     complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6, y1, y2, y3, y4, y5, y6
 
     real(kind=rk8)                   :: h1, h2, tau1, tau2
     integer(kind=ik)                :: i
-
-
-
-
-
-
-
 
     x1  = q(1,2)
     x2  = q(2,2)
@@ -186,18 +141,12 @@
     x5  = q(5,2)
     x6  = q(6,2)
 
-
     y1  = q(1 ,1) + q(1, 2)*hh(2,2)
     y2  = q(2 ,1) + q(2, 2)*hh(2,2)
     y3  = q(3 ,1) + q(3, 2)*hh(2,2)
     y4  = q(4 ,1) + q(4, 2)*hh(2,2)
     y5  = q(5 ,1) + q(5, 2)*hh(2,2)
     y6  = q(6 ,1) + q(6, 2)*hh(2,2)
-
-
-
-
-
 
     do i=3,nb
        h1  = hh(i-1,1)
@@ -224,7 +173,6 @@
     x5  = x5  + q(5,nb+1)*hh(nb,1)
     x6  = x6  + q(6,nb+1)*hh(nb,1)
 
-
     tau1 = hh(1,1)
     tau2 = hh(1,2)
 
@@ -235,7 +183,6 @@
     x4  = x4 *h1
     x5  = x5 *h1
     x6  = x6 *h1
-
 
     h1  = -tau2
     h2  = -tau2*s
@@ -253,18 +200,12 @@
     q(5,1)  = q(5, 1) + y5
     q(6,1)  = q(6, 1) + y6
 
-
     q(1, 2) = q(1, 2) + x1  + y1 *hh(2,2)
     q(2, 2) = q(2, 2) + x2  + y2 *hh(2,2)
     q(3, 2) = q(3, 2) + x3  + y3 *hh(2,2)
     q(4, 2) = q(4, 2) + x4  + y4 *hh(2,2)
     q(5, 2) = q(5, 2) + x5  + y5 *hh(2,2)
     q(6, 2) = q(6, 2) + x6  + y6 *hh(2,2)
-
-
-
-
-
 
     do i=3,nb
        h1 = hh(i-1,1)
@@ -285,15 +226,9 @@
     q(5, nb+1) = q(5, nb+1) + x5 *hh(nb,1)
     q(6, nb+1) = q(6, nb+1) + x6 *hh(nb,1)
 
-
-
-
-
-
   end subroutine hh_trafo_kernel_12_generic_double
 
 ! --------------------------------------------------------------------------------------------------
-
 
   subroutine hh_trafo_kernel_8_generic_double(q, hh, nb, ldq, ldh, s)
 
@@ -313,22 +248,15 @@
     real(kind=rk8)                    :: h1, h2, tau1, tau2
     integer(kind=ik)                 :: i
 
-
     x1 = q(1,2)
     x2 = q(2,2)
     x3 = q(3,2)
     x4 = q(4,2)
 
-
     y1 = q(1,1) + q(1,2)*hh(2,2)
     y2 = q(2,1) + q(2,2)*hh(2,2)
     y3 = q(3,1) + q(3,2)*hh(2,2)
     y4 = q(4,1) + q(4,2)*hh(2,2)
-
-
-
-
-
 
     do i=3,nb
        h1 = hh(i-1,1)
@@ -348,7 +276,6 @@
     x2 = x2 + q(2,nb+1)*hh(nb,1)
     x3 = x3 + q(3,nb+1)*hh(nb,1)
     x4 = x4 + q(4,nb+1)*hh(nb,1)
-
 
     tau1 = hh(1,1)
     tau2 = hh(1,2)
@@ -376,11 +303,6 @@
     q(3,2) = q(3,2) + x3 + y3*hh(2,2)
     q(4,2) = q(4,2) + x4 + y4*hh(2,2)
 
-
-
-
-
-
     do i=3,nb
        h1 = hh(i-1,1)
        h2 = hh(i,2)
@@ -396,19 +318,11 @@
     q(3,nb+1) = q(3,nb+1) + x3*hh(nb,1)
     q(4,nb+1) = q(4,nb+1) + x4*hh(nb,1)
 
-
-
-
-
-
-
   end subroutine hh_trafo_kernel_8_generic_double
 
 ! --------------------------------------------------------------------------------------------------
 
-
   subroutine hh_trafo_kernel_4_generic_double(q, hh, nb, ldq, ldh, s)
-
 
     use precision
 
@@ -421,26 +335,16 @@
 
     real(kind=rk8), intent(in)       :: s
 
-
     complex(kind=ck8)                :: x1, x2, y1, y2
 
     real(kind=rk8)                   :: h1, h2, tau1, tau2
     integer(kind=ik)                :: i
 
-
-
-
     x1 = q(1,2)
     x2 = q(2,2)
 
-
     y1 = q(1,1) + q(1,2)*hh(2,2)
     y2 = q(2,1) + q(2,2)*hh(2,2)
-
-
-
-
-
 
     do i=3,nb
        h1 = hh(i-1,1)
@@ -455,7 +359,6 @@
     x1 = x1 + q(1,nb+1)*hh(nb,1)
     x2 = x2 + q(2,nb+1)*hh(nb,1)
 
-
     tau1 = hh(1,1)
     tau2 = hh(1,2)
 
@@ -468,16 +371,11 @@
     y1 = y1*h1 + x1*h2
     y2 = y2*h1 + x2*h2
 
-
     q(1,1) = q(1,1) + y1
     q(2,1) = q(2,1) + y2
 
     q(1,2) = q(1,2) + x1 + y1*hh(2,2)
     q(2,2) = q(2,2) + x2 + y2*hh(2,2)
-
-
-
-
 
     do i=3,nb
        h1 = hh(i-1,1)
@@ -490,20 +388,6 @@
     q(1,nb+1) = q(1,nb+1) + x1*hh(nb,1)
     q(2,nb+1) = q(2,nb+1) + x2*hh(nb,1)
 
-
-
-
-
-
-
   end subroutine hh_trafo_kernel_4_generic_double
-
-
-
-
-
-
-
-
 
 ! --------------------------------------------------------------------------------------------------

@@ -306,7 +306,7 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    implicit none
 
    logical, intent(in), optional             :: useQR, useGPU
-   logical                                   :: useQRActual, useQREnvironment
+   logical                                   :: useQRActual
    integer(kind=c_int), intent(in), optional :: THIS_REAL_ELPA_KERNEL_API
    integer(kind=c_int)                       :: THIS_REAL_ELPA_KERNEL
 
@@ -323,15 +323,12 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    integer(kind=c_int)                       :: nbw, num_blocks
    real(kind=c_double), allocatable          :: tmat(:,:,:), e(:)
    integer(kind=c_intptr_t)                  :: tmat_dev, q_dev, a_dev
-   real(kind=c_double)                       :: ttt0, ttt1, ttts  ! MPI_WTIME always needs double
-   integer(kind=c_int)                       :: i
+   real(kind=c_double)                       :: ttt0, ttt1
    logical                                   :: success
-   logical, save                             :: firstCall = .true.
    logical                                   :: wantDebug
    integer(kind=c_int)                       :: istat
    character(200)                            :: errorMessage
    logical                                   :: do_useGPU, do_useGPU_4
-   integer(kind=c_int)                       :: numberOfGPUDevices
 
     call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
     call mpi_comm_size(mpi_comm_all,n_pes,mpierr)
@@ -444,7 +441,6 @@ function solve_evp_real_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
     call trans_ev_band_to_full_real_double(na,nev,nblk,nbw,a,a_dev,lda,tmat,tmat_dev,q,q_dev,ldq,&
             matrixCols,num_blocks,mpi_comm_rows,mpi_comm_cols,do_useGPU,useQRActual)
 
-
     ttt1 = MPI_Wtime()
     if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
        write(use_unit,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
@@ -531,15 +527,12 @@ function solve_evp_complex_2stage_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
     integer(kind=c_int)                       :: l_cols, l_rows, l_cols_nev, nbw, num_blocks
     complex(kind=c_double), allocatable       :: tmat(:,:,:)
     real(kind=c_double), allocatable          :: q_real(:,:), e(:)
-    real(kind=c_double)                       :: ttt0, ttt1, ttts  ! MPI_WTIME always needs double
-    integer(kind=c_int)                       :: i
+    real(kind=c_double)                       :: ttt0, ttt1
 
     logical                                   :: success, wantDebug
-    logical, save                             :: firstCall = .true.
     integer(kind=c_int)                       :: istat
     character(200)                            :: errorMessage
     logical                                   :: do_useGPU, do_useGPU_4
-    integer(kind=c_int)                       :: numberOfGPUDevices
 
     call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
     call mpi_comm_size(mpi_comm_all,n_pes,mpierr)

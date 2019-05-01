@@ -64,7 +64,6 @@
 
 #define __forceinline __attribute__((always_inline)) static
 
-
 //Forward declaration
 __forceinline void hh_trafo_kernel_4_AVX_2hv_double(double* q, double* hh, int nb, int ldq, int ldh, double s);
 __forceinline void hh_trafo_kernel_8_AVX_2hv_double(double* q, double* hh, int nb, int ldq, int ldh, double s);
@@ -72,7 +71,6 @@ __forceinline void hh_trafo_kernel_16_AVX_2hv_double(double* q, double* hh, int 
 __forceinline void hh_trafo_kernel_24_AVX_2hv_double(double* q, double* hh, int nb, int ldq, int ldh, double s);
 
 void double_hh_trafo_real_avx_avx2_2hv_double(double* q, double* hh, int* pnb, int* pnq, int* pldq, int* pldh);
-
 
 void double_hh_trafo_real_avx_avx2_2hv_double(double* q, double* hh, int* pnb, int* pnq, int* pldq, int* pldh)
 {

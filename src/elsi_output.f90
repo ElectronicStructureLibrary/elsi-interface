@@ -194,15 +194,16 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
       call fjson_write_name_value(jh,"n_states",ph%n_states)
    end if
 
-   if(ph%matrix_format == BLACS_DENSE) then
+   select case(ph%matrix_format)
+   case(BLACS_DENSE)
       call fjson_write_name_value(jh,"matrix_format","BLACS_DENSE")
-   else if(ph%matrix_format == PEXSI_CSC) then
+   case(PEXSI_CSC)
       call fjson_write_name_value(jh,"matrix_format","PEXSI_CSC")
-   else if(ph%matrix_format == SIESTA_CSC) then
+   case(SIESTA_CSC)
       call fjson_write_name_value(jh,"matrix_format","SIESTA_CSC")
-   else if(ph%matrix_format == GENERIC_COO) then
+   case(GENERIC_COO)
       call fjson_write_name_value(jh,"matrix_format","GENERIC_COO")
-   end if
+   end select
 
    call fjson_write_name_value(jh,"n_basis",ph%n_basis)
 
@@ -220,17 +221,18 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
       call fjson_write_name_value(jh,"parallel_mode","SINGLE_PROC")
    end if
 
-   if(ph%solver == ELPA_SOLVER) then
+   select case(ph%solver)
+   case(ELPA_SOLVER)
       call fjson_write_name_value(jh,"solver_chosen","ELPA")
-   else if(ph%solver == NTPOLY_SOLVER) then
+   case(NTPOLY_SOLVER)
       call fjson_write_name_value(jh,"solver_chosen","NTPOLY")
-   else if(ph%solver == OMM_SOLVER) then
+   case(OMM_SOLVER)
       call fjson_write_name_value(jh,"solver_chosen","libOMM")
-   else if(ph%solver == PEXSI_SOLVER) then
+   case(PEXSI_SOLVER)
       call fjson_write_name_value(jh,"solver_chosen","PEXSI")
-   else if(ph%solver == SIPS_SOLVER) then
+   case(SIPS_SOLVER)
       call fjson_write_name_value(jh,"solver_chosen","SLEPc_SIPs")
-   end if
+   end select
 
 end subroutine
 
@@ -511,19 +513,20 @@ subroutine elsi_final_print(ph,bh)
    write(msg,"(A)") "| Matrix Properties"
    call elsi_say(bh,msg)
 
-   if(ph%matrix_format == BLACS_DENSE) then
+   select case(ph%matrix_format)
+   case(BLACS_DENSE)
       write(msg,"(A,A22)") "|   Matrix format             :","BLACS_DENSE"
       call elsi_say(bh,msg)
-   else if(ph%matrix_format == PEXSI_CSC) then
+   case(PEXSI_CSC)
       write(msg,"(A,A22)") "|   Matrix format             :","PEXSI_CSC"
       call elsi_say(bh,msg)
-   else if(ph%matrix_format == SIESTA_CSC) then
+   case(SIESTA_CSC)
       write(msg,"(A,A22)") "|   Matrix format             :","SIESTA_CSC"
       call elsi_say(bh,msg)
-   else if(ph%matrix_format == GENERIC_COO) then
+   case(GENERIC_COO)
       write(msg,"(A,A22)") "|   Matrix format             :","GENERIC_COO"
       call elsi_say(bh,msg)
-   end if
+   end select
 
    write(msg,"(A,I22)") "|   Number of basis functions :",ph%n_basis
    call elsi_say(bh,msg)
@@ -552,22 +555,23 @@ subroutine elsi_final_print(ph,bh)
       call elsi_say(bh,msg)
    end if
 
-   if(ph%solver == ELPA_SOLVER) then
+   select case(ph%solver)
+   case(ELPA_SOLVER)
       write(msg,"(A,A22)") "|   Solver requested          :","ELPA"
       call elsi_say(bh,msg)
-   else if(ph%solver == OMM_SOLVER) then
+   case(OMM_SOLVER)
       write(msg,"(A,A22)") "|   Solver requested          :","libOMM"
       call elsi_say(bh,msg)
-   else if(ph%solver == PEXSI_SOLVER) then
+   case(PEXSI_SOLVER)
       write(msg,"(A,A22)") "|   Solver requested          :","PEXSI"
       call elsi_say(bh,msg)
-   else if(ph%solver == SIPS_SOLVER) then
+   case(SIPS_SOLVER)
       write(msg,"(A,A22)") "|   Solver requested          :","SLEPc-SIPs"
       call elsi_say(bh,msg)
-   else if(ph%solver == NTPOLY_SOLVER) then
+   case(NTPOLY_SOLVER)
       write(msg,"(A,A22)") "|   Solver requested          :","NTPoly"
       call elsi_say(bh,msg)
-   end if
+   end select
 
    write(msg,"(A,I22)") "|   Number of ELSI calls      :",ph%n_calls_all
    call elsi_say(bh,msg)
@@ -620,33 +624,34 @@ subroutine elsi_get_time(wtime)
    val = val-1
 
    do while(val > 0)
-      if(val == 1) then
+      select case(val)
+      case(1)
          day = day+31
-      else if(val == 2) then
+      case(2)
          if(mod(int_year,4) == 0) then
             day = day+29
          else
             day = day+28
          end if
-      else if(val == 3) then
+      case(3)
          day = day+31
-      else if(val == 4) then
+      case(4)
          day = day+30
-      else if(val == 5) then
+      case(5)
          day = day+31
-      else if(val == 6) then
+      case(6)
          day = day+30
-      else if(val == 7) then
+      case(7)
          day = day+31
-      else if(val == 8) then
+      case(8)
          day = day+31
-      else if(val == 9) then
+      case(9)
          day = day+30
-      else if(val == 10) then
+      case(10)
          day = day+31
-      else if(val == 11) then
+      case(11)
          day = day+30
-      end if
+      end select
 
       val = val-1
    end do
@@ -701,19 +706,20 @@ subroutine elsi_gen_uuid(uuid)
       write(ss3,"(Z3.3)") transfer(int(rr(i_entry)*ii3),16)
       write(ss4,"(Z4.4)") transfer(int(rr(i_entry)*ii4),16)
 
-      if(i_entry == 1) then
+      select case(i_entry)
+      case(1)
          write(uuid,"(A)") ss4
-      else if(i_entry == 2) then
+      case(2)
          write(uuid,"(2A)") trim(uuid),ss4
-      else if(i_entry == 3) then
+      case(3)
          write(uuid,"(3A)") trim(uuid),"-",ss4
-      else if(i_entry == 4) then
+      case(4)
          write(uuid,"(3A)") trim(uuid),"-4",ss3
-      else if(i_entry == 5) then
+      case(5)
          write(uuid,"(4A)") trim(uuid),"-A",ss3,"-"
-      else
+      case default
          write(uuid,"(2A)") trim(uuid),ss4
-      end if
+      end select
    end do
 
 end subroutine
