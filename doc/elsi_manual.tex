@@ -1533,6 +1533,43 @@ The following subroutines orthonormalize eigenvectors (coefficients of wavefunct
 \hline
 \end{tabular}
 
+\begin{labeling}{\hspace{6cm}}
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_orthonormalize\_ev\_real\_sparse}(handle, ovlp, evec)]
+\end{labeling}
+
+\begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\hline
+\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\hline
+\textcolor{blue}{handle} & type(elsi\_handle)        & inout & Handle to ELSI.\\
+\hline
+\textcolor{blue}{ovlp}   & real double, rank-1 array & in    & Real overlap matrix in 1D block CSC, 1D block-cyclic CSC, or generic COO sparse format.\\
+\hline
+\textcolor{blue}{evec}   & real double, rank-2 array & inout & Real eigenvectors in 2D block-cyclic dense format.  See remark 1.\\
+\hline
+\end{tabular}
+
+\newpage
+\begin{labeling}{\hspace{6cm}}
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_orthonormalize\_ev\_complex\_sparse}(handle, ovlp, evec)]
+\end{labeling}
+
+\begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\hline
+\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\hline
+\textcolor{blue}{handle} & type(elsi\_handle)           & inout & Handle to ELSI.\\
+\hline
+\textcolor{blue}{ovlp}   & complex double, rank-1 array & in    & Complex overlap matrix in 1D block CSC, 1D block-cyclic CSC, or generic COO sparse format.\\
+\hline
+\textcolor{blue}{evec}   & complex double, rank-2 array & inout & Complex eigenvectors in 2D block-cyclic dense format.  See remark 1.\\
+\hline
+\end{tabular}
+
+\textbf{Remarks}
+
+\textbf{1)} When using \textcolor{blue}{elsi\_orthonormalize\_ev\_real\_sparse} and \textcolor{blue}{elsi\_orthonormalize\_ev\_complex\_sparse}, the eigenvectors are stored in a dense format (\textcolor{blue}{BLACS\_DENSE}), as they are in general not sparse.
+
 The following subroutines extrapolate density matrix in the n$^\text{th}$ geometry step to satisfy conditions \ref{eq:density_matrix_conditions} with respect to the overlap matrix in the (n+1)$^\text{th}$ geometry step.
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_extrapolate\_dm\_real}(handle, ovlp, dm)]
@@ -1550,7 +1587,6 @@ The following subroutines extrapolate density matrix in the n$^\text{th}$ geomet
 \hline
 \end{tabular}
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_extrapolate\_dm\_complex}(handle, ovlp, dm)]
 \end{labeling}
@@ -1567,11 +1603,45 @@ The following subroutines extrapolate density matrix in the n$^\text{th}$ geomet
 \hline
 \end{tabular}
 
+\begin{labeling}{\hspace{6cm}}
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_extrapolate\_dm\_real\_sparse}(handle, ovlp, dm)]
+\end{labeling}
+
+\begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\hline
+\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\hline
+\textcolor{blue}{handle} & type(elsi\_handle)        & inout & Handle to ELSI.\\
+\hline
+\textcolor{blue}{ovlp}   & real double, rank-1 array & inout & Real overlap matrix in 1D block CSC, 1D block-cyclic CSC, or generic COO sparse format.  See remark 1.\\
+\hline
+\textcolor{blue}{dm}     & real double, rank-1 array & out   & Real density matrix in 1D block CSC, 1D block-cyclic CSC, or generic COO sparse format.  See remark 3.\\
+\hline
+\end{tabular}
+
+\begin{labeling}{\hspace{6cm}}
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_extrapolate\_dm\_complex\_sparse}(handle, ovlp, dm)]
+\end{labeling}
+
+\begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\hline
+\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\hline
+\textcolor{blue}{handle} & type(elsi\_handle)           & inout & Handle to ELSI.\\
+\hline
+\textcolor{blue}{ovlp}   & complex double, rank-1 array & inout & Complex overlap matrix in 1D block CSC, 1D block-cyclic CSC, or generic COO sparse format.  See remark 1.\\
+\hline
+\textcolor{blue}{dm}     & complex double, rank-1 array & out   & Complex density matrix in 1D block CSC, 1D block-cyclic CSC, or generic COO sparse format.  See remark 3.\\
+\hline
+\end{tabular}
+
 \textbf{Remarks}
 
 \textbf{1)} \textcolor{blue}{ovlp}:  This should be the overlap matrix in the (n+1)$^\text{th}$ geometry step.  \textcolor{blue}{elsi\_set\_save\_ovlp} must have been called to store the overlap matrix in the n$^\text{th}$ geometry step internally.  If ELPA is the chosen solver, \textcolor{blue}{ovlp} will be overridden with its Cholesky factorization, which will be reused by subsequent calls to the solver interfaces.
 
 \textbf{2)} \textcolor{blue}{dm}:  Input should be the density matrix in the n$^\text{th}$ geometry step.  Output is the extrapolated density matrix.
+
+\textbf{3)} \textcolor{blue}{dm}:  With the sparse density matrix extrapolation interface, the density matrix in the n$^\text{th}$ geometry step is stored internally.  Output is the extrapolated density matrix.
 
 \section{Parallel Matrix I/O}
 \label{sec:rw}
