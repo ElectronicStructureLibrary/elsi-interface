@@ -621,6 +621,9 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%evec_real,dm)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
+
+      eh%ph%eval_ready = .true.
+      eh%ph%evec_ready = .true.
    case(OMM_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_init_omm(eh%ph,eh%bh)
@@ -761,6 +764,8 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_sips_to_blacs_dm(eh%ph,eh%bh,eh%dm_real_sp,eh%row_ind_sp1,&
            eh%col_ptr_sp1,dm)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,SIPS_SOLVER)
+
+      eh%ph%eval_ready = .true.
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%ph%nt_ham,&
@@ -890,6 +895,9 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%evec_cmplx,dm)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
+
+      eh%ph%eval_ready = .true.
+      eh%ph%evec_ready = .true.
    case(OMM_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_init_omm(eh%ph,eh%bh)
@@ -1163,6 +1171,9 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
       end select
 
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
+
+      eh%ph%eval_ready = .true.
+      eh%ph%evec_ready = .true.
    case(OMM_SOLVER)
       call elsi_init_blacs(eh)
       call elsi_init_elpa(eh%ph,eh%bh)
@@ -1460,6 +1471,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          write(msg,"(A)") "Unsupported matrix format"
          call elsi_stop(eh%bh,msg,caller)
       end select
+
+      eh%ph%eval_ready = .true.
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
 
@@ -1710,6 +1723,9 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
       end select
 
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
+
+      eh%ph%eval_ready = .true.
+      eh%ph%evec_ready = .true.
    case(OMM_SOLVER)
       call elsi_init_blacs(eh)
       call elsi_init_elpa(eh%ph,eh%bh)

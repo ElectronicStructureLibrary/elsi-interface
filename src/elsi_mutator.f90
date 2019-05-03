@@ -93,6 +93,9 @@ module ELSI_MUTATOR
    public :: elsi_get_edm_complex
    public :: elsi_get_edm_real_sparse
    public :: elsi_get_edm_complex_sparse
+   public :: elsi_get_eval
+   public :: elsi_get_evec_real
+   public :: elsi_get_evec_complex
 
    ! Deprecated
    public :: elsi_set_write_unit
@@ -1910,6 +1913,85 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
 
    eh%ph%edm_ready = .false.
    eh%ph%solver = solver_save
+
+end subroutine
+
+!>
+!! Get eigenvalues when elsi_dm_{real|complex}_{sparse} has been called with
+!! either ELPA or SLEPc-SIPs.
+!!
+subroutine elsi_get_eval(eh,eval)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(out) :: eval(eh%ph%n_basis) !< Eigenvalues
+
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_get_eval"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(.not. eh%ph%eval_ready) then
+      write(msg,"(A)") "Eigenvalues not available"
+      call elsi_stop(eh%bh,msg,caller)
+   end if
+
+   eval = eh%eval
+   eh%ph%eval_ready = .false.
+
+end subroutine
+
+!>
+!! Get eigenvectors when elsi_dm has been called with ELPA or SLEPc-SIPs.
+!!
+subroutine elsi_get_evec_real(eh,evec)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(out) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
+
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_get_evec_real"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(.not. eh%ph%evec_ready) then
+      write(msg,"(A)") "Eigenvectors not available"
+      call elsi_stop(eh%bh,msg,caller)
+   end if
+
+   evec = eh%evec_real
+   eh%ph%evec_ready = .false.
+
+end subroutine
+
+!>
+!! Get eigenvectors when elsi_dm has been called with ELPA or SLEPc-SIPs.
+!!
+subroutine elsi_get_evec_complex(eh,evec)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   complex(kind=r8), intent(out) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
+
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_get_evec_complex"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(.not. eh%ph%evec_ready) then
+      write(msg,"(A)") "Eigenvectors not available"
+      call elsi_stop(eh%bh,msg,caller)
+   end if
+
+   evec = eh%evec_cmplx
+   eh%ph%evec_ready = .false.
 
 end subroutine
 
