@@ -182,7 +182,7 @@ subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
+   type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
@@ -334,7 +334,7 @@ subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
+   type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    complex(kind=r8), intent(inout) :: coeff(ph%omm_n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: edm(bh%n_lrow,bh%n_lcol)
