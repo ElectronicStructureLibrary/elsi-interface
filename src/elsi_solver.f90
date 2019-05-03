@@ -773,7 +773,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_stop(eh%bh,msg,caller)
    end select
 
-   eh%ph%edm_ready_real = .true.
+   eh%ph%edm_ready = .true.
 
    ! Save information for density matrix extrapolation
    if(eh%ph%save_ovlp) then
@@ -981,7 +981,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_stop(eh%bh,msg,caller)
    end select
 
-   eh%ph%edm_ready_cmplx = .true.
+   eh%ph%edm_ready = .true.
 
    ! Save information for density matrix extrapolation
    if(eh%ph%save_ovlp) then
@@ -1501,7 +1501,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
       call elsi_stop(eh%bh,msg,caller)
    end select
 
-   eh%ph%edm_ready_real = .true.
+   eh%ph%edm_ready = .true.
 
    ! Save information for density matrix extrapolation
    if(eh%ph%save_ovlp) then
@@ -1935,7 +1935,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
       call elsi_stop(eh%bh,msg,caller)
    end select
 
-   eh%ph%edm_ready_cmplx = .true.
+   eh%ph%edm_ready = .true.
 
    ! Save information for density matrix extrapolation
    if(eh%ph%save_ovlp) then

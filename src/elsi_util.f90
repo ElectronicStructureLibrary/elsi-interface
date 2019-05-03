@@ -107,8 +107,7 @@ subroutine elsi_reset_param(ph)
    ph%energy_gap = 0.0_r8
    ph%spectrum_width = 1.0e3_r8
    ph%dimensionality = 3
-   ph%edm_ready_real = .false.
-   ph%edm_ready_cmplx = .false.
+   ph%edm_ready = .false.
    ph%mu = 0.0_r8
    ph%ts = 0.0_r8
    ph%mu_scheme = 0
