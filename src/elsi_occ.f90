@@ -360,7 +360,7 @@ subroutine elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
       ! ...with adjusted occupation numbers
       write(msg,"(A)") "Chemical potential cannot reach required accuracy"
       call elsi_say(bh,msg)
-      write(msg,"(A,E10.2,A)") "| Residual error :",diff_right
+      write(msg,"(A,E12.4,A)") "| Residual error :",diff_right
       call elsi_say(bh,msg)
       write(msg,"(A)") "Error will be removed from highest occupied states"
       call elsi_say(bh,msg)
