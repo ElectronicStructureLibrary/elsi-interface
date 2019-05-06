@@ -247,7 +247,7 @@ subroutine elsi_check_ovlp_real(ph,bh,ovlp,eval,evec)
 
       write(msg,"(A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
-      write(msg,"(A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
+      write(msg,"(A,E12.4,A,E12.4)") "| Lowest and highest eigenvalues :",&
          eval(1),",",eval(ph%n_basis)
       call elsi_say(bh,msg)
       write(msg,"(A,I10)") "| Number of basis functions reduced to :",ph%n_good
@@ -264,7 +264,7 @@ subroutine elsi_check_ovlp_real(ph,bh,ovlp,eval,evec)
 
       write(msg,"(A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
-      write(msg,"(A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
+      write(msg,"(A,E12.4,A,E12.4)") "| Lowest and highest eigenvalues :",&
          eval(1),",",eval(ph%n_basis)
       call elsi_say(bh,msg)
    end if
@@ -608,7 +608,7 @@ subroutine elsi_check_ovlp_cmplx(ph,bh,ovlp,eval,evec)
 
       write(msg,"(A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
-      write(msg,"(A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
+      write(msg,"(A,E12.4,A,E12.4)") "| Lowest and highest eigenvalues :",&
          eval(1),",",eval(ph%n_basis)
       call elsi_say(bh,msg)
       write(msg,"(A,I10)") "| Number of basis functions reduced to :",ph%n_good
@@ -625,7 +625,7 @@ subroutine elsi_check_ovlp_cmplx(ph,bh,ovlp,eval,evec)
 
       write(msg,"(A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
-      write(msg,"(A,E10.2,A,E10.2)") "| Lowest and highest eigenvalues :",&
+      write(msg,"(A,E12.4,A,E12.4)") "| Lowest and highest eigenvalues :",&
          eval(1),",",eval(ph%n_basis)
       call elsi_say(bh,msg)
    end if
