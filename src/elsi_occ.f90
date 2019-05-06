@@ -693,6 +693,7 @@ end subroutine
 
 !>
 !! Compute the chemical potential and occupation numbers.
+!! (Public version of elsi_mu_and_occ)
 !!
 subroutine elsi_compute_mu_and_occ(eh,n_electron,n_state,n_spin,n_kpt,k_wt,&
    eval,occ,mu)
@@ -718,6 +719,7 @@ end subroutine
 
 !>
 !! Compute the electronic entropy.
+!! (Public version of elsi_entropy)
 !!
 subroutine elsi_compute_entropy(eh,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
 

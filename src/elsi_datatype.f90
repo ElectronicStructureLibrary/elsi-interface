@@ -115,8 +115,9 @@ module ELSI_DATATYPE
       real(kind=r8) :: energy_gap
       real(kind=r8) :: spectrum_width
       integer(kind=i4) :: dimensionality
-      logical :: edm_ready_real = .false.
-      logical :: edm_ready_cmplx = .false.
+      logical :: edm_ready = .false.
+      logical :: eval_ready = .false.
+      logical :: evec_ready = .false.
 
       ! Chemical potential
       real(kind=r8) :: mu ! Fermi level
