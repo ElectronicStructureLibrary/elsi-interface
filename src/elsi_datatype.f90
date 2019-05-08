@@ -115,6 +115,7 @@ module ELSI_DATATYPE
       real(kind=r8) :: energy_gap
       real(kind=r8) :: spectrum_width
       integer(kind=i4) :: dimensionality
+      integer(kind=i4) :: extrapolation
       logical :: edm_ready = .false.
       logical :: eval_ready = .false.
       logical :: evec_ready = .false.

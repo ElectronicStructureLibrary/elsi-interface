@@ -57,9 +57,13 @@ module ELSI_CONSTANTS
 
    ! Density matrix purification methods
    integer(kind=i4), parameter :: NTPOLY_PM = 0
-   integer(kind=i4), parameter :: NTPOLY_TC2 = 1
+   integer(kind=i4), parameter :: NTPOLY_TRS2 = 1
    integer(kind=i4), parameter :: NTPOLY_TRS4 = 2
    integer(kind=i4), parameter :: NTPOLY_HPCP = 3
+
+   ! Density matrix extrapolation methods
+   integer(kind=i4), parameter :: EXTRA_FACTOR = 0
+   integer(kind=i4), parameter :: EXTRA_TRS2 = 1
 
    ! Matrix reading and writing
    integer(kind=i4), parameter :: HEADER_SIZE = 16
