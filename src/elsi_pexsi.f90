@@ -9,7 +9,7 @@
 !!
 module ELSI_PEXSI
 
-   use ELSI_CONSTANTS, only: UNSET,PEXSI_SOLVER,PEXSI_CSC
+   use ELSI_CONSTANT, only: UNSET,PEXSI_SOLVER,PEXSI_CSC
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,mpi_complex16

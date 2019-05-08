@@ -7,7 +7,7 @@
 !>
 !! Contain constants used in ELSI.
 !!
-module ELSI_CONSTANTS
+module ELSI_CONSTANT
 
    use ELSI_PRECISION, only: r8,i4
 
@@ -71,4 +71,4 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: READ_FILE = 0
    integer(kind=i4), parameter :: WRITE_FILE = 1
 
-end module ELSI_CONSTANTS
+end module ELSI_CONSTANT

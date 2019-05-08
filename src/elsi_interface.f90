@@ -11,10 +11,11 @@ module ELSI
 
    use ELSI_DATATYPE, only: elsi_handle,elsi_rw_handle
    use ELSI_GEO
+   use ELSI_GET
    use ELSI_INPUT
-   use ELSI_MUTATOR
    use ELSI_OCC
    use ELSI_RW
+   use ELSI_SET
    use ELSI_SETUP
    use ELSI_SOLVER
    use ELSI_UTIL
@@ -40,7 +41,7 @@ module ELSI
    public :: elsi_reinit
    public :: elsi_finalize
 
-   ! Mutator
+   ! Set
    public :: elsi_set_input_file
    public :: elsi_set_output
    public :: elsi_set_output_unit
@@ -93,6 +94,8 @@ module ELSI
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_spin_degen
    public :: elsi_set_mu_mp_order
+
+   ! Get
    public :: elsi_get_initialized
    public :: elsi_get_version
    public :: elsi_get_datestamp
@@ -122,7 +125,7 @@ module ELSI
    public :: elsi_set_log_tag
    public :: elsi_get_n_sing
 
-   ! Solver
+   ! Solve
    public :: elsi_ev_real
    public :: elsi_ev_complex
    public :: elsi_ev_real_sparse
@@ -148,7 +151,7 @@ module ELSI
    public :: elsi_compute_edm_real
    public :: elsi_compute_edm_complex
 
-   ! Reading and writing matrix
+   ! Read and write matrix
    public :: elsi_init_rw
    public :: elsi_finalize_rw
    public :: elsi_set_rw_mpi

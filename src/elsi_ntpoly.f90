@@ -9,7 +9,7 @@
 !!
 module ELSI_NTPOLY
 
-   use ELSI_CONSTANTS, only: NTPOLY_SOLVER,NTPOLY_PM,NTPOLY_TRS2,NTPOLY_TRS4,&
+   use ELSI_CONSTANT, only: NTPOLY_SOLVER,NTPOLY_PM,NTPOLY_TRS2,NTPOLY_TRS4,&
        NTPOLY_HPCP,EXTRA_FACTOR,EXTRA_TRS2
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MPI, only: elsi_check_mpi,mpi_logical

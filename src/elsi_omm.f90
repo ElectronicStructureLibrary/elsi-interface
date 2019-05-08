@@ -9,7 +9,7 @@
 !!
 module ELSI_OMM
 
-   use ELSI_CONSTANTS, only: UNSET
+   use ELSI_CONSTANT, only: UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_ELPA, only: elsi_elpa_cholesky,elsi_elpa_invert
    use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_integer4

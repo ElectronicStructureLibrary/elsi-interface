@@ -10,7 +10,7 @@
 !!
 module ELSI_DECISION
 
-   use ELSI_CONSTANTS, only: N_SOLVERS,AUTO_SOLVER,ELPA_SOLVER,PEXSI_SOLVER,&
+   use ELSI_CONSTANT, only: N_SOLVERS,AUTO_SOLVER,ELPA_SOLVER,PEXSI_SOLVER,&
        SIPS_SOLVER,NTPOLY_SOLVER,UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_integer4,mpi_real8

@@ -9,7 +9,7 @@
 !!
 module ELSI_GEO
 
-   use ELSI_CONSTANTS, only: ELPA_SOLVER,PEXSI_CSC,SIESTA_CSC,GENERIC_COO
+   use ELSI_CONSTANT, only: ELPA_SOLVER,PEXSI_CSC,SIESTA_CSC,GENERIC_COO
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_update_dm_elpa
    use ELSI_MALLOC, only: elsi_allocate

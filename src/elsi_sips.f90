@@ -9,7 +9,7 @@
 !!
 module ELSI_SIPS
 
-   use ELSI_CONSTANTS, only: UNSET
+   use ELSI_CONSTANT, only: UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop
