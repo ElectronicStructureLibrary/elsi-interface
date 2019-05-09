@@ -45,8 +45,6 @@
 ! This file contains the compute intensive kernels for the Householder transformations.
 ! It should be compiled with the highest possible optimization level.
 !
-! On Intel use -O3 -xSSE4.2 (or the SSE level fitting to your CPU)
-!
 ! Copyright of the original code rests with the authors inside the ELPA
 ! consortium. The copyright of any additional modifications shall rest
 ! with their original authors, but shall adhere to the licensing terms
@@ -57,7 +55,8 @@
 module complex_generic_kernel
 
   private
-  public single_hh_trafo_complex_generic_double
+
+  public :: single_hh_trafo_complex_generic_double
 
   contains
 
@@ -70,16 +69,16 @@ module complex_generic_kernel
 
     implicit none
 
-    integer(kind=ik), intent(in)    :: nb, nq, ldq
+    integer(kind=ik), intent(in) :: nb, nq, ldq
 
     complex(kind=ck8), intent(inout) :: q(ldq,*)
-    complex(kind=ck8), intent(in)    :: hh(*)
+    complex(kind=ck8), intent(in) :: hh(*)
 
-    integer(kind=ik)                :: i
+    integer(kind=ik) :: i
 
 ! Safety only:
 
-    if(mod(ldq,4) /= 0) STOP 'double_hh_trafo: ldq not divisible by 4!'
+    if(mod(ldq,4) /= 0) stop 'double_hh_trafo: ldq not divisible by 4!'
 
 ! Do the Householder transformations
 
@@ -113,18 +112,18 @@ module complex_generic_kernel
 
     implicit none
 
-    integer(kind=ik), intent(in)    :: nb, nq, ldq, ldh
+    integer(kind=ik), intent(in) :: nb, nq, ldq, ldh
 
     complex(kind=ck8), intent(inout) :: q(ldq,*)
-    complex(kind=ck8), intent(in)    :: hh(ldh,*)
+    complex(kind=ck8), intent(in) :: hh(ldh,*)
 
-    complex(kind=ck8)                :: s
+    complex(kind=ck8) :: s
 
-    integer(kind=ik)                 :: i
+    integer(kind=ik) :: i
 
 ! Safety only:
 
-    if(mod(ldq,4) /= 0) STOP 'double_hh_trafo: ldq not divisible by 4!'
+    if(mod(ldq,4) /= 0) stop 'double_hh_trafo: ldq not divisible by 4!'
 
 ! Calculate dot product of the two Householder vectors
 
@@ -171,14 +170,14 @@ module complex_generic_kernel
 
     implicit none
 
-    integer(kind=ik), intent(in)    :: nb, ldq
+    integer(kind=ik), intent(in) :: nb, ldq
 
     complex(kind=ck8), intent(inout) :: q(ldq,*)
-    complex(kind=ck8), intent(in)    :: hh(*)
+    complex(kind=ck8), intent(in) :: hh(*)
 
-    complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6, x7, x8, x9, xa, xb, xc
-    complex(kind=ck8)                :: h1, tau1
-    integer(kind=ik)                :: i
+    complex(kind=ck8) :: x1, x2, x3, x4, x5, x6, x7, x8, x9, xa, xb, xc
+    complex(kind=ck8) :: h1, tau1
+    integer(kind=ik) :: i
 
     x1 = q(1,1)
     x2 = q(2,1)
@@ -266,14 +265,14 @@ module complex_generic_kernel
 
     implicit none
 
-    integer(kind=ik), intent(in)    :: nb, ldq
+    integer(kind=ik), intent(in) :: nb, ldq
 
     complex(kind=ck8), intent(inout) :: q(ldq,*)
-    complex(kind=ck8), intent(in)    :: hh(*)
+    complex(kind=ck8), intent(in) :: hh(*)
 
-    complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6, x7, x8
-    complex(kind=ck8)                :: h1, tau1
-    integer(kind=ik)                :: i
+    complex(kind=ck8) :: x1, x2, x3, x4, x5, x6, x7, x8
+    complex(kind=ck8) :: h1, tau1
+    integer(kind=ik) :: i
 
     x1 = q(1,1)
     x2 = q(2,1)
@@ -341,14 +340,14 @@ module complex_generic_kernel
 
     implicit none
 
-    integer(kind=ik), intent(in)    :: nb, ldq
+    integer(kind=ik), intent(in) :: nb, ldq
 
     complex(kind=ck8), intent(inout) :: q(ldq,*)
-    complex(kind=ck8), intent(in)    :: hh(*)
+    complex(kind=ck8), intent(in) :: hh(*)
 
-    complex(kind=ck8)                :: x1, x2, x3, x4
-    complex(kind=ck8)                :: h1, tau1
-    integer(kind=ik)                :: i
+    complex(kind=ck8) :: x1, x2, x3, x4
+    complex(kind=ck8) :: h1, tau1
+    integer(kind=ik) :: i
 
     x1 = q(1,1)
     x2 = q(2,1)
@@ -396,16 +395,16 @@ module complex_generic_kernel
 
     implicit none
 
-    integer(kind=ik), intent(in)    :: nb, ldq, ldh
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
 
     complex(kind=ck8), intent(inout) :: q(ldq,*)
-    complex(kind=ck8), intent(in)    :: hh(ldh,*)
+    complex(kind=ck8), intent(in) :: hh(ldh,*)
 
-    complex(kind=ck8), intent(in)    :: s
+    complex(kind=ck8), intent(in) :: s
 
-    complex(kind=ck8)                :: x1, x2, x3, x4, y1, y2, y3, y4
-    complex(kind=ck8)                :: h1, h2, tau1, tau2
-    integer(kind=ik)                :: i
+    complex(kind=ck8) :: x1, x2, x3, x4, y1, y2, y3, y4
+    complex(kind=ck8) :: h1, h2, tau1, tau2
+    integer(kind=ik) :: i
 
     x1 = q(1,2)
     x2 = q(2,2)
@@ -486,16 +485,16 @@ module complex_generic_kernel
 
     implicit none
 
-    integer(kind=ik), intent(in)    :: nb, ldq, ldh
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
 
     complex(kind=ck8), intent(inout) :: q(ldq,*)
-    complex(kind=ck8), intent(in)    :: hh(ldh,*)
+    complex(kind=ck8), intent(in) :: hh(ldh,*)
 
-    complex(kind=ck8), intent(in)    :: s
+    complex(kind=ck8), intent(in) :: s
 
-    complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6 ,x7, x8, y1, y2, y3, y4, y5, y6, y7, y8
-    complex(kind=ck8)                :: h1, h2, tau1, tau2
-    integer(kind=ik)                :: i
+    complex(kind=ck8) :: x1, x2, x3, x4, x5, x6 ,x7, x8, y1, y2, y3, y4, y5, y6, y7, y8
+    complex(kind=ck8) :: h1, h2, tau1, tau2
+    integer(kind=ik) :: i
 
     x1 = q(1,2)
     x2 = q(2,2)
@@ -621,17 +620,17 @@ module complex_generic_kernel
 
     implicit none
 
-    integer(kind=ik), intent(in)    :: nb, ldq, ldh
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
 
     complex(kind=ck8), intent(inout) :: q(ldq,*)
-    complex(kind=ck8), intent(in)    :: hh(ldh,*)
+    complex(kind=ck8), intent(in) :: hh(ldh,*)
 
-    complex(kind=ck8), intent(in)    :: s
+    complex(kind=ck8), intent(in) :: s
 
-    complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6 ,x7, x8, x9, x10, x11, x12, y1, y2, y3, y4, y5, y6, &
-                                       y7, y8, y9, y10, y11, y12
-    complex(kind=ck8)                :: h1, h2, tau1, tau2
-    integer(kind=ik)                :: i
+    complex(kind=ck8) :: x1, x2, x3, x4, x5, x6 ,x7, x8, x9, x10, x11, x12, y1, y2, y3, y4, y5, y6, &
+                         y7, y8, y9, y10, y11, y12
+    complex(kind=ck8) :: h1, h2, tau1, tau2
+    integer(kind=ik) :: i
 
     x1 = q(1,2)
     x2 = q(2,2)

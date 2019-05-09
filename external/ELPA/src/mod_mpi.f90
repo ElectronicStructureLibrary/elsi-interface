@@ -42,7 +42,11 @@
 ! Author: Andreas Marek, MPCDF
 
 module elpa_mpi
+
   implicit none
+
   include 'mpif.h'
+
   public
+
 end module

@@ -55,120 +55,71 @@
 ! distributed along with the original code in the file "COPYING".
 
 module ELPA2_utilities
+
   use ELPA_utilities
   use precision
+
   implicit none
 
   private
 
   public :: REAL_ELPA_KERNEL_GENERIC, REAL_ELPA_KERNEL_GENERIC_SIMPLE, &
-            REAL_ELPA_KERNEL_BGP, REAL_ELPA_KERNEL_BGQ,                &
-            REAL_ELPA_KERNEL_SSE, REAL_ELPA_KERNEL_SSE_BLOCK2,         &
-            REAL_ELPA_KERNEL_SSE_BLOCK4, REAL_ELPA_KERNEL_SSE_BLOCK6,  &
-            REAL_ELPA_KERNEL_AVX_BLOCK2,                               &
-            REAL_ELPA_KERNEL_AVX_BLOCK4, REAL_ELPA_KERNEL_AVX_BLOCK6,  &
-            REAL_ELPA_KERNEL_AVX2_BLOCK2,                              &
+            REAL_ELPA_KERNEL_BGP, REAL_ELPA_KERNEL_BGQ, &
+            REAL_ELPA_KERNEL_SSE, REAL_ELPA_KERNEL_SSE_BLOCK2, &
+            REAL_ELPA_KERNEL_SSE_BLOCK4, REAL_ELPA_KERNEL_SSE_BLOCK6, &
+            REAL_ELPA_KERNEL_AVX_BLOCK2, REAL_ELPA_KERNEL_AVX_BLOCK4, &
+            REAL_ELPA_KERNEL_AVX_BLOCK6, REAL_ELPA_KERNEL_AVX2_BLOCK2, &
             REAL_ELPA_KERNEL_AVX2_BLOCK4, REAL_ELPA_KERNEL_AVX2_BLOCK6, &
-            REAL_ELPA_KERNEL_AVX512_BLOCK2,                              &
-            REAL_ELPA_KERNEL_AVX512_BLOCK4, REAL_ELPA_KERNEL_AVX512_BLOCK6, &
-            REAL_ELPA_KERNEL_GPU,  DEFAULT_REAL_ELPA_KERNEL
+            REAL_ELPA_KERNEL_AVX512_BLOCK2, REAL_ELPA_KERNEL_AVX512_BLOCK4, &
+            REAL_ELPA_KERNEL_AVX512_BLOCK6, REAL_ELPA_KERNEL_GPU, &
+            DEFAULT_REAL_ELPA_KERNEL
 
   public :: COMPLEX_ELPA_KERNEL_GENERIC, COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE, &
-            COMPLEX_ELPA_KERNEL_BGP, COMPLEX_ELPA_KERNEL_BGQ,                &
-            COMPLEX_ELPA_KERNEL_SSE, COMPLEX_ELPA_KERNEL_SSE_BLOCK1,         &
-            COMPLEX_ELPA_KERNEL_SSE_BLOCK2,                                  &
-            COMPLEX_ELPA_KERNEL_AVX_BLOCK1,COMPLEX_ELPA_KERNEL_AVX_BLOCK2,   &
-            COMPLEX_ELPA_KERNEL_AVX2_BLOCK1,COMPLEX_ELPA_KERNEL_AVX2_BLOCK2, &
-            COMPLEX_ELPA_KERNEL_AVX512_BLOCK1,COMPLEX_ELPA_KERNEL_AVX512_BLOCK2, &
-            COMPLEX_ELPA_KERNEL_GPU,  DEFAULT_COMPLEX_ELPA_KERNEL
+            COMPLEX_ELPA_KERNEL_BGP, COMPLEX_ELPA_KERNEL_BGQ, &
+            COMPLEX_ELPA_KERNEL_SSE, COMPLEX_ELPA_KERNEL_SSE_BLOCK1, &
+            COMPLEX_ELPA_KERNEL_SSE_BLOCK2, COMPLEX_ELPA_KERNEL_AVX_BLOCK1, &
+            COMPLEX_ELPA_KERNEL_AVX_BLOCK2, COMPLEX_ELPA_KERNEL_AVX2_BLOCK1, &
+            COMPLEX_ELPA_KERNEL_AVX2_BLOCK2, &
+            COMPLEX_ELPA_KERNEL_AVX512_BLOCK1, &
+            COMPLEX_ELPA_KERNEL_AVX512_BLOCK2, COMPLEX_ELPA_KERNEL_GPU, &
+            DEFAULT_COMPLEX_ELPA_KERNEL
 
-  public :: get_actual_complex_kernel, get_actual_real_kernel
-
-  public :: check_allowed_complex_kernels, check_allowed_real_kernels
-
-  integer, parameter :: number_of_real_kernels          = 18
-  integer, parameter :: REAL_ELPA_KERNEL_GENERIC        = 1
+  integer, parameter :: number_of_real_kernels = 18
+  integer, parameter :: REAL_ELPA_KERNEL_GENERIC = 1
   integer, parameter :: REAL_ELPA_KERNEL_GENERIC_SIMPLE = 2
-  integer, parameter :: REAL_ELPA_KERNEL_BGP            = 3
-  integer, parameter :: REAL_ELPA_KERNEL_BGQ            = 4
-  integer, parameter :: REAL_ELPA_KERNEL_SSE            = 5
-  integer, parameter :: REAL_ELPA_KERNEL_SSE_BLOCK2     = 6
-  integer, parameter :: REAL_ELPA_KERNEL_SSE_BLOCK4     = 7
-  integer, parameter :: REAL_ELPA_KERNEL_SSE_BLOCK6     = 8
-  integer, parameter :: REAL_ELPA_KERNEL_AVX_BLOCK2     = 9
-  integer, parameter :: REAL_ELPA_KERNEL_AVX_BLOCK4     = 10
-  integer, parameter :: REAL_ELPA_KERNEL_AVX_BLOCK6     = 11
-  integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK2    = 12
-  integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK4    = 13
-  integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK6    = 14
-  integer, parameter :: REAL_ELPA_KERNEL_AVX512_BLOCK2  = 15
-  integer, parameter :: REAL_ELPA_KERNEL_AVX512_BLOCK4  = 16
-  integer, parameter :: REAL_ELPA_KERNEL_AVX512_BLOCK6  = 17
-  integer(kind=ik), parameter :: REAL_ELPA_KERNEL_GPU   = 18
-
+  integer, parameter :: REAL_ELPA_KERNEL_BGP = 3
+  integer, parameter :: REAL_ELPA_KERNEL_BGQ = 4
+  integer, parameter :: REAL_ELPA_KERNEL_SSE = 5
+  integer, parameter :: REAL_ELPA_KERNEL_SSE_BLOCK2 = 6
+  integer, parameter :: REAL_ELPA_KERNEL_SSE_BLOCK4 = 7
+  integer, parameter :: REAL_ELPA_KERNEL_SSE_BLOCK6 = 8
+  integer, parameter :: REAL_ELPA_KERNEL_AVX_BLOCK2 = 9
+  integer, parameter :: REAL_ELPA_KERNEL_AVX_BLOCK4 = 10
+  integer, parameter :: REAL_ELPA_KERNEL_AVX_BLOCK6 = 11
+  integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK2 = 12
+  integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK4 = 13
+  integer, parameter :: REAL_ELPA_KERNEL_AVX2_BLOCK6 = 14
+  integer, parameter :: REAL_ELPA_KERNEL_AVX512_BLOCK2 = 15
+  integer, parameter :: REAL_ELPA_KERNEL_AVX512_BLOCK4 = 16
+  integer, parameter :: REAL_ELPA_KERNEL_AVX512_BLOCK6 = 17
+  integer, parameter :: REAL_ELPA_KERNEL_GPU = 18
   integer, parameter :: DEFAULT_REAL_ELPA_KERNEL = REAL_ELPA_KERNEL_AVX2_BLOCK2
 
-  integer, parameter :: number_of_complex_kernels          = 14
-  integer, parameter :: COMPLEX_ELPA_KERNEL_GENERIC        = 1
+  integer, parameter :: number_of_complex_kernels = 14
+  integer, parameter :: COMPLEX_ELPA_KERNEL_GENERIC = 1
   integer, parameter :: COMPLEX_ELPA_KERNEL_GENERIC_SIMPLE = 2
-  integer, parameter :: COMPLEX_ELPA_KERNEL_BGP            = 3
-  integer, parameter :: COMPLEX_ELPA_KERNEL_BGQ            = 4
-  integer, parameter :: COMPLEX_ELPA_KERNEL_SSE            = 5
-  integer, parameter :: COMPLEX_ELPA_KERNEL_SSE_BLOCK1     = 6
-  integer, parameter :: COMPLEX_ELPA_KERNEL_SSE_BLOCK2     = 7
-  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX_BLOCK1     = 8
-  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX_BLOCK2     = 9
-  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX2_BLOCK1    = 10
-  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX2_BLOCK2    = 11
-  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX512_BLOCK1  = 12
-  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX512_BLOCK2  = 13
-  integer(kind=ik), parameter :: COMPLEX_ELPA_KERNEL_GPU   = 14
-
+  integer, parameter :: COMPLEX_ELPA_KERNEL_BGP = 3
+  integer, parameter :: COMPLEX_ELPA_KERNEL_BGQ = 4
+  integer, parameter :: COMPLEX_ELPA_KERNEL_SSE = 5
+  integer, parameter :: COMPLEX_ELPA_KERNEL_SSE_BLOCK1 = 6
+  integer, parameter :: COMPLEX_ELPA_KERNEL_SSE_BLOCK2 = 7
+  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX_BLOCK1 = 8
+  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX_BLOCK2 = 9
+  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX2_BLOCK1 = 10
+  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX2_BLOCK2 = 11
+  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX512_BLOCK1 = 12
+  integer, parameter :: COMPLEX_ELPA_KERNEL_AVX512_BLOCK2 = 13
+  integer, parameter :: COMPLEX_ELPA_KERNEL_GPU = 14
   integer, parameter :: DEFAULT_COMPLEX_ELPA_KERNEL = COMPLEX_ELPA_KERNEL_AVX2_BLOCK1
-
-contains
-
-    function get_actual_real_kernel() result(actual_kernel)
-      use precision
-      implicit none
-
-      integer(kind=ik) :: actual_kernel
-
-      actual_kernel = DEFAULT_REAL_ELPA_KERNEL
-
-    end function get_actual_real_kernel
-
-    function get_actual_complex_kernel() result(actual_kernel)
-      use precision
-      implicit none
-      integer(kind=ik) :: actual_kernel
-
-      actual_kernel = DEFAULT_COMPLEX_ELPA_KERNEL
-
-   end function get_actual_complex_kernel
-
-   function check_allowed_real_kernels(THIS_REAL_ELPA_KERNEL) result(err)
-     use precision
-     implicit none
-     integer(kind=ik), intent(in) :: THIS_REAL_ELPA_KERNEL
-     logical                      :: err
-
-     err = .false.
-
-     if(THIS_REAL_ELPA_KERNEL /= DEFAULT_REAL_ELPA_KERNEL) err=.true.
-
-   end function check_allowed_real_kernels
-
-   function check_allowed_complex_kernels(THIS_COMPLEX_ELPA_KERNEL) result(err)
-     use precision
-     implicit none
-     integer(kind=ik), intent(in) :: THIS_COMPLEX_ELPA_KERNEL
-     logical                      :: err
-
-     err = .false.
-
-     if(THIS_COMPLEX_ELPA_KERNEL /= DEFAULT_COMPLEX_ELPA_KERNEL) err=.true.
-
-   end function check_allowed_complex_kernels
 
 end module ELPA2_utilities

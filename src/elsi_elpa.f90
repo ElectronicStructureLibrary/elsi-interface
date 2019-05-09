@@ -900,8 +900,8 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
 
       ! Use modified ELPA2, which computes eigenvectors only for singular matrix
       ok = elpa_check_pd_real_double(ph%n_basis,ph%n_basis,copy,bh%n_lrow,eval,&
-         evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,&
-         bh%comm,ph%ill_tol,ph%n_good)
+         evec,bh%n_lrow,bh%blk,ph%elpa_comm_row,ph%elpa_comm_col,bh%comm,&
+         ph%ill_tol,ph%n_good)
 
       if(.not. ok) then
          write(msg,"(A)") "Singularity check failed"
@@ -916,12 +916,12 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
    else
       if(ph%elpa_solver == 2) then
          ok = elpa_solve_evp_real_2stage_double(ph%n_good,ph%n_states_solve,&
-            mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-            ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+            mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,ph%elpa_comm_row,&
+            ph%elpa_comm_col,bh%comm)
       else
          ok = elpa_solve_evp_real_1stage_double(ph%n_good,ph%n_states_solve,&
-            mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-            ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+            mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,ph%elpa_comm_row,&
+            ph%elpa_comm_col,bh%comm)
       end if
 
       if(.not. ok) then
@@ -960,8 +960,8 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
 
       ! Use modified ELPA2, which computes eigenvectors only for singular matrix
       ok = elpa_check_pd_complex_double(ph%n_basis,ph%n_basis,copy,bh%n_lrow,&
-         eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,ph%elpa_comm_row,&
-         ph%elpa_comm_col,bh%comm,ph%ill_tol,ph%n_good)
+         eval,evec,bh%n_lrow,bh%blk,ph%elpa_comm_row,ph%elpa_comm_col,bh%comm,&
+         ph%ill_tol,ph%n_good)
 
       if(.not. ok) then
          write(msg,"(A)") "Singularity check failed"
@@ -976,12 +976,12 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
    else
       if(ph%elpa_solver == 2) then
          ok = elpa_solve_evp_complex_2stage_double(ph%n_good,ph%n_states_solve,&
-            mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-            ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+            mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,ph%elpa_comm_row,&
+            ph%elpa_comm_col,bh%comm)
       else
          ok = elpa_solve_evp_complex_1stage_double(ph%n_good,ph%n_states_solve,&
-            mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
-            ph%elpa_comm_row,ph%elpa_comm_col,bh%comm)
+            mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,ph%elpa_comm_row,&
+            ph%elpa_comm_col,bh%comm)
       end if
 
       if(.not. ok) then
@@ -1008,8 +1008,8 @@ subroutine elsi_elpa_cholesky_real(ph,bh,mat)
 
    character(len=*), parameter :: caller = "elsi_elpa_cholesky_real"
 
-   ok = elpa_cholesky_real_double(ph%n_basis,mat,bh%n_lrow,bh%blk,bh%n_lcol,&
-      ph%elpa_comm_row,ph%elpa_comm_col,.false.)
+   ok = elpa_cholesky_real_double(ph%n_basis,mat,bh%n_lrow,bh%blk,&
+      ph%elpa_comm_row,ph%elpa_comm_col)
 
    if(.not. ok) then
       write(msg,"(A)") "Cholesky factorization failed"
@@ -1034,8 +1034,8 @@ subroutine elsi_elpa_cholesky_cmplx(ph,bh,mat)
 
    character(len=*), parameter :: caller = "elsi_elpa_cholesky_cmplx"
 
-   ok = elpa_cholesky_complex_double(ph%n_basis,mat,bh%n_lrow,bh%blk,bh%n_lcol,&
-      ph%elpa_comm_row,ph%elpa_comm_col,.false.)
+   ok = elpa_cholesky_complex_double(ph%n_basis,mat,bh%n_lrow,bh%blk,&
+      ph%elpa_comm_row,ph%elpa_comm_col)
 
    if(.not. ok) then
       write(msg,"(A)") "Cholesky factorization failed"
@@ -1060,8 +1060,8 @@ subroutine elsi_elpa_invert_real(ph,bh,mat)
 
    character(len=*), parameter :: caller = "elsi_elpa_invert_real"
 
-   ok = elpa_invert_trm_real_double(ph%n_basis,mat,bh%n_lrow,bh%blk,bh%n_lcol,&
-      ph%elpa_comm_row,ph%elpa_comm_col,.false.)
+   ok = elpa_invert_trm_real_double(ph%n_basis,mat,bh%n_lrow,bh%blk,&
+      ph%elpa_comm_row,ph%elpa_comm_col)
 
    if(.not. ok) then
       write(msg,"(A)") "Matrix inversion failed"
@@ -1087,7 +1087,7 @@ subroutine elsi_elpa_invert_cmplx(ph,bh,mat)
    character(len=*), parameter :: caller = "elsi_elpa_invert_cmplx"
 
    ok = elpa_invert_trm_complex_double(ph%n_basis,mat,bh%n_lrow,bh%blk,&
-      bh%n_lcol,ph%elpa_comm_row,ph%elpa_comm_col,.false.)
+      ph%elpa_comm_row,ph%elpa_comm_col)
 
    if(.not. ok) then
       write(msg,"(A)") "Matrix inversion failed"
@@ -1118,8 +1118,7 @@ subroutine elsi_elpa_multiply_real(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
    character(len=*), parameter :: caller = "elsi_elpa_multiply_real"
 
    ok = elpa_mult_at_b_real_double(uplo_a,uplo_c,ph%n_basis,n,mat_a,bh%n_lrow,&
-      bh%n_lcol,mat_b,bh%n_lrow,bh%n_lcol,bh%blk,ph%elpa_comm_row,&
-      ph%elpa_comm_col,mat_c,bh%n_lrow,bh%n_lcol)
+      mat_b,bh%n_lrow,bh%blk,ph%elpa_comm_row,ph%elpa_comm_col,mat_c,bh%n_lrow)
 
    if(.not. ok) then
       write(msg,"(A)") "Matrix multiplication failed"
@@ -1150,8 +1149,8 @@ subroutine elsi_elpa_multiply_cmplx(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
    character(len=*), parameter :: caller = "elsi_elpa_multiply_cmplx"
 
    ok = elpa_mult_ah_b_complex_double(uplo_a,uplo_c,ph%n_basis,n,mat_a,&
-      bh%n_lrow,bh%n_lcol,mat_b,bh%n_lrow,bh%n_lcol,bh%blk,ph%elpa_comm_row,&
-      ph%elpa_comm_col,mat_c,bh%n_lrow,bh%n_lcol)
+      bh%n_lrow,mat_b,bh%n_lrow,bh%blk,ph%elpa_comm_row,ph%elpa_comm_col,mat_c,&
+      bh%n_lrow)
 
    if(.not. ok) then
       write(msg,"(A)") "Matrix multiplication failed"
@@ -1181,10 +1180,10 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
 
    if(sing_check) then
       ok = elpa_solve_tridi_double(ph%n_basis,ph%n_basis,d,e,q,ph%n_basis,&
-         bh%blk,ph%n_basis,mpi_comm_self,mpi_comm_self,.false.)
+         bh%blk,mpi_comm_self,mpi_comm_self)
    else
       ok = elpa_solve_tridi_double(ph%n_good,ph%n_states_solve,d,e,q,ph%n_good,&
-         bh%blk,ph%n_good,mpi_comm_self,mpi_comm_self,.false.)
+         bh%blk,mpi_comm_self,mpi_comm_self)
    end if
 
    if(.not. ok) then

@@ -42,49 +42,50 @@
 ! This file was written by A. Marek, MPCDF
 
 module pack_unpack_real
+
   implicit none
 
-  public pack_row_real_cpu_double, unpack_row_real_cpu_double
+  public :: pack_row_real_cpu_double, unpack_row_real_cpu_double
 
   contains
 
-        subroutine pack_row_real_cpu_double(a, row, n, stripe_width, last_stripe_width, stripe_count)
+  subroutine pack_row_real_cpu_double(a, row, n, stripe_width, last_stripe_width, stripe_count)
 
-          use precision
-          implicit none
-          integer(kind=ik), intent(in) :: n, stripe_count, stripe_width
+    use precision
 
-          integer(kind=ik), intent(in) :: last_stripe_width
-          real(kind=rk8), intent(in)    :: a(:,:,:)
+    implicit none
 
-          real(kind=rk8)                :: row(:)
+    integer(kind=ik), intent(in) :: n, stripe_count, stripe_width
+    integer(kind=ik), intent(in) :: last_stripe_width
+    real(kind=rk8), intent(in) :: a(:,:,:)
+    real(kind=rk8) :: row(:)
+    integer(kind=ik) :: i, noff, nl
 
-          integer(kind=ik)             :: i, noff, nl
+    do i=1,stripe_count
+      nl = merge(stripe_width, last_stripe_width, i<stripe_count)
+      noff = (i-1)*stripe_width
+      row(noff+1:noff+nl) = a(1:nl,n,i)
+    enddo
 
-          do i=1,stripe_count
-            nl = merge(stripe_width, last_stripe_width, i<stripe_count)
-            noff = (i-1)*stripe_width
-            row(noff+1:noff+nl) = a(1:nl,n,i)
-          enddo
+  end subroutine pack_row_real_cpu_double
 
-        end subroutine pack_row_real_cpu_double
+  subroutine unpack_row_real_cpu_double(a, row, n, stripe_count, stripe_width, last_stripe_width)
 
-        subroutine unpack_row_real_cpu_double(a, row, n, stripe_count, stripe_width, last_stripe_width)
+    use precision
 
-         use precision
-         implicit none
+    implicit none
 
-         integer(kind=ik), intent(in) :: n, stripe_count, stripe_width, last_stripe_width
-         real(kind=rk8)                :: row(:)
-         real(kind=rk8)                :: a(:,:,:)
-         integer(kind=ik)             :: i, noff, nl
+    integer(kind=ik), intent(in) :: n, stripe_count, stripe_width, last_stripe_width
+    real(kind=rk8) :: row(:)
+    real(kind=rk8) :: a(:,:,:)
+    integer(kind=ik) :: i, noff, nl
 
-          do i=1,stripe_count
-            nl = merge(stripe_width, last_stripe_width, i<stripe_count)
-            noff = (i-1)*stripe_width
-            a(1:nl,n,i) = row(noff+1:noff+nl)
-          enddo
+    do i=1,stripe_count
+       nl = merge(stripe_width, last_stripe_width, i<stripe_count)
+       noff = (i-1)*stripe_width
+       a(1:nl,n,i) = row(noff+1:noff+nl)
+    enddo
 
-        end subroutine unpack_row_real_cpu_double
+  end subroutine unpack_row_real_cpu_double
 
 end module
