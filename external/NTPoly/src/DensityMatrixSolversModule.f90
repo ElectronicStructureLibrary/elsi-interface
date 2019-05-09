@@ -242,7 +242,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           midpoint = (interval_b - interval_a)/2.0_NTREAL + interval_a
           zero_value = midpoint
           !! Compute polynomial function at the guess point.
-          polynomial:DO inner_counter=1,total_iterations
+          polynomial: DO inner_counter=1,total_iterations
              IF (sigma_array(inner_counter) .GT. 0.5_NTREAL) THEN
                 zero_value = ((1.0_NTREAL+sigma_array(inner_counter)) &
                      & *zero_value**2) - (zero_value**3)
@@ -379,7 +379,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     DO outer_counter = 1,solver_parameters%max_iterations
        !! Compute Sigma
        CALL MatrixTrace(X_k, trace_value)
-       IF (nel*0.5_NTREAL - trace_value .LT. 0.0_NTREAL) THEN
+       IF (nel*0.5_NTREAL .LT. trace_value) THEN
           sigma_array(outer_counter) = -1.0_NTREAL
        ELSE
           sigma_array(outer_counter) = 1.0_NTREAL
@@ -458,7 +458,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           midpoint = (interval_b - interval_a)/2.0_NTREAL + interval_a
           zero_value = midpoint
           !! Compute polynomial function at the guess point.
-          polynomial:DO inner_counter=1,total_iterations
+          polynomial: DO inner_counter=1,total_iterations
              IF (sigma_array(inner_counter) .LT. 0.0_NTREAL) THEN
                 zero_value = zero_value*zero_value
              ELSE
@@ -691,7 +691,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           midpoint = (interval_b - interval_a)/2.0_NTREAL + interval_a
           zero_value = midpoint
           !! Compute polynomial function at the guess point.
-          polynomial:DO inner_counter=1,total_iterations
+          polynomial: DO inner_counter=1,total_iterations
              IF (sigma_array(inner_counter) .GT. sigma_max) THEN
                 zero_value = 2.0_NTREAL*zero_value - zero_value*zero_value
              ELSE IF (sigma_array(inner_counter) .LT. sigma_min) THEN
@@ -938,7 +938,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           midpoint = (interval_b - interval_a)/2.0_NTREAL + interval_a
           zero_value = midpoint
           !! Compute polynomial function at the guess point.
-          polynomial:DO inner_counter=1,total_iterations
+          polynomial: DO inner_counter=1,total_iterations
              zero_value = zero_value + &
                   & 2.0_NTREAL*((zero_value**2)*(1.0_NTREAL-zero_value) &
                   & - sigma_array(inner_counter)* &
@@ -1210,7 +1210,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           midpoint = (interval_b - interval_a)/2.0_NTREAL + interval_a
           zero_value = midpoint
           !! Compute polynomial function at the guess point.
-          polynomial:DO inner_counter=1,total_iterations
+          polynomial: DO inner_counter=1,total_iterations
              zero_value = zero_value + &
                   & 2.0_NTREAL*((zero_value*zero_value)*(1.0_NTREAL-zero_value)&
                   & - sigma_array(inner_counter)* &

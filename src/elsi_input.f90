@@ -11,10 +11,11 @@ module ELSI_INPUT
 
    use ELSI_DATATYPE, only: elsi_handle,elsi_basic_t
    use ELSI_MPI, only: elsi_stop
-   use ELSI_MUTATOR, only: elsi_set_output,elsi_set_output_log,&
-       elsi_set_save_ovlp,elsi_set_unit_ovlp,elsi_set_zero_def,&
-       elsi_set_illcond_check,elsi_set_illcond_tol,elsi_set_energy_gap,&
-       elsi_set_spectrum_width,elsi_set_dimensionality,elsi_set_elpa_solver,&
+   use ELSI_PRECISION, only: r8,i4
+   use ELSI_SET, only: elsi_set_output,elsi_set_output_log,elsi_set_save_ovlp,&
+       elsi_set_unit_ovlp,elsi_set_zero_def,elsi_set_illcond_check,&
+       elsi_set_illcond_tol,elsi_set_energy_gap,elsi_set_spectrum_width,&
+       elsi_set_dimensionality,elsi_set_extrapolation,elsi_set_elpa_solver,&
        elsi_set_elpa_n_single,elsi_set_elpa_gpu,elsi_set_elpa_gpu_kernels,&
        elsi_set_elpa_autotune,elsi_set_omm_flavor,elsi_set_omm_n_elpa,&
        elsi_set_omm_tol,elsi_set_pexsi_n_mu,elsi_set_pexsi_n_pole,&
@@ -23,7 +24,6 @@ module ELSI_INPUT
        elsi_set_sips_ev_min,elsi_set_sips_ev_max,elsi_set_ntpoly_method,&
        elsi_set_ntpoly_tol,elsi_set_ntpoly_filter,elsi_set_mu_broaden_scheme,&
        elsi_set_mu_broaden_width,elsi_set_mu_tol,elsi_set_mu_mp_order
-   use ELSI_PRECISION, only: r8,i4
    use ELSI_UTIL, only: elsi_check_init
 
    implicit none
@@ -162,6 +162,11 @@ subroutine elsi_set_input_file(eh,f_name)
 
          call elsi_check_read(eh%bh,ierr,kwd)
          call elsi_set_dimensionality(eh,val_i4)
+      case("extrapolation")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_extrapolation(eh,val_i4)
       case("elpa_solver")
          read(msg,*,iostat=ierr) kwd,val_i4
 

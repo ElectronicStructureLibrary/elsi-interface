@@ -9,7 +9,7 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANTS, only: LT_MAT,UT_MAT,UNSET,ELPA_SOLVER
+   use ELSI_CONSTANT, only: LT_MAT,UT_MAT,UNSET,ELPA_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4,&

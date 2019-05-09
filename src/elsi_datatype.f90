@@ -10,7 +10,7 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANTS, only: N_SOLVERS
+   use ELSI_CONSTANT, only: N_SOLVERS
    use ELSI_PRECISION, only: r8,i4
    use ELPA, only: elpa_t,elpa_autotune_t
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
@@ -115,6 +115,7 @@ module ELSI_DATATYPE
       real(kind=r8) :: energy_gap
       real(kind=r8) :: spectrum_width
       integer(kind=i4) :: dimensionality
+      integer(kind=i4) :: extrapolation
       logical :: edm_ready = .false.
       logical :: eval_ready = .false.
       logical :: evec_ready = .false.

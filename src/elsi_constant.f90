@@ -7,7 +7,7 @@
 !>
 !! Contain constants used in ELSI.
 !!
-module ELSI_CONSTANTS
+module ELSI_CONSTANT
 
    use ELSI_PRECISION, only: r8,i4
 
@@ -57,9 +57,13 @@ module ELSI_CONSTANTS
 
    ! Density matrix purification methods
    integer(kind=i4), parameter :: NTPOLY_PM = 0
-   integer(kind=i4), parameter :: NTPOLY_TC2 = 1
+   integer(kind=i4), parameter :: NTPOLY_TRS2 = 1
    integer(kind=i4), parameter :: NTPOLY_TRS4 = 2
    integer(kind=i4), parameter :: NTPOLY_HPCP = 3
+
+   ! Density matrix extrapolation methods
+   integer(kind=i4), parameter :: EXTRA_FACTOR = 0
+   integer(kind=i4), parameter :: EXTRA_TRS2 = 1
 
    ! Matrix reading and writing
    integer(kind=i4), parameter :: HEADER_SIZE = 16
@@ -67,4 +71,4 @@ module ELSI_CONSTANTS
    integer(kind=i4), parameter :: READ_FILE = 0
    integer(kind=i4), parameter :: WRITE_FILE = 1
 
-end module ELSI_CONSTANTS
+end module ELSI_CONSTANT

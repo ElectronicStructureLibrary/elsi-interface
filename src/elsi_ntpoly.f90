@@ -9,19 +9,20 @@
 !!
 module ELSI_NTPOLY
 
-   use ELSI_CONSTANTS, only: NTPOLY_SOLVER,NTPOLY_PM,NTPOLY_TC2,NTPOLY_TRS4,&
-       NTPOLY_HPCP
+   use ELSI_CONSTANT, only: NTPOLY_SOLVER,NTPOLY_PM,NTPOLY_TRS2,NTPOLY_TRS4,&
+       NTPOLY_HPCP,EXTRA_FACTOR,EXTRA_TRS2
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MPI, only: elsi_check_mpi,mpi_logical
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use NTPOLY, only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,LowdinExtrapolate,&
-       Matrix_ps,ConstructEmptyMatrix,DestructMatrix,CopyMatrix,ScaleMatrix,&
-       FillMatrixFromTripletList,GetMatrixTripletList,ProcessGrid_t,&
-       ConstructNewProcessGrid,DestructProcessGrid,ConstructRandomPermutation,&
-       DestructPermutation,InverseSquareRoot,SolverParameters_t,Triplet_r,&
-       Triplet_c,TripletList_r,TripletList_c,ConstructTripletList,&
-       AppendToTripletList,DestructTripletList,ActivateLogger,DeactivateLogger
+       PurificationExtrapolate,Matrix_ps,ConstructEmptyMatrix,DestructMatrix,&
+       CopyMatrix,ScaleMatrix,FillMatrixFromTripletList,GetMatrixTripletList,&
+       ProcessGrid_t,ConstructNewProcessGrid,DestructProcessGrid,&
+       ConstructRandomPermutation,DestructPermutation,InverseSquareRoot,&
+       SolverParameters_t,Triplet_r,Triplet_c,TripletList_r,TripletList_c,&
+       ConstructTripletList,AppendToTripletList,DestructTripletList,&
+       ActivateLogger,DeactivateLogger
 
    implicit none
 
@@ -158,7 +159,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
    select case(ph%nt_method)
    case(NTPOLY_PM)
       call PM(ham,ovlp,ne,dm,ph%ebs,ph%mu,ph%nt_options)
-   case(NTPOLY_TC2)
+   case(NTPOLY_TRS2)
       call TRS2(ham,ovlp,ne,dm,ph%ebs,ph%mu,ph%nt_options)
    case(NTPOLY_TRS4)
       call TRS4(ham,ovlp,ne,dm,ph%ebs,ph%mu,ph%nt_options)
@@ -237,6 +238,8 @@ subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
    type(Matrix_ps), intent(inout) :: dm0
    type(Matrix_ps), intent(inout) :: dm1
 
+   integer(kind=i4) :: ne
+   real(kind=r8) :: factor
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    character(len=200) :: msg
@@ -254,7 +257,17 @@ subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
          ph%nt_output,ph%nt_perm)
    end if
 
-   call LowdinExtrapolate(dm0,ovlp0,ovlp1,dm1,ph%nt_options)
+   select case(ph%extrapolation)
+   case(EXTRA_FACTOR)
+      call LowdinExtrapolate(dm0,ovlp0,ovlp1,dm1,ph%nt_options)
+   case(EXTRA_TRS2)
+      factor = 1.0_r8/ph%spin_degen
+      ne = nint(ph%n_electrons,kind=i4)
+
+      call ScaleMatrix(dm0,factor)
+      call PurificationExtrapolate(dm0,ovlp1,ne,dm1,ph%nt_options)
+      call ScaleMatrix(dm1,ph%spin_degen)
+   end select
 
    call elsi_get_time(t1)
 

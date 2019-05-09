@@ -9,7 +9,7 @@
 !!
 module ELSI_UTIL
 
-   use ELSI_CONSTANTS, only: UNSET,UT_MAT,LT_MAT,N_SOLVERS,N_PARALLEL_MODES,&
+   use ELSI_CONSTANT, only: UNSET,UT_MAT,LT_MAT,N_SOLVERS,N_PARALLEL_MODES,&
        N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
        SIESTA_CSC,GENERIC_COO,AUTO_SOLVER,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
        SIPS_SOLVER,NTPOLY_SOLVER
@@ -107,6 +107,7 @@ subroutine elsi_reset_param(ph)
    ph%energy_gap = 0.0_r8
    ph%spectrum_width = 1.0e3_r8
    ph%dimensionality = 3
+   ph%extrapolation = 0
    ph%edm_ready = .false.
    ph%eval_ready = .false.
    ph%evec_ready = .false.
