@@ -70,9 +70,9 @@ subroutine elsi_factor_ovlp_sp_real(ph,bh,ovlp)
 
    call elsi_get_time(t0)
 
-   ! Erase the lower triangle
-   do i = 1,ph%n_basis
-      do j= 1,i-1
+   ! Erase lower triangle
+   do j = 1,ph%n_basis-1
+      do i= j+1,ph%n_basis
          ovlp(i,j) = 0.0_r8
       end do
    end do
@@ -412,9 +412,9 @@ subroutine elsi_factor_ovlp_sp_cmplx(ph,bh,ovlp)
 
    call elsi_get_time(t0)
 
-   ! Erase the lower triangle
-   do i = 1,ph%n_basis
-      do j= 1,i-1
+   ! Erase lower triangle
+   do j = 1,ph%n_basis-1
+      do i= j+1,ph%n_basis
          ovlp(i,j) = (0.0_r8,0.0_r8)
       end do
    end do
