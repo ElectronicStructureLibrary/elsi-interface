@@ -6,6 +6,7 @@ SET(CMAKE_EXE_LINKER_FLAGS "-Wl,--allow-multiple-definition" CACHE STRING "Linke
 
 SET(ELPA2_KERNEL "BGQ" CACHE STRING "Use ELPA BlueGene Q kernel")
 SET(ENABLE_TESTS ON CACHE BOOL "Enable tests")
+SET(USE_MPI_IALLGATHER OFF CACHE BOOL "Use non-blocking collective MPI functions")
 
 SET(IBM_MAIN_DIR "/soft/compilers/ibmcmp-oct2017" CACHE PATH "IBM main directory")
 SET(LIB_PATHS "/soft/libraries/alcf/current/xl/SCALAPACK/lib;/soft/libraries/alcf/current/xl/LAPACK/lib;/soft/libraries/essl/current/essl/5.1/lib64;${IBM_MAIN_DIR}/xlf/bg/14.1/bglib64;${IBM_MAIN_DIR}/xlsmp/bg/3.1/bglib64;${IBM_MAIN_DIR}/xlmass/bg/7.3/bglib64" CACHE STRING "External library paths")
