@@ -550,28 +550,31 @@ subroutine elsi_final_print(ph,bh)
 
       write(msg,"(A,I22)") "|   Number of MPI tasks       :",bh%n_procs_all
       call elsi_say(bh,msg)
+
+      select case(ph%solver)
+      case(ELPA_SOLVER)
+         write(msg,"(A,A22)") "|   Solver requested          :","ELPA"
+         call elsi_say(bh,msg)
+      case(OMM_SOLVER)
+         write(msg,"(A,A22)") "|   Solver requested          :","libOMM"
+         call elsi_say(bh,msg)
+      case(PEXSI_SOLVER)
+         write(msg,"(A,A22)") "|   Solver requested          :","PEXSI"
+         call elsi_say(bh,msg)
+      case(SIPS_SOLVER)
+         write(msg,"(A,A22)") "|   Solver requested          :","SLEPc-SIPs"
+         call elsi_say(bh,msg)
+      case(NTPOLY_SOLVER)
+         write(msg,"(A,A22)") "|   Solver requested          :","NTPoly"
+         call elsi_say(bh,msg)
+      end select
    else if(ph%parallel_mode == SINGLE_PROC) then
       write(msg,"(A,A22)") "|   Parallel mode             :","SINGLE_PROC"
       call elsi_say(bh,msg)
-   end if
 
-   select case(ph%solver)
-   case(ELPA_SOLVER)
-      write(msg,"(A,A22)") "|   Solver requested          :","ELPA"
+      write(msg,"(A,A22)") "|   Solver requested          :","LAPACK"
       call elsi_say(bh,msg)
-   case(OMM_SOLVER)
-      write(msg,"(A,A22)") "|   Solver requested          :","libOMM"
-      call elsi_say(bh,msg)
-   case(PEXSI_SOLVER)
-      write(msg,"(A,A22)") "|   Solver requested          :","PEXSI"
-      call elsi_say(bh,msg)
-   case(SIPS_SOLVER)
-      write(msg,"(A,A22)") "|   Solver requested          :","SLEPc-SIPs"
-      call elsi_say(bh,msg)
-   case(NTPOLY_SOLVER)
-      write(msg,"(A,A22)") "|   Solver requested          :","NTPoly"
-      call elsi_say(bh,msg)
-   end select
+   end if
 
    write(msg,"(A,I22)") "|   Number of ELSI calls      :",ph%n_calls_all
    call elsi_say(bh,msg)
