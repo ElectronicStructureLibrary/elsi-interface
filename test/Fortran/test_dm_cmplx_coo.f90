@@ -64,8 +64,6 @@ subroutine test_dm_cmplx_coo(mpi_comm,solver,h_file,s_file)
 
    character(len=*), parameter :: file_name = "elsi.in"
 
-   complex(kind=r8), external :: zdotc
-
    call MPI_Comm_size(mpi_comm,n_proc,ierr)
    call MPI_Comm_rank(mpi_comm,myid,ierr)
 
@@ -227,7 +225,7 @@ subroutine test_dm_cmplx_coo(mpi_comm,solver,h_file,s_file)
    call elsi_get_edm_complex_sparse(eh,edm)
 
    ! Compute electron count
-   tmp = real(zdotc(nnz_l,ovlp,1,dm,1),kind=r8)
+   tmp = real(dot_product(ovlp,dm),kind=r8)
 
    call MPI_Reduce(tmp,n_test,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
 

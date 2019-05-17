@@ -59,7 +59,6 @@ program test_dm_kpt_spin_cmplx_den
    complex(kind=r8), allocatable :: dm(:,:)
    complex(kind=r8), allocatable :: edm(:,:)
 
-   complex(kind=r8), external :: zdotc
 
    type(elsi_handle) :: eh
    type(elsi_rw_handle) :: rwh
@@ -322,7 +321,8 @@ program test_dm_kpt_spin_cmplx_den
    call elsi_get_edm_complex(eh,edm)
 
    ! Compute electron count
-   tmp = real(zdotc(l_rows*l_cols,ovlp_save,1,dm,1),kind=r8)*k_weights(my_kpt)
+   tmp = k_weights(my_kpt) * real(dot_product(&
+       reshape(ovlp_save,[size(ovlp_save)]),reshape(dm,[size(dm)])),kind=r8)
 
    call MPI_Reduce(tmp,n_test,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
 
