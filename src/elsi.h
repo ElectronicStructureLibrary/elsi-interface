@@ -142,17 +142,11 @@ void c_elsi_set_illcond_check(elsi_handle handle_c,
 void c_elsi_set_illcond_tol(elsi_handle handle_c,
                             double illcond_tol);
 
-void c_elsi_set_illcond_abort(elsi_handle handle_c,
-                              int illcond_abort);
-
 void c_elsi_set_sing_check(elsi_handle handle_c,
                            int sing_check);
 
 void c_elsi_set_sing_tol(elsi_handle handle_c,
                          double sing_tol);
-
-void c_elsi_set_sing_stop(elsi_handle handle_c,
-                          int sing_stop);
 
 void c_elsi_set_energy_gap(elsi_handle handle_c,
                            double gap);

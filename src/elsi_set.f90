@@ -22,8 +22,6 @@ module ELSI_SET
    public :: elsi_set_output
    public :: elsi_set_output_unit
    public :: elsi_set_output_log
-   public :: elsi_set_output_tag
-   public :: elsi_set_uuid
    public :: elsi_set_n_basis
    public :: elsi_set_save_ovlp
    public :: elsi_set_unit_ovlp
@@ -74,12 +72,10 @@ module ELSI_SET
    public :: elsi_set_write_unit
    public :: elsi_set_sing_check
    public :: elsi_set_sing_tol
-   public :: elsi_set_sing_stop
-   public :: elsi_set_illcond_abort
    public :: elsi_set_pexsi_gap
    public :: elsi_set_pexsi_delta_e
    public :: elsi_set_sips_interval
-   public :: elsi_set_log_tag
+   public :: elsi_set_uuid
 
    interface elsi_set_write_unit
       module procedure elsi_set_output_unit
@@ -91,14 +87,6 @@ module ELSI_SET
 
    interface elsi_set_sing_tol
       module procedure elsi_set_illcond_tol
-   end interface
-
-   interface elsi_set_sing_stop
-      module procedure elsi_set_illcond_abort
-   end interface
-
-   interface elsi_set_log_tag
-      module procedure elsi_set_output_tag
    end interface
 
    interface elsi_set_pexsi_gap
@@ -187,39 +175,6 @@ subroutine elsi_set_output_log(eh,output_log)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    eh%bh%print_json = output_log
-
-end subroutine
-
-!>
-!! Set a custom tag for the JSON log file.
-!!
-subroutine elsi_set_output_tag(eh,output_tag)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   character(len=*), intent(in) :: output_tag !< Tag
-
-   character(len=*), parameter :: caller = "elsi_set_output_tag"
-
-   eh%bh%user_tag = output_tag
-
-end subroutine
-
-!>
-!! Set a UUID.
-!!
-subroutine elsi_set_uuid(eh,uuid)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   character(len=*), intent(in) :: uuid !< UUID
-
-   character(len=*), parameter :: caller = "elsi_set_uuid"
-
-   eh%bh%uuid_ready = .true.
-   eh%bh%uuid = uuid
 
 end subroutine
 
@@ -355,28 +310,6 @@ subroutine elsi_set_illcond_tol(eh,illcond_tol)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    eh%ph%ill_tol = illcond_tol
-
-end subroutine
-
-!>
-!! Set whether to abort in case of ill-conditioning.
-!!
-subroutine elsi_set_illcond_abort(eh,illcond_abort)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: illcond_abort !< Abort if ill-conditioned
-
-   character(len=*), parameter :: caller = "elsi_set_illcond_abort"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   if(illcond_abort == 0) then
-      eh%ph%ill_abort = .false.
-   else
-      eh%ph%ill_abort = .true.
-   end if
 
 end subroutine
 
@@ -1329,6 +1262,27 @@ subroutine elsi_set_mu_mp_order(eh,mp_order)
    end if
 
    eh%ph%mu_mp_order = mp_order
+
+end subroutine
+
+!>
+!! Set a UUID.
+!! (Deprecated)
+!!
+subroutine elsi_set_uuid(eh,uuid)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   character(len=*), intent(in) :: uuid !< UUID
+
+   character(len=36) :: tmp
+
+   character(len=*), parameter :: caller = "elsi_set_uuid"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   tmp = uuid
 
 end subroutine
 

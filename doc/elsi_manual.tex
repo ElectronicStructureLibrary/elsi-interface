@@ -906,7 +906,7 @@ In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-pol
 
 \subsection{Reinitializaing ELSI}
 \label{subsec:setup_reinit}
-When a geometry update takes place in geometry optimization or molecular dynamics calculations, the overlap matrix changes due to the movement of localized basis functions.  Calling \textbf{elsi\_reinit} instructs ELSI to flush geometry-related variables and arrays that cannot be used in the new geometry step, e.g., the overlap matrix and its sparsity pattern.  Other runtime parameters are kept within the ELSI instance and reused throughout multiple geometry steps.
+When a geometry update takes place in geometry optimization or molecular dynamics calculations, the overlap matrix changes due to the movement of localized basis functions.  Calling \textbf{elsi\_reinit} instructs ELSI to flush geometry-related variables and arrays that cannot be used in the new geometry step, e.g., the overlap matrix and its sparsity pattern.  Other runtime parameters are kept within the ELSI instance and reused throughout multiple geometry steps.  Note that the chemical potential determination in PEXSI must be restarted for every new geometry.  See the 5$^\text{th}$ remark in \ref{subsec:setter_pexsi} for details.
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_reinit}(handle)]
 \end{labeling}
@@ -1138,8 +1138,6 @@ In all the subroutines listed below, the first argument (input and output) is an
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_write\_unit}(handle, write\_unit)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sing\_check}(handle, sing\_check)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sing\_tol}(handle, sing\_tol)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sing\_stop}(handle, sing\_stop)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_illcond\_abort}(handle, illcond\_abort)]
 \end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
@@ -1181,10 +1179,6 @@ In all the subroutines listed below, the first argument (input and output) is an
 \textcolor{blue}{sing\_check}         & integer            & 0          & Deprecated.  Use \textcolor{blue}{elsi\_set\_illcond\_check} instead.\\
 \hline
 \textcolor{blue}{sing\_tol}           & real double        & $10^{-5}$  & Deprecated.  Use \textcolor{blue}{elsi\_set\_illcond\_tol} instead.\\
-\hline
-\textcolor{blue}{sing\_stop}          & integer            & 0          & Deprecated.  Use \textcolor{blue}{elsi\_set\_illcond\_abort} instead.\\
-\hline
-\textcolor{blue}{illcond\_abort}      & integer            & 0          & Deprecated.  No effect.\\
 \hline
 \end{tabular}
 
@@ -1319,33 +1313,35 @@ when using the \textcolor{blue}{PEXSI\_CSC} matrix format with the ELPA, libOMM,
 
 \textbf{4)} \textcolor{blue}{pexsi\_temp}:  This value corresponds to the $1/k_\text{B} T$ term (not $T$) in the Fermi-Dirac distribution function.
 
-\textbf{5)} The chemical potential determination in PEXSI relies on inertia counting to narrow down the chemical potential searching interval in the first few SCF steps.  The \textcolor{blue}{pexsi\_inertia\_tol} parameter controls the stopping criterion of the inertia counting procedure.  With a small interval obtained from the inertia counting step, PEXSI then selects a number of points in this interval to perform Fermi operator calculations, based on which a final chemical potential will be determined.  The trick of this algorithm is that the chemical potential interval of the current SCF step can be used as a descent guess in the next SCF step.  Therefore, the mechanism to choose input values for \textcolor{blue}{pexsi\_mu\_min} and \textcolor{blue}{pexsi\_mu\_max} is two-fold.  For the first SCF iteration, they should be set to safe values that guarantee the true chemical potential lies in this interval.  Then, for the n$^\text{th}$ SCF step, \textcolor{blue}{pexsi\_mu\_min} should be set to ($mu_\text{min}^\text{n-1} + \Delta V_\text{min}$), \textcolor{blue}{pexsi\_mu\_max} should be set to ($mu_\text{max}^\text{n-1} + \Delta V_\text{max}$).  Here, $mu_\text{min}^\text{n-1}$ and $mu_\text{max}^\text{n-1}$ are the lower bound and the upper bound of the chemical potential that are determined by PEXSI in the (n-1)$^\text{th}$ SCF step.  They can be retrieved by calling \textcolor{blue}{elsi\_get\_pexsi\_mu\_min} and \textcolor{blue}{elsi\_get\_pexsi\_mu\_max}, respectively (see \ref{subsec:getter_pexsi}.  Suppose the effective potential (Hartree potential, exchange-correlation potential, and external potential) is stored in an array $V$, whose dimension is the number of grid points.  From one SCF iteration to the next, $\Delta V$ denotes the potential change, and $\Delta V_\text{min}$ and $\Delta V_\text{max}$ are the minimum and maximum values in the array $\Delta V$, respectively.  The whole process is summarized in the following pseudo-code.
+\textbf{5)} The chemical potential determination in PEXSI relies on inertia counting to narrow down the chemical potential searching interval in the first few SCF steps.  The \textcolor{blue}{pexsi\_inertia\_tol} parameter controls the stopping criterion of the inertia counting procedure.  With a small interval obtained from the inertia counting step, PEXSI then selects a number of points in this interval to perform Fermi operator calculations, based on which a final chemical potential will be determined.  The trick of this algorithm is that the chemical potential interval of the current SCF step can be used as a descent guess in the next SCF step.  Therefore, the mechanism to choose input values for \textcolor{blue}{pexsi\_mu\_min} and \textcolor{blue}{pexsi\_mu\_max} is two-fold.  For the first SCF iteration of each geometry step, they should be set to safe values that guarantee the true chemical potential lies in this interval.  Then, for the n$^\text{th}$ SCF step, \textcolor{blue}{pexsi\_mu\_min} should be set to ($\mu_\text{min}^\text{n-1} + \Delta V_\text{min}$), \textcolor{blue}{pexsi\_mu\_max} should be set to ($\mu_\text{max}^\text{n-1} + \Delta V_\text{max}$).  Here, $\mu_\text{min}^\text{n-1}$ and $\mu_\text{max}^\text{n-1}$ are the lower bound and the upper bound of the chemical potential that are determined by PEXSI in the (n-1)$^\text{th}$ SCF step.  They can be retrieved by calling \textcolor{blue}{elsi\_get\_pexsi\_mu\_min} and \textcolor{blue}{elsi\_get\_pexsi\_mu\_max}, respectively (see \ref{subsec:getter_pexsi}.  Suppose the effective potential (Hartree potential, exchange-correlation potential, and external potential) is stored in an array $V$, whose dimension is the number of grid points.  From one SCF iteration to the next, $\Delta V$ denotes the potential change, and $\Delta V_\text{min}$ and $\Delta V_\text{max}$ are the minimum and maximum values in the array $\Delta V$, respectively.  The whole process is summarized in the following pseudo-code.  The (re-)initialization and finalization of ELSI are omitted.
 
 \begin{tcolorbox}
 \begin{Verbatim}[commandchars=\\\{\}]
-mu_min = -10.0
-mu_max = 10.0
-delta_V_min = 0.0
-delta_v_max = 0.0
+do geometry update
+  mu_min = -10.0
+  mu_max = 10.0
+  delta_V_min = 0.0
+  delta_v_max = 0.0
 
-do SCF cycle
-  \textcolor{red}{Update Hamiltonian}
+  do SCF cycle
+    \textcolor{red}{Update Hamiltonian}
 
-  call \textcolor{blue}{elsi_set_pexsi_mu_min} (eh, mu_min + delta_V_min)
-  call \textcolor{blue}{elsi_set_pexsi_mu_max} (eh, mu_max + delta_V_max)
+    call \textcolor{blue}{elsi_set_pexsi_mu_min} (eh, mu_min + delta_V_min)
+    call \textcolor{blue}{elsi_set_pexsi_mu_max} (eh, mu_max + delta_V_max)
 
-  call \textcolor{blue}{elsi_dm_\{real|complex\}} (eh, ham, ovlp, dm, bs_energy)
+    call \textcolor{blue}{elsi_dm_\{real|complex\}} (eh, ham, ovlp, dm, bs_energy)
 
-  call \textcolor{blue}{elsi_get_pexsi_mu_min} (eh, mu_min)
-  call \textcolor{blue}{elsi_get_pexsi_mu_max} (eh, mu_max)
+    call \textcolor{blue}{elsi_get_pexsi_mu_min} (eh, mu_min)
+    call \textcolor{blue}{elsi_get_pexsi_mu_max} (eh, mu_max)
 
-  \textcolor{red}{Update electron density}
-  \textcolor{red}{Update potential}
+    \textcolor{red}{Update electron density}
+    \textcolor{red}{Update potential}
 
-  delta_V_min = minval (V_new - V_old)
-  delta_V_max = maxval (V_new - V_old)
+    delta_V_min = minval (V_new - V_old)
+    delta_V_max = maxval (V_new - V_old)
 
-  \textcolor{red}{Check SCF convergence}
+    \textcolor{red}{Check SCF convergence}
+  end do
 end do
 \end{Verbatim}
 \end{tcolorbox}

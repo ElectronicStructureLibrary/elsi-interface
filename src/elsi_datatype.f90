@@ -5,7 +5,9 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! Provide derived types used in ELSI.
+!! Provide derived types used in ELSI. Most variables in this module can be set
+!! by subroutines in ELSI_SET, and should be initialized with default values by
+!! subroutines in ELSI_UTIL.
 !!
 module ELSI_DATATYPE
 
@@ -29,9 +31,6 @@ module ELSI_DATATYPE
       integer(kind=i4) :: print_unit
       integer(kind=i4) :: print_json
       logical :: json_init = .false.
-      character(len=20) :: user_tag
-      character(len=36) :: uuid
-      logical :: uuid_ready = .false.
 
       ! MPI
       integer(kind=i4) :: myid
@@ -94,7 +93,6 @@ module ELSI_DATATYPE
       logical :: ill_ovlp
       logical :: ill_check
       real(kind=r8) :: ill_tol
-      logical :: ill_abort ! Always stop if overlap is ill-conditioned?
       integer(kind=i4) :: n_good ! Number of non-ill-conditioned basis functions
       real(kind=r8) :: ovlp_ev_min
       real(kind=r8) :: ovlp_ev_max
