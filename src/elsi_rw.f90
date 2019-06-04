@@ -1433,11 +1433,19 @@ subroutine elsi_read_mat_dim_sp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
 
    integer(kind=i4) :: header(HEADER_SIZE)
    integer(kind=i8) :: offset
+   integer(kind=i8) :: ierr
+   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_read_mat_dim_sp"
 
    ! Open file
-   open(file=f_name,unit=99,access="stream",form="unformatted")
+   open(99,file=f_name,access="stream",form="unformatted",status="old",&
+      iostat=ierr)
+
+   if(ierr /= 0) then
+      write(msg,"(2A)") "Failed to open file ",trim(f_name)
+      call elsi_stop(rwh%bh,msg,caller)
+   end if
 
    ! Read header
    offset = 1
@@ -1475,6 +1483,8 @@ subroutine elsi_read_mat_real_sp(rwh,f_name,mat)
    integer(kind=i4) :: j
    integer(kind=i4) :: this_nnz
    integer(kind=i8) :: offset
+   integer(kind=i8) :: ierr
+   character(len=200) :: msg
 
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
@@ -1483,7 +1493,13 @@ subroutine elsi_read_mat_real_sp(rwh,f_name,mat)
    character(len=*), parameter :: caller = "elsi_read_mat_real_sp"
 
    ! Open file
-   open(file=f_name,unit=99,access="stream",form="unformatted")
+   open(99,file=f_name,access="stream",form="unformatted",status="old",&
+      iostat=ierr)
+
+   if(ierr /= 0) then
+      write(msg,"(2A)") "Failed to open file ",trim(f_name)
+      call elsi_stop(rwh%bh,msg,caller)
+   end if
 
    ! Read header
    offset = 1
@@ -1557,6 +1573,8 @@ subroutine elsi_read_mat_complex_sp(rwh,f_name,mat)
    integer(kind=i4) :: j
    integer(kind=i4) :: this_nnz
    integer(kind=i8) :: offset
+   integer(kind=i8) :: ierr
+   character(len=200) :: msg
 
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
@@ -1565,7 +1583,13 @@ subroutine elsi_read_mat_complex_sp(rwh,f_name,mat)
    character(len=*), parameter :: caller = "elsi_read_mat_complex_sp"
 
    ! Open file
-   open(file=f_name,unit=99,access="stream",form="unformatted")
+   open(99,file=f_name,access="stream",form="unformatted",status="old",&
+      iostat=ierr)
+
+   if(ierr /= 0) then
+      write(msg,"(2A)") "Failed to open file ",trim(f_name)
+      call elsi_stop(rwh%bh,msg,caller)
+   end if
 
    ! Read header
    offset = 1
@@ -1640,6 +1664,8 @@ subroutine elsi_write_mat_real_sp(rwh,f_name,mat)
    integer(kind=i4) :: this_nnz
    integer(kind=i4) :: nnz_g
    integer(kind=i8) :: offset
+   integer(kind=i8) :: ierr
+   character(len=200) :: msg
 
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
@@ -1674,7 +1700,12 @@ subroutine elsi_write_mat_real_sp(rwh,f_name,mat)
    end do
 
    ! Open file
-   open(file=f_name,unit=99,access="stream",form="unformatted")
+   open(99,file=f_name,access="stream",form="unformatted",iostat=ierr)
+
+   if(ierr /= 0) then
+      write(msg,"(2A)") "Failed to open file ",trim(f_name)
+      call elsi_stop(rwh%bh,msg,caller)
+   end if
 
    ! Write header
    header(1) = FILE_VERSION
@@ -1731,6 +1762,8 @@ subroutine elsi_write_mat_complex_sp(rwh,f_name,mat)
    integer(kind=i4) :: this_nnz
    integer(kind=i4) :: nnz_g
    integer(kind=i8) :: offset
+   integer(kind=i8) :: ierr
+   character(len=200) :: msg
 
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
@@ -1765,7 +1798,12 @@ subroutine elsi_write_mat_complex_sp(rwh,f_name,mat)
    end do
 
    ! Open file
-   open(file=f_name,unit=99,access="stream",form="unformatted")
+   open(99,file=f_name,access="stream",form="unformatted",iostat=ierr)
+
+   if(ierr /= 0) then
+      write(msg,"(2A)") "Failed to open file ",trim(f_name)
+      call elsi_stop(rwh%bh,msg,caller)
+   end if
 
    ! Write header
    header(1) = FILE_VERSION

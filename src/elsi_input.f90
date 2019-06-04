@@ -57,7 +57,7 @@ subroutine elsi_set_input_file(eh,f_name)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   open(313,file=f_name,status="OLD",action="READ",iostat=ierr)
+   open(313,file=f_name,status="old",iostat=ierr)
 
    if(ierr /= 0) then
       write(msg,"(2A)") "Failed to open input file ",trim(f_name)
