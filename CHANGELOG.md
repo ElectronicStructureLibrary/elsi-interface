@@ -2,6 +2,9 @@
 
 ## Not released
 
+### ELSI interface
+* Added density matrix extrapolation subroutines for sparse matrices.
+
 ### NTPoly
 * Updated redistributed NTPoly source code to version 2.3.1.
 

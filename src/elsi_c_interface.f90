@@ -633,21 +633,6 @@ subroutine c_elsi_set_illcond_tol(h_c,illcond_tol) bind(C)
 
 end subroutine
 
-subroutine c_elsi_set_illcond_abort(h_c,illcond_abort) bind(C)
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), value, intent(in) :: illcond_abort
-
-   type(elsi_handle), pointer :: h_f
-
-   call c_f_pointer(h_c,h_f)
-
-   call elsi_set_illcond_abort(h_f,illcond_abort)
-
-end subroutine
-
 subroutine c_elsi_set_sing_check(h_c,sing_check) bind(C)
 
    implicit none
@@ -675,21 +660,6 @@ subroutine c_elsi_set_sing_tol(h_c,sing_tol) bind(C)
    call c_f_pointer(h_c,h_f)
 
    call elsi_set_illcond_tol(h_f,sing_tol)
-
-end subroutine
-
-subroutine c_elsi_set_sing_stop(h_c,sing_stop) bind(C)
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), value, intent(in) :: sing_stop
-
-   type(elsi_handle), pointer :: h_f
-
-   call c_f_pointer(h_c,h_f)
-
-   call elsi_set_illcond_abort(h_f,sing_stop)
 
 end subroutine
 

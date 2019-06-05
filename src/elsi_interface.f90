@@ -46,8 +46,6 @@ module ELSI
    public :: elsi_set_output
    public :: elsi_set_output_unit
    public :: elsi_set_output_log
-   public :: elsi_set_output_tag
-   public :: elsi_set_uuid
    public :: elsi_set_n_basis
    public :: elsi_set_save_ovlp
    public :: elsi_set_unit_ovlp
@@ -119,10 +117,8 @@ module ELSI
    public :: elsi_set_write_unit
    public :: elsi_set_sing_check
    public :: elsi_set_sing_tol
-   public :: elsi_set_sing_stop
-   public :: elsi_set_illcond_abort
    public :: elsi_set_sips_interval
-   public :: elsi_set_log_tag
+   public :: elsi_set_uuid
    public :: elsi_get_n_sing
 
    ! Solve

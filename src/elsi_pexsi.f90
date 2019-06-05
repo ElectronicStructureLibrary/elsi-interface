@@ -1100,7 +1100,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
 
    real(kind=r8), allocatable :: shifts(:)
    complex(kind=r8), allocatable :: tmp(:)
-   complex(kind=r8), allocatable :: send_buf_cmplx(:)
+   complex(kind=r8), allocatable :: send_buf(:)
 
    character(len=*), parameter :: caller = "elsi_compute_edm_pexsi_cmplx"
 
@@ -1201,20 +1201,20 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
       factor_max = (ph%n_electrons-ne_vec(aux_min))&
          /(ne_vec(aux_max)-ne_vec(aux_min))
 
-      call elsi_allocate(bh,send_buf_cmplx,bh%nnz_l_sp1,"send_buf_cmplx",caller)
+      call elsi_allocate(bh,send_buf,bh%nnz_l_sp1,"send_buf",caller)
 
       if(ph%pexsi_my_point == aux_min-1) then
-         send_buf_cmplx = factor_min*tmp
+         send_buf = factor_min*tmp
       else if(ph%pexsi_my_point == aux_max-1) then
-         send_buf_cmplx = factor_max*tmp
+         send_buf = factor_max*tmp
       end if
 
-      call MPI_Allreduce(send_buf_cmplx,tmp,bh%nnz_l_sp1,mpi_complex16,mpi_sum,&
+      call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,mpi_complex16,mpi_sum,&
            ph%pexsi_comm_inter_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
-      call elsi_deallocate(bh,send_buf_cmplx,"send_buf_cmplx")
+      call elsi_deallocate(bh,send_buf,"send_buf")
    end if
 
    if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then

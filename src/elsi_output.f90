@@ -76,11 +76,6 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
          call fjson_open_file(jh,66,"elsi_log.json")
          call fjson_start_array(jh)
 
-         if(.not. bh%uuid_ready) then
-            call elsi_gen_uuid(bh%uuid)
-            bh%uuid_ready = .true.
-         end if
-
          bh%json_init = .true.
       end if
 
@@ -119,7 +114,7 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       end select
 
       call fjson_start_object(jh)
-      call elsi_print_version_summary(bh%uuid,jh)
+      call elsi_print_version_summary(jh)
       call fjson_write_name_value(jh,"step",ph%n_calls)
       call fjson_write_name_value(jh,"total_step",ph%n_calls+ph%n_calls_all)
 
@@ -135,8 +130,6 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
          call fjson_write_name_value(jh,"data_type","COMPLEX")
       end if
 
-      call fjson_write_name_value(jh,"elsi_tag",trim(solver_tag))
-      call fjson_write_name_value(jh,"user_tag",trim(bh%user_tag))
       call fjson_write_name_value(jh,"start_datetime",dt0)
       call fjson_write_name_value(jh,"record_datetime",dt_record)
       call fjson_write_name_value(jh,"total_time",t1-t0)
@@ -239,11 +232,10 @@ end subroutine
 !>
 !! Print versioning information.
 !!
-subroutine elsi_print_version_summary(uuid,jh)
+subroutine elsi_print_version_summary(jh)
 
    implicit none
 
-   character(len=*), intent(in) :: uuid
    type(fjson_handle), intent(inout) :: jh
 
    character(len=8) :: VERSION
@@ -262,7 +254,6 @@ subroutine elsi_print_version_summary(uuid,jh)
    call fjson_write_name_value(jh,"git_commit_abbrev",trim(COMMIT))
    call fjson_write_name_value(jh,"compiled_on_hostname",trim(HOSTNAME))
    call fjson_write_name_value(jh,"compiled_at_datetime",trim(DATETIME))
-   call fjson_write_name_value(jh,"uuid",trim(uuid))
 
 end subroutine
 
@@ -676,111 +667,6 @@ subroutine elsi_get_time(wtime)
 
    wtime = day*86400.0_r8+hour*3600.0_r8+minute*60.0_r8+second&
       +millisecond*0.001_r8
-
-end subroutine
-
-!>
-!! Generate a UUID (unique identifier) in RFC 4122 format.
-!! (Taken from FHI-aims with permission of copyright holders)
-!!
-subroutine elsi_gen_uuid(uuid)
-
-   implicit none
-
-   character(len=36), intent(out) :: uuid
-
-   integer(kind=i4) :: ii3
-   integer(kind=i4) :: ii4
-   integer(kind=i4) :: i_entry
-   real(kind=r8) :: rr(8)
-   character(len=3) :: ss3
-   character(len=4) :: ss4
-
-   character(len=*), parameter :: caller = "elsi_gen_uuid"
-
-   call elsi_init_random_seed()
-
-   ii3 = 4095
-   ii4 = 65535
-
-   call random_number(rr)
-
-   do i_entry=1,8
-      write(ss3,"(Z3.3)") transfer(int(rr(i_entry)*ii3),16)
-      write(ss4,"(Z4.4)") transfer(int(rr(i_entry)*ii4),16)
-
-      select case(i_entry)
-      case(1)
-         write(uuid,"(A)") ss4
-      case(2)
-         write(uuid,"(2A)") trim(uuid),ss4
-      case(3)
-         write(uuid,"(3A)") trim(uuid),"-",ss4
-      case(4)
-         write(uuid,"(3A)") trim(uuid),"-4",ss3
-      case(5)
-         write(uuid,"(4A)") trim(uuid),"-A",ss3,"-"
-      case default
-         write(uuid,"(2A)") trim(uuid),ss4
-      end select
-   end do
-
-end subroutine
-
-!>
-!! Linear congruential generator.
-!! (Taken from FHI-aims with permission of copyright holders)
-!!
-integer(kind=i4) function lcg(s)
-
-   implicit none
-
-   integer(kind=i8) :: s
-
-   if(s == 0) then
-      s = 104729
-   else
-      s = mod(s,int(huge(0_2)*2,kind=i8))
-   end if
-
-   s = mod(s*int(huge(0_2),kind=i8),int(huge(0_2)*2,kind=i8))
-   lcg = int(mod(s,int(huge(0),kind=i8)),kind(0))
-
-end function
-
-!>
-!! Set the seed in the built-in random_seed subroutine using the system clock
-!! modified by lcg().
-!! (Taken from FHI-aims with permission of copyright holders)
-!!
-subroutine elsi_init_random_seed()
-
-   implicit none
-
-   real(kind=r8) :: wtime
-   integer(kind=i4) :: i
-   integer(kind=i4) :: n
-   integer(kind=i8) :: t
-
-   integer(kind=i4), allocatable :: seed(:)
-
-   character(len=*), parameter :: caller = "elsi_init_random_seed"
-
-   call elsi_get_time(wtime)
-
-   t = nint(wtime*1000.0_r8,kind=i8)
-
-   call random_seed(size=n)
-
-   allocate(seed(n))
-
-   do i = 1,n
-      seed(i) = lcg(t)
-   end do
-
-   call random_seed(put=seed)
-
-   deallocate(seed)
 
 end subroutine
 

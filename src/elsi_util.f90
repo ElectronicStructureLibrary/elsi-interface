@@ -88,7 +88,6 @@ subroutine elsi_reset_param(ph)
    ph%ill_ovlp = .false.
    ph%ill_check = .true.
    ph%ill_tol = 1.0e-5_r8
-   ph%ill_abort = .false.
    ph%n_good = UNSET
    ph%ovlp_ev_min = 0.0_r8
    ph%ovlp_ev_max = 0.0_r8
@@ -203,9 +202,6 @@ subroutine elsi_reset_basic(bh)
    bh%print_unit = 6
    bh%print_json = 0
    bh%json_init = .false.
-   bh%user_tag = ""
-   bh%uuid = ""
-   bh%uuid_ready = .false.
    bh%myid = UNSET
    bh%myid_all = UNSET
    bh%n_procs = UNSET
