@@ -5,6 +5,9 @@
 ### ELSI interface
 * Added density matrix extrapolation subroutines for sparse matrices.
 
+### ELPA
+* Interface for externally linked ELPA compatible with ELPA 2019.05.
+
 ### NTPoly
 * Updated redistributed NTPoly source code to version 2.3.1.
 * Fixed complex matrix conversion from BLACS\_DENSE and GENERIC\_COO to NTPoly.

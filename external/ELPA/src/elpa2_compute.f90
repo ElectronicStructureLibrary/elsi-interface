@@ -263,7 +263,6 @@ subroutine redist_band_real_double(r_a, lda, na, nblk, nbw, mpi_comm_rows, mpi_c
   deallocate(ncnt_r, nstart_r)
   deallocate(global_id)
   deallocate(block_limits)
-
   deallocate(r_sbuf, r_rbuf, r_buf)
 
 end subroutine
@@ -2252,7 +2251,7 @@ subroutine trans_ev_tridi_to_band_real_double(na, nev, nblk, nbw, q, ldq, hh_tra
     endif
 
     a_off = a_off + offset
-    if (a_off + next_local_n + nbw > a_dim2) then
+    if (a_off + next_local_n + nbw >= a_dim2) then
 
       do i = 1, stripe_count
         do j = top_msg_length+1, top_msg_length+next_local_n
@@ -4191,7 +4190,7 @@ subroutine trans_ev_tridi_to_band_complex_double(na, nev, nblk, nbw, q, ldq, &
     endif
 
     a_off = a_off + offset
-    if (a_off + next_local_n + nbw > a_dim2) then
+    if (a_off + next_local_n + nbw >= a_dim2) then
 
       do i = 1, stripe_count
         do j = top_msg_length+1, top_msg_length+next_local_n
@@ -4309,6 +4308,7 @@ subroutine trans_ev_tridi_to_band_complex_double(na, nev, nblk, nbw, q, ldq, &
   endif
 
   return
+
 end subroutine
 
 end module ELPA2_compute
