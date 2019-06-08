@@ -14,8 +14,6 @@ contains
     !================================================!
     function omm_rand_seed() result(seed)
 
-        use omm_params, only: dp
-
         implicit none
         integer :: seed
         seed=123456

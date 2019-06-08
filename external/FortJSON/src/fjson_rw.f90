@@ -518,8 +518,8 @@ contains
    !> Generic handler for values
    subroutine fjson_write_value_generic(fj_h, setting)
 
-      use FJSON_CONSTANTS, only: JSON_ROOT, JSON_OBJECT, JSON_ARRAY, &
-                                 FINISHED_ERROR, VALUE_ERROR
+      use FJSON_CONSTANTS, only: JSON_ROOT, JSON_OBJECT, FINISHED_ERROR, &
+                                 VALUE_ERROR
 
       implicit none
 
