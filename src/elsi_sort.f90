@@ -23,7 +23,6 @@ module ELSI_SORT
       module procedure swap_i8
       module procedure swap_i4
       module procedure swap_r8
-      module procedure swap_c16
    end interface
 
    interface downheap
@@ -442,26 +441,6 @@ subroutine swap_r8(length,array,i,j)
    integer(kind=i4), intent(in) :: j
 
    real(kind=r8) :: tmp
-
-   tmp = array(i)
-   array(i) = array(j)
-   array(j) = tmp
-
-end subroutine
-
-!>
-!! Swap two numbers in a complex(kind=r8) array.
-!!
-subroutine swap_c16(length,array,i,j)
-
-   implicit none
-
-   integer(kind=i4), intent(in) :: length
-   complex(kind=r8), intent(inout) :: array(length)
-   integer(kind=i4), intent(in) :: i
-   integer(kind=i4), intent(in) :: j
-
-   complex(kind=r8) :: tmp
 
    tmp = array(i)
    array(i) = array(j)

@@ -7,11 +7,11 @@
 
 ### NTPoly
 * Updated redistributed NTPoly source code to version 2.3.1.
+* Fixed complex matrix conversion from BLACS\_DENSE and GENERIC\_COO to NTPoly.
 
 ## v2.2.1 (March 2019)
 
 ### ELSI interface
-
 * Fixed LAPACK eigensolver for ill-conditioned overlap matrices.
 
 ### PEXSI
@@ -20,7 +20,6 @@
 ## v2.2.0 (February 2019)
 
 ### ELSI interface
-
 * Added utility subroutines for geometry optimization and molecular dynamics
   calculations, including reinitialization of ELSI between geometry steps,
   density matrix extrapolation, and Gram-Schmidt orthogonalization of

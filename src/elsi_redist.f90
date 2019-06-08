@@ -5529,7 +5529,7 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
 
-   type(TripletList_r) :: dm_list
+   type(TripletList_c) :: dm_list
 
    character(len=*), parameter :: caller = "elsi_ntpoly_to_sips_dm_complex"
 
@@ -6723,10 +6723,10 @@ subroutine elsi_generic_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,&
    real(kind=r8) :: t1
    character(len=200) :: msg
 
-   type(TripletList_r) :: ham_list
-   type(TripletList_r) :: ovlp_list
-   type(TripletList_r) :: map_list
-   type(Triplet_r) :: coo
+   type(TripletList_c) :: ham_list
+   type(TripletList_c) :: ovlp_list
+   type(TripletList_c) :: map_list
+   type(Triplet_c) :: coo
 
    character(len=*), parameter :: caller = "elsi_generic_to_ntpoly_hs_cmplx"
 
@@ -8084,8 +8084,8 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: gid_map
-   integer(kind=i4) :: gid_dm
+   integer(kind=i8) :: gid_map
+   integer(kind=i8) :: gid_dm
    integer(kind=i4) :: nnz_l_nt
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -8273,8 +8273,8 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: gid_map
-   integer(kind=i4) :: gid_dm
+   integer(kind=i8) :: gid_map
+   integer(kind=i8) :: gid_dm
    integer(kind=i4) :: nnz_l_nt
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -8294,8 +8294,8 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: perm(:)
 
-   type(TripletList_r) :: dm_list
-   type(TripletList_r) :: map_list
+   type(TripletList_c) :: dm_list
+   type(TripletList_c) :: map_list
 
    character(len=*), parameter :: caller = "elsi_ntpoly_to_generic_dm_cmplx"
 
@@ -8317,7 +8317,8 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 
       ! Compute destination
       do i_val = 1,nnz_l_nt
-         dest(i_val) = nint(map_list%data(i_val)%point_value,kind=i4)
+         dest(i_val) = nint(real(map_list%data(i_val)%point_value,kind=r8),&
+            kind=i4)
          map_list%data(i_val)%point_value = (0.0_r8,0.0_r8)
       end do
 
