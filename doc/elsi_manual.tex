@@ -18,7 +18,7 @@
 \addtokomafont{labelinglabel}{\sffamily}
 \titleformat{\chapter}[hang]{\bf\huge}{\thechapter}{2pc}{}
 \geometry{left=1.6cm,right=1.6cm,top=1.6cm,bottom=2cm}
-\parskip=8pt
+\parskip=6pt
 \parindent=0pt
 
 \begin{document}
@@ -657,7 +657,9 @@ In this chapter, we present the public-facing API for the ELSI Interface.  We an
 
 To allow multiple instances of ELSI to co-exist within a single calling code, we define an \texttt{elsi\_handle} data type to encapsulate the state of an ELSI instance, i.e., all runtime parameters associated with the ELSI instance.  An \texttt{elsi\_handle} instance is initialized with the \textcolor{blue}{elsi\_init} subroutine and is subsequently passed to all other ELSI subroutine calls.
 
-ELSI provides a C interface in addition to the native Fortran interface.  The vast majority of this chapter, while written from a Fortran-ic standpoint, applies equally to both interfaces.  Information specifically about the C wrapper for ELSI may be found in \ref{sec:c}.
+ELSI provides a C interface in addition to the native Fortran interface.  The vast majority of this chapter, while written from a Fortran standpoint, applies equally to both interfaces.  Information specifically about the C wrapper for ELSI may be found in \ref{sec:c}.
+
+In the source code of ELSI, there may exist subroutines that are not documented as public API here.  Usage of those undocumented subroutines is not recommended, as they are usually experimental and subject to modification or removal without notice.
 
 \section{Setting Up ELSI}
 \label{sec:setup}
@@ -802,7 +804,10 @@ When using the \textcolor{blue}{PEXSI\_CSC} or \textcolor{blue}{SIESTA\_CSC} for
 \hline
 \end{tabular}
 
-The block size of the \textcolor{blue}{PEXSI\_CSC} format cannot be set by the user.  This is because the PEXSI solver requires that the block size must be floor(\textcolor{blue}{$\text{N}\_\text{basis}$}/\textcolor{blue}{$\text{N}\_\text{procs}$}), where floor(x) is the greatest integer less than or equal to x, \textcolor{blue}{\text{N}\_\text{basis}} and \textcolor{blue}{\text{N}\_\text{procs}} are the number of basis functions and the number of MPI tasks, respectively.  The block size of the \textcolor{blue}{SIESTA\_CSC} must be explicitly set by calling \textcolor{blue}{elsi\_set\_csc\_blk}.
+The block size of the \textcolor{blue}{PEXSI\_CSC} format cannot be set by the user.  This is because the PEXSI solver requires that the block size must be floor(\textcolor{blue}{$\text{N}\_\text{basis}$}/\textcolor{blue}{$\text{N}\_\text{procs}$}), where floor(x) is the greatest integer less than or equal to x, \textcolor{blue}{\text{N}\_\text{basis}} and \textcolor{blue}{\text{N}\_\text{procs}} are the number of basis functions and the number of MPI tasks, respectively.  The block size of the \textcolor{blue}{SIESTA\_CSC} must be explicitly set by calling
+
+\newpage
+\textcolor{blue}{elsi\_set\_csc\_blk}.
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_csc\_blk}(handle, block\_size)]
 \end{labeling}
@@ -1088,6 +1093,7 @@ The following subroutines return the density matrix computed from the provided H
 \hline
 \end{tabular}
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_dm\_complex\_sparse}(handle, ham, ovlp, dm, energy)]
 \end{labeling}
@@ -1551,7 +1557,6 @@ The following subroutines orthonormalize eigenvectors (coefficients of wavefunct
 \hline
 \end{tabular}
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_orthonormalize\_ev\_complex\_sparse}(handle, ovlp, evec)]
 \end{labeling}
@@ -1752,8 +1757,6 @@ When a matrix I/O instance is no longer needed, its associated handle should be 
 \subsection{Writing Matrices}
 \label{subsec:rw_write}
 The following two subroutines write a dense matrix to file.  Before writing a dense matrix, MPI and BLACS should be set up properly using \textcolor{blue}{elsi\_set\_rw\_mpi} and \textcolor{blue}{elsi\_set\_rw\_blacs}.
-
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_write\_mat\_real}(handle, filename, mat)]
 \end{labeling}
@@ -1788,6 +1791,7 @@ The following two subroutines write a dense matrix to file.  Before writing a de
 
 The following two subroutines write a sparse matrix to file.  Before writing a sparse matrix, MPI and CSC matrix format should be set up properly using \textcolor{blue}{elsi\_set\_rw\_mpi} and \textcolor{blue}{elsi\_set\_rw\_csc}.
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_write\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
 \end{labeling}
@@ -1942,7 +1946,6 @@ The following three subroutines read a sparse matrix from file.  Before reading 
 \hline
 \end{tabular}
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_read\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
 \end{labeling}
