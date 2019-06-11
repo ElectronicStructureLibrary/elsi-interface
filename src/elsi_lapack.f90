@@ -228,6 +228,9 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_solve_lapack_real"
 
+   write(msg,"(A)") "Starting LAPACK eigensolver"
+   call elsi_say(bh,msg)
+
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
       if(ph%ill_check) then
@@ -243,9 +246,6 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
 
    ! Solve
    call elsi_get_time(t0)
-
-   write(msg,"(A)") "Starting LAPACK eigensolver"
-   call elsi_say(bh,msg)
 
    call elsi_allocate(bh,offd,ph%n_good,"offd",caller)
    call elsi_allocate(bh,tau,ph%n_good,"tau",caller)
@@ -567,12 +567,15 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    integer(kind=i4) :: ierr
    character(len=200) :: msg
 
-   real(kind=r8), allocatable :: offd(:)
    complex(kind=r8), allocatable :: tau(:)
-   real(kind=r8), allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
+   real(kind=r8), allocatable :: offd(:)
+   real(kind=r8), allocatable :: tmp_real(:,:)
 
    character(len=*), parameter :: caller = "elsi_solve_lapack_cmplx"
+
+   write(msg,"(A)") "Starting LAPACK eigensolver"
+   call elsi_say(bh,msg)
 
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
@@ -589,9 +592,6 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    ! Solve
    call elsi_get_time(t0)
-
-   write(msg,"(A)") "Starting LAPACK eigensolver"
-   call elsi_say(bh,msg)
 
    call elsi_allocate(bh,offd,ph%n_good,"offd",caller)
    call elsi_allocate(bh,tau,ph%n_good,"tau",caller)
@@ -654,11 +654,11 @@ subroutine elsi_check_ovlp_sp_cmplx(ph,bh,ovlp,eval,evec)
    integer(kind=i4) :: ierr
    character(len=200) :: msg
 
-   real(kind=r8), allocatable :: offd(:)
    complex(kind=r8), allocatable :: tau(:)
-   real(kind=r8), allocatable :: tmp_real(:,:)
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
    complex(kind=r8), allocatable :: copy(:,:)
+   real(kind=r8), allocatable :: offd(:)
+   real(kind=r8), allocatable :: tmp_real(:,:)
 
    character(len=*), parameter :: caller = "elsi_check_ovlp_sp_cmplx"
 

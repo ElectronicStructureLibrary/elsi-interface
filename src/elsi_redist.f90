@@ -370,6 +370,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: n_group
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
@@ -385,19 +387,17 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    integer(kind=i4) :: d11
    integer(kind=i4) :: d21
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: h_val_send(:)
    real(kind=r8), allocatable :: s_val_send(:)
+   real(kind=r8), allocatable :: h_val_recv(:)
+   real(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8), allocatable :: h_val_recv(:)
-   real(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -699,6 +699,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: n_group
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
@@ -714,19 +716,17 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    integer(kind=i4) :: d11
    integer(kind=i4) :: d21
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send(:)
    complex(kind=r8), allocatable :: s_val_send(:)
+   complex(kind=r8), allocatable :: h_val_recv(:)
+   complex(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   complex(kind=r8), allocatable :: h_val_recv(:)
-   complex(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -1025,6 +1025,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    real(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: n_group
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
@@ -1039,17 +1041,15 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    integer(kind=i4) :: row0
    integer(kind=i4) :: row1
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
+   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -1214,6 +1214,8 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    complex(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: n_group
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
@@ -1228,17 +1230,15 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    integer(kind=i4) :: row0
    integer(kind=i4) :: row1
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
+   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -1548,6 +1548,8 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -1556,8 +1558,6 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    integer(kind=i4) :: g_col
    integer(kind=i4) :: g_row
    integer(kind=i4) :: dest ! Destination of an element
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -1770,6 +1770,8 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -1778,8 +1780,6 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    integer(kind=i4) :: g_col
    integer(kind=i4) :: g_row
    integer(kind=i4) :: dest ! Destination of an element
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -1992,6 +1992,8 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    real(kind=r8), intent(out) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -2001,19 +2003,17 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: h_val_send(:)
    real(kind=r8), allocatable :: s_val_send(:)
+   real(kind=r8), allocatable :: h_val_recv(:)
+   real(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8), allocatable :: h_val_recv(:)
-   real(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -2203,6 +2203,8 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    complex(kind=r8), intent(out) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -2212,19 +2214,17 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send(:)
    complex(kind=r8), allocatable :: s_val_send(:)
+   complex(kind=r8), allocatable :: h_val_recv(:)
+   complex(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   complex(kind=r8), allocatable :: h_val_recv(:)
-   complex(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -2409,6 +2409,8 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
    real(kind=r8), intent(in) :: evec_sips(bh%n_lcol_sp1,ph%n_states)
    real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -2421,17 +2423,15 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
    integer(kind=i4) :: nnz_before
    integer(kind=i4) :: nnz_after
    integer(kind=i4) :: n_lrow_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
+   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -2585,6 +2585,8 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -2595,17 +2597,15 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
    integer(kind=i4) :: l_row
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
+   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -2741,6 +2741,8 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -2751,17 +2753,15 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
    integer(kind=i4) :: l_row
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
+   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -2900,6 +2900,8 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    real(kind=r8), intent(out) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -2909,19 +2911,17 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: h_val_send(:)
    real(kind=r8), allocatable :: s_val_send(:)
+   real(kind=r8), allocatable :: h_val_recv(:)
+   real(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8), allocatable :: h_val_recv(:)
-   real(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -3112,6 +3112,8 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    complex(kind=r8), intent(out) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -3121,19 +3123,17 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send(:)
    complex(kind=r8), allocatable :: s_val_send(:)
+   complex(kind=r8), allocatable :: h_val_recv(:)
+   complex(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   complex(kind=r8), allocatable :: h_val_recv(:)
-   complex(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -3320,6 +3320,8 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,dm_den,dm_sp,row_ind,col_ptr)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -3329,17 +3331,15 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,dm_den,dm_sp,row_ind,col_ptr)
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
+   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -3486,6 +3486,8 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,dm_den,dm_sp,row_ind,col_ptr)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -3495,17 +3497,15 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,dm_den,dm_sp,row_ind,col_ptr)
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
+   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -3704,6 +3704,8 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -3711,8 +3713,6 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: n_lcol_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -3896,6 +3896,8 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -3903,8 +3905,6 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: n_lcol_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -4086,6 +4086,8 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -4094,17 +4096,15 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
+   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -4253,6 +4253,8 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -4261,17 +4263,15 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
+   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -4632,13 +4632,13 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_row
    integer(kind=i4) :: g_col
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    type(TripletList_r) :: ham_list
@@ -4746,13 +4746,13 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_row
    integer(kind=i4) :: g_col
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    type(TripletList_c) :: ham_list
@@ -4857,6 +4857,8 @@ subroutine elsi_ntpoly_to_blacs_dm_real(ph,bh,dm_nt,dm_den)
    type(Matrix_ps), intent(inout) :: dm_nt
    real(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
@@ -4866,17 +4868,15 @@ subroutine elsi_ntpoly_to_blacs_dm_real(ph,bh,dm_nt,dm_den)
    integer(kind=i4) :: p_col
    integer(kind=i4) :: nnz_l_nt
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
+   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -5021,6 +5021,8 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(ph,bh,dm_nt,dm_den)
    type(Matrix_ps), intent(inout) :: dm_nt
    complex(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
@@ -5030,17 +5032,15 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(ph,bh,dm_nt,dm_den)
    integer(kind=i4) :: p_col
    integer(kind=i4) :: nnz_l_nt
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
+   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -5191,10 +5191,10 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_col
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i_col
    character(len=200) :: msg
 
    type(TripletList_r) :: ham_list
@@ -5273,10 +5273,10 @@ subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_col
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: i_val
+   integer(kind=i4) :: i_col
    character(len=200) :: msg
 
    type(TripletList_c) :: ham_list
@@ -5351,6 +5351,8 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
@@ -5360,17 +5362,15 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: nnz_l_nt
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
+   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -5504,6 +5504,8 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
@@ -5513,17 +5515,15 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: nnz_l_nt
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
+   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -5661,11 +5661,11 @@ subroutine elsi_siesta_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_col
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    type(TripletList_r) :: ham_list
@@ -5746,11 +5746,11 @@ subroutine elsi_siesta_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_col
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    type(TripletList_c) :: ham_list
@@ -5827,6 +5827,8 @@ subroutine elsi_ntpoly_to_siesta_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
@@ -5835,17 +5837,15 @@ subroutine elsi_ntpoly_to_siesta_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    integer(kind=i4) :: l_row
    integer(kind=i4) :: nnz_l_nt
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
+   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -5993,6 +5993,8 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
@@ -6001,17 +6003,15 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    integer(kind=i4) :: l_row
    integer(kind=i4) :: nnz_l_nt
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
+   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   complex(kind=r8), allocatable :: val_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
@@ -6164,6 +6164,8 @@ subroutine elsi_generic_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    real(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
    integer(kind=i4), intent(inout) :: map_den(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
@@ -6171,20 +6173,18 @@ subroutine elsi_generic_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: h_val_send(:)
    real(kind=r8), allocatable :: s_val_send(:)
+   real(kind=r8), allocatable :: h_val_recv(:)
+   real(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: map_send(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   real(kind=r8), allocatable :: h_val_recv(:)
-   real(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: map_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
@@ -6396,6 +6396,8 @@ subroutine elsi_generic_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    complex(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
    integer(kind=i4), intent(inout) :: map_den(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
@@ -6403,20 +6405,18 @@ subroutine elsi_generic_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send(:)
    complex(kind=r8), allocatable :: s_val_send(:)
+   complex(kind=r8), allocatable :: h_val_recv(:)
+   complex(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: map_send(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   complex(kind=r8), allocatable :: h_val_recv(:)
-   complex(kind=r8), allocatable :: s_val_recv(:)
    integer(kind=i4), allocatable :: map_recv(:)
    integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
@@ -6628,9 +6628,9 @@ subroutine elsi_generic_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    type(Matrix_ps), intent(inout) :: ovlp_nt
    type(Matrix_ps), intent(inout) :: map_nt
 
-   integer(kind=i4) :: i_val
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: i_val
    character(len=200) :: msg
 
    type(TripletList_r) :: ham_list
@@ -6718,9 +6718,9 @@ subroutine elsi_generic_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,&
    type(Matrix_ps), intent(inout) :: ovlp_nt
    type(Matrix_ps), intent(inout) :: map_nt
 
-   integer(kind=i4) :: i_val
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: i_val
    character(len=200) :: msg
 
    type(TripletList_c) :: ham_list
@@ -6853,13 +6853,13 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
    integer(kind=i4), intent(inout) :: map_sp1(bh%nnz_l_sp1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: n_lcol_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -7069,13 +7069,13 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
    integer(kind=i4), intent(inout) :: map_sp1(bh%nnz_l_sp1)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: n_lcol_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -7384,14 +7384,14 @@ subroutine elsi_blacs_to_generic_dm_real(ph,bh,dm_den,map_den,dm_sp,perm_sp)
    real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: perm_sp(bh%nnz_l_sp)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_row
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -7546,14 +7546,14 @@ subroutine elsi_blacs_to_generic_dm_cmplx(ph,bh,dm_den,map_den,dm_sp,perm_sp)
    complex(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: perm_sp(bh%nnz_l_sp)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_row
    integer(kind=i4) :: nnz_l_aux
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -7711,13 +7711,13 @@ subroutine elsi_pexsi_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    real(kind=r8), intent(out) :: dm_sp3(bh%nnz_l_sp3)
    integer(kind=i4), intent(in) :: perm_sp3(bh%nnz_l_sp3)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_proc
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -7868,13 +7868,13 @@ subroutine elsi_pexsi_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    complex(kind=r8), intent(out) :: dm_sp3(bh%nnz_l_sp3)
    integer(kind=i4), intent(in) :: perm_sp3(bh%nnz_l_sp3)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_proc
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -8078,6 +8078,8 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: perm_sp(bh%nnz_l_sp)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
@@ -8087,8 +8089,6 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    integer(kind=i8) :: gid_map
    integer(kind=i8) :: gid_dm
    integer(kind=i4) :: nnz_l_nt
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -8267,6 +8267,8 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    complex(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: perm_sp(bh%nnz_l_sp)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
@@ -8276,8 +8278,6 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    integer(kind=i8) :: gid_map
    integer(kind=i8) :: gid_dm
    integer(kind=i4) :: nnz_l_nt
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv

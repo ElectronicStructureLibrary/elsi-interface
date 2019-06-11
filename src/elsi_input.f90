@@ -44,10 +44,10 @@ subroutine elsi_set_input_file(eh,f_name)
    type(elsi_handle), intent(inout) :: eh !< Handle
    character(len=*), intent(in) :: f_name !< File name
 
+   real(kind=r8) :: val_r8
    integer(kind=i4) :: i
    integer(kind=i4) :: ierr
    integer(kind=i4) :: val_i4
-   real(kind=r8) :: val_r8
    logical :: kwd_found
    character(len=200) :: msg
    character(len=20) :: kwd

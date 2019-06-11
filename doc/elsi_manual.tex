@@ -696,7 +696,7 @@ The ELSI interface must be initialized via the \textcolor{blue}{elsi\_init} subr
 
 \textbf{2)} \textcolor{blue}{matrix\_format}:  \textcolor{blue}{BLACS\_DENSE}(0) refers to a dense matrix format in a 2-dimensional block-cyclic distribution, i.e. the BLACS standard.  \textcolor{blue}{PEXSI\_CSC}(1) refers to a compressed sparse column (CSC) matrix format in a 1-dimensional block distribution.  \textcolor{blue}{SIESTA\_CSC}(2) refers to a compressed sparse column (CSC) matrix format in a 1-dimensional block-cyclic distribution.  As the Hamiltonian, overlap, and density matrices are symmetric (Hermitian), compressed sparse row (CSR) matrix format is effectively supported.  \textcolor{blue}{GENERIC\_COO}(3) refers to a coordinate (COO) sparse matrix format in an arbitrary distribution.  Please refer to \ref{subsec:setup_matrix} for specifications of these matrix formats.
 
-\textbf{3)} \textcolor{blue}{n\_state}:  If ELPA or SLEPc-SIPs is the chosen solver, this parameter specifies the number of eigenstates to solve by the eigensolver.  If libOMM is the chosen solver, \textcolor{blue}{n\_state} must be exactly the number of occupied states, as libOMM cannot handle fractional occupation numbers\cite{libomm_corsetti_2014}.  PEXSI and NTPoly do not make use of this parameter, thus a dummy value may be passed.
+\textbf{3)} \textcolor{blue}{n\_state}:  If ELPA or SLEPc-SIPs is the chosen solver, this parameter specifies the number of eigenstates to solve.  libOMM, PEXSI and NTPoly do not make use of this parameter, thus a dummy value may be passed.
 
 \textbf{4)} \textcolor{blue}{parallel\_mode}:  The two allowed values of \textcolor{blue}{parallel\_mode}, 0 (\textcolor{blue}{SINGLE\_PROC}) and 1 (\textcolor{blue}{MULTI\_PROC}), allow for three parallelization strategies commonly employed by electronic structure codes.  See below.
 
@@ -804,10 +804,7 @@ When using the \textcolor{blue}{PEXSI\_CSC} or \textcolor{blue}{SIESTA\_CSC} for
 \hline
 \end{tabular}
 
-The block size of the \textcolor{blue}{PEXSI\_CSC} format cannot be set by the user.  This is because the PEXSI solver requires that the block size must be floor(\textcolor{blue}{$\text{N}\_\text{basis}$}/\textcolor{blue}{$\text{N}\_\text{procs}$}), where floor(x) is the greatest integer less than or equal to x, \textcolor{blue}{\text{N}\_\text{basis}} and \textcolor{blue}{\text{N}\_\text{procs}} are the number of basis functions and the number of MPI tasks, respectively.  The block size of the \textcolor{blue}{SIESTA\_CSC} must be explicitly set by calling
-
-\newpage
-\textcolor{blue}{elsi\_set\_csc\_blk}.
+The block size of the \textcolor{blue}{PEXSI\_CSC} format cannot be set by the user.  This is because the PEXSI solver requires that the block size must be floor(\textcolor{blue}{$\text{N}\_\text{basis}$}/\textcolor{blue}{$\text{N}\_\text{procs}$}), where floor(x) is the greatest integer less than or equal to x, \textcolor{blue}{\text{N}\_\text{basis}} and \textcolor{blue}{\text{N}\_\text{procs}} are the number of basis functions and the number of MPI tasks, respectively.  The block size of the \textcolor{blue}{SIESTA\_CSC} must be explicitly set by calling \textcolor{blue}{elsi\_set\_csc\_blk}.
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_csc\_blk}(handle, block\_size)]
 \end{labeling}
@@ -859,8 +856,6 @@ In total, there are $N_\text{kpt} \times N_\text{spin}$ eigenproblems to solve. 
 To set up the ELSI interface for a calculation with more than one \textbf{\textit{k}}-point and/or more than one spin channel,  the \textcolor{blue}{elsi\_set\_kpoint} and/or \textcolor{blue}{elsi\_set\_spin} subroutines are called to pass the required information into ELSI.  The MPI communicator for each unit task is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi}.  In addition, a global MPI communicator for all tasks is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi\_global}.  Note that the current ELSI interface only supports the case where the eigenproblems for all the \textbf{\textit{k}}-points and spin channels are fully parallelized, i.e., there is no MPI task handling more than one \textbf{\textit{k}}-point and/or more than one spin channel.  In ELSI, the two spin channels are always coupled by a uniform chemical potential.  The distribution of electrons among the two channels, and thus the net spin moment of the system, cannot be specified.  Calculations with a fixed, user-specified spin moment can be performed by initializing two independent ELSI instances for the two spin channels.
 
 In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-polarized and/or periodic calculations.
-
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_kpoint}(handle, n\_kpt, i\_kpt, weight)]
 \end{labeling}
@@ -934,8 +929,6 @@ When an ELSI instance is no longer needed, its associated handle should be clean
 \section{Solving Eigenvalues and Eigenvectors}
 \label{sec:ev}
 The following subroutines return all the eigenvalues and a subset of eigenvectors of the provided generalized eigenproblem defined by H and S matrices.  For standard eigenproblems, please see \textcolor{blue}{elsi\_set\_unit\_ovlp} in \ref{subsec:setter_elsi}.  Only ELPA and SLEPc-SIPs may be selected as the solver when using these subroutines.
-
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_ev\_real}(handle, ham, ovlp, eval, evec)]
 \end{labeling}
@@ -956,6 +949,7 @@ The following subroutines return all the eigenvalues and a subset of eigenvector
 \hline
 \end{tabular}
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_ev\_complex}(handle, ham, ovlp, eval, evec)]
 \end{labeling}
@@ -1319,8 +1313,6 @@ when using the \textcolor{blue}{PEXSI\_CSC} matrix format with the ELPA, libOMM,
 
 \textbf{4)} \textcolor{blue}{pexsi\_temp}:  This value corresponds to the $1/k_\text{B} T$ term (not $T$) in the Fermi-Dirac distribution function.
 
-\textbf{5)} The chemical potential determination in PEXSI relies on inertia counting to narrow down the chemical potential searching interval in the first few SCF steps.  The \textcolor{blue}{pexsi\_inertia\_tol} parameter controls the stopping criterion of the inertia counting procedure.  With a small interval obtained from the inertia counting step, PEXSI then selects a number of points in this interval to perform Fermi operator calculations, based on which a final chemical potential will be determined.  The trick of this algorithm is that the chemical potential interval of the current SCF step can be used as a descent guess in the next SCF step.  Therefore, the mechanism to choose input values for \textcolor{blue}{pexsi\_mu\_min} and \textcolor{blue}{pexsi\_mu\_max} is two-fold.  For the first SCF iteration of each geometry step, they should be set to safe values that guarantee the true chemical potential lies in this interval.  Then, for the n$^\text{th}$ SCF step, \textcolor{blue}{pexsi\_mu\_min} should be set to ($\mu_\text{min}^\text{n-1} + \Delta V_\text{min}$), \textcolor{blue}{pexsi\_mu\_max} should be set to ($\mu_\text{max}^\text{n-1} + \Delta V_\text{max}$).  Here, $\mu_\text{min}^\text{n-1}$ and $\mu_\text{max}^\text{n-1}$ are the lower bound and the upper bound of the chemical potential that are determined by PEXSI in the (n-1)$^\text{th}$ SCF step.  They can be retrieved by calling \textcolor{blue}{elsi\_get\_pexsi\_mu\_min} and \textcolor{blue}{elsi\_get\_pexsi\_mu\_max}, respectively (see \ref{subsec:getter_pexsi}.  Suppose the effective potential (Hartree potential, exchange-correlation potential, and external potential) is stored in an array $V$, whose dimension is the number of grid points.  From one SCF iteration to the next, $\Delta V$ denotes the potential change, and $\Delta V_\text{min}$ and $\Delta V_\text{max}$ are the minimum and maximum values in the array $\Delta V$, respectively.  The whole process is summarized in the following pseudo-code.  The (re-)initialization and finalization of ELSI are omitted.
-
 \begin{tcolorbox}
 \begin{Verbatim}[commandchars=\\\{\}]
 do geometry update
@@ -1351,6 +1343,8 @@ do geometry update
 end do
 \end{Verbatim}
 \end{tcolorbox}
+
+\textbf{5)} The chemical potential determination in PEXSI relies on inertia counting to narrow down the chemical potential searching interval in the first few SCF steps.  The \textcolor{blue}{pexsi\_inertia\_tol} parameter controls the stopping criterion of the inertia counting procedure.  With a small interval obtained from the inertia counting step, PEXSI then selects a number of points in this interval to perform Fermi operator calculations, based on which a final chemical potential will be determined.  The trick of this algorithm is that the chemical potential interval of the current SCF step can be used as a descent guess in the next SCF step.  Therefore, the mechanism to choose input values for \textcolor{blue}{pexsi\_mu\_min} and \textcolor{blue}{pexsi\_mu\_max} is two-fold.  For the first SCF iteration of each geometry step, they should be set to safe values that guarantee the true chemical potential lies in this interval.  Then, for the n$^\text{th}$ SCF step, \textcolor{blue}{pexsi\_mu\_min} should be set to ($\mu_\text{min}^\text{n-1} + \Delta V_\text{min}$), \textcolor{blue}{pexsi\_mu\_max} should be set to ($\mu_\text{max}^\text{n-1} + \Delta V_\text{max}$).  Here, $\mu_\text{min}^\text{n-1}$ and $\mu_\text{max}^\text{n-1}$ are the lower bound and the upper bound of the chemical potential that are determined by PEXSI in the (n-1)$^\text{th}$ SCF step.  They can be retrieved by calling \textcolor{blue}{elsi\_get\_pexsi\_mu\_min} and \textcolor{blue}{elsi\_get\_pexsi\_mu\_max}, respectively (see \ref{subsec:getter_pexsi}.  Suppose the effective potential (Hartree potential, exchange-correlation potential, and external potential) is stored in an array $V$, whose dimension is the number of grid points.  From one SCF iteration to the next, $\Delta V$ denotes the potential change, and $\Delta V_\text{min}$ and $\Delta V_\text{max}$ are the minimum and maximum values in the array $\Delta V$, respectively.  The whole process is summarized in the pseudo-code above.  The (re-)initialization and finalization of ELSI are omitted.
 
 \textbf{6)} \textcolor{blue}{pexsi\_gap}:  Note that the PEXSI method does not require an energy gap.  If no knowledge is available, the default value usually works.
 
@@ -1578,6 +1572,8 @@ The following subroutines orthonormalize eigenvectors (coefficients of wavefunct
 \textbf{1)} When using \textcolor{blue}{elsi\_orthonormalize\_ev\_real\_sparse} and \textcolor{blue}{elsi\_orthonormalize\_ev\_complex\_sparse}, the eigenvectors are stored in a dense format (\textcolor{blue}{BLACS\_DENSE}), as they are in general not sparse.
 
 The following subroutines extrapolate density matrix in the n$^\text{th}$ geometry step to satisfy conditions \ref{eq:density_matrix_conditions} with respect to the overlap matrix in the (n+1)$^\text{th}$ geometry step.
+
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_extrapolate\_dm\_real}(handle, ovlp, dm)]
 \end{labeling}
@@ -1705,6 +1701,7 @@ The MPI communicator which encloses the MPI tasks to perform the matrix I/O oper
 
 When reading or writing a dense matrix, BLACS parameters are passed into ELSI via the \textcolor{blue}{elsi\_set\_rw\_blacs} subroutine.
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_rw\_blacs}(handle, blacs\_ctxt, block\_size)]
 \end{labeling}

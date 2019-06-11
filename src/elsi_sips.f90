@@ -112,7 +112,6 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_solve_sips_real"
 
-   ! Solve the eigenvalue problem
    write(msg,"(A)") "Starting SLEPc-SIPs eigensolver"
    call elsi_say(bh,msg)
 

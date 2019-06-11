@@ -50,6 +50,7 @@ subroutine elsi_init_omm(ph,bh)
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
 
+   integer(kind=i4) :: ns
    integer(kind=i4) :: ierr
 
    integer(kind=i4), external :: numroc
@@ -60,10 +61,11 @@ subroutine elsi_init_omm(ph,bh)
       call ms_scalapack_setup(bh%comm,bh%n_prow,"r",bh%blk,&
            icontxt=bh%blacs_ctxt)
 
-      ph%omm_n_lrow = numroc(ph%omm_n_states,bh%blk,bh%my_prow,0,bh%n_prow)
+      ns = nint(ph%n_electrons/(ph%n_spins*ph%spin_degen),kind=i4)
+      ph%omm_n_lrow = numroc(ns,bh%blk,bh%my_prow,0,bh%n_prow)
 
-      call descinit(ph%omm_desc,ph%omm_n_states,ph%n_basis,bh%blk,bh%blk,0,0,&
-           bh%blacs_ctxt,max(1,ph%omm_n_lrow),ierr)
+      call descinit(ph%omm_desc,ns,ph%n_basis,bh%blk,bh%blk,0,0,bh%blacs_ctxt,&
+           max(1,ph%omm_n_lrow),ierr)
 
       ph%omm_started = .true.
    end if
@@ -86,6 +88,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ns
    integer(kind=i4) :: ierr
    logical :: coeff_ready
    logical :: new_ovlp
@@ -98,6 +101,9 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
    type(matrix) :: t_omm
 
    character(len=*), parameter :: caller = "elsi_solve_omm_real"
+
+   write(msg,"(A)") "Starting libOMM density matrix solver"
+   call elsi_say(bh,msg)
 
    call m_register_pdbc(ham_omm,ham,bh%desc)
    call m_register_pdbc(ovlp_omm,ovlp,bh%desc)
@@ -150,12 +156,11 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    call elsi_get_time(t0)
 
-   write(msg,"(A)") "Starting OMM density matrix solver"
-   call elsi_say(bh,msg)
+   ns = nint(ph%n_electrons/(ph%n_spins*ph%spin_degen),kind=i4)
 
-   call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,new_ovlp,ph%ebs,dm_omm,&
-        .false.,0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,&
-        ph%omm_tol,ph%omm_output,.false.,"pddbc","lap")
+   call omm(ph%n_basis,ns,ham_omm,ovlp_omm,new_ovlp,ph%ebs,dm_omm,.false.,&
+        0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,ph%omm_tol,&
+        ph%omm_output,.false.,"pddbc","lap")
 
    dm = ph%spin_degen*dm
 
@@ -189,6 +194,7 @@ subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ns
    character(len=200) :: msg
 
    type(matrix) :: ham_omm
@@ -204,8 +210,10 @@ subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
    call m_register_pdbc(c_omm,coeff,ph%omm_desc)
    call m_register_pdbc(edm_omm,edm,bh%desc)
 
-   call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,.false.,ph%ebs,edm_omm,&
-        .true.,0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,ph%omm_tol,&
+   ns = nint(ph%n_electrons/(ph%n_spins*ph%spin_degen),kind=i4)
+
+   call omm(ph%n_basis,ns,ham_omm,ovlp_omm,.false.,ph%ebs,edm_omm,.true.,&
+        0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,ph%omm_tol,&
         ph%omm_output,.false.,"pddbc","lap")
 
    edm = ph%spin_degen*edm
@@ -238,6 +246,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ns
    integer(kind=i4) :: ierr
    logical :: coeff_ready
    logical :: new_ovlp
@@ -250,6 +259,9 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
    type(matrix) :: t_omm
 
    character(len=*), parameter :: caller = "elsi_solve_omm_cmplx"
+
+   write(msg,"(A)") "Starting libOMM density matrix solver"
+   call elsi_say(bh,msg)
 
    call m_register_pdbc(ham_omm,ham,bh%desc)
    call m_register_pdbc(ovlp_omm,ovlp,bh%desc)
@@ -302,12 +314,11 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    call elsi_get_time(t0)
 
-   write(msg,"(A)") "Starting OMM density matrix solver"
-   call elsi_say(bh,msg)
+   ns = nint(ph%n_electrons/(ph%n_spins*ph%spin_degen),kind=i4)
 
-   call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,new_ovlp,ph%ebs,dm_omm,&
-        .false.,0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,&
-        ph%omm_tol,ph%omm_output,.false.,"pzdbc","lap")
+   call omm(ph%n_basis,ns,ham_omm,ovlp_omm,new_ovlp,ph%ebs,dm_omm,.false.,&
+        0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,ph%omm_tol,&
+        ph%omm_output,.false.,"pzdbc","lap")
 
    dm = ph%spin_degen*dm
 
@@ -341,6 +352,7 @@ subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ns
    character(len=200) :: msg
 
    type(matrix) :: ham_omm
@@ -356,8 +368,10 @@ subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
    call m_register_pdbc(c_omm,coeff,ph%omm_desc)
    call m_register_pdbc(edm_omm,edm,bh%desc)
 
-   call omm(ph%n_basis,ph%omm_n_states,ham_omm,ovlp_omm,.false.,ph%ebs,edm_omm,&
-        .true.,0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,ph%omm_tol,&
+   ns = nint(ph%n_electrons/(ph%n_spins*ph%spin_degen),kind=i4)
+
+   call omm(ph%n_basis,ns,ham_omm,ovlp_omm,.false.,ph%ebs,edm_omm,.true.,&
+        0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,ph%omm_tol,&
         ph%omm_output,.false.,"pzdbc","lap")
 
    edm = ph%spin_degen*edm

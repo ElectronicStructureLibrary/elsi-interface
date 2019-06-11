@@ -611,9 +611,9 @@ subroutine elsi_read_mat_real_mp(rwh,f_name,mat)
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
 
+   real(kind=r8), allocatable :: nnz_val(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
-   real(kind=r8), allocatable :: nnz_val(:)
 
    type(elsi_handle) :: eh
 
@@ -795,9 +795,9 @@ subroutine elsi_read_mat_complex_mp(rwh,f_name,mat)
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
 
+   complex(kind=r8), allocatable :: nnz_val(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
-   complex(kind=r8), allocatable :: nnz_val(:)
 
    type(elsi_handle) :: eh
 
@@ -972,6 +972,8 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    character(len=*), intent(in) :: f_name !< File name
    real(kind=r8), intent(in) :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
+   real(kind=r8) :: dummy1(1,1)
+   real(kind=r8) :: dummy2(1)
    integer(kind=i4) :: ierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
@@ -979,8 +981,6 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    integer(kind=i4) :: n_lcol0
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
-   real(kind=r8) :: dummy1(1,1)
-   real(kind=r8) :: dummy2(1)
 
    real(kind=r8), allocatable :: mat_csc(:)
    integer(kind=i4), allocatable :: row_ind(:)
@@ -1098,6 +1098,8 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    character(len=*), intent(in) :: f_name !< File name
    complex(kind=r8), intent(in) :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
+   complex(kind=r8) :: dummy1(1,1)
+   complex(kind=r8) :: dummy2(1)
    integer(kind=i4) :: ierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
@@ -1105,8 +1107,6 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    integer(kind=i4) :: n_lcol0
    integer(kind=i4) :: prev_nnz
    integer(kind=i8) :: offset
-   complex(kind=r8) :: dummy1(1,1)
-   complex(kind=r8) :: dummy2(1)
 
    complex(kind=r8), allocatable :: mat_csc(:)
    integer(kind=i4), allocatable :: row_ind(:)
@@ -1486,9 +1486,9 @@ subroutine elsi_read_mat_real_sp(rwh,f_name,mat)
    integer(kind=i8) :: ierr
    character(len=200) :: msg
 
+   real(kind=r8), allocatable :: nnz_val(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
-   real(kind=r8), allocatable :: nnz_val(:)
 
    character(len=*), parameter :: caller = "elsi_read_mat_real_sp"
 
@@ -1576,9 +1576,9 @@ subroutine elsi_read_mat_complex_sp(rwh,f_name,mat)
    integer(kind=i8) :: ierr
    character(len=200) :: msg
 
+   complex(kind=r8), allocatable :: nnz_val(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
-   complex(kind=r8), allocatable :: nnz_val(:)
 
    character(len=*), parameter :: caller = "elsi_read_mat_complex_sp"
 
@@ -1667,9 +1667,9 @@ subroutine elsi_write_mat_real_sp(rwh,f_name,mat)
    integer(kind=i8) :: ierr
    character(len=200) :: msg
 
+   real(kind=r8), allocatable :: nnz_val(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
-   real(kind=r8), allocatable :: nnz_val(:)
 
    character(len=*), parameter :: caller = "elsi_write_mat_real_sp"
 
@@ -1765,9 +1765,9 @@ subroutine elsi_write_mat_complex_sp(rwh,f_name,mat)
    integer(kind=i8) :: ierr
    character(len=200) :: msg
 
+   complex(kind=r8), allocatable :: nnz_val(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
-   complex(kind=r8), allocatable :: nnz_val(:)
 
    character(len=*), parameter :: caller = "elsi_write_mat_complex_sp"
 
