@@ -311,8 +311,8 @@ subroutine permute_r8(length,perm,array)
    integer(kind=i4), intent(in) :: perm(length)
    real(kind=r8), intent(inout) :: array(length)
 
-   integer(kind=i4) :: i
    real(kind=r8) :: work(length)
+   integer(kind=i4) :: i
 
    do i = 1,length
       work(i) = array(perm(i))
@@ -333,8 +333,8 @@ subroutine permute_c16(length,perm,array)
    integer(kind=i4), intent(in) :: perm(length)
    complex(kind=r8), intent(inout) :: array(length)
 
-   integer(kind=i4) :: i
    complex(kind=r8) :: work(length)
+   integer(kind=i4) :: i
 
    do i = 1,length
       work(i) = array(perm(i))
@@ -355,8 +355,8 @@ subroutine unpermute_r8(length,perm,array)
    integer(kind=i4), intent(in) :: perm(length)
    real(kind=r8), intent(inout) :: array(length)
 
-   integer(kind=i4) :: i
    real(kind=r8) :: work(length)
+   integer(kind=i4) :: i
 
    do i = 1,length
       work(perm(i)) = array(i)
@@ -377,8 +377,8 @@ subroutine unpermute_c16(length,perm,array)
    integer(kind=i4), intent(in) :: perm(length)
    complex(kind=r8), intent(inout) :: array(length)
 
-   integer(kind=i4) :: i
    complex(kind=r8) :: work(length)
+   integer(kind=i4) :: i
 
    do i = 1,length
       work(perm(i)) = array(i)

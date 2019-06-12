@@ -52,6 +52,7 @@ module ELSI
    public :: elsi_set_zero_def
    public :: elsi_set_illcond_check
    public :: elsi_set_illcond_tol
+   public :: elsi_set_spin_degeneracy
    public :: elsi_set_energy_gap
    public :: elsi_set_spectrum_width
    public :: elsi_set_dimensionality
@@ -90,7 +91,6 @@ module ELSI
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
-   public :: elsi_set_mu_spin_degen
    public :: elsi_set_mu_mp_order
 
    ! Get
@@ -117,6 +117,7 @@ module ELSI
    public :: elsi_set_write_unit
    public :: elsi_set_sing_check
    public :: elsi_set_sing_tol
+   public :: elsi_set_mu_spin_degen
    public :: elsi_set_sips_interval
    public :: elsi_set_uuid
    public :: elsi_get_n_sing

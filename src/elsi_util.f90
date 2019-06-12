@@ -141,7 +141,6 @@ subroutine elsi_reset_param(ph)
    ph%elpa_first = .true.
    ph%elpa_started = .false.
    ph%omm_n_lrow = UNSET
-   ph%omm_n_states = UNSET
    ph%omm_n_elpa = 5
    ph%omm_flavor = 0
    ph%omm_desc = UNSET
@@ -268,15 +267,13 @@ subroutine elsi_check(ph,bh,caller)
    end if
 
    ! Spin
-   if(ph%n_spins > 1 .and. .not. bh%mpi_all_ready) then
-      write(msg,"(A)") "Two spin channels requested, but global MPI"//&
-         " communicator not set up"
+   if(ph%n_spins < 1 .or. ph%n_spins > 2) then
+      write(msg,"(A)") "Number of spin channels should be 1 or 2"
       call elsi_stop(bh,msg,caller)
    end if
 
-   ! k-point
-   if(ph%n_kpts > 1 .and. .not. bh%mpi_all_ready) then
-      write(msg,"(A)") "Multiple k-points requested, but global MPI"//&
+   if(ph%n_spins == 2 .and. .not. bh%mpi_all_ready) then
+      write(msg,"(A)") "Two spin channels requested, but global MPI"//&
          " communicator not set up"
       call elsi_stop(bh,msg,caller)
    end if
@@ -287,6 +284,18 @@ subroutine elsi_check(ph,bh,caller)
       else
          ph%spin_degen = 2.0_r8
       end if
+   end if
+
+   ! k-point
+   if(ph%n_kpts < 1) then
+      write(msg,"(A)") "Number of k-points cannot be smaller than 1"
+      call elsi_stop(bh,msg,caller)
+   end if
+
+   if(ph%n_kpts > 1 .and. .not. bh%mpi_all_ready) then
+      write(msg,"(A)") "Multiple k-points requested, but global MPI"//&
+         " communicator not set up"
+      call elsi_stop(bh,msg,caller)
    end if
 
    if(.not. bh%mpi_ready) then
@@ -346,7 +355,7 @@ subroutine elsi_check(ph,bh,caller)
 
       if(ph%solver == AUTO_SOLVER) then
          write(msg,"(A)") "Solver automatic selection not implemented for"//&
-            "PEXSI_CSC matrix format"
+            " PEXSI_CSC matrix format"
          call elsi_stop(bh,msg,caller)
       end if
    case(GENERIC_COO)
@@ -691,11 +700,11 @@ subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
    real(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: dm(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: i
    integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
@@ -764,11 +773,11 @@ subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
    complex(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: dm(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: i
    integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
@@ -839,11 +848,11 @@ subroutine elsi_build_edm_real(ph,bh,occ,eval,evec,edm)
    real(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: edm(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: i
    integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
@@ -917,11 +926,11 @@ subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
    complex(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: edm(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: i
    integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
@@ -993,13 +1002,13 @@ subroutine elsi_gram_schmidt_real(ph,bh,ovlp,evec)
    real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r8) :: norm
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: j
    integer(kind=i4) :: lid
    integer(kind=i4) :: i_done
    integer(kind=i4) :: n_block
-   real(kind=r8) :: norm
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: tmp1(:)
@@ -1086,13 +1095,13 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,ovlp,evec)
    complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
+   complex(kind=r8) :: norm
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
    integer(kind=i4) :: j
    integer(kind=i4) :: lid
    integer(kind=i4) :: i_done
    integer(kind=i4) :: n_block
-   complex(kind=r8) :: norm
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
    character(len=200) :: msg
 
    complex(kind=r8), allocatable :: tmp1(:)

@@ -148,6 +148,9 @@ void c_elsi_set_sing_check(elsi_handle handle_c,
 void c_elsi_set_sing_tol(elsi_handle handle_c,
                          double sing_tol);
 
+void c_elsi_set_spin_degeneracy(elsi_handle handle_c,
+                                double spin_degeneracy);
+
 void c_elsi_set_energy_gap(elsi_handle handle_c,
                            double gap);
 
@@ -271,9 +274,6 @@ void c_elsi_set_mu_broaden_width(elsi_handle handle_c,
 
 void c_elsi_set_mu_tol(elsi_handle handle_c,
                        double tol);
-
-void c_elsi_set_mu_spin_degen(elsi_handle handle_c,
-                              double spin_degen);
 
 void c_elsi_set_mu_mp_order(elsi_handle handle_c,
                             int mp_order);

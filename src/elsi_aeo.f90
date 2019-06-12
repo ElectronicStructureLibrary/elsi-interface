@@ -353,6 +353,9 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_real"
 
+   write(msg,"(A)") "Starting ELPA eigensolver"
+   call elsi_say(bh,msg)
+
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
@@ -714,6 +717,9 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_cmplx"
 
+   write(msg,"(A)") "Starting ELPA eigensolver"
+   call elsi_say(bh,msg)
+
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
@@ -976,8 +982,8 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
 
    real(kind=r8), allocatable :: copy(:,:)
    real(kind=r4), allocatable :: copy_r4(:,:)
-   real(kind=r4), allocatable :: eval_r4(:)
    real(kind=r4), allocatable :: evec_r4(:,:)
+   real(kind=r4), allocatable :: eval_r4(:)
 
    character(len=*), parameter :: caller = "elsi_elpa_evec_real"
 
@@ -1010,9 +1016,6 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
       end if
 
       if(ph%n_calls <= ph%elpa_n_single) then
-         write(msg,"(A)") "Starting ELPA eigensolver (single precision)"
-         call elsi_say(bh,msg)
-
          call elsi_allocate(bh,eval_r4,ph%n_basis,"eval_r4",caller)
          call elsi_allocate(bh,evec_r4,bh%n_lrow,bh%n_lcol,"evec_r4",caller)
          call elsi_allocate(bh,copy_r4,bh%n_lrow,bh%n_lcol,"copy_r4",caller)
@@ -1028,9 +1031,6 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
          call elsi_deallocate(bh,evec_r4,"evec_r4")
          call elsi_deallocate(bh,copy_r4,"copy_r4")
       else
-         write(msg,"(A)") "Starting ELPA eigensolver"
-         call elsi_say(bh,msg)
-
          if(ph%elpa_autotune) then
             if(.not. associated(ph%elpa_tune)) then
                ph%elpa_tune => ph%elpa_solve%autotune_setup(ELPA_AUTOTUNE_FAST,&
@@ -1076,8 +1076,8 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
 
    complex(kind=r8), allocatable :: copy(:,:)
    complex(kind=r4), allocatable :: copy_r4(:,:)
-   real(kind=r4), allocatable :: eval_r4(:)
    complex(kind=r4), allocatable :: evec_r4(:,:)
+   real(kind=r4), allocatable :: eval_r4(:)
 
    character(len=*), parameter :: caller = "elsi_elpa_evec_cmplx"
 
@@ -1110,9 +1110,6 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
       end if
 
       if(ph%n_calls <= ph%elpa_n_single) then
-         write(msg,"(A)") "Starting ELPA eigensolver (single precision)"
-         call elsi_say(bh,msg)
-
          call elsi_allocate(bh,eval_r4,ph%n_basis,"eval_r4",caller)
          call elsi_allocate(bh,evec_r4,bh%n_lrow,bh%n_lcol,"evec_r4",caller)
          call elsi_allocate(bh,copy_r4,bh%n_lrow,bh%n_lcol,"copy_r4",caller)
@@ -1128,9 +1125,6 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
          call elsi_deallocate(bh,evec_r4,"evec_r4")
          call elsi_deallocate(bh,copy_r4,"copy_r4")
       else
-         write(msg,"(A)") "Starting ELPA eigensolver"
-         call elsi_say(bh,msg)
-
          if(ph%elpa_autotune) then
             if(.not. associated(ph%elpa_tune)) then
                ph%elpa_tune => ph%elpa_solve%autotune_setup(ELPA_AUTOTUNE_FAST,&

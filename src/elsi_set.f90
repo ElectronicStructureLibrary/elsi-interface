@@ -28,6 +28,7 @@ module ELSI_SET
    public :: elsi_set_zero_def
    public :: elsi_set_illcond_check
    public :: elsi_set_illcond_tol
+   public :: elsi_set_spin_degeneracy
    public :: elsi_set_energy_gap
    public :: elsi_set_spectrum_width
    public :: elsi_set_dimensionality
@@ -65,7 +66,6 @@ module ELSI_SET
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
-   public :: elsi_set_mu_spin_degen
    public :: elsi_set_mu_mp_order
 
    ! Deprecated
@@ -76,6 +76,7 @@ module ELSI_SET
    public :: elsi_set_pexsi_delta_e
    public :: elsi_set_sips_interval
    public :: elsi_set_uuid
+   public :: elsi_set_mu_spin_degen
 
    interface elsi_set_write_unit
       module procedure elsi_set_output_unit
@@ -87,6 +88,10 @@ module ELSI_SET
 
    interface elsi_set_sing_tol
       module procedure elsi_set_illcond_tol
+   end interface
+
+   interface elsi_set_mu_spin_degen
+      module procedure elsi_set_spin_degeneracy
    end interface
 
    interface elsi_set_pexsi_gap
@@ -310,6 +315,26 @@ subroutine elsi_set_illcond_tol(eh,illcond_tol)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    eh%ph%ill_tol = illcond_tol
+
+end subroutine
+
+!>
+!! Set the spin degeneracy that controls the maximum number of electrons on a
+!! state.
+!!
+subroutine elsi_set_spin_degeneracy(eh,spin_degeneracy)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(in) :: spin_degeneracy !< Spin degeneracy
+
+   character(len=*), parameter :: caller = "elsi_set_spin_degeneracy"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%ph%spin_degen = spin_degeneracy
+   eh%ph%spin_is_set = .true.
 
 end subroutine
 
@@ -1217,26 +1242,6 @@ subroutine elsi_set_mu_tol(eh,tol)
    end if
 
    eh%ph%mu_tol = tol
-
-end subroutine
-
-!>
-!! Set the spin degeneracy in the determination of the chemical potential and
-!! the occupation numbers.
-!!
-subroutine elsi_set_mu_spin_degen(eh,spin_degen)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: spin_degen !< Spin degeneracy
-
-   character(len=*), parameter :: caller = "elsi_set_mu_spin_degen"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   eh%ph%spin_degen = spin_degen
-   eh%ph%spin_is_set = .true.
 
 end subroutine
 

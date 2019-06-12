@@ -161,7 +161,6 @@ module ELSI_DATATYPE
 
       ! libOMM
       integer(kind=i4) :: omm_n_lrow
-      integer(kind=i4) :: omm_n_states
       integer(kind=i4) :: omm_n_elpa
       integer(kind=i4) :: omm_flavor
       integer(kind=i4) :: omm_desc(9)

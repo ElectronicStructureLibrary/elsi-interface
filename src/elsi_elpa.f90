@@ -369,6 +369,9 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_real"
 
+   write(msg,"(A)") "Starting ELPA eigensolver"
+   call elsi_say(bh,msg)
+
    elpa_print_times = ph%elpa_output
 
    ! Compute sparsity
@@ -732,6 +735,9 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_cmplx"
 
+   write(msg,"(A)") "Starting ELPA eigensolver"
+   call elsi_say(bh,msg)
+
    elpa_print_times = ph%elpa_output
 
    ! Compute sparsity
@@ -908,9 +914,6 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
       ph%ovlp_ev_min = eval(1)
       ph%ovlp_ev_max = eval(ph%n_basis)
    else
-      write(msg,"(A)") "Starting ELPA eigensolver"
-      call elsi_say(bh,msg)
-
       if(ph%elpa_solver == 2) then
          ok = elpa_solve_evp_real_2stage_double(ph%n_good,ph%n_states_solve,&
             mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&
@@ -971,9 +974,6 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
       ph%ovlp_ev_min = eval(1)
       ph%ovlp_ev_max = eval(ph%n_basis)
    else
-      write(msg,"(A)") "Starting ELPA eigensolver"
-      call elsi_say(bh,msg)
-
       if(ph%elpa_solver == 2) then
          ok = elpa_solve_evp_complex_2stage_double(ph%n_good,ph%n_states_solve,&
             mat,bh%n_lrow,eval,evec,bh%n_lrow,bh%blk,bh%n_lcol,&

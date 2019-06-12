@@ -66,8 +66,8 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
    real(kind=r8), intent(in) :: t0
    character(len=*), intent(in) :: caller
 
-   integer(kind=i4) :: solver_use
    real(kind=r8) :: t1
+   integer(kind=i4) :: solver_use
    character(len=20) :: solver_tag
    character(len=29) :: dt_record
 
@@ -341,7 +341,6 @@ subroutine elsi_print_omm_settings(ph,jh)
    character(len=*), parameter :: caller = "elsi_print_omm_settings"
 
    call fjson_start_name_object(jh,"solver_settings")
-   call fjson_write_name_value(jh,"omm_n_states",ph%omm_n_states)
    call fjson_write_name_value(jh,"omm_n_elpa",ph%omm_n_elpa)
    call fjson_write_name_value(jh,"omm_flavor",ph%omm_flavor)
    call fjson_write_name_value(jh,"omm_tol",ph%omm_tol)
@@ -592,16 +591,16 @@ subroutine elsi_get_time(wtime)
 
    real(kind=r8), intent(out) :: wtime
 
-   character(len=8) :: cdate
-   character(len=10) :: ctime
-   integer(kind=i4) :: val
-   integer(kind=i4) :: int_year
    real(kind=r8) :: year
    real(kind=r8) :: day
    real(kind=r8) :: hour
    real(kind=r8) :: minute
    real(kind=r8) :: second
    real(kind=r8) :: millisecond
+   integer(kind=i4) :: val
+   integer(kind=i4) :: int_year
+   character(len=8) :: cdate
+   character(len=10) :: ctime
 
    character(len=*), parameter :: caller = "elsi_get_time"
 

@@ -112,7 +112,6 @@ subroutine elsi_init_blacs(eh)
    integer(kind=i4) :: npcol
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: block_size
-
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_init_blacs"
@@ -171,8 +170,8 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    real(kind=r8), intent(inout) :: eval(eh%ph%n_basis) !< Eigenvalues
    real(kind=r8), intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
-   integer(kind=i4) :: solver
    real(kind=r8) :: t0
+   integer(kind=i4) :: solver
    character(len=29) :: dt0
    character(len=200) :: msg
 
@@ -311,8 +310,8 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
    real(kind=r8), intent(inout) :: eval(eh%ph%n_basis) !< Eigenvalues
    real(kind=r8), intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
-   integer(kind=i4) :: solver
    real(kind=r8) :: t0
+   integer(kind=i4) :: solver
    character(len=29) :: dt0
    character(len=200) :: msg
 
@@ -549,8 +548,8 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
    real(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
    real(kind=r8), intent(inout) :: ebs !< Band structure energy
 
-   integer(kind=i4) :: solver
    real(kind=r8) :: t0
+   integer(kind=i4) :: solver
    character(len=29) :: dt0
    character(len=200) :: msg
 
@@ -827,8 +826,8 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
    complex(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
    real(kind=r8), intent(inout) :: ebs !< Band structure energy
 
-   integer(kind=i4) :: solver
    real(kind=r8) :: t0
+   integer(kind=i4) :: solver
    character(len=29) :: dt0
    character(len=200) :: msg
 
@@ -1038,8 +1037,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
    real(kind=r8), intent(inout) :: dm(eh%bh%nnz_l_sp) !< Density matrix
    real(kind=r8), intent(inout) :: ebs !< Band structure energy
 
-   integer(kind=i4) :: solver
    real(kind=r8) :: t0
+   integer(kind=i4) :: solver
    character(len=29) :: dt0
    character(len=200) :: msg
 
@@ -1594,8 +1593,8 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
    complex(kind=r8), intent(inout) :: dm(eh%bh%nnz_l_sp) !< Density matrix
    real(kind=r8), intent(inout) :: ebs !< Band structure energy
 
-   integer(kind=i4) :: solver
    real(kind=r8) :: t0
+   integer(kind=i4) :: solver
    character(len=29) :: dt0
    character(len=200) :: msg
 

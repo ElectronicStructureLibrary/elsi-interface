@@ -116,14 +116,17 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
    type(Matrix_ps), intent(inout) :: ovlp
    type(Matrix_ps), intent(inout) :: dm
 
-   integer(kind=i4) :: ne
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ne
    character(len=200) :: msg
 
    type(Matrix_ps) :: ovlp_isr
 
    character(len=*), parameter :: caller = "elsi_solve_ntpoly"
+
+   write(msg,"(A)") "Starting NTPoly density matrix solver"
+   call elsi_say(bh,msg)
 
    if(ph%nt_first) then
       call elsi_get_time(t0)
@@ -154,7 +157,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
 
    call elsi_get_time(t0)
 
-   ne = nint(ph%n_electrons,kind=i4)
+   ne = 2*nint(ph%n_electrons/(ph%n_spins*ph%spin_degen),kind=i4)
 
    select case(ph%nt_method)
    case(NTPOLY_PM)
@@ -238,10 +241,10 @@ subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
    type(Matrix_ps), intent(inout) :: dm0
    type(Matrix_ps), intent(inout) :: dm1
 
-   integer(kind=i4) :: ne
    real(kind=r8) :: factor
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ne
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_update_dm_ntpoly"
@@ -262,7 +265,7 @@ subroutine elsi_update_dm_ntpoly(ph,bh,ovlp0,ovlp1,dm0,dm1)
       call LowdinExtrapolate(dm0,ovlp0,ovlp1,dm1,ph%nt_options)
    case(EXTRA_TRS2)
       factor = 1.0_r8/ph%spin_degen
-      ne = nint(ph%n_electrons,kind=i4)
+      ne = 2*nint(ph%n_electrons/(ph%n_spins*ph%spin_degen),kind=i4)
 
       call ScaleMatrix(dm0,factor)
       call PurificationExtrapolate(dm0,ovlp1,ne,dm1,ph%nt_options)

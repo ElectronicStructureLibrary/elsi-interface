@@ -72,7 +72,6 @@ subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    eh%ph%n_electrons = n_electron
    eh%ph%n_states = min(n_basis,n_state)
    eh%ph%n_states_solve = min(n_basis,n_state)
-   eh%ph%omm_n_states = nint(n_electron/2.0_r8,kind=i4)
    eh%ph%solver = solver
    eh%ph%matrix_format = matrix_format
    eh%ph%parallel_mode = parallel_mode

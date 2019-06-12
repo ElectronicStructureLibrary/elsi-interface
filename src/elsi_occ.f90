@@ -306,8 +306,8 @@ subroutine elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
    real(kind=r8) :: diff_left ! Electron count error on left bound
    real(kind=r8) :: diff_right ! Electron count error on right bound
    real(kind=r8) :: diff_mid ! Electron count error on middle point
-   logical :: found_mu
    integer(kind=i4) :: i_step
+   logical :: found_mu
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_find_mu"

@@ -199,6 +199,11 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    character(len=*), parameter :: caller = "elsi_solve_pexsi_real"
 
+   write(msg,"(A)") "Starting PEXSI density matrix solver"
+   call elsi_say(bh,msg)
+
+   call elsi_get_time(t0)
+
    ! Load sparse matrices for PEXSI
    if(ph%unit_ovlp) then
       call f_ppexsi_load_real_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
@@ -215,7 +220,11 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_stop(bh,msg,caller)
    end if
 
-   write(msg,"(A)") "Starting PEXSI density matrix solver"
+   call elsi_get_time(t1)
+
+   write(msg,"(A)") "Finished loading matrices"
+   call elsi_say(bh,msg)
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
    ! Symbolic factorization
@@ -708,6 +717,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    complex(kind=r8), intent(inout) :: ovlp(bh%nnz_l_sp1)
    complex(kind=r8), intent(out) :: dm(bh%nnz_l_sp1)
 
+   complex(kind=r8) :: local_cmplx
    real(kind=r8) :: ne_drv
    real(kind=r8) :: mu_range
    real(kind=r8) :: shift_width
@@ -716,7 +726,6 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    real(kind=r8) :: factor_max
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   complex(kind=r8) :: local_cmplx
    integer(kind=i4) :: i_step
    integer(kind=i4) :: n_shift
    integer(kind=i4) :: aux_min
@@ -727,17 +736,22 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    logical :: converged
    character(len=200) :: msg
 
+   complex(kind=r8), allocatable :: tmp(:)
+   complex(kind=r8), allocatable :: send_buf_cmplx(:)
    real(kind=r8), allocatable :: shifts(:)
    real(kind=r8), allocatable :: inertias(:)
    real(kind=r8), allocatable :: ne_lower(:)
    real(kind=r8), allocatable :: ne_upper(:)
-   complex(kind=r8), allocatable :: tmp(:)
    real(kind=r8), allocatable :: send_buf(:)
-   complex(kind=r8), allocatable :: send_buf_cmplx(:)
 
    complex(kind=r8), external :: zdotc
 
    character(len=*), parameter :: caller = "elsi_solve_pexsi_cmplx"
+
+   write(msg,"(A)") "Starting PEXSI density matrix solver"
+   call elsi_say(bh,msg)
+
+   call elsi_get_time(t0)
 
    ! Load sparse matrices for PEXSI
    if(ph%unit_ovlp) then
@@ -755,7 +769,11 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_stop(bh,msg,caller)
    end if
 
-   write(msg,"(A)") "Starting PEXSI density matrix solver"
+   call elsi_get_time(t1)
+
+   write(msg,"(A)") "Finished loading matrices"
+   call elsi_say(bh,msg)
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
    ! Symbolic factorization
@@ -1098,9 +1116,9 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    logical :: converged
    character(len=200) :: msg
 
-   real(kind=r8), allocatable :: shifts(:)
    complex(kind=r8), allocatable :: tmp(:)
    complex(kind=r8), allocatable :: send_buf(:)
+   real(kind=r8), allocatable :: shifts(:)
 
    character(len=*), parameter :: caller = "elsi_compute_edm_pexsi_cmplx"
 

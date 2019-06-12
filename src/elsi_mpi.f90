@@ -32,8 +32,8 @@ subroutine elsi_stop(bh,info,caller)
    character(len=*), intent(in) :: info
    character(len=*), intent(in) :: caller
 
-   character(len=200) :: msg
    integer(kind=i4) :: ierr
+   character(len=200) :: msg
 
    if(bh%mpi_all_ready) then
       write(msg,"(A,I7,4A)") "**Error! MPI task ",bh%myid_all," in ",&
