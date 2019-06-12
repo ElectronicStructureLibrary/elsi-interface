@@ -256,18 +256,14 @@ ELSI is a National Science Foundation Software Infrastructure for Sustained Inno
 
 % Chapter2
 \chapter{Installation of ELSI}
-\section{Overview}
-\label{sec:install}
-The ELSI package contains the ELSI interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.2.0), and NTPoly (version 2.3.1).  The installation of ELSI makes use of the \href{http://cmake.org}{CMake} software.
-
 \section{Prerequisites}
 \label{sec:prereq}
-To build ELSI, the minimum requirements are:
+The ELSI package contains the ELSI interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM, PEXSI (version 1.2.0), and NTPoly (version 2.3.1).  The installation of ELSI makes use of the \href{http://cmake.org}{CMake} software.  Minimum requirements include:
 \begin{Verbatim}[commandchars=\\\{\}]
 \textcolor{blue}{CMake}  [minimum version 3.0; newer version recommended]
 \textcolor{blue}{Fortran compiler}  [with Fortran 2003]
 \textcolor{blue}{C compiler}  [with C99]
-\textcolor{blue}{MPI}
+\textcolor{blue}{MPI}  [MPI-3 recommended]
 \end{Verbatim}
 
 Building the PEXSI solver (highly recommended) requires:
@@ -277,8 +273,8 @@ Building the PEXSI solver (highly recommended) requires:
 
 Additionally, building the SLEPc-SIPs solver requires:
 \begin{Verbatim}[commandchars=\\\{\}]
-\textcolor{blue}{SLEPc}  [version 3.9.2 only]
-\textcolor{blue}{PETSc}  [version 3.9.3 only, with SuperLU_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled]
+\textcolor{blue}{SLEPc}  [version 3.9 only]
+\textcolor{blue}{PETSc}  [version 3.9 only, with SuperLU_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled]
 \end{Verbatim}
 
 Linear algebra libraries should be provided for ELSI to link against:
@@ -286,7 +282,7 @@ Linear algebra libraries should be provided for ELSI to link against:
 \textcolor{blue}{BLAS, LAPACK, BLACS, ScaLAPACK}
 \end{Verbatim}
 
-By default, the redistributed ELPA, libOMM, and NTPoly solvers will be built.  If PEXSI is enabled during configuration, the redistributed PEXSI library and its dependencies, namely the SuperLU\_DIST and PT-SCOTCH libraries, will be built as well.  Optionally, the redistributed ELPA, libOMM, SuperLU\_DIST, PT-SCOTCH, and NTPoly libraries may be substituted by user's optimized versions.  Please note that in the current version of ELSI, an external version of PEXSI is not officially supported.
+By default, the redistributed ELPA, libOMM, and NTPoly solvers will be built.  If PEXSI is enabled during configuration, the redistributed PEXSI library and its dependencies, namely the SuperLU\_DIST and PT-SCOTCH libraries, will be built as well.  Optionally, the redistributed ELPA, libOMM, SuperLU\_DIST, PT-SCOTCH, and NTPoly libraries may be substituted by user's optimized versions.  In the current version of ELSI, an external version of PEXSI is not officially supported.
 
 \section{CMake Basics}
 \label{sec:cmake}
@@ -313,7 +309,7 @@ $ \textcolor{blue}{make install}
 \end{Verbatim}
 \end{tcolorbox}
 
-Whenever CMake is invoked, one of the command line arguments must point to the path where the top level CMakeLists.txt file exists, hence the ``\verb+..+'' in the above example.
+Whenever ``\verb+cmake+'' is invoked, one of the command line arguments should point to the path where the top level ``\verb+CMakeLists.txt+'' file exists, hence the ``\verb+..+'' in the above example.
 
 By default, CMake generates standard UNIX makefiles including specific rules to build the project with GNU make.  Other build systems may be chosen with the ``\verb+-G+'' (G for generator) option of CMake.  We recommend \href{http://ninja-build.org}{Ninja} in particular, which is a small build system with a focus on speed.  A version of Ninja with Fortran support is freely available \href{http://github.com/Kitware/ninja}{here}.
 
@@ -358,7 +354,7 @@ Available options for building ELSI with CMake are introduced in the next sectio
 \label{sec:config}
 \subsection{Compilers}
 \label{subsec:config_compilers}
-CMake automatically detects compilers.  The choices made by CMake often work, but not necessarily lead to the optimal performance.  In some cases, the compilers picked up by CMake may not be the ones desired by the user.  To build ELSI, it is mandatory that the user explicitly sets the identification of the compilers:
+CMake automatically detects compilers.  The choices made by CMake often work, but they do not necessarily lead to the optimal performance.  In some cases, the compilers picked up by CMake may not be the ones desired by the user.  To build ELSI, it is mandatory that the user explicitly sets the identification of the compilers:
 \begin{tcolorbox}
 \begin{verbatim}
 -DCMAKE_Fortran_COMPILER=YOUR_MPI_FORTRAN_COMPILER
@@ -378,13 +374,11 @@ In addition, it is highly recommended to specify the compiler flags, in particul
 \end{verbatim}
 \end{tcolorbox}
 
-Note that with CMake versions older than 3.8.2, flags such as \verb+-std=c99+ and \verb@-std=c++11@ (or equivalents depending on the compilers) must be given in order to ensure compliance with the C99 and C++11 standards.
+With CMake versions older than 3.8.2, flags such as \verb+-std=c99+ and \verb@-std=c++11@ (or equivalents depending on the compilers) should be given in order to ensure compliance with the C99 and C++11 standards.
 
 \subsection{Solvers}
 \label{subsec:config_solvers}
-The ELPA, libOMM, PEXSI, and NTPoly solver libraries, as well as the SuperLU\_DIST and PT-SCOTCH libraries (both required by PEXSI), are redistributed with the current ELSI package.
-
-The redistributed version of ELPA comes with a few ``kernels'' specifically written to take advantage of processor architecture (e.g. vectorization instruction set extensions).  A kernel may be chosen by the \textcolor{blue}{ELPA2\_KERNEL} keyword.  Available options are:
+The ELPA, libOMM, PEXSI, and NTPoly solver libraries, as well as the SuperLU\_DIST and PT-SCOTCH libraries (both required by PEXSI), are redistributed with the current ELSI package.  The redistributed version of ELPA comes with a few ``kernels'' specifically written to take advantage of processor architecture (e.g. vectorization instruction set extensions).  A kernel may be chosen by the \textcolor{blue}{ELPA2\_KERNEL} keyword.  Available options are:
 \begin{tcolorbox}
 \begin{verbatim}
 -DELPA2_KERNEL=BGQ
@@ -394,9 +388,9 @@ The redistributed version of ELPA comes with a few ``kernels'' specifically writ
 \end{verbatim}
 \end{tcolorbox}
 
-for the IBM Blue Gene Q, Intel AVX, Intel AVX2, and Intel AVX512 architectures, respectively.  In ELPA, these kernels are employed to accelerate the calculation of eigenvectors, which is often a computational bottleneck when calculating a large percentage of eigenvectors.  If this is the case in the user's application, it is highly recommended that the user selects the kernel most suited to their system architecture.
+for the IBM Blue Gene Q, Intel AVX, Intel AVX2, and Intel AVX512 architectures, respectively.  In ELPA, these kernels are employed to accelerate the calculation of eigenvectors, which is often a bottleneck when calculating a large portion of the eigenspectrum.  If this is the case in the user's application, it is highly recommended that the user selects the kernel most suited to their system architecture.
 
-Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries.  Relevant options for this purpose are:
+Experienced users are encouraged to link ELSI against external, better optimized solver libraries.  Relevant options for this purpose are:
 \begin{tcolorbox}
 \begin{verbatim}
 -DUSE_EXTERNAL_ELPA=ON
@@ -415,7 +409,7 @@ The external libraries and the include paths should be set via the following thr
 \end{verbatim}
 \end{tcolorbox}
 
-Each of the above keywords is a space-separated or semicolon-separated list.  If an external library depends on additional libraries, \textcolor{blue}{LIBS} should include all the relevant libraries.  For instance, \textcolor{blue}{LIBS} should include the ELPA library and CUDA libraries when using an external ELPA compiled with GPU (CUDA) support; \textcolor{blue}{LIBS} should include the SuperLU\_DIST library and the sparse matrix reordering library used to compile SuperLU\_DIST when using an external SuperLU\_DIST.  Please note that in the current version of ELSI, an external version of PEXSI is not officially supported.
+Each of the above keywords is a space-separated or semicolon-separated list.  If an external library depends on additional libraries, \textcolor{blue}{LIBS} should include all the relevant libraries.  For instance, \textcolor{blue}{LIBS} should include the ELPA library and CUDA libraries when using an external ELPA compiled with GPU (CUDA) support; \textcolor{blue}{LIBS} should include the SuperLU\_DIST library and the sparse matrix reordering library used to compile SuperLU\_DIST when using an external SuperLU\_DIST.  In the current version of ELSI, an external version of PEXSI is not officially supported.
 
 The PEXSI and SLEPc-SIPs solvers are not enabled by default.  PEXSI may be activated by specifying:
 \begin{tcolorbox}
@@ -424,7 +418,7 @@ The PEXSI and SLEPc-SIPs solvers are not enabled by default.  PEXSI may be activ
 \end{verbatim}
 \end{tcolorbox}
 
-if using redistributed SuperLU\_DIST with PT-SCOTCH, or
+if using redistributed SuperLU\_DIST and PT-SCOTCH, or
 \begin{tcolorbox}
 \begin{verbatim}
 -DENABLE_PEXSI=ON
@@ -450,7 +444,7 @@ metis;ptesmumps;ptscotchparmetis;ptscotch;ptscotcherr;esmumps;scotchmetis;scotch
 \end{verbatim}
 \end{tcolorbox}
 
-SLEPc 3.9.2 and PETSc 3.9.4 have been tested with this version of ELSI.  Older/newer versions may or may not be compatible.  The PETSc library must be compiled with MPI support, and (at least) with external packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.  The SuperLU\_DIST library redistributed through ELSI must be turned off by setting \textcolor{blue}{USE\_EXTERNAL\_SUPERLU} to ``ON'', as SuperLU\_DIST is already present in the PETSc installation.
+SLEPc 3.9 and PETSc 3.9 have been tested with this version of ELSI.  Older/newer versions may or may not be compatible.  The PETSc library must be compiled with MPI support, and (at least) with external packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.  The SuperLU\_DIST library redistributed through ELSI must be turned off by setting \textcolor{blue}{USE\_EXTERNAL\_SUPERLU} to ``ON'', as SuperLU\_DIST is already present in the PETSc installation.
 
 \subsection{Build Targets}
 \label{subsec:config_targets}
@@ -467,8 +461,6 @@ Building ELSI test programs may be enabled by:
 -DENABLE_TESTS=ON
 \end{verbatim}
 \end{tcolorbox}
-
-In either case, linear algebra libraries, BLAS, LAPACK, BLACS, and ScaLAPACK, should be valid in the \textcolor{blue}{LIB\_PATHS} and \textcolor{blue}{LIBS} keywords.
 
 If test programs are turned on, the compilation of ELSI may be verified by
 \begin{tcolorbox}
@@ -581,7 +573,7 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 
 \textbf{4)} External libraries:  ELSI redistributes source code of ELPA, libOMM, NTPoly, PEXSI, SuperLU\_DIST, and PT-SCOTCH libraries, which by default will be built together with the ELSI interface.  Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries.  See \ref{subsec:config_solvers} for more information.
 
-\textbf{5)} \textcolor{blue}{USE\_MPI\_IALLGATHER}:  NTPoly makes use of non-blocking collective MPI functions such as \texttt{MPI\_Iallgatherv} to overlap its computation and communication. If these MPI functions are not available in the user's MPI version, set \textcolor{blue}{USE\_MPI\_IALLGATHER} to `OFF`. Note that this may lead to reduced performance.
+\textbf{5)} \textcolor{blue}{USE\_MPI\_IALLGATHER}:  NTPoly makes use of non-blocking collective MPI functions such as \texttt{MPI\_Iallgatherv} to overlap its computation and communication.  If these MPI functions are not available in the user's MPI version, set \textcolor{blue}{USE\_MPI\_IALLGATHER} to `OFF`.  Using this flag may lead to reduced performance.  Upgrade MPI if possible.
 
 \subsection{``Toolchain'' Files}
 \label{subsec:config_toolchain}
@@ -1022,7 +1014,7 @@ The following subroutines return all the eigenvalues and a subset of eigenvector
 
 \textbf{2)} When using the ELPA solver, \textcolor{blue}{elsi\_ev\_real}, \textcolor{blue}{elsi\_ev\_complex}, \textcolor{blue}{elsi\_ev\_real\_sparse}, and \textcolor{blue}{elsi\_ev\_complex\_sparse} always compute all the eigenvalues, regardless of the choice of \textcolor{blue}{n\_state} specified in \textcolor{blue}{elsi\_init}.  The dimension of \textcolor{blue}{eval} thus should always be \textcolor{blue}{n\_basis}.
 
-\textbf{3)} When using the ELPA solver, \textcolor{blue}{elsi\_ev\_real}, \textcolor{blue}{elsi\_ev\_complex}, \textcolor{blue}{elsi\_ev\_real\_sparse}, and \textcolor{blue}{elsi\_ev\_complex\_sparse} compute a subset of all eigenvectors.  The number of eigenvectors to compute is specified by the keyword \textcolor{blue}{n\_state} in \textcolor{blue}{elsi\_init}.  However, the local \textcolor{blue}{eigenvectors} array should always be initialized to correspond to a global array of size \textcolor{blue}{n\_basis} $\times$ \textcolor{blue}{n\_basis}, whose extra part is used as working space in ELPA.  Note that when using \textcolor{blue}{elsi\_ev\_real\_sparse} and \textcolor{blue}{elsi\_ev\_complex\_sparse}, the eigenvectors are returned in a dense format (\textcolor{blue}{BLACS\_DENSE}), as they are in general not sparse.
+\textbf{3)} When using the ELPA solver, \textcolor{blue}{elsi\_ev\_real}, \textcolor{blue}{elsi\_ev\_complex}, \textcolor{blue}{elsi\_ev\_real\_sparse}, and \textcolor{blue}{elsi\_ev\_complex\_sparse} compute a subset of all eigenvectors.  The number of eigenvectors to compute is specified by the keyword \textcolor{blue}{n\_state} in \textcolor{blue}{elsi\_init}.  However, the local \textcolor{blue}{eigenvectors} array should always be initialized to correspond to a global array of size \textcolor{blue}{n\_basis} $\times$ \textcolor{blue}{n\_basis}, whose extra part is used as working space in ELPA.  When using \textcolor{blue}{elsi\_ev\_real\_sparse} and \textcolor{blue}{elsi\_ev\_complex\_sparse}, the eigenvectors are returned in a dense format (\textcolor{blue}{BLACS\_DENSE}), as they are in general not sparse.
 
 \section{Computing Density Matrices}
 \label{sec:dm}
@@ -1128,13 +1120,14 @@ In all the subroutines listed below, the first argument (input and output) is an
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_zero\_def}(handle, zero\_def)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_illcond\_check}(handle, illcond\_check)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_illcond\_tol}(handle, illcond\_tol)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_spin\_degeneracy}(handle, spin\_degeneracy)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_energy\_gap}(handle, energy\_gap)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_spectrum\_width}(handle, spectrum\_width)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_dimensionality}(handle, dimensionality)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_mu\_broaden\_scheme}(handle, mu\_broaden\_scheme)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_mu\_mp\_order}(handle, mu\_mp\_order)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_mu\_broaden\_width}(handle, mu\_broaden\_width)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_mu\_tol}(handle, mu\_tol)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_mu\_mp\_order}(handle, mu\_mp\_order)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_write\_unit}(handle, write\_unit)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sing\_check}(handle, sing\_check)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sing\_tol}(handle, sing\_tol)]
@@ -1144,41 +1137,43 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
 \hline
-\textcolor{blue}{output\_level}       & integer            & 0          & Output level of the ELSI interface.  0: no output.  1:  standard ELSI output.  2:  1 + info from the solvers.  3:  2 + additional debug info.\\
+\textcolor{blue}{output\_level}       & integer            & 0           & Output level of the ELSI interface.  0: no output.  1:  standard ELSI output.  2:  1 + info from the solvers.  3:  2 + additional debug info.\\
 \hline
-\textcolor{blue}{output\_unit}        & integer            & 6          & The unit used in ELSI to write out information.\\
+\textcolor{blue}{output\_unit}        & integer            & 6           & Unit used in ELSI to write out information.\\
 \hline
-\textcolor{blue}{output\_log}         & integer            & 0          & If not 0, a separate log file in JSON format will be written out.\\
+\textcolor{blue}{output\_log}         & integer            & 0           & If not 0, a separate log file in JSON format will be written out.\\
 \hline
-\textcolor{blue}{save\_ovlp }         & integer            & 0          & If not 0, the overlap matrix will be saved for extrapolation of density matrix or eigenvectors to a new geometry.\\
+\textcolor{blue}{save\_ovlp }         & integer            & 0           & If not 0, the overlap matrix will be saved for extrapolation of density matrix or eigenvectors to a new geometry.\\
 \hline
-\textcolor{blue}{unit\_ovlp }         & integer            & 0          & If not 0, the overlap matrix will be treated as an identity (unit) matrix in ELSI and the solvers.  See remark 1.\\
+\textcolor{blue}{unit\_ovlp }         & integer            & 0           & If not 0, the overlap matrix will be treated as an identity (unit) matrix in ELSI and the solvers.  See remark 1.\\
 \hline
-\textcolor{blue}{zero\_def }          & real double        & $10^{-15}$ & When converting a matrix from dense to sparse format, values below this threshold will be discarded.\\
+\textcolor{blue}{zero\_def }          & real double        & $10^{-15}$  & When converting a matrix from dense to sparse format, values below this threshold will be discarded.\\
 \hline
-\textcolor{blue}{illcond\_check}      & integer            & 0          & If not 0, the eigenvalues of the overlap matrix will be calculated in order to check if it is ill-conditioned.  See remark 2.\\
+\textcolor{blue}{illcond\_check}      & integer            & 0           & If not 0, the eigenvalues of the overlap matrix will be calculated in order to check if it is ill-conditioned.  See remark 2.\\
 \hline
-\textcolor{blue}{illcond\_tol}        & real double        & $10^{-5}$  & Eigenfunctions of the overlap matrix with eigenvalues smaller than this threshold will be removed to avoid ill-conditioning.  See remark 2.\\
+\textcolor{blue}{illcond\_tol}        & real double        & $10^{-5}$   & Eigenfunctions of the overlap matrix with eigenvalues smaller than this threshold will be removed to avoid ill-conditioning.  See remark 2.\\
 \hline
-\textcolor{blue}{energy\_gap}         & real double        & 0          & Energy gap.  See remark 3.\\
+\textcolor{blue}{spin\_degeneracy}    & real double        & 2.0/n\_spin & Spin degeneracy that controls the maximum number of electrons on a state.\\
 \hline
-\textcolor{blue}{spectrum\_width}     & real double        & $10^{3}$   & Width of the eigenspectrum.  See remark 3.\\
+\textcolor{blue}{energy\_gap}         & real double        & 0           & Energy gap.  See remark 3.\\
 \hline
-\textcolor{blue}{dimensionality}      & integer            & 3          & Dimensionality (1, 2, or 3) of the simulating system.  Only used for automatic solver selection.\\
+\textcolor{blue}{spectrum\_width}     & real double        & $10^{3}$    & Width of the eigenspectrum.  See remark 3.\\
 \hline
-\textcolor{blue}{mu\_broaden\_scheme} & integer            & 0          & The broadening scheme employed to compute the occupation numbers and the Fermi level.  0:  Gaussian.  1:  Fermi-Dirac.  2:  Methfessel-Paxton.  4:  Marzari-Vanderbilt.\\
+\textcolor{blue}{dimensionality}      & integer            & 3           & Dimensionality (1, 2, or 3) of the simulating system.  Only used for automatic solver selection.\\
 \hline
-\textcolor{blue}{mu\_mp\_order}       & integer            & 0          & The order of the Methfessel-Paxton broadening scheme.  No effect if Methfessel-Paxton is not the chosen broadening scheme.\\
+\textcolor{blue}{mu\_broaden\_scheme} & integer            & 0           & Broadening scheme employed to compute the occupation numbers and the Fermi level.  0:  Gaussian.  1:  Fermi-Dirac.  2:  Methfessel-Paxton.  4:  Marzari-Vanderbilt.\\
 \hline
-\textcolor{blue}{mu\_broaden\_width}  & real double        & 0.01       & The broadening width employed to compute the occupation numbers and the Fermi level.  See remark 4.\\
+\textcolor{blue}{mu\_broaden\_width}  & real double        & 0.01        & Broadening width employed to compute the occupation numbers and the Fermi level.  See remark 4.\\
 \hline
-\textcolor{blue}{mu\_tol}             & real double        & $10^{-13}$ & The convergence tolerance (in terms of the absolute error in electron count) of the bisection algorithm employed to compute the occupation numbers and the Fermi level.\\
+\textcolor{blue}{mu\_tol}             & real double        & $10^{-13}$  & Convergence tolerance (in terms of the absolute error in electron count) of the bisection algorithm employed to compute the occupation numbers and the Fermi level.\\
 \hline
-\textcolor{blue}{write\_unit}         & integer            & 6          & Deprecated.  Use \textcolor{blue}{elsi\_set\_output\_unit} instead.\\
+\textcolor{blue}{mu\_mp\_order}       & integer            & 0           & Order of the Methfessel-Paxton broadening scheme.  No effect if Methfessel-Paxton is not the chosen broadening scheme.\\
 \hline
-\textcolor{blue}{sing\_check}         & integer            & 0          & Deprecated.  Use \textcolor{blue}{elsi\_set\_illcond\_check} instead.\\
+\textcolor{blue}{write\_unit}         & integer            & 6           & Deprecated.  Use \textcolor{blue}{elsi\_set\_output\_unit} instead.\\
 \hline
-\textcolor{blue}{sing\_tol}           & real double        & $10^{-5}$  & Deprecated.  Use \textcolor{blue}{elsi\_set\_illcond\_tol} instead.\\
+\textcolor{blue}{sing\_check}         & integer            & 0           & Deprecated.  Use \textcolor{blue}{elsi\_set\_illcond\_check} instead.\\
+\hline
+\textcolor{blue}{sing\_tol}           & real double        & $10^{-5}$   & Deprecated.  Use \textcolor{blue}{elsi\_set\_illcond\_tol} instead.\\
 \hline
 \end{tabular}
 
@@ -1190,7 +1185,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \textbf{3)} \textcolor{blue}{spectrum\_width} and \textcolor{blue}{energy\_gap} refer to the width and the gap of the eigenspectrum.  Simply use the default values if there is no better estimate.
 
-\textbf{4)} In all supported broadening schemes, there is a term $(\epsilon - E_\text{F})/W$ in the distribution function, where $\epsilon$ is the energy of an eigenstate, and $E_\text{F}$ is the Fermi level.  The \textcolor{blue}{broadening\_width} parameter should be set to $W$, in the same unit of $\epsilon$ and $E_\text{F}$.
+\textbf{4)} In all supported broadening schemes, there is a term $(\epsilon - E_\text{F})/W$ in the distribution function, where $\epsilon$ is the energy of an eigenstate, and $E_\text{F}$ is the Fermi level.  The \textcolor{blue}{broadening\_width} parameter should be $W$ in the same unit of $\epsilon$ and $E_\text{F}$.
 
 \subsection{Customizing the ELPA Solver}
 \label{subsec:setter_elpa}
@@ -1222,7 +1217,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \textbf{1)} \textcolor{blue}{elpa\_n\_single}:  If single precision arithmetic is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{elpa\_n\_single} to a positive integer, then the standard eigenprolems in the first \textcolor{blue}{elpa\_n\_single} SCF steps will be solved with single precision.  The transformations between generalized eigenproblem and the standard form are always performed with double precision.  Although this keyword accelerates the solution of standard eigenproblems, the overall SCF convergence may be slower, depending on the physical system and the SCF settings used in the electronic structure code.  This keyword is ignored if single precision calculations are not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with single precision support.
 
-\textbf{2)} \textcolor{blue}{elpa\_gpu} and \textcolor{blue}{elpa\_gpu\_kernels}:  If GPU-acceleration is available in an externally compiled ELPA library, it may be enabled by setting \textcolor{blue}{elpa\_gpu} to a non-zero integer.  Note that by setting \textcolor{blue}{elpa\_gpu}, the GPU kernels for eigenvector back-transformation will not be used.  To enable the GPU kernels, \textcolor{blue}{elpa\_gpu\_kernels} should be set to a non-zero value.  These two keywords are ignored if GPU-acceleration is not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with GPU support.
+\textbf{2)} \textcolor{blue}{elpa\_gpu} and \textcolor{blue}{elpa\_gpu\_kernels}:  If GPU-acceleration is available in an externally compiled ELPA library, it may be enabled by setting \textcolor{blue}{elpa\_gpu} to a non-zero integer.  Setting \textcolor{blue}{elpa\_gpu} itself does not enable the GPU kernels for eigenvector back-transformation.  To enable the GPU kernels, use \textcolor{blue}{elpa\_gpu\_kernels}.  These two keywords are ignored if GPU-acceleration is not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with GPU support.
 
 \textbf{3)} \textcolor{blue}{elpa\_autotune}:  If auto-tuning of runtime parameters is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{elpa\_autotune} to a nonzero integer.  This keyword is ignored if auto-tuning is not available, which is the case if the internal version of ELPA is used.
 
@@ -1305,7 +1300,7 @@ In short, we recommend \textcolor{blue}{pexsi\_n\_pole} = 20 and \textcolor{blue
 
 When using the \textcolor{blue}{BLACS\_DENSE} or \textcolor{blue}{SIESTA\_CSC} matrix formats, \textcolor{blue}{pexsi\_np\_per\_pole} is automatically determined to balance the three levels of parallelism in PEXSI.  Input and output matrices should be distributed across all MPI tasks in either a 2D block-cyclic distribution (\textcolor{blue}{BLACS\_DENSE}) or a 1D block-cyclic distribution (\textcolor{blue}{SIESTA\_CSC}).
 
-Note that when using the \textcolor{blue}{PEXSI\_CSC} matrix format together with the PEXSI solver, input and output matrices should be distributed among the first \textcolor{blue}{pexsi\_np\_per\_pole} MPI tasks (not all the MPI tasks) in a 1D block distribution.  The block size of the distribution must be floor(\textcolor{blue}{$\text{N}\_\text{basis}$}/\textcolor{blue}{$\text{N}\_\text{procs}$}), where floor(x) is the greatest integer less than or equal to x, \textcolor{blue}{\text{N}\_\text{basis}} and \textcolor{blue}{\text{N}\_\text{procs}} are the number of basis functions and the number of MPI tasks, respectively.
+Please note that when using the \textcolor{blue}{PEXSI\_CSC} matrix format together with the PEXSI solver, input and output matrices should be distributed among the first \textcolor{blue}{pexsi\_np\_per\_pole} MPI tasks (not all the MPI tasks) in a 1D block distribution.  The block size of the distribution must be floor(\textcolor{blue}{$\text{N}\_\text{basis}$}/\textcolor{blue}{$\text{N}\_\text{procs}$}), where floor(x) is the greatest integer less than or equal to x, \textcolor{blue}{\text{N}\_\text{basis}} and \textcolor{blue}{\text{N}\_\text{procs}} are the number of basis functions and the number of MPI tasks, respectively.
 
 when using the \textcolor{blue}{PEXSI\_CSC} matrix format with the ELPA, libOMM, or SLEPc-SIPs solver, input and output matrices should be distributed across all the MPI tasks in a 1D block distribution.  Again, the block size of the distribution must be floor(\textcolor{blue}{$\text{N}\_\text{basis}$}/\textcolor{blue}{$\text{N}\_\text{procs}$}).
 
@@ -1346,7 +1341,7 @@ end do
 
 \textbf{5)} The chemical potential determination in PEXSI relies on inertia counting to narrow down the chemical potential searching interval in the first few SCF steps.  The \textcolor{blue}{pexsi\_inertia\_tol} parameter controls the stopping criterion of the inertia counting procedure.  With a small interval obtained from the inertia counting step, PEXSI then selects a number of points in this interval to perform Fermi operator calculations, based on which a final chemical potential will be determined.  The trick of this algorithm is that the chemical potential interval of the current SCF step can be used as a descent guess in the next SCF step.  Therefore, the mechanism to choose input values for \textcolor{blue}{pexsi\_mu\_min} and \textcolor{blue}{pexsi\_mu\_max} is two-fold.  For the first SCF iteration of each geometry step, they should be set to safe values that guarantee the true chemical potential lies in this interval.  Then, for the n$^\text{th}$ SCF step, \textcolor{blue}{pexsi\_mu\_min} should be set to ($\mu_\text{min}^\text{n-1} + \Delta V_\text{min}$), \textcolor{blue}{pexsi\_mu\_max} should be set to ($\mu_\text{max}^\text{n-1} + \Delta V_\text{max}$).  Here, $\mu_\text{min}^\text{n-1}$ and $\mu_\text{max}^\text{n-1}$ are the lower bound and the upper bound of the chemical potential that are determined by PEXSI in the (n-1)$^\text{th}$ SCF step.  They can be retrieved by calling \textcolor{blue}{elsi\_get\_pexsi\_mu\_min} and \textcolor{blue}{elsi\_get\_pexsi\_mu\_max}, respectively (see \ref{subsec:getter_pexsi}.  Suppose the effective potential (Hartree potential, exchange-correlation potential, and external potential) is stored in an array $V$, whose dimension is the number of grid points.  From one SCF iteration to the next, $\Delta V$ denotes the potential change, and $\Delta V_\text{min}$ and $\Delta V_\text{max}$ are the minimum and maximum values in the array $\Delta V$, respectively.  The whole process is summarized in the pseudo-code above.  The (re-)initialization and finalization of ELSI are omitted.
 
-\textbf{6)} \textcolor{blue}{pexsi\_gap}:  Note that the PEXSI method does not require an energy gap.  If no knowledge is available, the default value usually works.
+\textbf{6)} \textcolor{blue}{pexsi\_gap}:  The PEXSI method does not require an energy gap.  If no knowledge is available, the default value usually works.
 
 \subsection{Customizing the SLEPc-SIPs Solver}
 \label{subsec:setter_sips}
@@ -1475,7 +1470,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \textbf{2)} In ELSI, the chemical potential will only be available if one of the density matrix solver interfaces has been called, with ELPA, PEXSI, or NTPoly being the chosen solver.  The chemical potential can be retrieved by calling \textcolor{blue}{elsi\_get\_mu}.  The entropy will only be available if one of the density matrix solver interfaces has been called with ELPA being the chosen solver.  The user should avoid calling the subroutine when the chemical potential or the entropy is not ready.
 
-\textbf{3)} In general, the energy-weighted density matrix is only needed in a late stage of an SCF cycle to evaluate forces.  It is, therefore, not calculated when any of the density matrix solver interface is called.  When the energy-weighted density matrix is actually needed, it can be requested by calling the \textcolor{blue}{elsi\_get\_edm} subroutines.  Note that these subroutines all have the requirement that the corresponding \textcolor{blue}{elsi\_dm} subroutine must have been invoked.  For instance, \textcolor{blue}{elsi\_get\_edm\_real\_sparse} only makes sense if \textcolor{blue}{elsi\_dm\_real\_sparse} has been successfully executed.
+\textbf{3)} In general, the energy-weighted density matrix is only needed in a late stage of an SCF cycle to evaluate forces.  It is, therefore, not calculated when any of the density matrix solver interface is called.  When the energy-weighted density matrix is actually needed, it can be requested by calling the \textcolor{blue}{elsi\_get\_edm} subroutines.  These subroutines have the requirement that the corresponding \textcolor{blue}{elsi\_dm} subroutine must have been invoked.  For instance, \textcolor{blue}{elsi\_get\_edm\_real\_sparse} only makes sense if \textcolor{blue}{elsi\_dm\_real\_sparse} has been successfully executed.
 
 \subsection{Getting Results from the PEXSI Solver}
 \label{subsec:getter_pexsi}

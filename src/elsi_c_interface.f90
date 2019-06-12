@@ -663,6 +663,21 @@ subroutine c_elsi_set_sing_tol(h_c,sing_tol) bind(C)
 
 end subroutine
 
+subroutine c_elsi_set_spin_degeneracy(h_c,spin_degeneracy) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   real(kind=c_double), value, intent(in) :: spin_degeneracy
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_spin_degeneracy(h_f,spin_degeneracy)
+
+end subroutine
+
 subroutine c_elsi_set_energy_gap(h_c,gap) bind(C)
 
    implicit none
@@ -1247,21 +1262,6 @@ subroutine c_elsi_set_mu_tol(h_c,tol) bind(C)
    call c_f_pointer(h_c,h_f)
 
    call elsi_set_mu_tol(h_f,tol)
-
-end subroutine
-
-subroutine c_elsi_set_mu_spin_degen(h_c,spin_degen) bind(C)
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   real(kind=c_double), value, intent(in) :: spin_degen
-
-   type(elsi_handle), pointer :: h_f
-
-   call c_f_pointer(h_c,h_f)
-
-   call elsi_set_mu_spin_degen(h_f,spin_degen)
 
 end subroutine
 
