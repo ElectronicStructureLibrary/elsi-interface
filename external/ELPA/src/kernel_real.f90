@@ -45,8 +45,6 @@
 ! This file contains the compute intensive kernels for the Householder transformations.
 ! It should be compiled with the highest possible optimization level.
 !
-! On Intel use -O3 -xSSE4.2 (or the SSE level fitting to your CPU)
-!
 ! Copyright of the original code rests with the authors inside the ELPA
 ! consortium. The copyright of any additional modifications shall rest
 ! with their original authors, but shall adhere to the licensing terms
@@ -60,23 +58,21 @@
   subroutine double_hh_trafo_generic_double(q, hh, nb, nq, ldq, ldh)
 
     use precision
-
     use, intrinsic :: iso_c_binding
+
     implicit none
 
-    integer(kind=ik), intent(in)      :: nb, nq, ldq, ldh
+    integer(kind=ik), intent(in) :: nb, nq, ldq, ldh
 
-    real(kind=rk8), intent(inout)      :: q(ldq,*)
-    real(kind=rk8), intent(in)         :: hh(ldh,*)
+    real(kind=rk8), intent(inout) :: q(ldq,*)
+    real(kind=rk8), intent(in) :: hh(ldh,*)
 
-    real(kind=rk8)                     :: s
-    integer(kind=ik)                  :: i
-
-!    equivalence(q(1,1),q_complex(1,1))
+    real(kind=rk8) :: s
+    integer(kind=ik) :: i
 
 ! Safety only:
 
-    if(mod(ldq,4) /= 0) STOP 'double_hh_trafo: ldq not divisible by 4!'
+    if(mod(ldq,4) /= 0) stop 'double_hh_trafo: ldq not divisible by 4!'
 
 ! Calculate dot product of the two Householder vectors
 
@@ -122,100 +118,100 @@
 
     implicit none
 
-    integer(kind=ik), intent(in)    :: nb, ldq, ldh
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
 
     complex(kind=ck8), intent(inout) :: q(ldq/2,*)
-    real(kind=rk8), intent(in)       :: hh(ldh,*)
+    real(kind=rk8), intent(in) :: hh(ldh,*)
 
-    real(kind=rk8), intent(in)       :: s
+    real(kind=rk8), intent(in) :: s
 
-    complex(kind=ck8)                :: x1, x2, x3, x4, x5, x6, y1, y2, y3, y4, y5, y6
+    complex(kind=ck8) :: x1, x2, x3, x4, x5, x6, y1, y2, y3, y4, y5, y6
 
-    real(kind=rk8)                   :: h1, h2, tau1, tau2
-    integer(kind=ik)                :: i
+    real(kind=rk8) :: h1, h2, tau1, tau2
+    integer(kind=ik) :: i
 
-    x1  = q(1,2)
-    x2  = q(2,2)
-    x3  = q(3,2)
-    x4  = q(4,2)
-    x5  = q(5,2)
-    x6  = q(6,2)
+    x1 = q(1,2)
+    x2 = q(2,2)
+    x3 = q(3,2)
+    x4 = q(4,2)
+    x5 = q(5,2)
+    x6 = q(6,2)
 
-    y1  = q(1 ,1) + q(1, 2)*hh(2,2)
-    y2  = q(2 ,1) + q(2, 2)*hh(2,2)
-    y3  = q(3 ,1) + q(3, 2)*hh(2,2)
-    y4  = q(4 ,1) + q(4, 2)*hh(2,2)
-    y5  = q(5 ,1) + q(5, 2)*hh(2,2)
-    y6  = q(6 ,1) + q(6, 2)*hh(2,2)
-
-    do i=3,nb
-       h1  = hh(i-1,1)
-       h2  = hh(i,2)
-       x1  = x1 + q(1, i)*h1
-       y1  = y1 + q(1, i)*h2
-       x2  = x2 + q(2, i)*h1
-       y2  = y2 + q(2, i)*h2
-       x3  = x3 + q(3, i)*h1
-       y3  = y3 + q(3, i)*h2
-       x4  = x4 + q(4, i)*h1
-       y4  = y4 + q(4, i)*h2
-       x5  = x5 + q(5, i)*h1
-       y5  = y5 + q(5, i)*h2
-       x6  = x6 + q(6, i)*h1
-       y6  = y6 + q(6, i)*h2
-
-    enddo
-
-    x1  = x1  + q(1,nb+1)*hh(nb,1)
-    x2  = x2  + q(2,nb+1)*hh(nb,1)
-    x3  = x3  + q(3,nb+1)*hh(nb,1)
-    x4  = x4  + q(4,nb+1)*hh(nb,1)
-    x5  = x5  + q(5,nb+1)*hh(nb,1)
-    x6  = x6  + q(6,nb+1)*hh(nb,1)
-
-    tau1 = hh(1,1)
-    tau2 = hh(1,2)
-
-    h1  = -tau1
-    x1  = x1 *h1
-    x2  = x2 *h1
-    x3  = x3 *h1
-    x4  = x4 *h1
-    x5  = x5 *h1
-    x6  = x6 *h1
-
-    h1  = -tau2
-    h2  = -tau2*s
-    y1  = y1 *h1 + x1 *h2
-    y2  = y2 *h1 + x2 *h2
-    y3  = y3 *h1 + x3 *h2
-    y4  = y4 *h1 + x4 *h2
-    y5  = y5 *h1 + x5 *h2
-    y6  = y6 *h1 + x6 *h2
-
-    q(1,1)  = q(1, 1) + y1
-    q(2,1)  = q(2, 1) + y2
-    q(3,1)  = q(3, 1) + y3
-    q(4,1)  = q(4, 1) + y4
-    q(5,1)  = q(5, 1) + y5
-    q(6,1)  = q(6, 1) + y6
-
-    q(1, 2) = q(1, 2) + x1  + y1 *hh(2,2)
-    q(2, 2) = q(2, 2) + x2  + y2 *hh(2,2)
-    q(3, 2) = q(3, 2) + x3  + y3 *hh(2,2)
-    q(4, 2) = q(4, 2) + x4  + y4 *hh(2,2)
-    q(5, 2) = q(5, 2) + x5  + y5 *hh(2,2)
-    q(6, 2) = q(6, 2) + x6  + y6 *hh(2,2)
+    y1 = q(1 ,1) + q(1, 2)*hh(2,2)
+    y2 = q(2 ,1) + q(2, 2)*hh(2,2)
+    y3 = q(3 ,1) + q(3, 2)*hh(2,2)
+    y4 = q(4 ,1) + q(4, 2)*hh(2,2)
+    y5 = q(5 ,1) + q(5, 2)*hh(2,2)
+    y6 = q(6 ,1) + q(6, 2)*hh(2,2)
 
     do i=3,nb
        h1 = hh(i-1,1)
        h2 = hh(i,2)
-       q(1, i) = q(1,i)  + x1 *h1 + y1 *h2
-       q(2, i) = q(2,i)  + x2 *h1 + y2 *h2
-       q(3, i) = q(3,i)  + x3 *h1 + y3 *h2
-       q(4, i) = q(4,i)  + x4 *h1 + y4 *h2
-       q(5, i) = q(5,i)  + x5 *h1 + y5 *h2
-       q(6, i) = q(6,i)  + x6 *h1 + y6 *h2
+       x1 = x1 + q(1, i)*h1
+       y1 = y1 + q(1, i)*h2
+       x2 = x2 + q(2, i)*h1
+       y2 = y2 + q(2, i)*h2
+       x3 = x3 + q(3, i)*h1
+       y3 = y3 + q(3, i)*h2
+       x4 = x4 + q(4, i)*h1
+       y4 = y4 + q(4, i)*h2
+       x5 = x5 + q(5, i)*h1
+       y5 = y5 + q(5, i)*h2
+       x6 = x6 + q(6, i)*h1
+       y6 = y6 + q(6, i)*h2
+
+    enddo
+
+    x1 = x1 + q(1,nb+1)*hh(nb,1)
+    x2 = x2 + q(2,nb+1)*hh(nb,1)
+    x3 = x3 + q(3,nb+1)*hh(nb,1)
+    x4 = x4 + q(4,nb+1)*hh(nb,1)
+    x5 = x5 + q(5,nb+1)*hh(nb,1)
+    x6 = x6 + q(6,nb+1)*hh(nb,1)
+
+    tau1 = hh(1,1)
+    tau2 = hh(1,2)
+
+    h1 = -tau1
+    x1 = x1 *h1
+    x2 = x2 *h1
+    x3 = x3 *h1
+    x4 = x4 *h1
+    x5 = x5 *h1
+    x6 = x6 *h1
+
+    h1 = -tau2
+    h2 = -tau2*s
+    y1 = y1 *h1 + x1 *h2
+    y2 = y2 *h1 + x2 *h2
+    y3 = y3 *h1 + x3 *h2
+    y4 = y4 *h1 + x4 *h2
+    y5 = y5 *h1 + x5 *h2
+    y6 = y6 *h1 + x6 *h2
+
+    q(1,1) = q(1, 1) + y1
+    q(2,1) = q(2, 1) + y2
+    q(3,1) = q(3, 1) + y3
+    q(4,1) = q(4, 1) + y4
+    q(5,1) = q(5, 1) + y5
+    q(6,1) = q(6, 1) + y6
+
+    q(1, 2) = q(1, 2) + x1 + y1 *hh(2,2)
+    q(2, 2) = q(2, 2) + x2 + y2 *hh(2,2)
+    q(3, 2) = q(3, 2) + x3 + y3 *hh(2,2)
+    q(4, 2) = q(4, 2) + x4 + y4 *hh(2,2)
+    q(5, 2) = q(5, 2) + x5 + y5 *hh(2,2)
+    q(6, 2) = q(6, 2) + x6 + y6 *hh(2,2)
+
+    do i=3,nb
+       h1 = hh(i-1,1)
+       h2 = hh(i,2)
+       q(1, i) = q(1,i) + x1 *h1 + y1 *h2
+       q(2, i) = q(2,i) + x2 *h1 + y2 *h2
+       q(3, i) = q(3,i) + x3 *h1 + y3 *h2
+       q(4, i) = q(4,i) + x4 *h1 + y4 *h2
+       q(5, i) = q(5,i) + x5 *h1 + y5 *h2
+       q(6, i) = q(6,i) + x6 *h1 + y6 *h2
 
     enddo
 
@@ -236,17 +232,17 @@
 
     implicit none
 
-    integer(kind=ik), intent(in)     :: nb, ldq, ldh
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
 
-    complex(kind=ck8), intent(inout)  :: q(ldq/2,*)
-    real(kind=rk8), intent(in)        :: hh(ldh,*)
+    complex(kind=ck8), intent(inout) :: q(ldq/2,*)
+    real(kind=rk8), intent(in) :: hh(ldh,*)
 
-    real(kind=rk8), intent(in)        :: s
+    real(kind=rk8), intent(in) :: s
 
-    complex(kind=ck8)                 :: x1, x2, x3, x4, y1, y2, y3, y4
+    complex(kind=ck8) :: x1, x2, x3, x4, y1, y2, y3, y4
 
-    real(kind=rk8)                    :: h1, h2, tau1, tau2
-    integer(kind=ik)                 :: i
+    real(kind=rk8) :: h1, h2, tau1, tau2
+    integer(kind=ik) :: i
 
     x1 = q(1,2)
     x2 = q(2,2)
@@ -328,17 +324,17 @@
 
     implicit none
 
-    integer(kind=ik), intent(in)    :: nb, ldq, ldh
+    integer(kind=ik), intent(in) :: nb, ldq, ldh
 
     complex(kind=ck8), intent(inout) :: q(ldq/2,*)
-    real(kind=rk8), intent(in)       :: hh(ldh,*)
+    real(kind=rk8), intent(in) :: hh(ldh,*)
 
-    real(kind=rk8), intent(in)       :: s
+    real(kind=rk8), intent(in) :: s
 
-    complex(kind=ck8)                :: x1, x2, y1, y2
+    complex(kind=ck8) :: x1, x2, y1, y2
 
-    real(kind=rk8)                   :: h1, h2, tau1, tau2
-    integer(kind=ik)                :: i
+    real(kind=rk8) :: h1, h2, tau1, tau2
+    integer(kind=ik) :: i
 
     x1 = q(1,2)
     x2 = q(2,2)

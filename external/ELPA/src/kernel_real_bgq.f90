@@ -53,19 +53,21 @@
 !
 ! --------------------------------------------------------------------------------------------------
   subroutine double_hh_trafo_bgq_double(q, hh, nb, nq, ldq, ldh)
+
     use precision
+
     implicit none
 
     integer(kind=ik), intent(in) :: nb, nq, ldq, ldh
     real(kind=rk8), intent(inout) :: q(ldq,*)
-    real(kind=rk8), intent(in)    :: hh(ldh,*)
+    real(kind=rk8), intent(in) :: hh(ldh,*)
 
-    real(kind=rk8)                :: s
-    integer(kind=ik)             :: i
+    real(kind=rk8) :: s
+    integer(kind=ik) :: i
 
     ! Safety only:
 
-    if(mod(ldq,4) /= 0) STOP 'double_hh_trafo: ldq not divisible by 4!'
+    if(mod(ldq,4) /= 0) stop 'double_hh_trafo: ldq not divisible by 4!'
 
     call alignx(32,q)
 
@@ -77,22 +79,22 @@
     enddo
 
     do i=1,nq-20,24
-       call hh_trafo_kernel_24_bgq(q(i   ,1), hh, nb, ldq, ldh, s)
+       call hh_trafo_kernel_24_bgq(q(i,1), hh, nb, ldq, ldh, s)
     enddo
 
     if(nq-i+1 > 16) then
-       call hh_trafo_kernel_16_bgq(q(i  ,1), hh, nb, ldq, ldh, s)
+       call hh_trafo_kernel_16_bgq(q(i,1), hh, nb, ldq, ldh, s)
        call hh_trafo_kernel_4_bgq(q(i+16,1), hh, nb, ldq, ldh, s)
     else if(nq-i+1 > 12) then
-       call hh_trafo_kernel_8_bgq(q(i  ,1), hh, nb, ldq, ldh, s)
+       call hh_trafo_kernel_8_bgq(q(i,1), hh, nb, ldq, ldh, s)
        call hh_trafo_kernel_8_bgq(q(i+8,1), hh, nb, ldq, ldh, s)
     else if(nq-i+1 > 8) then
-       call hh_trafo_kernel_8_bgq(q(i  ,1), hh, nb, ldq, ldh, s)
+       call hh_trafo_kernel_8_bgq(q(i,1), hh, nb, ldq, ldh, s)
        call hh_trafo_kernel_4_bgq(q(i+8,1), hh, nb, ldq, ldh, s)
     else if(nq-i+1 > 4) then
-       call hh_trafo_kernel_8_bgq(q(i  ,1), hh, nb, ldq, ldh, s)
+       call hh_trafo_kernel_8_bgq(q(i,1), hh, nb, ldq, ldh, s)
     else if(nq-i+1 > 0) then
-       call hh_trafo_kernel_4_bgq(q(i  ,1), hh, nb, ldq, ldh, s)
+       call hh_trafo_kernel_4_bgq(q(i,1), hh, nb, ldq, ldh, s)
     endif
 
   end subroutine double_hh_trafo_bgq_double
@@ -102,14 +104,16 @@
   ! --------------------------------------------------------------------------------------------------
 
   subroutine hh_trafo_kernel_24_bgq(q, hh, nb, ldq, ldh, s)
+
     use precision
     use elpa_mpi
+
     implicit none
 
     integer(kind=ik), intent(in) :: nb, ldq, ldh
 
     real(kind=rk8), intent(inout) :: q(ldq,*)
-    real(kind=rk8), intent(in)    :: hh(ldh,*), s
+    real(kind=rk8), intent(in) :: hh(ldh,*), s
 
     VECTOR(REAL(8))::QPX_x1, QPX_x2, QPX_x3, QPX_x4, QPX_x5, QPX_x6
     VECTOR(REAL(8))::QPX_y1, QPX_y2, QPX_y3, QPX_y4, QPX_y5, QPX_y6
@@ -309,14 +313,16 @@
   ! --------------------------------------------------------------------------------------------------
 
   subroutine hh_trafo_kernel_16_bgq(q, hh, nb, ldq, ldh, s)
+
     use precision
     use elpa_mpi
+
     implicit none
 
     integer(kind=ik), intent(in) :: nb, ldq, ldh
 
     real(kind=rk8), intent(inout) :: q(ldq,*)
-    real(kind=rk8), intent(in)    :: hh(ldh,*), s
+    real(kind=rk8), intent(in) :: hh(ldh,*), s
 
     VECTOR(REAL(8))::QPX_x1, QPX_x2, QPX_x3, QPX_x4
     VECTOR(REAL(8))::QPX_y1, QPX_y2, QPX_y3, QPX_y4
@@ -466,15 +472,17 @@
   ! --------------------------------------------------------------------------------------------------
 
   subroutine hh_trafo_kernel_8_bgq(q, hh, nb, ldq, ldh, s)
+
     use precision
     use elpa_mpi
+
     implicit none
 
     integer(kind=ik), intent(in) :: nb, ldq, ldh
 
     real(kind=rk8), intent(inout) :: q(ldq,*)
-    real(kind=rk8), intent(in)    :: hh(ldh,*), s
-    integer(kind=ik)             :: i
+    real(kind=rk8), intent(in) :: hh(ldh,*), s
+    integer(kind=ik) :: i
     VECTOR(REAL(8))::QPX_x1, QPX_x2, QPX_y1, QPX_y2
     VECTOR(REAL(8))::QPX_q1, QPX_q2
     VECTOR(REAL(8))::QPX_h1, QPX_h2, QPX_tau1, QPX_tau2, QPX_s
@@ -571,15 +579,17 @@
   ! --------------------------------------------------------------------------------------------------
 
   subroutine hh_trafo_kernel_4_bgq(q, hh, nb, ldq, ldh, s)
+
     use precision
     use elpa_mpi
+
     implicit none
 
     integer(kind=ik), intent(in) :: nb, ldq, ldh
 
     real(kind=rk8), intent(inout) :: q(ldq,*)
-    real(kind=rk8), intent(in)    :: hh(ldh,*), s
-    integer(kind=ik)             :: i
+    real(kind=rk8), intent(in) :: hh(ldh,*), s
+    integer(kind=ik) :: i
     VECTOR(REAL(8))::QPX_x1, QPX_y1
     VECTOR(REAL(8))::QPX_q1
     VECTOR(REAL(8))::QPX_h1, QPX_h2, QPX_tau1, QPX_tau2, QPX_s

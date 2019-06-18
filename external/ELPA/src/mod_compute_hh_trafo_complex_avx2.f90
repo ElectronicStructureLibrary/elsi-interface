@@ -42,54 +42,50 @@
 ! This file was written by A. Marek, MPCDF
 
 module compute_hh_trafo_complex
+
   use elpa_mpi
+
   implicit none
 
-  public compute_hh_trafo_complex_cpu_double
+  public :: compute_hh_trafo_complex_cpu_double
 
   contains
 
-         subroutine compute_hh_trafo_complex_cpu_double       (a, stripe_width, a_dim2, stripe_count,                             &
-                                                        a_off, nbw, max_blk_size, bcast_buffer, kernel_flops, kernel_time, &
-                                                        off, ncols, istripe, last_stripe_width,                            &
-                                                        THIS_COMPLEX_ELPA_KERNEL)
-           use precision
-           use elpa2_utilities
-           use, intrinsic :: iso_c_binding
-           use kernel_interfaces
+  subroutine compute_hh_trafo_complex_cpu_double(a, stripe_width, a_dim2, stripe_count, &
+    a_off, nbw, max_blk_size, bcast_buffer, kernel_flops, kernel_time, &
+    off, ncols, istripe, last_stripe_width)
 
-           implicit none
-           real(kind=c_double), intent(inout) :: kernel_time ! MPI_WTIME always needs double
-           integer(kind=lik)            :: kernel_flops
-           integer(kind=ik), intent(in) :: nbw, max_blk_size
-           complex(kind=ck8)            :: bcast_buffer(nbw,max_blk_size)
-           integer(kind=ik), intent(in) :: a_off
+    use precision
+    use elpa2_utilities
+    use, intrinsic :: iso_c_binding
+    use kernel_interfaces
 
-           integer(kind=ik), intent(in) :: stripe_width, a_dim2, stripe_count
-           integer(kind=ik), intent(in) :: last_stripe_width
-           complex(kind=ck8)             :: a(stripe_width,a_dim2,stripe_count)
-           integer(kind=ik), intent(in) :: THIS_COMPLEX_ELPA_KERNEL
+    implicit none
 
-! Private variables in OMP regions (my_thread) should better be in the argument list!
+    real(kind=c_double), intent(inout) :: kernel_time ! MPI_WTIME always needs double
+    integer(kind=lik) :: kernel_flops
+    integer(kind=ik), intent(in) :: nbw, max_blk_size
+    complex(kind=ck8) :: bcast_buffer(nbw,max_blk_size)
+    integer(kind=ik), intent(in) :: a_off
 
-           integer(kind=ik)             :: off, ncols, istripe, j, nl
-           real(kind=c_double)          :: ttt  ! MPI_WTIME always needs double
+    integer(kind=ik), intent(in) :: stripe_width, a_dim2, stripe_count
+    integer(kind=ik), intent(in) :: last_stripe_width
+    complex(kind=ck8) :: a(stripe_width,a_dim2,stripe_count)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!        Currently (on Sandy Bridge), single is faster than double
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    integer(kind=ik) :: off, ncols, istripe, j, nl
+    real(kind=c_double) :: ttt ! MPI_WTIME always needs double
 
-           nl = merge(stripe_width, last_stripe_width, istripe<stripe_count)
+    nl = merge(stripe_width, last_stripe_width, istripe<stripe_count)
 
-            ttt = mpi_wtime()
-            do j = ncols, 1, -1
-              call single_hh_trafo_complex_avx_avx2_1hv_double(a(1,j+off+a_off,istripe), &
-                                                       bcast_buffer(1,j+off),nbw,nl,stripe_width)
-            enddo
+    ttt = mpi_wtime()
+    do j = ncols, 1, -1
+      call single_hh_trafo_complex_avx_avx2_1hv_double(a(1,j+off+a_off,istripe), &
+           bcast_buffer(1,j+off),nbw,nl,stripe_width)
+    enddo
 
-            kernel_flops = kernel_flops + 4*4*int(nl,lik)*int(ncols,lik)*int(nbw,lik)
-            kernel_time  = kernel_time + mpi_wtime()-ttt
+    kernel_flops = kernel_flops + 4*4*int(nl,lik)*int(ncols,lik)*int(nbw,lik)
+    kernel_time = kernel_time + mpi_wtime()-ttt
 
-        end subroutine compute_hh_trafo_complex_cpu_double
+  end subroutine compute_hh_trafo_complex_cpu_double
 
 end module

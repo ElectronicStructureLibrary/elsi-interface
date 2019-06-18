@@ -49,160 +49,69 @@
 ! with their original authors, but shall adhere to the licensing terms
 ! distributed along with the original code in the file "COPYING".
 
-!> \mainpage
-!> Eigenvalue SoLvers for Petaflop-Applications (ELPA)
-!> \par
-!> http://elpa.mpcdf.mpg.de
-!>
-!> \par
-!>    The ELPA library was originally created by the ELPA consortium,
-!>    consisting of the following organizations:
-!>
-!>    - Max Planck Computing and Data Facility (MPCDF) formerly known as
-!>      Rechenzentrum Garching der Max-Planck-Gesellschaft (RZG),
-!>    - Bergische Universität Wuppertal, Lehrstuhl für angewandte
-!>      Informatik,
-!>    - Technische Universität München, Lehrstuhl für Informatik mit
-!>      Schwerpunkt Wissenschaftliches Rechnen ,
-!>    - Fritz-Haber-Institut, Berlin, Abt. Theorie,
-!>    - Max-Plack-Institut für Mathematik in den Naturwissenschaften,
-!>      Leipzig, Abt. Komplexe Strukutren in Biologie und Kognition,
-!>      and
-!>    - IBM Deutschland GmbH
-!>
-!>   Some parts and enhancements of ELPA have been contributed and authored
-!>   by the Intel Corporation which is not part of the ELPA consortium.
-!>
-!>   Contributions to the ELPA source have been authored by (in alphabetical order):
-!>
-!> \author T. Auckenthaler, Volker Blum, A. Heinecke, L. Huedepohl, R. Johanni, Werner Jürgens, and A. Marek
-
 !> \brief Fortran module which provides the routines to use the one-stage ELPA solver
 module ELPA1
+
   use, intrinsic :: iso_c_binding
   use elpa_utilities
   use elpa1_auxiliary
 
   implicit none
 
-! The following routines are public:
   private
 
-  public :: get_elpa_row_col_comms               !< old, deprecated interface, will be deleted. Use elpa_get_communicators instead
-  public :: get_elpa_communicators               !< Sets MPI row/col communicators; OLD and deprecated interface, will be deleted. Use elpa_get_communicators instead
-  public :: elpa_get_communicators               !< Sets MPI row/col communicators as needed by ELPA
+  public :: get_elpa_row_col_comms
+  public :: get_elpa_communicators
+  public :: elpa_get_communicators
 
-  public :: solve_evp_real                       !< old, deprecated interface: Driver routine for real double-precision eigenvalue problem DO NOT USE. Will be deleted at some point
-  public :: elpa_solve_evp_real_1stage_double    !< Driver routine for real double-precision 1-stage eigenvalue problem
+  public :: solve_evp_real
+  public :: elpa_solve_evp_real_1stage_double
 
-  public :: solve_evp_real_1stage                !< Driver routine for real double-precision eigenvalue problem
-  public :: solve_evp_real_1stage_double         !< Driver routine for real double-precision eigenvalue problem
+  public :: solve_evp_real_1stage
+  public :: solve_evp_real_1stage_double
 
-  public :: solve_evp_complex                    !< old, deprecated interface:  Driver routine for complex double-precision eigenvalue problem DO NOT USE. Will be deleted at some point
-  public :: elpa_solve_evp_complex_1stage_double !< Driver routine for complex 1-stage eigenvalue problem
-  public :: solve_evp_complex_1stage             !< Driver routine for complex double-precision eigenvalue problem
-  public :: solve_evp_complex_1stage_double      !< Driver routine for complex double-precision eigenvalue problem
+  public :: solve_evp_complex
+  public :: elpa_solve_evp_complex_1stage_double
+  public :: solve_evp_complex_1stage
+  public :: solve_evp_complex_1stage_double
 
 ! imported from elpa1_auxilliary
 
-  public :: elpa_mult_at_b_real_double       !< Multiply double-precision real matrices A**T * B
-  public :: mult_at_b_real                   !< old, deprecated interface to multiply double-precision real matrices A**T * B  DO NOT USE
+  public :: elpa_mult_at_b_real_double
+  public :: mult_at_b_real
 
-  public :: elpa_mult_ah_b_complex_double    !< Multiply double-precision complex matrices A**H * B
-  public :: mult_ah_b_complex                !< old, deprecated interface to multiply double-preicion complex matrices A**H * B  DO NOT USE
+  public :: elpa_mult_ah_b_complex_double
+  public :: mult_ah_b_complex
 
-  public :: elpa_invert_trm_real_double      !< Invert double-precision real triangular matrix
-  public :: invert_trm_real                  !< old, deprecated interface to invert double-precision real triangular matrix  DO NOT USE
+  public :: elpa_invert_trm_real_double
+  public :: invert_trm_real
 
-  public :: elpa_invert_trm_complex_double   !< Invert double-precision complex triangular matrix
-  public :: invert_trm_complex               !< old, deprecated interface to invert double-precision complex triangular matrix  DO NOT USE
+  public :: elpa_invert_trm_complex_double
+  public :: invert_trm_complex
 
-  public :: elpa_cholesky_real_double        !< Cholesky factorization of a double-precision real matrix
-  public :: cholesky_real                    !< old, deprecated interface to do Cholesky factorization of a double-precision real matrix  DO NOT USE
+  public :: elpa_cholesky_real_double
+  public :: cholesky_real
 
-  public :: elpa_cholesky_complex_double     !< Cholesky factorization of a double-precision complex matrix
-  public :: cholesky_complex                 !< old, deprecated interface to do Cholesky factorization of a double-precision complex matrix  DO NOT USE
+  public :: elpa_cholesky_complex_double
+  public :: cholesky_complex
 
-  public :: elpa_solve_tridi_double          !< Solve a double-precision tridiagonal eigensystem with divide and conquer method
+  public :: elpa_solve_tridi_double
 
 ! Timing results, set by every call to solve_evp_xxx
 
-  real(kind=c_double), public :: time_evp_fwd    !< time for forward transformations (to tridiagonal form)
-  real(kind=c_double), public :: time_evp_solve  !< time for solving the tridiagonal system
-  real(kind=c_double), public :: time_evp_back   !< time for back transformations of eigenvectors
+  real(kind=c_double), public :: time_evp_fwd
+  real(kind=c_double), public :: time_evp_solve
+  real(kind=c_double), public :: time_evp_back
 
-  logical, public :: elpa_print_times = .false. !< Set elpa_print_times to .true. for explicit timing outputs
+  logical, public :: elpa_print_times = .false.
 
-!> \brief get_elpa_row_col_comms:  old, deprecated interface, will be deleted. Use "elpa_get_communicators"
-!> \details
-!> The interface and variable definition is the same as in "elpa_get_communicators"
-!> \param  mpi_comm_global   Global communicator for the calculations (in)
-!>
-!> \param  my_prow           Row coordinate of the calling process in the process grid (in)
-!>
-!> \param  my_pcol           Column coordinate of the calling process in the process grid (in)
-!>
-!> \param  mpi_comm_rows     Communicator for communicating within rows of processes (out)
-!>
-!> \param  mpi_comm_cols     Communicator for communicating within columns of processes (out)
-!> \result mpierr            integer error value of mpi_comm_split function
   interface get_elpa_row_col_comms
     module procedure elpa_get_communicators
   end interface
 
-!> \brief elpa_get_communicators:  Fortran interface to set the communicators needed by ELPA
-!> \details
-!> The interface and variable definition is the same as in "elpa_get_communicators"
-!> \param  mpi_comm_global   Global communicator for the calculations (in)
-!>
-!> \param  my_prow           Row coordinate of the calling process in the process grid (in)
-!>
-!> \param  my_pcol           Column coordinate of the calling process in the process grid (in)
-!>
-!> \param  mpi_comm_rows     Communicator for communicating within rows of processes (out)
-!>
-!> \param  mpi_comm_cols     Communicator for communicating within columns of processes (out)
-!> \result mpierr            integer error value of mpi_comm_split function
-
   interface get_elpa_communicators
     module procedure elpa_get_communicators
   end interface
-
-!> \brief solve_evp_real: old, deprecated Fortran function to solve the real eigenvalue problem with 1-stage solver. Will be deleted at some point. Better use "solve_evp_real_1stage" or "elpa_solve_evp_real"
-!>
-!> \details
-!>  The interface and variable definition is the same as in "elpa_solve_evp_real_1stage_double"
-!  Parameters
-!
-!> \param  na                   Order of matrix a
-!>
-!> \param  nev                  Number of eigenvalues needed.
-!>                              The smallest nev eigenvalues/eigenvectors are calculated.
-!>
-!> \param  a(lda,matrixCols)    Distributed matrix for which eigenvalues are to be computed.
-!>                              Distribution is like in Scalapack.
-!>                              The full matrix must be set (not only one half like in scalapack).
-!>                              Destroyed on exit (upper and lower half).
-!>
-!>  \param lda                  Leading dimension of a
-!>
-!>  \param ev(na)               On output: eigenvalues of a, every processor gets the complete set
-!>
-!>  \param q(ldq,matrixCols)    On output: Eigenvectors of a
-!>                              Distribution is like in Scalapack.
-!>                              Must be always dimensioned to the full size (corresponding to (na,na))
-!>                              even if only a part of the eigenvalues is needed.
-!>
-!>  \param ldq                  Leading dimension of q
-!>
-!>  \param nblk                 blocksize of cyclic distribution, must be the same in both directions!
-!>
-!>  \param matrixCols           distributed number of matrix columns
-!>
-!>  \param mpi_comm_rows        MPI-Communicator for rows
-!>  \param mpi_comm_cols        MPI-Communicator for columns
-!>
-!>  \result                     success
 
   interface solve_evp_real
     module procedure elpa_solve_evp_real_1stage_double
@@ -212,157 +121,18 @@ module ELPA1
     module procedure elpa_solve_evp_real_1stage_double
   end interface
 
-!> \brief elpa_solve_evp_real_1stage_double: Fortran function to solve the real eigenvalue problem with 1-stage solver. This is called by "elpa_solve_evp_real"
-!>
-!  Parameters
-!
-!> \param  na                   Order of matrix a
-!>
-!> \param  nev                  Number of eigenvalues needed.
-!>                              The smallest nev eigenvalues/eigenvectors are calculated.
-!>
-!> \param  a(lda,matrixCols)    Distributed matrix for which eigenvalues are to be computed.
-!>                              Distribution is like in Scalapack.
-!>                              The full matrix must be set (not only one half like in scalapack).
-!>                              Destroyed on exit (upper and lower half).
-!>
-!>  \param lda                  Leading dimension of a
-!>
-!>  \param ev(na)               On output: eigenvalues of a, every processor gets the complete set
-!>
-!>  \param q(ldq,matrixCols)    On output: Eigenvectors of a
-!>                              Distribution is like in Scalapack.
-!>                              Must be always dimensioned to the full size (corresponding to (na,na))
-!>                              even if only a part of the eigenvalues is needed.
-!>
-!>  \param ldq                  Leading dimension of q
-!>
-!>  \param nblk                 blocksize of cyclic distribution, must be the same in both directions!
-!>
-!>  \param matrixCols           distributed number of matrix columns
-!>
-!>  \param mpi_comm_rows        MPI-Communicator for rows
-!>  \param mpi_comm_cols        MPI-Communicator for columns
-!>
-!>  \result                     success
-!interface elpa_solve_evp_real_1stage_double
-! module procedure solve_evp_real_1stage_double
-!end interface
-
   interface solve_evp_real_1stage_double
     module procedure elpa_solve_evp_real_1stage_double
   end interface
 
-!> \brief solve_evp_complex: old, deprecated Fortran function to solve the complex eigenvalue problem with 1-stage solver. will be deleted at some point. Better use "solve_evp_complex_1stage" or "elpa_solve_evp_complex"
-!>
-!> \details
-!> The interface and variable definition is the same as in "elpa_solve_evp_complex_1stage_double"
-!  Parameters
-!
-!> \param  na                   Order of matrix a
-!>
-!> \param  nev                  Number of eigenvalues needed.
-!>                              The smallest nev eigenvalues/eigenvectors are calculated.
-!>
-!> \param  a(lda,matrixCols)    Distributed matrix for which eigenvalues are to be computed.
-!>                              Distribution is like in Scalapack.
-!>                              The full matrix must be set (not only one half like in scalapack).
-!>                              Destroyed on exit (upper and lower half).
-!>
-!>  \param lda                  Leading dimension of a
-!>
-!>  \param ev(na)               On output: eigenvalues of a, every processor gets the complete set
-!>
-!>  \param q(ldq,matrixCols)    On output: Eigenvectors of a
-!>                              Distribution is like in Scalapack.
-!>                              Must be always dimensioned to the full size (corresponding to (na,na))
-!>                              even if only a part of the eigenvalues is needed.
-!>
-!>  \param ldq                  Leading dimension of q
-!>
-!>  \param nblk                 blocksize of cyclic distribution, must be the same in both directions!
-!>
-!>  \param matrixCols           distributed number of matrix columns
-!>
-!>  \param mpi_comm_rows        MPI-Communicator for rows
-!>  \param mpi_comm_cols        MPI-Communicator for columns
-!>
-!>  \result                     success
   interface solve_evp_complex
     module procedure elpa_solve_evp_complex_1stage_double
   end interface
-!> \brief solve_evp_complex: old, deprecated Fortran function to solve the complex eigenvalue problem with 1-stage solver. will be deleted at some point. Better use "solve_evp_complex_1stage" or "elpa_solve_evp_complex"
-!>
-!> \details
-!> The interface and variable definition is the same as in "elpa_solve_evp_complex_1stage_double"
-!  Parameters
-!
-!> \param  na                   Order of matrix a
-!>
-!> \param  nev                  Number of eigenvalues needed.
-!>                              The smallest nev eigenvalues/eigenvectors are calculated.
-!>
-!> \param  a(lda,matrixCols)    Distributed matrix for which eigenvalues are to be computed.
-!>                              Distribution is like in Scalapack.
-!>                              The full matrix must be set (not only one half like in scalapack).
-!>                              Destroyed on exit (upper and lower half).
-!>
-!>  \param lda                  Leading dimension of a
-!>
-!>  \param ev(na)               On output: eigenvalues of a, every processor gets the complete set
-!>
-!>  \param q(ldq,matrixCols)    On output: Eigenvectors of a
-!>                              Distribution is like in Scalapack.
-!>                              Must be always dimensioned to the full size (corresponding to (na,na))
-!>                              even if only a part of the eigenvalues is needed.
-!>
-!>  \param ldq                  Leading dimension of q
-!>
-!>  \param nblk                 blocksize of cyclic distribution, must be the same in both directions!
-!>
-!>  \param matrixCols           distributed number of matrix columns
-!>
-!>  \param mpi_comm_rows        MPI-Communicator for rows
-!>  \param mpi_comm_cols        MPI-Communicator for columns
-!>
-!>  \result                     success
+
   interface solve_evp_complex_1stage
     module procedure elpa_solve_evp_complex_1stage_double
   end interface
 
-!> \brief solve_evp_complex_1stage_double: Fortran function to solve the complex eigenvalue problem with 1-stage solver. This is called by "elpa_solve_evp_complex"
-!>
-!  Parameters
-!
-!> \param  na                   Order of matrix a
-!>
-!> \param  nev                  Number of eigenvalues needed.
-!>                              The smallest nev eigenvalues/eigenvectors are calculated.
-!>
-!> \param  a(lda,matrixCols)    Distributed matrix for which eigenvalues are to be computed.
-!>                              Distribution is like in Scalapack.
-!>                              The full matrix must be set (not only one half like in scalapack).
-!>                              Destroyed on exit (upper and lower half).
-!>
-!>  \param lda                  Leading dimension of a
-!>
-!>  \param ev(na)               On output: eigenvalues of a, every processor gets the complete set
-!>
-!>  \param q(ldq,matrixCols)    On output: Eigenvectors of a
-!>                              Distribution is like in Scalapack.
-!>                              Must be always dimensioned to the full size (corresponding to (na,na))
-!>                              even if only a part of the eigenvalues is needed.
-!>
-!>  \param ldq                  Leading dimension of q
-!>
-!>  \param nblk                 blocksize of cyclic distribution, must be the same in both directions!
-!>
-!>  \param matrixCols           distributed number of matrix columns
-!>
-!>  \param mpi_comm_rows        MPI-Communicator for rows
-!>  \param mpi_comm_cols        MPI-Communicator for columns
-!>
-!>  \result                     success
   interface solve_evp_complex_1stage_double
     module procedure elpa_solve_evp_complex_1stage_double
   end interface
@@ -389,23 +159,24 @@ contains
 !> \result mpierr            integer error value of mpi_comm_split function
 
 function elpa_get_communicators(mpi_comm_global, my_prow, my_pcol, mpi_comm_rows, mpi_comm_cols) result(mpierr)
-! use precision
-   use elpa_mpi
-   use, intrinsic :: iso_c_binding
-   implicit none
 
-   integer(kind=c_int), intent(in)  :: mpi_comm_global, my_prow, my_pcol
-   integer(kind=c_int), intent(out) :: mpi_comm_rows, mpi_comm_cols
+  use elpa_mpi
+  use, intrinsic :: iso_c_binding
 
-   integer(kind=c_int)              :: mpierr
+  implicit none
+
+  integer(kind=c_int), intent(in) :: mpi_comm_global, my_prow, my_pcol
+  integer(kind=c_int), intent(out) :: mpi_comm_rows, mpi_comm_cols
+
+  integer(kind=c_int) :: mpierr
 
 ! mpi_comm_rows is used for communicating WITHIN rows, i.e. all processes
 ! having the same column coordinate share one mpi_comm_rows.
 ! So the "color" for splitting is my_pcol and the "key" is my row coordinate.
 ! Analogous for mpi_comm_cols
 
-   call mpi_comm_split(mpi_comm_global,my_pcol,my_prow,mpi_comm_rows,mpierr)
-   call mpi_comm_split(mpi_comm_global,my_prow,my_pcol,mpi_comm_cols,mpierr)
+  call MPI_Comm_split(mpi_comm_global,my_pcol,my_prow,mpi_comm_rows,mpierr)
+  call MPI_Comm_split(mpi_comm_global,my_prow,my_pcol,mpi_comm_cols,mpierr)
 
 end function elpa_get_communicators
 
@@ -436,91 +207,77 @@ end function elpa_get_communicators
 !>
 !>  \param nblk                 blocksize of cyclic distribution, must be the same in both directions!
 !>
-!>  \param matrixCols           distributed number of matrix columns
-!>
 !>  \param mpi_comm_rows        MPI-Communicator for rows
 !>  \param mpi_comm_cols        MPI-Communicator for columns
 !>  \param mpi_comm_all         global MPI communicator
-!>  \param useGPU              use GPU version (.true. or .false.)
 !>
 !>  \result                     success
 
 function elpa_solve_evp_real_1stage_double(na, nev, a, lda, ev, q, ldq, nblk, &
-                                           matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm_all, &
-                                           useGPU) result(success)
-   use precision
+  mpi_comm_rows, mpi_comm_cols, mpi_comm_all) result(success)
 
-   use, intrinsic :: iso_c_binding
-   use elpa_mpi
-   use elpa1_compute
-   implicit none
+  use precision
+  use, intrinsic :: iso_c_binding
+  use elpa_mpi
+  use elpa1_compute
 
-   integer(kind=c_int), intent(in)              :: na, nev, lda, ldq, nblk, matrixCols, mpi_comm_rows, &
-                                                   mpi_comm_cols, mpi_comm_all
-   real(kind=c_double), intent(out)        :: ev(na)
+  implicit none
 
-   real(kind=c_double), intent(inout)      :: a(lda,*)
-   real(kind=c_double), intent(out)        :: q(ldq,*)
+  integer(kind=c_int), intent(in) :: na, nev, lda, ldq, nblk, mpi_comm_rows, &
+                                     mpi_comm_cols, mpi_comm_all
+  real(kind=c_double), intent(out) :: ev(na)
 
-   logical, intent(in), optional                :: useGPU
-   logical                                      :: success
+  real(kind=c_double), intent(inout) :: a(lda,*)
+  real(kind=c_double), intent(out) :: q(ldq,*)
 
-   logical                                      :: do_useGPU
+  logical :: success
 
-   integer(kind=c_int)                          :: my_pe, n_pes, my_prow, my_pcol, mpierr
-   real(kind=c_double), allocatable        :: e(:), tau(:)
-   real(kind=c_double)                          :: ttt0, ttt1 ! MPI_WTIME always needs double
-   logical, save                                :: firstCall = .true.
-   logical                                      :: wantDebug
+  integer(kind=c_int) :: my_pe, n_pes, my_prow, my_pcol, mpierr
+  real(kind=c_double), allocatable :: e(:), tau(:)
+  real(kind=c_double) :: ttt0, ttt1 ! MPI_WTIME always needs double
 
-   call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
-   call mpi_comm_size(mpi_comm_all,n_pes,mpierr)
+  call MPI_Comm_rank(mpi_comm_all,my_pe,mpierr)
+  call MPI_Comm_size(mpi_comm_all,n_pes,mpierr)
 
-   call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
-   call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
+  call MPI_Comm_rank(mpi_comm_rows,my_prow,mpierr)
+  call MPI_Comm_rank(mpi_comm_cols,my_pcol,mpierr)
 
-   success = .true.
+  success = .true.
 
-   wantDebug = .false.
-   if (firstCall) then
-! are debug messages desired?
-     wantDebug = debug_messages_via_environment_variable()
-     firstCall = .false.
-   endif
+  allocate(e(na), tau(na))
 
-   do_useGPU      = .false.
+  ttt0 = MPI_Wtime()
 
-   allocate(e(na), tau(na))
+  call tridiag_real_double(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, ev, e, tau)
 
-   ttt0 = MPI_Wtime()
+  ttt1 = MPI_Wtime()
+  if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
+    write(use_unit,"(A,F10.3,A)") "  | Time full => tridiagonal    :",ttt1-ttt0," s"
+  endif
 
-   call tridiag_real_double(na, a, lda, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, ev, e, tau, do_useGPU)
+  ttt0 = MPI_Wtime()
 
-   ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(use_unit,"(A,F10.3,A)") "  | Time full => tridiagonal    :",ttt1-ttt0," s"
+  call solve_tridi_double(na, nev, ev, e, q, ldq, nblk, mpi_comm_rows, &
+       mpi_comm_cols, success)
 
-   ttt0 = MPI_Wtime()
+  if (.not.(success)) return
 
-   call solve_tridi_double(na, nev, ev, e, q, ldq, nblk, matrixCols, mpi_comm_rows, &
-                    mpi_comm_cols, wantDebug, success)
+  ttt1 = MPI_Wtime()
+  if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
+    write(use_unit,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
+  endif
 
-   if (.not.(success)) return
+  ttt0 = MPI_Wtime()
 
-   ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(use_unit,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
+  call trans_ev_real_double(na, nev, a, lda, tau, q, ldq, nblk, mpi_comm_rows, mpi_comm_cols)
 
-   ttt0 = MPI_Wtime()
+  ttt1 = MPI_Wtime()
 
-   call trans_ev_real_double(na, nev, a, lda, tau, q, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, do_useGPU)
+  if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
+    write(use_unit,"(A,F10.3,A)") "  | Time ev tridiagonal => full :",ttt1-ttt0," s"
+  endif
 
-   ttt1 = MPI_Wtime()
-
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(use_unit,"(A,F10.3,A)") "  | Time ev tridiagonal => full :",ttt1-ttt0," s"
-
-   deallocate(e, tau)
+  deallocate(e, tau)
 
 end function elpa_solve_evp_real_1stage_double
 
@@ -551,103 +308,88 @@ end function elpa_solve_evp_real_1stage_double
 !>
 !>  \param nblk                 blocksize of cyclic distribution, must be the same in both directions!
 !>
-!>  \param matrixCols           distributed number of matrix columns
-!>
 !>  \param mpi_comm_rows        MPI-Communicator for rows
 !>  \param mpi_comm_cols        MPI-Communicator for columns
 !>  \param mpi_comm_all         global MPI Communicator
-!>  \param useGPU              use GPU version (.true. or .false.)
 !>
 !>  \result                     success
 
-function elpa_solve_evp_complex_1stage_double(na, nev, a, lda, ev, q, ldq, nblk, matrixCols, &
-                                         mpi_comm_rows, mpi_comm_cols, mpi_comm_all, &
-                                         useGPU) result(success)
+function elpa_solve_evp_complex_1stage_double(na, nev, a, lda, ev, q, ldq, nblk, &
+  mpi_comm_rows, mpi_comm_cols, mpi_comm_all) result(success)
 
-   use precision
-   use, intrinsic :: iso_c_binding
-   use elpa_mpi
-   use elpa1_compute
-   implicit none
+  use precision
+  use, intrinsic :: iso_c_binding
+  use elpa_mpi
+  use elpa1_compute
 
-   integer(kind=c_int), intent(in)     :: na, nev, lda, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, mpi_comm_all
+  implicit none
 
-   complex(kind=c_double), intent(inout)   :: a(lda,*)
-   complex(kind=c_double), intent(out)     :: q(ldq,*)
+  integer(kind=c_int), intent(in) :: na, nev, lda, ldq, nblk, mpi_comm_rows, mpi_comm_cols, mpi_comm_all
 
-   real(kind=c_double), intent(out)           :: ev(na)
+  complex(kind=c_double), intent(inout) :: a(lda,*)
+  complex(kind=c_double), intent(out) :: q(ldq,*)
 
-   logical                                         :: success
-   logical, intent(in), optional                   :: useGPU
+  real(kind=c_double), intent(out) :: ev(na)
 
-   integer(kind=c_int)                             :: my_pe, n_pes, my_prow, my_pcol, np_rows, np_cols, mpierr
-   integer(kind=c_int)                             :: l_rows, l_cols, l_cols_nev
-   real(kind=c_double), allocatable           :: q_real(:,:), e(:)
-   complex(kind=c_double), allocatable     :: tau(:)
-   real(kind=c_double)                             :: ttt0, ttt1  ! MPI_WTIME always needs double
+  logical :: success
 
-   logical, save                                   :: firstCall = .true.
-   logical                                         :: wantDebug
+  integer(kind=c_int) :: my_pe, n_pes, my_prow, my_pcol, np_rows, np_cols, mpierr
+  integer(kind=c_int) :: l_rows, l_cols, l_cols_nev
+  real(kind=c_double), allocatable :: q_real(:,:), e(:)
+  complex(kind=c_double), allocatable :: tau(:)
+  real(kind=c_double) :: ttt0, ttt1 ! MPI_WTIME always needs double
 
-   logical                                         :: do_useGPU
+  call MPI_Comm_rank(mpi_comm_all,my_pe,mpierr)
+  call MPI_Comm_size(mpi_comm_all,n_pes,mpierr)
 
-   call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
-   call mpi_comm_size(mpi_comm_all,n_pes,mpierr)
+  call MPI_Comm_rank(mpi_comm_rows,my_prow,mpierr)
+  call MPI_Comm_size(mpi_comm_rows,np_rows,mpierr)
+  call MPI_Comm_rank(mpi_comm_cols,my_pcol,mpierr)
+  call MPI_Comm_size(mpi_comm_cols,np_cols,mpierr)
 
-   call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
-   call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
-   call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
-   call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
+  success = .true.
 
-   success = .true.
+  l_rows = local_index(na, my_prow, np_rows, nblk, -1) ! Local rows of a and q
+  l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local columns of q
 
-   wantDebug = .false.
-   if (firstCall) then
-! are debug messages desired?
-     wantDebug = debug_messages_via_environment_variable()
-     firstCall = .false.
-   endif
+  l_cols_nev = local_index(nev, my_pcol, np_cols, nblk, -1) ! Local columns corresponding to nev
 
-   do_useGPU      = .false.
+  allocate(e(na), tau(na))
+  allocate(q_real(l_rows,l_cols))
 
-   l_rows = local_index(na, my_prow, np_rows, nblk, -1) ! Local rows of a and q
-   l_cols = local_index(na, my_pcol, np_cols, nblk, -1) ! Local columns of q
+  ttt0 = MPI_Wtime()
 
-   l_cols_nev = local_index(nev, my_pcol, np_cols, nblk, -1) ! Local columns corresponding to nev
+  call tridiag_complex_double(na, a, lda, nblk, mpi_comm_rows, mpi_comm_cols, ev, e, tau)
 
-   allocate(e(na), tau(na))
-   allocate(q_real(l_rows,l_cols))
+  ttt1 = MPI_Wtime()
+  if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
+    write(use_unit,"(A,F10.3,A)") "  | Time full => tridiagonal    :",ttt1-ttt0," s"
+  endif
 
-   ttt0 = MPI_Wtime()
+  ttt0 = MPI_Wtime()
 
-   call tridiag_complex_double(na, a, lda, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, ev, e, tau, do_useGPU)
+  call solve_tridi_double(na, nev, ev, e, q_real, l_rows, nblk, mpi_comm_rows, &
+       mpi_comm_cols, success)
 
-   ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(use_unit,"(A,F10.3,A)") "  | Time full => tridiagonal    :",ttt1-ttt0," s"
+  if (.not.(success)) return
 
-   ttt0 = MPI_Wtime()
+  ttt1 = MPI_Wtime()
+  if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
+    write(use_unit,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
+  endif
 
-   call solve_tridi_double(na, nev, ev, e, q_real, l_rows, nblk, matrixCols, mpi_comm_rows, &
-                    mpi_comm_cols, wantDebug, success)
+  ttt0 = MPI_Wtime()
+  q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
 
-   if (.not.(success)) return
+  call trans_ev_complex_double(na, nev, a, lda, tau, q, ldq, nblk, mpi_comm_rows, mpi_comm_cols)
 
-   ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(use_unit,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
+  ttt1 = MPI_Wtime()
+  if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
+    write(use_unit,"(A,F10.3,A)") "  | Time ev tridiagonal => full :",ttt1-ttt0," s"
+  endif
 
-   ttt0 = MPI_Wtime()
-   q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
-
-   call trans_ev_complex_double(na, nev, a, lda, tau, q, ldq, nblk, matrixCols, mpi_comm_rows, mpi_comm_cols, do_useGPU)
-
-   ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
-      write(use_unit,"(A,F10.3,A)") "  | Time ev tridiagonal => full :",ttt1-ttt0," s"
-
-   deallocate(q_real)
-   deallocate(e, tau)
+  deallocate(q_real)
+  deallocate(e, tau)
 
 end function elpa_solve_evp_complex_1stage_double
 

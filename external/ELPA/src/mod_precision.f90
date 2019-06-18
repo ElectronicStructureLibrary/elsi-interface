@@ -41,13 +41,16 @@
 ! This file was written by A. Marek, MPCDF
 
 module precision
+
   use, intrinsic :: iso_c_binding, only : C_FLOAT, C_DOUBLE, C_INT32_T, C_INT64_T, C_FLOAT
 
   implicit none
-  integer, parameter :: rk8  = C_DOUBLE
-  integer, parameter :: rk4  = C_FLOAT
-  integer, parameter :: ck8  = C_DOUBLE
-  integer, parameter :: ck4  = C_FLOAT
-  integer, parameter :: ik  = C_INT32_T
+
+  integer, parameter :: rk8 = C_DOUBLE
+  integer, parameter :: rk4 = C_FLOAT
+  integer, parameter :: ck8 = C_DOUBLE
+  integer, parameter :: ck4 = C_FLOAT
+  integer, parameter :: ik = C_INT32_T
   integer, parameter :: lik = C_INT64_T
+
 end module precision

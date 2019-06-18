@@ -51,14 +51,14 @@ module ELPA_utilities
 
   implicit none
 
-  private ! By default, all routines contained are private
+  private
 
-  public :: debug_messages_via_environment_variable, error_unit, use_unit
+  public :: error_unit, use_unit
   public :: check_alloc
   public :: map_global_array_index_to_local_index
   public :: pcol, prow
-  public :: local_index                ! Get local index of a block cyclic distributed matrix
-  public :: least_common_multiple      ! Get least common multiple
+  public :: local_index
+  public :: least_common_multiple
 
   integer, parameter :: error_unit = 0
   integer, parameter :: use_unit = 6
@@ -66,88 +66,79 @@ module ELPA_utilities
 !******
   contains
 
-   function debug_messages_via_environment_variable() result(isSet)
-
-     use precision
-     implicit none
-     logical              :: isSet
-     CHARACTER(len=255)   :: ELPA_DEBUG_MESSAGES
-
-     isSet = .false.
-
-     if (trim(ELPA_DEBUG_MESSAGES) .eq. "yes") then
-       isSet = .true.
-     endif
-     if (trim(ELPA_DEBUG_MESSAGES) .eq. "no") then
-       isSet = .true.
-     endif
-
-   end function debug_messages_via_environment_variable
-
-!-------------------------------------------------------------------------------
-
 !Processor col for global col number
   pure function pcol(global_col, nblk, np_cols) result(local_col)
+
     use precision
+
     implicit none
+
     integer(kind=ik), intent(in) :: global_col, nblk, np_cols
-    integer(kind=ik)             :: local_col
-    local_col = MOD((global_col-1)/nblk,np_cols)
+    integer(kind=ik) :: local_col
+
+    local_col = mod((global_col-1)/nblk,np_cols)
+
   end function
 
 !-------------------------------------------------------------------------------
 
 !Processor row for global row number
   pure function prow(global_row, nblk, np_rows) result(local_row)
+
     use precision
+
     implicit none
+
     integer(kind=ik), intent(in) :: global_row, nblk, np_rows
-    integer(kind=ik)             :: local_row
-    local_row = MOD((global_row-1)/nblk,np_rows)
+    integer(kind=ik) :: local_row
+
+    local_row = mod((global_row-1)/nblk,np_rows)
+
   end function
 
 !-------------------------------------------------------------------------------
 
- function map_global_array_index_to_local_index(iGLobal, jGlobal, iLocal, jLocal , nblk, np_rows, np_cols, my_prow, my_pcol) &
-   result(possible)
-   use precision
+  function map_global_array_index_to_local_index(iGLobal, jGlobal, iLocal, jLocal , nblk, np_rows, np_cols, my_prow, my_pcol) &
+    result(possible)
 
-   implicit none
+    use precision
 
-   integer(kind=ik)              :: pi, pj, li, lj, xi, xj
-   integer(kind=ik), intent(in)  :: iGlobal, jGlobal, nblk, np_rows, np_cols, my_prow, my_pcol
-   integer(kind=ik), intent(out) :: iLocal, jLocal
-   logical                       :: possible
+    implicit none
 
-   possible = .true.
-   iLocal = 0
-   jLocal = 0
+    integer(kind=ik) :: pi, pj, li, lj, xi, xj
+    integer(kind=ik), intent(in) :: iGlobal, jGlobal, nblk, np_rows, np_cols, my_prow, my_pcol
+    integer(kind=ik), intent(out) :: iLocal, jLocal
+    logical :: possible
 
-   pi = prow(iGlobal, nblk, np_rows)
+    possible = .true.
+    iLocal = 0
+    jLocal = 0
 
-   if (my_prow .ne. pi) then
-     possible = .false.
-     return
-   endif
+    pi = prow(iGlobal, nblk, np_rows)
 
-   pj = pcol(jGlobal, nblk, np_cols)
+    if (my_prow .ne. pi) then
+      possible = .false.
+      return
+    endif
 
-   if (my_pcol .ne. pj) then
-     possible = .false.
-     return
-   endif
-   li = (iGlobal-1)/(np_rows*nblk) ! block number for rows
-   lj = (jGlobal-1)/(np_cols*nblk) ! block number for columns
+    pj = pcol(jGlobal, nblk, np_cols)
 
-   xi = mod( (iGlobal-1),nblk)+1   ! offset in block li
-   xj = mod( (jGlobal-1),nblk)+1   ! offset in block lj
+    if (my_pcol .ne. pj) then
+      possible = .false.
+      return
+    endif
+    li = (iGlobal-1)/(np_rows*nblk) ! block number for rows
+    lj = (jGlobal-1)/(np_cols*nblk) ! block number for columns
 
-   iLocal = li * nblk + xi
-   jLocal = lj * nblk + xj
+    xi = mod((iGlobal-1),nblk)+1 ! offset in block li
+    xj = mod((jGlobal-1),nblk)+1 ! offset in block lj
 
- end function
+    iLocal = li * nblk + xi
+    jLocal = lj * nblk + xj
 
- integer function local_index(idx, my_proc, num_procs, nblk, iflag)
+  end function
+
+  integer function local_index(idx, my_proc, num_procs, nblk, iflag)
 
 !-------------------------------------------------------------------------------
 !  local_index: returns the local index for a given global index
@@ -169,70 +160,75 @@ module ELPA_utilities
 !              iflag==0 : Return 0
 !              iflag> 0 : Return next local index after that row/col
 !-------------------------------------------------------------------------------
+
     use precision
+
     implicit none
 
     integer(kind=ik) :: idx, my_proc, num_procs, nblk, iflag
 
     integer(kind=ik) :: iblk
 
-    iblk = (idx-1)/nblk  ! global block number, 0 based
+    iblk = (idx-1)/nblk ! global block number, 0 based
 
     if (mod(iblk,num_procs) == my_proc) then
 
 ! block is local, always return local row/col number
 
-    local_index = (iblk/num_procs)*nblk + mod(idx-1,nblk) + 1
+      local_index = (iblk/num_procs)*nblk + mod(idx-1,nblk) + 1
 
     else
 
 ! non local block
 
-    if (iflag == 0) then
+      if (iflag == 0) then
 
         local_index = 0
 
-    else
+      else
 
         local_index = (iblk/num_procs)*nblk
 
         if (mod(iblk,num_procs) > my_proc) local_index = local_index + nblk
 
         if (iflag>0) local_index = local_index + 1
-    endif
+      endif
     endif
 
- end function local_index
+  end function local_index
 
- integer function least_common_multiple(a, b)
+  integer function least_common_multiple(a, b)
 
 ! Returns the least common multiple of a and b
 ! There may be more efficient ways to do this, we use the most simple approach
+
     use precision
+
     implicit none
+
     integer(kind=ik), intent(in) :: a, b
 
     do least_common_multiple = a, a*(b-1), a
-    if(mod(least_common_multiple,b)==0) exit
+      if(mod(least_common_multiple,b)==0) exit
     enddo
 ! if the loop is left regularly, least_common_multiple = a*b
 
- end function least_common_multiple
+  end function least_common_multiple
 
- subroutine check_alloc(function_name, variable_name, istat, errorMessage)
+  subroutine check_alloc(function_name, variable_name, istat, errorMessage)
     use precision
 
     implicit none
 
-    character(len=*), intent(in)    :: function_name
-    character(len=*), intent(in)    :: variable_name
-    integer(kind=ik), intent(in)    :: istat
-    character(len=*), intent(in)    :: errorMessage
+    character(len=*), intent(in) :: function_name
+    character(len=*), intent(in) :: variable_name
+    integer(kind=ik), intent(in) :: istat
+    character(len=*), intent(in) :: errorMessage
 
     if (istat .ne. 0) then
-      print *, function_name, ": error when allocating ", variable_name, " ", errorMessage
+      write(error_unit,*) function_name, ": error when allocating ", variable_name, " ", errorMessage
       stop
     endif
- end subroutine
+  end subroutine
 
 end module ELPA_utilities

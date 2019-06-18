@@ -59,8 +59,6 @@
 
 module CHECK_PD
 
-! Version 1.1.2, 2011-02-21
-
   use elpa_utilities
   use elpa1, only : elpa_print_times
   use elpa2_utilities
@@ -68,18 +66,15 @@ module CHECK_PD
 
   implicit none
 
-  PRIVATE ! By default, all routines contained are private
-
-  ! The following routines are public:
+  private
 
   public :: elpa_check_pd_real_double
   public :: elpa_check_pd_complex_double
 
 contains
 
-function elpa_check_pd_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
-   mpi_comm_rows,mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing)&
-   result(success)
+function elpa_check_pd_real_double(na,nev,a,lda,ev,q,ldq,nblk,mpi_comm_rows,&
+   mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing) result(success)
 
    use elpa_utilities
    use elpa1
@@ -91,7 +86,7 @@ function elpa_check_pd_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
    implicit none
 
-   integer(kind=c_int), intent(in)    :: na,nev,lda,ldq,matrixCols,nblk
+   integer(kind=c_int), intent(in)    :: na,nev,lda,ldq,nblk
    integer(kind=c_int), intent(in)    :: mpi_comm_rows,mpi_comm_cols,mpi_comm_all
    real(kind=c_double), intent(inout) :: ev(na)
    real(kind=c_double), intent(inout) :: a(lda,*),q(ldq,*)
@@ -103,27 +98,19 @@ function elpa_check_pd_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    integer(kind=c_int)                :: my_pe,n_pes,my_prow,my_pcol,np_rows,np_cols,mpierr
    integer(kind=c_int)                :: nbw, num_blocks
    real(kind=c_double), allocatable   :: tmat(:,:,:), e(:)
-   integer(kind=c_intptr_t)           :: tmat_dev, q_dev, a_dev
    real(kind=c_double)                :: ttt0, ttt1
    integer(kind=c_int)                :: i
    logical                            :: success
-   logical                            :: wantDebug
    integer(kind=c_int)                :: istat
-   logical                            :: do_useGPU,do_useGPU_4
-   logical                            :: useQRActual
 
-   call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
-   call mpi_comm_size(mpi_comm_all,n_pes,mpierr)
-   call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
-   call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
-   call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
-   call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
+   call MPI_Comm_rank(mpi_comm_all,my_pe,mpierr)
+   call MPI_Comm_size(mpi_comm_all,n_pes,mpierr)
+   call MPI_Comm_rank(mpi_comm_rows,my_prow,mpierr)
+   call MPI_Comm_size(mpi_comm_rows,np_rows,mpierr)
+   call MPI_Comm_rank(mpi_comm_cols,my_pcol,mpierr)
+   call MPI_Comm_size(mpi_comm_cols,np_cols,mpierr)
 
-   success     = .true.
-   wantDebug   = .false.
-   useQRActual = .false.
-   do_useGPU   = .false.
-   do_useGPU_4 = .false.
+   success = .true.
 
    THIS_REAL_ELPA_KERNEL = DEFAULT_REAL_ELPA_KERNEL
 
@@ -134,45 +121,47 @@ function elpa_check_pd_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
    allocate(tmat(nbw,nbw,num_blocks),stat=istat)
    if(istat .ne. 0) then
-      print *," ERROR: Cannot allocate tmat. Exiting.."
+      write(error_unit,*) " ERROR: Cannot allocate tmat. Exiting.."
       stop
    endif
 
    ! Reduction full -> band
    ttt0 = MPI_Wtime()
-   call bandred_real_double(na,a,a_dev,lda,nblk,nbw,matrixCols,num_blocks,&
-        mpi_comm_rows,mpi_comm_cols,tmat,tmat_dev,wantDebug,do_useGPU,success,&
-        useQRActual)
+   call bandred_real_double(na,a,lda,nblk,nbw,mpi_comm_rows,mpi_comm_cols,&
+        tmat,success)
    if(.not.(success)) return
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
       write(use_unit,"(A,F10.3,A)") "  | Time full => band           :",ttt1-ttt0," s"
+   endif
 
    ! Reduction band -> tridiagonal
    allocate(e(na),stat=istat)
    if(istat .ne. 0) then
-      print *," ERROR: Cannot allocate e. Exiting.."
+      write(error_unit,*) " ERROR: Cannot allocate e. Exiting.."
       stop
    endif
 
    ttt0 = MPI_Wtime()
-   call tridiag_band_real_double(na,nbw,nblk,a,lda,ev,e,matrixCols,&
-        hh_trans_real,mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
+   call tridiag_band_real_double(na,nbw,nblk,a,lda,ev,e,hh_trans_real,&
+        mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
       write(use_unit,"(A,F10.3,A)") "  | Time band => tridiagonal    :",ttt1-ttt0," s"
+   endif
 
-   call mpi_bcast(ev,na,MPI_REAL8,0,mpi_comm_all,mpierr)
-   call mpi_bcast(e,na,MPI_REAL8,0,mpi_comm_all,mpierr)
+   call MPI_Bcast(ev,na,MPI_REAL8,0,mpi_comm_all,mpierr)
+   call MPI_Bcast(e,na,MPI_REAL8,0,mpi_comm_all,mpierr)
 
    ! Solve tridiagonal system
    ttt0 = MPI_Wtime()
-   call solve_tridi_double(na,nev,ev,e,q,ldq,nblk,matrixCols,mpi_comm_rows,&
-        mpi_comm_cols,wantDebug,success)
+   call solve_tridi_double(na,nev,ev,e,q,ldq,nblk,mpi_comm_rows,mpi_comm_cols,&
+        success)
    if(.not.success) return
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
       write(use_unit,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
+   endif
 
    deallocate(e)
 
@@ -187,24 +176,25 @@ function elpa_check_pd_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    if(n_nonsing < na) then
       ! Back-transform 1
       ttt0 = MPI_Wtime()
-      call trans_ev_tridi_to_band_real_double(na,nev,nblk,nbw,q,q_dev,ldq,&
-           matrixCols,hh_trans_real,mpi_comm_rows,mpi_comm_cols,wantDebug,&
-           do_useGPU_4,success,THIS_REAL_ELPA_KERNEL)
+      call trans_ev_tridi_to_band_real_double(na,nev,nblk,nbw,q,ldq,&
+           hh_trans_real,mpi_comm_rows,mpi_comm_cols,success,&
+           THIS_REAL_ELPA_KERNEL)
       if(.not.success) return
       ttt1 = MPI_Wtime()
-      if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
          write(use_unit,"(A,F10.3,A)") "  | Time ev tridiagonal => band :",ttt1-ttt0," s"
+      endif
 
       deallocate(hh_trans_real)
 
       ! Back-transform 2
       ttt0 = MPI_Wtime()
-      call trans_ev_band_to_full_real_double(na,nev,nblk,nbw,a,a_dev,lda,tmat,&
-           tmat_dev,q,q_dev,ldq,matrixCols,num_blocks,mpi_comm_rows,&
-           mpi_comm_cols,do_useGPU,useQRActual)
+      call trans_ev_band_to_full_real_double(na,nev,nblk,nbw,a,lda,tmat,q,ldq,&
+           mpi_comm_rows,mpi_comm_cols)
       ttt1 = MPI_Wtime()
-      if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
          write(use_unit,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
+      endif
 
       deallocate(tmat)
    else
@@ -214,9 +204,8 @@ function elpa_check_pd_real_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
 end function
 
-function elpa_check_pd_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
-   mpi_comm_rows,mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing)&
-   result(success)
+function elpa_check_pd_complex_double(na,nev,a,lda,ev,q,ldq,nblk,mpi_comm_rows,&
+   mpi_comm_cols,mpi_comm_all,singular_tol,n_nonsing) result(success)
 
    use elpa_utilities
    use elpa1
@@ -228,7 +217,7 @@ function elpa_check_pd_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
    implicit none
 
-   integer(kind=c_int), intent(in)       :: na,nev,lda,ldq,nblk,matrixCols
+   integer(kind=c_int), intent(in)       :: na,nev,lda,ldq,nblk
    integer(kind=c_int), intent(in)       :: mpi_comm_rows,mpi_comm_cols,mpi_comm_all
    real(kind=c_double), intent(inout)    :: ev(na)
    complex(kind=c_double), intent(inout) :: a(lda,*),q(ldq,*)
@@ -243,21 +232,17 @@ function elpa_check_pd_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
    real(kind=c_double), allocatable      :: q_real(:,:),e(:)
    real(kind=c_double)                   :: ttt0,ttt1
    integer(kind=c_int)                   :: i
-   logical                               :: success,wantDebug
+   logical                               :: success
    integer(kind=c_int)                   :: istat
-   logical                               :: do_useGPU,do_useGPU_4
 
-   call mpi_comm_rank(mpi_comm_all,my_pe,mpierr)
-   call mpi_comm_size(mpi_comm_all,n_pes,mpierr)
-   call mpi_comm_rank(mpi_comm_rows,my_prow,mpierr)
-   call mpi_comm_size(mpi_comm_rows,np_rows,mpierr)
-   call mpi_comm_rank(mpi_comm_cols,my_pcol,mpierr)
-   call mpi_comm_size(mpi_comm_cols,np_cols,mpierr)
+   call MPI_Comm_rank(mpi_comm_all,my_pe,mpierr)
+   call MPI_Comm_size(mpi_comm_all,n_pes,mpierr)
+   call MPI_Comm_rank(mpi_comm_rows,my_prow,mpierr)
+   call MPI_Comm_size(mpi_comm_rows,np_rows,mpierr)
+   call MPI_Comm_rank(mpi_comm_cols,my_pcol,mpierr)
+   call MPI_Comm_size(mpi_comm_cols,np_cols,mpierr)
 
-   do_useGPU   = .false.
-   do_useGPU_4 = .false.
-   wantDebug   = .false.
-   success     = .true.
+   success = .true.
 
    THIS_COMPLEX_ELPA_KERNEL = DEFAULT_COMPLEX_ELPA_KERNEL
 
@@ -268,35 +253,37 @@ function elpa_check_pd_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
    allocate(tmat(nbw,nbw,num_blocks),stat=istat)
    if(istat .ne. 0) then
-      print *," ERROR: Cannot allocate tmat. Exiting.."
+      write(error_unit,*) " ERROR: Cannot allocate tmat. Exiting.."
       stop
    endif
 
    ! Reduction full -> band
    ttt0 = MPI_Wtime()
-   call bandred_complex_double(na,a,lda,nblk,nbw,matrixCols,num_blocks,&
-        mpi_comm_rows,mpi_comm_cols,tmat,wantDebug,do_useGPU,success)
+   call bandred_complex_double(na,a,lda,nblk,nbw,mpi_comm_rows,mpi_comm_cols,&
+        tmat,success)
    if(.not.success) return
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
       write(use_unit,"(A,F10.3,A)") "  | Time full => band           :",ttt1-ttt0," s"
+   endif
 
    ! Reduction band -> tridiagonal
    allocate(e(na),stat=istat)
    if(istat .ne. 0) then
-      print *," ERROR: Cannot allocate e. Exiting.."
+      write(error_unit,*) " ERROR: Cannot allocate e. Exiting.."
       stop
    endif
 
    ttt0 = MPI_Wtime()
-   call tridiag_band_complex_double(na,nbw,nblk,a,lda,ev,e,matrixCols,&
-        hh_trans_complex,mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
+   call tridiag_band_complex_double(na,nbw,nblk,a,lda,ev,e,hh_trans_complex,&
+        mpi_comm_rows,mpi_comm_cols,mpi_comm_all)
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
       write(use_unit,"(A,F10.3,A)") "  | Time band => tridiagonal    :",ttt1-ttt0," s"
+   endif
 
-   call mpi_bcast(ev,na,mpi_real8,0,mpi_comm_all,mpierr)
-   call mpi_bcast(e,na,mpi_real8,0,mpi_comm_all,mpierr)
+   call MPI_Bcast(ev,na,mpi_real8,0,mpi_comm_all,mpierr)
+   call MPI_Bcast(e,na,mpi_real8,0,mpi_comm_all,mpierr)
 
    l_rows = local_index(na,my_prow,np_rows,nblk,-1) ! Local rows of a and q
    l_cols = local_index(na,my_pcol,np_cols,nblk,-1) ! Local columns of q
@@ -304,18 +291,19 @@ function elpa_check_pd_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
 
    allocate(q_real(l_rows,l_cols),stat=istat)
    if(istat .ne. 0) then
-      print *," ERROR: Cannot allocate q_real. Exiting.."
+      write(error_unit,*) " ERROR: Cannot allocate q_real. Exiting.."
       stop
    endif
 
    ! Solve tridiagonal system
    ttt0 = MPI_Wtime()
    call solve_tridi_double(na,nev,ev,e,q_real,ubound(q_real,dim=1),nblk,&
-        matrixCols,mpi_comm_rows,mpi_comm_cols,wantDebug,success)
+        mpi_comm_rows,mpi_comm_cols,success)
    if(.not.success) return
    ttt1 = MPI_Wtime()
-   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+   if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
       write(use_unit,"(A,F10.3,A)") "  | Time solve tridiagonal      :",ttt1-ttt0," s"
+   endif
 
    q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
 
@@ -334,22 +322,24 @@ function elpa_check_pd_complex_double(na,nev,a,lda,ev,q,ldq,nblk,matrixCols,&
       ! Back-transform 1
       ttt0 = MPI_Wtime()
       call trans_ev_tridi_to_band_complex_double(na,nev,nblk,nbw,q,ldq,&
-           matrixCols,hh_trans_complex,mpi_comm_rows,mpi_comm_cols,wantDebug,&
-           do_useGPU_4,success,THIS_COMPLEX_ELPA_KERNEL)
+           hh_trans_complex,mpi_comm_rows,mpi_comm_cols,success,&
+           THIS_COMPLEX_ELPA_KERNEL)
       if(.not.success) return
       ttt1 = MPI_Wtime()
-      if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
          write(use_unit,"(A,F10.3,A)") "  | Time ev tridiagonal => band :",ttt1-ttt0," s"
+      endif
 
       deallocate(hh_trans_complex)
 
       ! Back-transform 2
       ttt0 = MPI_Wtime()
       call trans_ev_band_to_full_complex_double(na,nev,nblk,nbw,a,lda,tmat,q,&
-           ldq,matrixCols,num_blocks,mpi_comm_rows,mpi_comm_cols,do_useGPU)
+           ldq,mpi_comm_rows,mpi_comm_cols)
       ttt1 = MPI_Wtime()
-      if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) &
+      if(my_prow==0 .and. my_pcol==0 .and. elpa_print_times) then
          write(use_unit,"(A,F10.3,A)") "  | Time ev band => full        :",ttt1-ttt0," s"
+      endif
 
       deallocate(tmat)
    else

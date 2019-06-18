@@ -42,65 +42,59 @@
 ! This file was written by A. Marek, MPCDF
 
 module compute_hh_trafo_real
+
   use elpa_mpi
+
   implicit none
 
-  public compute_hh_trafo_real_cpu_double
+  public :: compute_hh_trafo_real_cpu_double
 
   contains
 
-       subroutine compute_hh_trafo_real_cpu_double       (a, a_dev, stripe_width, a_dim2, stripe_count,                       &
-                                                   a_off, nbw, max_blk_size, bcast_buffer,  bcast_buffer_dev, hh_dot_dev,     &
-                                                   hh_tau_dev, kernel_flops, kernel_time, off, ncols, istripe,                &
-                                                   last_stripe_width, THIS_REAL_ELPA_KERNEL)
+  subroutine compute_hh_trafo_real_cpu_double(a, stripe_width, stripe_count, &
+    a_off, nbw, max_blk_size, bcast_buffer, kernel_flops, kernel_time, off, ncols, istripe, &
+    last_stripe_width,
 
-         use precision
-         use, intrinsic :: iso_c_binding
-         use elpa2_utilities
-         use single_hh_trafo_real
+    use precision
+    use, intrinsic :: iso_c_binding
+    use elpa2_utilities
+    use single_hh_trafo_real
 
-         implicit none
-         real(kind=c_double), intent(inout) :: kernel_time  ! MPI_WTIME always needs double
-         integer(kind=lik)            :: kernel_flops
-         integer(kind=ik), intent(in) :: nbw, max_blk_size
-         real(kind=rk8)                :: bcast_buffer(nbw,max_blk_size)
-         integer(kind=ik), intent(in) :: a_off
+    implicit none
 
-         integer(kind=ik), intent(in) :: stripe_width,a_dim2,stripe_count
+    real(kind=c_double), intent(inout) :: kernel_time ! MPI_WTIME always needs double
+    integer(kind=lik) :: kernel_flops
+    integer(kind=ik), intent(in) :: nbw, max_blk_size
+    real(kind=rk8) :: bcast_buffer(nbw,max_blk_size)
+    integer(kind=ik), intent(in) :: a_off
+    integer(kind=ik), intent(in) :: stripe_width,stripe_count
+    integer(kind=ik), intent(in) :: last_stripe_width
+    real(kind=rk8), pointer :: a(:,:,:)
 
-         integer(kind=ik), intent(in) :: last_stripe_width
-         real(kind=rk8), pointer      :: a(:,:,:)
-         integer(kind=ik), intent(in) :: THIS_REAL_ELPA_KERNEL
+    integer(kind=ik) :: off, ncols, istripe
+    integer(kind=ik) :: j, nl, jj, jjj
+    real(kind=rk8) :: w(nbw,6)
+    real(kind=c_double) :: ttt ! MPI_WTIME always needs double
 
-         integer(kind=c_intptr_t)     :: a_dev
-         integer(kind=c_intptr_t)     :: bcast_buffer_dev
-         integer(kind=c_size_t)       :: dev_offset
-         integer(kind=c_intptr_t)     :: hh_dot_dev
-         integer(kind=c_intptr_t)     :: hh_tau_dev
-! Private variables in OMP regions (my_thread) should better be in the argument list!
-         integer(kind=ik)             :: off, ncols, istripe
-         integer(kind=ik)             :: j, nl, jj, jjj
-         real(kind=rk8)                :: w(nbw,6)
-         real(kind=c_double)          :: ttt ! MPI_WTIME always needs double
+    ttt = mpi_wtime()
 
-           ttt = mpi_wtime()
+    nl = merge(stripe_width, last_stripe_width, istripe<stripe_count)
 
-         nl = merge(stripe_width, last_stripe_width, istripe<stripe_count)
+    do j = ncols, 2, -2
+      w(:,1) = bcast_buffer(1:nbw,j+off)
+      w(:,2) = bcast_buffer(1:nbw,j+off-1)
+      call double_hh_trafo_bgq_double(a(1,j+off+a_off-1,istripe), w, nbw, nl, &
+           stripe_width, nbw)
+    enddo
 
-               do j = ncols, 2, -2
-                 w(:,1) = bcast_buffer(1:nbw,j+off)
-                 w(:,2) = bcast_buffer(1:nbw,j+off-1)
-                 call double_hh_trafo_bgq_double(a(1,j+off+a_off-1,istripe), w, nbw, nl, &
-                                          stripe_width, nbw)
-               enddo
+    if (j==1) then
+      call single_hh_trafo_real_cpu_double(a(1:stripe_width,1+off+a_off:1+off+a_off+nbw-1,istripe), &
+           bcast_buffer(1:nbw,off+1), nbw, nl, stripe_width)
+    endif
 
-             if (j==1) call single_hh_trafo_real_cpu_double(a(1:stripe_width,1+off+a_off:1+off+a_off+nbw-1,istripe),           &
-                                      bcast_buffer(1:nbw,off+1), nbw, nl,     &
-                                      stripe_width)
+    kernel_flops = kernel_flops + 4*int(nl,lik)*int(ncols,lik)*int(nbw,lik)
+    kernel_time = kernel_time + mpi_wtime()-ttt
 
-           kernel_flops = kernel_flops + 4*int(nl,lik)*int(ncols,lik)*int(nbw,lik)
-           kernel_time = kernel_time + mpi_wtime()-ttt
-
-       end subroutine compute_hh_trafo_real_cpu_double
+  end subroutine compute_hh_trafo_real_cpu_double
 
 end module
