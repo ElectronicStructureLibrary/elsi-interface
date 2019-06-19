@@ -25,32 +25,25 @@ IF(ADD_UNDERSCORE)
   TARGET_COMPILE_DEFINITIONS(pexsi PRIVATE Add_)
 ENDIF()
 
-IF(NOT USE_EXTERNAL_SUPERLU)
-  ADD_DEPENDENCIES(pexsi superlu_dist)
-ENDIF()
+ADD_DEPENDENCIES(pexsi superlu_dist)
 
-TARGET_LINK_LIBRARIES(pexsi PRIVATE ${LIBS})
-IF(NOT USE_EXTERNAL_SUPERLU)
-  TARGET_LINK_LIBRARIES(pexsi PRIVATE
-    superlu_dist
-    ptscotchparmetis
-    ptscotch
-    ptscotcherr
-    scotchmetis
-    scotch
-    scotcherr)
-ENDIF()
+TARGET_LINK_LIBRARIES(pexsi PRIVATE
+  ${LIBS}
+  superlu_dist
+  ptscotchparmetis
+  ptscotch
+  ptscotcherr
+  scotchmetis
+  scotch
+  scotcherr)
 
 TARGET_INCLUDE_DIRECTORIES(pexsi PRIVATE
   include
-  ${INC_PATHS})
-IF(NOT USE_EXTERNAL_SUPERLU)
-  TARGET_INCLUDE_DIRECTORIES(pexsi PRIVATE
-    ${PROJECT_SOURCE_DIR}/external/SuperLU_DIST/src
-    ${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotch
-    ${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotchmetis
-    ${PROJECT_BINARY_DIR}/generated)
-ENDIF()
+  ${INC_PATHS}
+  ${PROJECT_SOURCE_DIR}/external/SuperLU_DIST/src
+  ${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotch
+  ${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotchmetis
+  ${PROJECT_BINARY_DIR}/generated)
 
 IF(NOT CMAKE_VERSION VERSION_LESS 3.8.2)
   TARGET_COMPILE_FEATURES(pexsi PRIVATE c_std_99 cxx_std_11)

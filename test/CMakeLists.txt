@@ -33,9 +33,9 @@ MACRO(add_test_target arg1)
     TARGET_LINK_LIBRARIES(${arg1} PRIVATE sips)
   ENDIF()
   IF(ENABLE_PEXSI)
-    TARGET_LINK_LIBRARIES(${arg1} PRIVATE pexsi)
-    IF(NOT USE_EXTERNAL_SUPERLU)
+    IF(NOT USE_EXTERNAL_PEXSI)
       TARGET_LINK_LIBRARIES(${arg1} PRIVATE
+        pexsi
         superlu_dist
         ptscotchparmetis
         ptscotch

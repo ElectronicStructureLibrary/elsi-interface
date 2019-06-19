@@ -1244,8 +1244,10 @@ subroutine elsi_set_pexsi_default(ph)
 
    character(len=*), parameter :: caller = "elsi_set_pexsi_default"
 
-   ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(ph%pexsi_options)
+
+   ! Pole expansion method 2 for now (PEXSI default 3)
+   ph%pexsi_options%method = 2
 
 end subroutine
 

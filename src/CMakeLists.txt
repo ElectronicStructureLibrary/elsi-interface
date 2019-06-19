@@ -87,9 +87,9 @@ IF(ENABLE_SIPS)
   TARGET_LINK_LIBRARIES(elsi PRIVATE sips)
 ENDIF()
 IF(ENABLE_PEXSI)
-  TARGET_LINK_LIBRARIES(elsi PRIVATE pexsi)
-  IF(NOT USE_EXTERNAL_SUPERLU)
+  IF(NOT USE_EXTERNAL_PEXSI)
     TARGET_LINK_LIBRARIES(elsi PRIVATE
+      pexsi
       superlu_dist
       ptscotchparmetis
       ptscotch
