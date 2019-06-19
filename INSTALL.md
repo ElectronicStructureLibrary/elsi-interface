@@ -5,14 +5,14 @@
 The installation of ELSI makes use of the CMake software. Minimum requirements:
 
 * CMake (3.0.2 or newer)
-* Fortran compiler (Fortran 2003)
-* C compiler (C99)
-* MPI
+* Fortran compiler (Fortran 2003 compliant)
+* C compiler (C99 compliant)
+* MPI (MPI-3 recommended)
 * BLAS, LAPACK, BLACS, ScaLAPACK
 
 In addition, building the PEXSI solver (highly recommended) requires:
 
-* C++ compiler (C++11)
+* C++ compiler (C++11 compliant)
 
 By default, solver libraries and their dependencies redistributed within ELSI
 will be built. Optionally, they may be substituted by user's optimized versions:
@@ -91,7 +91,7 @@ external, better optimized solver libraries. Relevant options are:
 
     -DUSE_EXTERNAL_ELPA=ON
     -DUSE_EXTERNAL_OMM=ON
-    -DUSE_EXTERNAL_SUPERLU=ON
+    -DUSE_EXTERNAL_PEXSI=ON
     -DUSE_EXTERNAL_NTPOLY=ON
 
 External libraries and their paths should be set via the following keywords:
@@ -104,8 +104,6 @@ Please note that in the current version of ELSI, the PEXSI solver is not enabled
 by default. It may be switched on by specifying:
 
     -DENABLE_PEXSI=ON
-
-At present, an external version of PEXSI is not officially supported.
 
 ### 3) Build targets
 
