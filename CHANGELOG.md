@@ -4,6 +4,7 @@
 
 ### ELSI interface
 * Added density matrix extrapolation subroutines for sparse matrices.
+* Extended the test suite to increase code coverage.
 
 ### ELPA
 * Interface for externally linked ELPA compatible with ELPA 2019.05.

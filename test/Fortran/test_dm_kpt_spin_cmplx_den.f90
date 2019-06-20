@@ -44,9 +44,10 @@ program test_dm_kpt_spin_cmplx_den
    integer(kind=i4) :: header(8)
 
    real(kind=r8) :: n_electrons
-   real(kind=r8) :: n_test
+   real(kind=r8) :: n_sp
    real(kind=r8) :: tmp
-   real(kind=r8) :: e_test = 0.0_r8
+   real(kind=r8) :: e_hp = 0.0_r8
+   real(kind=r8) :: e_sq = 0.0_r8
    real(kind=r8) :: e_ref = 0.0_r8
    real(kind=r8) :: tol = 0.0_r8
    real(kind=r8) :: t1
@@ -245,7 +246,7 @@ program test_dm_kpt_spin_cmplx_den
    t1 = MPI_Wtime()
 
    ! Solve
-   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_hp)
 
    t2 = MPI_Wtime()
 
@@ -260,7 +261,7 @@ program test_dm_kpt_spin_cmplx_den
    t1 = MPI_Wtime()
 
    ! Solve again
-   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_hp)
 
    t2 = MPI_Wtime()
 
@@ -274,7 +275,7 @@ program test_dm_kpt_spin_cmplx_den
    t1 = MPI_Wtime()
 
    ! Solve again
-   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_hp)
 
    t2 = MPI_Wtime()
 
@@ -295,7 +296,7 @@ program test_dm_kpt_spin_cmplx_den
    t1 = MPI_Wtime()
 
    ! Solve again
-   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_hp)
 
    t2 = MPI_Wtime()
 
@@ -309,7 +310,7 @@ program test_dm_kpt_spin_cmplx_den
    t1 = MPI_Wtime()
 
    ! Solve again
-   call elsi_dm_complex(eh,ham,ovlp,dm,e_test)
+   call elsi_dm_complex(eh,ham,ovlp,dm,e_hp)
 
    t2 = MPI_Wtime()
 
@@ -321,10 +322,15 @@ program test_dm_kpt_spin_cmplx_den
    ! Compute energy density matrix
    call elsi_get_edm_complex(eh,edm)
 
+   ! Compute band energy
+   tmp = real(zdotc(l_rows*l_cols,ovlp_save,1,edm,1),kind=r8)*k_weights(my_kpt)
+
+   call MPI_Reduce(tmp,e_sq,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
+
    ! Compute electron count
    tmp = real(zdotc(l_rows*l_cols,ovlp_save,1,dm,1),kind=r8)*k_weights(my_kpt)
 
-   call MPI_Reduce(tmp,n_test,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
+   call MPI_Reduce(tmp,n_sp,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
 
    if(myid == 0) then
       write(*,"(2X,A)") "Finished SCF #5"
@@ -334,14 +340,16 @@ program test_dm_kpt_spin_cmplx_den
       write(*,*)
       if(header(8) == 1111) then
          write(*,"(2X,A)") "Band energy"
-         write(*,"(2X,A,F15.8)") "| This test :",e_test
+         write(*,"(2X,A,F15.8)") "| Tr[H*P]   :",e_hp
+         write(*,"(2X,A,F15.8)") "| Tr[S*Q]   :",e_sq
          write(*,"(2X,A,F15.8)") "| Reference :",e_ref
          write(*,*)
          write(*,"(2X,A)") "Electron count"
-         write(*,"(2X,A,F15.8)") "| This test :",n_test
+         write(*,"(2X,A,F15.8)") "| Tr[S*P]   :",n_sp
          write(*,"(2X,A,F15.8)") "| Reference :",n_electrons
          write(*,*)
-         if(abs(e_test-e_ref) < tol .and. abs(n_test-n_electrons) < tol) then
+         if(abs(e_hp-e_ref) < tol .and. abs(e_sq-e_ref) < tol&
+            .and. abs(n_sp-n_electrons) < tol) then
             write(*,"(2X,A)") "Passed."
          else
             write(*,"(2X,A)") "Failed."
