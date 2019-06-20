@@ -28,8 +28,6 @@ module F_PPEXSI_INTERFACE
    public :: f_ppexsi_inertia_count_complex_matrix
    public :: f_ppexsi_calculate_fermi_operator_real3
    public :: f_ppexsi_calculate_fermi_operator_complex
-   public :: f_ppexsi_calculate_edm_correction_real
-   public :: f_ppexsi_calculate_edm_correction_complex
    public :: f_ppexsi_retrieve_real_dm
    public :: f_ppexsi_retrieve_complex_dm
    public :: f_ppexsi_retrieve_real_edm
@@ -249,32 +247,6 @@ subroutine f_ppexsi_calculate_fermi_operator_complex(plan,options,mu,&
    real(kind=r8) :: numElectronExact
    real(kind=r8) :: numElectronPEXSI
    real(kind=r8) :: numElectronDrvMuPEXSI
-   integer(kind=i4) :: info
-
-   write(*,"(A)") "**Error! A PEXSI stub routine was called"
-   stop
-
-end subroutine
-
-subroutine f_ppexsi_calculate_edm_correction_real(plan,options,info)
-
-   implicit none
-
-   integer(c_intptr_t) :: plan
-   type(f_ppexsi_options) :: options
-   integer(kind=i4) :: info
-
-   write(*,"(A)") "**Error! A PEXSI stub routine was called"
-   stop
-
-end subroutine
-
-subroutine f_ppexsi_calculate_edm_correction_complex(plan,options,info)
-
-   implicit none
-
-   integer(c_intptr_t) :: plan
-   type(f_ppexsi_options) :: options
    integer(kind=i4) :: info
 
    write(*,"(A)") "**Error! A PEXSI stub routine was called"

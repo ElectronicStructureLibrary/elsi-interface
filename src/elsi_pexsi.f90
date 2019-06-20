@@ -16,8 +16,8 @@ module ELSI_PEXSI
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_initialize,&
-       f_ppexsi_set_default_options,f_ppexsi_load_real_hs_matrix,&
-       f_ppexsi_load_complex_hs_matrix,&
+       f_ppexsi_plan_finalize,f_ppexsi_set_default_options,&
+       f_ppexsi_load_real_hs_matrix,f_ppexsi_load_complex_hs_matrix,&
        f_ppexsi_symbolic_factorize_real_symmetric_matrix,&
        f_ppexsi_symbolic_factorize_complex_symmetric_matrix,&
        f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix,&
@@ -25,10 +25,8 @@ module ELSI_PEXSI
        f_ppexsi_inertia_count_complex_matrix,&
        f_ppexsi_calculate_fermi_operator_real3,&
        f_ppexsi_calculate_fermi_operator_complex,&
-       f_ppexsi_calculate_edm_correction_real,&
-       f_ppexsi_calculate_edm_correction_complex,f_ppexsi_retrieve_real_dm,&
-       f_ppexsi_retrieve_complex_dm,f_ppexsi_retrieve_real_edm,&
-       f_ppexsi_retrieve_complex_edm,f_ppexsi_plan_finalize
+       f_ppexsi_retrieve_real_dm,f_ppexsi_retrieve_complex_dm,&
+       f_ppexsi_retrieve_real_edm,f_ppexsi_retrieve_complex_edm
 
    implicit none
 
@@ -574,14 +572,6 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
 
    call elsi_get_time(t0)
 
-   call f_ppexsi_calculate_edm_correction_real(ph%pexsi_plan,ph%pexsi_options,&
-        ierr)
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "Energy density matrix correction failed"
-      call elsi_stop(bh,msg,caller)
-   end if
-
    ! Get energy density matrix
    call elsi_allocate(bh,tmp,bh%nnz_l_sp1,"tmp",caller)
 
@@ -1124,14 +1114,6 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
 
    call elsi_get_time(t0)
 
-   call f_ppexsi_calculate_edm_correction_complex(ph%pexsi_plan,&
-        ph%pexsi_options,ierr)
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "Energy density matrix correction failed"
-      call elsi_stop(bh,msg,caller)
-   end if
-
    ! Get energy density matrix
    call elsi_allocate(bh,tmp,bh%nnz_l_sp1,"tmp",caller)
 
@@ -1262,8 +1244,10 @@ subroutine elsi_set_pexsi_default(ph)
 
    character(len=*), parameter :: caller = "elsi_set_pexsi_default"
 
-   ! Use the PEXSI Default options
    call f_ppexsi_set_default_options(ph%pexsi_options)
+
+   ! Pole expansion method 2 for now (PEXSI default 3)
+   ph%pexsi_options%method = 2
 
 end subroutine
 

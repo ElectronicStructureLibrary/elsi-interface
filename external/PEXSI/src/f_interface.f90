@@ -333,33 +333,7 @@ interface
     integer(c_int),             intent(out) :: info
   end subroutine
 
-  subroutine f_ppexsi_calculate_edm_correction_complex(&
-      plan,&
-      options,&
-      info)&
-      bind(C, Name="PPEXSICalculateEDMCorrectionComplex")
-    use, intrinsic :: iso_c_binding
-    import         :: f_ppexsi_options
-    implicit none
-    integer(c_intptr_t),    value, intent(in)  :: plan
-    type(f_ppexsi_options), value, intent(in)  :: options
-    integer(c_int),                intent(out) :: info
-  end subroutine
-
-  subroutine f_ppexsi_calculate_edm_correction_real(&
-      plan,&
-      options,&
-      info)&
-      bind(C, Name="PPEXSICalculateEDMCorrectionReal")
-    use, intrinsic :: iso_c_binding
-    import         :: f_ppexsi_options
-    implicit none
-    integer(c_intptr_t),    value, intent(in)  :: plan
-    type(f_ppexsi_options), value, intent(in)  :: options
-    integer(c_int),                intent(out) :: info
-  end subroutine
-
-   subroutine f_ppexsi_retrieve_real_dm(&
+  subroutine f_ppexsi_retrieve_real_dm(&
       plan,&
       DMnzvalLocal,&
       totalEnergyH,&

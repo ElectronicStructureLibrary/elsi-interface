@@ -33,9 +33,9 @@ MACRO(add_test_target arg1)
     TARGET_LINK_LIBRARIES(${arg1} PRIVATE sips)
   ENDIF()
   IF(ENABLE_PEXSI)
-    TARGET_LINK_LIBRARIES(${arg1} PRIVATE pexsi)
-    IF(NOT USE_EXTERNAL_SUPERLU)
+    IF(NOT USE_EXTERNAL_PEXSI)
       TARGET_LINK_LIBRARIES(${arg1} PRIVATE
+        pexsi
         superlu_dist
         ptscotchparmetis
         ptscotch
@@ -70,11 +70,6 @@ LIST(APPEND ftestrw_src
 ADD_EXECUTABLE(elsi_test_rw ${ftestrw_src})
 add_test_target(elsi_test_rw)
 SET_TARGET_PROPERTIES(elsi_test_rw
-  PROPERTIES LINKER_LANGUAGE Fortran)
-
-ADD_EXECUTABLE(elsi_test_kpt Fortran/test_dm_kpt_spin_cmplx_den.f90)
-add_test_target(elsi_test_kpt)
-SET_TARGET_PROPERTIES(elsi_test_kpt
   PROPERTIES LINKER_LANGUAGE Fortran)
 
 ### C tests ###

@@ -4,6 +4,7 @@
 
 ### ELSI interface
 * Added density matrix extrapolation subroutines for sparse matrices.
+* Extended the test suite to increase code coverage.
 
 ### ELPA
 * Interface for externally linked ELPA compatible with ELPA 2019.05.
@@ -11,6 +12,10 @@
 ### NTPoly
 * Updated redistributed NTPoly source code to version 2.3.1.
 * Fixed complex matrix conversion from BLACS\_DENSE and GENERIC\_COO to NTPoly.
+
+### PEXSI
+* Fixed complex energy density matrix.
+* Added support for linking ELSI against an externally compiled PEXSI.
 
 ## v2.2.1 (March 2019)
 
@@ -72,8 +77,7 @@
 
 ### PEXSI
 * Updated redistributed PEXSI source code to version 1.0.3, which returns the
-  complex-valued density matrix and energy density matrix instead of their
-  transpose.
+  complex density matrix and energy density matrix instead of their transpose.
 
 ### SLEPc-SIPs
 * Updated interface to support PETSc 3.9.4 and SLEPc 3.9.2.
@@ -82,7 +86,7 @@
 
 ### PEXSI
 * Updated redistributed PEXSI source code to version 1.0.1, which fixes the
-  complex-valued Fermi operator expansion routine.
+  complex Fermi operator expansion routine.
 * Downgraded redistributed (PT-)SCOTCH source code to version 6.0.0, as newer
   versions seem to be incompatible with PEXSI.
 

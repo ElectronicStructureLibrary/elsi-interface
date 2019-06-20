@@ -1458,6 +1458,26 @@ void PPEXSIRetrieveRealEDM(
     double*     totalEnergyS,
     int*        info );
 
+/**
+ * @brief Retrieve the output FDM matrices after running PPEXSIDFTDriver for real input matrices.
+ * this is only used for the PEXSI method = 1 and 3
+ *
+ * @param[in] plan (local) The plan holding the internal data structure for the %PEXSI
+ * data structure.
+ * @param[out] FDMnzvalLocal (local)  Dimension: nnzLocal.  Nonzero
+ * value of energy density matrix in CSC format.
+ * @param[out]  totalEnergyF(local)  Free energy
+ * @param[out] info (local) whether the current processor returns the correct information.
+ * - = 0: successful exit.
+ * - > 0: unsuccessful.
+void PPEXSIRetrieveRealFDM(
+    PPEXSIPlan  plan,
+    PPEXSIOptions     options,
+    double*     FDMnzvalLocal,
+    double*     totalEnergyF,
+    int*        info );
+ */
+
 
 /**
  * @brief Retrieve the output matrices after running PPEXSIDFTDriver for complex input matrices.

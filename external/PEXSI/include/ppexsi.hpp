@@ -82,6 +82,8 @@ private:
 
   std::vector<Complex>  zshift_;      // Complex shift for the pole expansion
   std::vector<Complex>  zweightRho_;  // Complex weight for the pole expansion for density
+  std::vector<Complex>  zweightEDM_;
+  std::vector<Complex>  zweightFDM_;
   std::vector<Complex>  zweightRhoDrvMu_;  // Complex weight for the pole expansion for derivative of the Fermi-Dirac with respect to the chemical potential
   std::vector<Complex>  zweightRhoDrvT_;   // Complex weight for the pole expansion for derivative of the Fermi-Dirac with respect to the temperature T (1/beta, in au)
   std::vector<Complex>  zweightHelmholtz_;  // Complex shift for the pole expansion for Helmholtz free energy
@@ -191,6 +193,8 @@ private:
   Real                       totalEnergyS_;
   // Free energy
   Real                       totalFreeEnergy_;
+
+  Int isEDMCorrection_;
 
 
   // *********************************************************************
@@ -803,6 +807,7 @@ public:
     Real              & muMin,
     Real              & muMax,
     Real              & muPEXSI,
+    Int                 method,
     Int                 verbosity);
 
 
@@ -816,6 +821,7 @@ public:
     Real              & muMin,
     Real              & muMax,
     Real              & muPEXSI,
+    Int                 method,
     Int                 verbosity);
 
   // *********************************************************************

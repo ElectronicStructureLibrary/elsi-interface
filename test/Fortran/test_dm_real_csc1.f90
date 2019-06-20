@@ -37,9 +37,10 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: header(8) = 0
 
    real(kind=r8) :: n_electrons
-   real(kind=r8) :: n_test
+   real(kind=r8) :: n_sp
    real(kind=r8) :: tmp
-   real(kind=r8) :: e_test = 0.0_r8
+   real(kind=r8) :: e_hp = 0.0_r8
+   real(kind=r8) :: e_sq = 0.0_r8
    real(kind=r8) :: e_ref = 0.0_r8
    real(kind=r8) :: tol = 0.0_r8
    real(kind=r8) :: t1
@@ -188,7 +189,7 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    t1 = MPI_Wtime()
 
    ! Solve
-   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_test)
+   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_hp)
 
    t2 = MPI_Wtime()
 
@@ -201,7 +202,7 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    t1 = MPI_Wtime()
 
    ! Solve again
-   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_test)
+   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_hp)
 
    t2 = MPI_Wtime()
 
@@ -214,7 +215,7 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    t1 = MPI_Wtime()
 
    ! Solve again
-   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_test)
+   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_hp)
 
    t2 = MPI_Wtime()
 
@@ -234,7 +235,7 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    t1 = MPI_Wtime()
 
    ! Solve again
-   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_test)
+   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_hp)
 
    t2 = MPI_Wtime()
 
@@ -247,18 +248,23 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    t1 = MPI_Wtime()
 
    ! Solve again
-   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_test)
+   call elsi_dm_real_sparse(eh,ham,ovlp,dm,e_hp)
 
    t2 = MPI_Wtime()
 
    ! Compute energy density matrix
    call elsi_get_edm_real_sparse(eh,edm)
 
-   ! Compute electron count
    if(task_id == 0) then
+      ! Compute band energy
+      tmp = ddot(nnz_l,ovlp,1,edm,1)
+
+      call MPI_Reduce(tmp,e_sq,1,mpi_real8,mpi_sum,0,comm_in_task,ierr)
+
+      ! Compute electron count
       tmp = ddot(nnz_l,ovlp,1,dm,1)
 
-      call MPI_Reduce(tmp,n_test,1,mpi_real8,mpi_sum,0,comm_in_task,ierr)
+      call MPI_Reduce(tmp,n_sp,1,mpi_real8,mpi_sum,0,comm_in_task,ierr)
    end if
 
    if(myid == 0) then
@@ -269,14 +275,16 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
       write(*,*)
       if(header(8) == 1111) then
          write(*,"(2X,A)") "Band energy"
-         write(*,"(2X,A,F15.8)") "| This test :",e_test
+         write(*,"(2X,A,F15.8)") "| Tr[H*P]   :",e_hp
+         write(*,"(2X,A,F15.8)") "| Tr[S*Q]   :",e_sq
          write(*,"(2X,A,F15.8)") "| Reference :",e_ref
          write(*,*)
          write(*,"(2X,A)") "Electron count"
-         write(*,"(2X,A,F15.8)") "| This test :",n_test
+         write(*,"(2X,A,F15.8)") "| Tr[S*P]   :",n_sp
          write(*,"(2X,A,F15.8)") "| Reference :",n_electrons
          write(*,*)
-         if(abs(e_test-e_ref) < tol .and. abs(n_test-n_electrons) < tol) then
+         if(abs(e_hp-e_ref) < tol .and. abs(e_sq-e_ref) < tol&
+            .and. abs(n_sp-n_electrons) < tol) then
             write(*,"(2X,A)") "Passed."
          else
             write(*,"(2X,A)") "Failed."
