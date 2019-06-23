@@ -574,6 +574,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   DEALLOCATE(SliceContribution_c)
 
+  DEALLOCATE(ATasks)
+  DEALLOCATE(BTasks)
+  DEALLOCATE(ABTasks)
+
   CALL StopTimer("GEMM")
     ELSE
   CALL StartTimer("GEMM")
@@ -866,6 +870,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      END DO
   END DO
   DEALLOCATE(SliceContribution_r)
+
+  DEALLOCATE(ATasks)
+  DEALLOCATE(BTasks)
+  DEALLOCATE(ABTasks)
 
   CALL StopTimer("GEMM")
     END IF
