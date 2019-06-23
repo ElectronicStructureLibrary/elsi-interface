@@ -1010,6 +1010,12 @@ subroutine trans_ev_band_to_full_real_double(na, nqc, nblk, nbw, a, lda, tmat, q
   allocate(t_tmp2(cwy_blocking,nbw))
   hvm = 0.0_rk8 ! Must be set to 0 !!!
   hvb = 0.0_rk8 ! Safety only
+  tmp1 = 0.0_rk8
+  tmp2 = 0.0_rk8
+  t_tmp = 0.0_rk8
+  t_tmp2 = 0.0_rk8
+  tmat_complete = 0.0_rk8
+
   l_cols = local_index(nqc, my_pcol, np_cols, nblk, -1) ! Local columns of q
 
   do istep=1,((na-1)/nbw-1)/t_blocking + 1
@@ -1111,6 +1117,24 @@ subroutine trans_ev_band_to_full_real_double(na, nqc, nblk, nbw, a, lda, tmat, q
   deallocate(hvm, stat=istat, errmsg=errorMessage)
   if (istat .ne. 0) then
     write(error_unit,*) "trans_ev_band_to_full_real: error when deallocating hvm "//errorMessage
+    stop
+  endif
+
+  deallocate(tmat_complete, stat=istat, errmsg=errorMessage)
+  if (istat .ne. 0) then
+    write(error_unit,*) "trans_ev_band_to_full_real: error when deallocating tmat_complete"//errorMessage
+    stop
+  endif
+
+  deallocate(t_tmp, stat=istat, errmsg=errorMessage)
+  if (istat .ne. 0) then
+    write(error_unit,*) "trans_ev_band_to_full_real: error when deallocating t_tmp"//errorMessage
+    stop
+  endif
+
+  deallocate(t_tmp2, stat=istat, errmsg=errorMessage)
+  if (istat .ne. 0) then
+    write(error_unit,*) "trans_ev_band_to_full_real: error when deallocating t_tmp2"//errorMessage
     stop
   endif
 
@@ -2942,6 +2966,8 @@ subroutine trans_ev_band_to_full_complex_double(na, nqc, nblk, nbw, a, lda, tmat
 
   hvm = 0._ck8 ! Must be set to 0 !!!
   hvb = 0._ck8 ! Safety only
+  tmp1 = 0._ck8
+  tmp2 = 0._ck8
 
   l_cols = local_index(nqc, my_pcol, np_cols, nblk, -1) ! Local columns of q
 
