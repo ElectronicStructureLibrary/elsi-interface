@@ -1,6 +1,6 @@
 # ELSI changelog
 
-## Not released
+## v2.3.0 (June 2019)
 
 ### ELSI interface
 * Added density matrix extrapolation subroutines for sparse matrices.

@@ -2,12 +2,12 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0 FATAL_ERROR)
 
 ### Project ###
-PROJECT(elsi VERSION 2.2.1 LANGUAGES NONE)
+PROJECT(elsi VERSION 2.3.0 LANGUAGES NONE)
 SET(elsi_URL "http://elsi-interchange.org")
 SET(elsi_EMAIL "elsi-team@duke.edu")
 SET(elsi_LICENSE "BSD 3")
 SET(elsi_DESCRIPTION "Electronic Structure Infrastructure")
-SET(elsi_DATESTAMP "20190618")
+SET(elsi_DATESTAMP "20190623")
 
 ### CMake modules ###
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
