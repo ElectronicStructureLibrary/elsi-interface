@@ -3362,29 +3362,27 @@ void PPEXSIData::CalculateFermiOperatorComplex(
   bool isFreeEnergyDensityMatrix = true;
   bool isEnergyDensityMatrix     = true;
   bool isDerivativeTMatrix       = false;
+
+  if( isDerivativeTMatrix == true )
+    ErrorHandling("isDerivativeTMatrix has to be false.");
+
   Real numSpin = spin;
 
   // Copy the pattern
   CopyPattern( PatternMat_, AMat );
   CopyPattern( PatternMat_, rhoMat );
-  CopyPattern( PatternMat_, rhoDrvMuMat );
   fflush(stdout);
   if( isFreeEnergyDensityMatrix )
     CopyPattern( PatternMat_, hmzMat );
   if( isEnergyDensityMatrix )
     CopyPattern( PatternMat_, frcMat );
-  if( isDerivativeTMatrix )
-    CopyPattern( PatternMat_, rhoDrvTMat );
 
   // Reinitialize the variables
   SetValue( rhoMat.nzvalLocal, Z_ZERO );
-  SetValue( rhoDrvMuMat.nzvalLocal, Z_ZERO );
   if( isFreeEnergyDensityMatrix )
     SetValue( hmzMat.nzvalLocal, Z_ZERO );
   if( isEnergyDensityMatrix )
     SetValue( frcMat.nzvalLocal, Z_ZERO );
-  if( isDerivativeTMatrix )
-    SetValue( rhoDrvTMat.nzvalLocal, Z_ZERO );
 
   // Refine the pole expansion
   // numPoleInput is the number of poles to be given to other parts of
@@ -3479,7 +3477,7 @@ void PPEXSIData::CalculateFermiOperatorComplex(
         statusOFS << " Eroror getPole wrong method: " << method
           <<" " <<numPole << " " << deltaE/temperature << std::endl;
         statusOFS << " numPoles should be chosen from [ 10, 15, 20, 25, 30, 35, 40] " << std::endl;
-        statusOFS << " Please check the temperature setting, if it is too high or too low, there is also potential problem " << std::endl;
+        statusOFS << " Please also check whether the temperature is set to be too high or too low " << std::endl;
         ErrorHandling("getPole error.");
       }
       if(numPole != zshift_.size()){
@@ -3691,7 +3689,8 @@ void PPEXSIData::CalculateFermiOperatorComplex(
           statusOFS << "AinvMat.nnzLocal = " << AinvMat.nnzLocal << std::endl;
         }
 
-        // AinvMat is G_l^{T}; now get G_l
+        // AinvMat now stores the selected elements of G_l^{T}; now get G_l and store it in transMat
+        // using CSCToCSR
         DistSparseMatrix<Complex>& regMat   = AinvMat;
         DistSparseMatrix<Complex>  transMat;
 
@@ -3782,51 +3781,6 @@ void PPEXSIData::CalculateFermiOperatorComplex(
         //rhoMat.nnzLocal, MPI_SUM, gridPole_->colComm );
       rhoMat.nnzLocal, MPI_SUM, pointColComm);
 
-    /*
-    // NOTE: All physical quantities X must be post-processed by
-    //
-    //   X <- 1/(2i) (X - X^*)
-    //
-    // Since the non-symmetric version of PSelInv returns the selected
-    // elements of the transposed matrix, it should be
-    //
-    //   X <- conj(1/(2i) (X - X^*)) = i/2 (conj(X) - X^T)
-    //
-    // Here X can be density matrix, energy density matrix etc.
-    DistSparseMatrix<Complex>& regMat       = rhoMat;
-    DistSparseMatrix<Complex>  transMat;
-
-    CSCToCSR( regMat, transMat );
-    Complex* ptrReg   = regMat.nzvalLocal.Data();
-    Complex* ptrTrans = transMat.nzvalLocal.Data();
-    // fac = i/2
-    Complex  fac = Complex( 0.0, 0.5 );
-    for( Int g = 0; g < regMat.nnzLocal; g++ ){
-      ptrReg[g] = fac * ( std::conj(ptrReg[g]) - ptrTrans[g] );
-    }
-    */
-  }
-
-  // Reduce the derivative of density matrix with respect to mu across
-  // the processor rows in gridPole_
-  {
-    //    CpxNumVec nzvalRhoDrvMuMatLocal = rhoDrvMuMat.nzvalLocal;
-    //    SetValue( rhoDrvMuMat.nzvalLocal, Z_ZERO );
-    //
-    //    mpi::Allreduce( nzvalRhoDrvMuMatLocal.Data(), rhoDrvMuMat.nzvalLocal.Data(),
-    //        rhoDrvMuMat.nnzLocal, MPI_SUM, gridPole_->colComm );
-    //
-    //    DistSparseMatrix<Complex>& regMat       = rhoDrvMuMat;
-    //    DistSparseMatrix<Complex>  transMat;
-    //
-    //    CSCToCSR( regMat, transMat );
-    //    Complex* ptrReg   = regMat.nzvalLocal.Data();
-    //    Complex* ptrTrans = transMat.nzvalLocal.Data();
-//    // fac = i/2
-//    Complex  fac = Complex( 0.0, 0.5 );
-//    for( Int g = 0; g < regMat.nnzLocal; g++ ){
-//      ptrReg[g] = fac * ( std::conj(ptrReg[g]) - ptrTrans[g] );
-//    }
   }
 
   // Reduce the free energy density matrix across the processor rows in gridPole_
@@ -3838,19 +3792,6 @@ void PPEXSIData::CalculateFermiOperatorComplex(
       //hmzMat.nnzLocal, MPI_SUM, gridPole_->colComm );
       hmzMat.nnzLocal, MPI_SUM, pointColComm );
 
-    /*
-    DistSparseMatrix<Complex>& regMat       = hmzMat;
-    DistSparseMatrix<Complex>  transMat;
-
-    CSCToCSR( regMat, transMat );
-    Complex* ptrReg   = regMat.nzvalLocal.Data();
-    Complex* ptrTrans = transMat.nzvalLocal.Data();
-    //fac = i/2
-    Complex  fac = Complex( 0.0, 0.5 );
-    for( Int g = 0; g < regMat.nnzLocal; g++ ){
-      ptrReg[g] = fac * ( std::conj(ptrReg[g]) - ptrTrans[g] );
-    }
-    */
   }
 
   // Reduce the energy density matrix across the processor rows in gridPole_
@@ -3864,49 +3805,13 @@ void PPEXSIData::CalculateFermiOperatorComplex(
       frcMat.nnzLocal, MPI_SUM, pointColComm);
 
     if( isEDMCorrection_ == 0){
-      // FIXME
-      // EDM correction: add mu * DM for method == 3/1
+      // for method 1 and 3, add mu * DM to EDM
       blas::Axpy( rhoMat.nnzLocal, mu, rhoMat.nzvalLocal.Data(), 1,
         frcMat.nzvalLocal.Data(), 1 );
     }
 
-    /*
-    DistSparseMatrix<Complex>& regMat       = frcMat;
-    DistSparseMatrix<Complex>  transMat;
-
-    CSCToCSR( regMat, transMat );
-    Complex* ptrReg   = regMat.nzvalLocal.Data();
-    Complex* ptrTrans = transMat.nzvalLocal.Data();
-    // fac = i/2. This is because the Green's function is defined as
-    // (H-zS)^{-1} instead of (zS-H)^{-1}
-    Complex  fac = Complex( 0.0, 0.5 );
-    for( Int g = 0; g < regMat.nnzLocal; g++ ){
-      ptrReg[g] = fac * ( std::conj(ptrReg[g]) - ptrTrans[g] );
-    }
-    */
   }
 
-  // Reduce the derivative of density matrix with respect to T across
-  // the processor rows in gridPole_
-  if( isDerivativeTMatrix ){
-    //    CpxNumVec nzvalRhoDrvTMatLocal = rhoDrvTMat.nzvalLocal;
-    //    SetValue( rhoDrvTMat.nzvalLocal, Z_ZERO );
-    //
-    //    mpi::Allreduce( nzvalRhoDrvTMatLocal.Data(), rhoDrvTMat.nzvalLocal.Data(),
-    //        rhoDrvTMat.nnzLocal, MPI_SUM, gridPole_->colComm );
-    //
-    //    DistSparseMatrix<Complex>& regMat       = rhoDrvTMat;
-    //    DistSparseMatrix<Complex>  transMat;
-    //
-    //    CSCToCSR( regMat, transMat );
-    //    Complex* ptrReg   = regMat.nzvalLocal.Data();
-    //    Complex* ptrTrans = transMat.nzvalLocal.Data();
-//    // fac = i/2
-//    Complex  fac = Complex( 0.0, 0.5 );
-//    for( Int g = 0; g < regMat.nnzLocal; g++ ){
-//      ptrReg[g] = fac * ( std::conj(ptrReg[g]) - ptrTrans[g] );
-//    }
-  }
 
   // Compute the number of electrons
   // The number of electrons is computed by Tr[DM*S]
@@ -3937,35 +3842,9 @@ void PPEXSIData::CalculateFermiOperatorComplex(
     numElectron = numElectronCpx.real();
   }
 
-  // Compute the derivative of the number of electrons with respect to mu
-  // The number of electrons is computed by Tr[f'(H-\muS)*S]
-  {
-    //    Complex numElecDrvLocal = Z_ZERO;
-    //    if( SMat.size != 0 ){
-    //      // S is not an identity matrix
-    //      numElecDrvLocal = blas::Dotc( SMat.nnzLocal, SMat.nzvalLocal.Data(),
-    //          1, rhoDrvMuMat.nzvalLocal.Data(), 1 );
-    //    }
-    //    else{
-    //      // S is an identity matrix
-    //      CpxNumVec& nzval = rhoDrvMuMat.nzvalLocal;
-    //      for( Int i = 0; i < diagIdxLocal_.size(); i++ ){
-    //        numElecDrvLocal += nzval(diagIdxLocal_[i]);
-    //      }
-    //    }
-    //
-    //#if ( _DEBUGlevel_ >= 1 )
-    //    statusOFS << std::endl << "numElecDrvLocal = " << numElecDrvLocal << std::endl;
-    //#endif
-    //
-    //    Complex numElectronDrvMuCpx;
-    //    mpi::Allreduce( &numElecDrvLocal, &numElectronDrvMuCpx, 1, MPI_SUM, rhoDrvMuMat.comm );
-    //
-    //    numElectronDrvMu = numElectronDrvMuCpx.real();
-  }
-
 
   // Compute the energy, and free energy
+  // NOTE: the free energy is inaccessible if isEDMCorrection_ == 1
   {
     // Energy computed from Tr[H*DM]
     {
@@ -5603,6 +5482,7 @@ void PPEXSIData::CalculateEDMCorrectionReal(
   Real numSpin = spin;
 
   // SMat.size == 0, do not need to invert the S matrix.
+  // Just accumulate the correction term and return
   if( SMat.size == 0 ) {
     if( isEnergyDensityMatrix ){
       for(Int l = 0; l < numPole; l++){
@@ -5787,8 +5667,8 @@ void PPEXSIData::CalculateEDMCorrectionReal(
 
   }
 
-  Int numPoleComputed = 0;
-
+  // Accumulate the pre-factor
+  // Correction term: \Omega_l * S^{-1}
   Real ImgW = 0.0;
   for(Int l = 0; l < numPole; l++){
     ImgW += numSpin *  zweightRho_[l].imag();
@@ -5876,6 +5756,7 @@ void PPEXSIData::CalculateEDMCorrectionComplex(
   Real numSpin = spin;
 
   // SMat.size == 0, do not need to invert the S matrix.
+  // Just accumulate the correction term and return
   if( SMat.size == 0 ) {
     if( isEnergyDensityMatrix ) {
       for(Int l = 0; l < numPole; l++){
@@ -6002,49 +5883,23 @@ void PPEXSIData::CalculateEDMCorrectionComplex(
   DistSparseMatrix<Complex>  transMat;
 
   // After selected inversion,  AinvMat stores the selected elements of
-  // S^{T}, so transMat stores S^{-1}.
+  // S^{-T}, so transMat stores S^{-1}.
   CSCToCSR( regMat, transMat );
 
-  // FIXME: The pole loop should be just inside.
-  Int numPoleComputed = 0;
+  // Accumulate the pre-factor
+  // Correction term: \Omega_l * S^{-1}
   Real ImgW = 0.0;
   for(Int l = 0; l < numPole; l++){
     ImgW += numSpin *  zweightRho_[l].imag();
   }
 
   // Energy density matrix
-  // Correction term: \Omega_l * S^{-1}
   if( isEnergyDensityMatrix ){
     for( Int i = 0; i < SMat.nnzLocal; i++ ){
       frcMat.nzvalLocal(i) +=   ImgW * transMat.nzvalLocal(i);
     }
   }
 
-  /*
-  The following correction is wrong. since it used a wrong correction.
-  The correction should be Omega_l * S^{-1}, for complex version, S^{-1} = Ainv^{T}
-  for(Int lidx = 0; lidx < numPole; lidx++){
-    Int l = lidx;
-    {
-      // Energy density matrix
-      if( isEnergyDensityMatrix ){
-        Complex* ptrReg   = regMat.nzvalLocal.Data();
-        Complex* ptrTrans = transMat.nzvalLocal.Data();
-        // factor is 1/(2i) here instead of i/2. since we are treating S^{-1}
-        Complex  fac = Complex( 0.0, -0.5 );
-        Complex reg, trans;
-        for( Int i = 0; i < SMat.nnzLocal; i++ ){
-          reg   = std::conj(ptrReg[i]) * numSpin * zweightRho_[l];
-          trans = ptrTrans[i] * numSpin * std::conj(zweightRho_[l]);
-          // This implements the following correction
-          // 1/(2i)*(omega_l S_{ij} - conj(omega_l*S_{ji}))
-          // Note the transpose here. This needs a better fix in the future
-          frcMat.nzvalLocal(i) +=  fac * (reg - trans);
-        }
-      }
-    }
-  } // for(lidx)
-  */
 
   {
     Real local = 0.0;
