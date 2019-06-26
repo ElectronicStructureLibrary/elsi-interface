@@ -1025,12 +1025,12 @@ subroutine elsi_gram_schmidt_real(ph,bh,ovlp,evec)
    call elsi_allocate(bh,tmp2,bh%n_lrow,bh%n_lcol,"tmp2",caller)
    call elsi_allocate(bh,tmp3,bh%n_lrow,bh%n_lcol,"tmp3",caller)
 
-   call pdsymm("L","U",ph%n_basis,ph%n_states,1.0_r8,ovlp,1,1,bh%desc,evec,1,1,&
-        bh%desc,0.0_r8,tmp2,1,1,bh%desc)
+   call pdsymm("L","U",ph%n_basis,ph%n_states_solve,1.0_r8,ovlp,1,1,bh%desc,&
+        evec,1,1,bh%desc,0.0_r8,tmp2,1,1,bh%desc)
 
    i_done = 0
 
-   do j = 1,ph%n_states
+   do j = 1,ph%n_states_solve
       if(j > i_done+1) then
          ! Dot product of evec(j) with evec(i_done+1..j-1)
          call pdgemv("T",ph%n_basis,j-1-i_done,1.0_r8,tmp2,1,i_done+1,bh%desc,&
@@ -1056,14 +1056,16 @@ subroutine elsi_gram_schmidt_real(ph,bh,ovlp,evec)
          tmp2(:,lid) = tmp2(:,lid)/sqrt(norm)
       end if
 
-      if(j-i_done == n_block .and. j < ph%n_states) then
-         ! Dot product of evec(i_done+1..j) with evec(j+1..n_states)
-         call pdgemm("T","N",n_block,ph%n_states-j,ph%n_basis,1.0_r8,tmp2,1,&
-              i_done+1,bh%desc,evec,1,j+1,bh%desc,0.0_r8,tmp3,1,j+1,bh%desc)
+      if(j-i_done == n_block .and. j < ph%n_states_solve) then
+         ! Dot product of evec(i_done+1..j) with evec(j+1..n_states_solve)
+         call pdgemm("T","N",n_block,ph%n_states_solve-j,ph%n_basis,1.0_r8,&
+              tmp2,1,i_done+1,bh%desc,evec,1,j+1,bh%desc,0.0_r8,tmp3,1,j+1,&
+              bh%desc)
 
          ! Orthogonalize
-         call pdgemm("N","N",ph%n_basis,ph%n_states-j,n_block,-1.0_r8,evec,1,&
-              i_done+1,bh%desc,tmp3,1,j+1,bh%desc,1.0_r8,evec,1,j+1,bh%desc)
+         call pdgemm("N","N",ph%n_basis,ph%n_states_solve-j,n_block,-1.0_r8,&
+              evec,1,i_done+1,bh%desc,tmp3,1,j+1,bh%desc,1.0_r8,evec,1,j+1,&
+              bh%desc)
 
          i_done = i_done+n_block
       end if
@@ -1118,12 +1120,12 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,ovlp,evec)
    call elsi_allocate(bh,tmp2,bh%n_lrow,bh%n_lcol,"tmp2",caller)
    call elsi_allocate(bh,tmp3,bh%n_lrow,bh%n_lcol,"tmp3",caller)
 
-   call pzhemm("L","U",ph%n_basis,ph%n_states,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
-        evec,1,1,bh%desc,(0.0_r8,0.0_r8),tmp2,1,1,bh%desc)
+   call pzhemm("L","U",ph%n_basis,ph%n_states_solve,(1.0_r8,0.0_r8),ovlp,1,1,&
+        bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),tmp2,1,1,bh%desc)
 
    i_done = 0
 
-   do j = 1,ph%n_states
+   do j = 1,ph%n_states_solve
       if(j > i_done+1) then
          ! Dot product of evec(j) with evec(i_done+1..j-1)
          call pzgemv("C",ph%n_basis,j-1-i_done,(1.0_r8,0.0_r8),tmp2,1,i_done+1,&
@@ -1151,16 +1153,16 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,ovlp,evec)
          tmp2(:,lid) = tmp2(:,lid)/sqrt(real(norm,kind=r8))
       end if
 
-      if(j-i_done == n_block .and. j < ph%n_states) then
-         ! Dot product of evec(i_done+1..j) with evec(j+1..n_states)
-         call pzgemm("C","N",n_block,ph%n_states-j,ph%n_basis,(1.0_r8,0.0_r8),&
-              tmp2,1,i_done+1,bh%desc,evec,1,j+1,bh%desc,(0.0_r8,0.0_r8),tmp3,&
-              1,j+1,bh%desc)
+      if(j-i_done == n_block .and. j < ph%n_states_solve) then
+         ! Dot product of evec(i_done+1..j) with evec(j+1..n_states_solve)
+         call pzgemm("C","N",n_block,ph%n_states_solve-j,ph%n_basis,&
+              (1.0_r8,0.0_r8),tmp2,1,i_done+1,bh%desc,evec,1,j+1,bh%desc,&
+              (0.0_r8,0.0_r8),tmp3,1,j+1,bh%desc)
 
          ! Orthogonalize
-         call pzgemm("N","N",ph%n_basis,ph%n_states-j,n_block,(-1.0_r8,0.0_r8),&
-              evec,1,i_done+1,bh%desc,tmp3,1,j+1,bh%desc,(1.0_r8,0.0_r8),evec,&
-              1,j+1,bh%desc)
+         call pzgemm("N","N",ph%n_basis,ph%n_states_solve-j,n_block,&
+              (-1.0_r8,0.0_r8),evec,1,i_done+1,bh%desc,tmp3,1,j+1,bh%desc,&
+              (1.0_r8,0.0_r8),evec,1,j+1,bh%desc)
 
          i_done = i_done+n_block
       end if
