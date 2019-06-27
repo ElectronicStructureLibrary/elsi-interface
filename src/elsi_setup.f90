@@ -398,7 +398,6 @@ subroutine elsi_reinit(eh)
       eh%ph%n_calls = 0
       eh%ph%ill_ovlp = .false.
       eh%ph%n_good = eh%ph%n_basis
-      eh%ph%n_states_solve = eh%ph%n_states
       eh%ph%first_blacs_to_ntpoly = .true.
       eh%ph%first_blacs_to_pexsi = .true.
       eh%ph%first_blacs_to_sips = .true.
