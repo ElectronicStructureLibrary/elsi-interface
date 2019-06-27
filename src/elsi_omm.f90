@@ -102,14 +102,6 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    character(len=*), parameter :: caller = "elsi_solve_omm_real"
 
-   write(msg,"(A)") "Starting libOMM density matrix solver"
-   call elsi_say(bh,msg)
-
-   call m_register_pdbc(ham_omm,ham,bh%desc)
-   call m_register_pdbc(ovlp_omm,ovlp,bh%desc)
-   call m_register_pdbc(c_omm,coeff,ph%omm_desc)
-   call m_register_pdbc(dm_omm,dm,bh%desc)
-
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
@@ -120,6 +112,14 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    end if
+
+   write(msg,"(A)") "Starting libOMM density matrix solver"
+   call elsi_say(bh,msg)
+
+   call m_register_pdbc(ham_omm,ham,bh%desc)
+   call m_register_pdbc(ovlp_omm,ovlp,bh%desc)
+   call m_register_pdbc(c_omm,coeff,ph%omm_desc)
+   call m_register_pdbc(dm_omm,dm,bh%desc)
 
    if(.not. ph%unit_ovlp) then
       if(ph%omm_flavor == 2) then
@@ -260,14 +260,6 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    character(len=*), parameter :: caller = "elsi_solve_omm_cmplx"
 
-   write(msg,"(A)") "Starting libOMM density matrix solver"
-   call elsi_say(bh,msg)
-
-   call m_register_pdbc(ham_omm,ham,bh%desc)
-   call m_register_pdbc(ovlp_omm,ovlp,bh%desc)
-   call m_register_pdbc(c_omm,coeff,ph%omm_desc)
-   call m_register_pdbc(dm_omm,dm,bh%desc)
-
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
@@ -278,6 +270,14 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    end if
+
+   write(msg,"(A)") "Starting libOMM density matrix solver"
+   call elsi_say(bh,msg)
+
+   call m_register_pdbc(ham_omm,ham,bh%desc)
+   call m_register_pdbc(ovlp_omm,ovlp,bh%desc)
+   call m_register_pdbc(c_omm,coeff,ph%omm_desc)
+   call m_register_pdbc(dm_omm,dm,bh%desc)
 
    if(.not. ph%unit_ovlp) then
       if(ph%omm_flavor == 2) then
