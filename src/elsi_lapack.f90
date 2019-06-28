@@ -228,15 +228,16 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_solve_lapack_real"
 
+   ! Ill-conditioning check
+   if(.not. ph%unit_ovlp .and. ph%ill_check) then
+      call elsi_check_ovlp_sp(ph,bh,ovlp,eval,evec)
+   end if
+
    write(msg,"(A)") "Starting LAPACK eigensolver"
    call elsi_say(bh,msg)
 
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
-      if(ph%ill_check) then
-         call elsi_check_ovlp_sp(ph,bh,ovlp,eval,evec)
-      end if
-
       if(ph%n_good == ph%n_basis) then ! Not singular
          call elsi_factor_ovlp_sp(ph,bh,ovlp)
       end if
@@ -574,15 +575,16 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_solve_lapack_cmplx"
 
+   ! Ill-conditioning check
+   if(.not. ph%unit_ovlp .and. ph%ill_check) then
+      call elsi_check_ovlp_sp(ph,bh,ovlp,eval,evec)
+   end if
+
    write(msg,"(A)") "Starting LAPACK eigensolver"
    call elsi_say(bh,msg)
 
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
-      if(ph%ill_check) then
-         call elsi_check_ovlp_sp(ph,bh,ovlp,eval,evec)
-      end if
-
       if(ph%n_good == ph%n_basis) then ! Not singular
          call elsi_factor_ovlp_sp(ph,bh,ovlp)
       end if

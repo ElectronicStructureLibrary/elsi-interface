@@ -369,9 +369,6 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_real"
 
-   write(msg,"(A)") "Starting ELPA eigensolver"
-   call elsi_say(bh,msg)
-
    elpa_print_times = ph%elpa_output
 
    ! Compute sparsity
@@ -385,16 +382,18 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    end if
 
+   ! Ill-conditioning check
+   if(.not. ph%unit_ovlp .and. ph%elpa_first .and. ph%ill_check) then
+      call elsi_check_ovlp(ph,bh,ovlp,eval,evec)
+   end if
+
+   write(msg,"(A)") "Starting ELPA eigensolver"
+   call elsi_say(bh,msg)
+
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
-      if(ph%elpa_first) then
-         if(ph%ill_check) then
-            call elsi_check_ovlp(ph,bh,ovlp,eval,evec)
-         end if
-
-         if(ph%n_good == ph%n_basis) then ! Not singular
-            call elsi_factor_ovlp(ph,bh,ovlp)
-         end if
+      if(ph%elpa_first .and. ph%n_good == ph%n_basis) then ! Not singular
+         call elsi_factor_ovlp(ph,bh,ovlp)
       end if
 
       call elsi_reduce_evp(ph,bh,ham,ovlp,evec)
@@ -735,9 +734,6 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_cmplx"
 
-   write(msg,"(A)") "Starting ELPA eigensolver"
-   call elsi_say(bh,msg)
-
    elpa_print_times = ph%elpa_output
 
    ! Compute sparsity
@@ -751,16 +747,18 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    end if
 
+   ! Ill-conditioning check
+   if(.not. ph%unit_ovlp .and. ph%elpa_first .and. ph%ill_check) then
+      call elsi_check_ovlp(ph,bh,ovlp,eval,evec)
+   end if
+
+   write(msg,"(A)") "Starting ELPA eigensolver"
+   call elsi_say(bh,msg)
+
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
-      if(ph%elpa_first) then
-         if(ph%ill_check) then
-            call elsi_check_ovlp(ph,bh,ovlp,eval,evec)
-         end if
-
-         if(ph%n_good == ph%n_basis) then ! Not singular
-            call elsi_factor_ovlp(ph,bh,ovlp)
-         end if
+      if(ph%elpa_first .and. ph%n_good == ph%n_basis) then ! Not singular
+         call elsi_factor_ovlp(ph,bh,ovlp)
       end if
 
       call elsi_reduce_evp(ph,bh,ham,ovlp,evec)
