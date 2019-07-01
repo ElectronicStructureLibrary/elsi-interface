@@ -38,21 +38,16 @@ USE slepceps
     PetscInt           :: rank
     PetscInt           :: istart
     PetscInt           :: iend
-    Vec                :: xr
-    Vec                :: xrseq
     EPS                :: eps
     Mat                :: math
     Mat                :: mats
     Mat                :: newmath
     Mat                :: submatA
     MPI_Comm           :: matcomm
-    VecScatter         :: ctx
     PetscErrorCode     :: ierr
-    PetscBool          :: flag_update_eps       = .true.
-    PetscBool          :: flag_update_ham       = .true.
-    PetscBool          :: flag_load_ham_ovlp    = .true.
-    PetscBool          :: flag_get_eigenvectors = .true.
-    PetscBool          :: flag_get_dm           = .true.
+    PetscBool          :: flag_update_eps
+    PetscBool          :: flag_update_ham
+    PetscBool          :: flag_load_ham_ovlp
 
 CONTAINS
 
@@ -65,6 +60,10 @@ CONTAINS
 
         CALL MPI_Comm_rank(MPI_COMM_WORLD,rank,ierr)
         CALL MPI_Comm_size(MPI_COMM_WORLD,nrank,ierr)
+
+        flag_update_eps    = .true.
+        flag_update_ham    = .true.
+        flag_load_ham_ovlp = .true.
 
     END SUBROUTINE
 
@@ -87,20 +86,9 @@ CONTAINS
         CALL MatDestroy(submatA,ierr)
         CHKERRQ(ierr)
 
-        CALL VecDestroy(xr,ierr)
-        CHKERRQ(ierr)
-
-        CALL VecDestroy(xrseq,ierr)
-        CHKERRQ(ierr)
-
-        CALL VecScatterDestroy(ctx,ierr)
-        CHKERRQ(ierr)
-
-         flag_update_eps       = .true.
-         flag_update_ham       = .true.
-         flag_load_ham_ovlp    = .true.
-         flag_get_eigenvectors = .true.
-         flag_get_dm           = .true.
+        flag_update_eps    = .true.
+        flag_update_ham    = .true.
+        flag_load_ham_ovlp = .true.
 
     END SUBROUTINE
 
@@ -226,11 +214,10 @@ CONTAINS
 
     END SUBROUTINE
 
-    SUBROUTINE sips_solve_eps(nreq,nconv)
+    SUBROUTINE sips_solve_eps(nconv)
 
         IMPLICIT NONE
 
-        PetscInt, INTENT(IN)  :: nreq
         PetscInt, INTENT(OUT) :: nconv
 
         CALL EPSSetUp(eps,ierr)
@@ -532,13 +519,12 @@ CONTAINS
         PetscInt,  INTENT(IN)    :: lrow
         PetscReal, INTENT(INOUT) :: evecs(lrow,nev)
 
+        Vec                :: xr
         PetscInt           :: i
         PetscReal, POINTER :: vec_tmp(:)
 
-        IF (flag_get_eigenvectors) THEN
-            CALL MatCreateVecs(math,xr,PETSC_NULL_VEC,ierr)
-            CHKERRQ(ierr)
-        END IF
+        CALL MatCreateVecs(math,xr,PETSC_NULL_VEC,ierr)
+        CHKERRQ(ierr)
 
         DO i = 1,nev
             CALL EPSGetEigenvector(eps,i-1,xr,PETSC_NULL_VEC,ierr)
@@ -553,7 +539,8 @@ CONTAINS
             CHKERRQ(ierr)
         END DO
 
-        flag_get_eigenvectors = .false.
+        CALL VecDestroy(xr,ierr)
+        CHKERRQ(ierr)
 
     END SUBROUTINE
 
@@ -922,6 +909,9 @@ CONTAINS
         PetscReal, INTENT(IN)    :: occ(nev)          ! Occupation numbers
         PetscReal, INTENT(OUT)   :: dm_val(nnz_l)     ! Non-zero values
 
+        Vec                :: xr
+        Vec                :: xrseq
+        VecScatter         :: ctx
         PetscInt           :: i
         PetscInt           :: j
         PetscInt           :: k
@@ -934,13 +924,11 @@ CONTAINS
         col_idx = col_idx-1
         row_ptr = row_ptr-1
 
-        IF (flag_get_dm) then
-            CALL MatCreateVecs(math,xr,PETSC_NULL_VEC,ierr)
-            CHKERRQ(ierr)
+        CALL MatCreateVecs(math,xr,PETSC_NULL_VEC,ierr)
+        CHKERRQ(ierr)
 
-            CALL VecScatterCreateToAll(xr,ctx,xrseq,ierr)
-            CHKERRQ(ierr)
-        END IF
+        CALL VecScatterCreateToAll(xr,ctx,xrseq,ierr)
+        CHKERRQ(ierr)
 
         dm_val = 0.0_dp
 
@@ -974,11 +962,18 @@ CONTAINS
             CHKERRQ(ierr)
         END DO
 
+        CALL VecDestroy(xr,ierr)
+        CHKERRQ(ierr)
+
+        CALL VecDestroy(xrseq,ierr)
+        CHKERRQ(ierr)
+
+        CALL VecScatterDestroy(ctx,ierr)
+        CHKERRQ(ierr)
+
         ! Index conversion
         col_idx = col_idx+1
         row_ptr = row_ptr+1
-
-        flag_get_dm = .false.
 
     END SUBROUTINE
 
@@ -994,6 +989,9 @@ CONTAINS
         PetscReal, INTENT(IN)    :: occ(nev)          ! Occupation numbers
         PetscReal, INTENT(OUT)   :: edm_val(nnz_l)    ! Non-zero values
 
+        Vec                :: xr
+        Vec                :: xrseq
+        VecScatter         :: ctx
         PetscInt           :: i
         PetscInt           :: j
         PetscInt           :: k
@@ -1006,6 +1004,12 @@ CONTAINS
         ! Index conversion
         col_idx = col_idx-1
         row_ptr = row_ptr-1
+
+        CALL MatCreateVecs(math,xr,PETSC_NULL_VEC,ierr)
+        CHKERRQ(ierr)
+
+        CALL VecScatterCreateToAll(xr,ctx,xrseq,ierr)
+        CHKERRQ(ierr)
 
         edm_val = 0.0_dp
 
@@ -1044,6 +1048,15 @@ CONTAINS
         ! Index conversion
         col_idx = col_idx+1
         row_ptr = row_ptr+1
+
+        CALL VecDestroy(xr,ierr)
+        CHKERRQ(ierr)
+
+        CALL VecDestroy(xrseq,ierr)
+        CHKERRQ(ierr)
+
+        CALL VecScatterDestroy(ctx,ierr)
+        CHKERRQ(ierr)
 
     END SUBROUTINE
 
