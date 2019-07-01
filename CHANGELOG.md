@@ -1,5 +1,10 @@
 # ELSI changelog
 
+## Not released
+
+### SLEPc-SIPs
+* Interface compatible with PETSc 3.11 and SLEPc 3.11.
+
 ## v2.3.0 (June 2019)
 
 ### ELSI interface
@@ -80,7 +85,7 @@
   complex density matrix and energy density matrix instead of their transpose.
 
 ### SLEPc-SIPs
-* Updated interface to support PETSc 3.9.4 and SLEPc 3.9.2.
+* Updated interface to support PETSc 3.9 and SLEPc 3.9.
 
 ## v2.0.2 (June 2018)
 
@@ -117,8 +122,7 @@
 * Added a unified JSON output framework via the FortJSON library.
 
 ### Solvers
-* Added support for the SLEPc-SIPs solver (PETSc 3.8.4 and SLEPc 3.8.3
-  required).
+* Added support for the SLEPc-SIPs solver (PETSc 3.8 and SLEPc 3.8 required).
 * Implemented density matrix purification with dense linear algebra operations.
 
 ### Matrix formats

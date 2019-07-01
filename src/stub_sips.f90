@@ -136,11 +136,10 @@ subroutine sips_set_slices(nsub,subs)
 
 end subroutine
 
-subroutine sips_solve_eps(nreq,nconv)
+subroutine sips_solve_eps(nconv)
 
    implicit none
 
-   integer(kind=i4) :: nreq
    integer(kind=i4) :: nconv
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"

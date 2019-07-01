@@ -273,8 +273,8 @@ Building the PEXSI solver (highly recommended) requires:
 
 Additionally, building the SLEPc-SIPs solver requires:
 \begin{Verbatim}[commandchars=\\\{\}]
-\textcolor{blue}{SLEPc}  [version 3.9 only]
-\textcolor{blue}{PETSc}  [version 3.9 only, with SuperLU_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled]
+\textcolor{blue}{SLEPc}  [version 3.9 or newer]
+\textcolor{blue}{PETSc}  [version 3.9 or newer, with SuperLU_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled]
 \end{Verbatim}
 
 Linear algebra libraries should be provided for ELSI to link against:
@@ -406,7 +406,7 @@ SLEPc-SIPs may be activated by specifying:
 \end{verbatim}
 \end{tcolorbox}
 
-SLEPc 3.9 and PETSc 3.9 have been tested with this version of ELSI.  Older/newer versions may or may not be compatible.  The PETSc library must be compiled with MPI support, and (at least) with packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.
+SLEPc and PETSc versions 3.9, 3.10, and 3.11 have been tested with this version of ELSI.  Older/newer versions may or may not be compatible.  The PETSc library must be compiled with MPI support, and (at least) with packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.
 
 Experienced users are encouraged to link ELSI against external, better optimized solver libraries.  Relevant options for this purpose are:
 \begin{tcolorbox}

@@ -226,7 +226,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! Solve
-   call sips_solve_eps(ph%n_states,n_solved)
+   call sips_solve_eps(n_solved)
 
    if(n_solved < ph%n_states) then
       write(msg,"(A)") "SLEPc-SIPs solver failed"
