@@ -1,8 +1,9 @@
 # ELSI changelog
 
-## Not released
+## v2.3.1 (July 2019)
 
 ### SLEPc-SIPs
+* Fixed memory leaks in the redistributed SIPs code.
 * Interface compatible with PETSc 3.11 and SLEPc 3.11.
 
 ## v2.3.0 (June 2019)
