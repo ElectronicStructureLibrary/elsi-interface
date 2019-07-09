@@ -419,6 +419,7 @@ subroutine elsi_reinit(eh)
       eh%ph%pexsi_first = .true.
       eh%ph%sips_first = .true.
       eh%ph%nt_first = .true.
+      eh%ph%exa_first = .true.
 
       call elsi_cleanup_pexsi(eh%ph)
       call elsi_cleanup_sips(eh%ph)

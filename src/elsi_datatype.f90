@@ -219,6 +219,19 @@ module ELSI_DATATYPE
       type(Permutation_t) :: nt_perm
       type(ProcessGrid_t) :: nt_pgrid
 
+      ! EigenExa
+      integer(kind=i4) :: exa_n_lrow
+      integer(kind=i4) :: exa_n_lcol
+      integer(kind=i4) :: exa_my_prow
+      integer(kind=i4) :: exa_my_pcol
+      integer(kind=i4) :: exa_n_prow
+      integer(kind=i4) :: exa_n_pcol
+      integer(kind=i4) :: exa_method
+      integer(kind=i4) :: exa_blk_fwd
+      integer(kind=i4) :: exa_blk_bkwd
+      logical :: exa_first
+      logical :: exa_started = .false.
+
    end type
 
    type, public :: elsi_handle

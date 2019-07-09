@@ -183,6 +183,17 @@ subroutine elsi_reset_param(ph)
    ph%nt_output = .false.
    ph%nt_first = .true.
    ph%nt_started = .false.
+   ph%exa_n_lrow = UNSET
+   ph%exa_n_lcol = UNSET
+   ph%exa_my_prow = UNSET
+   ph%exa_my_pcol = UNSET
+   ph%exa_n_prow = UNSET
+   ph%exa_n_pcol = UNSET
+   ph%exa_method = 2
+   ph%exa_blk_fwd = 48
+   ph%exa_blk_bkwd = 128
+   ph%exa_first = .true.
+   ph%exa_started = .false.
 
 end subroutine
 
