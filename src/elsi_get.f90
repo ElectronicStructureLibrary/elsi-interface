@@ -10,7 +10,8 @@
 module ELSI_GET
 
    use ELSI_CONSTANT, only: AUTO_SOLVER,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-       SIPS_SOLVER,NTPOLY_SOLVER,PEXSI_CSC,SIESTA_CSC,GENERIC_COO
+       EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER,PEXSI_CSC,SIESTA_CSC,&
+       GENERIC_COO
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_MPI, only: elsi_stop
    use ELSI_NTPOLY, only: elsi_compute_edm_ntpoly
@@ -283,6 +284,11 @@ subroutine elsi_get_edm_real(eh,edm)
       eh%ph%solver = ELPA_SOLVER
    end if
 
+   if(eh%ph%solver == EIGENEXA_SOLVER) then
+      solver_save = EIGENEXA_SOLVER
+      eh%ph%solver = ELPA_SOLVER
+   end if
+
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
       solver_save = SIPS_SOLVER
       eh%ph%solver = ELPA_SOLVER
@@ -343,6 +349,11 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
 
    if(eh%ph%solver == OMM_SOLVER .and. eh%ph%n_calls <= eh%ph%omm_n_elpa) then
       solver_save = OMM_SOLVER
+      eh%ph%solver = ELPA_SOLVER
+   end if
+
+   if(eh%ph%solver == EIGENEXA_SOLVER) then
+      solver_save = EIGENEXA_SOLVER
       eh%ph%solver = ELPA_SOLVER
    end if
 

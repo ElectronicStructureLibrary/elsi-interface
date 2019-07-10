@@ -15,6 +15,7 @@ LIST(APPEND elsi_src
   elsi_constant.f90
   elsi_datatype.f90
   elsi_decision.f90
+  elsi_eigenexa.f90
   elsi_geo.f90
   elsi_get.f90
   elsi_input.f90

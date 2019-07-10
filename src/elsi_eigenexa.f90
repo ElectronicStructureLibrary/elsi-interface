@@ -17,7 +17,7 @@ module ELSI_EIGENEXA
    use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_integer4
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
-!   use ELSI_REDIST, only: elsi_blacs_to_eigenexa_h,elsi_eigenexa_to_blacs_ev
+   use ELSI_REDIST, only: elsi_blacs_to_eigenexa_h,elsi_eigenexa_to_blacs_ev
    use ELSI_UTIL, only: elsi_get_nnz
    use EIGEN_LIBS_MOD, only: eigen_init,eigen_get_procs,eigen_get_id,&
        eigen_get_matdims,eigen_s,eigen_sx,eigen_free
@@ -111,7 +111,7 @@ subroutine elsi_solve_eigenexa_real(ph,bh,ham,ovlp,eval,evec)
    call elsi_allocate(bh,ham_exa,ph%exa_n_lrow,ph%exa_n_lcol,"ham_exa",caller)
    call elsi_allocate(bh,evec_exa,ph%exa_n_lrow,ph%exa_n_lcol,"evec_exa",caller)
 
-!   call elsi_blacs_to_eigenexa_h(ph,bh,ham,ham_exa)
+   call elsi_blacs_to_eigenexa_h(ph,bh,ham,ham_exa)
 
    ! Solve
    write(msg,"(A)") "Starting EigenExa eigensolver"
@@ -141,7 +141,7 @@ subroutine elsi_solve_eigenexa_real(ph,bh,ham,ovlp,eval,evec)
    call elsi_say(bh,msg)
 
    ! EigenExa to BLACS
-!   call elsi_eigenexa_to_blacs_ev(ph,bh,evec_exa,evec)
+   call elsi_eigenexa_to_blacs_ev(ph,bh,evec_exa,evec)
 
    call elsi_deallocate(bh,ham_exa,"ham_exa")
    call elsi_deallocate(bh,evec_exa,"evec_exa")
