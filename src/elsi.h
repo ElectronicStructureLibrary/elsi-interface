@@ -220,6 +220,9 @@ void c_elsi_set_pexsi_mu_max(elsi_handle handle_c,
 void c_elsi_set_pexsi_inertia_tol(elsi_handle handle_c,
                                   double inertia_tol);
 
+void c_elsi_set_eigenexa_method(elsi_handle handle_c,
+                                int method);
+
 void c_elsi_set_sips_n_elpa(elsi_handle handle_c,
                             int n_elpa);
 

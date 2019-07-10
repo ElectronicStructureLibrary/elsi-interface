@@ -10,8 +10,8 @@
 module ELSI_OUTPUT
 
    use ELSI_CONSTANT, only: MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
-       SIESTA_CSC,GENERIC_COO,ELPA_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,OMM_SOLVER,&
-       NTPOLY_SOLVER
+       SIESTA_CSC,GENERIC_COO,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
+       EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_PRECISION, only: r8,i4,i8
    use FORTJSON, only: fjson_write_name_value,fjson_reset_fj_handle,&
@@ -101,6 +101,9 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       case(PEXSI_SOLVER)
          solver_tag = "PEXSI"
          solver_use = 3
+      case(EIGENEXA_SOLVER)
+         solver_tag = "EIGENEXA"
+         solver_use = 4
       case(SIPS_SOLVER)
          if(ph%n_calls <= ph%sips_n_elpa) then
             solver_tag = "ELPA"
@@ -138,16 +141,18 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       call fjson_write_name_value(jh,"solver_used",trim(solver_tag))
 
       select case(solver_use)
-      case(NTPOLY_SOLVER)
-         call elsi_print_ntpoly_settings(ph,jh)
       case(ELPA_SOLVER)
          call elsi_print_elpa_settings(ph,jh)
       case(OMM_SOLVER)
          call elsi_print_omm_settings(ph,jh)
       case(PEXSI_SOLVER)
          call elsi_print_pexsi_settings(ph,jh)
+      case(EIGENEXA_SOLVER)
+         call elsi_print_eigenexa_settings(ph,jh)
       case(SIPS_SOLVER)
          call elsi_print_sips_settings(ph,jh)
+      case(NTPOLY_SOLVER)
+         call elsi_print_ntpoly_settings(ph,jh)
       end select
 
       if(ph%matrix_format == BLACS_DENSE) then
@@ -217,14 +222,16 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
    select case(ph%solver)
    case(ELPA_SOLVER)
       call fjson_write_name_value(jh,"solver_chosen","ELPA")
-   case(NTPOLY_SOLVER)
-      call fjson_write_name_value(jh,"solver_chosen","NTPOLY")
    case(OMM_SOLVER)
       call fjson_write_name_value(jh,"solver_chosen","libOMM")
    case(PEXSI_SOLVER)
       call fjson_write_name_value(jh,"solver_chosen","PEXSI")
+   case(EIGENEXA_SOLVER)
+      call fjson_write_name_value(jh,"solver_chosen","EigenExa")
    case(SIPS_SOLVER)
       call fjson_write_name_value(jh,"solver_chosen","SLEPc_SIPs")
+   case(NTPOLY_SOLVER)
+      call fjson_write_name_value(jh,"solver_chosen","NTPOLY")
    end select
 
 end subroutine
@@ -305,30 +312,6 @@ subroutine elsi_print_elpa_settings(ph,jh)
 end subroutine
 
 !>
-!! Print settings for NTPoly.
-!!
-subroutine elsi_print_ntpoly_settings(ph,jh)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(fjson_handle), intent(inout) :: jh
-
-   character(len=*), parameter :: caller = "elsi_print_ntpoly_settings"
-
-   call fjson_start_name_object(jh,"solver_settings")
-   call fjson_write_name_value(jh,"nt_n_layers",ph%nt_n_layers)
-   call fjson_write_name_value(jh,"nt_n_prow",ph%nt_n_prow)
-   call fjson_write_name_value(jh,"nt_n_pcol",ph%nt_n_pcol)
-   call fjson_write_name_value(jh,"nt_method",ph%nt_method)
-   call fjson_write_name_value(jh,"nt_tol",ph%nt_tol)
-   call fjson_write_name_value(jh,"nt_filter",ph%nt_filter)
-   call fjson_write_name_value(jh,"nt_max_iter",ph%nt_max_iter)
-   call fjson_finish_object(jh)
-
-end subroutine
-
-!>
 !! Print settings for libOMM.
 !!
 subroutine elsi_print_omm_settings(ph,jh)
@@ -387,6 +370,28 @@ subroutine elsi_print_pexsi_settings(ph,jh)
 end subroutine
 
 !>
+!! Print settings for EigenExa.
+!!
+subroutine elsi_print_eigenexa_settings(ph,jh)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(fjson_handle), intent(inout) :: jh
+
+   character(len=*), parameter :: caller = "elsi_print_eigenexa_settings"
+
+   call fjson_start_name_object(jh,"solver_settings")
+   call fjson_write_name_value(jh,"exa_n_prow",ph%exa_n_prow)
+   call fjson_write_name_value(jh,"exa_n_pcol",ph%exa_n_pcol)
+   call fjson_write_name_value(jh,"exa_method",ph%exa_method)
+   call fjson_write_name_value(jh,"exa_blk_fwd",ph%exa_blk_fwd)
+   call fjson_write_name_value(jh,"exa_blk_bkwd",ph%exa_blk_bkwd)
+   call fjson_finish_object(jh)
+
+end subroutine
+
+!>
 !! Print settings for SLEPc-SIPs.
 !!
 subroutine elsi_print_sips_settings(ph,jh)
@@ -404,6 +409,30 @@ subroutine elsi_print_sips_settings(ph,jh)
    call fjson_write_name_value(jh,"sips_slice_type",ph%sips_slice_type)
    call fjson_write_name_value(jh,"sips_n_slices",ph%sips_n_slices)
    call fjson_write_name_value(jh,"sips_buffer",ph%sips_buffer)
+   call fjson_finish_object(jh)
+
+end subroutine
+
+!>
+!! Print settings for NTPoly.
+!!
+subroutine elsi_print_ntpoly_settings(ph,jh)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(fjson_handle), intent(inout) :: jh
+
+   character(len=*), parameter :: caller = "elsi_print_ntpoly_settings"
+
+   call fjson_start_name_object(jh,"solver_settings")
+   call fjson_write_name_value(jh,"nt_n_layers",ph%nt_n_layers)
+   call fjson_write_name_value(jh,"nt_n_prow",ph%nt_n_prow)
+   call fjson_write_name_value(jh,"nt_n_pcol",ph%nt_n_pcol)
+   call fjson_write_name_value(jh,"nt_method",ph%nt_method)
+   call fjson_write_name_value(jh,"nt_tol",ph%nt_tol)
+   call fjson_write_name_value(jh,"nt_filter",ph%nt_filter)
+   call fjson_write_name_value(jh,"nt_max_iter",ph%nt_max_iter)
    call fjson_finish_object(jh)
 
 end subroutine
@@ -550,6 +579,9 @@ subroutine elsi_final_print(ph,bh)
          call elsi_say(bh,msg)
       case(PEXSI_SOLVER)
          write(msg,"(A,A22)") "|   Solver requested          :","PEXSI"
+         call elsi_say(bh,msg)
+      case(EIGENEXA_SOLVER)
+         write(msg,"(A,A22)") "|   Solver requested          :","EigenExa"
          call elsi_say(bh,msg)
       case(SIPS_SOLVER)
          write(msg,"(A,A22)") "|   Solver requested          :","SLEPc-SIPs"

@@ -12,6 +12,7 @@ module ELSI_SETUP
    use ELSI_CONSTANT, only: AUTO_SOLVER,ELPA_SOLVER,PEXSI_SOLVER,SINGLE_PROC,&
        MULTI_PROC,PEXSI_CSC,SIESTA_CSC,UNSET,DECISION_INIT
    use ELSI_DATATYPE, only: elsi_handle
+   use ELSI_EIGENEXA, only: elsi_cleanup_eigenexa
    use ELSI_ELPA, only: elsi_cleanup_elpa
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_NTPOLY, only: elsi_cleanup_ntpoly
@@ -536,9 +537,10 @@ subroutine elsi_cleanup(eh)
    character(len=*), parameter :: caller = "elsi_cleanup"
 
    call elsi_cleanup_elpa(eh%ph)
-   call elsi_cleanup_ntpoly(eh%ph)
    call elsi_cleanup_omm(eh%ph)
    call elsi_cleanup_pexsi(eh%ph)
+   call elsi_cleanup_eigenexa(eh%ph)
+   call elsi_cleanup_ntpoly(eh%ph)
    call elsi_cleanup_sips(eh%ph)
 
    ! Dense arrays

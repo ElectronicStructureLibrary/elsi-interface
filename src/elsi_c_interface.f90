@@ -1008,6 +1008,21 @@ subroutine c_elsi_set_pexsi_inertia_tol(h_c,inertia_tol) bind(C)
 
 end subroutine
 
+subroutine c_elsi_set_eigenexa_method(h_c,method) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: method
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_eigenexa_method(h_f,method)
+
+end subroutine
+
 subroutine c_elsi_set_sips_n_elpa(h_c,n_elpa) bind(C)
 
    implicit none
