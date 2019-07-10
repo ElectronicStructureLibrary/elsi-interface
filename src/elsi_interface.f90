@@ -97,7 +97,6 @@ module ELSI
    public :: elsi_get_initialized
    public :: elsi_get_version
    public :: elsi_get_datestamp
-   public :: elsi_get_solver
    public :: elsi_get_n_illcond
    public :: elsi_get_ovlp_ev_min
    public :: elsi_get_ovlp_ev_max

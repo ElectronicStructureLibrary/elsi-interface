@@ -11,7 +11,8 @@
 module ELSI_SOLVER
 
    use ELSI_CONSTANT, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
-       NTPOLY_SOLVER,MULTI_PROC,SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,GENERIC_COO
+       NTPOLY_SOLVER,MULTI_PROC,SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,&
+       DECISION_WIP,DECISION_DONE
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_DECISION, only: elsi_decide_ev,elsi_decide_dm
    use ELSI_ELPA, only: elsi_init_elpa,elsi_solve_elpa
@@ -573,7 +574,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       solver = ELPA_SOLVER
    end if
 
-   if(eh%ph%solver /= solver .or. eh%ph%decision_status == 1) then
+   if(eh%ph%solver /= solver .or. eh%ph%decision_stage == DECISION_WIP) then
       if(.not. allocated(eh%ovlp_real_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_real_copy",caller)
@@ -600,7 +601,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
               eh%ph%n_kpts,"occ",caller)
       end if
 
-      if(eh%ph%decision_status == 2) then
+      if(eh%ph%decision_stage == DECISION_DONE) then
          if(allocated(eh%ovlp_real_copy)) then
             ovlp = eh%ovlp_real_copy
 
@@ -610,7 +611,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
 
       call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eh%eval,eh%evec_real)
 
-      if(eh%ph%decision_status == 1) then
+      if(eh%ph%decision_stage == DECISION_WIP) then
          ham = ovlp
          ovlp = eh%ovlp_real_copy
          eh%ovlp_real_copy = ham
@@ -847,7 +848,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       solver = ELPA_SOLVER
    end if
 
-   if(eh%ph%solver /= solver .or. eh%ph%decision_status == 1) then
+   if(eh%ph%solver /= solver .or. eh%ph%decision_stage == DECISION_WIP) then
       if(.not. allocated(eh%ovlp_cmplx_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_cmplx_copy",caller)
@@ -874,7 +875,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
               eh%ph%n_kpts,"occ",caller)
       end if
 
-      if(eh%ph%decision_status == 2) then
+      if(eh%ph%decision_stage == DECISION_DONE) then
          if(allocated(eh%ovlp_cmplx_copy)) then
             ovlp = eh%ovlp_cmplx_copy
 
@@ -884,7 +885,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
 
       call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eh%eval,eh%evec_cmplx)
 
-      if(eh%ph%decision_status == 1) then
+      if(eh%ph%decision_stage == DECISION_WIP) then
          ham = ovlp
          ovlp = eh%ovlp_cmplx_copy
          eh%ovlp_cmplx_copy = ham
@@ -1130,7 +1131,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          end if
       end if
 
-      if(eh%ph%decision_status == 2) then
+      if(eh%ph%decision_stage == DECISION_DONE) then
          if(allocated(eh%ovlp_real_copy)) then
             eh%ovlp_real_den = eh%ovlp_real_copy
 
@@ -1141,7 +1142,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
       call elsi_solve_elpa(eh%ph,eh%bh,eh%ham_real_den,eh%ovlp_real_den,&
            eh%eval,eh%evec_real)
 
-      if(eh%ph%decision_status == 1) then
+      if(eh%ph%decision_stage == DECISION_WIP) then
          if(.not. allocated(eh%ovlp_real_copy)) then
             call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_real_copy",caller)
@@ -1682,7 +1683,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          end if
       end if
 
-      if(eh%ph%decision_status == 2) then
+      if(eh%ph%decision_stage == DECISION_DONE) then
          if(allocated(eh%ovlp_cmplx_copy)) then
             eh%ovlp_cmplx_den = eh%ovlp_cmplx_copy
 
@@ -1693,7 +1694,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
       call elsi_solve_elpa(eh%ph,eh%bh,eh%ham_cmplx_den,eh%ovlp_cmplx_den,&
            eh%eval,eh%evec_cmplx)
 
-      if(eh%ph%decision_status == 1) then
+      if(eh%ph%decision_stage == DECISION_WIP) then
          if(.not. allocated(eh%ovlp_cmplx_copy)) then
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_cmplx_copy",caller)

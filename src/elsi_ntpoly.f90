@@ -10,7 +10,7 @@
 module ELSI_NTPOLY
 
    use ELSI_CONSTANT, only: NTPOLY_SOLVER,NTPOLY_PM,NTPOLY_TRS2,NTPOLY_TRS4,&
-       NTPOLY_HPCP,EXTRA_FACTOR,EXTRA_TRS2
+       NTPOLY_HPCP,EXTRA_FACTOR,EXTRA_TRS2,DECISION_WIP
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MPI, only: elsi_check_mpi,mpi_logical
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
@@ -179,7 +179,7 @@ subroutine elsi_solve_ntpoly(ph,bh,ham,ovlp,dm)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_status == 1) then
+   if(ph%decision_stage == DECISION_WIP) then
       ph%decision_data(NTPOLY_SOLVER) = t1-t0
    end if
 
