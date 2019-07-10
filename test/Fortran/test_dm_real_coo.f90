@@ -87,6 +87,8 @@ subroutine test_dm_real_coo(mpi_comm,solver,h_file,s_file)
          write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + PEXSI"
          e_ref = e_pexsi
          tol = 1.0e-3_r8
+      else if(solver == 4) then
+         write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + EigenExa"
       else if(solver == 5) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_real_sparse + SLEPc-SIPs"
       else if(solver == 6) then
@@ -205,6 +207,7 @@ subroutine test_dm_real_coo(mpi_comm,solver,h_file,s_file)
    call elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
    call elsi_set_elpa_solver(eh,1)
    call elsi_set_omm_flavor(eh,2)
+   call elsi_set_eigenexa_method(eh,1)
    call elsi_set_ntpoly_method(eh,1)
 
    t1 = MPI_Wtime()
