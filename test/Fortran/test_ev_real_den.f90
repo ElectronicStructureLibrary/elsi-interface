@@ -38,9 +38,8 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: n_electrons
    real(kind=r8) :: mu
    real(kind=r8) :: weight(1)
-   real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref = 0.0_r8
-   real(kind=r8) :: tol = 0.0_r8
+   real(kind=r8) :: e_test
+   real(kind=r8) :: tol
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -58,26 +57,25 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
    type(elsi_rw_handle) :: rwh
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_sips = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_ref = -2622.88214509316_r8
 
    character(len=*), parameter :: file_name = "elsi.in"
 
    call MPI_Comm_size(mpi_comm,n_proc,ierr)
    call MPI_Comm_rank(mpi_comm,myid,ierr)
 
+   tol = 1.0e-8_r8
+   header = 0
+
    if(myid == 0) then
-      tol = 1.0e-8_r8
       write(*,"(2X,A)") "################################"
       write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
       write(*,"(2X,A)") "################################"
       write(*,*)
       if(solver == 1) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_real + ELPA"
-         e_ref = e_elpa
       elseif(solver == 5) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_real + SLEPc-SIPs"
-         e_ref = e_sips
          tol = 1.0e-6_r8
       end if
       write(*,*)

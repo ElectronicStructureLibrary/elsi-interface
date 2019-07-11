@@ -43,9 +43,8 @@ subroutine test_ev_cmplx_csc1(mpi_comm,solver,h_file,s_file)
    real(kind=r8) :: n_electrons
    real(kind=r8) :: mu
    real(kind=r8) :: weight(1)
-   real(kind=r8) :: e_test = 0.0_r8
-   real(kind=r8) :: e_ref = 0.0_r8
-   real(kind=r8) :: tol = 0.0_r8
+   real(kind=r8) :: e_test
+   real(kind=r8) :: tol
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -65,7 +64,7 @@ subroutine test_ev_cmplx_csc1(mpi_comm,solver,h_file,s_file)
    type(elsi_rw_handle) :: rwh
 
    ! Reference values
-   real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
+   real(kind=r8), parameter :: e_ref = -2622.88214509316_r8
 
    character(len=*), parameter :: file_name = "elsi.in"
 
@@ -74,8 +73,10 @@ subroutine test_ev_cmplx_csc1(mpi_comm,solver,h_file,s_file)
    call MPI_Comm_size(mpi_comm,n_proc,ierr)
    call MPI_Comm_rank(mpi_comm,myid,ierr)
 
+   tol = 1.0e-8_r8
+   header = 0
+
    if(myid == 0) then
-      tol = 1.0e-8_r8
       write(*,"(2X,A)") "################################"
       write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
       write(*,"(2X,A)") "################################"
@@ -85,8 +86,6 @@ subroutine test_ev_cmplx_csc1(mpi_comm,solver,h_file,s_file)
       end if
       write(*,*)
    end if
-
-   e_ref = e_elpa
 
    ! Set up square-like processor grid
    do npcol = nint(sqrt(real(n_proc))),2,-1
@@ -107,7 +106,7 @@ subroutine test_ev_cmplx_csc1(mpi_comm,solver,h_file,s_file)
    call elsi_set_rw_mpi(rwh,mpi_comm)
 
    call elsi_read_mat_dim_sparse(rwh,h_file,n_electrons,n_basis,nnz_g,nnz_l,&
-           n_l_cols)
+        n_l_cols)
    call elsi_get_rw_header(rwh,header)
 
    l_rows = numroc(n_basis,blk,myprow,0,nprow)

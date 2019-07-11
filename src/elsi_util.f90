@@ -128,7 +128,7 @@ subroutine elsi_reset_param(ph)
    ph%first_siesta_to_pexsi = .true.
    ph%first_sips_to_blacs = .true.
    ph%first_sips_to_ntpoly = .true.
-   ph%decision_status = 0
+   ph%decision_stage = UNSET
    ph%decision_data = 0.0_r8
    ph%elpa_solver = 2
    ph%elpa_n_single = 0

@@ -141,7 +141,7 @@ module ELSI_DATATYPE
       logical :: first_sips_to_ntpoly
 
       ! Solver decision
-      integer(kind=i4) :: decision_status
+      integer(kind=i4) :: decision_stage
       real(kind=r8) :: decision_data(N_SOLVERS-1)
 
       ! ELPA

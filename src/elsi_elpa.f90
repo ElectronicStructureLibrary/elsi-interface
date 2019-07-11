@@ -9,7 +9,7 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANT, only: LT_MAT,UT_MAT,UNSET,ELPA_SOLVER
+   use ELSI_CONSTANT, only: LT_MAT,UT_MAT,UNSET,ELPA_SOLVER,DECISION_WIP
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4,&
@@ -225,7 +225,7 @@ subroutine elsi_reduce_evp_real(ph,bh,ham,ovlp,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_status == 1) then
+   if(ph%decision_stage == DECISION_WIP) then
       ph%decision_data(ELPA_SOLVER) = t1-t0
    end if
 
@@ -342,7 +342,7 @@ subroutine elsi_back_ev_real(ph,bh,ham,ovlp,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_status == 1) then
+   if(ph%decision_stage == DECISION_WIP) then
       ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
    end if
 
@@ -416,7 +416,7 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_status == 1) then
+   if(ph%decision_stage == DECISION_WIP) then
       ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
    end if
 
@@ -590,7 +590,7 @@ subroutine elsi_reduce_evp_cmplx(ph,bh,ham,ovlp,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_status == 1) then
+   if(ph%decision_stage == DECISION_WIP) then
       ph%decision_data(ELPA_SOLVER) = t1-t0
    end if
 
@@ -707,7 +707,7 @@ subroutine elsi_back_ev_cmplx(ph,bh,ham,ovlp,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_status == 1) then
+   if(ph%decision_stage == DECISION_WIP) then
       ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
    end if
 
@@ -781,7 +781,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_status == 1) then
+   if(ph%decision_stage == DECISION_WIP) then
       ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
    end if
 

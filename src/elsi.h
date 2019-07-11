@@ -287,9 +287,6 @@ void c_elsi_get_version(int *major,
 
 void c_elsi_get_datestamp(int *datestamp);
 
-void c_elsi_get_solver(elsi_handle handle_c,
-                       int *solver);
-
 void c_elsi_get_n_illcond(elsi_handle handle_c,
                           int *n_illcond);
 

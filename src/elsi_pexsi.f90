@@ -9,7 +9,7 @@
 !!
 module ELSI_PEXSI
 
-   use ELSI_CONSTANT, only: UNSET,PEXSI_SOLVER,PEXSI_CSC
+   use ELSI_CONSTANT, only: UNSET,PEXSI_SOLVER,PEXSI_CSC,DECISION_WIP
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,mpi_complex16
@@ -402,7 +402,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_stop(bh,msg,caller)
    end if
 
-   if(ph%decision_status == 1) then
+   if(ph%decision_stage == DECISION_WIP) then
       ph%decision_data(PEXSI_SOLVER) = t1-t0
    end if
 
@@ -943,7 +943,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_stop(bh,msg,caller)
    end if
 
-   if(ph%decision_status == 1) then
+   if(ph%decision_stage == DECISION_WIP) then
       ph%decision_data(PEXSI_SOLVER) = t1-t0
    end if
 

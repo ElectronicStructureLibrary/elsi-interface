@@ -40,7 +40,7 @@ void test_ev_cmplx_den_c(MPI_Comm comm,
    double _Complex *h;
    double _Complex *s;
    double _Complex *evec;
-   double e_elpa;
+   double e_ref;
    double e_test;
    double e_tol;
 
@@ -48,7 +48,7 @@ void test_ev_cmplx_den_c(MPI_Comm comm,
    elsi_handle eh;
    elsi_rw_handle rwh;
 
-   e_elpa = -2564.61963724048;
+   e_ref = -2564.61963724048;
    e_tol = 0.00000001;
 
    MPI_Comm_size(comm,&n_proc);
@@ -129,7 +129,7 @@ void test_ev_cmplx_den_c(MPI_Comm comm,
    }
 
    if (myid == 0) {
-       if (fabs(e_test-e_elpa) < e_tol) {
+       if (fabs(e_test-e_ref) < e_tol) {
            printf("  Passed.\n");
        }
    }
