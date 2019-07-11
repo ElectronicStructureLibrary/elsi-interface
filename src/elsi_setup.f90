@@ -95,6 +95,7 @@ subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
 
    if(solver == AUTO_SOLVER) then
       eh%ph%decision_stage = DECISION_INIT
+      eh%bh%print_json = 1
    end if
 
 end subroutine

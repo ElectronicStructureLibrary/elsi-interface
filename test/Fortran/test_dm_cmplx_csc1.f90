@@ -34,15 +34,15 @@ subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
    integer(kind=i4) :: id_in_task
    integer(kind=i4) :: task_id
    integer(kind=i4) :: buffer(5)
-   integer(kind=i4) :: header(8) = 0
+   integer(kind=i4) :: header(8)
 
    real(kind=r8) :: n_electrons
    real(kind=r8) :: n_sp
    real(kind=r8) :: tmp
-   real(kind=r8) :: e_hp = 0.0_r8
-   real(kind=r8) :: e_sq = 0.0_r8
-   real(kind=r8) :: e_ref = 0.0_r8
-   real(kind=r8) :: tol = 0.0_r8
+   real(kind=r8) :: e_hp
+   real(kind=r8) :: e_sq
+   real(kind=r8) :: e_ref
+   real(kind=r8) :: tol
    real(kind=r8) :: t1
    real(kind=r8) :: t2
 
@@ -61,9 +61,7 @@ subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
 
    ! Reference values
    real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_omm = -2622.88214509316_r8
    real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
-   real(kind=r8), parameter :: e_ntpoly = -2622.88214509311_r8
 
    character(len=*), parameter :: file_name = "elsi.in"
 
@@ -72,25 +70,27 @@ subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
    call MPI_Comm_size(mpi_comm,n_proc,ierr)
    call MPI_Comm_rank(mpi_comm,myid,ierr)
 
+   e_hp = 0.0_r8
+   e_sq = 0.0_r8
+   e_ref = e_elpa
+   tol = 1.0e-8_r8
+   header = 0
+
    if(myid == 0) then
-      tol = 1.0e-8_r8
       write(*,"(2X,A)") "################################"
       write(*,"(2X,A)") "##     ELSI TEST PROGRAMS     ##"
       write(*,"(2X,A)") "################################"
       write(*,*)
       if(solver == 1) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + ELPA"
-         e_ref = e_elpa
       else if(solver == 2) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + libOMM"
-         e_ref = e_omm
       else if(solver == 3) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + PEXSI"
          e_ref = e_pexsi
          tol = 1.0e-3_r8
       else if(solver == 6) then
          write(*,"(2X,A)") "Now start testing  elsi_dm_complex_sparse + NTPoly"
-         e_ref = e_ntpoly
          tol = 1.0e-7_r8
       end if
       write(*,*)
@@ -113,7 +113,7 @@ subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
       call elsi_set_rw_mpi(rwh,comm_in_task)
 
       call elsi_read_mat_dim_sparse(rwh,h_file,n_electrons,n_basis,nnz_g,nnz_l,&
-              n_l_cols)
+           n_l_cols)
       call elsi_get_rw_header(rwh,header)
    end if
 

@@ -40,9 +40,7 @@ void test_dm_cmplx_den_c(MPI_Comm comm,
    double _Complex *s;
    double _Complex *dm;
    double e_elpa;
-   double e_omm;
    double e_pexsi;
-   double e_ntpoly;
    double e_test;
    double e_tol;
    double e_ref;
@@ -52,9 +50,7 @@ void test_dm_cmplx_den_c(MPI_Comm comm,
    elsi_rw_handle rwh;
 
    e_elpa = -2622.88214509316;
-   e_omm = -2622.88214509316;
    e_pexsi = -2622.88143358352;
-   e_ntpoly = -2622.88214509311;
 
    MPI_Comm_size(comm,&n_proc);
    MPI_Comm_rank(comm,&myid);
@@ -68,21 +64,14 @@ void test_dm_cmplx_den_c(MPI_Comm comm,
    parallel = 1; // MULTI_PROC
    int_one = 1;
    int_zero = 0;
+   e_ref = e_elpa;
+   e_tol = 0.00000001;
 
-   if (solver == 1) {
-       e_ref = e_elpa;
-       e_tol = 0.00000001;
-   }
-   if (solver == 2) {
-       e_ref = e_omm;
-       e_tol = 0.00000001;
-   }
    if (solver == 3) {
        e_ref = e_pexsi;
        e_tol = 0.001;
    }
    if (solver == 6) {
-       e_ref = e_ntpoly;
        e_tol = 0.0000001;
    }
 

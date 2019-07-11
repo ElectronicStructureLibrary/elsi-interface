@@ -184,7 +184,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    call elsi_set_rw_mpi(rwh,mpi_comm)
 
    call elsi_read_mat_dim_sparse(rwh,h_file,n_electrons,n_basis,nnz_g,nnz_l,&
-           l_cols)
+        l_cols)
 
    allocate(ham_csc(nnz_l))
    allocate(ham_csc_save(nnz_l))
@@ -234,7 +234,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    call elsi_set_rw_mpi(rwh,mpi_comm)
 
    call elsi_read_mat_dim_sparse(rwh,"H_real.tmp",n_electrons,n_basis,nnz_g,&
-           nnz_l,l_cols)
+        nnz_l,l_cols)
 
    call elsi_read_mat_real_sparse(rwh,"H_real.tmp",row_ind,col_ptr,ham_csc)
    call elsi_read_mat_real_sparse(rwh,"S_real.tmp",row_ind,col_ptr,ovlp_csc)
@@ -250,7 +250,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    end if
 
    err = max(maxval(abs(ham_csc-ham_csc_save)),&
-            maxval(abs(ovlp_csc-ovlp_csc_save)))
+      maxval(abs(ovlp_csc-ovlp_csc_save)))
 
    if(myid == 0) then
       if(err < tol .and. den_ok) then
