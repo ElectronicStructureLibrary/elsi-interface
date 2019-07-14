@@ -1,5 +1,11 @@
 # ELSI changelog
 
+## Not released
+
+### ELSI interface
+* Fixed density matrix computation when using ELPA and Methfessel-Paxton
+  broadening.
+
 ## v2.3.1 (July 2019)
 
 ### SLEPc-SIPs
