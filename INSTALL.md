@@ -116,9 +116,6 @@ Building ELSI test programs may be enabled by:
 
     -DENABLE_TESTS=ON
 
-In either case, linear algebra libraries BLAS, LAPACK, BLACS, and ScaLAPACK
-should be present in LIB\_PATHS and LIBS.
-
 If the test programs are turned on, the installation may be verified by
 
     $ ...
