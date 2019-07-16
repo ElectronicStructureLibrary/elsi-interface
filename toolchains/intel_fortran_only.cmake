@@ -1,7 +1,7 @@
 ### Generic Intel ###
 
 SET(CMAKE_Fortran_COMPILER "mpiifort" CACHE STRING "MPI Fortran compiler")
-SET(CMAKE_Fortran_FLAGS "-O3 -fp-model precise" CACHE STRING "Fortran flags")
+SET(CMAKE_Fortran_FLAGS "-O3 -ip -fp-model precise" CACHE STRING "Fortran flags")
 
 SET(ENABLE_TESTS ON CACHE BOOL "Enable Fortran tests")
 
