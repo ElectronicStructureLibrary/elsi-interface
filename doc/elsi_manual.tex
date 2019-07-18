@@ -2,19 +2,12 @@
 
 \documentclass{report}
 \usepackage{geometry}
-\usepackage{graphicx}
-\usepackage{caption}
-\usepackage{color}
-\usepackage{subcaption}
 \usepackage{amsmath}
 \usepackage{tcolorbox}
 \usepackage{scrextend}
 \usepackage{titlesec}
-\usepackage{algorithm2e}
-\usepackage{appendix}
 \usepackage{hyperref}
 \usepackage{fancyvrb}
-\usepackage{xcolor}
 \addtokomafont{labelinglabel}{\sffamily}
 \titleformat{\chapter}[hang]{\bf\huge}{\thechapter}{2pc}{}
 \geometry{left=1.6cm,right=1.6cm,top=1.6cm,bottom=2cm}
@@ -34,7 +27,7 @@
 \chapter{Introduction}
 \section{The Cubic Wall of Kohn-Sham Density-Functional Theory}
 \label{sec:ksdft}
-In KS-DFT \cite{ks_kohn_1965}, the many-electron problem for the Born-Oppenheimer electronic ground state is reduced to a system of single particle equations known as the Kohn-Sham equations
+In Kohn-Sham density-functional theory (KS-DFT) \cite{ks_kohn_1965}, the many-electron problem for the Born-Oppenheimer electronic ground state is reduced to a system of single particle equations known as the Kohn-Sham equations
 \begin{equation}
 \label{eq:ks}
 \hat{h}^\text{KS} \psi_l = \epsilon_l \psi_l ,
@@ -107,7 +100,7 @@ The current version of ELSI supports ELPA \cite{elpa_auckenthaler_2011,elpa_mare
 \item \textbf{Portability}:  ELSI and its redistributed library source packages have been confirmed to work on commonly-used HPC architectures (Cray, IBM, Intel, NVIDIA) using major compilers (Cray, GNU, IBM, Intel, PGI).
 \end{itemize}
 
-\section{Kohn-Sham Solver Libraries Supported by ELSI}
+\section{Solver Libraries Supported by ELSI}
 \label{sec:solvers}
 Solvers supported in the current version of ELSI are:  ELPA \cite{elpa_auckenthaler_2011,elpa_marek_2014}, libOMM \cite{libomm_corsetti_2014}, PEXSI \cite{pexsi_lin_2009,pexsi_lin_2013}, SLEPc-SIPc \cite{slepc_hernandez_2005,sips_keceli_2016}, and NTPoly \cite{ntpoly_dawson_2018}.  The table below summarizes the supported data type, input/output matrix format, supported calculation type, and possible outputs of the solvers.
 
@@ -221,7 +214,7 @@ On top of the basic shift-and-invert, the shift-and-invert parallel spectral tra
 
 \subsection{NTPoly}
 \label{subsec:solvers_ntpoly}
-Density matrix purification is an established way to achieve linear scaling KS-DFT.  Assume orthogonal basis set, the density matrix $\boldsymbol{P}$ should satisfy the following conditions:
+Density matrix purification is an established way to achieve linear scaling KS-DFT.  Assuming an orthogonal basis set, the density matrix $\boldsymbol{P}$ should satisfy the following conditions:
 \begin{equation}
 \label{eq:density_matrix_conditions}
 \begin{split}
@@ -231,16 +224,16 @@ Density matrix purification is an established way to achieve linear scaling KS-D
 \end{split}
 \end{equation}
 
-An initial guess of such a matrix can be obtained by scaling the Hamiltonian matrix to make sure its eigenvalues lie in between 0 and 1.  Then, the ``purification'' method iteratively update the density matrix until it converges to a certain threshold.  The converged density matrix satisfies the three conditions in \ref{eq:density_matrix_conditions}.
+An initial guess of such a matrix can be obtained by scaling the Hamiltonian matrix to make sure its eigenvalues lie in between 0 and 1.  Then, the ``purification'' method iteratively updates the density matrix until it converges to a certain criterion.  The converged density matrix satisfies the three conditions in \ref{eq:density_matrix_conditions}.
 
 The process of density matrix purification can be written in the general form
 \begin{equation}
 \label{eq:purification}
-\boldsymbol{P}_\text{n+1} = \text{f}(\boldsymbol{P}_\text{n}) ,
+\boldsymbol{P}_\text{n+1} = f(\boldsymbol{P}_\text{n}) ,
 \end{equation}
-where $\boldsymbol{P}_\text{n}$ is the density matrix in the n$^\text{th}$ purification iteration, $\boldsymbol{P}_\text{n+1}$ is the density matrix in the (n+1)$^\text{th}$ iteration, and $\text{f}(\boldsymbol{P})$ is usually a matrix polynomial, which can be calculated by matrix-matrix multiplications.
+where $\boldsymbol{P}_\text{n}$ is the density matrix in the n$^\text{th}$ purification iteration, $\boldsymbol{P}_\text{n+1}$ is the density matrix in the (n+1)$^\text{th}$ iteration, and $f(\boldsymbol{P})$ is usually a matrix polynomial, which can be calculated by matrix-matrix multiplications.
 
-Various algorithms have been developed to carry out the density matrix purification efficiently, such as the canonical purification \cite{purification_palser_1998}, the trace resetting purification methods \cite{purification_niklasson_2002}, and the generalized canonical purification \cite{purification_truflandier_2016}.  These methods are implemented in the NTPoly library \cite{ntpoly_dawson_2018} using its sparse matrix-matrix multiplication kernel.  Given sufficiently sparse matrices, the computational complexity of density matrix purification with NTPoly is O(N) for insulating systems.
+Various algorithms have been developed to carry out the density matrix purification efficiently, such as the canonical purification \cite{purification_palser_1998}, the trace resetting purification methods \cite{purification_niklasson_2002}, and the generalized canonical purification \cite{purification_truflandier_2016}.  These methods are implemented in the NTPoly library \cite{ntpoly_dawson_2018} using its distributed-memory sparse matrix-matrix multiplication kernel.  Given sufficiently sparse matrices, the computational complexity of density matrix purification with NTPoly is O(N) for insulating systems.
 
 \section{Citing ELSI}
 \label{sec:cite}
@@ -1476,7 +1469,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \textbf{1)} Please refer to the 5$^\text{th}$ remark in \ref{subsec:setter_pexsi} for the chemical potential determination algorithm in PEXSI and ELSI.
 
-\subsection{Extrapolation of wavefunction and density matrix}
+\subsection{Extrapolation of Wavefunctions and Density Matrices}
 \label{subsec:extrapolation}
 In a single point total energy calculation, a simple way to construct an initial guess of the electron density is using the superposition of free atom densities.  In geometry calculations, the initial guess in the (n+1)$^\text{th}$ geometry step can be made better than free atom superposition, by reusing the wavefunctions or density matrix calculated in the n$^\text{th}$ geometry step.  However, due to the movement of atoms and localized basis functions around them, wavefunctions obtained in the n$^\text{th}$ geometry step are no longer orthonormalized in the (n+1)$^\text{th}$ geometry step.  Similarly, density matrix from the n$^\text{th}$ geometry step does not satisfy the conditions in Eq. \ref{eq:density_matrix_conditions} with respect to the new overlap matrix.
 
