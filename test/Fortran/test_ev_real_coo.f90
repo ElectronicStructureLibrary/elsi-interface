@@ -84,6 +84,8 @@ subroutine test_ev_real_coo(mpi_comm,solver,h_file,s_file)
       write(*,*)
       if(solver == 1) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + ELPA"
+      else if(solver == 4) then
+         write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + EigenExa"
       else if(solver == 5) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + SLEPc-SIPs"
          tol = 1.0e-6_r8
@@ -215,6 +217,7 @@ subroutine test_ev_real_coo(mpi_comm,solver,h_file,s_file)
    call elsi_reinit(eh)
    call elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
    call elsi_set_elpa_solver(eh,1)
+   call elsi_set_eigenexa_method(eh,1)
 
    t1 = MPI_Wtime()
 

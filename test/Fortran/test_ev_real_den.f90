@@ -74,7 +74,9 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
       write(*,*)
       if(solver == 1) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_real + ELPA"
-      elseif(solver == 5) then
+      else if(solver == 4) then
+         write(*,"(2X,A)") "Now start testing  elsi_ev_real + EigenExa"
+      else if(solver == 5) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_real + SLEPc-SIPs"
          tol = 1.0e-6_r8
       end if
@@ -214,6 +216,7 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
    ! Reinit for a new geometry
    call elsi_reinit(eh)
    call elsi_set_elpa_solver(eh,1)
+   call elsi_set_eigenexa_method(eh,1)
 
    ham = ham_save
    ovlp = ovlp_save

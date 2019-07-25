@@ -30,6 +30,9 @@ module ELSI_ELPA
    public :: elsi_cleanup_elpa
    public :: elsi_solve_elpa
    public :: elsi_update_dm_elpa
+   public :: elsi_factor_ovlp_elpa
+   public :: elsi_reduce_evp_elpa
+   public :: elsi_back_ev_elpa
    public :: elsi_elpa_cholesky
    public :: elsi_elpa_invert
    public :: elsi_elpa_tridiag
@@ -44,24 +47,24 @@ module ELSI_ELPA
       module procedure elsi_update_dm_elpa_cmplx
    end interface
 
-   interface elsi_check_ovlp
-      module procedure elsi_check_ovlp_real
-      module procedure elsi_check_ovlp_cmplx
+   interface elsi_check_ovlp_elpa
+      module procedure elsi_check_ovlp_elpa_real
+      module procedure elsi_check_ovlp_elpa_cmplx
    end interface
 
-   interface elsi_factor_ovlp
-      module procedure elsi_factor_ovlp_real
-      module procedure elsi_factor_ovlp_cmplx
+   interface elsi_factor_ovlp_elpa
+      module procedure elsi_factor_ovlp_elpa_real
+      module procedure elsi_factor_ovlp_elpa_cmplx
    end interface
 
-   interface elsi_reduce_evp
-      module procedure elsi_reduce_evp_real
-      module procedure elsi_reduce_evp_cmplx
+   interface elsi_reduce_evp_elpa
+      module procedure elsi_reduce_evp_elpa_real
+      module procedure elsi_reduce_evp_elpa_cmplx
    end interface
 
-   interface elsi_back_ev
-      module procedure elsi_back_ev_real
-      module procedure elsi_back_ev_cmplx
+   interface elsi_back_ev_elpa
+      module procedure elsi_back_ev_elpa_real
+      module procedure elsi_back_ev_elpa_cmplx
    end interface
 
    interface elsi_elpa_evec
@@ -127,7 +130,7 @@ end subroutine
 !>
 !! Cholesky factorize the overlap matrix in place.
 !!
-subroutine elsi_factor_ovlp_real(ph,bh,ovlp)
+subroutine elsi_factor_ovlp_elpa_real(ph,bh,ovlp)
 
    implicit none
 
@@ -139,7 +142,7 @@ subroutine elsi_factor_ovlp_real(ph,bh,ovlp)
    real(kind=r8) :: t1
    character(len=200) :: msg
 
-   character(len=*), parameter :: caller = "elsi_factor_ovlp_real"
+   character(len=*), parameter :: caller = "elsi_factor_ovlp_elpa_real"
 
    call elsi_get_time(t0)
 
@@ -162,7 +165,7 @@ end subroutine
 !! Transform a generalized eigenproblem to standard form using Cholesky or eigen
 !! decomposition of the overlap matrix.
 !!
-subroutine elsi_reduce_evp_real(ph,bh,ham,ovlp,evec)
+subroutine elsi_reduce_evp_elpa_real(ph,bh,ham,ovlp,evec)
 
    implicit none
 
@@ -176,7 +179,7 @@ subroutine elsi_reduce_evp_real(ph,bh,ham,ovlp,evec)
    real(kind=r8) :: t1
    character(len=200) :: msg
 
-   character(len=*), parameter :: caller = "elsi_reduce_evp_real"
+   character(len=*), parameter :: caller = "elsi_reduce_evp_elpa_real"
 
    call elsi_get_time(t0)
 
@@ -219,7 +222,7 @@ end subroutine
 !! Check the singularity of overlap matrix by computing all its eigenvalues. If
 !! S is singular, it is overwritten by its eigen decomposition on exit.
 !!
-subroutine elsi_check_ovlp_real(ph,bh,ovlp,eval,evec)
+subroutine elsi_check_ovlp_elpa_real(ph,bh,ovlp,eval,evec)
 
    implicit none
 
@@ -235,7 +238,7 @@ subroutine elsi_check_ovlp_real(ph,bh,ovlp,eval,evec)
    integer(kind=i4) :: gid
    character(len=200) :: msg
 
-   character(len=*), parameter :: caller = "elsi_check_ovlp_real"
+   character(len=*), parameter :: caller = "elsi_check_ovlp_elpa_real"
 
    call elsi_get_time(t0)
 
@@ -282,7 +285,7 @@ end subroutine
 !! Back-transform eigenvectors in the standard form to the original generalized
 !! form.
 !!
-subroutine elsi_back_ev_real(ph,bh,ham,ovlp,evec)
+subroutine elsi_back_ev_elpa_real(ph,bh,ham,ovlp,evec)
 
    implicit none
 
@@ -298,7 +301,7 @@ subroutine elsi_back_ev_real(ph,bh,ham,ovlp,evec)
 
    real(kind=r8), allocatable :: tmp(:,:)
 
-   character(len=*), parameter :: caller = "elsi_back_ev_real"
+   character(len=*), parameter :: caller = "elsi_back_ev_elpa_real"
 
    call elsi_get_time(t0)
 
@@ -366,7 +369,7 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
 
    ! Ill-conditioning check
    if(.not. ph%unit_ovlp .and. ph%elpa_first .and. ph%ill_check) then
-      call elsi_check_ovlp(ph,bh,ovlp,eval,evec)
+      call elsi_check_ovlp_elpa(ph,bh,ovlp,eval,evec)
    end if
 
    write(msg,"(A)") "Starting ELPA eigensolver"
@@ -375,10 +378,10 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
       if(ph%elpa_first .and. ph%n_good == ph%n_basis) then ! Not singular
-         call elsi_factor_ovlp(ph,bh,ovlp)
+         call elsi_factor_ovlp_elpa(ph,bh,ovlp)
       end if
 
-      call elsi_reduce_evp(ph,bh,ham,ovlp,evec)
+      call elsi_reduce_evp_elpa(ph,bh,ham,ovlp,evec)
    end if
 
    call elsi_get_time(t0)
@@ -404,7 +407,7 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
 
    ! Back-transform eigenvectors
    if(.not. ph%unit_ovlp) then
-      call elsi_back_ev(ph,bh,ham,ovlp,evec)
+      call elsi_back_ev_elpa(ph,bh,ham,ovlp,evec)
    end if
 
    ph%elpa_first = .false.
@@ -436,7 +439,7 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm)
    call elsi_get_time(t0)
 
    if(ph%elpa_first) then
-      call elsi_factor_ovlp(ph,bh,ovlp1)
+      call elsi_factor_ovlp_elpa(ph,bh,ovlp1)
    end if
 
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
@@ -490,7 +493,7 @@ end subroutine
 !>
 !! Cholesky factorize the overlap matrix in place.
 !!
-subroutine elsi_factor_ovlp_cmplx(ph,bh,ovlp)
+subroutine elsi_factor_ovlp_elpa_cmplx(ph,bh,ovlp)
 
    implicit none
 
@@ -502,7 +505,7 @@ subroutine elsi_factor_ovlp_cmplx(ph,bh,ovlp)
    real(kind=r8) :: t1
    character(len=200) :: msg
 
-   character(len=*), parameter :: caller = "elsi_factor_ovlp_cmplx"
+   character(len=*), parameter :: caller = "elsi_factor_ovlp_elpa_cmplx"
 
    call elsi_get_time(t0)
 
@@ -525,7 +528,7 @@ end subroutine
 !! Transform a generalized eigenproblem to standard form using Cholesky or eigen
 !! decomposition of the overlap matrix.
 !!
-subroutine elsi_reduce_evp_cmplx(ph,bh,ham,ovlp,evec)
+subroutine elsi_reduce_evp_elpa_cmplx(ph,bh,ham,ovlp,evec)
 
    implicit none
 
@@ -539,7 +542,7 @@ subroutine elsi_reduce_evp_cmplx(ph,bh,ham,ovlp,evec)
    real(kind=r8) :: t1
    character(len=200) :: msg
 
-   character(len=*), parameter :: caller = "elsi_reduce_evp_cmplx"
+   character(len=*), parameter :: caller = "elsi_reduce_evp_elpa_cmplx"
 
    call elsi_get_time(t0)
 
@@ -582,7 +585,7 @@ end subroutine
 !! Check the singularity of overlap matrix by computing all its eigenvalues. If
 !! S is singular, it is overwritten by its eigen decomposition on exit.
 !!
-subroutine elsi_check_ovlp_cmplx(ph,bh,ovlp,eval,evec)
+subroutine elsi_check_ovlp_elpa_cmplx(ph,bh,ovlp,eval,evec)
 
    implicit none
 
@@ -598,7 +601,7 @@ subroutine elsi_check_ovlp_cmplx(ph,bh,ovlp,eval,evec)
    integer(kind=i4) :: gid
    character(len=200) :: msg
 
-   character(len=*), parameter :: caller = "elsi_check_ovlp_cmplx"
+   character(len=*), parameter :: caller = "elsi_check_ovlp_elpa_cmplx"
 
    call elsi_get_time(t0)
 
@@ -645,7 +648,7 @@ end subroutine
 !! Back-transform eigenvectors in the standard form to the original generalized
 !! form.
 !!
-subroutine elsi_back_ev_cmplx(ph,bh,ham,ovlp,evec)
+subroutine elsi_back_ev_elpa_cmplx(ph,bh,ham,ovlp,evec)
 
    implicit none
 
@@ -661,7 +664,7 @@ subroutine elsi_back_ev_cmplx(ph,bh,ham,ovlp,evec)
 
    complex(kind=r8), allocatable :: tmp(:,:)
 
-   character(len=*), parameter :: caller = "elsi_back_ev_cmplx"
+   character(len=*), parameter :: caller = "elsi_back_ev_elpa_cmplx"
 
    call elsi_get_time(t0)
 
@@ -729,7 +732,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    ! Ill-conditioning check
    if(.not. ph%unit_ovlp .and. ph%elpa_first .and. ph%ill_check) then
-      call elsi_check_ovlp(ph,bh,ovlp,eval,evec)
+      call elsi_check_ovlp_elpa(ph,bh,ovlp,eval,evec)
    end if
 
    write(msg,"(A)") "Starting ELPA eigensolver"
@@ -738,10 +741,10 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
       if(ph%elpa_first .and. ph%n_good == ph%n_basis) then ! Not singular
-         call elsi_factor_ovlp(ph,bh,ovlp)
+         call elsi_factor_ovlp_elpa(ph,bh,ovlp)
       end if
 
-      call elsi_reduce_evp(ph,bh,ham,ovlp,evec)
+      call elsi_reduce_evp_elpa(ph,bh,ham,ovlp,evec)
    end if
 
    call elsi_get_time(t0)
@@ -767,7 +770,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    ! Back-transform eigenvectors
    if(.not. ph%unit_ovlp) then
-      call elsi_back_ev(ph,bh,ham,ovlp,evec)
+      call elsi_back_ev_elpa(ph,bh,ham,ovlp,evec)
    end if
 
    ph%elpa_first = .false.
@@ -799,7 +802,7 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm)
    call elsi_get_time(t0)
 
    if(ph%elpa_first) then
-      call elsi_factor_ovlp(ph,bh,ovlp1)
+      call elsi_factor_ovlp_elpa(ph,bh,ovlp1)
    end if
 
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)

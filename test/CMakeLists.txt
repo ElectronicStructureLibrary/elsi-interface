@@ -149,6 +149,22 @@ IF(ENABLE_PEXSI)
   test_fortran(08_pexsi d 3 c 3 ${h_cmplx} ${s_cmplx})
 ENDIF()
 
+### Parallel Fortran tests: ev + EigenExa ###
+IF(ENABLE_EIGENEXA)
+  test_fortran(01_eigenexa e 0 r 4 ${h_real} ${s_real})
+  test_fortran(02_eigenexa e 1 r 4 ${h_real} ${s_real})
+  test_fortran(03_eigenexa e 2 r 4 ${h_real} ${s_real})
+  test_fortran(04_eigenexa e 3 r 4 ${h_real} ${s_real})
+ENDIF()
+
+### Parallel Fortran tests: dm + EigenExa ###
+IF(ENABLE_EIGENEXA)
+  test_fortran(05_eigenexa d 0 r 4 ${h_real} ${s_real})
+  test_fortran(06_eigenexa d 1 r 4 ${h_real} ${s_real})
+  test_fortran(07_eigenexa d 2 r 4 ${h_real} ${s_real})
+  test_fortran(08_eigenexa d 3 r 4 ${h_real} ${s_real})
+ENDIF()
+
 ### Parallel Fortran tests: ev + SLEPc-SIPs ###
 IF(ENABLE_SIPS)
   test_fortran(01_sips e 0 r 5 ${h_real} ${s_real})

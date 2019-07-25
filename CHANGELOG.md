@@ -6,6 +6,15 @@
 * Fixed density matrix computation when using ELPA and Methfessel-Paxton
   broadening.
 
+### Solvers
+* Added support for the tridiagonalization and pentadiagonalization eigensolvers
+  implemented in the EigenExa library.
+
+### EigenExa
+* Interface compatible with EigeExa 2.4.
+* Added tridiagonalization eigensolver eigen\_s and pentadiagonalization
+  eigensolver eigen\_sx.
+
 ## v2.3.1 (July 2019)
 
 ### SLEPc-SIPs

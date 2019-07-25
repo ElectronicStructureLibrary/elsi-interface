@@ -12,7 +12,7 @@ module ELSI_UTIL
    use ELSI_CONSTANT, only: UNSET,UT_MAT,LT_MAT,N_SOLVERS,N_PARALLEL_MODES,&
        N_MATRIX_FORMATS,MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
        SIESTA_CSC,GENERIC_COO,AUTO_SOLVER,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-       SIPS_SOLVER,NTPOLY_SOLVER
+       EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t,elsi_handle
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,&
@@ -183,6 +183,17 @@ subroutine elsi_reset_param(ph)
    ph%nt_output = .false.
    ph%nt_first = .true.
    ph%nt_started = .false.
+   ph%exa_n_lrow = UNSET
+   ph%exa_n_lcol = UNSET
+   ph%exa_my_prow = UNSET
+   ph%exa_my_pcol = UNSET
+   ph%exa_n_prow = UNSET
+   ph%exa_n_pcol = UNSET
+   ph%exa_method = 2
+   ph%exa_blk_fwd = 48
+   ph%exa_blk_bkwd = 128
+   ph%exa_first = .true.
+   ph%exa_started = .false.
 
 end subroutine
 
@@ -403,6 +414,11 @@ subroutine elsi_check(ph,bh,caller)
             write(msg,"(A)") "Number of MPI tasks per pole too small"
             call elsi_stop(bh,msg,caller)
          end if
+      end if
+   case(EIGENEXA_SOLVER)
+      if(ph%parallel_mode /= MULTI_PROC) then
+         write(msg,"(A)") "EigenExa requires MULTI_PROC parallel mode"
+         call elsi_stop(bh,msg,caller)
       end if
    case(SIPS_SOLVER)
       if(ph%n_basis < bh%n_procs) then

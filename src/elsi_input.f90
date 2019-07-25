@@ -20,9 +20,10 @@ module ELSI_INPUT
        elsi_set_elpa_autotune,elsi_set_omm_flavor,elsi_set_omm_n_elpa,&
        elsi_set_omm_tol,elsi_set_pexsi_n_mu,elsi_set_pexsi_n_pole,&
        elsi_set_pexsi_np_per_pole,elsi_set_pexsi_np_symbo,&
-       elsi_set_pexsi_inertia_tol,elsi_set_sips_n_elpa,elsi_set_sips_n_slice,&
-       elsi_set_sips_ev_min,elsi_set_sips_ev_max,elsi_set_ntpoly_method,&
-       elsi_set_ntpoly_tol,elsi_set_ntpoly_filter,elsi_set_mu_broaden_scheme,&
+       elsi_set_pexsi_inertia_tol,elsi_set_eigenexa_method,&
+       elsi_set_sips_n_elpa,elsi_set_sips_n_slice,elsi_set_sips_ev_min,&
+       elsi_set_sips_ev_max,elsi_set_ntpoly_method,elsi_set_ntpoly_tol,&
+       elsi_set_ntpoly_filter,elsi_set_mu_broaden_scheme,&
        elsi_set_mu_broaden_width,elsi_set_mu_tol,elsi_set_mu_mp_order
    use ELSI_UTIL, only: elsi_check_init
 
@@ -235,6 +236,11 @@ subroutine elsi_set_input_file(eh,f_name)
 
          call elsi_check_read(eh%bh,ierr,kwd)
          call elsi_set_pexsi_inertia_tol(eh,val_r8)
+      case("eigenexa_method")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_eigenexa_method(eh,val_i4)
       case("sips_n_elpa")
          read(msg,*,iostat=ierr) kwd,val_i4
 

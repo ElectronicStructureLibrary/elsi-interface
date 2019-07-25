@@ -15,6 +15,7 @@ LIST(APPEND elsi_src
   elsi_constant.f90
   elsi_datatype.f90
   elsi_decision.f90
+  elsi_eigenexa.f90
   elsi_geo.f90
   elsi_get.f90
   elsi_input.f90
@@ -42,6 +43,9 @@ SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/elsi_version.f90
 
 IF(NOT ENABLE_PEXSI)
   LIST(APPEND elsi_src stub_pexsi.f90)
+ENDIF()
+IF(NOT ENABLE_EIGENEXA)
+  LIST(APPEND elsi_src stub_eigenexa.f90)
 ENDIF()
 IF(NOT ENABLE_SIPS)
   LIST(APPEND elsi_src stub_sips.f90)

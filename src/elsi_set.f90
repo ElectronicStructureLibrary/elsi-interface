@@ -50,6 +50,7 @@ module ELSI_SET
    public :: elsi_set_pexsi_mu_min
    public :: elsi_set_pexsi_mu_max
    public :: elsi_set_pexsi_inertia_tol
+   public :: elsi_set_eigenexa_method
    public :: elsi_set_sips_n_elpa
    public :: elsi_set_sips_n_slice
    public :: elsi_set_sips_slice_type
@@ -834,6 +835,24 @@ subroutine elsi_set_pexsi_inertia_tol(eh,inertia_tol)
    end if
 
    eh%ph%pexsi_options%muInertiaTolerance = inertia_tol
+
+end subroutine
+
+!>
+!! Set the EigenExa algorithm.
+!!
+subroutine elsi_set_eigenexa_method(eh,method)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: method !< Method
+
+   character(len=*), parameter :: caller = "elsi_set_eigenexa_method"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%ph%exa_method = method
 
 end subroutine
 
