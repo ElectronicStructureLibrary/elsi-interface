@@ -297,20 +297,19 @@ Linear algebra libraries should be provided for ELSI to link against:
 
 By default, the redistributed ELPA, libOMM, and NTPoly solvers will be built. If PEXSI is enabled during configuration, the redistributed PEXSI library and its dependencies, namely the SuperLU\_DIST and PT-SCOTCH libraries, will be built as well. Optionally, the redistributed ELPA, libOMM, PEXSI, SuperLU\_DIST, PT-SCOTCH, and NTPoly libraries may be substituted by user's optimized versions.
 
-\section{CMake Basics}
-\label{sec:cmake}
-This section covers some basics of using CMake. Users who are familiar with CMake may safely skip this section.
-
-The typical workflow of using CMake to build ELSI looks like:
+\section{Quick Start}
+\label{sec:quick}
+We recommend preparing and editing configuration settings in a toolchain file that can be read by CMake. Edit one of the templates provided in the ``./toolchains'' directory of the ELSI package. In addition to the options defined in the templates, a complete list of options accepted by the ELSI CMake build system may be found in \ref{subsec:config_options}. Then, follow the steps below:
 \begin{tcolorbox}
 \begin{Verbatim}[commandchars=\\\{\}]
+$ \textcolor{blue}{cd elsi-interface}
 $ \textcolor{blue}{ls}
 
   CMakeLists.txt  external/  src/  test/  ...
 
 $ \textcolor{blue}{mkdir build}
 $ \textcolor{blue}{cd build}
-$ \textcolor{blue}{cmake [options] ..}
+$ \textcolor{blue}{cmake -DCMAKE_TOOLCHAIN_FILE=YOUR_TOOLCHAIN_FILE ..}
 
   ...
   ...
@@ -318,198 +317,42 @@ $ \textcolor{blue}{cmake [options] ..}
   -- Build files have been written to: /current/dir
 
 $ \textcolor{blue}{make [-j np]}
-$ \textcolor{blue}{make install}
+$ \textcolor{blue}{[make install]}
 \end{Verbatim}
 \end{tcolorbox}
 
-Whenever ``\verb+cmake+'' is invoked, one of the command line arguments should point to the path where the top level ``\verb+CMakeLists.txt+'' file exists, hence the ``\verb+..+'' in the above example.
-
-By default, CMake generates standard UNIX makefiles including specific rules to build the project with GNU make. Other build systems may be chosen with the ``\verb+-G+'' (G for generator) option of CMake. We recommend \href{http://ninja-build.org}{Ninja} in particular, which is a small build system with a focus on speed. A version of Ninja with Fortran support is freely available \href{http://github.com/Kitware/ninja}{here}.
-
-To build ELSI with Ninja:
-\begin{tcolorbox}
-\begin{Verbatim}[commandchars=\\\{\}]
-$ \textcolor{blue}{ls}
-
-  CMakeLists.txt  external/  src/  test/  ...
-
-$ \textcolor{blue}{mkdir build}
-$ \textcolor{blue}{cd build}
-$ \textcolor{blue}{cmake -G Ninja [options] ..}
-
-  ...
-  ...
-  -- Generating done
-  -- Build files have been written to: /current/dir
-
-$ \textcolor{blue}{ninja}
-$ \textcolor{blue}{ninja install}
-\end{Verbatim}
-\end{tcolorbox}
-
-Ninja also accepts the \verb+-j+ flag. Without this flag, Ninja runs on the number of available threads plus two by default (e.g., 10 on a machine with 8 threads). Thus, \verb+-j+ is typically not necessary.
-
-An option may be defined by adding ``\verb+-DKeyword=Value+'' to the command line when invoking CMake. If ``\verb+Keyword+'' is of type boolean, its ``\verb+Value+'' may be ``ON'' or ``OFF''. If ``\verb+Keyword+'' is a list of libraries or include directories, its items should be separated with ``;'' (semicolon) or `` '' (space). For example,
-\begin{tcolorbox}
-\begin{verbatim}
--DCMAKE_INSTALL_PREFIX=/path/to/install/elsi
--DCMAKE_C_COMPILER=gcc
--DENABLE_TESTS=OFF
--DENABLE_PEXSI=ON
--DINC_PATHS="/path/to/include;/another/path/to/include"
--DLIBS="library1 library2 library3"
-\end{verbatim}
-\end{tcolorbox}
-
-Available options for building ELSI with CMake are introduced in the next sections. Other options of CMake itself are available in its online documentation.
+``\verb+YOUR_TOOLCHAIN_FILE+'' should be the user's toolchain file. Commands in square brackets are optional.
 
 \section{Configuration}
 \label{sec:config}
 \subsection{Compilers}
 \label{subsec:config_compilers}
-CMake automatically detects compilers. The choices made by CMake often work, but they do not necessarily lead to the optimal performance. In some cases, the compilers picked up by CMake may not be the ones desired by the user. To build ELSI, it is mandatory that the user explicitly sets the identification of the compilers:
-\begin{tcolorbox}
-\begin{verbatim}
--DCMAKE_Fortran_COMPILER=YOUR_MPI_FORTRAN_COMPILER
--DCMAKE_C_COMPILER=YOUR_MPI_C_COMPILER
--DCMAKE_CXX_COMPILER=YOUR_MPI_C++_COMPILER
-\end{verbatim}
-\end{tcolorbox}
+CMake automatically detects compilers. The choices made by CMake often work, but they do not necessarily lead to the optimal performance. In some cases, the compilers picked up by CMake may not be the ones desired by the user. To build ELSI, it is mandatory that the user explicitly sets the identification of the compilers in \textcolor{blue}{CMAKE\_Fortran\_COMPILER}, \textcolor{blue}{CMAKE\_C\_COMPILER}, and \textcolor{blue}{CMAKE\_CXX\_COMPILER}. Please note that the C++ compiler is not needed when building ELSI without PEXSI.
 
-Please note that the C++ compiler is not needed when building ELSI without PEXSI.
-
-In addition, it is highly recommended to specify the compiler flags, in particular the optimization flags:
-\begin{tcolorbox}
-\begin{verbatim}
--DCMAKE_Fortran_FLAGS=YOUR_FORTRAN_COMPILE_FLAGS
--DCMAKE_C_FLAGS=YOUR_MPI_C_COMPILE_FLAGS
--DCMAKE_CXX_FLAGS=YOUR_MPI_C++_COMPILE_FLAGS
-\end{verbatim}
-\end{tcolorbox}
-
-With CMake versions older than 3.8.2, flags such as \verb+-std=c99+ and \verb@-std=c++11@ (or equivalents depending on the compilers) should be given in order to ensure compliance with the C99 and C++11 standards.
+In addition, it is highly recommended to specify the compiler flags in \textcolor{blue}{CMAKE\_Fortran\_FLAGS}, \textcolor{blue}{CMAKE\_C\_FLAGS}, and \textcolor{blue}{CMAKE\_CXX\_FLAGS}.
 
 \subsection{Solvers}
 \label{subsec:config_solvers}
-The ELPA, libOMM, PEXSI, and NTPoly solver libraries, as well as the SuperLU\_DIST and PT-SCOTCH libraries (both required by PEXSI), are redistributed with the current ELSI package. The redistributed version of ELPA comes with a few ``kernels'' specifically written to take advantage of processor architecture (e.g. vectorization instruction set extensions). A kernel may be chosen by the \textcolor{blue}{ELPA2\_KERNEL} keyword. Available options are:
-\begin{tcolorbox}
-\begin{verbatim}
--DELPA2_KERNEL=BGQ
--DELPA2_KERNEL=AVX
--DELPA2_KERNEL=AVX2
--DELPA2_KERNEL=AVX512
-\end{verbatim}
-\end{tcolorbox}
+The ELPA, libOMM, PEXSI, and NTPoly solver libraries, as well as the SuperLU\_DIST and PT-SCOTCH libraries (both required by PEXSI), are redistributed with the current ELSI package.
 
-for the IBM Blue Gene Q, Intel AVX, Intel AVX2, and Intel AVX512 architectures, respectively. In ELPA, these kernels are employed to accelerate the calculation of eigenvectors, which is often a bottleneck when calculating a large portion of the eigenspectrum. If this is the case in the user's application, it is highly recommended that the user selects the kernel most suited to their system architecture.
+The redistributed version of ELPA comes with a few ``kernels'' specifically written to take advantage of processor architecture (e.g. vectorization instruction set extensions), which may be chosen by the \textcolor{blue}{ELPA2\_KERNEL} keyword. Available options are \textcolor{blue}{AVX}, \textcolor{blue}{AVX2}, and \textcolor{blue}{AVX512}, for architectures supporting Intel AVX, AVX2, and AVX512 instruction sets, respectively. In ELPA, these kernels are employed to accelerate the calculation of eigenvectors, which is often a bottleneck when calculating a large portion of the eigenspectrum.
 
-The PEXSI, EigenExa, and SLEPc-SIPs solvers are not enabled by default. PEXSI may be activated by specifying:
-\begin{tcolorbox}
-\begin{verbatim}
--DENABLE_PEXSI=ON
-\end{verbatim}
-\end{tcolorbox}
+The PEXSI, EigenExa, and SLEPc-SIPs solvers are not enabled by default. They may be activated by the keywords \textcolor{blue}{ENABLE\_PEXSI}, \textcolor{blue}{ENABLE\_EIGENEXA}, and \textcolor{blue}{ENABLE\_SIPS}, respectively. PEXSI 1.2.0, EigenExa 2.3 and 2.4, SLEPc 3.9, 3.10, and 3.11 have been tested with this version of ELSI. Older/newer versions may or may not be compatible. The PETSc library, required by SLEPc, must be compiled with MPI support, and (at least) with packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.
 
-PEXSI 1.2.0 has been tested with this version of ELSI. Older/newer versions may or may not be compatible. The PEXSI library must be compiled with Fortran support.
+Experienced users are encouraged to link ELSI against external, better optimized solver libraries. The keywords \textcolor{blue}{USE\_EXTERNAL\_ELPA}, \textcolor{blue}{USE\_EXTERNAL\_OMM}, \textcolor{blue}{USE\_EXTERNAL\_PEXSI}, and \textcolor{blue}{USE\_EXTERNAL\_NTPOLY} control the usage of externally compiled ELPA, libOMM, PEXSI, and NTPoly, respectively.
 
-EigenExa may be activated by specifying:
-\begin{tcolorbox}
-\begin{verbatim}
--DENABLE_EIGENEXA=ON
-\end{verbatim}
-\end{tcolorbox}
+All external libraries and include paths should be set via \textcolor{blue}{INC\_PATHS}, \textcolor{blue}{LIB\_PATHS}, and \textcolor{blue}{LIBS}, each of which is a list of items separated with `` '' (space) or ``;'' (semicolon). If an external library depends on additional libraries, \textcolor{blue}{LIBS} should include all the relevant dependencies. For instance, \textcolor{blue}{LIBS} should include the ELPA library and CUDA libraries when using an external ELPA compiled with GPU (CUDA) support.
 
-EigenExa versions 2.3 and 2.4 have been tested with this version of ELSI. Older/newer versions may or may not be compatible.
+\subsection{Shared Library}
+\label{subsec:config_shared}
+Building ELSI as a shared library may be enabled by \textcolor{blue}{BUILD\_SHARED\_LIBS}.
 
-SLEPc-SIPs may be activated by specifying:
-\begin{tcolorbox}
-\begin{verbatim}
--DENABLE_SIPS=ON
-\end{verbatim}
-\end{tcolorbox}
-
-SLEPc and PETSc versions 3.9, 3.10, and 3.11 have been tested with this version of ELSI. Older/newer versions may or may not be compatible. The PETSc library must be compiled with MPI support, and (at least) with packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.
-
-Experienced users are encouraged to link ELSI against external, better optimized solver libraries. Relevant options for this purpose are:
-\begin{tcolorbox}
-\begin{verbatim}
--DUSE_EXTERNAL_ELPA=ON
--DUSE_EXTERNAL_OMM=ON
--DUSE_EXTERNAL_PEXSI=ON
--DUSE_EXTERNAL_NTPOLY=ON
-\end{verbatim}
-\end{tcolorbox}
-
-The external libraries and the include paths should be set via the following three keywords:
-\begin{tcolorbox}
-\begin{verbatim}
--DLIB_PATHS=DIRECTORIES_CONTAINING_YOUR_EXTERNAL_LIBRARIES
--DINC_PATHS=INCLUDE_DIRECTORIES_OF_YOUR_EXTERNAL_LIBRARIES
--DLIBS=NAMES_OF_YOUR_EXTERNAL_LIBRARIES
-\end{verbatim}
-\end{tcolorbox}
-
-Each of the above keywords is a space-separated or semicolon-separated list. If an external library depends on additional libraries, \textcolor{blue}{LIBS} should include all the relevant libraries. For instance, \textcolor{blue}{LIBS} should include the ELPA library and CUDA libraries when using an external ELPA compiled with GPU (CUDA) support. Similarly, \textcolor{blue}{LIBS} should include the PEXSI library and all its dependencies when using an external PEXSI.
-
-\subsection{Build Targets}
-\label{subsec:config_targets}
-By default, a static library (libelsi.a) will be created as the target of the compilation. Building ELSI as a shared library may be enabled by:
-\begin{tcolorbox}
-\begin{verbatim}
--DBUILD_SHARED_LIBS=ON
-\end{verbatim}
-\end{tcolorbox}
-
-Building ELSI test programs may be enabled by:
-\begin{tcolorbox}
-\begin{verbatim}
--DENABLE_TESTS=ON
-\end{verbatim}
-\end{tcolorbox}
-
-If test programs are turned on, the compilation of ELSI may be verified by
-\begin{tcolorbox}
-\begin{Verbatim}[commandchars=\\\{\}]
-$ \textcolor{blue}{make test}
-\end{Verbatim}
-\end{tcolorbox}
-
-or
-\begin{tcolorbox}
-\begin{Verbatim}[commandchars=\\\{\}]
-$ \textcolor{blue}{ninja test}
-\end{Verbatim}
-\end{tcolorbox}
-
-depending on the generator option ``\verb+-G+'' used when invoking CMake. Alternatively, issue
-\begin{tcolorbox}
-\begin{Verbatim}[commandchars=\\\{\}]
-$ \textcolor{blue}{ctest}
-\end{Verbatim}
-\end{tcolorbox}
-
-to invoke the CTest program which performs all tests automatically. Note that the tests may not run if launching MPI jobs is prohibited on the user's working platform.
-
-In order to install ELSI at the location specified by \textcolor{blue}{CMAKE\_INSTALL\_PREFIX}, issue
-\begin{tcolorbox}
-\begin{Verbatim}[commandchars=\\\{\}]
-$ \textcolor{blue}{make install}
-\end{Verbatim}
-\end{tcolorbox}
-
-or
-\begin{tcolorbox}
-\begin{Verbatim}[commandchars=\\\{\}]
-$ \textcolor{blue}{ninja install}
-\end{Verbatim}
-\end{tcolorbox}
-
-depending on the CMake generator option ``\verb+-G+'' used.
-
-Among the files copied to the installation destinations is a CMake configuration file called \texttt{elsiConfig.cmake}. This file includes all the information about how the ELSI library and its dependencies should be included in an external CMake project. Please refer to \ref{sec:import} for information regarding linking a third-party package against ELSI.
+\subsection{Tests}
+\label{subsec:config_tests}
+Building ELSI test programs may be enabled by \textcolor{blue}{ENABLE\_TESTS}. Then, the compilation may be verified by ``\verb+make test+'' or ``\verb+ctest+''. Note that the tests may not run if launching MPI jobs is prohibited on the user's working platform.
 
 \subsection{List of All Configure Options}
-\label{subsec:config_keywords}
+\label{subsec:config_options}
 The options accepted by the ELSI CMake build system are listed here in alphabetical order. Some additional explanations are made below the table.
 
 \begin{tabular}[]{|p{50mm}|p{15mm}|p{20mm}|p{80mm}|}
@@ -572,32 +415,23 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 
 \textbf{Remarks}
 
-\textbf{1)} \textcolor{blue}{ADD\_UNDERSCORE}: In the PEXSI and SuperLU\_DIST code redistributed through ELSI, there are calls to functions of the linear algebra libraries, e.g. ``dgemm''. If \textcolor{blue}{ADD\_UNDERSCORE} is ``ON'', the code will call ``dgemm\_'' instead of ``dgemm''. Turn this keyword on if routines are suffixed with ``\_'' in external linear algebra libraries. Turn it off if routines are not suffixed with ``\_''.
+\textbf{1)} \textcolor{blue}{ADD\_UNDERSCORE}: In the redistributed PEXSI and SuperLU\_DIST code, there are calls to functions from the linear algebra libraries, e.g. ``dgemm''. If \textcolor{blue}{ADD\_UNDERSCORE} is ``ON'', the code will call ``dgemm\_'' instead of ``dgemm''. Turn this keyword off if routines are not suffixed with ``\_'' in the linear algebra libraries.
 
-\textbf{2)} \textcolor{blue}{ELPA2\_KERNEL}: There are a number of computational kernels available with the ELPA solver. Choose from ``BGQ'' (IBM Blue Gene Q), ``AVX'' (Intel AVX), ``AVX2'' (Intel AVX2), and ``AVX512'' (Intel AVX512). See \ref{subsec:config_solvers} for more information.
+\textbf{2)} \textcolor{blue}{CMAKE\_INSTALL\_PREFIX}: ELSI may be installed to the location specified in \textcolor{blue}{CMAKE\_INSTALL\_PREFIX} by ``\verb+make install+''.
 
-\textbf{3)} \textcolor{blue}{SCOTCH\_LAST\_RESORT}: The compilation of the PT-SCOTCH library is a multi-step process. First, two auxiliary executables are created. Then, header files of the library are generated by running the two executables. Finally, the main source files of the library are compiled with the generated header files included. The header generation step may fail on platforms where directly running an executable is prohibited on a login/compile node. Often this can be circumvented by requesting an interactive session to a compute node and performing the compilation there, or by submitting the whole compilation as a job to the queuing system. However, this may still fail on platforms where an executable compiled with MPI must be launched by an MPI job launcher (aprun, mpirun, srun, etc). If the standard compilation of PT-SCOTCH fails due to this reason, the user may set \textcolor{blue}{SCOTCH\_LAST\_RESORT} to the command that starts an MPI job with one MPI task, e.g. ``\verb+mpirun -n 1+''. This command will be used to launch the auxiliary executables to generate necessary header files for PT-SCOTCH.
+\textbf{3)} \textcolor{blue}{ELPA2\_KERNEL}: There are a number of computational kernels available with the ELPA solver. Choose from ``AVX'' (Intel AVX), ``AVX2'' (Intel AVX2), and ``AVX512'' (Intel AVX512). See \ref{subsec:config_solvers} for more information.
 
-\textbf{4)} External libraries: ELSI redistributes source code of ELPA, libOMM, NTPoly, PEXSI, SuperLU\_DIST, and PT-SCOTCH libraries, which by default will be built together with the ELSI interface. Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries. See \ref{subsec:config_solvers} for more information.
+\textbf{4)} \textcolor{blue}{SCOTCH\_LAST\_RESORT}: The compilation of the PT-SCOTCH library is a multi-step process. First, two auxiliary executables are created. Then, header files of the library are generated on-the-fly by the two executables. Finally, the main source files of the library are compiled with the generated header files included. The header generation step may fail on platforms where directly running an executable is prohibited, e.g. login nodes of a supercomputer. Often this can be circumvented by requesting an interactive session to a compute node and compiling the code there, or by submitting the compilation as a job to the queuing system. However, this may still fail on platforms where an executable compiled with MPI must be launched by an MPI job launcher (aprun, mpirun, srun, etc). If the standard compilation of PT-SCOTCH fails due to this reason, the user may set \textcolor{blue}{SCOTCH\_LAST\_RESORT} to the command that starts an MPI job with one MPI task, e.g. ``\verb+mpirun -n 1+''. This command will be used to launch the auxiliary executables to generate necessary header files for PT-SCOTCH.
 
-\textbf{5)} \textcolor{blue}{USE\_MPI\_IALLGATHER}: NTPoly makes use of non-blocking collective MPI functions such as \texttt{MPI\_Iallgatherv} to overlap its computation and communication. If these MPI functions are not available in the user's MPI version, set \textcolor{blue}{USE\_MPI\_IALLGATHER} to `OFF`. Using this flag may lead to reduced performance. Upgrade MPI if possible.
+\textbf{5)} External libraries: ELSI redistributes source code of ELPA, libOMM, NTPoly, PEXSI, SuperLU\_DIST, and PT-SCOTCH libraries, which by default will be built together with the ELSI interface. Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries. See \ref{subsec:config_solvers} for more information.
 
-\subsection{``Toolchain'' Files}
-\label{subsec:config_toolchain}
-It is sometimes convenient to edit the settings in a ``toolchain'' file that can be read by CMake:
-\begin{tcolorbox}
-\begin{verbatim}
--DCMAKE_TOOLCHAIN_FILE=YOUR_TOOLCHAIN_FILE
-\end{verbatim}
-\end{tcolorbox}
-
-Example ``toolchains'' are provided in the ``./toolchains'' directory of the ELSI package, which the user may use as templates to create new ones.
+\textbf{6)} \textcolor{blue}{USE\_MPI\_IALLGATHER}: NTPoly makes use of non-blocking collective MPI functions such as \texttt{MPI\_Iallgatherv} to overlap its computation and communication. If these MPI functions are not available in the user's MPI version, set \textcolor{blue}{USE\_MPI\_IALLGATHER} to `OFF`. Using this flag may lead to reduced performance. Upgrade MPI if possible.
 
 \section{Importing ELSI into Third-Party Code Projects}
 \label{sec:import}
 \subsection{Linking against ELSI: CMake}
 \label{subsec:import_cmake}
-A CMake configuration file called \texttt{elsiConfig.cmake} should be generated after ELSI is successfully installed (see \ref{subsec:config_targets}). This file contains all the information about how the ELSI library and its dependencies should be included in an external project. For a project using CMake, only two lines are required to find and link to ELSI:
+A CMake configuration file called \texttt{elsiConfig.cmake} should be generated after ELSI is successfully installed. This file contains all the information about how the ELSI library and its dependencies should be included in an external project. For a project using CMake, only two lines are required to find and link to ELSI:
 \begin{tcolorbox}
 \begin{verbatim}
 find_package(elsi REQUIRED)
@@ -605,14 +439,14 @@ target_link_libraries(my_project PRIVATE elsi::elsi)
 \end{verbatim}
 \end{tcolorbox}
 
-If a minimum version of ELSI is required, this information may be passed to ``\verb+find_package+'' by:
+If a minimum version of ELSI is required, this information may be passed to ``\verb+find_package+'' by, e.g.:
 \begin{tcolorbox}
 \begin{verbatim}
 find_package(elsi 2.0 REQUIRED)
 \end{verbatim}
 \end{tcolorbox}
 
-If the installed ELSI version is older than the requested minimum version, CMake stops with an appropriate error message. Other options of ``\verb+find_package+'' are available in the documentation of CMake.
+In this case, if ELSI version 1.x is found, CMake stops with an appropriate error message.
 
 \subsection{Linking against ELSI: Makefile}
 \label{subsec:import_makefile}
@@ -628,7 +462,7 @@ ELSI_LIB     = -L/PATH/TO/BUILD/ELSI/lib -lelsi \
 \end{verbatim}
 \end{tcolorbox}
 
-Enabling/disabling PEXSI and SLEPc-SIPs or linking ELSI against preinstalled solver libraries will require the user modify these flags accordingly.
+Enabling/disabling PEXSI, EigenExa, SLEPc-SIPs or linking ELSI against pre-installed solver libraries will require the user modify these flags accordingly.
 
 \subsection{Using ELSI}
 \label{subsec:import_use}
