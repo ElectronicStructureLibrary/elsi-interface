@@ -299,7 +299,21 @@ By default, the redistributed ELPA, libOMM, and NTPoly solvers will be built. If
 
 \section{Quick Start}
 \label{sec:quick}
-We recommend preparing and editing configuration settings in a toolchain file that can be read by CMake. Edit one of the templates provided in the ``./toolchains'' directory of the ELSI package. In addition to the options defined in the templates, a complete list of options accepted by the ELSI CMake build system may be found in \ref{subsec:config_options}. Then, follow the steps below:
+We recommend preparing configuration settings in a toolchain file that can be read by CMake. Edit one of the templates provided in the ``toolchains'' directory of the ELSI package. As an example, a minimal Intel toolchain looks like
+\begin{tcolorbox}
+\begin{Verbatim}[commandchars=\\\{\}]
+# Modify contents in \textcolor{red}{red} if necessary
+set(CMAKE_Fortran_COMPILER \textcolor{red}{"mpiifort"} CACHE STRING "MPI Fortran compiler")
+set(CMAKE_Fortran_FLAGS \textcolor{red}{"-O3 -ip -fp-model precise"} CACHE STRING "Fortran flags")
+set(LIB_PATHS \textcolor{red}{"$ENV{MKLROOT}/lib/intel64"} CACHE STRING "External library paths")
+set(LIBS \textcolor{red}{"mkl_scalapack_lp64 mkl_blacs_intelmpi_lp64 mkl_intel_lp64 mkl_sequential mkl_core"}
+    CACHE STRING "External libraries")
+\end{Verbatim}
+\end{tcolorbox}
+
+This will build ELSI with the redistributed ELPA, libOMM, and NTPoly solvers. To enable more solvers, check out the examples in the ``toolchains'' directory, and refer to a complete list of options in \ref{subsec:config_options}.
+
+Once a toolchain file is ready, follow the steps below:
 \begin{tcolorbox}
 \begin{Verbatim}[commandchars=\\\{\}]
 $ \textcolor{blue}{cd elsi-interface}
@@ -322,6 +336,8 @@ $ \textcolor{blue}{[make install]}
 \end{tcolorbox}
 
 ``\verb+YOUR_TOOLCHAIN_FILE+'' should be the user's toolchain file. Commands in square brackets are optional.
+
+If the compilation succeeds, the next step would be reading the code examples in the ``test'' directory of the ELSI package, which showcase the use of ELSI in C and Fortran programs.
 
 \section{Configuration}
 \label{sec:config}
@@ -1851,7 +1867,7 @@ An array of eight user-defined integers can be optionally set up via \textcolor{
 
 \section{Example Pseudo-Code}
 \label{sec:example}
-Typical workflow of ELSI within an electronic structure code is demonstrated by the following pseudo-code.
+Typical workflow of ELSI within an electronic structure code is demonstrated by the following pseudo-code. In the ``test'' directory of the ELSI package, there are also examples that showcase the usage of ELSI in C and Fortran.
 
 \subsection*{2D Block-Cyclic Distributed Dense Matrix + ELSI Eigensolver Interface}
 \begin{tcolorbox}
@@ -1874,33 +1890,6 @@ end do
 call \textcolor{blue}{elsi_finalize}(eh)
 \end{Verbatim}
 \end{tcolorbox}
-
-\subsection*{1D Block Distributed CSC Sparse Matrix + ELSI Eigensolver Interface}
-\begin{tcolorbox}
-\begin{Verbatim}[commandchars=\\\{\}]
-\textcolor{red}{SCF initialize}
-
-call \textcolor{blue}{elsi_init} (eh, ELPA, MULTI_PROC, PEXSI_CSC, n_basis, n_electron, n_state)
-call \textcolor{blue}{elsi_set_mpi} (eh, mpi_comm)
-call \textcolor{blue}{elsi_set_blacs} (eh, blacs_ctxt, block_size)
-call \textcolor{blue}{elsi_set_csc} (eh, global_nnz, local_nnz, local_col, row_idx, col_ptr)
-
-do SCF cycle
-  \textcolor{red}{Update Hamiltonian}
-
-  call \textcolor{blue}{elsi_ev_\{real|complex\}_sparse} (eh, ham, ovlp, eval, evec)
-
-  \textcolor{red}{Update electron density}
-  \textcolor{red}{Check SCF convergence}
-end do
-
-call \textcolor{blue}{elsi_finalize}(eh)
-\end{Verbatim}
-\end{tcolorbox}
-
-\textbf{Remarks}
-
-\textbf{1)} Eigenvectors are returned in the \textcolor{blue}{BLACS\_DENSE} format, which is required to be properly set up.
 
 \subsection*{1D Block-Cyclic Distributed CSC Sparse Matrix + ELSI Eigensolver Interface}
 \begin{tcolorbox}
@@ -1978,33 +1967,6 @@ end do
 call \textcolor{blue}{elsi_finalize}(eh)
 \end{Verbatim}
 \end{tcolorbox}
-
-\subsection*{1D Block Distributed CSC Sparse Matrix + ELSI Density Matrix Interface}
-\begin{tcolorbox}
-\begin{Verbatim}[commandchars=\\\{\}]
-\textcolor{red}{SCF initialize}
-
-call \textcolor{blue}{elsi_init} (eh, PEXSI, MULTI_PROC, PEXSI_CSC, n_basis, n_electron, n_state)
-call \textcolor{blue}{elsi_set_mpi} (eh, mpi_comm)
-call \textcolor{blue}{elsi_set_csc} (eh, global_nnz, local_nnz, local_col, row_idx, col_ptr)
-
-do SCF cycle
-  \textcolor{red}{Update Hamiltonian}
-
-  call \textcolor{blue}{elsi_dm_\{real|complex\}_sparse} (eh, ham, ovlp, dm, bs_energy)
-  call \textcolor{blue}{elsi_get_edm_\{real|complex\}_sparse} (eh, edm)
-
-  \textcolor{red}{Update electron density}
-  \textcolor{red}{Check SCF convergence}
-end do
-
-call \textcolor{blue}{elsi_finalize}(eh)
-\end{Verbatim}
-\end{tcolorbox}
-
-\textbf{Remarks}
-
-\textbf{1)} Refer to the 5$^\text{th}$ remark in \ref{subsec:setter_pexsi} for the chemical potential determination algorithm in PEXSI.
 
 \subsection*{1D Block-Cyclic Distributed CSC Sparse Matrix + ELSI Density Matrix Interface}
 \begin{tcolorbox}
