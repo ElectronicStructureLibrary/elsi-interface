@@ -16,7 +16,7 @@ module ELSI_GEO
    use ELSI_MALLOC, only: elsi_allocate
    use ELSI_MPI, only: elsi_stop
    use ELSI_NTPOLY, only: elsi_update_dm_ntpoly,CopyMatrix
-   use ELSI_PRECISION, only: i4,r8
+   use ELSI_PRECISION, only: r8
    use ELSI_REDIST, only: elsi_blacs_to_generic_dm,elsi_blacs_to_ntpoly_hs,&
        elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,elsi_generic_to_blacs_hs,&
        elsi_generic_to_ntpoly_hs,elsi_ntpoly_to_blacs_dm,&

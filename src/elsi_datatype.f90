@@ -17,7 +17,6 @@ module ELSI_DATATYPE
    use ELPA, only: elpa_t,elpa_autotune_t
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use FORTJSON, only: fjson_handle
-   use MATRIXSWITCH, only: matrix
    use NTPOLY, only: Permutation_t,Matrix_ps,SolverParameters_t,ProcessGrid_t
 
    implicit none
