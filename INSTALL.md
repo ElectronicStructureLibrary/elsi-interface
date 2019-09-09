@@ -80,6 +80,14 @@ All external libraries and include paths should be set via:
 * `LIB_PATHS`
 * `LIBS`
 
+Each of the above is a list separated by ` ` (space) or `;` (semicolon).
+`INC_PATHS` and `LIB_PATHS` should be absolute paths. `LIBS` accepts three
+formats:
+
+* `-lelpa;-lpexsi;-lblas` (link line style)
+* `elpa;pexsi;blas` (name of library)
+* `libelpa.a;libpexsi.a;libblas.so` (full name of library)
+
 Please note that in the current version of ELSI, the PEXSI solver is not enabled
 unless `ENABLE_PEXSI` is switched on.
 
