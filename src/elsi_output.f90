@@ -13,7 +13,7 @@ module ELSI_OUTPUT
        SIESTA_CSC,GENERIC_COO,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
        EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_PRECISION, only: r8,i4,i8
+   use ELSI_PRECISION, only: r8,i4
    use FORTJSON, only: fjson_write_name_value,fjson_reset_fj_handle,&
        fjson_start_name_object,fjson_start_array,fjson_finish_object,&
        fjson_open_file,fjson_handle,fjson_start_object,&
