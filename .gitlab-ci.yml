@@ -3,6 +3,7 @@ before_script:
   - module purge
   - module load gcc-7.5.0
   - module load cmake-3.0.2
+  - export OMP_NUM_THREADS=1
 
 ### GNU compilers + OpenMPI + Netlib BLAS, LAPACK, ScaLAPACK ###
 gnu:
@@ -13,7 +14,19 @@ gnu:
     - mkdir build
     - cd build
     - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/gnu.cmake ..
-    - make -j8
+    - make -j4
+    - ctest --output-on-failure
+
+### PGI compilers + OpenMPI + OpenBLAS, LAPACK, ScaLAPACK ###
+pgi:
+  script:
+    - module load PrgEnv-pgi/19.10
+    - cat ./toolchains/pgi.cmake
+    - rm -rf build
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/pgi.cmake ..
+    - make -j4
     - ctest --output-on-failure
 
 ### Intel compilers + MPI + MKL ###
@@ -22,26 +35,14 @@ intel:
     - module load intel-compilers-18.0
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
+    - export MKL_DYNAMIC=FALSE
+    - export MKL_NUM_THREADS=1
     - cat ./toolchains/intel.cmake
     - rm -rf build
     - mkdir build
     - cd build
     - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake ..
-    - make -j8
-    - ctest --output-on-failure
-
-### Intel compilers + MPI + MKL + external solver libraries (debug) ###
-intel-debug:
-  script:
-    - module load intel-compilers-18.0
-    - module load intel-mpi-2018.2
-    - module load intel-mkl-2018.2
-    - cat ./toolchains/intel_debug.cmake
-    - rm -rf build
-    - mkdir build
-    - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.cmake ..
-    - make -j8
+    - make -j4
     - ctest --output-on-failure
 
 ### Intel compilers + MPI + MKL (shared library) ###
@@ -50,10 +51,28 @@ intel-shared:
     - module load intel-compilers-18.0
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
+    - export MKL_DYNAMIC=FALSE
+    - export MKL_NUM_THREADS=1
     - cat ./toolchains/intel.cmake
     - rm -rf build
     - mkdir build
     - cd build
     - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel.cmake -DBUILD_SHARED_LIBS=ON ..
-    - make -j8
+    - make -j4
+    - ctest --output-on-failure
+
+### Intel compilers + MPI + MKL + external solver libraries (debug) ###
+intel-debug:
+  script:
+    - module load intel-compilers-18.0
+    - module load intel-mpi-2018.2
+    - module load intel-mkl-2018.2
+    - export MKL_DYNAMIC=FALSE
+    - export MKL_NUM_THREADS=1
+    - cat ./toolchains/intel_debug.cmake
+    - rm -rf build
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/intel_debug.cmake ..
+    - make -j4
     - ctest --output-on-failure
