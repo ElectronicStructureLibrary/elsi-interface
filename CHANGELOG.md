@@ -15,6 +15,12 @@
 * Added tridiagonalization eigensolver eigen\_s and pentadiagonalization
   eigensolver eigen\_sx.
 
+### Known issues
+* ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
+  support of AVX intrinsics in PGI.
+* Depending on the choice of k-points, the complex PEXSI solver may randomly
+  fail at the inertia counting stage.
+
 ## v2.3.1 (July 2019)
 
 ### SLEPc-SIPs
@@ -119,8 +125,8 @@
 * Improved stability when calling PBLAS routines pdtran and pztranc.
 
 ### Known issues
-* Depending on the choice of k-points, the complex PEXSI solver may fail at the
-  inertia counting stage.
+* Depending on the choice of k-points, the complex PEXSI solver may randomly
+  fail at the inertia counting stage.
 
 ## v2.0.0 (May 2018)
 
