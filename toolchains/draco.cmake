@@ -12,6 +12,6 @@ SET(USE_EXTERNAL_ELPA ON CACHE BOOL "Use external ELPA")
 SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
 SET(ENABLE_TESTS ON CACHE BOOL "Enable tests")
 
-SET(INC_PATHS "/mpcdf/soft/SLE_12_SP3/packages/haswell/elpa/intel_18_0-impi_2018_3/2018.11.001-standard/include/elpa-2018.11.001/modules" CACHE STRING "External library include paths")
-SET(LIB_PATHS "/mpcdf/soft/SLE_12_SP3/packages/haswell/elpa/intel_18_0-impi_2018_3/2018.11.001-standard/lib $ENV{MKLROOT}/lib/intel64" CACHE STRING "External library paths")
+SET(INC_PATHS "$ENV{ELPA_HOME}/include/elpa-2019.05.001/modules" CACHE STRING "External library include paths")
+SET(LIB_PATHS "$ENV{ELPA_HOME}/lib $ENV{MKLROOT}/lib/intel64" CACHE STRING "External library paths")
 SET(LIBS "elpa mkl_scalapack_lp64 mkl_blacs_intelmpi_lp64 mkl_intel_lp64 mkl_sequential mkl_core" CACHE STRING "External libraries")
