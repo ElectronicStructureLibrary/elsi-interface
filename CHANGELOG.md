@@ -15,6 +15,9 @@
 * Added tridiagonalization eigensolver eigen\_s and pentadiagonalization
   eigensolver eigen\_sx.
 
+### SLEPc-SIPs
+* Interface compatible with PETSc 3.12 and SLEPc 3.12.
+
 ### Known issues
 * ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
   support of AVX intrinsics in PGI.
