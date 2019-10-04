@@ -18,9 +18,7 @@ module ELSI_ELPA
    use ELSI_UTIL, only: elsi_get_nnz,elsi_get_gid,elsi_set_full_mat
    use ELPA, only: elpa_t,elpa_init,elpa_allocate,elpa_deallocate,&
        elpa_autotune_deallocate,ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
-       ELPA_2STAGE_REAL_GPU,ELPA_2STAGE_COMPLEX_GPU,ELPA_2STAGE_REAL_DEFAULT,&
-       ELPA_2STAGE_COMPLEX_DEFAULT,ELPA_AUTOTUNE_FAST,&
-       ELPA_AUTOTUNE_DOMAIN_REAL,ELPA_AUTOTUNE_DOMAIN_COMPLEX
+       ELPA_AUTOTUNE_FAST,ELPA_AUTOTUNE_DOMAIN_REAL,ELPA_AUTOTUNE_DOMAIN_COMPLEX
 
    implicit none
 
@@ -923,39 +921,11 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
             call ph%elpa_solve%set("gpu",0,ierr)
 
             ph%elpa_gpu = .false.
-            ph%elpa_gpu_kernels = .false.
 
             write(msg,"(A)") "No ELPA GPU acceleration available"
             call elsi_say(bh,msg)
          else
             write(msg,"(A)") "ELPA GPU acceleration activated"
-            call elsi_say(bh,msg)
-         end if
-      end if
-
-      ! Try to enable ELPA2 GPU kernels
-      if(ph%elpa_gpu_kernels) then
-         if(ph%elpa_solver == 2) then
-            call ph%elpa_solve%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
-            call ph%elpa_solve%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,&
-                 ierr2)
-
-            if(ierr /= 0 .or. ierr2 /= 0) then
-               call ph%elpa_solve%set("real_kernel",ELPA_2STAGE_REAL_DEFAULT,&
-                    ierr)
-               call ph%elpa_solve%set("complex_kernel",&
-                    ELPA_2STAGE_COMPLEX_DEFAULT,ierr)
-
-               ph%elpa_gpu_kernels = .false.
-
-               write(msg,"(A)") "ELPA GPU kernels not available"
-               call elsi_say(bh,msg)
-            else
-               write(msg,"(A)") "ELPA GPU kernels will be used"
-               call elsi_say(bh,msg)
-            end if
-         else
-            write(msg,"(A)") "No GPU kernels available with 1-stage ELPA"
             call elsi_say(bh,msg)
          end if
       end if

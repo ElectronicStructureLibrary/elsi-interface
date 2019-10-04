@@ -16,14 +16,13 @@ module ELSI_INPUT
        elsi_set_unit_ovlp,elsi_set_zero_def,elsi_set_illcond_check,&
        elsi_set_illcond_tol,elsi_set_energy_gap,elsi_set_spectrum_width,&
        elsi_set_dimensionality,elsi_set_extrapolation,elsi_set_elpa_solver,&
-       elsi_set_elpa_n_single,elsi_set_elpa_gpu,elsi_set_elpa_gpu_kernels,&
-       elsi_set_elpa_autotune,elsi_set_omm_flavor,elsi_set_omm_n_elpa,&
-       elsi_set_omm_tol,elsi_set_pexsi_n_mu,elsi_set_pexsi_n_pole,&
-       elsi_set_pexsi_np_per_pole,elsi_set_pexsi_np_symbo,&
-       elsi_set_pexsi_inertia_tol,elsi_set_eigenexa_method,&
-       elsi_set_sips_n_elpa,elsi_set_sips_n_slice,elsi_set_sips_ev_min,&
-       elsi_set_sips_ev_max,elsi_set_ntpoly_method,elsi_set_ntpoly_tol,&
-       elsi_set_ntpoly_filter,elsi_set_mu_broaden_scheme,&
+       elsi_set_elpa_n_single,elsi_set_elpa_gpu,elsi_set_elpa_autotune,&
+       elsi_set_omm_flavor,elsi_set_omm_n_elpa,elsi_set_omm_tol,&
+       elsi_set_pexsi_n_mu,elsi_set_pexsi_n_pole,elsi_set_pexsi_np_per_pole,&
+       elsi_set_pexsi_np_symbo,elsi_set_pexsi_inertia_tol,&
+       elsi_set_eigenexa_method,elsi_set_sips_n_elpa,elsi_set_sips_n_slice,&
+       elsi_set_sips_ev_min,elsi_set_sips_ev_max,elsi_set_ntpoly_method,&
+       elsi_set_ntpoly_tol,elsi_set_ntpoly_filter,elsi_set_mu_broaden_scheme,&
        elsi_set_mu_broaden_width,elsi_set_mu_tol,elsi_set_mu_mp_order
    use ELSI_UTIL, only: elsi_check_init
 
@@ -184,12 +183,6 @@ subroutine elsi_set_input_file(eh,f_name)
          call elsi_check_read(eh%bh,ierr,kwd)
          call elsi_str_to_int(val_str,val_i4)
          call elsi_set_elpa_gpu(eh,val_i4)
-      case("elpa_gpu_kernels")
-         read(msg,*,iostat=ierr) kwd,val_str
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_str_to_int(val_str,val_i4)
-         call elsi_set_elpa_gpu_kernels(eh,val_i4)
       case("elpa_autotune")
          read(msg,*,iostat=ierr) kwd,val_str
 

@@ -134,7 +134,6 @@ subroutine elsi_reset_param(ph)
    ph%elpa_comm_row = UNSET
    ph%elpa_comm_col = UNSET
    ph%elpa_gpu = .false.
-   ph%elpa_gpu_kernels = .false.
    ph%elpa_autotune = .false.
    ph%elpa_output = .false.
    ph%elpa_first = .true.
