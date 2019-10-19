@@ -25,230 +25,29 @@
 
 % Chapter1
 \chapter{Introduction}
-\section{The Cubic Wall of Kohn-Sham Density-Functional Theory}
-\label{sec:ksdft}
-In Kohn-Sham density-functional theory (KS-DFT) \cite{ks_kohn_1965}, the many-electron problem for the Born-Oppenheimer electronic ground state is reduced to a system of single particle equations known as the Kohn-Sham equations
-\begin{equation}
-\label{eq:ks}
-\hat{h}^\text{KS} \psi_l = \epsilon_l \psi_l ,
-\end{equation}
-where $\psi_l$ and $\epsilon_l$ are Kohn-Sham orbitals and their associated eigenenergies, and $\hat{h}^\text{KS}$ denotes the Kohn-Sham Hamiltonian, which includes the kinetic energy, the average electrostatic potential of the electron density and of the nuclei (i.e. the Hartree potential), the exchange-correlation potential, and possible additional potential terms from external electromagnetic fields. These terms depend on the electron density $\boldsymbol{n}$, which is determined by the Kohn-Sham orbitals $\psi_l$. These terms also enter the Hamiltonian $\hat{h}^\text{KS}$, which determines the Kohn-Sham orbitals $\psi_l$.
-
-Due to this circular dependency, the Kohn-Sham equations are in fact a non-linear optimization problem, and therefore must be solved iteratively. The most commonly used method is the self-consistent field (SCF) approach. It usually starts from an initial guess of the electron density, from which the kinetic energy, electrostatic potential, exchange-correlation potential, and external potential are computed, forming the Kohn-Sham Hamiltonian. Then, the Kohn-Sham orbitals (wavefunctions) are solved from the Hamiltonian, and new electron density is computed from the Kohn-Sham orbitals. To achieve self-consistency, the electron density is updated in every SCF iteration until converged to an acceptable level.
-
-In almost all practical approaches, $N_\text{basis}$ basis functions ${\phi_i(\boldsymbol{r})}$ are employed to approximately expand the Kohn-Sham orbitals:
-\begin{equation}
-\label{eq:basis_expansion}
-\psi_l(\boldsymbol{r}) = \sum_{j=1}^{N_\text{basis}} c_{jl} \phi_j(\boldsymbol{r}) .
-\end{equation}
-
-The choice of basis set is one of the critical decisions in the design of an electronic structure code. Using non-orthogonal basis functions (e.g., Gaussian functions, Slater functions, numeric atom-centered orbitals) in \ref{eq:basis_expansion} converts \ref{eq:ks} to a generalized eigenvalue problem
-\begin{equation}
-\label{eq:generalized_evp}
-\sum_j h_{ij} c_{jl} = \epsilon_l \sum_j s_{ij} c_{jl} ,
-\end{equation}
-where $h_{ij}$ and $s_{ij}$ are the elements of the Hamiltonian matrix $\boldsymbol{H}$ and the overlap matrix $\boldsymbol{S}$, which can be computed through numerical integrations:
-\begin{equation}
-\label{eq:ham_ovlp_integration}
-\begin{split}
-h_{ij} & = \int d^3 r [\phi_i^*(\boldsymbol{r}) \hat{h}^\text{KS} \phi_j(\boldsymbol{r})] ,\\
-s_{ij} & = \int d^3 r [\phi_i^*(\boldsymbol{r}) \phi_j(\boldsymbol{r})] .
-\end{split}
-\end{equation}
-\ref{eq:generalized_evp} can thus be expressed in the following matrix form
-\begin{equation}
-\label{eq:generalized_evp_matrix}
-\boldsymbol{H} \boldsymbol{C} = \boldsymbol{S} \boldsymbol{C} \boldsymbol{\epsilon} .
-\end{equation}
-Here, the matrix $\boldsymbol{C}$ and diagonal matrix $\boldsymbol{\epsilon}$ contain the eigenvectors and eigenvalues, respectively, of the eigensystem of the matrices $\boldsymbol{H}$ and $\boldsymbol{S}$.
-
-When using orthonormal basis sets (e.g. plane waves, multi-resolution wavelets), the eigenproblem described in \ref{eq:generalized_evp_matrix} reduces to a standard form where $s_{ij}=\delta_{ij}$.
-
-The explicit solution of \ref{eq:generalized_evp} or \ref{eq:generalized_evp_matrix} yields the Kohn-Sham orbitals $\psi_i$, from which the electron density $n(\boldsymbol{r})$ can be computed following an orbital-based method:
-\begin{equation}
-\label{eq:orbital_update}
-n(\boldsymbol{r}) = \sum_{l=1}^{N_\text{basis}} f_l \psi_l^*(\boldsymbol{r}) \psi_l(\boldsymbol{r}) ,
-\end{equation}
-where $f_l$ denotes the occupation number of each orbital. In an actual computation, it is sufficient to perform the summation only for the occupied ($f_l > 0$) orbitals. The ratio of occupied orbitals to the total number of basis functions can be below 1\% for plane wave basis sets, whereas with some localized basis sets, fewer basis functions are required, leading to a larger fraction of occupied states.
-
-An alternative method can be employed for localized basis functions:
-\begin{equation}
-\label{eq:density_matrix_update}
-n(\boldsymbol{r}) = \sum_{i,j}^{N_\text{basis}} \phi_i^*(\boldsymbol{r}) p_{ij} \phi_j(\boldsymbol{r}) ,
-\end{equation}
-with $p_{ij}$ being the elements of the density matrix $\boldsymbol{P}$ that need to be computed before the density update:
-\begin{equation}
-\label{eq:density_matrix}
-p_{ij} = \sum_{l=1}^{N_\text{basis}} f_l c_{il} c_{jl} .
-\end{equation}
-
-From a viewpoint of computational complexity, with localized basis functions, almost all standard pieces of solving the Kohn-Sham equations can be formulated in a linear scaling fashion with respect to the system size. The only remaining bottleneck for semilocal functionals is the eigenproblem described in Eqs. \ref{eq:generalized_evp} and \ref{eq:generalized_evp_matrix}. The density matrix is directly accessible through methods other than diagonalization, therefore it is not always necessary to explicitly solve the eigenproblem. Which algorithm to use depends on many factors such as the choice of basis set, and the system and characters of the physical systems. In an SCF calculation, the eigenproblem needs to be tackled repeatedly. If this step is treated with the most efficient algorithm, the whole SCF calculation can be greatly accelerated.
-
-\section{ELSI, the ELectronic Structure Infrastructure}
+\section{ELSI: ELectronic Structure Infrastructure}
 \label{sec:elsi}
-ELSI unifies the community effort in overcoming the cubic-wall problem of KS-DFT by bridging the divide between developers of electronic structure solvers and KS-DFT codes. Via a unified interface, ELSI gives KS-DFT developers easy access to multiple solvers that solve or circumvent the Kohn-Sham eigenproblem efficiently. Solvers are treated on equal footing within ELSI, giving solver developers a unified platform for implementation and benchmarking across codes and physical systems. Solvers may be switched dynamically in an SCF cycle, allowing the KS-DFT developer to mix-and-match strengths of different solvers. Solvers can work cooperatively with one another within ELSI, allowing for acceleration greater than either solver can achieve individually. Most importantly, ELSI exists as a community for KS-DFT and solver developers to interact and work together to improve performance of solvers, with monthly web meetings to discuss progress on code development, yearly on-site ``connector meetings'', and planned webinars and workshops.
+Computer simulations based on electronic structure theory, particularly Kohn-Sham density-functional theory (KS-DFT), are facilitating scientific discoveries across a broad range of disciplines such as chemistry, physics, and materials science. Despite its remarkable success, routine application of KS-DFT to systems consisting of thousands of atoms is still difficult. The major computational bottleneck is an eigenvalue problem, whose solution scales cubically with respect to the problem size.
 
-The current version of ELSI supports ELPA \cite{elpa_auckenthaler_2011,elpa_marek_2014}, libOMM \cite{libomm_corsetti_2014}, PEXSI \cite{pexsi_lin_2009,pexsi_lin_2013}, EigenExa \cite{eigenexa_imamura_2011,eigenexa_fukaya_2015}, SLEPc-SIPs \cite{slepc_hernandez_2005,sips_keceli_2016}, and NTPoly \cite{ntpoly_dawson_2018} solvers. Codes currently integrated with ELSI include DFTB+ \cite{dftb+_aradi_2007}, DGDFT \cite{dgdft_hu_2015}, FHI-aims \cite{aims_blum_2009}, and SIESTA \cite{siesta_soler_2002}.
-
-\begin{itemize}
-\item \textbf{Versatility}: ELSI supports real-valued and complex-valued density matrix, eigenvalue, and eigenvector calculations. A unified software interface designed for rapid integration into a variety of electronic structure codes is provided. Fortran and C/C++ interfaces are provided.
-
-\item \textbf{Flexibility}: ELSI supports both dense and sparse matrices as input/output. Supported matrix distribution layouts include 2D block-cyclic distribution, 1D block-cyclic distribution, and 1D block distribution. In situations where the input/output matrix format used by the electronic structure code and the format used internally by the requested solver are different, conversion and redistribution of matrices will be performed automatically.
-
-\item \textbf{Scalability}: The solver libraries collected in ELSI are highly scalable. For instance, ELPA can scale to a hundred thousand CPU cores given a sufficiently large problem to solve, and PEXSI, with its efficient two-level parallelism, easily scales to tens of thousands of CPU cores.
-
-\item \textbf{Portability}: ELSI and its redistributed library source packages have been confirmed to work on commonly-used HPC architectures (Cray, IBM, Intel, NVIDIA) using major compilers (Cray, GNU, IBM, Intel, PGI).
-\end{itemize}
+To overcome this bottleneck, researchers and software developers are actively improving the efficiency of eigensolvers and developing alternative algorithms that circumvent the explicit solution of the eigenproblem. The open-source ELSI library features a unified software interface that connects electronic structure codes to various high-performance solver libraries ranging from conventional cubic scaling eigensolvers to linear scaling density matrix solvers \cite{elsi_yu_2018}. To date, it is adopted by four electronic structure packages (DFTB+ \cite{dftb_aradi_2007}, DGDFT \cite{dgdft_hu_2015}, FHI-aims \cite{fhiaims_blum_2009}, and SIESTA \cite{siesta_soler_2002}).
 
 \section{Solver Libraries Supported by ELSI}
 \label{sec:solvers}
-Solvers supported in the current version of ELSI are: ELPA \cite{elpa_auckenthaler_2011,elpa_marek_2014}, libOMM \cite{libomm_corsetti_2014}, PEXSI \cite{pexsi_lin_2009,pexsi_lin_2013}, EigenExa \cite{eigenexa_imamura_2011,eigenexa_fukaya_2015}, SLEPc-SIPc \cite{slepc_hernandez_2005,sips_keceli_2016}, and NTPoly \cite{ntpoly_dawson_2018}. The table below summarizes the supported data type, input/output matrix format, supported calculation type, and possible outputs of the solvers.
+Distributed-memory solvers supported in the current version of ELSI are: ELPA \cite{elpa_auckenthaler_2011,elpa_marek_2014,elpa_kus_2019a,elpa_kus_2019b}, libOMM \cite{libomm_corsetti_2014}, PEXSI \cite{pexsi_lin_2009,pexsi_lin_2013,pexsi_lin_2014,pselinv_jacquelin_2016,pexsi_jia_2017}, EigenExa \cite{eigenexa_imamura_2011,eigenexa_fukaya_2015}, SLEPc-SIPc \cite{slepc_hernandez_2005,sips_campos_2012,sips_keceli_2016,sips_keceli_2018}, and NTPoly \cite{ntpoly_dawson_2018}. Shared-memory solvers supported in the current version of ELSI are: LAPACK \cite{lapack_anderson_1999} and MAGMA \cite{magma_tomov_2010,magma_dongarra_2014}.
 
-\begin{tabular}[]{|p{20mm}|p{25mm}|p{25mm}|p{25mm}|p{70mm}|}
-\hline
-\multicolumn{1}{|c|}{\textbf{Solver}} & \multicolumn{1}{c|}{\textbf{Data type}} & \multicolumn{1}{c|}{\textbf{Matrix format}} & \multicolumn{1}{c|}{\textbf{Spin/\textit{k}-point}} & \multicolumn{1}{c|}{\textbf{Output}}\\
-\hline
-\textcolor{blue}{ELPA}       & real/complex & dense/sparse & yes/yes & eigenvalues, eigenvectors, density matrix, energy-weighted density matrix, chemical potential, electronic entropy\\
-\hline
-\textcolor{blue}{libOMM}     & real/complex & dense/sparse & yes/yes & density matrix, energy-weighted density matrix\\
-\hline
-\textcolor{blue}{PEXSI}      & real/complex & dense/sparse & yes/yes & density matrix, energy-weighted density matrix, chemical potential\\
-\hline
-\textcolor{blue}{EigenExa}   & real         & dense/sparse & yes/yes & eigenvalues, eigenvectors, density matrix, energy-weighted density matrix, chemical potential, electronic entropy\\
-\hline
-\textcolor{blue}{SLEPc-SIPs} & real         & dense/sparse & no/no   & eigenvalues, eigenvectors, density matrix, energy-weighted density matrix, chemical potential, electronic entropy\\
-\hline
-\textcolor{blue}{NTPoly}     & real/complex & dense/sparse & yes/yes & density matrix, energy-weighted density matrix, chemical potential\\
-\hline
-\end{tabular}
+What follows is a brief summary of the solvers supported in ELSI. For technical descriptions of the solvers, the reader is referred to the original publications of the solvers, e.g., those in the reference list of this document.
 
-What follows is a brief introduction of the solvers currently supported in ELSI. For detailed technical descriptions of the solvers, the reader is referred to the original publications of the solvers, e.g., those in the reference list of this document.
+\href{https://elpa.mpcdf.mpg.de}{\textcolor{blue}{ELPA}}: The massively parallel dense eigensolver ELPA facilitates the solution of symmetric or Hermitian eigenproblems on high-performance computers. It features an efficient two-stage tridiagonalization algorithm which is better suited for parallel computing than the conventional one-stage algorithm.
 
-\subsection{ELPA}
-\label{subsec:solvers_elpa}
-The explicit solution of a generalized or standard eigenproblem is a well-studied task. The generalized eigenproblem in \ref{eq:generalized_evp_matrix} is first transformed to the standard form, e.g., by Cholesky decomposition of the overlap matrix $\boldsymbol{S}$:
-\begin{equation}
-\label{eq:cholesky}
-\boldsymbol{S} = \boldsymbol{L} \boldsymbol{L}^* ,
-\end{equation}
-where $\boldsymbol{L}$ is a lower triangular matrix. Applying $\boldsymbol{L}$ to $\boldsymbol{H}$ and $\boldsymbol{C}$ in the following way
-\begin{equation}
-\label{eq:to_standard}
-\begin{split}
-\boldsymbol{\tilde{H}} & = \boldsymbol{L}^{-1} \boldsymbol{H} (\boldsymbol{L}^*)^{-1} ,\\
-\boldsymbol{\tilde{C}} & = \boldsymbol{L}^* \boldsymbol{C} ,
-\end{split}
-\end{equation}
-transforms \ref{eq:generalized_evp_matrix} to a standard eigenproblem
-\begin{equation}
-\label{eq:standard_evp}
-\boldsymbol{\tilde{H}} \boldsymbol{\tilde{C}} = \boldsymbol{\tilde{C}} \boldsymbol{\epsilon} .
-\end{equation}
+\href{https://esl.cecam.org/LibOMM}{\textcolor{blue}{libOMM}}: The orbital minimization method (OMM) bypasses the explicit solution of the Kohn-Sham eigenproblem by efficient iterative algorithms which directly minimize an unconstrained energy functional using a set of auxiliary Wannier functions. The Wannier functions are defined on the occupied subspace of the system, reducing the size of the problem. The density matrix is then obtained directly, without calculating the Kohn-Sham orbitals.
 
-This standard eigenproblem is solved by further transforming it to a tridiagonal form
-\begin{equation}
-\label{eq:elpa1}
-\boldsymbol{T} = \boldsymbol{Q} \boldsymbol{\tilde{H}} \boldsymbol{Q}^* ,
-\end{equation}
-where $\boldsymbol{Q}$ is a transformation matrix, and $\boldsymbol{T}$ is a tridiagonal matrix whose eigenvalues and eigenvectors are computed by, e.g., the divide-and-conquer approach or the MRRR method. This procedure is called ``diagonalization'', as the full matrix is reduced to a (tri)diagonal form.
+\href{https://pexsi.org}{\textcolor{blue}{PEXSI}}: PEXSI is a Fermi operator expansion (FOE) based method which expands the density matrix in terms of a linear combination of a small number of rational functions (pole expansion). Evaluation of these rational functions exploits the sparsity of the Hamiltonian and overlap matrices using selected inversion to enable scaling to 100,000+ of MPI tasks for calculation of the electron density, energy, and forces in electronic structure calculations.
 
-The massively parallel direct eigensolver ELPA \cite{elpa_auckenthaler_2011,elpa_marek_2014} facilitates the direct solution of symmetric or Hermitian eigenproblems on high-performance computers by adopting a two-stage diagonalization algorithm, which first reduces the full matrix to a banded intermediate form, then to the tridiagonal form:
-\begin{equation}
-\label{eq:elpa2}
-\begin{split}
-\boldsymbol{B} & = \boldsymbol{Q}_1 \boldsymbol{\tilde{H}} \boldsymbol{Q}_1^* ,\\
-\boldsymbol{T} & = \boldsymbol{Q}_2 \boldsymbol{B} \boldsymbol{Q}_2^* .
-\end{split}
-\end{equation}
-where $\boldsymbol{Q}_1$ and $\boldsymbol{Q}_2$ are transformation matrices used in the two-stage diagonalization; $\boldsymbol{B}$ is a banded matrix; and $\boldsymbol{T}$ is a tridiagonal matrix. Compared to the one-stage diagonalization (\ref{eq:elpa1}), the two-stage approach introduces two additional steps. Still, the two-stage approach has been shown to enable faster computation and better parallel scalability on present-day computers. Specifically, the matrix-vector operations (BLAS level-2 routines) in \ref{eq:elpa1} can be mostly replaced by more efficient matrix-matrix operations (BLAS level-3 routines) in \ref{eq:elpa2}. The computational workload associated with the back-transformation of the eigenvectors is greatly alleviated if only a small fraction of the eigenvectors representing the lowest eigenstates is required, and by architecture-specific linear-algebra ``kernels'' provided with the ELPA library.
+\href{https://www.r-ccs.riken.jp/labs/lpnctrt/en/projects/eigenexa}{\textcolor{blue}{EigenExa}}: The EigenExa library consists of two massively parallel implementations of direct, dense eigensolver. Its eigen\_sx method features an efficient transformation from full to pentadiagonal matrix. Eigenvalues and eigenvectors of the pentadiagonal matrix are directly solved with a divide-and-conquer algorithm. This method is particularly efficient when a large part of the eigenspectrum is of interest.
 
-\subsection{libOMM}
-\label{subsec:solvers_omm}
-Instead of diagonalizing the $N_\text{basis} \times N_\text{basis}$ eigenproblem, the orbital minimization method (OMM) minimizes an unconstrained energy functional using a set of auxiliary Wannier functions. At the minimum of the OMM energy functional, the Wannier functions can be used to construct the density matrix. Specifically, $N_\text{W}$ non-orthogonal Wannier functions $\chi_k$ are employed to represent the occupied subspace of a system with $N_\text{electron}$ electrons:
-\begin{equation}
-\label{eq:wannier}
-\chi_k = \sum_{j=1}^{N_\text{basis}} W_{kj} \phi_j .
-\end{equation}
-For non-spin-polarized systems, the index $k$ runs from $1$ to $N_\text{W} = N_\text{electron}/2$. Then the matrices $\boldsymbol{H}$ and $\boldsymbol{S}$ are transformed into the occupied subspace
-\begin{equation}
-\label{eq:reduced_ham_ovlp}
-\begin{split}
-\boldsymbol{H_\text{omm}} & = \boldsymbol{W}^* \boldsymbol{H} \boldsymbol{W} ,\\
-\boldsymbol{S_\text{omm}} & = \boldsymbol{W}^* \boldsymbol{S} \boldsymbol{W} ,
-\end{split}
-\end{equation}
-where $\boldsymbol{W}$ is the coefficient matrix of the Wannier functions, whose dimension is $N_\text{basis} \times N_\text{W}$; $\boldsymbol{H_\text{omm}}$ and $\boldsymbol{S_\text{omm}}$ are $N_\text{W} \times N_\text{W}$ matrices. The OMM energy functional can then be evaluated from $\boldsymbol{H_\text{omm}}$ and $\boldsymbol{S_\text{omm}}$:
-\begin{equation}
-\label{eq:omm_energy}
-E[\boldsymbol{W}] = 4 \text{Tr}[\boldsymbol{H_\text{omm}}] - 2 \text{Tr}[\boldsymbol{S_\text{omm} H_\text{omm}}] .
-\end{equation}
+\href{https://slepc.upv.es}{\textcolor{blue}{SLEPc-SIPs}}: SLEPc-SIPs is a parallel sparse eigensolver for real symmetric generalized eigenvalue problems. It implements a distributed spectrum slicing method and it is currently available through the SLEPc library built on top of the PETSc framework.
 
-This energy functional, when minimized with respect to the coefficients of Wannier functions $\boldsymbol{W}$, is equal to the band structure energy, i.e. the sum of the energies of all eigenstates, weighted with their respective occupation numbers. Furthermore, the Wannier functions are driven towards orthonormality at this minimum. The density matrix is then constructed from the Wannier functions that minimize $E[\boldsymbol{W}]$.
-
-Different from the originally proposed linear scaling OMM method, the OMM implementation in the libOMM library \cite{libomm_corsetti_2014} is a cubic scaling density matrix solver. Theoretically, this implementation has a smaller prefactor than the direct diagonalization method. In libOMM, the minimization of the OMM energy functional is carried out with the conjugate-gradient (CG) method, whose performance mainly depends on the convergence rate of the minimization.
-
-\subsection{PEXSI}
-\label{subsec:solvers_pexsi}
-The pole expansion and selected inversion (PEXSI) method \cite{pexsi_lin_2009,pexsi_lin_2013} expands the density matrix $\boldsymbol{P}$ with rational functions:
-\begin{equation}
-\label{eq:pexsi}
-\boldsymbol{P} = \sum_l \text{Im} \left( \frac{\omega_l}{\boldsymbol{H} - (z_l + \mu) \boldsymbol{S}} \right) ,
-\end{equation}
-where $\mu$ is the chemical potential of the system; $\{z_l\}$ and $\{\omega_l\}$ are complex shifts and weights of the expansion terms. About 20 poles are usually sufficient for the result obtained from PEXSI to be fully comparable to that obtained from diagonalization. These poles can be processed in parallel, making PEXSI a highly scalable method on high performance computers.
-
-Only selected elements of the object $(\boldsymbol{H} - (z_l + \mu) \boldsymbol{S})^{-1}$ corresponding to non-zero elements of $\boldsymbol{H}$ and $\boldsymbol{S}$ are computed with the parallel selected inversion method. The computational complexity of Eq. \ref{eq:pexsi} depends on the dimensionality of the system: O(N), O(N$^{1.5}$), and O(N$^2$) for 1D, 2D, and 3D systems, respectively. This favorable scaling does not rely on the existence of an energy gap. The PEXSI method is thus generally applicable to insulating as well as metallic systems, which differentiates PEXSI from traditional linear scaling algorithms.
-
-\subsection{EigenExa}
-\label{subsec:solvers_exa}
-The EigenExa library consists of two massively parallel implementations of direct, dense eigensolver. The eigen\_s solver in EigenExa adopts the conventional one-stage (tri)diagonalization algorithm as in Eq. \ref{eq:elpa1}. Reimplemented from scratch, eigen\_s exhibits a parallel performance superior to the ScaLAPACK solvers and comparable to the one-stage ELPA solver \cite{eigenexa_imamura_2011,eigenexa_fukaya_2015}. Nevertheless, its performance is limited by the relatively inefficient matrix-vector operations (BLAS level-2 routines).
-
-The eigen\_sx solver in EigenExa features a novel pentadiagonalization approach that transforms the full matrix in Eq. \ref{eq:standard_evp} to a pentadiagonal form
-\begin{equation}
-\label{eq:eigen_sx}
-\boldsymbol{P} = \boldsymbol{Q} \boldsymbol{\tilde{H}} \boldsymbol{Q}^* ,
-\end{equation}
-where $\boldsymbol{Q}$ is a transformation matrix, and $\boldsymbol{P}$ is a pentadiagonal matrix whose eigenvalues and eigenvectors are computed by a divide-and-conquer algorithm generalized from the divide-and-conquer algorithm for tridiagonal matrices. Compared to the tridiagonalization algorithm in eigen\_s, The pentadiagonalization algorithm in eigen\_sx makes more use of matrix-matrix operations (level-3 BLAS routines), leading to an improvement in its efficiency despite the slightly increased workload in the divide-and-conquer solve \cite{eigenexa_imamura_2011,eigenexa_fukaya_2015}. Compared to the two-stage ELPA solver, eigen\_sx does not have an advantage in the forward transformation, but it avoids the forward and backward transformations between a banded matrix and a tridiagonal matrix, which stands as a significant computational burden in ELPA when a large part of the eigenspectrum is of interest.
-
-At present, the EigenExa library only provides routines for solving standard eigenproblems. When solving generalized eigenproblems with EigenExa, ELSI relies on routines from ELPA to carry out the eigenproblem transformation in Eqs. \ref{eq:cholesky} and \ref{eq:to_standard}.
-
-\subsection{SLEPc-SIPs}
-\label{subsec:solvers_sips}
-The shift-and-invert spectral transformation method, implemented in the SLEPc library \cite{slepc_hernandez_2005}, transforms the eigenproblem \ref{eq:generalized_evp_matrix} by shifting the eigenspectrum:
-\begin{equation}
-\label{eq:shift}
-(\boldsymbol{H} - \boldsymbol{\sigma} \boldsymbol{S}) \boldsymbol{C} = \boldsymbol{S} \boldsymbol{C} (\boldsymbol{\epsilon} - \boldsymbol{\sigma}) ,
-\end{equation}
-where $\boldsymbol{\sigma}$ is a diagonal matrix with diagonal elements all equal to the shift $\sigma$. This shifted eigenproblem is converted to the standard form by inverting ($\boldsymbol{H} - \boldsymbol{\sigma S})$ and $(\boldsymbol{\epsilon - \sigma})$:
-\begin{equation}
-\label{eq:invert}
-(\boldsymbol{H} - \boldsymbol{\sigma S})^{-1} \boldsymbol{S} \boldsymbol{C} = (\boldsymbol{\epsilon - \sigma})^{-1} \boldsymbol{C} ,
-\end{equation}
-If the shift can be chosen to be close to the target eigenvalue, \ref{eq:invert} makes the magnitude of the transformed eigenvalues large, accelerating the convergence of the iterative Krylov-Schur eigensolver used in SLEPc.
-
-On top of the basic shift-and-invert, the shift-and-invert parallel spectral transformation (SIPs) method \cite{sips_keceli_2016} partitions the eigenspectrum of a given eigenproblem into $N_\text{slice}$ slices. Accordingly, the processes involved in the calculation are split into $N_\text{slice}$ groups, each of which solves one slice independently. Within the slices, carefully selected shifts are applied to the original problem. With this layer of parallelism across slices, the SLEPc-SIPs solver has the potential to exhibit enhanced scalability over direct diagonalization methods, especially when the load balance across slices can be guaranteed. Indeed, this has been reported to happen with very sparse Hamiltonian and overlap matrices out of density-functional tight-binding (DFTB) calculations \cite{sips_keceli_2016}.
-
-\subsection{NTPoly}
-\label{subsec:solvers_ntpoly}
-Density matrix purification is an established way to achieve linear scaling KS-DFT. Assuming an orthogonal basis set, the density matrix $\boldsymbol{P}$ should satisfy the following conditions:
-\begin{equation}
-\label{eq:density_matrix_conditions}
-\begin{split}
-\boldsymbol{P} & = \boldsymbol{P}^* ,\\
-\text{Tr}(\boldsymbol{P}) & = N_\text{electron} ,\\
-\boldsymbol{P} & = \boldsymbol{P}^2 .
-\end{split}
-\end{equation}
-
-An initial guess of such a matrix can be obtained by scaling the Hamiltonian matrix to make sure its eigenvalues lie in between 0 and 1. Then, the ``purification'' method iteratively updates the density matrix until it converges to a certain criterion. The converged density matrix satisfies the three conditions in \ref{eq:density_matrix_conditions}.
-
-The process of density matrix purification can be written in the general form
-\begin{equation}
-\label{eq:purification}
-\boldsymbol{P}_\text{n+1} = f(\boldsymbol{P}_\text{n}) ,
-\end{equation}
-where $\boldsymbol{P}_\text{n}$ is the density matrix in the n$^\text{th}$ purification iteration, $\boldsymbol{P}_\text{n+1}$ is the density matrix in the (n+1)$^\text{th}$ iteration, and $f(\boldsymbol{P})$ is usually a matrix polynomial, which can be calculated by matrix-matrix multiplications.
-
-Various algorithms have been developed to carry out the density matrix purification efficiently, such as the canonical purification \cite{purification_palser_1998}, the trace resetting purification methods \cite{purification_niklasson_2002}, and the generalized canonical purification \cite{purification_truflandier_2016}. These methods are implemented in the NTPoly library \cite{ntpoly_dawson_2018} using its distributed-memory sparse matrix-matrix multiplication kernel. Given sufficiently sparse matrices, the computational complexity of density matrix purification with NTPoly is O(N) for insulating systems.
+\href{https://william-dawson.github.io/NTPoly}{\textcolor{blue}{NTPoly}}: NTPoly is a massively parallel library for computing the functions of sparse, symmetric matrices based on polynomial expansions. For sufficiently sparse matrices, most of the matrix functions can be computed in linear time. Distributed memory parallelization is based on a communication avoiding sparse matrix multiplication algorithm. Various density matrix purification algorithms which compute the density matrix as a function of the Hamiltonian matrix are implemented in NTPoly.
 
 \section{Citing ELSI}
 \label{sec:cite}
@@ -697,12 +496,7 @@ The distribution of matrix elements in the \textcolor{blue}{GENERIC\_COO} format
 
 \subsection{Setting Up Multiple \textbf{\textit{k}}-points and/or Spin Channels}
 \label{subsec:setup_kpt}
-When there is more than one \textbf{\textit{k}}-point and/or spin channel in the simulating system, the ELSI interface can be set up to support parallel calculation of the \textbf{\textit{k}}-points and/or spin channels. The base case is a system isolated in space, e.g. free atoms, molecules, clusters, without spin-polarization. In this case, there is one eigenproblem in each iteration of an SCF cycle. When a spin-polarized periodic system is considered, \ref{eq:generalized_evp} should have an index $\alpha$ denoting the spin channel, and an index \textbf{\textit{k}} denoting points in reciprocal space:
-\begin{equation}
-\label{eq:spin_kpt_evp}
-\boldsymbol{H}_{\boldsymbol{k}}^\alpha \boldsymbol{C}_{\boldsymbol{k}}^\alpha = \boldsymbol{S}_{\boldsymbol{k}} \boldsymbol{C}_{\boldsymbol{k}}^\alpha \boldsymbol{\epsilon}_{\boldsymbol{k}}^\alpha .
-\end{equation}
-In total, there are $N_\text{kpt} \times N_\text{spin}$ eigenproblems to solve. They can be solved in an embarrassingly parallel fashion. In ELSI, eigenproblems in \ref{eq:spin_kpt_evp} are considered as equivalent ``unit tasks''. The available computer processes are divided into $N_\text{kpt} \times N_\text{spin}$ groups, each of which is responsible for one unit task.
+When there is more than one \textbf{\textit{k}}-point and/or spin channel in the simulating system, the ELSI interface can be set up to support parallel calculation of the \textbf{\textit{k}}-points and/or spin channels. The base case is a system isolated in space, e.g. free atoms, molecules, clusters, without spin-polarization. In this case, there is one eigenproblem in each iteration of an SCF cycle. When a spin-polarized periodic system is considered, there is an index $\alpha$ denoting the spin channel, and an index \textbf{\textit{k}} denoting points in reciprocal space. In total, there are $N_\text{kpt} \times N_\text{spin}$ eigenproblems that can be solved in an embarrassingly parallel fashion. In ELSI, these eigenproblems are considered as equivalent ``unit tasks''. The available computer processes are divided into $N_\text{kpt} \times N_\text{spin}$ groups, each of which is responsible for one unit task.
 
 To set up the ELSI interface for a calculation with more than one \textbf{\textit{k}}-point and/or more than one spin channel, the \textcolor{blue}{elsi\_set\_kpoint} and/or \textcolor{blue}{elsi\_set\_spin} subroutines are called to pass the required information into ELSI. The MPI communicator for each unit task is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi}. In addition, a global MPI communicator for all tasks is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi\_global}. Note that the current ELSI interface only supports the case where the eigenproblems for all the \textbf{\textit{k}}-points and spin channels are fully parallelized, i.e., there is no MPI task handling more than one \textbf{\textit{k}}-point and/or more than one spin channel. In ELSI, the two spin channels are always coupled by a uniform chemical potential. The distribution of electrons among the two channels, and thus the net spin moment of the system, cannot be specified. Calculations with a fixed, user-specified spin moment can be performed by initializing two independent ELSI instances for the two spin channels.
 
@@ -725,6 +519,7 @@ In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-pol
 \hline
 \end{tabular}
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_spin}(handle, n\_spin, i\_spin)]
 \end{labeling}
@@ -1273,7 +1068,7 @@ end do
 
 \textbf{Remarks}
 
-\textbf{1)} \textcolor{blue}{ntpoly\_method}: Allowed choices are 0 for the canonical purification, 1 for the trace correcting purification, 2 for the 4th order trace resetting purification, and 3 for the generalized hole-particle canonical purification.
+\textbf{1)} \textcolor{blue}{ntpoly\_method}: Allowed choices are 0 for the canonical purification \cite{purification_palser_1998}, 1 for the trace correcting purification \cite{purification_niklasson_2002}, 2 for the 4th order trace resetting purification \cite{purification_niklasson_2002}, and 3 for the generalized hole-particle canonical purification \cite{purification_truflandier_2016}.
 
 \textbf{2)} \textcolor{blue}{ntpoly\_filter} and \textcolor{blue}{ntpoly\_tol} control the accuracy and computational cost of the density matrix purification methods. Tight choices of \textcolor{blue}{ntpoly\_filter} and \textcolor{blue}{ntpoly\_tol}, e.g. the default values here, lead to highly accurate results that are comparable to the results obtained from diagonalization. However, linear scaling can only be achieved with a relatively large \textcolor{blue}{ntpoly\_filter} such as $10^{-6}$. Correspondingly, \textcolor{blue}{ntpoly\_tol} may be set to $10^{-3}$. Note that the purification may not converge if \textcolor{blue}{ntpoly\_filter} is too large relative to \textcolor{blue}{ntpoly\_tol}. Setting \textcolor{blue}{ntpoly\_filter} to be $\le 10^{-3} \times $ \textcolor{blue}{ntpoly\_tol} is safe in most cases.
 
@@ -1367,9 +1162,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \subsection{Extrapolation of Wavefunctions and Density Matrices}
 \label{subsec:extrapolation}
-In a single point total energy calculation, a simple way to construct an initial guess of the electron density is using the superposition of free atom densities. In geometry calculations, the initial guess in the (n+1)$^\text{th}$ geometry step can be made better than free atom superposition, by reusing the wavefunctions or density matrix calculated in the n$^\text{th}$ geometry step. However, due to the movement of atoms and localized basis functions around them, wavefunctions obtained in the n$^\text{th}$ geometry step are no longer orthonormalized in the (n+1)$^\text{th}$ geometry step. Similarly, density matrix from the n$^\text{th}$ geometry step does not satisfy the conditions in Eq. \ref{eq:density_matrix_conditions} with respect to the new overlap matrix.
-
-The following subroutines orthonormalize eigenvectors (coefficients of wavefunctions) in the n$^\text{th}$ geometry step with respect to the overlap matrix in the (n+1)$^\text{th}$ geometry step with a Gram-Schmidt algorithm.
+In a single point total energy calculation, a simple way to construct an initial guess of the electron density is using the superposition of free atom densities. In geometry calculations, the initial guess in the (n+1)$^\text{th}$ geometry step can be made better than free atom superposition, by reusing the wavefunctions or density matrix calculated in the n$^\text{th}$ geometry step. However, due to the movement of atoms and localized basis functions around them, wavefunctions obtained in the n$^\text{th}$ geometry step are no longer orthonormalized in the (n+1)$^\text{th}$ geometry step. The following subroutines orthonormalize eigenvectors (coefficients of wavefunctions) in the n$^\text{th}$ geometry step with respect to the overlap matrix in the (n+1)$^\text{th}$ geometry step with a Gram-Schmidt algorithm.
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_orthonormalize\_ev\_real}(handle, ovlp, evec)]
 \end{labeling}
@@ -1438,9 +1231,8 @@ The following subroutines orthonormalize eigenvectors (coefficients of wavefunct
 
 \textbf{1)} When using \textcolor{blue}{elsi\_orthonormalize\_ev\_real\_sparse} and \textcolor{blue}{elsi\_orthonormalize\_ev\_complex\_sparse}, the eigenvectors are stored in a dense format (\textcolor{blue}{BLACS\_DENSE}), as they are in general not sparse.
 
-The following subroutines extrapolate density matrix in the n$^\text{th}$ geometry step to satisfy conditions \ref{eq:density_matrix_conditions} with respect to the overlap matrix in the (n+1)$^\text{th}$ geometry step.
+The following subroutines extrapolate density matrix in the n$^\text{th}$ geometry step to the overlap matrix in the (n+1)$^\text{th}$ geometry step.
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_extrapolate\_dm\_real}(handle, ovlp, dm)]
 \end{labeling}
@@ -1568,7 +1360,6 @@ The MPI communicator which encloses the MPI tasks to perform the matrix I/O oper
 
 When reading or writing a dense matrix, BLACS parameters are passed into ELSI via the \textcolor{blue}{elsi\_set\_rw\_blacs} subroutine.
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_rw\_blacs}(handle, blacs\_ctxt, block\_size)]
 \end{labeling}
@@ -1587,6 +1378,7 @@ When reading or writing a dense matrix, BLACS parameters are passed into ELSI vi
 
 When writing a sparse matrix, its dimensions are passed into ELSI via the \textcolor{blue}{elsi\_set\_rw\_csc} subroutine. The only sparse matrix format currently supported by ELSI matrix I/O is the \textcolor{blue}{PEXSI\_CSC} format. When reading a sparse matrix, there is no need to call this subroutine. The relevant parameters will be read from file when calling \textcolor{blue}{elsi\_read\_mat\_dim} or \textcolor{blue}{elsi\_read\_mat\_dim\_sparse}.
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_rw\_csc}(handle, global\_nnz, local\_nnz, local\_col)]
 \end{labeling}
@@ -1655,7 +1447,6 @@ The following two subroutines write a dense matrix to file. Before writing a den
 
 The following two subroutines write a sparse matrix to file. Before writing a sparse matrix, MPI and CSC matrix format should be set up properly using \textcolor{blue}{elsi\_set\_rw\_mpi} and \textcolor{blue}{elsi\_set\_rw\_csc}.
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_write\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
 \end{labeling}
@@ -2088,69 +1879,11 @@ call \textcolor{blue}{elsi_finalize}(eh)
 ELSI is written in Fortran. A C interface around the core Fortran code is provided, which can be called from a C or C++ program. Each C wrapper function corresponds to a Fortran subroutine, where we have prefixed the original Fortran subroutine name with \textcolor{blue}{c\_} for clarity and consistency. Argument lists are identical to the associated native Fortran subroutine. For the complete definition of the C interface, the user is encouraged to look at the \texttt{elsi.h} header file directly.
 
 % Reference
-\begin{thebibliography}{9}
-\bibitem{ks_kohn_1965}
-W. Kohn and L.J. Sham, Self-consistent equations including exchange and correlation effects, Physical Review, 140, 1133-1138 (1965).
-
-\bibitem{elpa_auckenthaler_2011}
-T. Auckenthaler et al., Parallel solution of partial symmetric eigenvalue problems from electronic structure calculations, Parallel Computing, 37, 783-794 (2011).
-
-\bibitem{elpa_marek_2014}
-A. Marek et al., The ELPA library: Scalable parallel eigenvalue solutions for electronic structure theory and computational science, Journal of Physics: Condensed Matter, 26, 213201 (2014).
-
-\bibitem{libomm_corsetti_2014}
-F. Corsetti, The orbital minimization method for electronic structure calculations with finite-range atomic basis sets, Computer Physics Communications, 185, 873-883 (2014).
-
-\bibitem{pexsi_lin_2009}
-L. Lin et al., Fast algorithm for extracting the diagonal of the inverse matrix with application to the electronic structure analysis of metallic systems, Communications in Mathematical Sciences, 7, 755-777 (2009).
-
-\bibitem{pexsi_lin_2013}
-L. Lin et al., Accelerating atomic orbital-based electronic structure calculation via pole expansion and selected inversion, Journal of Physics: Condensed Matter, 25, 295501 (2013).
-
-\bibitem{eigenexa_imamura_2011}
-T. Imamura et al., Development of a high-Performance eigensolver on a peta-scale next-generation supercomputer system, Progress in Nuclear Science and Technology, 2, 643-650 (2011).
-
-\bibitem{eigenexa_fukaya_2015}
-T. Fukaya and T. Imamura, Performance evaluation of the EigenExa eigensolver on Oakleaf-FX: tridiagonalization versus pentadiagonalization, In 2015 IEEE International Parallel and Distributed Processing Symposium Workshop, 960-969 (2015).
-
-\bibitem{slepc_hernandez_2005}
-V. Hernandez et al., SLEPc: A scalable and flexible toolkit for the solution of eigenvalue problems,
-ACM Transactions on Mathematical Software, 31, 351-362 (2005).
-
-\bibitem{sips_keceli_2016}
-M. Keceli et al., Shift-and-invert parallel spectral transformation eigensolver: Massively parallel performance for density-functional based tight-binding, Journal of Computational Chemistry, 37, 448-459 (2016).
-
-\bibitem{ntpoly_dawson_2018}
-W. Dawson and T. Nakajima, Massively parallel sparse matrix function calculations with NTPoly, Computer Physics Communications, 225, 154 (2018).
-
-\bibitem{dftb+_aradi_2007}
-B. Aradi et al., DFTB+, a sparse matrix-based implementation of the DFTB method, Journal of Physical Chemistry A, 111, 5678 (2007).
-
-\bibitem{dgdft_hu_2015}
-W. Hu et al., DGDFT: A massively parallel method for large scale density functional theory calculations, The Journal of Chemical Physics, 143, 124110 (2015).
-
-\bibitem{aims_blum_2009}
-V. Blum et al., Ab initio molecular simulations with numeric atom-centered orbitals, Computer Physics Communications, 180, 2175-2196 (2009).
-
-\bibitem{siesta_soler_2002}
-J.M. Soler et al., The SIESTA method for ab initio order-N materials simulation, Journal of Physics: Condensed Matter, 14, 2745-2779 (2002).
-
-\bibitem{purification_palser_1998}
-A.H.R. Palser and D.E. Manolopoulos, Canonical purification of the density matrix in electronic-structure theory, Physical Review B, 58, 12704-12711 (1998).
-
-\bibitem{purification_niklasson_2002}
-A.M.N. Niklasson, Expansion algorithm for the density matrix, Physical Review B, 66, 155115 (2002).
-
-\bibitem{purification_truflandier_2016}
-L.A. Truflandier et al., Communication: Generalized canonical purification for density matrix minimization, The Journal of Chemical Physics, 144, 091102 (2016).
-
-\bibitem{elsi_yu_2018}
-V. Yu et al., ELSI: A unified software interface for Kohn-Sham electronic structure solvers, Computer Physics Communications, 222, 267-285 (2018).
-
-\end{thebibliography}
+\bibliographystyle{elsarticle-num}
+\bibliography{elsi_manual}
 
 \chapter*{License and Copyright}
-ELSI interface software is licensed under the 3-clause BSD license:
+The ELSI interface software is licensed under the 3-clause BSD license:
 
 \begin{tcolorbox}
 \begin{Verbatim}
