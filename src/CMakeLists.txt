@@ -15,13 +15,11 @@ LIST(APPEND elsi_src
   elsi_constant.f90
   elsi_datatype.f90
   elsi_decision.f90
-  elsi_eigenexa.f90
   elsi_geo.f90
   elsi_get.f90
   elsi_input.f90
   elsi_interface.f90
   elsi_lapack.f90
-  elsi_magma.f90
   elsi_malloc.f90
   elsi_mpi.f90
   elsi_ntpoly.f90
@@ -34,7 +32,6 @@ LIST(APPEND elsi_src
   elsi_rw.f90
   elsi_set.f90
   elsi_setup.f90
-  elsi_sips.f90
   elsi_solver.f90
   elsi_sort.f90
   elsi_util.f90)
@@ -47,12 +44,18 @@ IF(NOT ENABLE_PEXSI)
 ENDIF()
 IF(NOT ENABLE_EIGENEXA)
   LIST(APPEND elsi_src stub_eigenexa.f90)
+ELSE()
+  LIST(APPEND elsi_src elsi_eigenexa.f90)
 ENDIF()
 IF(NOT ENABLE_SIPS)
   LIST(APPEND elsi_src stub_sips.f90)
+ELSE()
+  LIST(APPEND elsi_src elsi_sips.f90)
 ENDIF()
 IF(NOT ENABLE_MAGMA)
   LIST(APPEND elsi_src stub_magma.f90)
+ELSE()
+  LIST(APPEND elsi_src elsi_magma.f90)
 ENDIF()
 IF(NOT USE_EXTERNAL_ELPA)
   LIST(APPEND elsi_src

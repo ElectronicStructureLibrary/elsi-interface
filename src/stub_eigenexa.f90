@@ -8,121 +8,56 @@
 !! Provide stub routines which are only compiled when the actual EigenExa is not
 !! available.
 !!
-module EIGEN_LIBS_MOD
+module ELSI_EIGENEXA
 
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
+   use ELSI_PRECISION, only: r8
 
    implicit none
 
    private
 
-   public :: eigen_init
-   public :: eigen_get_procs
-   public :: eigen_get_id
-   public :: eigen_get_matdims
-   public :: eigen_s
-   public :: eigen_sx
-   public :: eigen_free
+   public :: elsi_init_eigenexa
+   public :: elsi_cleanup_eigenexa
+   public :: elsi_solve_eigenexa
+
+   interface elsi_solve_eigenexa
+      module procedure elsi_solve_eigenexa_real
+   end interface
 
 contains
 
-subroutine eigen_init(comm)
+subroutine elsi_init_eigenexa(ph,bh)
 
    implicit none
 
-   integer(kind=i4) :: comm
+   type(elsi_param_t) :: ph
+   type(elsi_basic_t) :: bh
+
+end subroutine
+
+subroutine elsi_solve_eigenexa_real(ph,bh,ham,ovlp,eval,evec)
+
+   implicit none
+
+   type(elsi_param_t) :: ph
+   type(elsi_basic_t) :: bh
+   real(kind=r8) :: ham(bh%n_lrow,bh%n_lcol)
+   real(kind=r8) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8) :: eval(ph%n_basis)
+   real(kind=r8) :: evec(bh%n_lrow,bh%n_lcol)
 
    write(*,"(A)") "**Error! An EigenExa stub routine was called"
    stop
 
 end subroutine
 
-subroutine eigen_get_procs(procs,x_procs,y_procs)
+subroutine elsi_cleanup_eigenexa(ph)
 
    implicit none
 
-   integer(kind=i4) :: procs
-   integer(kind=i4) :: x_procs
-   integer(kind=i4) :: y_procs
-
-   write(*,"(A)") "**Error! An EigenExa stub routine was called"
-   stop
+   type(elsi_param_t) :: ph
 
 end subroutine
 
-subroutine eigen_get_id(id,x_id,y_id)
-
-   implicit none
-
-   integer(kind=i4) :: id
-   integer(kind=i4) :: x_id
-   integer(kind=i4) :: y_id
-
-   write(*,"(A)") "**Error! An EigenExa stub routine was called"
-   stop
-
-end subroutine
-
-subroutine eigen_get_matdims(n,nx,ny)
-
-   implicit none
-
-   integer(kind=i4) :: n
-   integer(kind=i4) :: nx
-   integer(kind=i4) :: ny
-
-   write(*,"(A)") "**Error! An EigenExa stub routine was called"
-   stop
-
-end subroutine
-
-subroutine eigen_s(n,nvec,a,lda,w,z,ldz,m_forward,m_backward,mode)
-
-   implicit none
-
-   integer(kind=i4) :: n
-   integer(kind=i4) :: nvec
-   integer(kind=i4) :: lda
-   real(kind=r8) :: a(lda,*)
-   real(kind=r8) :: w(*)
-   integer(kind=i4) :: ldz
-   real(kind=r8) :: z(ldz,*)
-   integer(kind=i4) :: m_forward
-   integer(kind=i4) :: m_backward
-   character :: mode
-
-   write(*,"(A)") "**Error! An EigenExa stub routine was called"
-   stop
-
-end subroutine
-
-subroutine eigen_sx(n,nvec,a,lda,w,z,ldz,m_forward,m_backward,mode)
-
-   implicit none
-
-   integer(kind=i4) :: n
-   integer(kind=i4) :: nvec
-   integer(kind=i4) :: lda
-   real(kind=r8) :: a(lda,*)
-   real(kind=r8) :: w(*)
-   integer(kind=i4) :: ldz
-   real(kind=r8) :: z(ldz,*)
-   integer(kind=i4) :: m_forward
-   integer(kind=i4) :: m_backward
-   character :: mode
-
-   write(*,"(A)") "**Error! An EigenExa stub routine was called"
-   stop
-
-end subroutine
-
-subroutine eigen_free()
-
-   implicit none
-
-   write(*,"(A)") "**Error! An EigenExa stub routine was called"
-   stop
-
-end subroutine
-
-end module EIGEN_LIBS_MOD
+end module ELSI_EIGENEXA

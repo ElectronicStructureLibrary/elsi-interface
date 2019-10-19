@@ -8,309 +8,72 @@
 !! Provide stub routines which are only compiled when the actual MAGMA is not
 !! available.
 !!
-module MAGMA
+module ELSI_MAGMA
 
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
+   use ELSI_PRECISION, only: r8
 
    implicit none
 
    private
 
-   public :: magmaf_init
-   public :: magmaf_finalize
-   public :: magmaf_num_gpus
-   public :: magmaf_dsyevdx_m
-   public :: magmaf_dsyevdx_2stage_m
-   public :: magmaf_dsygvdx_m
-   public :: magmaf_dsygvdx_2stage_m
-   public :: magmaf_zheevdx_m
-   public :: magmaf_zheevdx_2stage_m
-   public :: magmaf_zhegvdx_m
-   public :: magmaf_zhegvdx_2stage_m
+   public :: elsi_init_magma
+   public :: elsi_cleanup_magma
+   public :: elsi_solve_magma
+
+   interface elsi_solve_magma
+      module procedure elsi_solve_magma_real
+      module procedure elsi_solve_magma_cmplx
+   end interface
 
 contains
 
-subroutine magmaf_init()
+subroutine elsi_init_magma(ph)
 
    implicit none
+
+   type(elsi_param_t) :: ph
+
+end subroutine
+
+subroutine elsi_solve_magma_real(ph,bh,ham,ovlp,eval,evec)
+
+   implicit none
+
+   type(elsi_param_t) :: ph
+   type(elsi_basic_t) :: bh
+   real(kind=r8) :: ham(bh%n_lrow,bh%n_lcol)
+   real(kind=r8) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8) :: eval(ph%n_basis)
+   real(kind=r8) :: evec(bh%n_lrow,bh%n_lcol)
 
    write(*,"(A)") "**Error! A MAGMA stub routine was called"
    stop
 
 end subroutine
 
-subroutine magmaf_finalize()
+subroutine elsi_solve_magma_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    implicit none
+
+   type(elsi_param_t) :: ph
+   type(elsi_basic_t) :: bh
+   complex(kind=r8) :: ham(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8) :: eval(ph%n_basis)
+   complex(kind=r8) :: evec(bh%n_lrow,bh%n_lcol)
 
    write(*,"(A)") "**Error! A MAGMA stub routine was called"
    stop
 
 end subroutine
 
-function magmaf_num_gpus()
+subroutine elsi_cleanup_magma(ph)
 
    implicit none
 
-   integer(kind=i4) :: magmaf_num_gpus
-
-   magmaf_num_gpus = 0
-
-   write(*,"(A)") "**Error! A MAGMA stub routine was called"
-   stop
-
-end function
-
-subroutine magmaf_dsyevdx_m(ngpu,jobz,range,uplo,n,A,lda,vl,vu,il,iu,mout,w,&
-   work,lwork,iwork,liwork,info)
-
-   implicit none
-
-   integer(kind=i4) :: ngpu
-   character :: jobz
-   character :: range
-   character :: uplo
-   integer(kind=i4) :: n
-   real(kind=r8) :: A(*)
-   integer(kind=i4) :: lda
-   real(kind=r8) :: vl
-   real(kind=r8) :: vu
-   integer(kind=i4) :: il
-   integer(kind=i4) :: iu
-   integer(kind=i4) :: mout(*)
-   real(kind=r8) :: w(*)
-   real(kind=r8) :: work(*)
-   integer(kind=i4) :: lwork
-   integer(kind=i4) :: iwork(*)
-   integer(kind=i4) :: liwork
-   integer(kind=i4) :: info
-
-   write(*,"(A)") "**Error! A MAGMA stub routine was called"
-   stop
+   type(elsi_param_t) :: ph
 
 end subroutine
 
-subroutine magmaf_dsyevdx_2stage_m(ngpu,jobz,range,uplo,n,A,lda,vl,vu,il,iu,&
-   mout,w,work,lwork,iwork,liwork,info)
-
-   implicit none
-
-   integer(kind=i4) :: ngpu
-   character :: jobz
-   character :: range
-   character :: uplo
-   integer(kind=i4) :: n
-   real(kind=r8) :: A(*)
-   integer(kind=i4) :: lda
-   real(kind=r8) :: vl
-   real(kind=r8) :: vu
-   integer(kind=i4) :: il
-   integer(kind=i4) :: iu
-   integer(kind=i4) :: mout(*)
-   real(kind=r8) :: w(*)
-   real(kind=r8) :: work(*)
-   integer(kind=i4) :: lwork
-   integer(kind=i4) :: iwork(*)
-   integer(kind=i4) :: liwork
-   integer(kind=i4) :: info
-
-   write(*,"(A)") "**Error! A MAGMA stub routine was called"
-   stop
-
-end subroutine
-
-subroutine magmaf_dsygvdx_m(ngpu,itype,jobz,range,uplo,n,A,lda,B,ldb,vl,vu,il,&
-   iu,mout,w,work,lwork,iwork,liwork,info)
-
-   implicit none
-
-   integer(kind=i4) :: ngpu
-   integer(kind=i4) :: itype
-   character :: jobz
-   character :: range
-   character :: uplo
-   integer(kind=i4) :: n
-   real(kind=r8) :: A(*)
-   integer(kind=i4) :: lda
-   real(kind=r8) :: B(*)
-   integer(kind=i4) :: ldb
-   real(kind=r8) :: vl
-   real(kind=r8) :: vu
-   integer(kind=i4) :: il
-   integer(kind=i4) :: iu
-   integer(kind=i4) :: mout(*)
-   real(kind=r8) :: w(*)
-   real(kind=r8) :: work(*)
-   integer(kind=i4) :: lwork
-   integer(kind=i4) :: iwork(*)
-   integer(kind=i4) :: liwork
-   integer(kind=i4) :: info
-
-   write(*,"(A)") "**Error! A MAGMA stub routine was called"
-   stop
-
-end subroutine
-
-subroutine magmaf_dsygvdx_2stage_m(ngpu,itype,jobz,range,uplo,n,A,lda,B,ldb,vl,&
-   vu,il,iu,mout,w,work,lwork,iwork,liwork,info)
-
-   implicit none
-
-   integer(kind=i4) :: ngpu
-   integer(kind=i4) :: itype
-   character :: jobz
-   character :: range
-   character :: uplo
-   integer(kind=i4) :: n
-   real(kind=r8) :: A(*)
-   integer(kind=i4) :: lda
-   real(kind=r8) :: B(*)
-   integer(kind=i4) :: ldb
-   real(kind=r8) :: vl
-   real(kind=r8) :: vu
-   integer(kind=i4) :: il
-   integer(kind=i4) :: iu
-   integer(kind=i4) :: mout(*)
-   real(kind=r8) :: w(*)
-   real(kind=r8) :: work(*)
-   integer(kind=i4) :: lwork
-   integer(kind=i4) :: iwork(*)
-   integer(kind=i4) :: liwork
-   integer(kind=i4) :: info
-
-   write(*,"(A)") "**Error! A MAGMA stub routine was called"
-   stop
-
-end subroutine
-
-subroutine magmaf_zheevdx_m(ngpu,jobz,range,uplo,n,A,lda,vl,vu,il,iu,mout,w,&
-   work,lwork,rwork,lrwork,iwork,liwork,info)
-
-   implicit none
-
-   integer(kind=i4) :: ngpu
-   character :: jobz
-   character :: range
-   character :: uplo
-   integer(kind=i4) :: n
-   complex(kind=r8) :: A(*)
-   integer(kind=i4) :: lda
-   real(kind=r8) :: vl
-   real(kind=r8) :: vu
-   integer(kind=i4) :: il
-   integer(kind=i4) :: iu
-   integer(kind=i4) :: mout(*)
-   real(kind=r8) :: w(*)
-   complex(kind=r8) :: work(*)
-   integer(kind=i4) :: lwork
-   real(kind=r8) :: rwork(*)
-   integer(kind=i4) :: lrwork
-   integer(kind=i4) :: iwork(*)
-   integer(kind=i4) :: liwork
-   integer(kind=i4) :: info
-
-   write(*,"(A)") "**Error! A MAGMA stub routine was called"
-   stop
-
-end subroutine
-
-subroutine magmaf_zheevdx_2stage_m(ngpu,jobz,range,uplo,n,A,lda,vl,vu,il,iu,&
-   mout,w,work,lwork,rwork,lrwork,iwork,liwork,info)
-
-   implicit none
-
-   integer(kind=i4) :: ngpu
-   character :: jobz
-   character :: range
-   character :: uplo
-   integer(kind=i4) :: n
-   complex(kind=r8) :: A(*)
-   integer(kind=i4) :: lda
-   real(kind=r8) :: vl
-   real(kind=r8) :: vu
-   integer(kind=i4) :: il
-   integer(kind=i4) :: iu
-   integer(kind=i4) :: mout(*)
-   real(kind=r8) :: w(*)
-   complex(kind=r8) :: work(*)
-   integer(kind=i4) :: lwork
-   real(kind=r8) :: rwork(*)
-   integer(kind=i4) :: lrwork
-   integer(kind=i4) :: iwork(*)
-   integer(kind=i4) :: liwork
-   integer(kind=i4) :: info
-
-   write(*,"(A)") "**Error! A MAGMA stub routine was called"
-   stop
-
-end subroutine
-
-subroutine magmaf_zhegvdx_m(ngpu,itype,jobz,range,uplo,n,A,lda,B,ldb,vl,vu,il,&
-   iu,mout,w,work,lwork,rwork,lrwork,iwork,liwork,info)
-
-   implicit none
-
-   integer(kind=i4) :: ngpu
-   integer(kind=i4) :: itype
-   character :: jobz
-   character :: range
-   character :: uplo
-   integer(kind=i4) :: n
-   complex(kind=r8) :: A(*)
-   integer(kind=i4) :: lda
-   complex(kind=r8) :: B(*)
-   integer(kind=i4) :: ldb
-   real(kind=r8) :: vl
-   real(kind=r8) :: vu
-   integer(kind=i4) :: il
-   integer(kind=i4) :: iu
-   integer(kind=i4) :: mout(*)
-   real(kind=r8) :: w(*)
-   complex(kind=r8) :: work(*)
-   integer(kind=i4) :: lwork
-   real(kind=r8) :: rwork(*)
-   integer(kind=i4) :: lrwork
-   integer(kind=i4) :: iwork(*)
-   integer(kind=i4) :: liwork
-   integer(kind=i4) :: info
-
-   write(*,"(A)") "**Error! A MAGMA stub routine was called"
-   stop
-
-end subroutine
-
-subroutine magmaf_zhegvdx_2stage_m(ngpu,itype,jobz,range,uplo,n,A,lda,B,ldb,vl,&
-   vu,il,iu,mout,w,work,lwork,rwork,lrwork,iwork,liwork,info)
-
-   implicit none
-
-   integer(kind=i4) :: ngpu
-   integer(kind=i4) :: itype
-   character :: jobz
-   character :: range
-   character :: uplo
-   integer(kind=i4) :: n
-   complex(kind=r8) :: A(*)
-   integer(kind=i4) :: lda
-   complex(kind=r8) :: B(*)
-   integer(kind=i4) :: ldb
-   real(kind=r8) :: vl
-   real(kind=r8) :: vu
-   integer(kind=i4) :: il
-   integer(kind=i4) :: iu
-   integer(kind=i4) :: mout(*)
-   real(kind=r8) :: w(*)
-   complex(kind=r8) :: work(*)
-   integer(kind=i4) :: lwork
-   real(kind=r8) :: rwork(*)
-   integer(kind=i4) :: lrwork
-   integer(kind=i4) :: iwork(*)
-   integer(kind=i4) :: liwork
-   integer(kind=i4) :: info
-
-   write(*,"(A)") "**Error! A MAGMA stub routine was called"
-   stop
-
-end subroutine
-
-end module MAGMA
+end module ELSI_MAGMA
