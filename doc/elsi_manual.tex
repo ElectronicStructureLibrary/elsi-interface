@@ -49,6 +49,10 @@ What follows is a brief summary of the solvers supported in ELSI. For technical 
 
 \href{https://william-dawson.github.io/NTPoly}{\textcolor{blue}{NTPoly}}: NTPoly is a massively parallel library for computing the functions of sparse, symmetric matrices based on polynomial expansions. For sufficiently sparse matrices, most of the matrix functions can be computed in linear time. Distributed memory parallelization is based on a communication avoiding sparse matrix multiplication algorithm. Various density matrix purification algorithms which compute the density matrix as a function of the Hamiltonian matrix are implemented in NTPoly.
 
+\href{https://www.netlib.org/lapack}{\textcolor{blue}{LAPACK}}: LAPACK provides routines for solving linear systems, least squares problems, eigenvalue problems, and singular value problems. In order to promotes high efficiency on present-day computers, LAPACK routines are written to exploit BLAS, particularly level-3 BLAS, as much as possible. In ELSI, the tridiagonalization and the corresponding back-transformation routines in LAPACK are combined with the efficient divide-and-conquer tridiagonal solver in ELPA.
+
+\href{https://icl.utk.edu/magma}{\textcolor{blue}{MAGMA}}: The MAGMA project aims to develop a dense linear algebra framework for heterogeneous architectures consisting of manycore and GPU systems. MAGMA incorporates the latest advances in synchronization-avoiding and communication-avoiding algorithms, and uses a hybridization methodology where algorithms are split into tasks of varying granularity and their execution scheduled over the available hardware components.
+
 \section{Citing ELSI}
 \label{sec:cite}
 Key concepts of ELSI and the first version of its implementation are described in the following paper \cite{elsi_yu_2018}:
@@ -73,20 +77,26 @@ The ELSI package contains the ELSI interface software as well as redistributed s
 \textcolor{blue}{MPI}  [MPI-3 recommended]
 \end{Verbatim}
 
-Building the PEXSI solver (highly recommended) requires:
+The PEXSi, EigenExa, SLEPc-SIPs, and MAGMA solvers are not enabled by default. Enabling the PEXSI solver requires:
 \begin{Verbatim}[commandchars=\\\{\}]
 \textcolor{blue}{C++ compiler}  [C++ 11 compliant]
 \end{Verbatim}
 
-Building the EigenExa solver requires:
+Enabling the EigenExa solver requires:
 \begin{Verbatim}[commandchars=\\\{\}]
 \textcolor{blue}{EigenExa}  [version 2.3 or newer]
 \end{Verbatim}
 
-Building the SLEPc-SIPs solver requires:
+Enabling the SLEPc-SIPs solver requires:
 \begin{Verbatim}[commandchars=\\\{\}]
 \textcolor{blue}{SLEPc}  [version 3.9 or newer]
 \textcolor{blue}{PETSc}  [version 3.9 or newer, with SuperLU_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled]
+\end{Verbatim}
+
+Enabling the MAGMA solver requires:
+\begin{Verbatim}[commandchars=\\\{\}]
+\textcolor{blue}{MAGMA}  [version 2.5 or newer]
+\textcolor{blue}{CUDA}  [version 10.0 or newer]
 \end{Verbatim}
 
 Linear algebra libraries should be provided for ELSI to link against:
@@ -94,7 +104,7 @@ Linear algebra libraries should be provided for ELSI to link against:
 \textcolor{blue}{BLAS, LAPACK, BLACS, ScaLAPACK}
 \end{Verbatim}
 
-By default, the redistributed ELPA, libOMM, and NTPoly solvers will be built. If PEXSI is enabled during configuration, the redistributed PEXSI library and its dependencies, namely the SuperLU\_DIST and PT-SCOTCH libraries, will be built as well. Optionally, the redistributed ELPA, libOMM, PEXSI, SuperLU\_DIST, PT-SCOTCH, and NTPoly libraries may be substituted by user's optimized versions.
+By default, the redistributed versions of ELPA, libOMM, and NTPoly will be built. If PEXSI is enabled during configuration, the redistributed version of PEXSI and its dependencies, namely the SuperLU\_DIST and PT-SCOTCH libraries, will be built as well. Optionally, the redistributed versions of ELPA, libOMM, PEXSI, SuperLU\_DIST, PT-SCOTCH, and NTPoly may be substituted by user's optimized versions.
 
 \section{Quick Start}
 \label{sec:quick}
@@ -110,7 +120,7 @@ set(LIBS \textcolor{red}{"mkl_scalapack_lp64 mkl_blacs_intelmpi_lp64 mkl_intel_l
 \end{Verbatim}
 \end{tcolorbox}
 
-This will build ELSI with the redistributed ELPA, libOMM, and NTPoly solvers. To enable more solvers, check out the examples in the ``toolchains'' directory, and refer to a complete list of options in \ref{subsec:config_options}.
+This will build ELSI with the redistributed ELPA, libOMM, and NTPoly solvers. A complete list of configure options may be found in \ref{subsec:config_options}.
 
 Once a toolchain file is ready, follow the steps below:
 \begin{tcolorbox}
@@ -152,19 +162,15 @@ The ELPA, libOMM, PEXSI, and NTPoly solver libraries, as well as the SuperLU\_DI
 
 The redistributed version of ELPA comes with a few ``kernels'' specifically written to take advantage of processor architecture (e.g. vectorization instruction set extensions), which may be chosen by the \textcolor{blue}{ELPA2\_KERNEL} keyword. Available options are \textcolor{blue}{AVX}, \textcolor{blue}{AVX2}, and \textcolor{blue}{AVX512}, for architectures supporting Intel AVX, AVX2, and AVX512 instruction sets, respectively. In ELPA, these kernels are employed to accelerate the calculation of eigenvectors, which is often a bottleneck when calculating a large portion of the eigenspectrum.
 
-The PEXSI, EigenExa, and SLEPc-SIPs solvers are not enabled by default. They may be activated by the keywords \textcolor{blue}{ENABLE\_PEXSI}, \textcolor{blue}{ENABLE\_EIGENEXA}, and \textcolor{blue}{ENABLE\_SIPS}, respectively. PEXSI 1.2.0, EigenExa 2.3 and 2.4, SLEPc 3.9, 3.10, 3.11, and 3.12 have been tested with this version of ELSI. Older/newer versions may or may not be compatible. The PETSc library, required by SLEPc, must be compiled with MPI support, and (at least) with packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.
+The PEXSI, EigenExa, SLEPc-SIPs, and MAGMA solvers are not enabled by default. They may be activated by the keywords \textcolor{blue}{ENABLE\_PEXSI}, \textcolor{blue}{ENABLE\_EIGENEXA}, \textcolor{blue}{ENABLE\_SIPS}, and \textcolor{blue}{ENABLE\_MAGMA}, respectively. PEXSI 1.2.0, EigenExa 2.3, 2.4, SLEPc 3.9, 3.10, 3.11, 3.12, and MAGMA 2.5 have been tested with this version of ELSI. Older/newer versions may or may not be compatible. The PETSc library, required by SLEPc, must be compiled with MPI support, and (at least) with packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.
 
 Experienced users are encouraged to link ELSI against external, better optimized solver libraries. The keywords \textcolor{blue}{USE\_EXTERNAL\_ELPA}, \textcolor{blue}{USE\_EXTERNAL\_OMM}, \textcolor{blue}{USE\_EXTERNAL\_PEXSI}, and \textcolor{blue}{USE\_EXTERNAL\_NTPOLY} control the usage of externally compiled ELPA, libOMM, PEXSI, and NTPoly, respectively.
 
-All external libraries and include paths should be set via \textcolor{blue}{INC\_PATHS}, \textcolor{blue}{LIB\_PATHS}, and \textcolor{blue}{LIBS}, each of which is a list of items separated with `` '' (space) or ``;'' (semicolon). If an external library depends on additional libraries, \textcolor{blue}{LIBS} should include all the relevant dependencies. For instance, \textcolor{blue}{LIBS} should include the ELPA library and CUDA libraries when using an external ELPA compiled with GPU (CUDA) support.
-
-\subsection{Shared Library}
-\label{subsec:config_shared}
-Building ELSI as a shared library may be enabled by \textcolor{blue}{BUILD\_SHARED\_LIBS}.
+All external libraries and include paths should be set via \textcolor{blue}{INC\_PATHS}, \textcolor{blue}{LIB\_PATHS}, and \textcolor{blue}{LIBS}, each of which is a list of items separated with `` '' (space) or ``;'' (semicolon). If an external library depends on additional libraries, \textcolor{blue}{LIBS} should include all the relevant dependencies. For instance, \textcolor{blue}{LIBS} should include the MAGMA library and CUDA libraries when enabling support for MAGMA.
 
 \subsection{Tests}
 \label{subsec:config_tests}
-Building ELSI test programs may be enabled by \textcolor{blue}{ENABLE\_TESTS}. Then, the compilation may be verified by ``\verb+make test+'' or ``\verb+ctest+''. Note that the tests may not run if launching MPI jobs is prohibited on the user's working platform.
+Building ELSI test programs may be enabled by \textcolor{blue}{ENABLE\_TESTS}. Then, the compilation of ELSI may be verified by ``\verb+make test+'' or ``\verb+ctest+''. Note that the tests may not run if launching MPI jobs is prohibited on the user's working platform.
 
 \subsection{List of All Configure Options}
 \label{subsec:config_options}
@@ -197,6 +203,8 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 \textcolor{blue}{ENABLE\_C\_TESTS}         & boolean & OFF         & Build C test programs\\
 \hline
 \textcolor{blue}{ENABLE\_EIGENEXA}         & boolean & OFF         & Enable EigenExa support\\
+\hline
+\textcolor{blue}{ENABLE\_MAGMA}            & boolean & OFF         & Enable MAGMA support\\
 \hline
 \textcolor{blue}{ENABLE\_PEXSI}            & boolean & OFF         & Enable PEXSI support\\
 \hline
@@ -236,7 +244,7 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 
 \textbf{3)} \textcolor{blue}{ELPA2\_KERNEL}: There are a number of computational kernels available with the ELPA solver. Choose from ``AVX'' (Intel AVX), ``AVX2'' (Intel AVX2), and ``AVX512'' (Intel AVX512). See \ref{subsec:config_solvers} for more information.
 
-\textbf{4)} \textcolor{blue}{SCOTCH\_LAST\_RESORT}: The compilation of the PT-SCOTCH library is a multi-step process. First, two auxiliary executables are created. Then, header files of the library are generated on-the-fly by the two executables. Finally, the main source files of the library are compiled with the generated header files included. The header generation step may fail on platforms where directly running an executable is prohibited, e.g. login nodes of a supercomputer. Often this can be circumvented by requesting an interactive session to a compute node and compiling the code there, or by submitting the compilation as a job to the queuing system. However, this may still fail on platforms where an executable compiled with MPI must be launched by an MPI job launcher (aprun, mpirun, srun, etc). If the standard compilation of PT-SCOTCH fails due to this reason, the user may set \textcolor{blue}{SCOTCH\_LAST\_RESORT} to the command that starts an MPI job with one MPI task, e.g. ``\verb+mpirun -n 1+''. This command will be used to launch the auxiliary executables to generate necessary header files for PT-SCOTCH.
+\textbf{4)} \textcolor{blue}{SCOTCH\_LAST\_RESORT}: The compilation of PT-SCOTCH is a multi-step process. First, two auxiliary executables are created. Then, some header files are generated on-the-fly by the two executables. Finally, the main source files are compiled with the generated header files included. The header generation step may fail on platforms where directly running an executable is prohibited, e.g. login nodes of a supercomputer. Often this can be circumvented by requesting an interactive session to a compute node and compiling the code there, or by submitting the compilation as a job to the queuing system. However, this may still fail on platforms where an executable compiled with MPI must be launched by an MPI job launcher (aprun, mpirun, srun, etc). If the standard compilation of PT-SCOTCH fails due to this reason, the user may set \textcolor{blue}{SCOTCH\_LAST\_RESORT} to the command that starts an MPI job with one MPI task, e.g. ``\verb+mpirun -n 1+''. This command will be used to launch the auxiliary executables to generate necessary header files for PT-SCOTCH.
 
 \textbf{5)} External libraries: ELSI redistributes source code of ELPA, libOMM, NTPoly, PEXSI, SuperLU\_DIST, and PT-SCOTCH libraries, which by default will be built together with the ELSI interface. Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries. See \ref{subsec:config_solvers} for more information.
 
@@ -261,8 +269,6 @@ find_package(elsi 2.0 REQUIRED)
 \end{verbatim}
 \end{tcolorbox}
 
-In this case, if ELSI version 1.x is found, CMake stops with an appropriate error message.
-
 \subsection{Linking against ELSI: Makefile}
 \label{subsec:import_makefile}
 For a project using makefiles, an example set of compiler flags to link against ELSI would be:
@@ -277,14 +283,14 @@ ELSI_LIB     = -L/PATH/TO/BUILD/ELSI/lib -lelsi \
 \end{verbatim}
 \end{tcolorbox}
 
-Enabling/disabling PEXSI, EigenExa, SLEPc-SIPs or linking ELSI against pre-installed solver libraries will require the user modify these flags accordingly.
+Enabling/disabling PEXSI, EigenExa, SLEPc-SIPs, MAGMA or linking ELSI against pre-installed solver libraries will require the user modify these flags accordingly.
 
 \subsection{Using ELSI}
 \label{subsec:import_use}
 ELSI may be used in an electronic structure code by importing the appropriate header file. For codes written in Fortran, this is done by using the ELSI module
 \begin{tcolorbox}
 \begin{verbatim}
-USE ELSI
+use ELSI
 \end{verbatim}
 \end{tcolorbox}
 
@@ -295,7 +301,7 @@ For codes written in C, the ELSI wrapper may be imported by including the header
 \end{verbatim}
 \end{tcolorbox}
 
-These import statements give the electronic structure code access to the ELSI interface. In the next chapter, we will describe the API for the ELSI interface.
+These import statements give the electronic structure code access to the ELSI interface, which we will describe in the next chapter.
 
 % Chapter3
 \chapter{The ELSI API}
@@ -324,7 +330,7 @@ The ELSI interface must be initialized via the \textcolor{blue}{elsi\_init} subr
 \hline
 \textcolor{blue}{handle}         & type(elsi\_handle) & out & Handle to ELSI.\\
 \hline
-\textcolor{blue}{solver}         & integer            & in  & Desired solver. Accepted values are: 0 (AUTO), 1 (ELPA), 2 (libOMM), 3 (PEXSI), 4 (EigenExa), 5 (SLEPc-SIPs), and 6 (NTPoly). See remark 1.\\
+\textcolor{blue}{solver}         & integer            & in  & Desired solver. Accepted values are: 0 (AUTO), 1 (ELPA), 2 (libOMM), 3 (PEXSI), 4 (EigenExa), 5 (SLEPc-SIPs), 6 (NTPoly), and 7 (MAGMA). See remark 1.\\
 \hline
 \textcolor{blue}{parallel\_mode} & integer            & in  & Parallelization mode. Accepted values are: 0 (SINGLE\_PROC) and 1 (MULTI\_PROC). See remark 4.\\
 \hline
@@ -340,15 +346,15 @@ The ELSI interface must be initialized via the \textcolor{blue}{elsi\_init} subr
 
 \textbf{Remarks}
 
-\textbf{1)} \textcolor{blue}{solver}: Refer to \ref{sec:solvers} for supported features of each solver. The \textcolor{blue}{AUTO}(0) option attempts to automate the solver selection procedure based on benchmarks performed and experiences gained in the ELSI project. User-supplied information may assist in finding the optimal solver. In particular, see \textcolor{blue}{elsi\_set\_dimensionality} and \textcolor{blue}{elsi\_set\_energy\_gap} in \ref{sec:setter}. Simply put, the solver selection favors ELPA for small-and-medium-sized problems, PEXSI for large, sparse, low-dimensional problems, and NTPoly for extra-large, sparse systems with a decent energy gap.
+\textbf{1)} \textcolor{blue}{solver}: The \textcolor{blue}{AUTO} option attempts to automate the solver selection procedure based on benchmarks performed and experiences gained in the ELSI project. User-supplied information may assist in finding the optimal solver. In particular, see \textcolor{blue}{elsi\_set\_dimensionality} and \textcolor{blue}{elsi\_set\_energy\_gap} in \ref{sec:setter}. Simply put, the solver selection favors ELPA for small-and-medium-sized problems, PEXSI for large, sparse, low-dimensional problems, and NTPoly for extra-large, sparse systems with a decent energy gap. When \textcolor{blue}{ELPA} is chosen for the \textcolor{blue}{SINGLE\_PROC} parallel mode, the tridiagonalization and back-transformation routines in LAPACK and the divide-and-conquer tridiagonal solver routine in ELPA will be used.
 
 \textbf{2)} \textcolor{blue}{matrix\_format}: \textcolor{blue}{BLACS\_DENSE}(0) refers to a dense matrix format in a 2-dimensional block-cyclic distribution, i.e. the BLACS standard. \textcolor{blue}{PEXSI\_CSC}(1) refers to a compressed sparse column (CSC) matrix format in a 1-dimensional block distribution. \textcolor{blue}{SIESTA\_CSC}(2) refers to a compressed sparse column (CSC) matrix format in a 1-dimensional block-cyclic distribution. As the Hamiltonian, overlap, and density matrices are symmetric (Hermitian), compressed sparse row (CSR) matrix format is effectively supported. \textcolor{blue}{GENERIC\_COO}(3) refers to a coordinate (COO) sparse matrix format in an arbitrary distribution. Please refer to \ref{subsec:setup_matrix} for specifications of these matrix formats.
 
-\textbf{3)} \textcolor{blue}{n\_state}: If ELPA, EigenExa, or SLEPc-SIPs is the chosen solver, this parameter specifies the number of eigenstates to solve. EigenExa internally computes all the eigenstates unless \textcolor{blue}{n\_state} is 0. When \textcolor{blue}{n\_state} is larger than 0 and smaller than \textcolor{blue}{n\_basis}, ELSI simply discards the unwanted solutions. libOMM, PEXSI and NTPoly do not make use of this parameter, thus a dummy value may be passed.
+\textbf{3)} \textcolor{blue}{n\_state}: If ELPA, EigenExa, SLEPc-SIPs, or MAGMA is the chosen solver, this parameter specifies the number of eigenstates to solve. EigenExa internally computes all the eigenstates unless \textcolor{blue}{n\_state} is 0. When \textcolor{blue}{n\_state} is larger than 0 and smaller than \textcolor{blue}{n\_basis}, ELSI simply discards the unwanted solutions. libOMM, PEXSI and NTPoly do not make use of this parameter.
 
 \textbf{4)} \textcolor{blue}{parallel\_mode}: The two allowed values of \textcolor{blue}{parallel\_mode}, 0 (\textcolor{blue}{SINGLE\_PROC}) and 1 (\textcolor{blue}{MULTI\_PROC}), allow for three parallelization strategies commonly employed by electronic structure codes. See below.
 
-\textbf{3a)} \textcolor{blue}{SINGLE\_PROC}: Solves the KS eigenproblem following a LAPACK-like fashion. This option may only be selected when ELPA is chosen as the solver. Every MPI task independently handles a group of \textbf{\textit{k}}-points uniquely assigned to it.
+\textbf{3a)} \textcolor{blue}{SINGLE\_PROC}: Solves the KS eigenproblem following a LAPACK-like fashion. This option may only be selected when ELPA or MAGMA is chosen as the solver. Every MPI task independently handles a group of \textbf{\textit{k}}-points uniquely assigned to it.
 \begin{itemize}
 \item Example: 16 \textbf{\textit{k}}-points, 4 MPI tasks.
 \item MPI task 0 handles \textbf{\textit{k}}-points 1, 2, 3, 4 sequentially;
@@ -410,7 +416,7 @@ The MPI communicator used by ELSI is passed into ELSI by the calling code via th
 
 \subsection{Setting Up Matrix Formats}
 \label{subsec:setup_matrix}
-Four matrix formats are currently supported by ELSI, namely 2D block-cyclic distributed dense matrix format (\textcolor{blue}{BLACS\_DENSE}), 1D block distributed compressed sparse column format (\textcolor{blue}{PEXSI\_CSC}), 1D block-cyclic distributed compressed sparse column format, (\textcolor{blue}{SIESTA\_CSC}), arbitrarily distributed coordinate sparse format (\textcolor{blue}{GENERIC\_COO}).
+Four matrix formats are supported by ELSI, namely 2D block-cyclic distributed dense matrix format (\textcolor{blue}{BLACS\_DENSE}), 1D block distributed compressed sparse column format (\textcolor{blue}{PEXSI\_CSC}), 1D block-cyclic distributed compressed sparse column format, (\textcolor{blue}{SIESTA\_CSC}), arbitrarily distributed coordinate sparse format (\textcolor{blue}{GENERIC\_COO}).
 
 When using the \textcolor{blue}{BLACS\_DENSE} format, BLACS parameters are passed into ELSI via the \textcolor{blue}{elsi\_set\_blacs} subroutine. The matrix format used internally in the ELSI interface and the ELPA solver requires the block sizes of the 2-dimensional block-cyclic distribution are the same in the row and column directions. It is necessary to call this subroutine before calling any solver interface that makes use of the \textcolor{blue}{BLACS\_DENSE} format.
 \begin{labeling}{\hspace{6cm}}
@@ -463,9 +469,9 @@ The block size of the \textcolor{blue}{PEXSI\_CSC} format cannot be set by the u
 \hline
 \multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
 \hline
-\textcolor{blue}{handle}       & type(elsi\_handle) & inout & Handle to ELSI.\\
+\textcolor{blue}{handle}      & type(elsi\_handle) & inout & Handle to ELSI.\\
 \hline
-\textcolor{blue}{global\_nnz}  & integer            & in    & Block size of the 1D block-cyclic distribution.\\
+\textcolor{blue}{global\_nnz} & integer            & in    & Block size of the 1D block-cyclic distribution.\\
 \hline
 \end{tabular}
 
@@ -574,7 +580,7 @@ When an ELSI instance is no longer needed, its associated handle should be clean
 
 \section{Solving Eigenvalues and Eigenvectors}
 \label{sec:ev}
-The following subroutines return all the eigenvalues and a subset of eigenvectors of the provided generalized eigenproblem defined by H and S matrices. For standard eigenproblems, please see \textcolor{blue}{elsi\_set\_unit\_ovlp} in \ref{subsec:setter_elsi}. ELPA, EigenExa, or SLEPc-SIPs may be selected as the solver when using these subroutines.
+The following subroutines return all the eigenvalues and a subset of eigenvectors of the provided generalized eigenproblem defined by H and S matrices. For standard eigenproblems, please see \textcolor{blue}{elsi\_set\_unit\_ovlp} in \ref{subsec:setter_elsi}. ELPA, EigenExa, SLEPc-SIPs, or MAGMA may be selected as the solver when using these subroutines.
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_ev\_real}(handle, ham, ovlp, eval, evec)]
 \end{labeling}
@@ -664,7 +670,7 @@ The following subroutines return all the eigenvalues and a subset of eigenvector
 
 \textbf{Remarks}
 
-\textbf{1)} The Hamiltonian matrix will be destroyed by ELPA and EigenExa during computation. When using \textcolor{blue}{elsi\_ev\_real} or \textcolor{blue}{elsi\_ev\_complex}, the overlap matrix will be overridden by its Cholesky factorization. When using \textcolor{blue}{elsi\_ev\_real\_sparse} or \textcolor{blue}{elsi\_ev\_complex\_sparse}, the Cholesky factorization (not sparse) is stored internally in the BLACS\_DENSE format.
+\textbf{1)} The Hamiltonian matrix will be destroyed during computation. When using \textcolor{blue}{elsi\_ev\_real} or \textcolor{blue}{elsi\_ev\_complex}, the overlap matrix will be overridden by its Cholesky factorization. When using \textcolor{blue}{elsi\_ev\_real\_sparse} or \textcolor{blue}{elsi\_ev\_complex\_sparse}, the Cholesky factorization (not sparse) is stored internally in the BLACS\_DENSE format.
 
 \textbf{2)} The dimension of \textcolor{blue}{eval} should always be \textcolor{blue}{n\_basis}, regardless of the choice of \textcolor{blue}{n\_state} specified in \textcolor{blue}{elsi\_init}.
 
@@ -1006,7 +1012,7 @@ end do
 \hline
 \multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
 \hline
-\textcolor{blue}{eigenexa\_method}       & integer & 2 & 1: Tridiagonalization solver eigen\_s. 2: Pentadiagonalization solver eigen\_sx. The latter is usually faster and more scalable.\\
+\textcolor{blue}{eigenexa\_method} & integer & 2 & 1: Tridiagonalization solver eigen\_s. 2: Pentadiagonalization solver eigen\_sx. The latter is usually faster and more scalable.\\
 \hline
 \end{tabular}
 
@@ -1071,6 +1077,24 @@ end do
 \textbf{1)} \textcolor{blue}{ntpoly\_method}: Allowed choices are 0 for the canonical purification \cite{purification_palser_1998}, 1 for the trace correcting purification \cite{purification_niklasson_2002}, 2 for the 4th order trace resetting purification \cite{purification_niklasson_2002}, and 3 for the generalized hole-particle canonical purification \cite{purification_truflandier_2016}.
 
 \textbf{2)} \textcolor{blue}{ntpoly\_filter} and \textcolor{blue}{ntpoly\_tol} control the accuracy and computational cost of the density matrix purification methods. Tight choices of \textcolor{blue}{ntpoly\_filter} and \textcolor{blue}{ntpoly\_tol}, e.g. the default values here, lead to highly accurate results that are comparable to the results obtained from diagonalization. However, linear scaling can only be achieved with a relatively large \textcolor{blue}{ntpoly\_filter} such as $10^{-6}$. Correspondingly, \textcolor{blue}{ntpoly\_tol} may be set to $10^{-3}$. Note that the purification may not converge if \textcolor{blue}{ntpoly\_filter} is too large relative to \textcolor{blue}{ntpoly\_tol}. Setting \textcolor{blue}{ntpoly\_filter} to be $\le 10^{-3} \times $ \textcolor{blue}{ntpoly\_tol} is safe in most cases.
+
+\subsection{Customizing the MAGMA Solver}
+\label{subsec:setter_magma}
+\begin{labeling}{\hspace{6cm}}
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_magma\_solver}(handle, magma\_solver)]
+\end{labeling}
+
+\begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\hline
+\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\hline
+\textcolor{blue}{magma\_solver} & integer & 1 & 1: MAGMA 1-stage eigensolver. 2: MAGMA 2-stage eigensolver.\\
+\hline
+\end{tabular}
+
+\textbf{Remarks}
+
+\textbf{1)} MAGMA is enable to make use of multiple GPUs. The number of GPUs is controlled by the environment variable \textcolor{blue}{MAGMA\_NUM\_GPUS}. Refer to the users' guide of MAGMA for more information.
 
 \section{Getting Additional Results from ELSI}
 \label{sec:getter}
@@ -1360,6 +1384,7 @@ The MPI communicator which encloses the MPI tasks to perform the matrix I/O oper
 
 When reading or writing a dense matrix, BLACS parameters are passed into ELSI via the \textcolor{blue}{elsi\_set\_rw\_blacs} subroutine.
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_rw\_blacs}(handle, blacs\_ctxt, block\_size)]
 \end{labeling}
@@ -1378,7 +1403,6 @@ When reading or writing a dense matrix, BLACS parameters are passed into ELSI vi
 
 When writing a sparse matrix, its dimensions are passed into ELSI via the \textcolor{blue}{elsi\_set\_rw\_csc} subroutine. The only sparse matrix format currently supported by ELSI matrix I/O is the \textcolor{blue}{PEXSI\_CSC} format. When reading a sparse matrix, there is no need to call this subroutine. The relevant parameters will be read from file when calling \textcolor{blue}{elsi\_read\_mat\_dim} or \textcolor{blue}{elsi\_read\_mat\_dim\_sparse}.
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_rw\_csc}(handle, global\_nnz, local\_nnz, local\_col)]
 \end{labeling}
@@ -1883,7 +1907,7 @@ ELSI is written in Fortran. A C interface around the core Fortran code is provid
 \bibliography{elsi_manual}
 
 \chapter*{License and Copyright}
-The ELSI interface software is licensed under the 3-clause BSD license:
+ELSI interface software is licensed under the 3-clause BSD license:
 
 \begin{tcolorbox}
 \begin{Verbatim}

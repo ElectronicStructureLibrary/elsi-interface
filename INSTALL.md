@@ -89,13 +89,12 @@ formats:
 * `libelpa.a;libpexsi.a;libblas.so` (full name of library)
 
 Please note that in the current version of ELSI, the PEXSI solver is not enabled
-unless `ENABLE_PEXSI` is switched on.
+unless `ENABLE_PEXSI` is switched on. `ENABLE_SIPS`, `ELABLE_EIGENEXA`, and
+`ENABLE_MAGMA` may be used to enable support for the SLEPc, EigenExa, and MAGMA
+solvers, respectively. These libraries are not redistributed with ELSI, thus
+must be installed separately by the user.
 
-### 3) Shared library
-
-Building ELSI as a shared library may be enabled by `BUILD_SHARED_LIBS`.
-
-### 4) Tests
+### 3) Tests
 
 Building ELSI test programs may be enabled by `ENABLE_TESTS`. Then, the
 compilation may be verified by

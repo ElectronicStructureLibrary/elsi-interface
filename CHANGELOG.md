@@ -9,6 +9,8 @@
 ### Solvers
 * Added support for the tridiagonalization and pentadiagonalization eigensolvers
   implemented in the EigenExa library.
+* Added support for the one-stage and two-stage tridiagonalization eigensolvers
+  implemented in the MAGMA library.
 
 ### EigenExa
 * Interface compatible with EigeExa 2.4.
@@ -17,6 +19,10 @@
 
 ### SLEPc-SIPs
 * Interface compatible with PETSc 3.12 and SLEPc 3.12.
+
+### MAGMA
+* Interface compatible with MAGMA 2.5.
+* Added oen-stage and two-stage eigensolvers.
 
 ### Known issues
 * ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
@@ -70,7 +76,7 @@
 ### ELPA
 * Interface for externally linked ELPA compatible with ELPA 2018.11.
 * Fixed single precision calculations with an externally linked ELPA.
-* Fixed internal ELPA 2-stage real solver with AVX512 kernel.
+* Fixed internal ELPA two-stage real solver with AVX512 kernel.
 
 ### NTPoly
 * Updated redistributed NTPoly source code to version 2.2.
