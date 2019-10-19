@@ -36,7 +36,6 @@ module ELSI_SET
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
-   public :: elsi_set_elpa_gpu_kernels
    public :: elsi_set_elpa_autotune
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
@@ -73,11 +72,12 @@ module ELSI_SET
    public :: elsi_set_write_unit
    public :: elsi_set_sing_check
    public :: elsi_set_sing_tol
+   public :: elsi_set_elpa_gpu_kernels
    public :: elsi_set_pexsi_gap
    public :: elsi_set_pexsi_delta_e
    public :: elsi_set_sips_interval
-   public :: elsi_set_uuid
    public :: elsi_set_mu_spin_degen
+   public :: elsi_set_uuid
 
    interface elsi_set_write_unit
       module procedure elsi_set_output_unit
@@ -508,32 +508,6 @@ subroutine elsi_set_elpa_gpu(eh,gpu)
       eh%ph%elpa_gpu = .false.
    else
       eh%ph%elpa_gpu = .true.
-   end if
-
-end subroutine
-
-!>
-!! Set whether GPU acceleration (including GPU kernels for back-transforming
-!! eigenvectors) should be enabled in ELPA. No effect if no GPU acceleration
-!! available.
-!!
-subroutine elsi_set_elpa_gpu_kernels(eh,gpu_kernels)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: gpu_kernels !< Use GPU kernels?
-
-   character(len=*), parameter :: caller = "elsi_set_elpa_gpu_kernels"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   if(gpu_kernels == 0) then
-      eh%ph%elpa_gpu_kernels = .false.
-   else
-      call elsi_set_elpa_gpu(eh,1)
-
-      eh%ph%elpa_gpu_kernels = .true.
    end if
 
 end subroutine
@@ -1307,6 +1281,28 @@ subroutine elsi_set_uuid(eh,uuid)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    tmp = uuid
+
+end subroutine
+
+!>
+!! Set whether GPU kernels for back-transforming eigenvectors should be enabled
+!! in ELPA.
+!! (Deprecated)
+!!
+subroutine elsi_set_elpa_gpu_kernels(eh,gpu_kernels)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: gpu_kernels !< Use GPU kernels?
+
+   integer(kind=i4) :: tmp
+
+   character(len=*), parameter :: caller = "elsi_set_elpa_gpu_kernels"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   tmp = gpu_kernels
 
 end subroutine
 

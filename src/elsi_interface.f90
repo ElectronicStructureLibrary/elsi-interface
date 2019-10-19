@@ -59,7 +59,6 @@ module ELSI
    public :: elsi_set_elpa_solver
    public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
-   public :: elsi_set_elpa_gpu_kernels
    public :: elsi_set_elpa_autotune
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
@@ -70,8 +69,6 @@ module ELSI
    public :: elsi_set_pexsi_np_symbo
    public :: elsi_set_pexsi_ordering
    public :: elsi_set_pexsi_temp
-   public :: elsi_set_pexsi_gap
-   public :: elsi_set_pexsi_delta_e
    public :: elsi_set_pexsi_mu_min
    public :: elsi_set_pexsi_mu_max
    public :: elsi_set_pexsi_inertia_tol
@@ -117,8 +114,11 @@ module ELSI
    public :: elsi_set_write_unit
    public :: elsi_set_sing_check
    public :: elsi_set_sing_tol
-   public :: elsi_set_mu_spin_degen
+   public :: elsi_set_elpa_gpu_kernels
+   public :: elsi_set_pexsi_gap
+   public :: elsi_set_pexsi_delta_e
    public :: elsi_set_sips_interval
+   public :: elsi_set_mu_spin_degen
    public :: elsi_set_uuid
    public :: elsi_get_n_sing
 

@@ -1051,8 +1051,8 @@ In all the subroutines listed below, the first argument (input and output) is an
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_solver}(handle, elpa\_solver)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_n\_single}(handle, elpa\_n\_single)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_gpu}(handle, elpa\_gpu)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_gpu\_kernels}(handle, elpa\_gpu\_kernels)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_autotune}(handle, elpa\_autotune)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_elpa\_gpu\_kernels}(handle, elpa\_gpu\_kernels)]
 \end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
@@ -1065,9 +1065,9 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \textcolor{blue}{elpa\_gpu}          & integer & 0 & If not 0, try to enable GPU-acceleration in ELPA. See remark 2.\\
 \hline
-\textcolor{blue}{elpa\_gpu\_kernels} & integer & 0 & If not 0, try to enable GPU-acceleration and GPU kernels in ELPA. See remark 2.\\
-\hline
 \textcolor{blue}{elpa\_autotune}     & integer & 1 & If not 0, try to enable auto-tuning of runtime parameters in ELPA. See remark 3.\\
+\hline
+\textcolor{blue}{elpa\_gpu\_kernels} & integer & 0 & Deprecated. No effect.\\
 \hline
 \end{tabular}
 
@@ -1075,7 +1075,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \textbf{1)} \textcolor{blue}{elpa\_n\_single}: If single precision arithmetic is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{elpa\_n\_single} to a positive integer, then the standard eigenprolems in the first \textcolor{blue}{elpa\_n\_single} SCF steps will be solved with single precision. The transformations between generalized eigenproblem and the standard form are always performed with double precision. Although this keyword accelerates the solution of standard eigenproblems, the overall SCF convergence may be slower, depending on the physical system and the SCF settings used in the electronic structure code. This keyword is ignored if single precision calculations are not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with single precision support.
 
-\textbf{2)} \textcolor{blue}{elpa\_gpu} and \textcolor{blue}{elpa\_gpu\_kernels}: If GPU-acceleration is available in an externally compiled ELPA library, it may be enabled by setting \textcolor{blue}{elpa\_gpu} to a non-zero integer. Setting \textcolor{blue}{elpa\_gpu} itself does not enable the GPU kernels for eigenvector back-transformation. To enable the GPU kernels, use \textcolor{blue}{elpa\_gpu\_kernels}. These two keywords are ignored if GPU-acceleration is not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with GPU support.
+\textbf{2)} \textcolor{blue}{elpa\_gpu}: If GPU-acceleration is available in an externally compiled ELPA library, it may be enabled by setting \textcolor{blue}{elpa\_gpu} to a nonzero integer. This keyword is ignored if GPU-acceleration is not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with GPU support.
 
 \textbf{3)} \textcolor{blue}{elpa\_autotune}: If auto-tuning of runtime parameters is available in an externally complied ELPA library, it may be enabled by setting \textcolor{blue}{elpa\_autotune} to a nonzero integer. This keyword is ignored if auto-tuning is not available, which is the case if the internal version of ELPA is used.
 

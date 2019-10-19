@@ -305,7 +305,6 @@ subroutine elsi_print_elpa_settings(ph,jh)
    call fjson_write_name_value(jh,"elpa_n_states",ph%n_states)
    call fjson_write_name_value(jh,"elpa_n_single",ph%elpa_n_single)
    call fjson_write_name_value(jh,"elpa_gpu",ph%elpa_gpu)
-   call fjson_write_name_value(jh,"elpa_gpu_kernels",ph%elpa_gpu_kernels)
    call fjson_write_name_value(jh,"elpa_autotune",ph%elpa_autotune)
    call fjson_finish_object(jh)
 

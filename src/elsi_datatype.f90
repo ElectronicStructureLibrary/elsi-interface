@@ -149,7 +149,6 @@ module ELSI_DATATYPE
       integer(kind=i4) :: elpa_comm_row
       integer(kind=i4) :: elpa_comm_col
       logical :: elpa_gpu
-      logical :: elpa_gpu_kernels
       logical :: elpa_autotune
       logical :: elpa_output
       logical :: elpa_first
