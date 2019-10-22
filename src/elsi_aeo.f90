@@ -18,7 +18,9 @@ module ELSI_ELPA
    use ELSI_UTIL, only: elsi_get_nnz,elsi_get_gid,elsi_set_full_mat
    use ELPA, only: elpa_t,elpa_init,elpa_allocate,elpa_deallocate,&
        elpa_autotune_deallocate,ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
-       ELPA_AUTOTUNE_FAST,ELPA_AUTOTUNE_DOMAIN_REAL,ELPA_AUTOTUNE_DOMAIN_COMPLEX
+       ELPA_2STAGE_REAL_DEFAULT,ELPA_2STAGE_COMPLEX_DEFAULT,&
+       ELPA_2STAGE_REAL_GPU,ELPA_2STAGE_COMPLEX_GPU,ELPA_AUTOTUNE_FAST,&
+       ELPA_AUTOTUNE_DOMAIN_REAL,ELPA_AUTOTUNE_DOMAIN_COMPLEX
 
    implicit none
 
@@ -887,6 +889,30 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
       end if
 
       call ph%elpa_aux%set("solver",ELPA_SOLVER_2STAGE,ierr)
+
+      ! Try to enable ELPA GPU acceleration
+      if(ph%elpa_gpu) then
+         call ph%elpa_aux%set("gpu",1,ierr)
+
+         if(ierr /= 0) then
+            call ph%elpa_aux%set("gpu",0,ierr)
+
+            ph%elpa_gpu = .false.
+         else
+            call ph%elpa_aux%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
+
+            if(ierr /= 0) then
+               call ph%elpa_aux%set("real_kernel",ELPA_2STAGE_REAL_DEFAULT,ierr)
+            end if
+
+            call ph%elpa_aux%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,ierr)
+
+            if(ierr /= 0) then
+               call ph%elpa_aux%set("complex_kernel",&
+                    ELPA_2STAGE_COMPLEX_DEFAULT,ierr)
+            end if
+         end if
+      end if
    else
       ph%elpa_solve => elpa_allocate()
 
@@ -920,12 +946,21 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
             call ph%elpa_solve%set("gpu",0,ierr)
 
             ph%elpa_gpu = .false.
-
-            write(msg,"(A)") "No ELPA GPU acceleration available"
-            call elsi_say(bh,msg)
          else
-            write(msg,"(A)") "ELPA GPU acceleration activated"
-            call elsi_say(bh,msg)
+            call ph%elpa_solve%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
+
+            if(ierr /= 0) then
+               call ph%elpa_solve%set("real_kernel",ELPA_2STAGE_REAL_DEFAULT,&
+                    ierr)
+            end if
+
+            call ph%elpa_solve%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,&
+                 ierr)
+
+            if(ierr /= 0) then
+               call ph%elpa_solve%set("complex_kernel",&
+                    ELPA_2STAGE_COMPLEX_DEFAULT,ierr)
+            end if
          end if
       end if
    end if
