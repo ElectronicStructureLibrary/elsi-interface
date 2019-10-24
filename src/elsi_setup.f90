@@ -14,10 +14,11 @@ module ELSI_SETUP
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_EIGENEXA, only: elsi_cleanup_eigenexa
    use ELSI_ELPA, only: elsi_cleanup_elpa
+   use ELSI_MAGMA, only: elsi_cleanup_magma
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_NTPOLY, only: elsi_cleanup_ntpoly
    use ELSI_OMM, only: elsi_cleanup_omm
-   use ELSI_OUTPUT, only: elsi_final_print,fjson_close_file,fjson_finish_array,&
+   use ELSI_OUTPUT, only: fjson_close_file,fjson_finish_array,&
        fjson_reset_fj_handle
    use ELSI_PEXSI, only: elsi_set_pexsi_default,elsi_cleanup_pexsi
    use ELSI_PRECISION, only: r8,i4,i8
@@ -520,7 +521,6 @@ subroutine elsi_finalize(eh)
    eh%ph%n_calls_all = eh%ph%n_calls_all+eh%ph%n_calls
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
-   call elsi_final_print(eh%ph,eh%bh)
    call elsi_cleanup(eh)
 
 end subroutine
@@ -542,6 +542,7 @@ subroutine elsi_cleanup(eh)
    call elsi_cleanup_eigenexa(eh%ph)
    call elsi_cleanup_ntpoly(eh%ph)
    call elsi_cleanup_sips(eh%ph)
+   call elsi_cleanup_magma(eh%ph)
 
    ! Dense arrays
    if(allocated(eh%ham_real_den)) then

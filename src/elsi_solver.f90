@@ -11,13 +11,14 @@
 module ELSI_SOLVER
 
    use ELSI_CONSTANT, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
-       NTPOLY_SOLVER,EIGENEXA_SOLVER,MULTI_PROC,SINGLE_PROC,PEXSI_CSC,&
-       SIESTA_CSC,GENERIC_COO,DECISION_WIP,DECISION_DONE
+       NTPOLY_SOLVER,EIGENEXA_SOLVER,MAGMA_SOLVER,MULTI_PROC,SINGLE_PROC,&
+       PEXSI_CSC,SIESTA_CSC,GENERIC_COO,DECISION_WIP,DECISION_DONE
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_DECISION, only: elsi_decide_ev,elsi_decide_dm
    use ELSI_EIGENEXA, only: elsi_init_eigenexa,elsi_solve_eigenexa
    use ELSI_ELPA, only: elsi_init_elpa,elsi_solve_elpa
    use ELSI_LAPACK, only: elsi_solve_lapack
+   use ELSI_MAGMA, only: elsi_init_magma,elsi_solve_magma
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
    use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_solve_ntpoly
@@ -248,6 +249,9 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
       call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
            eh%ham_real_sp,eh%ovlp_real_sp,eval,eh%evec_real)
       call elsi_sips_to_blacs_ev(eh%ph,eh%bh,eh%evec_real,evec)
+   case(MAGMA_SOLVER)
+      call elsi_init_magma(eh%ph)
+      call elsi_solve_magma(eh%ph,eh%bh,ham,ovlp,eval,evec)
    case default
       write(msg,"(A)") "Unsupported eigensolver"
       call elsi_stop(eh%bh,msg,caller)
@@ -293,6 +297,9 @@ subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
          call elsi_init_elpa(eh%ph,eh%bh)
          call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eval,evec)
       end if
+   case(MAGMA_SOLVER)
+      call elsi_init_magma(eh%ph)
+      call elsi_solve_magma(eh%ph,eh%bh,ham,ovlp,eval,evec)
    case default
       write(msg,"(A)") "Unsupported eigensolver"
       call elsi_stop(eh%bh,msg,caller)

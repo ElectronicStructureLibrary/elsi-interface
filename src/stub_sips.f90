@@ -8,246 +8,100 @@
 !! Provide stub routines which are only compiled when the actual SLEPc-SIPs is
 !! not available.
 !!
-module M_SIPS
+module ELSI_SIPS
 
+   use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_PRECISION, only: r8,i4
 
    implicit none
 
    private
 
-   public :: sips_initialize
-   public :: sips_finalize
-   public :: sips_load_ham_ovlp
-   public :: sips_load_ham
-   public :: sips_update_ham
-   public :: sips_set_eps
-   public :: sips_update_eps
-   public :: sips_get_inertias
-   public :: sips_get_slices
-   public :: sips_get_slices_from_inertias
-   public :: sips_set_slices
-   public :: sips_solve_eps
-   public :: sips_get_eigenvalues
-   public :: sips_get_eigenvectors
-   public :: sips_get_dm
-   public :: sips_get_edm
+   public :: elsi_init_sips
+   public :: elsi_cleanup_sips
+   public :: elsi_solve_sips
+   public :: elsi_build_dm_sips
+   public :: elsi_build_edm_sips
+
+   interface elsi_solve_sips
+      module procedure elsi_solve_sips_real
+   end interface
+
+   interface elsi_build_dm_sips
+      module procedure elsi_build_dm_sips_real
+   end interface
+
+   interface elsi_build_edm_sips
+      module procedure elsi_build_edm_sips_real
+   end interface
 
 contains
 
-subroutine sips_initialize()
+subroutine elsi_init_sips(ph,bh)
 
    implicit none
+
+   type(elsi_param_t) :: ph
+   type(elsi_basic_t) :: bh
+
+end subroutine
+
+subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
+
+   implicit none
+
+   type(elsi_param_t) :: ph
+   type(elsi_basic_t) :: bh
+   integer(kind=i4) :: row_ind(bh%nnz_l_sp1)
+   integer(kind=i4) :: col_ptr(bh%n_lcol_sp1+1)
+   real(kind=r8) :: ham(bh%nnz_l_sp1)
+   real(kind=r8) :: ovlp(bh%nnz_l_sp1)
+   real(kind=r8) :: eval(ph%n_states)
+   real(kind=r8) :: evec(bh%n_lcol_sp1,ph%n_states)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
    stop
 
 end subroutine
 
-subroutine sips_finalize()
+subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
 
    implicit none
+
+   type(elsi_param_t) :: ph
+   type(elsi_basic_t) :: bh
+   integer(kind=i4) :: row_ind(bh%nnz_l_sp1)
+   integer(kind=i4) :: col_ptr(bh%n_lcol_sp1+1)
+   real(kind=r8) :: occ(ph%n_states)
+   real(kind=r8) :: dm(bh%nnz_l_sp1)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
    stop
 
 end subroutine
 
-subroutine sips_load_ham_ovlp(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham,ovlp)
+subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
 
    implicit none
 
-   integer(kind=i4) :: ncol_g
-   integer(kind=i4) :: ncol_l
-   integer(kind=i4) :: nnz_l
-   integer(kind=i4) :: col_idx(nnz_l)
-   integer(kind=i4) :: row_ptr(ncol_l+1)
-   real(kind=r8) :: ham(nnz_l)
-   real(kind=r8) :: ovlp(nnz_l)
+   type(elsi_param_t) :: ph
+   type(elsi_basic_t) :: bh
+   integer(kind=i4) :: row_ind(bh%nnz_l_sp1)
+   integer(kind=i4) :: col_ptr(bh%n_lcol_sp1+1)
+   real(kind=r8) :: occ(ph%n_states)
+   real(kind=r8) :: edm(bh%nnz_l_sp1)
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
    stop
 
 end subroutine
 
-subroutine sips_load_ham(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham)
+subroutine elsi_cleanup_sips(ph)
 
    implicit none
 
-   integer(kind=i4) :: ncol_g
-   integer(kind=i4) :: ncol_l
-   integer(kind=i4) :: nnz_l
-   integer(kind=i4) :: col_idx(nnz_l)
-   integer(kind=i4) :: row_ptr(ncol_l+1)
-   real(kind=r8) :: ham(nnz_l)
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
+   type(elsi_param_t) :: ph
 
 end subroutine
 
-subroutine sips_update_ham(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham)
-
-   implicit none
-
-   integer(kind=i4) :: ncol_g
-   integer(kind=i4) :: ncol_l
-   integer(kind=i4) :: nnz_l
-   integer(kind=i4) :: col_idx(nnz_l)
-   integer(kind=i4) :: row_ptr(ncol_l+1)
-   real(kind=r8) :: ham(nnz_l)
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-subroutine sips_set_eps(stdevp)
-
-   implicit none
-
-   integer(kind=i4) :: stdevp
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-subroutine sips_update_eps(nsub)
-
-   implicit none
-
-   integer(kind=i4) :: nsub
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-subroutine sips_set_slices(nsub,subs)
-
-   implicit none
-
-   integer(kind=i4) :: nsub
-   real(kind=r8) :: subs(nsub+1)
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-subroutine sips_solve_eps(nconv)
-
-   implicit none
-
-   integer(kind=i4) :: nconv
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-subroutine sips_get_eigenvalues(nev,evals)
-
-   implicit none
-
-   integer(kind=i4) :: nev
-   real(kind=r8) :: evals(nev)
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-subroutine sips_get_eigenvectors(nev,lrow,evec)
-
-   implicit none
-
-   integer(kind=i4) :: nev
-   integer(kind=i4) :: lrow
-   real(kind=r8) :: evec(lrow,nev)
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-subroutine sips_get_inertias(nsub,subs,inertias)
-
-   implicit none
-
-   integer(kind=i4) :: nsub
-   real(kind=r8) :: subs(nsub+1)
-   integer(kind=i4) :: inertias(nsub+1)
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-subroutine sips_get_slices(algr,nev,nsub,buf,subbuf,evals,subs)
-
-   implicit none
-
-   integer(kind=i4) :: algr
-   integer(kind=i4) :: nev
-   integer(kind=i4) :: nsub
-   real(kind=r8) :: buf
-   real(kind=r8) :: subbuf
-   real(kind=r8) :: evals(nev)
-   real(kind=r8) :: subs(nsub+1)
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-subroutine sips_get_slices_from_inertias(nev,nsub,inertias,subs)
-
-   implicit none
-
-   integer(kind=i4) :: nev
-   integer(kind=i4) :: nsub
-   integer(kind=i4) :: inertias(nsub+1)
-   real(kind=r8) :: subs(nsub+1)
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-subroutine sips_get_dm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,dm)
-
-   implicit none
-
-   integer(kind=i4) :: ncol_l
-   integer(kind=i4) :: nnz_l
-   integer(kind=i4) :: col_idx(nnz_l)
-   integer(kind=i4) :: row_ptr(ncol_l+1)
-   integer(kind=i4) :: nev
-   real(kind=r8) :: occ(nev)
-   real(kind=r8) :: dm(nnz_l)
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-subroutine sips_get_edm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,edm)
-
-   implicit none
-
-   integer(kind=i4) :: ncol_l
-   integer(kind=i4) :: nnz_l
-   integer(kind=i4) :: col_idx(nnz_l)
-   integer(kind=i4) :: row_ptr(ncol_l+1)
-   integer(kind=i4) :: nev
-   real(kind=r8) :: occ(nev)
-   real(kind=r8) :: edm(nnz_l)
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-end module M_SIPS
+end module ELSI_SIPS

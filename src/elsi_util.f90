@@ -12,7 +12,7 @@ module ELSI_UTIL
    use ELSI_CONSTANT, only: UNSET,N_SOLVERS,N_PARALLEL_MODES,N_MATRIX_FORMATS,&
        MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,&
        AUTO_SOLVER,OMM_SOLVER,PEXSI_SOLVER,EIGENEXA_SOLVER,SIPS_SOLVER,&
-       NTPOLY_SOLVER,UT_MAT
+       NTPOLY_SOLVER,MAGMA_SOLVER,UT_MAT
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t,elsi_handle
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,mpi_comm_self
@@ -160,6 +160,9 @@ subroutine elsi_reset_param(ph)
    ph%pexsi_ne = 0.0_r8
    ph%pexsi_first = .true.
    ph%pexsi_started = .false.
+   ph%magma_solver = 1
+   ph%magma_n_gpus = 1
+   ph%magma_started = .false.
    ph%sips_n_elpa = 0
    ph%sips_n_slices = UNSET
    ph%sips_slice_type = 2
@@ -441,6 +444,16 @@ subroutine elsi_check(ph,bh,caller)
    case(NTPOLY_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
          write(msg,"(A)") "NTPoly requires MULTI_PROC parallel mode"
+         call elsi_stop(bh,msg,caller)
+      end if
+   case(MAGMA_SOLVER)
+      if(ph%parallel_mode /= SINGLE_PROC) then
+         write(msg,"(A)") "MAGMA requires SINGLE_PROC parallel mode"
+         call elsi_stop(bh,msg,caller)
+      end if
+
+      if(ph%matrix_format /= BLACS_DENSE) then
+         write(msg,"(A)") "MAGMA requires BLACS_DENSE matrix format"
          call elsi_stop(bh,msg,caller)
       end if
    end select

@@ -1235,6 +1235,21 @@ subroutine c_elsi_set_ntpoly_n_layer(h_c,n_layer) bind(C)
 
 end subroutine
 
+subroutine c_elsi_set_magma_solver(h_c,solver) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: solver
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_magma_solver(h_f,solver)
+
+end subroutine
+
 subroutine c_elsi_set_mu_broaden_scheme(h_c,broaden_scheme) bind(C)
 
    implicit none

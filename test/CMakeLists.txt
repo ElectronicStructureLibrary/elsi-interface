@@ -202,6 +202,18 @@ ADD_TEST(test_serial_02_lapack
 SET_TESTS_PROPERTIES(test_serial_02_lapack
   PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
 
+IF(ENABLE_MAGMA)
+  ADD_TEST(test_serial_03_magma
+    ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test e 0 r 7 ${h_real} ${s_real})
+  SET_TESTS_PROPERTIES(test_serial_03_magma
+    PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
+
+  ADD_TEST(test_serial_04_magma
+    ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test e 0 c 7 ${h_cmplx} ${s_cmplx})
+  SET_TESTS_PROPERTIES(test_serial_04_magma
+    PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
+ENDIF()
+
 ### Fortran tests: matrix IO ###
 ADD_TEST(test_matio_01
   ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test_rw r ${h_real} ${s_real})
