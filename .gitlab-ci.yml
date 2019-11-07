@@ -1,10 +1,12 @@
+before_script:
+  - module use /home/wy29/opt/modulefiles
+  - module purge
+  - module load gcc-7.4.0
+  - module load cmake-3.0.2
+
 ### GNU compilers + OpenMPI + Netlib BLAS, LAPACK, ScaLAPACK ###
 gnu:
   script:
-    - module use /home/wy29/opt/modulefiles
-    - module purge
-    - module load gcc-7.1
-    - module load cmake-3.0.2
     - module load openmpi-4.0.1
     - cat ./toolchains/gnu.cmake
     - rm -rf build
@@ -17,9 +19,6 @@ gnu:
 ### Intel compilers + MPI + MKL ###
 intel:
   script:
-    - module purge
-    - module load gcc-7.1
-    - module load cmake-3.0.2
     - module load intel-compilers-18.0
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
@@ -34,9 +33,6 @@ intel:
 ### Intel compilers + MPI + MKL + external solver libraries (debug) ###
 intel-debug:
   script:
-    - module purge
-    - module load gcc-7.1
-    - module load cmake-3.0.2
     - module load intel-compilers-18.0
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
@@ -51,9 +47,6 @@ intel-debug:
 ### Intel compilers + MPI + MKL (shared library) ###
 intel-shared:
   script:
-    - module purge
-    - module load gcc-7.1
-    - module load cmake-3.0.2
     - module load intel-compilers-18.0
     - module load intel-mpi-2018.2
     - module load intel-mkl-2018.2
