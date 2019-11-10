@@ -1,6 +1,6 @@
 # ELSI changelog
 
-## Not released
+## v2.4.0 (November 2019)
 
 ### ELSI interface
 * Fixed density matrix computation when using ELPA and Methfessel-Paxton
