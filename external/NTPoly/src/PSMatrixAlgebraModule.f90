@@ -534,6 +534,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(row_helper)
   DEALLOCATE(column_helper)
   DEALLOCATE(slice_helper)
+  DEALLOCATE(ATasks)
+  DEALLOCATE(BTasks)
+  DEALLOCATE(ABTasks)
 
   !! Deallocate Buffers From A
   DO II=1,matAB%process_grid%number_of_blocks_rows
@@ -573,10 +576,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      END DO
   END DO
   DEALLOCATE(SliceContribution_c)
-
-  DEALLOCATE(ATasks)
-  DEALLOCATE(BTasks)
-  DEALLOCATE(ABTasks)
 
   CALL StopTimer("GEMM")
     ELSE
@@ -831,6 +830,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(row_helper)
   DEALLOCATE(column_helper)
   DEALLOCATE(slice_helper)
+  DEALLOCATE(ATasks)
+  DEALLOCATE(BTasks)
+  DEALLOCATE(ABTasks)
 
   !! Deallocate Buffers From A
   DO II=1,matAB%process_grid%number_of_blocks_rows
@@ -870,10 +872,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      END DO
   END DO
   DEALLOCATE(SliceContribution_r)
-
-  DEALLOCATE(ATasks)
-  DEALLOCATE(BTasks)
-  DEALLOCATE(ABTasks)
 
   CALL StopTimer("GEMM")
     END IF

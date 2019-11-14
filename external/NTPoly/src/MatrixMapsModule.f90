@@ -131,7 +131,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Triplet_r) :: temp
 
-
   INTEGER :: II
   LOGICAL :: valid
   INTEGER :: num_slices
@@ -186,7 +185,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(IN), OPTIONAL :: my_slice_in
     !! Local Variables
     TYPE(Triplet_c) :: temp
-
 
   INTEGER :: II
   LOGICAL :: valid
@@ -327,7 +325,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Triplet_r) :: temp
 
-
   INTEGER :: II
   LOGICAL :: valid
   INTEGER :: num_slices
@@ -386,7 +383,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(IN), OPTIONAL :: my_slice_in
     !! Local Variables
     TYPE(Triplet_c) :: temp
-
 
   INTEGER :: II
   LOGICAL :: valid

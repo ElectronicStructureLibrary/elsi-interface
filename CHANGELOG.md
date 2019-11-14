@@ -1,5 +1,10 @@
 # ELSI changelog
 
+## Not released
+
+### NTPoly
+* Updated redistributed NTPoly source code to version 2.3.2.
+
 ## v2.4.0 (November 2019)
 
 ### ELSI interface
