@@ -44,7 +44,6 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: ierr
 
     IF (this%is_complex) THEN
-
   !! Allocate Space For Result
   ALLOCATE(per_column_min(this%local_columns))
   ALLOCATE(per_column_max(this%local_columns))
@@ -88,7 +87,6 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(per_column_min)
   DEALLOCATE(per_column_max)
     ELSE
-
   !! Allocate Space For Result
   ALLOCATE(per_column_min(this%local_columns))
   ALLOCATE(per_column_max(this%local_columns))
