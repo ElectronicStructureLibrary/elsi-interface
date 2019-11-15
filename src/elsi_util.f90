@@ -13,7 +13,7 @@ module ELSI_UTIL
        MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,&
        AUTO_SOLVER,OMM_SOLVER,PEXSI_SOLVER,EIGENEXA_SOLVER,SIPS_SOLVER,&
        NTPOLY_SOLVER,MAGMA_SOLVER,UT_MAT
-   use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t,elsi_handle
+   use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,mpi_comm_self
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
@@ -34,10 +34,6 @@ module ELSI_UTIL
    public :: elsi_build_dm
    public :: elsi_build_edm
    public :: elsi_gram_schmidt
-   public :: elsi_compute_dm_real
-   public :: elsi_compute_dm_complex
-   public :: elsi_compute_edm_real
-   public :: elsi_compute_edm_complex
 
    interface elsi_get_nnz
       module procedure elsi_get_nnz_real
@@ -1277,94 +1273,6 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,ovlp,evec)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
-
-end subroutine
-
-!>
-!! Construct the density matrix from occupation numbers and eigenvectors.
-!! (Public version of elsi_build_dm)
-!!
-subroutine elsi_compute_dm_real(eh,occ,evec,dm)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh
-   real(kind=r8), intent(in) :: occ(eh%ph%n_states)
-   real(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol)
-   real(kind=r8), intent(out) :: dm(eh%bh%n_lrow,eh%bh%n_lcol)
-
-   character(len=*), parameter :: caller = "elsi_compute_dm_real"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_build_dm(eh%ph,eh%bh,occ,evec,dm)
-
-end subroutine
-
-!>
-!! Construct the density matrix from occupation numbers and eigenvectors.
-!! (Public version of elsi_build_dm)
-!!
-subroutine elsi_compute_dm_complex(eh,occ,evec,dm)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh
-   real(kind=r8), intent(in) :: occ(eh%ph%n_states)
-   complex(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol)
-   complex(kind=r8), intent(out) :: dm(eh%bh%n_lrow,eh%bh%n_lcol)
-
-   character(len=*), parameter :: caller = "elsi_compute_dm_complex"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_build_dm(eh%ph,eh%bh,occ,evec,dm)
-
-end subroutine
-
-!>
-!! Construct the energy-weighted density matrix from occupation numbers,
-!! eigenvalues, and eigenvectors.
-!! (Public version of elsi_build_edm)
-!!
-subroutine elsi_compute_edm_real(eh,occ,eval,evec,edm)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh
-   real(kind=r8), intent(in) :: occ(eh%ph%n_states)
-   real(kind=r8), intent(in) :: eval(eh%ph%n_states)
-   real(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol)
-   real(kind=r8), intent(out) :: edm(eh%bh%n_lrow,eh%bh%n_lcol)
-
-   character(len=*), parameter :: caller = "elsi_compute_edm_real"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_build_edm(eh%ph,eh%bh,occ,eval,evec,edm)
-
-end subroutine
-
-!>
-!! Construct the energy-weighted density matrix from occupation numbers,
-!! eigenvalues, and eigenvectors.
-!! (Public version of elsi_build_edm)
-!!
-subroutine elsi_compute_edm_complex(eh,occ,eval,evec,edm)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh
-   real(kind=r8), intent(in) :: occ(eh%ph%n_states)
-   real(kind=r8), intent(in) :: eval(eh%ph%n_states)
-   complex(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol)
-   complex(kind=r8), intent(out) :: edm(eh%bh%n_lrow,eh%bh%n_lcol)
-
-   character(len=*), parameter :: caller = "elsi_compute_edm_complex"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   call elsi_build_edm(eh%ph,eh%bh,occ,eval,evec,edm)
 
 end subroutine
 

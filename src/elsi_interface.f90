@@ -144,10 +144,6 @@ module ELSI
    public :: elsi_extrapolate_dm_complex_sparse
    public :: elsi_compute_mu_and_occ
    public :: elsi_compute_entropy
-   public :: elsi_compute_dm_real
-   public :: elsi_compute_dm_complex
-   public :: elsi_compute_edm_real
-   public :: elsi_compute_edm_complex
 
    ! Read and write matrix
    public :: elsi_init_rw
