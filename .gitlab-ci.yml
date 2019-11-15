@@ -1,13 +1,13 @@
 before_script:
   - module use /home/wy29/opt/modulefiles
   - module purge
-  - module load gcc-7.4.0
+  - module load gcc-7.5.0
   - module load cmake-3.0.2
 
 ### GNU compilers + OpenMPI + Netlib BLAS, LAPACK, ScaLAPACK ###
 gnu:
   script:
-    - module load openmpi-4.0.1
+    - module load openmpi-4.0.2
     - cat ./toolchains/gnu.cmake
     - rm -rf build
     - mkdir build
