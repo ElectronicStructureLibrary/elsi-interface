@@ -937,7 +937,6 @@ subroutine elsi_build_edm_real(ph,bh,occ,eval,evec,edm)
       factor(i) = -occ(i)*eval(i)
 
       if(factor(i) > 0.0_r8) then
-         factor(i) = sqrt(factor(i))
          max_state = i
       else if(factor(i) < 0.0_r8) then
          use_gemm = .true.
@@ -959,6 +958,8 @@ subroutine elsi_build_edm_real(ph,bh,occ,eval,evec,edm)
       call pdgemm("N","T",ph%n_basis,ph%n_basis,ph%n_states_solve,-1.0_r8,tmp,&
            1,1,bh%desc,evec,1,1,bh%desc,0.0_r8,edm,1,1,bh%desc)
    else
+      factor = sqrt(factor)
+
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
@@ -1031,7 +1032,6 @@ subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
       factor(i) = -occ(i)*eval(i)
 
       if(factor(i) > 0.0_r8) then
-         factor(i) = sqrt(factor(i))
          max_state = i
       else if(factor(i) < 0.0_r8) then
          use_gemm = .true.
@@ -1054,6 +1054,8 @@ subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
            (-1.0_r8,0.0_r8),tmp,1,1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),&
            edm,1,1,bh%desc)
    else
+      factor = sqrt(factor)
+
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
