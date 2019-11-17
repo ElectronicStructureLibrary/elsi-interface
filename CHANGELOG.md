@@ -2,8 +2,18 @@
 
 ## Not released
 
+### ELSI interface
+* Fixed energy-weighted density matrix computation when using ELPA and Fermi
+  broadening.
+
 ### NTPoly
 * Updated redistributed NTPoly source code to version 2.3.2.
+
+### Known issues
+* ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
+  support of AVX intrinsics in PGI.
+* Depending on the choice of k-points, the complex PEXSI solver may randomly
+  fail at the inertia counting stage.
 
 ## v2.4.0 (November 2019)
 
@@ -29,12 +39,6 @@
 * Interface compatible with MAGMA 2.5.
 * Added oen-stage and two-stage eigensolvers.
 
-### Known issues
-* ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
-  support of AVX intrinsics in PGI.
-* Depending on the choice of k-points, the complex PEXSI solver may randomly
-  fail at the inertia counting stage.
-
 ## v2.3.1 (July 2019)
 
 ### SLEPc-SIPs
@@ -55,7 +59,7 @@
 * Fixed complex matrix conversion from BLACS\_DENSE and GENERIC\_COO to NTPoly.
 
 ### PEXSI
-* Fixed complex energy density matrix.
+* Fixed complex energy-weighted density matrix.
 * Added support for linking ELSI against an externally compiled PEXSI.
 
 ## v2.2.1 (March 2019)
@@ -118,7 +122,8 @@
 
 ### PEXSI
 * Updated redistributed PEXSI source code to version 1.0.3, which returns the
-  complex density matrix and energy density matrix instead of their transpose.
+  complex density matrix and energy-weighted density matrix instead of their
+  transpose.
 
 ### SLEPc-SIPs
 * Updated interface to support PETSc 3.9 and SLEPc 3.9.
