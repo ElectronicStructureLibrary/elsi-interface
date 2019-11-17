@@ -1,6 +1,6 @@
 # ELSI changelog
 
-## Not released
+## v2.4.1 (November 2019)
 
 ### ELSI interface
 * Fixed energy-weighted density matrix computation when using ELPA and Fermi
