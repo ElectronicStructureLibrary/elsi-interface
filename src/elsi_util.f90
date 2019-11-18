@@ -156,9 +156,17 @@ subroutine elsi_reset_param(ph)
    ph%pexsi_ne = 0.0_r8
    ph%pexsi_first = .true.
    ph%pexsi_started = .false.
-   ph%magma_solver = 1
-   ph%magma_n_gpus = 1
-   ph%magma_started = .false.
+   ph%exa_n_lrow = UNSET
+   ph%exa_n_lcol = UNSET
+   ph%exa_my_prow = UNSET
+   ph%exa_my_pcol = UNSET
+   ph%exa_n_prow = UNSET
+   ph%exa_n_pcol = UNSET
+   ph%exa_method = 2
+   ph%exa_blk_fwd = 48
+   ph%exa_blk_bkwd = 128
+   ph%exa_first = .true.
+   ph%exa_started = .false.
    ph%sips_n_elpa = 0
    ph%sips_n_slices = UNSET
    ph%sips_slice_type = 2
@@ -180,17 +188,9 @@ subroutine elsi_reset_param(ph)
    ph%nt_output = .false.
    ph%nt_first = .true.
    ph%nt_started = .false.
-   ph%exa_n_lrow = UNSET
-   ph%exa_n_lcol = UNSET
-   ph%exa_my_prow = UNSET
-   ph%exa_my_pcol = UNSET
-   ph%exa_n_prow = UNSET
-   ph%exa_n_pcol = UNSET
-   ph%exa_method = 2
-   ph%exa_blk_fwd = 48
-   ph%exa_blk_bkwd = 128
-   ph%exa_first = .true.
-   ph%exa_started = .false.
+   ph%magma_solver = 1
+   ph%magma_n_gpus = 1
+   ph%magma_started = .false.
 
 end subroutine
 
