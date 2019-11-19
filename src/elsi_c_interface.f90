@@ -543,21 +543,6 @@ subroutine c_elsi_set_output_log(h_c,output_log) bind(C)
 
 end subroutine
 
-subroutine c_elsi_set_n_basis(h_c,n_basis) bind(C)
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), value, intent(in) :: n_basis
-
-   type(elsi_handle), pointer :: h_f
-
-   call c_f_pointer(h_c,h_f)
-
-   call elsi_set_n_basis(h_f,n_basis)
-
-end subroutine
-
 subroutine c_elsi_set_save_ovlp(h_c,save_ovlp) bind(C)
 
    implicit none

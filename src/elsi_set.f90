@@ -22,7 +22,6 @@ module ELSI_SET
    public :: elsi_set_output
    public :: elsi_set_output_unit
    public :: elsi_set_output_log
-   public :: elsi_set_n_basis
    public :: elsi_set_save_ovlp
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def
@@ -182,36 +181,6 @@ subroutine elsi_set_output_log(eh,output_log)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    eh%bh%print_json = output_log
-
-end subroutine
-
-!>
-!! Set a new number of basis functions. Only allowed in SINGLE_PROC mode.
-!!
-subroutine elsi_set_n_basis(eh,n_basis)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: n_basis !< Number of basis functions
-
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_set_n_basis"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   if(eh%ph%parallel_mode == SINGLE_PROC) then
-      eh%ph%n_basis = n_basis
-      eh%ph%n_good = n_basis
-      eh%bh%n_lrow = n_basis
-      eh%bh%n_lcol = n_basis
-      eh%bh%blk = n_basis
-   else
-      write(msg,"(A)") "Number of basis functions not allowed to change in"//&
-         " MULTI_PROC parallel mode"
-      call elsi_stop(eh%bh,msg,caller)
-   end if
 
 end subroutine
 
@@ -823,9 +792,16 @@ subroutine elsi_set_eigenexa_method(eh,method)
    type(elsi_handle), intent(inout) :: eh !< Handle
    integer(kind=i4), intent(in) :: method !< Method
 
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_set_eigenexa_method"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(method < 1 .or. method > 2) then
+      write(msg,"(A)") "Input value should be 1 or 2"
+      call elsi_stop(eh%bh,msg,caller)
+   end if
 
    eh%ph%exa_method = method
 

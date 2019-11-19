@@ -46,7 +46,6 @@ module ELSI
    public :: elsi_set_output
    public :: elsi_set_output_unit
    public :: elsi_set_output_log
-   public :: elsi_set_n_basis
    public :: elsi_set_save_ovlp
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def

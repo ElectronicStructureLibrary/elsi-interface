@@ -185,6 +185,19 @@ module ELSI_DATATYPE
       integer(kind=c_intptr_t) :: pexsi_plan
       type(f_ppexsi_options) :: pexsi_options
 
+      ! EigenExa
+      integer(kind=i4) :: exa_n_lrow
+      integer(kind=i4) :: exa_n_lcol
+      integer(kind=i4) :: exa_my_prow
+      integer(kind=i4) :: exa_my_pcol
+      integer(kind=i4) :: exa_n_prow
+      integer(kind=i4) :: exa_n_pcol
+      integer(kind=i4) :: exa_method
+      integer(kind=i4) :: exa_blk_fwd
+      integer(kind=i4) :: exa_blk_bkwd
+      logical :: exa_first
+      logical :: exa_started = .false.
+
       ! SLEPc-SIPs
       integer(kind=i4) :: sips_n_elpa
       integer(kind=i4) :: sips_n_slices
@@ -216,19 +229,6 @@ module ELSI_DATATYPE
       type(SolverParameters_t) :: nt_options
       type(Permutation_t) :: nt_perm
       type(ProcessGrid_t) :: nt_pgrid
-
-      ! EigenExa
-      integer(kind=i4) :: exa_n_lrow
-      integer(kind=i4) :: exa_n_lcol
-      integer(kind=i4) :: exa_my_prow
-      integer(kind=i4) :: exa_my_pcol
-      integer(kind=i4) :: exa_n_prow
-      integer(kind=i4) :: exa_n_pcol
-      integer(kind=i4) :: exa_method
-      integer(kind=i4) :: exa_blk_fwd
-      integer(kind=i4) :: exa_blk_bkwd
-      logical :: exa_first
-      logical :: exa_started = .false.
 
       ! MAGMA
       integer(kind=i4) :: magma_solver
