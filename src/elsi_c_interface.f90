@@ -1544,6 +1544,98 @@ subroutine c_elsi_get_edm_complex_sparse(h_c,edm_c) bind(C)
 
 end subroutine
 
+subroutine c_elsi_get_eval(h_c,eval_c) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: eval_c
+
+   type(elsi_handle), pointer :: h_f
+   real(kind=c_double), pointer :: eval_f(:)
+
+   integer(kind=c_int) :: n_states
+
+   call c_f_pointer(h_c,h_f)
+
+   n_states = h_f%ph%n_states
+
+   call c_f_pointer(eval_c,eval_f,shape=[n_states])
+
+   call elsi_get_eval(h_f,eval_f)
+
+end subroutine
+
+subroutine c_elsi_get_evec_real(h_c,evec_c) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: evec_c
+
+   type(elsi_handle), pointer :: h_f
+   real(kind=c_double), pointer :: evec_f(:,:)
+
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(h_c,h_f)
+
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
+
+   call elsi_get_evec_real(h_f,evec_f)
+
+end subroutine
+
+subroutine c_elsi_get_evec_complex(h_c,evec_c) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: evec_c
+
+   type(elsi_handle), pointer :: h_f
+   complex(kind=c_double), pointer :: evec_f(:,:)
+
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+
+   call c_f_pointer(h_c,h_f)
+
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+
+   call c_f_pointer(evec_c,evec_f,shape=[lrow,lcol])
+
+   call elsi_get_evec_complex(h_f,evec_f)
+
+end subroutine
+
+subroutine c_elsi_get_occ(h_c,occ_c) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: occ_c
+
+   type(elsi_handle), pointer :: h_f
+   real(kind=c_double), pointer :: occ_f(:)
+
+   integer(kind=c_int) :: n_states
+
+   call c_f_pointer(h_c,h_f)
+
+   n_states = h_f%ph%n_states
+
+   call c_f_pointer(occ_c,occ_f,shape=[n_states])
+
+   call elsi_get_occ(h_f,occ_f)
+
+end subroutine
+
 subroutine c_elsi_orthonormalize_ev_real(h_c,ovlp_c,evec_c) bind(C)
 
    implicit none
