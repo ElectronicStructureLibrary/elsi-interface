@@ -2,8 +2,19 @@
 
 ## Not released
 
+### ELSI interface
+* Added utility subroutines to retrieve the internally computed eigenvalues,
+  eigenvectors, and occupation numbers when using density matrix solver
+  interfaces with an eigensolver.
+
 ### PEXSI
 * Updated redistributed SuperLU\_DIST source code to version 6.2.0.
+
+### Known issues
+* ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
+  support of AVX intrinsics in PGI.
+* Depending on the choice of k-points, the complex PEXSI solver may randomly
+  fail at the inertia counting stage.
 
 ## v2.4.1 (November 2019)
 
@@ -13,12 +24,6 @@
 
 ### NTPoly
 * Updated redistributed NTPoly source code to version 2.3.2.
-
-### Known issues
-* ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
-  support of AVX intrinsics in PGI.
-* Depending on the choice of k-points, the complex PEXSI solver may randomly
-  fail at the inertia counting stage.
 
 ## v2.4.0 (November 2019)
 
