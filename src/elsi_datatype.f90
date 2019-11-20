@@ -116,6 +116,7 @@ module ELSI_DATATYPE
       logical :: edm_ready = .false.
       logical :: eval_ready = .false.
       logical :: evec_ready = .false.
+      logical :: occ_ready = .false.
 
       ! Chemical potential
       real(kind=r8) :: mu ! Fermi level

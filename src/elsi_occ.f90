@@ -24,7 +24,7 @@ module ELSI_OCC
 
    public :: elsi_mu_and_occ
    public :: elsi_entropy
-   public :: elsi_get_occ
+   public :: elsi_get_occ_for_dm
    public :: elsi_compute_mu_and_occ
    public :: elsi_compute_entropy
 
@@ -602,7 +602,7 @@ end subroutine
 !>
 !! Compute the occupation numbers to be used to construct density matrices.
 !!
-subroutine elsi_get_occ(ph,bh,eval,occ)
+subroutine elsi_get_occ_for_dm(ph,bh,eval,occ)
 
    implicit none
 
@@ -625,7 +625,7 @@ subroutine elsi_get_occ(ph,bh,eval,occ)
    real(kind=r8), allocatable :: tmp1(:)
    real(kind=r8), allocatable :: tmp2(:,:,:)
 
-   character(len=*), parameter :: caller = "elsi_get_occ"
+   character(len=*), parameter :: caller = "elsi_get_occ_for_dm"
 
    ! Gather eigenvalues and occupation numbers
    call elsi_allocate(bh,eval_all,ph%n_states,ph%n_spins,ph%n_kpts,"eval_all",&
