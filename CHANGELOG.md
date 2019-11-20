@@ -1,5 +1,10 @@
 # ELSI changelog
 
+## Not released
+
+### PEXSI
+* Updated redistributed SuperLU\_DIST source code to version 6.2.0.
+
 ## v2.4.1 (November 2019)
 
 ### ELSI interface
