@@ -16,7 +16,7 @@
 
 \begin{document}
 % Title
-\title{\includegraphics[scale=0.07]{elsi_logo.png}\\ \textcolor{white}{nothing}\\ \textbf{ELSI Interface\\ Development Version\\ \textcolor{white}{nothing} \\ User's Guide}}
+\title{\includegraphics[scale=0.07]{elsi_logo.png}\\ \textcolor{white}{nothing}\\ \textbf{ELSI Interface\\ Development version\\ \textcolor{white}{nothing} \\ User's Guide}}
 \author{The ELSI Team\\ \textcolor{white}{nothing}\\ \url{http://elsi-interchange.org}}
 \maketitle
 
@@ -354,13 +354,13 @@ The ELSI interface must be initialized via the \textcolor{blue}{elsi\_init} subr
 
 \textbf{4)} \textcolor{blue}{parallel\_mode}: The two allowed values of \textcolor{blue}{parallel\_mode}, 0 (\textcolor{blue}{SINGLE\_PROC}) and 1 (\textcolor{blue}{MULTI\_PROC}), allow for three parallelization strategies commonly employed by electronic structure codes. See below.
 
-\textbf{3a)} \textcolor{blue}{SINGLE\_PROC}: Solves the KS eigenproblem following a LAPACK-like fashion. This option may only be selected when ELPA or MAGMA is chosen as the solver. Every MPI task independently handles a group of \textbf{\textit{k}}-points uniquely assigned to it.
+\textbf{3a)} \textcolor{blue}{SINGLE\_PROC}: Solves the KS eigenproblem following a LAPACK-like fashion. This option may only be selected when ELPA or MAGMA is chosen as the solver. Every MPI task independently handles a group of $k$-points uniquely assigned to it.
 \begin{itemize}
-\item Example: 16 \textbf{\textit{k}}-points, 4 MPI tasks.
-\item MPI task 0 handles \textbf{\textit{k}}-points 1, 2, 3, 4 sequentially;
-\item MPI task 1 handles \textbf{\textit{k}}-points 5, 6, 7, 8 sequentially;
-\item MPI task 2 handles \textbf{\textit{k}}-points 9, 10, 11, 12 sequentially;
-\item MPI task 3 handles \textbf{\textit{k}}-points 13, 14, 15, 16 sequentially.
+\item Example: 16 $k$-points, 4 MPI tasks.
+\item MPI task 0 handles $k$-points 1, 2, 3, 4 sequentially;
+\item MPI task 1 handles $k$-points 5, 6, 7, 8 sequentially;
+\item MPI task 2 handles $k$-points 9, 10, 11, 12 sequentially;
+\item MPI task 3 handles $k$-points 13, 14, 15, 16 sequentially.
 \end{itemize}
 
 \begin{tcolorbox}
@@ -375,13 +375,13 @@ end do
 
 \textbf{3b)} \textcolor{blue}{MULTI\_PROC}: Solves the KS eigenproblem following a ScaLAPACK-like fashion. This allows the usage of the following parallelization strategy:
 
-Groups of MPI tasks coordinate to handle the same \textbf{\textit{k}}-point, uniquely assigned to that group.
+Groups of MPI tasks coordinate to handle the same $k$-point, uniquely assigned to that group.
 \begin{itemize}
-\item Example: 4 \textbf{\textit{k}}-points, 16 MPI tasks.
-\item MPI tasks 0, 1, 2, 3 cooperatively handle \textbf{\textit{k}}-point 1;
-\item MPI tasks 4, 5, 6, 7 cooperatively handle \textbf{\textit{k}}-point 2;
-\item MPI tasks 8, 9, 10, 11 cooperatively handle \textbf{\textit{k}}-point 3;
-\item MPI tasks 12, 13, 14, 15 cooperatively handle \textbf{\textit{k}}-point 4.
+\item Example: 4 $k$-points, 16 MPI tasks.
+\item MPI tasks 0, 1, 2, 3 cooperatively handle $k$-point 1;
+\item MPI tasks 4, 5, 6, 7 cooperatively handle $k$-point 2;
+\item MPI tasks 8, 9, 10, 11 cooperatively handle $k$-point 3;
+\item MPI tasks 12, 13, 14, 15 cooperatively handle $k$-point 4.
 \end{itemize}
 
 \begin{tcolorbox}
@@ -395,11 +395,11 @@ call \textcolor{blue}{elsi_\{ev|dm\}_\{real|complex\}} (eh, my_ham, my_ovlp, ...
 \end{Verbatim}
 \end{tcolorbox}
 
-Please note that when there is more than one \textbf{\textit{k}}-point, a global MPI communicator must be provided for inter-\textbf{\textit{k}}-point communications. See \ref{subsec:setup_kpt} for \textcolor{blue}{elsi\_set\_kpoint}, \textcolor{blue}{elsi\_set\_spin}, and \textcolor{blue}{elsi\_set\_mpi\_global}, which are used to set up a calculation with two spin channels and/or multiple \textbf{\textit{k}}-points.
+Please note that when there is more than one $k$-point, a global MPI communicator must be provided for inter-$k$-point communications. See \ref{subsec:setup_kpt} for \textcolor{blue}{elsi\_set\_kpoint}, \textcolor{blue}{elsi\_set\_spin}, and \textcolor{blue}{elsi\_set\_mpi\_global}, which are used to set up a calculation with two spin channels and/or multiple $k$-points.
 
 \subsection{Setting Up MPI}
 \label{subsec:setup_mpi}
-The MPI communicator used by ELSI is passed into ELSI by the calling code via the \textcolor{blue}{elsi\_set\_mpi} subroutine. When there is more than one \textbf{\textit{k}}-point and/or spin channel, this communicator will be used only for solving one problem corresponding to one \textbf{\textit{k}}-point and one spin channel. See \ref{subsec:setup_kpt} for details.
+The MPI communicator used by ELSI is passed into ELSI by the calling code via the \textcolor{blue}{elsi\_set\_mpi} subroutine. When there is more than one $k$-point and/or spin channel, this communicator will be used only for solving one problem corresponding to one $k$-point and one spin channel. See \ref{subsec:setup_kpt} for details.
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_mpi}(handle, mpi\_comm)]
 \end{labeling}
@@ -500,11 +500,11 @@ When using the \textcolor{blue}{GENERIC\_COO} format, the sparsity pattern shoul
 
 The distribution of matrix elements in the \textcolor{blue}{GENERIC\_COO} format is arbitrary. Both sorted and unsorted inputs are supported.
 
-\subsection{Setting Up Multiple \textbf{\textit{k}}-points and/or Spin Channels}
+\subsection{Setting Up Multiple $k$-points and/or Spin Channels}
 \label{subsec:setup_kpt}
-When there is more than one \textbf{\textit{k}}-point and/or spin channel in the simulating system, the ELSI interface can be set up to support parallel calculation of the \textbf{\textit{k}}-points and/or spin channels. The base case is a system isolated in space, e.g. free atoms, molecules, clusters, without spin-polarization. In this case, there is one eigenproblem in each iteration of an SCF cycle. When a spin-polarized periodic system is considered, there is an index $\alpha$ denoting the spin channel, and an index \textbf{\textit{k}} denoting points in reciprocal space. In total, there are $N_\text{kpt} \times N_\text{spin}$ eigenproblems that can be solved in an embarrassingly parallel fashion. In ELSI, these eigenproblems are considered as equivalent ``unit tasks''. The available computer processes are divided into $N_\text{kpt} \times N_\text{spin}$ groups, each of which is responsible for one unit task.
+When there is more than one $k$-point and/or spin channel in the simulating system, the ELSI interface can be set up to support parallel calculation of the $k$-points and/or spin channels. The base case is a system isolated in space, e.g. free atoms, molecules, clusters, without spin-polarization. In this case, there is one eigenproblem in each iteration of an SCF cycle. When a spin-polarized periodic system is considered, there is an index $\alpha$ denoting the spin channel, and an index $k$ denoting points in reciprocal space. In total, there are $N_\text{kpt} \times N_\text{spin}$ eigenproblems that can be solved in an embarrassingly parallel fashion. In ELSI, these eigenproblems are considered as equivalent ``unit tasks''. The available computer processes are divided into $N_\text{kpt} \times N_\text{spin}$ groups, each of which is responsible for one unit task.
 
-To set up the ELSI interface for a calculation with more than one \textbf{\textit{k}}-point and/or more than one spin channel, the \textcolor{blue}{elsi\_set\_kpoint} and/or \textcolor{blue}{elsi\_set\_spin} subroutines are called to pass the required information into ELSI. The MPI communicator for each unit task is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi}. In addition, a global MPI communicator for all tasks is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi\_global}. Note that the current ELSI interface only supports the case where the eigenproblems for all the \textbf{\textit{k}}-points and spin channels are fully parallelized, i.e., there is no MPI task handling more than one \textbf{\textit{k}}-point and/or more than one spin channel. In ELSI, the two spin channels are always coupled by a uniform chemical potential. The distribution of electrons among the two channels, and thus the net spin moment of the system, cannot be specified. Calculations with a fixed, user-specified spin moment can be performed by initializing two independent ELSI instances for the two spin channels.
+To set up the ELSI interface for a calculation with more than one $k$-point and/or more than one spin channel, the \textcolor{blue}{elsi\_set\_kpoint} and/or \textcolor{blue}{elsi\_set\_spin} subroutines are called to pass the required information into ELSI. The MPI communicator for each unit task is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi}. In addition, a global MPI communicator for all tasks is passed into ELSI by calling \textcolor{blue}{elsi\_set\_mpi\_global}. Note that the current ELSI interface only supports the case where the eigenproblems for all the $k$-points and spin channels are fully parallelized, i.e., there is no MPI task handling more than one $k$-point and/or more than one spin channel. In ELSI, the two spin channels are always coupled by a uniform chemical potential. The distribution of electrons among the two channels, and thus the net spin moment of the system, cannot be specified. Calculations with a fixed, user-specified spin moment can be performed by initializing two independent ELSI instances for the two spin channels.
 
 In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-polarized and/or periodic calculations.
 \begin{labeling}{\hspace{6cm}}
@@ -517,11 +517,11 @@ In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-pol
 \hline
 \textcolor{blue}{handle} & type(elsi\_handle) & inout & Handle to ELSI.\\
 \hline
-\textcolor{blue}{n\_kpt} & integer            & in    & Total number of \textbf{\textit{k}}-points.\\
+\textcolor{blue}{n\_kpt} & integer            & in    & Total number of $k$-points.\\
 \hline
-\textcolor{blue}{i\_kpt} & integer            & in    & Index of the \textbf{\textit{k}}-point handled by this MPI task.\\
+\textcolor{blue}{i\_kpt} & integer            & in    & Index of the $k$-point handled by this MPI task.\\
 \hline
-\textcolor{blue}{weight} & integer            & in    & Weight of the \textbf{\textit{k}}-point handled by this MPI task.\\
+\textcolor{blue}{weight} & integer            & in    & Weight of the $k$-point handled by this MPI task.\\
 \hline
 \end{tabular}
 
@@ -552,7 +552,7 @@ In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-pol
 \hline
 \textcolor{blue}{handle}            & type(elsi\_handle) & inout & Handle to ELSI.\\
 \hline
-\textcolor{blue}{mpi\_comm\_global} & integer            & in    & Global MPI communicator used for communications among all \textbf{\textit{k}}-points and spin channels.\\
+\textcolor{blue}{mpi\_comm\_global} & integer            & in    & Global MPI communicator used for communications among all $k$-points and spin channels.\\
 \hline
 \end{tabular}
 
@@ -1116,6 +1116,10 @@ In all the subroutines listed below, the first argument (input and output) is an
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_edm\_complex}(handle, edm\_complex)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_edm\_real\_sparse}(handle, edm\_real\_sparse)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_edm\_complex\_sparse}(handle, edm\_complex\_sparse)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_eval}(handle, eval)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_evec\_real}(handle, evec\_real)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_evec\_complex}(handle, evec\_complex)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_occ}(handle, occ)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_get\_n\_sing}(handle, n\_sing)]
 \end{labeling}
 
@@ -1151,6 +1155,14 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \textcolor{blue}{edm\_complex\_sparse} & complex double, rank-1 array & Non-zero values of the complex density matrix in 1D block CSC format. See remark 3.\\
 \hline
+\textcolor{blue}{eval}                 & real double, rank-1 array    & Eigenvalues. See remark 4.\\
+\hline
+\textcolor{blue}{evec\_real}           & real double, rank-2 array    & Real eigenvectors in 2D block-cyclic dense format. See remark 4.\\
+\hline
+\textcolor{blue}{evec\_complex}        & complex double, rank-2 array & Complex eigenvectors in 2D block-cyclic dense format. See remark 4.\\
+\hline
+\textcolor{blue}{occ}                  & real double, rank-1 array    & Occupation numbers. See remark 4.\\
+\hline
 \textcolor{blue}{n\_sing}              & integer                      & Deprecated. Use \textcolor{blue}{elsi\_get\_n\_illcond} instead.\\
 \hline
 \end{tabular}
@@ -1162,6 +1174,8 @@ In all the subroutines listed below, the first argument (input and output) is an
 \textbf{2)} In ELSI, the chemical potential will only be available if one of the density matrix solver interfaces has been called, with ELPA, PEXSI, EigenExa, or NTPoly being the chosen solver. The chemical potential can be retrieved by calling \textcolor{blue}{elsi\_get\_mu}. The entropy will only be available if one of the density matrix solver interfaces has been called with ELPA or EigenExa being the chosen solver. The user should avoid calling the subroutine when the chemical potential or the entropy is not ready.
 
 \textbf{3)} In general, the energy-weighted density matrix is only needed in a late stage of an SCF cycle to evaluate forces. It is, therefore, not calculated when any of the density matrix solver interface is called. When the energy-weighted density matrix is actually needed, it can be requested by calling the \textcolor{blue}{elsi\_get\_edm} subroutines. These subroutines have the requirement that the corresponding \textcolor{blue}{elsi\_dm} subroutine must have been invoked. For instance, \textcolor{blue}{elsi\_get\_edm\_real\_sparse} only makes sense if \textcolor{blue}{elsi\_dm\_real\_sparse} has been successfully executed.
+
+\textbf{4)} When using one of \textcolor{blue}{elsi\_dm\_real}, \textcolor{blue}{elsi\_dm\_complex}, \textcolor{blue}{elsi\_dm\_real\_sparse}, and \textcolor{blue}{elsi\_dm\_complex\_sparse} with an eigensolver, ELSI internally computes and stores the eigenvalues, eigenvectors, and occupation numbers, which are the ingredients to assemble the density matrix. These quantities may be retrieved by calling \textcolor{blue}{elsi\_get\_eval}, \textcolor{blue}{elsi\_get\_evec\_real}, \textcolor{blue}{elsi\_get\_evec\_complex}, and \textcolor{blue}{elsi\_get\_occ}. The dimension of \textcolor{blue}{eval} and \textcolor{blue}{occ} should be equal to the value of \textcolor{blue}{n\_states} set in \textcolor{blue}{elsi\_init}. Even with \textcolor{blue}{elsi\_dm\_real\_sparse} and \textcolor{blue}{elsi\_dm\_complex\_sparse}, the eigenvectors are returned in a dense format (\textcolor{blue}{BLACS\_DENSE}), as they are in general not sparse. The size of \textcolor{blue}{evec\_real} and \textcolor{blue}{evec\_complex} should always correspond to a global array of size \textcolor{blue}{n\_basis} $\times$ \textcolor{blue}{n\_basis}, regardless of the value of \textcolor{blue}{n\_states}.
 
 \subsection{Getting Results from the PEXSI Solver}
 \label{subsec:getter_pexsi}
@@ -1219,6 +1233,7 @@ In a single point total energy calculation, a simple way to construct an initial
 \hline
 \end{tabular}
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_orthonormalize\_ev\_real\_sparse}(handle, ovlp, evec)]
 \end{labeling}
@@ -1305,6 +1320,7 @@ The following subroutines extrapolate density matrix in the n$^\text{th}$ geomet
 \hline
 \end{tabular}
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_extrapolate\_dm\_complex\_sparse}(handle, ovlp, dm)]
 \end{labeling}
@@ -1331,11 +1347,9 @@ The following subroutines extrapolate density matrix in the n$^\text{th}$ geomet
 
 \section{Parallel Matrix I/O}
 \label{sec:rw}
-To test the solvers in ELSI, it is convenient to use matrices generated from actual electronic structure calculations. There exist a number of libraries for high-performance parallel I/O that are particularly capable of reading and writing a large amount of data with hierarchical structures and complex metadata. However, the data structure in ELSI is simply arrays that represent matrices, with a few integers to define the dimension of the matrices. In order to circumvent the development and performance overhead associated with a high level I/O library, the parallel I/O functionality defined in the MPI standard is directly used to read and write matrices in ELSI.
+The ELSI interface is able to read and write distributed matrices in parallel. There exist a number of libraries for high-performance parallel I/O that are particularly capable of reading and writing a large amount of data with hierarchical structures and complex metadata. However, the data structure in ELSI is simply arrays that represent matrices, with a few integers to define the dimension of the matrices. In order to circumvent the development and performance overhead associated with a high level I/O library, ELSI directly uses the parallel I/O functionality defined in the MPI standard.
 
-When ELSI runs in parallel with multiple MPI tasks, the matrices are distributed across tasks. The choice of writing the distributed matrices into $N_\text{procs}$ separate files, where $N_\text{procs}$ is the number of MPI tasks, is not promising due to the difficulty of managing and post-processing a large number of files. The implementation of matrix I/O in ELSI adopts collective MPI I/O routines to write data to (read data from) a single binary file, as if the data was gathered onto a single MPI task then written to one file (read from one file by one MPI task then scattered to all tasks). The optimal I/O performance, both with MPI I/O and in general, is often obtained by making large and contiguous requests to access the file system, rather than small, non-contiguous, or random requests. Therefore, before being written to file, matrices are always redistributed to a 1D block distribution. This guarantees that each MPI task writes a contiguous trunk of data to a contiguous piece of file. Similarly, matrices read from file are in a 1D block distribution, and can be redistributed automatically if needed. A matrix is always stored in the CSC format in an ELSI matrix file. A dense matrix is automatically converted to the CSC format before writing to file, and can be converted back after being read from file.
-
-Next, we present the API for parallel matrix I/O.
+Writing the distributed matrices into $N_\text{procs}$ separate files, where $N_\text{procs}$ is the number of MPI tasks, is not promising, as manipulating a large number of files is usually difficult. The implementation of matrix I/O in ELSI adopts collective MPI I/O routines to write data to (read data from) a single binary file, as if the data was gathered onto a single MPI task then written to one file (read from one file by one MPI task then scattered to all tasks). The optimal I/O performance, both with MPI I/O and in general, is achieved by making large and contiguous requests to access the file system. Therefore, ELSI always redistributes the matrices to a 1D block distribution before writing it to file. This guarantees that each MPI task writes a contiguous chunk of data to a contiguous piece of file. Similarly, matrices read from file are in a 1D block distribution, and can be redistributed automatically if needed. ELSI always stores matrices in a sparse CSC format. The conversion between dense and sparse formats is handled automatically.
 
 \subsection{Setting Up Matrix I/O}
 \label{subsec:rw_init}
@@ -1360,6 +1374,7 @@ An \texttt{elsi\_rw\_handle} must be initialized via the \textcolor{blue}{elsi\_
 \hline
 \end{tabular}
 
+\newpage
 \textbf{Remarks}
 
 \textbf{1)} \textcolor{blue}{n\_electron}: Matrices written out with ELSI matrix I/O are usually from actual electronic structure calculations. Having the number of electrons available makes the matrix file useful for testing density matrix solvers such as PEXSI. Therefore, it is recommended to set the correct number of electrons when initializing an matrix I/O handle, although setting it to an arbitrary number will not affect the matrix I/O operation.
@@ -1383,8 +1398,6 @@ The MPI communicator which encloses the MPI tasks to perform the matrix I/O oper
 \end{tabular}
 
 When reading or writing a dense matrix, BLACS parameters are passed into ELSI via the \textcolor{blue}{elsi\_set\_rw\_blacs} subroutine.
-
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_rw\_blacs}(handle, blacs\_ctxt, block\_size)]
 \end{labeling}
@@ -1645,6 +1658,7 @@ The following three subroutines read a sparse matrix from file. Before reading a
 \hline
 \end{tabular}
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_read\_mat\_complex\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
 \end{labeling}
@@ -1679,6 +1693,10 @@ An array of eight user-defined integers can be optionally set up via \textcolor{
 \textcolor{blue}{header} & integer, rank-1 array  & out   & An array of eight integers.\\
 \hline
 \end{tabular}
+
+\section{C/C++ Interface}
+\label{sec:c}
+ELSI is written in Fortran. A C interface around the core Fortran code is provided, which can be called from a C or C++ program. Each C wrapper function corresponds to a Fortran subroutine, where we have prefixed the original Fortran subroutine name with \textcolor{blue}{c\_} for clarity and consistency. Argument lists are identical to the associated native Fortran subroutine. For the complete definition of the C interface, the user is encouraged to look at the \texttt{elsi.h} header file directly.
 
 \section{Example Pseudo-Code}
 \label{sec:example}
@@ -1838,7 +1856,7 @@ call \textcolor{blue}{elsi_finalize}(eh)
 
 \textbf{1)} Refer to the 5$^\text{th}$ remark in \ref{subsec:setter_pexsi} for the chemical potential determination algorithm in PEXSI.
 
-\subsection*{Multiple \textbf{\textit{k}}-points Calculations}
+\subsection*{Multiple $k$-points Calculations}
 \begin{tcolorbox}
 \begin{Verbatim}[commandchars=\\\{\}]
 \textcolor{red}{SCF initialize}
@@ -1865,9 +1883,9 @@ call \textcolor{blue}{elsi_finalize}(eh)
 
 \textbf{Remarks}
 
-\textbf{1)} When there are multiple \textbf{\textit{k}}-points, there is no change in the way ELSI solver interfaces are called.
+\textbf{1)} When there are multiple $k$-points, there is no change in the way ELSI solver interfaces are called.
 
-\textbf{2)} The electronic structure code needs to assemble the real-space density from the density matrices returned for the \textbf{\textit{k}}-points. The returned band structure energy, however, is already summed over all \textbf{\textit{k}}-points with respect to the weight of each \textbf{\textit{k}}-point. Refer to \ref{subsec:setup_kpt} for more information.
+\textbf{2)} The electronic structure code needs to assemble the real-space density from the density matrices returned for the $k$-points. The returned band structure energy, however, is already summed over all $k$-points with respect to the weight of each $k$-point. Refer to \ref{subsec:setup_kpt} for more information.
 
 \textbf{3)} Spin-polarized calculations may be set up similarly.
 
@@ -1897,10 +1915,6 @@ end do
 call \textcolor{blue}{elsi_finalize}(eh)
 \end{Verbatim}
 \end{tcolorbox}
-
-\section{C/C++ Interface}
-\label{sec:c}
-ELSI is written in Fortran. A C interface around the core Fortran code is provided, which can be called from a C or C++ program. Each C wrapper function corresponds to a Fortran subroutine, where we have prefixed the original Fortran subroutine name with \textcolor{blue}{c\_} for clarity and consistency. Argument lists are identical to the associated native Fortran subroutine. For the complete definition of the C interface, the user is encouraged to look at the \texttt{elsi.h} header file directly.
 
 % Reference
 \bibliographystyle{elsarticle-num}

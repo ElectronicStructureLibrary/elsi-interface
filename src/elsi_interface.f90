@@ -109,6 +109,7 @@ module ELSI
    public :: elsi_get_eval
    public :: elsi_get_evec_real
    public :: elsi_get_evec_complex
+   public :: elsi_get_occ
 
    ! Deprecated
    public :: elsi_set_write_unit

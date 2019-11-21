@@ -46,6 +46,7 @@ module ELSI_GET
    public :: elsi_get_eval
    public :: elsi_get_evec_real
    public :: elsi_get_evec_complex
+   public :: elsi_get_occ
 
    ! Deprecated
    public :: elsi_get_n_sing
@@ -623,14 +624,14 @@ end subroutine
 
 !>
 !! Get eigenvalues when elsi_dm_{real|complex}_{sparse} has been called with
-!! either ELPA or SLEPc-SIPs.
+!! ELPA, EigenExa, or SLEPc-SIPs.
 !!
 subroutine elsi_get_eval(eh,eval)
 
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(out) :: eval(eh%ph%n_basis) !< Eigenvalues
+   real(kind=r8), intent(out) :: eval(eh%ph%n_states) !< Eigenvalues
 
    character(len=200) :: msg
 
@@ -643,13 +644,13 @@ subroutine elsi_get_eval(eh,eval)
       call elsi_stop(eh%bh,msg,caller)
    end if
 
-   eval = eh%eval
+   eval = eh%eval(1:eh%ph%n_states)
    eh%ph%eval_ready = .false.
 
 end subroutine
 
 !>
-!! Get eigenvectors when elsi_dm has been called with ELPA or SLEPc-SIPs.
+!! Get eigenvectors when elsi_dm has been called with ELPA or EigenExa.
 !!
 subroutine elsi_get_evec_real(eh,evec)
 
@@ -675,7 +676,7 @@ subroutine elsi_get_evec_real(eh,evec)
 end subroutine
 
 !>
-!! Get eigenvectors when elsi_dm has been called with ELPA or SLEPc-SIPs.
+!! Get eigenvectors when elsi_dm has been called with ELPA or EigenExa.
 !!
 subroutine elsi_get_evec_complex(eh,evec)
 
@@ -697,6 +698,33 @@ subroutine elsi_get_evec_complex(eh,evec)
 
    evec = eh%evec_cmplx
    eh%ph%evec_ready = .false.
+
+end subroutine
+
+!>
+!! Get occupation numbers when elsi_dm_{real|complex}_{sparse} has been called
+!! with ELPA, EigenExa, or SLEPc-SIPs.
+!!
+subroutine elsi_get_occ(eh,occ)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(out) :: occ(eh%ph%n_states) !< Occupation numbers
+
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_get_occ"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(.not. eh%ph%occ_ready) then
+      write(msg,"(A)") "Occupation numbers not available"
+      call elsi_stop(eh%bh,msg,caller)
+   end if
+
+   occ = eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt)
+   eh%ph%occ_ready = .false.
 
 end subroutine
 
