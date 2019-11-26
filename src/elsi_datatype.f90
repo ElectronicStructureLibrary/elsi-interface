@@ -211,7 +211,6 @@ module ELSI_DATATYPE
       logical :: sips_started = .false.
 
       ! NTPoly
-      integer(kind=i4) :: nt_n_layers
       integer(kind=i4) :: nt_n_prow
       integer(kind=i4) :: nt_n_pcol
       integer(kind=i4) :: nt_method

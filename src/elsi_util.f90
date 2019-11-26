@@ -178,7 +178,6 @@ subroutine elsi_reset_param(ph)
    ph%sips_do_inertia = .true.
    ph%sips_first = .true.
    ph%sips_started = .false.
-   ph%nt_n_layers = 1
    ph%nt_n_prow = UNSET
    ph%nt_n_pcol = UNSET
    ph%nt_method = 2
@@ -437,6 +436,14 @@ subroutine elsi_check(ph,bh,caller)
       if(ph%n_kpts > 1) then
          write(msg,"(A)") "Multiple k-points not supported with SLEPc-SIPs"
          call elsi_stop(bh,msg,caller)
+      end if
+
+      if(ph%sips_n_slices /= UNSET) then
+         if(mod(bh%n_procs,ph%sips_n_slices) /= 0) then
+            write(msg,"(A)") "To use SLEPc-SIPs, number of slices must be a"//&
+               " divisor of total number of MPI tasks"
+            call elsi_stop(bh,msg,caller)
+         end if
       end if
    case(NTPOLY_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then

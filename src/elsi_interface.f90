@@ -84,7 +84,6 @@ module ELSI
    public :: elsi_set_ntpoly_tol
    public :: elsi_set_ntpoly_filter
    public :: elsi_set_ntpoly_max_iter
-   public :: elsi_set_ntpoly_n_layer
    public :: elsi_set_magma_solver
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width

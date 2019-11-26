@@ -4902,7 +4902,7 @@ subroutine elsi_ntpoly_to_blacs_dm_real(ph,bh,dm_nt,dm_den)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+   if(bh%myid < bh%n_procs) then
       call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
       call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
 
@@ -5066,7 +5066,7 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(ph,bh,dm_nt,dm_den)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+   if(bh%myid < bh%n_procs) then
       call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
       call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
 
@@ -5394,7 +5394,7 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+   if(bh%myid < bh%n_procs) then
       do i_val = 1,nnz_l_nt
          ! Compute global id
          row_send(i_val) = dm_list%data(i_val)%index_row
@@ -5547,7 +5547,7 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+   if(bh%myid < bh%n_procs) then
       do i_val = 1,nnz_l_nt
          ! Compute global id
          row_send(i_val) = dm_list%data(i_val)%index_row
@@ -5871,7 +5871,7 @@ subroutine elsi_ntpoly_to_siesta_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+   if(bh%myid < bh%n_procs) then
       call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
       call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
 
@@ -6037,7 +6037,7 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+   if(bh%myid < bh%n_procs) then
       call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
       call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
 
@@ -8125,7 +8125,7 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+   if(bh%myid < bh%n_procs) then
       call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
       call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
 
@@ -8314,7 +8314,7 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    call elsi_allocate(bh,col_send,nnz_l_nt,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   if(bh%myid < bh%n_procs/ph%nt_n_layers) then
+   if(bh%myid < bh%n_procs) then
       call elsi_allocate(bh,dest,nnz_l_nt,"dest",caller)
       call elsi_allocate(bh,perm,nnz_l_nt,"perm",caller)
 
