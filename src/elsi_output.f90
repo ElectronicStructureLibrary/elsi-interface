@@ -425,7 +425,6 @@ subroutine elsi_print_ntpoly_settings(ph,jh)
    character(len=*), parameter :: caller = "elsi_print_ntpoly_settings"
 
    call fjson_start_name_object(jh,"solver_settings")
-   call fjson_write_name_value(jh,"nt_n_layers",ph%nt_n_layers)
    call fjson_write_name_value(jh,"nt_n_prow",ph%nt_n_prow)
    call fjson_write_name_value(jh,"nt_n_pcol",ph%nt_n_pcol)
    call fjson_write_name_value(jh,"nt_method",ph%nt_method)

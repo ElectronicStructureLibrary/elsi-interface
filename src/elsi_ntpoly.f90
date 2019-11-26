@@ -62,18 +62,15 @@ subroutine elsi_init_ntpoly(ph,bh)
 
    integer(kind=i4) :: n_prow
    integer(kind=i4) :: n_pcol
-   integer(kind=i4) :: np_per_layer
    integer(kind=i4) :: ierr
 
    character(len=*), parameter :: caller = "elsi_init_ntpoly"
 
    if(.not. ph%nt_started) then
-      np_per_layer = bh%n_procs/ph%nt_n_layers
-
       ! Set 2D process grid
-      do n_prow = nint(sqrt(real(np_per_layer,kind=r8)),kind=i4),1,-1
-         if(mod(np_per_layer,n_prow) == 0) then
-            n_pcol = np_per_layer/n_prow
+      do n_prow = nint(sqrt(real(bh%n_procs,kind=r8)),kind=i4),1,-1
+         if(mod(bh%n_procs,n_prow) == 0) then
+            n_pcol = bh%n_procs/n_prow
 
             ! n_prow must be a multiple of n_pcol, or vice versa
             if(mod(max(n_prow,n_pcol),min(n_prow,n_pcol)) == 0) then
@@ -82,8 +79,7 @@ subroutine elsi_init_ntpoly(ph,bh)
          end if
       end do
 
-      call ConstructNewProcessGrid(ph%nt_pgrid,bh%comm,n_prow,n_pcol,&
-           ph%nt_n_layers)
+      call ConstructNewProcessGrid(ph%nt_pgrid,bh%comm,n_prow,n_pcol,1)
 
       ph%nt_n_prow = n_prow
       ph%nt_n_pcol = n_pcol

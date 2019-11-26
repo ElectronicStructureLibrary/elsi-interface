@@ -61,7 +61,6 @@ module ELSI_SET
    public :: elsi_set_ntpoly_tol
    public :: elsi_set_ntpoly_filter
    public :: elsi_set_ntpoly_max_iter
-   public :: elsi_set_ntpoly_n_layer
    public :: elsi_set_magma_solver
    public :: elsi_set_mu_broaden_scheme
    public :: elsi_set_mu_broaden_width
@@ -845,13 +844,12 @@ subroutine elsi_set_sips_n_slice(eh,n_slice)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(mod(eh%bh%n_procs,n_slice) == 0) then
-      eh%ph%sips_n_slices = n_slice
-   else
-      write(msg,"(A)") "Input value should be a divisor of total number of"//&
-         " MPI tasks"
+   if(n_slice < 1) then
+      write(msg,"(A)") "Input value cannot be smaller than 1"
       call elsi_stop(eh%bh,msg,caller)
    end if
+
+   eh%ph%sips_n_slices = n_slice
 
 end subroutine
 
@@ -1108,32 +1106,6 @@ subroutine elsi_set_ntpoly_max_iter(eh,max_iter)
    end if
 
    eh%ph%nt_max_iter = max_iter
-
-end subroutine
-
-!>
-!! Set the number of layers in the 3D process grid of NTPoly.
-!!
-subroutine elsi_set_ntpoly_n_layer(eh,n_layer)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: n_layer !< Number of process layers
-
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_set_ntpoly_n_layer"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   if(mod(eh%bh%n_procs,n_layer) == 0) then
-      eh%ph%nt_n_layers = n_layer
-   else
-      write(msg,"(A)") "Input value should be a divisor of total number of"//&
-         " MPI tasks"
-      call elsi_stop(eh%bh,msg,caller)
-   end if
 
 end subroutine
 
