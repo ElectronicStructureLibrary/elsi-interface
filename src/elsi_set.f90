@@ -869,8 +869,8 @@ subroutine elsi_set_sips_slice_type(eh,slice_type)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(slice_type /= 0 .and. slice_type /= 2 .and. slice_type /= 4) then
-      write(msg,"(A)") "Input value should be 0, 2, or 4"
+   if(slice_type /= 0 .and. slice_type /= 2) then
+      write(msg,"(A)") "Input value should be 0 or 2"
       call elsi_stop(eh%bh,msg,caller)
    end if
 

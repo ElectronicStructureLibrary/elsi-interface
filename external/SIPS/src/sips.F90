@@ -34,8 +34,6 @@ USE slepceps
     IMPLICIT NONE
 
     INTEGER, PARAMETER :: dp = KIND(0.0d0)
-    PetscInt           :: nrank
-    PetscInt           :: rank
     PetscInt           :: istart
     PetscInt           :: iend
     EPS                :: eps
@@ -57,9 +55,6 @@ CONTAINS
 
         CALL SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
         CHKERRQ(ierr)
-
-        CALL MPI_Comm_rank(MPI_COMM_WORLD,rank,ierr)
-        CALL MPI_Comm_size(MPI_COMM_WORLD,nrank,ierr)
 
         flag_update_eps    = .true.
         flag_update_ham    = .true.
@@ -163,17 +158,26 @@ CONTAINS
 
         ! Increase workspace with a percentage (50, 100 or more)
         CALL PetscOptionsInsertString(PETSC_NULL_OPTIONS,&
-                 "-mat_mumps_icntl_14 100",ierr)
-        CHKERRQ(ierr)
+                 "-mat_mumps_icntl_14 300",ierr)
 
         ! Detect null pivots (a shift is equal to an eigenvalue)
         CALL PetscOptionsInsertString(PETSC_NULL_OPTIONS,&
                  "-mat_mumps_icntl_24 1",ierr)
         CHKERRQ(ierr)
 
-        ! Choose PT-SCOTCH as reordering method
+        ! Sequential or parallel reordering
         CALL PetscOptionsInsertString(PETSC_NULL_OPTIONS,&
-                 "-mat_mumps_icntl_29 1",ierr)
+                 "-mat_mumps_icntl_28 1",ierr)
+        CHKERRQ(ierr)
+
+        ! Sequantial reordering method: 3 = SCOTCH, 4 = PORD, 5 = METIS
+        CALL PetscOptionsInsertString(PETSC_NULL_OPTIONS,&
+                 "-mat_mumps_icntl_7 5",ierr)
+        CHKERRQ(ierr)
+
+        ! Parallel reordering method: 1 = PT-SCOTCH, 2 = ParMETIS
+        CALL PetscOptionsInsertString(PETSC_NULL_OPTIONS,&
+                 "-mat_mumps_icntl_29 2",ierr)
         CHKERRQ(ierr)
 
         ! Tolerance for null pivot detection
@@ -562,8 +566,6 @@ CONTAINS
 
         PetscReal, PARAMETER :: dtol = 0.00001d0 ! Evals within this value
                                                  ! always in one cluster
-        PetscReal, PARAMETER :: gap = 0.005d0    ! Evals with a gap > this value
-                                                 ! separated into two clusters
 
         IF (nsub == 1) THEN
             subs(1) = evals(1)-buf
@@ -575,35 +577,11 @@ CONTAINS
         SELECT CASE (algr)
         CASE (0) ! Equally spaced
             subs(1:nsub+1) = get_linspace(evals(1)-buf,evals(nev)+buf,nsub+1)
-        CASE (2) ! Equally populated
+        CASE DEFAULT ! Equally populated
             ids            = 0
-            ids(1:nsub)    = get_cluster_ids_uniform_population(nev,evals,nsub)
+            ids(1:nsub)    = get_cluster_ids_uniform_population(nev,nsub)
             subs(1:nsub+1) = get_subs_from_cluster_ids(buf,subbuf,nsub,&
                                  ids(1:nsub),nev,evals)
-        CASE (4) ! Gap sensitive equally populated
-            ids  = 0
-            ngap = get_number_of_gaps(nev,evals,gap)
-
-            IF (ngap > INT(nsub/2)) THEN
-                ngap = INT(nsub/2)
-            END IF
-
-            ids(1:nsub-ngap) = get_cluster_ids_uniform_population(nev,evals,&
-                                   nsub-ngap)
-
-            DO i = 1,ngap
-                newid            = get_gap_id(nev,nsub-ngap+i-1,evals,&
-                                       ids(1:nsub-ngap+i-1))
-                ids(nsub-ngap+i) = newid
-            END DO
-
-            CALL sort_array(nsub,ids)
-            CALL fix_cluster_ids(nev,nsub,evals,ids(1:nsub),dtol)
-
-            subs(1:nsub+1) = get_subs_from_cluster_ids(buf,subbuf,nsub,&
-                                 ids(1:nsub),nev,evals)
-        CASE DEFAULT
-            STOP "SLEPc-SIPs: Unknown slicing method."
         END SELECT
 
     END SUBROUTINE
@@ -631,12 +609,11 @@ CONTAINS
     ! Given a 1D array of eigenvalues, return the indices of k clusters, with
     ! uniform population distribution.
     ! Indices correspond to lowest number in the cluster.
-    FUNCTION get_cluster_ids_uniform_population(nev,evals,k) RESULT(ids)
+    FUNCTION get_cluster_ids_uniform_population(nev,k) RESULT(ids)
 
         IMPLICIT NONE
 
         PetscInt,  INTENT(IN) :: nev
-        PetscReal, INTENT(IN) :: evals(nev)
         PetscInt,  INTENT(IN) :: k
 
         PetscInt :: ids(k)
@@ -677,7 +654,7 @@ CONTAINS
 
         PetscInt :: i
 
-        subs(1)      = evals(1)-buffer
+        subs(1)      = evals(1)-2*buffer
         subs(nsub+1) = evals(nev)+buffer
 
         DO i = 2,nsub
@@ -685,145 +662,6 @@ CONTAINS
         END DO
 
     END FUNCTION
-
-    ! Returns the number of gaps for given evals and a gap size.
-    FUNCTION get_number_of_gaps(nev,evals,gap) RESULT(ngap)
-
-        IMPLICIT NONE
-
-        PetscInt,  INTENT(IN) :: nev
-        PetscReal, INTENT(IN) :: evals(nev)
-        PetscReal, INTENT(IN) :: gap
-        PetscInt              :: ngap
-
-        PetscInt  :: i
-        PetscReal :: dist
-
-        ngap = 0
-
-        DO i = 1,nev-1
-            dist = evals(i+1)-evals(i)
-
-            IF (dist > gap) THEN
-                ngap = ngap+1
-            END IF
-        END DO
-
-    END FUNCTION
-
-    FUNCTION get_gap_id(nev,nid,evals,ids) RESULT(id)
-
-        IMPLICIT NONE
-
-        PetscInt,  INTENT(IN) :: nev
-        PetscInt,  INTENT(IN) :: nid
-        PetscReal, INTENT(IN) :: evals(nev)
-        PetscInt,  INTENT(IN) :: ids(nid)
-        PetscInt              :: id
-
-        PetscInt :: i
-        PetscInt :: idid
-
-        PetscReal, ALLOCATABLE :: dists(:)
-
-        ALLOCATE(dists(nev-1))
-
-        DO i = 1,nev-1
-            dists(i) = evals(i+1)-evals(i)
-        END DO
-
-        id = MAXLOC(dists,DIM=1)+1
-
-        DO WHILE (.TRUE.)
-            idid = get_index(nid,ids,id)
-
-            IF (idid > 0) THEN
-                id = MAXLOC(dists,DIM=1,MASK=(dists<dists(id-1)))+1
-            ELSE
-                EXIT
-            END IF
-        END DO
-
-    END FUNCTION
-
-    ! Retuns the index of a target value in a given array.
-    ! Returns the index of the first match.
-    ! Returns 0 if not found.
-    FUNCTION get_index(n,x,val) RESULT(id)
-
-        IMPLICIT NONE
-
-        PetscInt, INTENT(IN) :: n
-        PetscInt, INTENT(IN) :: x(n)
-        PetscInt, INTENT(IN) :: val
-        PetscInt             :: id
-
-        PetscInt :: i
-
-        id = 0
-
-        DO i = 1,n
-            IF (x(i) == val) THEN
-                id = i
-                EXIT
-            END IF
-        END DO
-
-    END FUNCTION
-
-    ! Sorts the given array in ascending order.
-    SUBROUTINE sort_array(n,x)
-
-        IMPLICIT NONE
-
-        PetscInt, INTENT(IN)    :: n
-        PetscInt, INTENT(INOUT) :: x(n)
-
-        PetscInt :: i
-        PetscInt :: tmp
-        PetscInt :: minid
-        PetscInt :: curmin
-
-        curmin = MINVAL(x,DIM=1)
-
-        DO i = 1,n
-            minid    = MINLOC(x(i:n),DIM=1,MASK=(x(i:n)>=curmin))+i-1
-            curmin   = x(minid)
-            tmp      = x(i)
-            x(i)     = x(minid)
-            x(minid) = tmp
-        END DO
-
-    END SUBROUTINE
-
-    ! If any almost degenerate (within dtol) evals are in two clusters, smaller
-    ! evals are merged into the cluster of the larger evals.
-    SUBROUTINE fix_cluster_ids(nev,nid,evals,ids,dtol)
-
-        IMPLICIT NONE
-
-        PetscInt,  INTENT(IN)    :: nev
-        PetscInt,  INTENT(IN)    :: nid
-        PetscReal, INTENT(IN)    :: evals(nev)
-        PetscInt,  INTENT(INOUT) :: ids(nid)
-        PetscReal, INTENT(IN)    :: dtol
-
-        PetscInt :: i
-        PetscInt :: oldids(nid)
-
-        oldids = 0
-
-        DO WHILE (ANY(ids-oldids /= 0))
-            oldids = ids
-
-            DO i = 1,nid-1
-                IF (evals(ids(i+1))-evals(ids(i+1)-1) < dtol) THEN
-                    ids(i+1) = ids(i+1)-1
-                END IF
-            END DO
-        END DO
-
-    END SUBROUTINE
 
     SUBROUTINE inertias_to_eigenvalues(nsub,nev,subs,inertias,evals)
 

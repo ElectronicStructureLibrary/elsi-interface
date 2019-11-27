@@ -1019,8 +1019,8 @@ end do
 \subsection{Customizing the SLEPc-SIPs Solver}
 \label{subsec:setter_sips}
 \begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_ev\_min}(handle, ev\_min)]
-\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_ev\_max}(handle, ev\_max)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_ev\_min}(handle, sips\_ev\_min)]
+\item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_ev\_max}(handle, sips\_ev\_max)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_n\_elpa}(handle, sips\_n\_elpa)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_n\_slice}(handle, sips\_n\_slice)]
 \item [\hspace{0.3cm} \textcolor{blue}{elsi\_set\_sips\_interval}(handle, sips\_lower, sips\_upper)]
@@ -1030,9 +1030,9 @@ end do
 \hline
 \multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
 \hline
-\textcolor{blue}{ev\_min}        & real double & -2.0 & Lower bound of eigenspectrum. See remark 1.\\
+\textcolor{blue}{sips\_ev\_min}  & real double & -2.0 & Lower bound of eigenspectrum. See remark 1.\\
 \hline
-\textcolor{blue}{ev\_max}        & real double & 2.0  & Upper bound of eigenspectrum. See remark 1.\\
+\textcolor{blue}{sips\_ev\_max}  & real double & 2.0  & Upper bound of eigenspectrum. See remark 1.\\
 \hline
 \textcolor{blue}{sips\_n\_elpa}  & integer     & 0    & Number of SCF steps using ELPA. See remark 2.\\
 \hline
@@ -1046,7 +1046,7 @@ end do
 
 \textbf{Remarks}
 
-\textbf{1)} \textcolor{blue}{ev\_min} and \textcolor{blue}{ev\_max}: SLEPc-SIPs relies on some inertia counting steps to estimate the lower and upper bounds of the spectrum. Only eigenvalues within this interval, and their associated eigenvectors, will be solved. The inertia-counting-based eigenvalue searching starts from the interval determined by \textcolor{blue}{ev\_min} and \textcolor{blue}{ev\_max}. Depending on the results of inertia counting, this interval may expand or shrink to make sure that the 1$^\text{st}$ to the \textcolor{blue}{n\_state}$^\text{th}$ eigenvalues are all within this interval. If a good estimate of the lower or upper bounds of the eigenspectrum is available, it should be set by \textcolor{blue}{elsi\_set\_sips\_ev\_min} or \textcolor{blue}{elsi\_set\_sips\_ev\_max}.
+\textbf{1)} \textcolor{blue}{sips\_ev\_min} and \textcolor{blue}{sips\_ev\_max}: SLEPc-SIPs relies on some inertia counting steps to estimate the lower and upper bounds of the spectrum. Only eigenvalues within this interval, and their associated eigenvectors, will be solved. The inertia-counting-based eigenvalue searching starts from the interval determined by \textcolor{blue}{ev\_min} and \textcolor{blue}{ev\_max}. Depending on the results of inertia counting, this interval may expand or shrink to make sure that the 1$^\text{st}$ to the \textcolor{blue}{n\_state}$^\text{th}$ eigenvalues are all within this interval. If a good estimate of the lower or upper bounds of the eigenspectrum is available, it should be set by \textcolor{blue}{elsi\_set\_sips\_ev\_min} or \textcolor{blue}{elsi\_set\_sips\_ev\_max}.
 
 \textbf{2)} \textcolor{blue}{sips\_n\_elpa}: The performance of SLEPc-SIPs mainly depends on the load balance across slices. Optimal performance is expected if the desired eigenvalues are evenly distributed across slices. In an SCF calculation, eigenvalues obtained in the current SCF step can be used as an approximated distribution of eigenvalues in the next SCF step. This approximation should become better as the SCF cycle approaches its convergence. On the other hand, at the beginning of an SCF cycle, the load balance is only coarsely checked by inertia calculations. Using the direct eigensolver ELPA in the first \textcolor{blue}{sips\_n\_elpa} SCF steps can circumvent the load imbalance of spectrum slicing in the initial SCF steps.
 
