@@ -314,11 +314,10 @@ CONTAINS
 
     END SUBROUTINE
 
-    SUBROUTINE sips_update_ham(ncol_g,ncol_l,nnz_l,col_idx,row_ptr,ham_val)
+    SUBROUTINE sips_update_ham(ncol_l,nnz_l,col_idx,row_ptr,ham_val)
 
         IMPLICIT NONE
 
-        PetscInt,  INTENT(IN)    :: ncol_g            ! Global size of H
         PetscInt,  INTENT(IN)    :: ncol_l            ! Local size
         PetscInt,  INTENT(IN)    :: nnz_l             ! Local non-zeros
         PetscInt,  INTENT(INOUT) :: col_idx(nnz_l)    ! Column index

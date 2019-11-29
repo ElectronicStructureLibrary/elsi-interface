@@ -122,20 +122,16 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
          ! Load H and S
          call sips_load_ham_ovlp(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,&
               col_ptr,ham,ovlp)
-
          call sips_set_eps(0)
       else
          ! Load H
          call sips_load_ham(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,&
               col_ptr,ham)
-
          call sips_set_eps(1)
       end if
    else
       ! Update H matrix
-      call sips_update_ham(ph%n_basis,bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,&
-           col_ptr,ham)
-
+      call sips_update_ham(bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,col_ptr,ham)
       call sips_update_eps(ph%sips_n_slices)
    end if
 
@@ -167,7 +163,6 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
          call sips_get_slices(0,ph%n_states,ph%sips_n_slices,0.0_r8,1.0e-5_r8,&
               eval,slices)
-
          call sips_get_inertias(ph%sips_n_slices,slices,inertias)
 
          if(inertias(1) > 0) then
