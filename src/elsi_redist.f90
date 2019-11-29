@@ -4851,11 +4851,10 @@ end subroutine
 !>
 !! Convert density matrix computed by NTPoly to 2D block-cyclic dense format.
 !!
-subroutine elsi_ntpoly_to_blacs_dm_real(ph,bh,dm_nt,dm_den)
+subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    type(Matrix_ps), intent(inout) :: dm_nt
    real(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
@@ -5015,11 +5014,10 @@ end subroutine
 !>
 !! Convert density matrix computed by NTPoly to 2D block-cyclic dense format.
 !!
-subroutine elsi_ntpoly_to_blacs_dm_cmplx(ph,bh,dm_nt,dm_den)
+subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    type(Matrix_ps), intent(inout) :: dm_nt
    complex(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
@@ -5819,11 +5817,10 @@ end subroutine
 !>
 !! Convert density matrix computed by NTPoly to 1D block-cyclic CSC format.
 !!
-subroutine elsi_ntpoly_to_siesta_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
+subroutine elsi_ntpoly_to_siesta_dm_real(bh,dm_nt,dm_sp,row_ind,col_ptr)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    type(Matrix_ps), intent(inout) :: dm_nt
    real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
@@ -5985,11 +5982,10 @@ end subroutine
 !>
 !! Convert density matrix computed by NTPoly to 1D block-cyclic CSC format.
 !!
-subroutine elsi_ntpoly_to_siesta_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
+subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,dm_nt,dm_sp,row_ind,col_ptr)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    type(Matrix_ps), intent(inout) :: dm_nt
    complex(kind=r8), intent(out):: dm_sp(bh%nnz_l_sp)

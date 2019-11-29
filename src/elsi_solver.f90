@@ -868,7 +868,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%ph%nt_ham,&
            eh%ph%nt_ovlp)
       call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
-      call elsi_ntpoly_to_blacs_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm)
+      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
    case default
       write(msg,"(A)") "Unsupported density matrix solver"
@@ -1081,7 +1081,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%ph%nt_ham,&
            eh%ph%nt_ovlp)
       call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
-      call elsi_ntpoly_to_blacs_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm)
+      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
    case default
       write(msg,"(A)") "Unsupported density matrix solver"
@@ -1702,8 +1702,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm,eh%row_ind_sp1,&
               eh%col_ptr_sp1)
       case(SIESTA_CSC)
-         call elsi_ntpoly_to_siesta_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm,&
-              eh%row_ind_sp2,eh%col_ptr_sp2)
+         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%ph%nt_dm,dm,eh%row_ind_sp2,&
+              eh%col_ptr_sp2)
       case(GENERIC_COO)
          call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%ph%nt_dm,eh%ph%nt_map,&
               dm,eh%perm_sp3)
@@ -2140,8 +2140,8 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm,eh%row_ind_sp1,&
               eh%col_ptr_sp1)
       case(SIESTA_CSC)
-         call elsi_ntpoly_to_siesta_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm,&
-              eh%row_ind_sp2,eh%col_ptr_sp2)
+         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%ph%nt_dm,dm,eh%row_ind_sp2,&
+              eh%col_ptr_sp2)
       case(GENERIC_COO)
          call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%ph%nt_dm,eh%ph%nt_map,&
               dm,eh%perm_sp3)

@@ -219,7 +219,7 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
 
       call elsi_update_dm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ovlp_copy,eh%ph%nt_ovlp,&
            eh%ph%nt_ham,eh%ph%nt_dm)
-      call elsi_ntpoly_to_blacs_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm)
+      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
       call CopyMatrix(eh%ph%nt_ovlp,eh%ph%nt_ovlp_copy)
    end select
 
@@ -262,7 +262,7 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
 
       call elsi_update_dm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ovlp_copy,eh%ph%nt_ovlp,&
            eh%ph%nt_ham,eh%ph%nt_dm)
-      call elsi_ntpoly_to_blacs_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm)
+      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
       call CopyMatrix(eh%ph%nt_ovlp,eh%ph%nt_ovlp_copy)
    end select
 
@@ -360,8 +360,8 @@ subroutine elsi_extrapolate_dm_real_sparse(eh,ovlp,dm)
          call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm,eh%row_ind_sp1,&
               eh%col_ptr_sp1)
       case(SIESTA_CSC)
-         call elsi_ntpoly_to_siesta_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm,&
-              eh%row_ind_sp2,eh%col_ptr_sp2)
+         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%ph%nt_dm,dm,eh%row_ind_sp2,&
+              eh%col_ptr_sp2)
       case(GENERIC_COO)
          call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%ph%nt_dm,eh%ph%nt_map,&
               dm,eh%perm_sp3)
@@ -467,8 +467,8 @@ subroutine elsi_extrapolate_dm_complex_sparse(eh,ovlp,dm)
          call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm,eh%row_ind_sp1,&
               eh%col_ptr_sp1)
       case(SIESTA_CSC)
-         call elsi_ntpoly_to_siesta_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm,&
-              eh%row_ind_sp2,eh%col_ptr_sp2)
+         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%ph%nt_dm,dm,eh%row_ind_sp2,&
+              eh%col_ptr_sp2)
       case(GENERIC_COO)
          call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%ph%nt_dm,eh%ph%nt_map,&
               dm,eh%perm_sp3)
