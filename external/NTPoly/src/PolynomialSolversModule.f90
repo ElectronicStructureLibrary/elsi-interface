@@ -14,7 +14,7 @@ MODULE PolynomialSolversModule
   USE PSMatrixModule, ONLY : Matrix_ps, DestructMatrix, FillMatrixIdentity, &
        & ConstructEmptyMatrix, CopyMatrix
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters, &
-       & SolverParameters_init, DestructSolverParameters
+       & DestructSolverParameters
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -104,7 +104,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = SolverParameters_init()
+       solver_parameters = SolverParameters_t()
     END IF
 
     degree = SIZE(poly%coefficients)
@@ -163,7 +163,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL DestructSolverParameters(solver_parameters)
   END SUBROUTINE Compute_stand
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Compute A Matrix Polynomial Using the Paterson and Stockmeyer method.
+  !> Compute A Matrix Polynomial Using The Paterson and Stockmeyer method.
   !> This method first factors the polynomial to reduce the number of
   !> matrix multiplies required.
   SUBROUTINE FactorizedCompute_stand(InputMat, OutputMat, poly, &
@@ -195,7 +195,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = SolverParameters_init()
+       solver_parameters = SolverParameters_t()
     END IF
 
     !! Parameters for splitting up polynomial.

@@ -6,7 +6,9 @@ MODULE SMatrixModule
   USE DataTypesModule, ONLY: NTREAL, NTCOMPLEX, NTLONG
   USE MatrixMarketModule, ONLY : ParseMMHeader, WriteMMSize, WriteMMLine, &
        & MAX_LINE_LENGTH
-  USE TripletListModule
+  USE TripletListModule, ONLY: TripletList_r, TripletList_c, SortTripletList, &
+       & DestructTripletList, ConstructTripletList, AppendToTripletList, &
+       & SymmetrizeTripletList, ConvertTripletListType
   USE TripletModule, ONLY : Triplet_r, Triplet_c
   IMPLICIT NONE
   PRIVATE

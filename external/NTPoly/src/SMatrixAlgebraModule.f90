@@ -13,7 +13,8 @@ MODULE SMatrixAlgebraModule
        & TransposeMatrix, ConjugateMatrix, ConstructMatrixFromTripletList, &
        & ConstructEmptyMatrix
   USE SVectorModule, ONLY : AddSparseVectors, PairwiseMultiplyVectors
-  USE TripletListModule
+  USE TripletListModule, ONLY: TripletList_r, TripletList_c, SortTripletList, &
+       & DestructTripletList, ConstructTripletList
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
