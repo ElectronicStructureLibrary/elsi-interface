@@ -284,11 +284,6 @@ subroutine elsi_get_edm_real(eh,edm)
       eh%ph%solver = ELPA_SOLVER
    end if
 
-   if(eh%ph%solver == EIGENEXA_SOLVER) then
-      solver_save = EIGENEXA_SOLVER
-      eh%ph%solver = ELPA_SOLVER
-   end if
-
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
       solver_save = SIPS_SOLVER
       eh%ph%solver = ELPA_SOLVER
@@ -301,7 +296,7 @@ subroutine elsi_get_edm_real(eh,edm)
    end if
 
    select case(eh%ph%solver)
-   case(ELPA_SOLVER)
+   case(ELPA_SOLVER,EIGENEXA_SOLVER)
       call elsi_build_edm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%eval(1:eh%ph%n_states),eh%evec_real,edm)
    case(OMM_SOLVER)
@@ -352,11 +347,6 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
       eh%ph%solver = ELPA_SOLVER
    end if
 
-   if(eh%ph%solver == EIGENEXA_SOLVER) then
-      solver_save = EIGENEXA_SOLVER
-      eh%ph%solver = ELPA_SOLVER
-   end if
-
    if(eh%ph%solver == SIPS_SOLVER .and. eh%ph%n_calls <= eh%ph%sips_n_elpa) then
       solver_save = SIPS_SOLVER
       eh%ph%solver = ELPA_SOLVER
@@ -369,7 +359,7 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
    end if
 
    select case(eh%ph%solver)
-   case(ELPA_SOLVER)
+   case(ELPA_SOLVER,EIGENEXA_SOLVER)
       call elsi_build_edm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%eval(1:eh%ph%n_states),eh%evec_real,eh%dm_real_den)
 

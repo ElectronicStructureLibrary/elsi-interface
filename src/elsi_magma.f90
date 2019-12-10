@@ -115,7 +115,7 @@ subroutine elsi_solve_magma_real(ph,bh,ham,ovlp,eval,evec)
       end select
    end if
 
-   lwork = floor(work(1),kind=i4)
+   lwork = ceiling(work(1),kind=i4)
    liwork = iwork(1)
 
    call elsi_deallocate(bh,work,"work")
@@ -229,8 +229,8 @@ subroutine elsi_solve_magma_cmplx(ph,bh,ham,ovlp,eval,evec)
       end select
    end if
 
-   lwork = floor(real(work(1),kind=r8),kind=i4)
-   lrwork = floor(rwork(1),kind=i4)
+   lwork = ceiling(real(work(1),kind=r8),kind=i4)
+   lrwork = ceiling(rwork(1),kind=i4)
    liwork = iwork(1)
 
    call elsi_deallocate(bh,work,"work")

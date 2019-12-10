@@ -191,7 +191,7 @@ test_fortran(06_ntpoly d 2 c 6 ${h_cmplx} ${s_cmplx})
 test_fortran(07_ntpoly d 3 r 6 ${h_real} ${s_real})
 test_fortran(08_ntpoly d 3 c 6 ${h_cmplx} ${s_cmplx})
 
-### Serial Fortran tests: ev + ELPA (LAPACK) ###
+### Serial Fortran tests: ev + LAPACK ###
 ADD_TEST(test_serial_01_lapack
   ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test e 0 r 1 ${h_real} ${s_real})
 SET_TESTS_PROPERTIES(test_serial_01_lapack
@@ -202,15 +202,16 @@ ADD_TEST(test_serial_02_lapack
 SET_TESTS_PROPERTIES(test_serial_02_lapack
   PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
 
+### Serial Fortran tests: ev + MAGMA ###
 IF(ENABLE_MAGMA)
-  ADD_TEST(test_serial_03_magma
+  ADD_TEST(test_serial_01_magma
     ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test e 0 r 7 ${h_real} ${s_real})
-  SET_TESTS_PROPERTIES(test_serial_03_magma
+  SET_TESTS_PROPERTIES(test_serial_01_magma
     PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
 
-  ADD_TEST(test_serial_04_magma
+  ADD_TEST(test_serial_02_magma
     ${MPIEXEC_1P} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/elsi_test e 0 c 7 ${h_cmplx} ${s_cmplx})
-  SET_TESTS_PROPERTIES(test_serial_04_magma
+  SET_TESTS_PROPERTIES(test_serial_02_magma
     PROPERTIES PASS_REGULAR_EXPRESSION "Passed")
 ENDIF()
 
@@ -253,16 +254,16 @@ IF(ENABLE_C_TESTS)
   test_c(04_elpa d 0 c 1 ${h_cmplx} ${s_cmplx})
 
   ### Parallel C tests: dm + libOMM ###
-  test_c(05_omm d 0 r 2 ${h_real} ${s_real})
-  test_c(06_omm d 0 c 2 ${h_cmplx} ${s_cmplx})
+  test_c(01_omm d 0 r 2 ${h_real} ${s_real})
+  test_c(02_omm d 0 c 2 ${h_cmplx} ${s_cmplx})
 
   ### Parallel C tests: dm + PEXSI ###
   IF(ENABLE_PEXSI)
-    test_c(07_pexsi d 0 r 3 ${h_real} ${s_real})
-    test_c(08_pexsi d 0 c 3 ${h_cmplx} ${s_cmplx})
+    test_c(01_pexsi d 0 r 3 ${h_real} ${s_real})
+    test_c(02_pexsi d 0 c 3 ${h_cmplx} ${s_cmplx})
   ENDIF()
 
   ### Parallel C tests: dm + NTPoly ###
-  test_c(09_ntpoly d 0 r 6 ${h_real} ${s_real})
-  test_c(10_ntpoly d 0 c 6 ${h_cmplx} ${s_cmplx})
+  test_c(01_ntpoly d 0 r 6 ${h_real} ${s_real})
+  test_c(02_ntpoly d 0 c 6 ${h_cmplx} ${s_cmplx})
 ENDIF()
