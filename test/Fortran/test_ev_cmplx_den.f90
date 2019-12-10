@@ -211,6 +211,7 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
    ! Reinit for a new geometry
    call elsi_reinit(eh)
    call elsi_set_elpa_solver(eh,1)
+   call elsi_set_magma_solver(eh,2)
 
    ham = ham_save
    ovlp = ovlp_save
