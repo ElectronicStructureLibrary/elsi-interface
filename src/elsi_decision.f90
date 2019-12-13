@@ -211,11 +211,11 @@ subroutine elsi_decide_dm_smart(ph,bh,sparsity)
       end if
    end if
 
-   if(ph%energy_gap < 0.3_r8) then
+   if(ph%energy_gap < 0.5_r8) then
       try_ntpoly = .false.
    end if
 
-   if(ph%n_basis < 50000 .or. sparsity < 0.99_r8) then
+   if(ph%n_basis < 50000 .or. sparsity < 0.98_r8) then
       try_ntpoly = .false.
    end if
 
@@ -235,7 +235,7 @@ subroutine elsi_decide_dm_smart(ph,bh,sparsity)
       call elsi_say(bh,msg)
    end if
 
-   if(try_ntpoly .and. ph%n_basis > 100000 .and. sparsity > 0.999_r8) then
+   if(try_ntpoly .and. ph%n_basis > 100000 .and. sparsity > 0.99_r8) then
       ph%solver = NTPOLY_SOLVER
       ph%decision_stage = DECISION_DONE
 
