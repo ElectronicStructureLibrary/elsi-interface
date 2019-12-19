@@ -39,11 +39,11 @@ module ELSI_SET
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
+   public :: elsi_set_pexsi_method
    public :: elsi_set_pexsi_n_mu
    public :: elsi_set_pexsi_n_pole
    public :: elsi_set_pexsi_np_per_pole
    public :: elsi_set_pexsi_np_symbo
-   public :: elsi_set_pexsi_ordering
    public :: elsi_set_pexsi_temp
    public :: elsi_set_pexsi_mu_min
    public :: elsi_set_pexsi_mu_max
@@ -166,7 +166,7 @@ subroutine elsi_set_output_unit(eh,print_unit)
 end subroutine
 
 !>
-!! Set whether a log file should be output.
+!! Set whether a JSON log file should be output.
 !!
 subroutine elsi_set_output_log(eh,output_log)
 
@@ -458,9 +458,8 @@ subroutine elsi_set_elpa_n_single(eh,n_single)
 end subroutine
 
 !>
-!! Set whether GPU acceleration (not including GPU kernels for back-transforming
-!! eigenvectors) should be enabled in ELPA. No effect if no GPU acceleration
-!! available.
+!! Set whether GPU acceleration eigenvectors should be enabled in ELPA. No
+!! effect if no GPU acceleration available.
 !!
 subroutine elsi_set_elpa_gpu(eh,gpu)
 
@@ -552,7 +551,7 @@ subroutine elsi_set_omm_n_elpa(eh,n_elpa)
 end subroutine
 
 !>
-!! Set the tolerance of OMM minimization.
+!! Set the convergence tolerance of OMM minimization.
 !!
 subroutine elsi_set_omm_tol(eh,tol)
 
@@ -577,7 +576,32 @@ subroutine elsi_set_omm_tol(eh,tol)
 end subroutine
 
 !>
-!! Set the number of mu points when using PEXSI driver 2.
+!! Set the pole expansion method in PEXSI.
+!!
+subroutine elsi_set_pexsi_method(eh,method)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: method !< Pole expansion method
+
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_set_pexsi_method"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(method < 1 .or. method > 3) then
+      write(msg,"(A)") "Input value should be 1, 2, or 3"
+      call elsi_stop(eh%bh,msg,caller)
+   end if
+
+   eh%ph%pexsi_options%method = method
+
+end subroutine
+
+!>
+!! Set the number of chemical potential points in PEXSI.
 !!
 subroutine elsi_set_pexsi_n_mu(eh,n_mu)
 
@@ -673,24 +697,6 @@ subroutine elsi_set_pexsi_np_symbo(eh,np_symbo)
    end if
 
    eh%ph%pexsi_options%npSymbFact = np_symbo
-
-end subroutine
-
-!>
-!! Set the matrix reordering method.
-!!
-subroutine elsi_set_pexsi_ordering(eh,ordering)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: ordering !< Matrix reordering method
-
-   character(len=*), parameter :: caller = "elsi_set_pexsi_ordering"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   eh%ph%pexsi_options%ordering = ordering
 
 end subroutine
 
