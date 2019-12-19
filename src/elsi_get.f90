@@ -23,7 +23,7 @@ module ELSI_GET
        elsi_pexsi_to_generic_dm,elsi_pexsi_to_siesta_dm,elsi_sips_to_blacs_dm,&
        elsi_sips_to_generic_dm,elsi_sips_to_siesta_dm
    use ELSI_SIPS, only: elsi_build_edm_sips
-   use ELSI_UTIL, only: elsi_check_init,elsi_build_edm
+   use ELSI_UTIL, only: elsi_check_init,elsi_reduce_energy,elsi_build_edm
 
    implicit none
 
@@ -257,6 +257,10 @@ subroutine elsi_get_entropy(eh,entropy)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    entropy = eh%ph%ts
+
+   if(eh%ph%solver == PEXSI_SOLVER .and. eh%ph%pexsi_options%method /= 2) then
+      call elsi_reduce_energy(eh%ph,eh%bh,entropy)
+   end if
 
 end subroutine
 

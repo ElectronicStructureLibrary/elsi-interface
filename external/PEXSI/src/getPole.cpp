@@ -29664,7 +29664,7 @@
                       if( (numPole[i+1] < numPole[i]) || (beta[i+1] < beta[i]))
                           continue;
                    }
-//		 std::cout << " Input beta: " <<  inputBeta << "; Pole beta " << beta[i] << " numPole " << numPole[i] << " method "<<  method[i] << std::endl;
+                   //std::cout << " Input beta: " <<  inputBeta << "; Pole beta " << beta[i] << " numPole " << numPole[i] << " method "<<  method[i] << std::endl;
                    out_zshift = zshift[i];
                    out_zweight = zweight[i];
                    if( inputMethod != 2) {

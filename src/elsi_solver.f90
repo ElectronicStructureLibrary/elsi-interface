@@ -20,7 +20,7 @@ module ELSI_SOLVER
    use ELSI_LAPACK, only: elsi_solve_lapack
    use ELSI_MAGMA, only: elsi_init_magma,elsi_solve_magma
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
+   use ELSI_MPI, only: elsi_stop
    use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_solve_ntpoly
    use ELSI_OCC, only: elsi_get_occ_for_dm
    use ELSI_OMM, only: elsi_init_omm,elsi_solve_omm
@@ -44,7 +44,8 @@ module ELSI_SOLVER
        elsi_sips_to_siesta_dm
    use ELSI_SETUP, only: elsi_set_blacs
    use ELSI_SIPS, only: elsi_init_sips,elsi_solve_sips,elsi_build_dm_sips
-   use ELSI_UTIL, only: elsi_check,elsi_check_init,elsi_build_dm
+   use ELSI_UTIL, only: elsi_check,elsi_check_init,elsi_reduce_energy,&
+       elsi_build_dm
 
    implicit none
 
@@ -73,9 +74,6 @@ subroutine elsi_get_band_energy(ph,bh,ebs,solver)
    integer(kind=i4), intent(in) :: solver
    real(kind=r8), intent(out) :: ebs
 
-   real(kind=r8) :: tmp
-   integer(kind=i4) :: ierr
-
    character(len=*), parameter :: caller = "elsi_get_band_energy"
 
    ebs = ph%ebs*ph%i_wt
@@ -87,17 +85,7 @@ subroutine elsi_get_band_energy(ph,bh,ebs,solver)
       ebs = ph%spin_degen*ebs/2.0_r8
    end if
 
-   if(ph%n_spins*ph%n_kpts > 1) then
-      if(bh%myid /= 0) then
-         ebs = 0.0_r8
-      end if
-
-      call MPI_Allreduce(ebs,tmp,1,mpi_real8,mpi_sum,bh%comm_all,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-      ebs = tmp
-   end if
+   call elsi_reduce_energy(ph,bh,ebs)
 
 end subroutine
 

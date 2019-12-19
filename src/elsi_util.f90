@@ -15,7 +15,7 @@ module ELSI_UTIL
        NTPOLY_SOLVER,MAGMA_SOLVER,UT_MAT
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,mpi_comm_self
+   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_comm_self,mpi_real8,mpi_sum
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: i4,r8
 
@@ -30,6 +30,7 @@ module ELSI_UTIL
    public :: elsi_get_gid
    public :: elsi_get_lid
    public :: elsi_get_nnz
+   public :: elsi_reduce_energy
    public :: elsi_set_full_mat
    public :: elsi_build_dm
    public :: elsi_build_edm
@@ -607,6 +608,38 @@ subroutine elsi_get_nnz_cmplx(def0,n_row,n_col,mat,nnz)
          end if
       end do
    end do
+
+end subroutine
+
+!>
+!! Reduce energy over spin channels and k-points.
+!!
+subroutine elsi_reduce_energy(ph,bh,energy)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(inout) :: energy
+
+   real(kind=r8) :: tmp
+   integer(kind=i4) :: ierr
+
+   character(len=*), parameter :: caller = "elsi_reduce_energy"
+
+   energy = energy*ph%i_wt
+
+   if(ph%n_spins*ph%n_kpts > 1) then
+      if(bh%myid /= 0) then
+         energy = 0.0_r8
+      end if
+
+      call MPI_Allreduce(energy,tmp,1,mpi_real8,mpi_sum,bh%comm_all,ierr)
+
+      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+
+      energy = tmp
+   end if
 
 end subroutine
 

@@ -10,7 +10,7 @@
 module ELSI_PEXSI
 
    use ELSI_CONSTANT, only: UNSET,PEXSI_SOLVER,PEXSI_CSC,PEXSI_DM,PEXSI_EDM,&
-       DECISION_WIP
+       PEXSI_FDM,DECISION_WIP
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,mpi_complex16
@@ -27,7 +27,8 @@ module ELSI_PEXSI
        f_ppexsi_calculate_fermi_operator_real3,&
        f_ppexsi_calculate_fermi_operator_complex,&
        f_ppexsi_retrieve_real_dm,f_ppexsi_retrieve_complex_dm,&
-       f_ppexsi_retrieve_real_edm,f_ppexsi_retrieve_complex_edm
+       f_ppexsi_retrieve_real_edm,f_ppexsi_retrieve_complex_edm,&
+       f_ppexsi_retrieve_real_fdm,f_ppexsi_retrieve_complex_fdm
 
    implicit none
 
@@ -178,6 +179,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    real(kind=r8) :: mu_range
    real(kind=r8) :: shift_width
    real(kind=r8) :: local_energy
+   real(kind=r8) :: free_energy
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: i_step
@@ -402,6 +404,27 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       ph%decision_data(PEXSI_SOLVER) = t1-t0
    end if
 
+   if(ph%pexsi_options%method /= 2) then
+      ! Get free energy density matrix
+      call elsi_get_time(t0)
+
+      call elsi_retrieve_dm_pexsi(ph,bh,PEXSI_FDM,ne_vec,dm)
+
+      ! Compute energy = Tr(S*FDM)
+      if(ph%pexsi_my_prow == 0) then
+         local_energy = ddot(bh%nnz_l_sp1,ovlp,1,dm,1)
+
+         call MPI_Reduce(local_energy,free_energy,1,mpi_real8,mpi_sum,0,&
+              ph%pexsi_comm_intra_pole,ierr)
+
+         call elsi_check_mpi(bh,"MPI_Reduce",ierr,caller)
+      end if
+
+      call MPI_Bcast(free_energy,1,mpi_real8,0,bh%comm,ierr)
+
+      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
+   end if
+
    ! Get density matrix
    call elsi_get_time(t0)
 
@@ -420,6 +443,11 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call MPI_Bcast(ph%ebs,1,mpi_real8,0,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
+
+   ! Compute entropy
+   if(ph%pexsi_options%method /= 2) then
+      ph%ts = ph%ebs-free_energy-ph%mu*ph%n_electrons
+   end if
 
    call elsi_get_time(t1)
 
@@ -513,6 +541,14 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
 
       if(ierr /= 0) then
          write(msg,"(A)") "Failed to get energy density matirx"
+         call elsi_stop(bh,msg,caller)
+      end if
+   case(PEXSI_FDM)
+      call f_ppexsi_retrieve_real_fdm(ph%pexsi_plan,ph%pexsi_options,tmp,&
+           local_energy,ierr)
+
+      if(ierr /= 0) then
+         write(msg,"(A)") "Failed to get free energy density matirx"
          call elsi_stop(bh,msg,caller)
       end if
    end select
@@ -643,6 +679,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    real(kind=r8) :: mu_range
    real(kind=r8) :: shift_width
    real(kind=r8) :: local_energy
+   real(kind=r8) :: free_energy
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: i_step
@@ -867,6 +904,28 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       ph%decision_data(PEXSI_SOLVER) = t1-t0
    end if
 
+   if(ph%pexsi_options%method /= 2) then
+      ! Get free energy density matrix
+      call elsi_get_time(t0)
+
+      call elsi_retrieve_dm_pexsi(ph,bh,PEXSI_FDM,ne_vec,dm)
+
+      ! Compute energy = Tr(S*FDM)
+      if(ph%pexsi_my_prow == 0) then
+         local_cmplx = zdotc(bh%nnz_l_sp1,ovlp,1,dm,1)
+         local_energy = real(local_cmplx,kind=r8)
+
+         call MPI_Reduce(local_energy,free_energy,1,mpi_real8,mpi_sum,0,&
+              ph%pexsi_comm_intra_pole,ierr)
+
+         call elsi_check_mpi(bh,"MPI_Reduce",ierr,caller)
+      end if
+
+      call MPI_Bcast(free_energy,1,mpi_real8,0,bh%comm,ierr)
+
+      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
+   end if
+
    ! Get density matrix
    call elsi_get_time(t0)
 
@@ -886,6 +945,11 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call MPI_Bcast(ph%ebs,1,mpi_real8,0,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
+
+   ! Compute entropy
+   if(ph%pexsi_options%method /= 2) then
+      ph%ts = ph%ebs-free_energy-ph%mu*ph%n_electrons
+   end if
 
    call elsi_get_time(t1)
 
@@ -979,6 +1043,14 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
 
       if(ierr /= 0) then
          write(msg,"(A)") "Failed to get energy density matirx"
+         call elsi_stop(bh,msg,caller)
+      end if
+   case(PEXSI_FDM)
+      call f_ppexsi_retrieve_complex_fdm(ph%pexsi_plan,ph%pexsi_options,tmp,&
+           local_energy,ierr)
+
+      if(ierr /= 0) then
+         write(msg,"(A)") "Failed to get free energy density matirx"
          call elsi_stop(bh,msg,caller)
       end if
    end select

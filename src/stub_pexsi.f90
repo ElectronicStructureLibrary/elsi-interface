@@ -32,6 +32,8 @@ module F_PPEXSI_INTERFACE
    public :: f_ppexsi_retrieve_complex_dm
    public :: f_ppexsi_retrieve_real_edm
    public :: f_ppexsi_retrieve_complex_edm
+   public :: f_ppexsi_retrieve_real_fdm
+   public :: f_ppexsi_retrieve_complex_fdm
    public :: f_ppexsi_plan_finalize
 
    type, public :: f_ppexsi_options
@@ -308,6 +310,38 @@ subroutine f_ppexsi_retrieve_complex_edm(plan,options,EDMnzvalLocal,&
    complex(kind=r8) :: EDMnzvalLocal(*)
    real(kind=r8) :: totalEnergyS
    integer(kind=i4) :: info
+
+   write(*,"(A)") "**Error! A PEXSI stub routine was called"
+   stop
+
+end subroutine
+
+subroutine f_ppexsi_retrieve_real_fdm(plan,options,FDMnzvalLocal,totalEnergyF,&
+   info)
+
+   implicit none
+
+   integer(kind=c_intptr_t) :: plan
+   type(f_ppexsi_options) :: options
+   real(kind=r8) :: FDMnzvalLocal(*)
+   real(kind=r8) :: totalEnergyF
+   integer(kind=i4):: info
+
+   write(*,"(A)") "**Error! A PEXSI stub routine was called"
+   stop
+
+end subroutine
+
+subroutine f_ppexsi_retrieve_complex_fdm(plan,options,FDMnzvalLocal,&
+   totalEnergyF,info)
+
+   implicit none
+
+   integer(kind=c_intptr_t) :: plan
+   type(f_ppexsi_options) :: options
+   complex(kind=r8) :: FDMnzvalLocal(*)
+   real(kind=r8) :: totalEnergyF
+   integer(kind=i4):: info
 
    write(*,"(A)") "**Error! A PEXSI stub routine was called"
    stop
