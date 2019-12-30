@@ -7,6 +7,9 @@
   eigenvectors, and occupation numbers when using density matrix solver
   interfaces with an eigensolver.
 
+### ELPA
+* Interface for externally linked ELPA compatible with ELPA 2019.11.
+
 ### PEXSI
 * Updated redistributed SuperLU\_DIST source code to version 6.2.0.
 

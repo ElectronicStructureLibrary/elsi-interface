@@ -18,6 +18,6 @@ SET(USE_EXTERNAL_OMM ON CACHE BOOL "Use external libOMM")
 SET(USE_EXTERNAL_PEXSI ON CACHE BOOL "Use external PEXSI")
 SET(USE_EXTERNAL_NTPOLY ON CACHE BOOL "Use external NTPoly")
 
-SET(LIB_PATHS "$ENV{MKLROOT}/lib/intel64 /home/wy29/opt/elpa-2019.05.002/lib /home/wy29/opt/omm/lib /home/wy29/opt/pexsi/src /home/wy29/opt/SuperLU_DIST_6.1.1/lib /home/wy29/opt/scotch_6.0.0/lib /home/wy29/opt/NTPoly/lib /home/wy29/opt/EigenExa-2.4b/lib" CACHE STRING "External library paths")
-SET(INC_PATHS "/home/wy29/opt/elpa-2019.05.002/include /home/wy29/opt/omm/include /home/wy29/opt/pexsi/src /home/wy29/opt/SuperLU_DIST_6.1.1/SRC /home/wy29/opt/scotch_6.0.0/include /home/wy29/opt/NTPoly/include /home/wy29/opt/EigenExa-2.4b/include" CACHE STRING "External library include paths")
+SET(LIB_PATHS "$ENV{MKLROOT}/lib/intel64 /home/wy29/opt/elpa/lib /home/wy29/opt/omm/lib /home/wy29/opt/pexsi/src /home/wy29/opt/SuperLU_DIST_6.1.1/lib /home/wy29/opt/scotch_6.0.0/lib /home/wy29/opt/NTPoly/lib /home/wy29/opt/EigenExa-2.4b/lib" CACHE STRING "External library paths")
+SET(INC_PATHS "/home/wy29/opt/elpa/include /home/wy29/opt/omm/include /home/wy29/opt/pexsi/src /home/wy29/opt/SuperLU_DIST_6.1.1/SRC /home/wy29/opt/scotch_6.0.0/include /home/wy29/opt/NTPoly/include /home/wy29/opt/EigenExa-2.4b/include" CACHE STRING "External library include paths")
 SET(LIBS "OMM MatrixSwitch elpa pexsi superlu_dist ptscotchparmetis ptscotch ptscotcherr scotchmetis scotch scotcherr NTPoly EigenExa mkl_scalapack_lp64 mkl_blacs_intelmpi_lp64 mkl_intel_lp64 mkl_sequential mkl_core" CACHE STRING "External libraries")
