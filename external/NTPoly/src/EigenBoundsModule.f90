@@ -12,9 +12,9 @@ MODULE EigenBoundsModule
        & IncrementMatrix, ScaleMatrix
   USE PSMatrixModule, ONLY : Matrix_ps, ConstructEmptyMatrix, CopyMatrix, &
        & DestructMatrix, GetMatrixTripletList, FillMatrixFromTripletList
-  USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters, &
-       & SolverParameters_init
-  USE TripletListModule
+  USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters
+  USE TripletListModule, ONLY : TripletList_r, TripletList_c, &
+       & AppendToTripletList, DestructTripletList
   USE TripletModule, ONLY : Triplet_r
   USE NTMPIModule
   IMPLICIT NONE
@@ -156,7 +156,7 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = SolverParameters_init()
+       solver_parameters = SolverParameters_t()
        solver_parameters%max_iterations = 10
     END IF
 
@@ -171,7 +171,7 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL ConstructEmptyMatrix(vector2, this)
 
     !! Guess Vector
-    temp_list = ConstructTripletList_r()
+    temp_list = TripletList_r()
     IF (this%process_grid%global_rank .EQ. 0) THEN
        temp_triplet%index_row = 1
        temp_triplet%index_column = 1

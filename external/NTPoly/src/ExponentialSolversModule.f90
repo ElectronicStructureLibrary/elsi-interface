@@ -20,7 +20,7 @@ MODULE ExponentialSolversModule
        & DestructMatrix, FillMatrixIdentity, PrintMatrixInformation
   USE RootSolversModule, ONLY : ComputeRoot
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters, &
-       & SolverParameters_init, DestructSolverParameters
+       & DestructSolverParameters
   USE SquareRootSolversModule, ONLY : SquareRoot
   IMPLICIT NONE
   PRIVATE
@@ -61,7 +61,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = SolverParameters_init()
+       solver_parameters = SolverParameters_t()
     END IF
     sub_solver_parameters = solver_parameters
     psub_solver_parameters = solver_parameters
@@ -178,7 +178,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = SolverParameters_init()
+       solver_parameters = SolverParameters_t()
     END IF
 
     IF (solver_parameters%be_verbose) THEN
@@ -300,7 +300,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = SolverParameters_init()
+       solver_parameters = SolverParameters_t()
     END IF
     psub_solver_parameters = solver_parameters
     psub_solver_parameters%max_iterations = 10
@@ -399,7 +399,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = SolverParameters_init()
+       solver_parameters = SolverParameters_t()
     END IF
     i_sub_solver_parameters = solver_parameters
     p_sub_solver_parameters = solver_parameters
@@ -522,7 +522,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (PRESENT(solver_parameters_in)) THEN
        solver_parameters = solver_parameters_in
     ELSE
-       solver_parameters = SolverParameters_init()
+       solver_parameters = SolverParameters_t()
     END IF
     sub_solver_parameters = solver_parameters
 

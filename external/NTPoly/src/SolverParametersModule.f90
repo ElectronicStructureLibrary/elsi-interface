@@ -37,7 +37,6 @@ MODULE SolverParametersModule
   PUBLIC :: SetParametersLoadBalance
   PUBLIC :: PrintParameters
   PUBLIC :: DestructSolverParameters
-  PUBLIC :: SolverParameters_init
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> The default convergence difference.
   REAL(NTREAL), PARAMETER, PUBLIC :: CONVERGENCE_DIFF_CONST = 1e-6
