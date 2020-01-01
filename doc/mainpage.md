@@ -1,22 +1,32 @@
-Welcome to the documentation of ELSI Interface           {#mainpage}
-==============================================
+Welcome to the API documentation of ELSI {#mainpage}
+========================================
 
-This is the source code documentation of the ELSI interface software. For more information, please visit the <a href="http://elsi-interchange.org">ELSI Interchange</a> website, or contact us via email: elsi-team@duke.edu
+ELSI provides and enhances scalable, open-source software library solutions for electronic structure calculations in materials science, condensed matter physics, chemistry, and many other fields. ELSI focuses on methods that solve or circumvent eigenproblems in electronic structure theory. For more information, please visit the [ELSI Interchange](https://elsi-interchange.org) website, or contact us via [email](mailto:elsi-team@duke.edu).
 
-ELSI provides and enhances scalable, open-source software library solutions for electronic structure theory for simulations in materials science, condensed matter physics, chemistry, molecular biochemistry, and many other fields. ELSI focuses particularly on methods that solve or circumvent eigenvalue problems in the self-consistent field cycle of density-functional theory, the key bottleneck “cubic scaling wall” of electronic structure theory. In addition, the same infrastructure will help overcome other challenging eigenvalue problems as well.
+The eigensolvers and density matrix solvers supported in ELSI include:
 
-We place particular emphasis on efficient support across platforms, from laptop-type computers all the way to the most efficient available massively parallel computers and new architectures (GPU and manycore processors).
+* Shared-memory eigensolvers
 
-The libraries supported and enhanced in ELSI are:
+    * [LAPACK](https://www.netlib.org/lapack): One-stage and two-stage tridiagonalization-based dense eigensolvers.
 
-* <a href="http://elpa.mpcdf.mpg.de">ELPA</a> (massively parallel dense eigensolvers)
+    * [MAGMA](https://icl.utk.edu/magma): GPU-accelerated one-stage and two-stage tridiagonalization-based dense eigensolvers.
 
-* <a href="http://william-dawson.github.io/NTPoly">libOMM</a> (orbital minimization method)
+* Distributed-memory eigensolvers
 
-* <a href="http://esl.cecam.org/LibOMM">libOMM</a> (density matrix purification)
+    * [ELPA](https://elpa.mpcdf.mpg.de): One-stage and two-stage tridiagonalization-based dense eigensolvers.
 
-* <a href="http://pexsi.org">PEXSI</a> (pole expansion and selected inversion)
+    * [EigenEXA](https://www.r-ccs.riken.jp/labs/lpnctrt/en/projects/eigenexa): One-stage tridiagonalization-based and pentadiagonalization-based dense eigensolvers.
 
-* <a href="http://keceli.github.io/SLEPc-SIPs">SLEPc-SIPs</a> (sparse eigensolver based on shift-and-invert spectral transformations)
+    * [SLEPc](https://slepc.upv.es): Sparse eigensolver based on parallel spectrum slicing.
 
-We expect that related strong libraries will be supported by ELSI in the future, providing electronic structure codes and users with a flexible, customizable choice of solutions for the central algebraic problems that are often the bottleneck of our simulations.
+* Distributed-memory density matrix solvers
+
+    * [libOMM](https://esl.cecam.org/LibOMM): Orbital minimization method based on dense linear algebra.
+
+    * [PEXSI](https://pexsi.org): Pole expansion and selected inversion based on sparse linear algebra.
+
+    * [NTPoly](https://william-dawson.github.io/NTPoly): Linear scaling density matrix purification based on sparse linear algebra.
+
+The design of ELSI focues on portability from laptop-type computers all the way up to the most efficient massively parallel supercomputers and new architectures. Work is in progress to support additional solver libraries, providing electronic structure code developers and users with a flexible, customizable choice of solution for the central algebraic problems in large-scale electronic structure simulations.
+
+The ELSI software is adopted by electronic structure code projects such as [DFTB+](https://www.dftbplus.org), DGDFT, [FHI-aims](https://aimsclub.fhi-berlin.mpg.de), and [SIESTA](https://departments.icmab.es/leem/siesta).

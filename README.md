@@ -28,4 +28,4 @@ A User's Guide is available at [`./doc/elsi_manual.pdf`](./doc/elsi_manual.pdf).
 For comments, feedback, and suggestions, please
 [contact the ELSI team](mailto:elsi-team@duke.edu).
 
-Copyright (c) 2015-2019, the ELSI team. All rights reserved.
+Copyright (c) 2015-2020, the ELSI team. All rights reserved.
