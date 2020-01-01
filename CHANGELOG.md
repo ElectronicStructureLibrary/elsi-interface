@@ -6,6 +6,7 @@
 * Added utility subroutines to retrieve the internally computed eigenvalues,
   eigenvectors, and occupation numbers when using density matrix solver
   interfaces with an eigensolver.
+* Fixed Marzari-Vanderbilt broadening.
 
 ### ELPA
 * Interface for externally linked ELPA compatible with ELPA 2019.11.
