@@ -343,6 +343,7 @@ subroutine elsi_print_pexsi_settings(ph,jh)
    character(len=*), parameter :: caller = "elsi_print_pexsi_settings"
 
    call fjson_start_name_object(jh,"solver_settings")
+   call fjson_write_name_value(jh,"pexsi_method",ph%pexsi_options%method)
    call fjson_write_name_value(jh,"pexsi_n_pole",ph%pexsi_options%numPole)
    call fjson_write_name_value(jh,"pexsi_n_point",ph%pexsi_options%nPoints)
    call fjson_write_name_value(jh,"pexsi_np_per_pole",ph%pexsi_np_per_pole)
@@ -363,7 +364,6 @@ subroutine elsi_print_pexsi_settings(ph,jh)
         ph%pexsi_options%numElectronPEXSITolerance)
    call fjson_write_name_value(jh,"pexsi_np_symbfact",&
         ph%pexsi_options%npSymbFact)
-   call fjson_write_name_value(jh,"pexsi_reordering",ph%pexsi_options%ordering)
    call fjson_finish_object(jh)
 
 end subroutine

@@ -62,11 +62,11 @@ module ELSI
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
+   public :: elsi_set_pexsi_method
    public :: elsi_set_pexsi_n_mu
    public :: elsi_set_pexsi_n_pole
    public :: elsi_set_pexsi_np_per_pole
    public :: elsi_set_pexsi_np_symbo
-   public :: elsi_set_pexsi_ordering
    public :: elsi_set_pexsi_temp
    public :: elsi_set_pexsi_mu_min
    public :: elsi_set_pexsi_mu_max

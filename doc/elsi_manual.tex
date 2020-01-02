@@ -967,9 +967,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \textbf{Remarks}
 
-\textbf{1)} When using the pole expansion method based on contour integral, 60 to 100 poles are typically needed to get an accuracy that is comparable with the result obtained from diagonalization. Perform a convergence test if necessary. The electronic entropy is available with this method, and may be accessed via \tcb{elsi\_get\_entropy}.
-
-When using the pole expansion method based on minimax rational approximation, 20 poles are recommended. PEXSI outputs an error message when it detects an unreasonable choice of number of poles. The electronic entropy cannot be computed with this method.
+\textbf{1)} When using the pole expansion method based on contour integral, 60 to 100 poles are typically needed to get an accuracy that is comparable with the result obtained from diagonalization. Perform a convergence test if necessary. When using the pole expansion method based on minimax rational approximation, 20 poles are recommended. PEXSI outputs an error message when it detects an unreasonable choice of number of poles.
 
 \textbf{2)} PEXSI determines the chemical potential by performing Fermi operator expansion at several chemical potential values (referred to as ``points'') in an SCF step, then interpolating the results at all points to the final answer. The \tcb{pexsi\_n\_mu} parameter controls the number of chemical potential ``points'' to be evaluated. Two points followed by a simple linear interpolation often yield reasonable results.
 
@@ -1190,7 +1188,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \textbf{1)} In ELSI, ill-conditioning check of the overlap matrix is enabled by default when ELPA is the chosen solver. It may be disabled by calling \tcb{elsi\_set\_illcond\_check}, and is automatically disabled when the chosen solver is not ELPA. \tcb{ev\_min} and \tcb{ev\_max} are computed only if ill-conditioning check is enabled. Otherwise the return value may be zero.
 
-\textbf{2)} In ELSI, the chemical potential will only be available if one of the density matrix solver interfaces has been called, with ELPA, PEXSI, EigenExa, or NTPoly being the chosen solver. The chemical potential can be retrieved by calling \tcb{elsi\_get\_mu}. The entropy will only be available if one of the density matrix solver interfaces has been called with ELPA, PEXSI (see also \tcb{elsi\_set\_pexsi\_method}), or EigenExa being the chosen solver. ELSI may return zero when the chemical potential or the entropy is not ready.
+\textbf{2)} In ELSI, the chemical potential will only be available if \tcb{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} has been called, with ELPA, PEXSI, SLEPc-SIPs, EigenExa, or NTPoly being the chosen solver. The chemical potential can be retrieved by calling \tcb{elsi\_get\_mu}. The entropy will only be available if \tcb{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} has been called with an eigensolver. ELSI may return zero when the chemical potential or the entropy is not ready.
 
 \textbf{3)} In general, the energy-weighted density matrix is only needed in a late stage of an SCF cycle to evaluate forces. It is, therefore, not calculated when any of the density matrix solver interface is called. When the energy-weighted density matrix is actually needed, it can be requested by calling the \tcb{elsi\_get\_edm} subroutines. These subroutines have the requirement that the corresponding \tcb{elsi\_dm} subroutine must have been invoked. For instance, \tcb{elsi\_get\_edm\_real\_sparse} only makes sense if \tcb{elsi\_dm\_real\_sparse} has been successfully executed.
 

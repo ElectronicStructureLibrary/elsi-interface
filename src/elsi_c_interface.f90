@@ -828,6 +828,21 @@ subroutine c_elsi_set_omm_tol(h_c,tol) bind(C)
 
 end subroutine
 
+subroutine c_elsi_set_pexsi_method(h_c,method) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: method
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_pexsi_method(h_f,method)
+
+end subroutine
+
 subroutine c_elsi_set_pexsi_n_mu(h_c,n_mu) bind(C)
 
    implicit none
@@ -885,21 +900,6 @@ subroutine c_elsi_set_pexsi_np_symbo(h_c,np_symbo) bind(C)
    call c_f_pointer(h_c,h_f)
 
    call elsi_set_pexsi_np_symbo(h_f,np_symbo)
-
-end subroutine
-
-subroutine c_elsi_set_pexsi_ordering(h_c,ordering) bind(C)
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), value, intent(in) :: ordering
-
-   type(elsi_handle), pointer :: h_f
-
-   call c_f_pointer(h_c,h_f)
-
-   call elsi_set_pexsi_ordering(h_f,ordering)
 
 end subroutine
 

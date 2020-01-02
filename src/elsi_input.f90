@@ -12,19 +12,18 @@ module ELSI_INPUT
    use ELSI_DATATYPE, only: elsi_handle,elsi_basic_t
    use ELSI_MPI, only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_SET, only: elsi_set_output,elsi_set_output_log,elsi_set_save_ovlp,&
-       elsi_set_unit_ovlp,elsi_set_zero_def,elsi_set_illcond_check,&
-       elsi_set_illcond_tol,elsi_set_energy_gap,elsi_set_spectrum_width,&
-       elsi_set_dimensionality,elsi_set_extrapolation,elsi_set_elpa_solver,&
-       elsi_set_elpa_n_single,elsi_set_elpa_gpu,elsi_set_elpa_autotune,&
-       elsi_set_omm_flavor,elsi_set_omm_n_elpa,elsi_set_omm_tol,&
-       elsi_set_pexsi_n_mu,elsi_set_pexsi_n_pole,elsi_set_pexsi_np_per_pole,&
+   use ELSI_SET, only: elsi_set_output,elsi_set_output_log,elsi_set_zero_def,&
+       elsi_set_illcond_check,elsi_set_illcond_tol,elsi_set_energy_gap,&
+       elsi_set_spectrum_width,elsi_set_dimensionality,elsi_set_extrapolation,&
+       elsi_set_elpa_solver,elsi_set_elpa_n_single,elsi_set_elpa_gpu,&
+       elsi_set_elpa_autotune,elsi_set_omm_flavor,elsi_set_omm_n_elpa,&
+       elsi_set_omm_tol,elsi_set_pexsi_method,elsi_set_pexsi_n_mu,&
+       elsi_set_pexsi_n_pole,elsi_set_pexsi_np_per_pole,&
        elsi_set_pexsi_np_symbo,elsi_set_pexsi_inertia_tol,&
        elsi_set_eigenexa_method,elsi_set_sips_n_elpa,elsi_set_sips_n_slice,&
-       elsi_set_sips_ev_min,elsi_set_sips_ev_max,elsi_set_ntpoly_method,&
-       elsi_set_ntpoly_tol,elsi_set_ntpoly_filter,elsi_set_magma_solver,&
-       elsi_set_mu_broaden_scheme,elsi_set_mu_broaden_width,elsi_set_mu_tol,&
-       elsi_set_mu_mp_order
+       elsi_set_ntpoly_method,elsi_set_ntpoly_tol,elsi_set_ntpoly_filter,&
+       elsi_set_magma_solver,elsi_set_mu_broaden_scheme,&
+       elsi_set_mu_broaden_width,elsi_set_mu_tol,elsi_set_mu_mp_order
    use ELSI_UTIL, only: elsi_check_init
 
    implicit none
@@ -120,18 +119,6 @@ subroutine elsi_set_input_file(eh,f_name)
          call elsi_check_read(eh%bh,ierr,kwd)
          call elsi_str_to_int(val_str,val_i4)
          call elsi_set_output_log(eh,val_i4)
-      case("save_ovlp")
-         read(msg,*,iostat=ierr) kwd,val_str
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_str_to_int(val_str,val_i4)
-         call elsi_set_save_ovlp(eh,val_i4)
-      case("unit_ovlp")
-         read(msg,*,iostat=ierr) kwd,val_str
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_str_to_int(val_str,val_i4)
-         call elsi_set_unit_ovlp(eh,val_i4)
       case("zero_def")
          read(msg,*,iostat=ierr) kwd,val_r8
 
@@ -205,6 +192,11 @@ subroutine elsi_set_input_file(eh,f_name)
 
          call elsi_check_read(eh%bh,ierr,kwd)
          call elsi_set_omm_tol(eh,val_r8)
+      case("pexsi_method")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_pexsi_method(eh,val_i4)
       case("pexsi_n_mu")
          read(msg,*,iostat=ierr) kwd,val_i4
 
@@ -245,16 +237,6 @@ subroutine elsi_set_input_file(eh,f_name)
 
          call elsi_check_read(eh%bh,ierr,kwd)
          call elsi_set_sips_n_slice(eh,val_i4)
-      case("sips_ev_min")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_sips_ev_min(eh,val_r8)
-      case("sips_ev_max")
-         read(msg,*,iostat=ierr) kwd,val_r8
-
-         call elsi_check_read(eh%bh,ierr,kwd)
-         call elsi_set_sips_ev_max(eh,val_r8)
       case("ntpoly_method")
          read(msg,*,iostat=ierr) kwd,val_i4
 
