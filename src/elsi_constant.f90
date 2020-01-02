@@ -57,6 +57,11 @@ module ELSI_CONSTANT
    integer(kind=i4), parameter :: CUBIC = 3
    integer(kind=i4), parameter :: COLD = 4
 
+   ! PEXSI results
+   integer(kind=i4), parameter :: PEXSI_DM = 0
+   integer(kind=i4), parameter :: PEXSI_EDM = 1
+   integer(kind=i4), parameter :: PEXSI_FDM = 2
+
    ! Density matrix purification methods
    integer(kind=i4), parameter :: NTPOLY_PM = 0
    integer(kind=i4), parameter :: NTPOLY_TRS2 = 1
