@@ -264,7 +264,7 @@ subroutine elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_wt,eval,&
          do i_spin = 1,n_spin
             do i_state = 1,n_state
                arg = (eval(i_state,i_spin,i_kpt)-mu)*invert_width
-               arg = -arg-sqrt(0.5_r8)
+               arg = arg-sqrt(0.5_r8)
 
                occ(i_state,i_spin,i_kpt) = (0.5_r8-erf(arg)*0.5_r8&
                   -INVERT_SQRT_PI*sqrt(0.5_r8)*exp(-arg**2))*spin_degen
