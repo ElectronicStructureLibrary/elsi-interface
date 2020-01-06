@@ -230,6 +230,11 @@ module ELSI_DATATYPE
       integer(kind=i4) :: magma_n_gpus
       logical :: magma_started = .false.
 
+      ! BSEPACK
+      integer(kind=i4) :: bse_n_lrow
+      integer(kind=i4) :: bse_n_lcol
+      integer(kind=i4) :: bse_desc(9)
+
    end type
 
    type, public :: elsi_handle

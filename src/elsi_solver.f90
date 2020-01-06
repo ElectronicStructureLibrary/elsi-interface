@@ -10,9 +10,10 @@
 !!
 module ELSI_SOLVER
 
+   use ELSI_BSEPACK, only: elsi_solve_bsepack
    use ELSI_CONSTANT, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
-       NTPOLY_SOLVER,EIGENEXA_SOLVER,MAGMA_SOLVER,MULTI_PROC,SINGLE_PROC,&
-       PEXSI_CSC,SIESTA_CSC,GENERIC_COO,DECISION_WIP,DECISION_DONE
+       NTPOLY_SOLVER,EIGENEXA_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,MULTI_PROC,&
+       SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,DECISION_WIP,DECISION_DONE
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_DECISION, only: elsi_decide_ev,elsi_decide_dm
    use ELSI_EIGENEXA, only: elsi_init_eigenexa,elsi_solve_eigenexa
@@ -59,6 +60,8 @@ module ELSI_SOLVER
    public :: elsi_dm_complex
    public :: elsi_dm_real_sparse
    public :: elsi_dm_complex_sparse
+   public :: elsi_bse_real
+   public :: elsi_bse_complex
 
 contains
 
@@ -148,8 +151,8 @@ subroutine elsi_init_blacs(eh)
 end subroutine
 
 !>
-!! Compute the eigenvalues and eigenvectors. Note the intent(inout), everything
-!! may be reused in the next call.
+!! Compute the eigenvalues and eigenvectors of a Kohn-Sham problem. Note the
+!! intent(inout), everything may be reused in the next call.
 !!
 subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
 
@@ -159,7 +162,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    real(kind=r8), intent(inout) :: ham(eh%bh%n_lrow,eh%bh%n_lcol) !< Hamiltonian
    real(kind=r8), intent(inout) :: ovlp(eh%bh%n_lrow,eh%bh%n_lcol) !< Overlap
    real(kind=r8), intent(inout) :: eval(eh%ph%n_basis) !< Eigenvalues
-   real(kind=r8), intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
+   real(kind=r8), intent(out) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
    real(kind=r8) :: t0
    integer(kind=i4) :: solver
@@ -254,8 +257,8 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! Compute the eigenvalues and eigenvectors. Note the intent(inout), everything
-!! may be reused in the next call.
+!! Compute the eigenvalues and eigenvectors of a Kohn-Sham problem. Note the
+!! intent(inout), everything may be reused in the next call.
 !!
 subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
 
@@ -265,7 +268,7 @@ subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
    complex(kind=r8), intent(inout) :: ham(eh%bh%n_lrow,eh%bh%n_lcol) !< Hamiltonian
    complex(kind=r8), intent(inout) :: ovlp(eh%bh%n_lrow,eh%bh%n_lcol) !< Overlap
    real(kind=r8), intent(inout) :: eval(eh%ph%n_basis) !< Eigenvalues
-   complex(kind=r8), intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
+   complex(kind=r8), intent(out) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
    real(kind=r8) :: t0
    character(len=29) :: dt0
@@ -302,8 +305,8 @@ subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! Compute the eigenvalues and eigenvectors. Note the intent(inout), everything
-!! may be reused in the next call.
+!! Compute the eigenvalues and eigenvectors of a Kohn-Sham problem. Note the
+!! intent(inout), everything may be reused in the next call.
 !!
 subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
 
@@ -313,7 +316,7 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
    real(kind=r8), intent(inout) :: ham(eh%bh%nnz_l_sp) !< Hamiltonian
    real(kind=r8), intent(inout) :: ovlp(eh%bh%nnz_l_sp) !< Overlap
    real(kind=r8), intent(inout) :: eval(eh%ph%n_basis) !< Eigenvalues
-   real(kind=r8), intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
+   real(kind=r8), intent(out) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
    real(kind=r8) :: t0
    integer(kind=i4) :: solver
@@ -503,8 +506,8 @@ subroutine elsi_ev_real_sparse(eh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! Compute the eigenvalues and eigenvectors. Note the intent(inout), everything
-!! may be reused in the next call.
+!! Compute the eigenvalues and eigenvectors of a Kohn-Sham problem. Note the
+!! intent(inout), everything may be reused in the next call.
 !!
 subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
 
@@ -514,7 +517,7 @@ subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
    complex(kind=r8), intent(inout) :: ham(eh%bh%nnz_l_sp) !< Hamiltonian
    complex(kind=r8), intent(inout) :: ovlp(eh%bh%nnz_l_sp) !< Overlap
    real(kind=r8), intent(inout) :: eval(eh%ph%n_basis) !< Eigenvalues
-   complex(kind=r8), intent(inout) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
+   complex(kind=r8), intent(out) :: evec(eh%bh%n_lrow,eh%bh%n_lcol) !< Eigenvectors
 
    real(kind=r8) :: t0
    character(len=29) :: dt0
@@ -581,8 +584,8 @@ subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! Compute the density matrix. Note the intent(inout), everything may be reused
-!! in the next call.
+!! Compute the density matrix of a Kohn-Sham problem. Note the intent(inout),
+!! everything may be reused in the next call.
 !!
 subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
 
@@ -591,8 +594,8 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
    type(elsi_handle), intent(inout) :: eh !< Handle
    real(kind=r8), intent(inout) :: ham(eh%bh%n_lrow,eh%bh%n_lcol) !< Hamiltonian
    real(kind=r8), intent(inout) :: ovlp(eh%bh%n_lrow,eh%bh%n_lcol) !< Overlap
-   real(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
-   real(kind=r8), intent(inout) :: ebs !< Band structure energy
+   real(kind=r8), intent(out) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
+   real(kind=r8), intent(out) :: ebs !< Band structure energy
 
    real(kind=r8) :: t0
    integer(kind=i4) :: solver
@@ -929,8 +932,8 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
 end subroutine
 
 !>
-!! Compute the density matrix. Note the intent(inout), everything may be reused
-!! in the next call.
+!! Compute the density matrix of a Kohn-Sham problem. Note the intent(inout),
+!! everything may be reused in the next call.
 !!
 subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
 
@@ -939,8 +942,8 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
    type(elsi_handle), intent(inout) :: eh !< Handle
    complex(kind=r8), intent(inout) :: ham(eh%bh%n_lrow,eh%bh%n_lcol) !< Hamiltonian
    complex(kind=r8), intent(inout) :: ovlp(eh%bh%n_lrow,eh%bh%n_lcol) !< Overlap
-   complex(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
-   real(kind=r8), intent(inout) :: ebs !< Band structure energy
+   complex(kind=r8), intent(out) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
+   real(kind=r8), intent(out) :: ebs !< Band structure energy
 
    real(kind=r8) :: t0
    integer(kind=i4) :: solver
@@ -1162,8 +1165,8 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
 end subroutine
 
 !>
-!! Compute the density matrix. Note the intent(inout), everything may be reused
-!! in the next call.
+!! Compute the density matrix of a Kohn-Sham problem. Note the intent(inout),
+!! everything may be reused in the next call.
 !!
 subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
 
@@ -1172,8 +1175,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
    type(elsi_handle), intent(inout) :: eh !< Handle
    real(kind=r8), intent(inout) :: ham(eh%bh%nnz_l_sp) !< Hamiltonian
    real(kind=r8), intent(inout) :: ovlp(eh%bh%nnz_l_sp) !< Overlap
-   real(kind=r8), intent(inout) :: dm(eh%bh%nnz_l_sp) !< Density matrix
-   real(kind=r8), intent(inout) :: ebs !< Band structure energy
+   real(kind=r8), intent(out) :: dm(eh%bh%nnz_l_sp) !< Density matrix
+   real(kind=r8), intent(out) :: ebs !< Band structure energy
 
    real(kind=r8) :: t0
    integer(kind=i4) :: solver
@@ -1822,8 +1825,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
 end subroutine
 
 !>
-!! Compute the density matrix. Note the intent(inout), everything may be reused
-!! in the next call.
+!! Compute the density matrix of a Kohn-Sham problem. Note the intent(inout),
+!! everything may be reused in the next call.
 !!
 subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
 
@@ -1832,8 +1835,8 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
    type(elsi_handle), intent(inout) :: eh !< Handle
    complex(kind=r8), intent(inout) :: ham(eh%bh%nnz_l_sp) !< Hamiltonian
    complex(kind=r8), intent(inout) :: ovlp(eh%bh%nnz_l_sp) !< Overlap
-   complex(kind=r8), intent(inout) :: dm(eh%bh%nnz_l_sp) !< Density matrix
-   real(kind=r8), intent(inout) :: ebs !< Band structure energy
+   complex(kind=r8), intent(out) :: dm(eh%bh%nnz_l_sp) !< Density matrix
+   real(kind=r8), intent(out) :: ebs !< Band structure energy
 
    real(kind=r8) :: t0
    integer(kind=i4) :: solver
@@ -2253,6 +2256,78 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          end select
       end if
    end if
+
+   call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
+
+end subroutine
+
+!>
+!! Compute the eigenvalues and eigenvectors of a Bethe-Salpeter problem.
+!!
+subroutine elsi_bse_real(eh,mat_a,mat_b,eval,evec)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(inout) :: mat_a(eh%bh%n_lrow,eh%bh%n_lcol) !< Matrix A
+   real(kind=r8), intent(in) :: mat_b(eh%bh%n_lrow,eh%bh%n_lcol) !< Matrix B
+   real(kind=r8), intent(out) :: eval(eh%ph%n_basis) !< Eigenvalues
+   real(kind=r8), intent(out) :: evec(eh%ph%bse_n_lrow,eh%ph%bse_n_lcol) !< Eigenvectors
+
+   real(kind=r8) :: t0
+   character(len=29) :: dt0
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_bse_real"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+   call elsi_check(eh%ph,eh%bh,caller)
+   call elsi_get_time(t0)
+   call fjson_get_datetime_rfc3339(dt0)
+
+   select case(eh%ph%solver)
+   case(BSEPACK_SOLVER)
+      call elsi_solve_bsepack(eh%ph,eh%bh,mat_a,mat_b,eval,evec)
+   case default
+      write(msg,"(A)") "Unsupported BSE eigensolver"
+      call elsi_stop(eh%bh,msg,caller)
+   end select
+
+   call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
+
+end subroutine
+
+!>
+!! Compute the eigenvalues and eigenvectors of a Bethe-Salpeter problem.
+!!
+subroutine elsi_bse_complex(eh,mat_a,mat_b,eval,evec)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   complex(kind=r8), intent(inout) :: mat_a(eh%bh%n_lrow,eh%bh%n_lcol) !< Matrix A
+   complex(kind=r8), intent(in) :: mat_b(eh%bh%n_lrow,eh%bh%n_lcol) !< Matrix B
+   real(kind=r8), intent(out) :: eval(eh%ph%n_basis) !< Eigenvalues
+   complex(kind=r8), intent(out) :: evec(eh%ph%bse_n_lrow,eh%ph%bse_n_lcol) !< Eigenvectors
+
+   real(kind=r8) :: t0
+   character(len=29) :: dt0
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_bse_complex"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+   call elsi_check(eh%ph,eh%bh,caller)
+   call elsi_get_time(t0)
+   call fjson_get_datetime_rfc3339(dt0)
+
+   select case(eh%ph%solver)
+   case(BSEPACK_SOLVER)
+      call elsi_solve_bsepack(eh%ph,eh%bh,mat_a,mat_b,eval,evec)
+   case default
+      write(msg,"(A)") "Unsupported BSE eigensolver"
+      call elsi_stop(eh%bh,msg,caller)
+   end select
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
 

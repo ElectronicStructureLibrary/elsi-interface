@@ -9,8 +9,8 @@
 !!
 module ELSI_SETUP
 
-   use ELSI_CONSTANT, only: AUTO_SOLVER,ELPA_SOLVER,PEXSI_SOLVER,SINGLE_PROC,&
-       MULTI_PROC,PEXSI_CSC,SIESTA_CSC,UNSET,DECISION_INIT
+   use ELSI_CONSTANT, only: UNSET,AUTO_SOLVER,ELPA_SOLVER,PEXSI_SOLVER,&
+       BSEPACK_SOLVER,SINGLE_PROC,MULTI_PROC,PEXSI_CSC,SIESTA_CSC,DECISION_INIT
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_EIGENEXA, only: elsi_cleanup_eigenexa
    use ELSI_ELPA, only: elsi_cleanup_elpa
@@ -230,6 +230,19 @@ subroutine elsi_set_blacs(eh,blacs_ctxt,block_size)
       ! Get BLACS descriptor
       call descinit(eh%bh%desc,eh%ph%n_basis,eh%ph%n_basis,eh%bh%blk,eh%bh%blk,&
            0,0,eh%bh%blacs_ctxt,max(1,eh%bh%n_lrow),ierr)
+
+      if(eh%ph%solver == BSEPACK_SOLVER) then
+         ! Get local size of matrix
+         eh%ph%bse_n_lrow = numroc(2*eh%ph%n_basis,eh%bh%blk,eh%bh%my_prow,0,&
+            eh%bh%n_prow)
+         eh%ph%bse_n_lcol = numroc(2*eh%ph%n_basis,eh%bh%blk,eh%bh%my_pcol,0,&
+            eh%bh%n_pcol)
+
+         ! Get BLACS descriptor
+         call descinit(eh%ph%bse_desc,2*eh%ph%n_basis,2*eh%ph%n_basis,&
+              eh%bh%blk,eh%bh%blk,0,0,eh%bh%blacs_ctxt,max(1,eh%ph%bse_n_lrow),&
+              ierr)
+      end if
 
       eh%bh%blacs_ready = .true.
    end if

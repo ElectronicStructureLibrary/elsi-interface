@@ -11,7 +11,8 @@ module ELSI_OUTPUT
 
    use ELSI_CONSTANT, only: MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
        SIESTA_CSC,GENERIC_COO,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-       EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER,MAGMA_SOLVER,METHFESSEL_PAXTON
+       EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,&
+       METHFESSEL_PAXTON
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_PRECISION, only: r8,i4
    use FORTJSON, only: fjson_handle,fjson_reset_fj_handle,fjson_open_file,&
@@ -112,6 +113,8 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
          solver_tag = "NTPOLY"
       case(MAGMA_SOLVER)
          solver_tag = "MAGMA"
+      case(BSEPACK_SOLVER)
+         solver_tag = "BSEPACK"
       end select
 
       call fjson_start_object(jh)
@@ -231,6 +234,8 @@ subroutine elsi_print_handle_summary(ph,bh,jh,caller)
       call fjson_write_name_value(jh,"solver_chosen","NTPOLY")
    case(MAGMA_SOLVER)
       call fjson_write_name_value(jh,"solver_chosen","MAGMA")
+   case(BSEPACK_SOLVER)
+      call fjson_write_name_value(jh,"solver_chosen","BSEPACK")
    end select
 
    call fjson_write_name_value(jh,"save_ovlp",ph%save_ovlp)

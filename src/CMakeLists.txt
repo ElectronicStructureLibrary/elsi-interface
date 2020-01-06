@@ -11,6 +11,7 @@ CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/src/elsi_version.f90.in
 ### Source files ###
 LIST(APPEND elsi_src
   ${PROJECT_BINARY_DIR}/generated/elsi_version.f90
+  elsi_bsepack.f90
   elsi_c_interface.f90
   elsi_constant.f90
   elsi_datatype.f90
@@ -85,6 +86,9 @@ ENDIF()
 IF(NOT USE_EXTERNAL_NTPOLY)
   ADD_DEPENDENCIES(elsi NTPoly)
 ENDIF()
+IF(NOT USE_EXTERNAL_BSEPACK)
+  ADD_DEPENDENCIES(elsi bsepack)
+ENDIF()
 ADD_DEPENDENCIES(elsi fortjson)
 
 IF(NOT USE_EXTERNAL_OMM)
@@ -112,6 +116,9 @@ IF(ENABLE_PEXSI)
 ENDIF()
 IF(NOT USE_EXTERNAL_NTPOLY)
   TARGET_LINK_LIBRARIES(elsi PRIVATE NTPoly)
+ENDIF()
+IF(NOT USE_EXTERNAL_BSEPACK)
+  TARGET_LINK_LIBRARIES(elsi PRIVATE bsepack sseig)
 ENDIF()
 
 TARGET_LINK_LIBRARIES(elsi PRIVATE ${LIBS})
