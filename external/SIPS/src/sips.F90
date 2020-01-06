@@ -559,9 +559,6 @@ CONTAINS
         PetscReal, INTENT(IN)  :: evals(nev)   ! Eigenvalues
         PetscReal, INTENT(OUT) :: subs(nsub+1) ! Subintervals
 
-        PetscInt :: i
-        PetscInt :: ngap
-        PetscInt :: newid
         PetscInt :: ids(nsub)
 
         PetscReal, PARAMETER :: dtol = 0.00001d0 ! Evals within this value

@@ -94,7 +94,7 @@ Enabling the EigenExa solver requires:
 Enabling the SLEPc-SIPs solver requires:
 \begin{Verbatim}[commandchars=\\\{\}]
 \tcb{SLEPc}  [version 3.9 or newer]
-\tcb{PETSc}  [version 3.9 or newer, with SuperLU_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled]
+\tcb{PETSc}  [version 3.9 or newer, with MUMPS and ParMETIS enabled]
 \end{Verbatim}
 
 Enabling the MAGMA solver requires:
@@ -166,7 +166,7 @@ The ELPA, libOMM, PEXSI, and NTPoly solver libraries, as well as the SuperLU\_DI
 
 The redistributed version of ELPA comes with a few ``kernels'' specifically written to take advantage of processor architecture (e.g. vectorization instruction set extensions), which may be chosen by the \tcb{ELPA2\_KERNEL} keyword. Available options are \tcb{AVX}, \tcb{AVX2}, and \tcb{AVX512}, for architectures supporting Intel AVX, AVX2, and AVX512 instruction sets, respectively. In ELPA, these kernels are employed to accelerate the calculation of eigenvectors, which is often a bottleneck when calculating a large portion of the eigenspectrum.
 
-The PEXSI, EigenExa, SLEPc-SIPs, and MAGMA solvers are not enabled by default. They may be activated by the keywords \tcb{ENABLE\_PEXSI}, \tcb{ENABLE\_EIGENEXA}, \tcb{ENABLE\_SIPS}, and \tcb{ENABLE\_MAGMA}, respectively. PEXSI 1.2.0, EigenExa 2.3, 2.4, SLEPc 3.9, 3.10, 3.11, 3.12, and MAGMA 2.5 have been tested with this version of ELSI. Older/newer versions may or may not be compatible. The PETSc library, required by SLEPc, must be compiled with MPI support, and (at least) with packages SuperLU\_DIST, MUMPS, ParMETIS, and PT-SCOTCH enabled.
+The PEXSI, EigenExa, SLEPc-SIPs, and MAGMA solvers are not enabled by default. They may be activated by the keywords \tcb{ENABLE\_PEXSI}, \tcb{ENABLE\_EIGENEXA}, \tcb{ENABLE\_SIPS}, and \tcb{ENABLE\_MAGMA}, respectively. PEXSI 1.2.0, EigenExa 2.3, 2.4, SLEPc 3.9, 3.10, 3.11, 3.12, and MAGMA 2.5 have been tested with this version of ELSI. Older/newer versions may or may not be compatible. The PETSc library, required by SLEPc, must be compiled with MPI support, and (at least) with MUMPS and ParMETIS enabled.
 
 Experienced users are encouraged to link ELSI against external, better optimized solver libraries. The keywords \tcb{USE\_EXTERNAL\_ELPA}, \tcb{USE\_EXTERNAL\_OMM}, \tcb{USE\_EXTERNAL\_PEXSI}, and \tcb{USE\_EXTERNAL\_NTPOLY} control the usage of externally compiled ELPA, libOMM, PEXSI, and NTPoly, respectively.
 
