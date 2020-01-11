@@ -278,14 +278,14 @@ void c_elsi_set_mu_tol(elsi_handle handle_c,
 void c_elsi_set_mu_mp_order(elsi_handle handle_c,
      int mp_order);
 
-void c_elsi_get_initialized(elsi_handle handle_c,
-     int *initialized);
-
 void c_elsi_get_version(int *major,
      int *minor,
      int *patch);
 
 void c_elsi_get_datestamp(int *datestamp);
+
+void c_elsi_get_initialized(elsi_handle handle_c,
+     int *initialized);
 
 void c_elsi_get_n_illcond(elsi_handle handle_c,
      int *n_illcond);

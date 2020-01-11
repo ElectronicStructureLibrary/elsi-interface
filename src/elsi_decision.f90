@@ -181,6 +181,7 @@ subroutine elsi_decide_dm_smart(ph,bh,sparsity)
 
    logical :: try_ntpoly
    logical :: try_pexsi
+   integer(kind=i4) :: pexsi_enabled
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_decide_dm_smart"
@@ -189,7 +190,11 @@ subroutine elsi_decide_dm_smart(ph,bh,sparsity)
    try_pexsi = .true.
 
    ! Is PEXSI enabled?
-   call elsi_solver_info(try_pexsi)
+   call elsi_get_pexsi_enabled(pexsi_enabled)
+
+   if(pexsi_enabled == 0) then
+      try_pexsi = .false.
+   end if
 
    if(ph%n_basis < 20000 .or. sparsity < 0.95_r8) then
       try_pexsi = .false.

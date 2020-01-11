@@ -8,6 +8,7 @@
 \usepackage{titlesec}
 \usepackage{hyperref}
 \usepackage{fancyvrb}
+\usepackage{longtable}
 \addtokomafont{labelinglabel}{\sffamily}
 \titleformat{\chapter}[hang]{\bf\huge}{\thechapter}{2pc}{}
 \geometry{left=1.6cm,right=1.6cm,top=1.6cm,bottom=2cm}
@@ -803,7 +804,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 \item [\hspace{0.3cm} \tcb{elsi\_set\_sing\_tol}(handle, sing\_tol)]
 \end{labeling}
 
-\begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\begin{longtable}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
 \hline
@@ -845,7 +846,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \tcb{sing\_tol}           & real double & $10^{-5}$   & Deprecated. Use \tcb{elsi\_set\_illcond\_tol} instead.\\
 \hline
-\end{tabular}
+\end{longtable}
 
 \textbf{Remarks}
 
@@ -1120,9 +1121,9 @@ In \ref{sec:ev} and \ref{sec:dm}, the interfaces to compute and return the eigen
 \label{subsec:getter_elsi}
 In all the subroutines listed below, the first argument (input and output) is an \texttt{elsi\_handle}. The second argument (output) of each subroutine is the name of the parameter to get.
 \begin{labeling}{\hspace{6cm}}
+\item [\hspace{0.3cm} \tcb{elsi\_get\_version}(major, minor, patch)]
+\item [\hspace{0.3cm} \tcb{elsi\_get\_datestamp}(date\_stamp)]
 \item [\hspace{0.3cm} \tcb{elsi\_get\_initialized}(handle, handle\_init)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_version}(handle, major, minor, patch)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_datestamp}(handle, date\_stamp)]
 \item [\hspace{0.3cm} \tcb{elsi\_get\_n\_illcond}(handle, n\_illcond)]
 \item [\hspace{0.3cm} \tcb{elsi\_get\_ovlp\_ev\_min}(handle, ev\_min)]
 \item [\hspace{0.3cm} \tcb{elsi\_get\_ovlp\_ev\_max}(handle, ev\_max)]
@@ -1143,8 +1144,6 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
 \hline
-\tcb{handle\_init}         & integer                      & 0 if the ELSI handle has not been initialized; 1 if initialized.\\
-\hline
 \tcb{major}                & integer                      & Major version number.\\
 \hline
 \tcb{minor}                & integer                      & Minor version number.\\
@@ -1152,6 +1151,8 @@ In all the subroutines listed below, the first argument (input and output) is an
 \tcb{patch}                & integer                      & Patch level.\\
 \hline
 \tcb{date\_stamp}          & integer                      & Date stamp of ELSI (yyyymmdd).\\
+\hline
+\tcb{handle\_init}         & integer                      & 0 if the ELSI handle has not been initialized; 1 if initialized.\\
 \hline
 \tcb{n\_illcond}           & integer                      & Number of eigenvalues of the overlap matrix that are smaller than the ill-conditioning tolerance. See \ref{subsec:setter_elsi}.\\
 \hline
@@ -1183,7 +1184,6 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \end{tabular}
 
-\newpage
 \textbf{Remarks}
 
 \textbf{1)} In ELSI, ill-conditioning check of the overlap matrix is enabled by default when ELPA is the chosen solver. It may be disabled by calling \tcb{elsi\_set\_illcond\_check}, and is automatically disabled when the chosen solver is not ELPA. \tcb{ev\_min} and \tcb{ev\_max} are computed only if ill-conditioning check is enabled. Otherwise the return value may be zero.
@@ -1234,7 +1234,6 @@ In a single point total energy calculation, a simple way to construct an initial
 \hline
 \end{tabular}
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \tcb{elsi\_orthonormalize\_ev\_complex}(handle, ovlp, evec)]
 \end{labeling}
@@ -1251,6 +1250,7 @@ In a single point total energy calculation, a simple way to construct an initial
 \hline
 \end{tabular}
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \tcb{elsi\_orthonormalize\_ev\_real\_sparse}(handle, ovlp, evec)]
 \end{labeling}
@@ -1321,7 +1321,6 @@ The following subroutines extrapolate density matrix in the n$^\text{th}$ geomet
 \hline
 \end{tabular}
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \tcb{elsi\_extrapolate\_dm\_real\_sparse}(handle, ovlp, dm)]
 \end{labeling}
@@ -1338,6 +1337,7 @@ The following subroutines extrapolate density matrix in the n$^\text{th}$ geomet
 \hline
 \end{tabular}
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \tcb{elsi\_extrapolate\_dm\_complex\_sparse}(handle, ovlp, dm)]
 \end{labeling}
@@ -1372,7 +1372,6 @@ Writing the distributed matrices into $N_\text{procs}$ separate files, where $N_
 \label{subsec:rw_init}
 An \texttt{elsi\_rw\_handle} must be initialized via the \tcb{elsi\_init\_rw} subroutine before any other matrix I/O subroutine may be called. This \texttt{elsi\_rw\_handle} is subsequently passed to all other matrix I/O subroutine calls.
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \tcb{elsi\_init\_rw}(handle, task, parallel\_mode, n\_basis, n\_electron)]
 \end{labeling}
@@ -1393,6 +1392,7 @@ An \texttt{elsi\_rw\_handle} must be initialized via the \tcb{elsi\_init\_rw} su
 \hline
 \end{tabular}
 
+\newpage
 \textbf{Remarks}
 
 \textbf{1)} \tcb{n\_electron}: Matrices written out with ELSI matrix I/O are usually from actual electronic structure calculations. Having the number of electrons available makes the matrix file useful for testing density matrix solvers such as PEXSI. Therefore, it is recommended to set the correct number of electrons when initializing an matrix I/O handle, although setting it to an arbitrary number will not affect the matrix I/O operation.
@@ -1656,7 +1656,6 @@ The following three subroutines read a sparse matrix from file. Before reading a
 \hline
 \end{tabular}
 
-\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \tcb{elsi\_read\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
 \end{labeling}
@@ -1677,6 +1676,7 @@ The following three subroutines read a sparse matrix from file. Before reading a
 \hline
 \end{tabular}
 
+\newpage
 \begin{labeling}{\hspace{6cm}}
 \item [\hspace{0.3cm} \tcb{elsi\_read\_mat\_complex\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
 \end{labeling}
