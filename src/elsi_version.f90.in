@@ -26,20 +26,77 @@ subroutine elsi_version_info(version,datestamp,commit,hostname,datetime)
 end subroutine
 
 !>
-!! Return details about ELSI's installation.
+!! Return 0 if PEXSI has not been enabled; return 1 otherwise.
 !!
-subroutine elsi_solver_info(have_pexsi)
+subroutine elsi_get_pexsi_enabled(pexsi_enabled)
 
    implicit none
 
-   logical, intent(out) :: have_pexsi
+   integer, intent(out) :: pexsi_enabled !< PEXSI is available?
 
    character(len=*), parameter :: tmp = "@ENABLE_PEXSI@"
 
    if(tmp == "ON") then
-      have_pexsi = .true.
+      pexsi_enabled = 1
    else
-      have_pexsi = .false.
+      pexsi_enabled = 0
+   end if
+
+end subroutine
+
+!>
+!! Return 0 if SLEPc-SIPs has not been enabled; return 1 otherwise.
+!!
+subroutine elsi_get_sips_enabled(sips_enabled)
+
+   implicit none
+
+   integer, intent(out) :: sips_enabled !< SLEPc-SIPs is available?
+
+   character(len=*), parameter :: tmp = "@ENABLE_SIPS@"
+
+   if(tmp == "ON") then
+      sips_enabled = 1
+   else
+      sips_enabled = 0
+   end if
+
+end subroutine
+
+!>
+!! Return 0 if EigenExa has not been enabled; return 1 otherwise.
+!!
+subroutine elsi_get_eigenexa_enabled(eigenexa_enabled)
+
+   implicit none
+
+   integer, intent(out) :: eigenexa_enabled !< EigenExa is available?
+
+   character(len=*), parameter :: tmp = "@ENABLE_EIGENEXA@"
+
+   if(tmp == "ON") then
+      eigenexa_enabled = 1
+   else
+      eigenexa_enabled = 0
+   end if
+
+end subroutine
+
+!>
+!! Return 0 if MAGMA has not been enabled; return 1 otherwise.
+!!
+subroutine elsi_get_magma_enabled(magma_enabled)
+
+   implicit none
+
+   integer, intent(out) :: magma_enabled !< MAGMA is available?
+
+   character(len=*), parameter :: tmp = "@ENABLE_MAGMA@"
+
+   if(tmp == "ON") then
+      magma_enabled = 1
+   else
+      magma_enabled = 0
    end if
 
 end subroutine

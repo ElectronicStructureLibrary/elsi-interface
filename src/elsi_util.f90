@@ -256,6 +256,7 @@ subroutine elsi_check(ph,bh,caller)
    type(elsi_basic_t), intent(inout) :: bh
    character(len=*), intent(in) :: caller
 
+   integer(kind=i4) :: solver_enabled
    character(len=200) :: msg
 
    ! General check of solver, parallel mode, matrix format
@@ -386,6 +387,13 @@ subroutine elsi_check(ph,bh,caller)
          call elsi_stop(bh,msg,caller)
       end if
    case(PEXSI_SOLVER)
+      call elsi_get_pexsi_enabled(solver_enabled)
+
+      if(solver_enabled == 0) then
+         write(msg,"(A)") "PEXSI is not enabled in this ELSI installation"
+         call elsi_stop(bh,msg,caller)
+      end if
+
       if(ph%parallel_mode /= MULTI_PROC) then
          write(msg,"(A)") "PEXSI requires MULTI_PROC parallel mode"
          call elsi_stop(bh,msg,caller)
@@ -413,11 +421,25 @@ subroutine elsi_check(ph,bh,caller)
          end if
       end if
    case(EIGENEXA_SOLVER)
+      call elsi_get_eigenexa_enabled(solver_enabled)
+
+      if(solver_enabled == 0) then
+         write(msg,"(A)") "EigenEXA is not enabled in this ELSI installation"
+         call elsi_stop(bh,msg,caller)
+      end if
+
       if(ph%parallel_mode /= MULTI_PROC) then
          write(msg,"(A)") "EigenExa requires MULTI_PROC parallel mode"
          call elsi_stop(bh,msg,caller)
       end if
    case(SIPS_SOLVER)
+      call elsi_get_sips_enabled(solver_enabled)
+
+      if(solver_enabled == 0) then
+         write(msg,"(A)") "SLEPc-SIPs is not enabled in this ELSI installation"
+         call elsi_stop(bh,msg,caller)
+      end if
+
       if(ph%n_basis < bh%n_procs) then
          write(msg,"(A)") "Number of MPI tasks too large"
          call elsi_stop(bh,msg,caller)
@@ -451,6 +473,13 @@ subroutine elsi_check(ph,bh,caller)
          call elsi_stop(bh,msg,caller)
       end if
    case(MAGMA_SOLVER)
+      call elsi_get_magma_enabled(solver_enabled)
+
+      if(solver_enabled == 0) then
+         write(msg,"(A)") "MAGMA is not enabled in this ELSI installation"
+         call elsi_stop(bh,msg,caller)
+      end if
+
       if(ph%parallel_mode /= SINGLE_PROC) then
          write(msg,"(A)") "MAGMA requires SINGLE_PROC parallel mode"
          call elsi_stop(bh,msg,caller)

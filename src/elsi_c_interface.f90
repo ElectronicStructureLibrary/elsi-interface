@@ -1280,21 +1280,6 @@ subroutine c_elsi_set_mu_mp_order(h_c,mp_order) bind(C)
 
 end subroutine
 
-subroutine c_elsi_get_initialized(h_c,initialized) bind(C)
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), intent(out) :: initialized
-
-   type(elsi_handle), pointer :: h_f
-
-   call c_f_pointer(h_c,h_f)
-
-   call elsi_get_initialized(h_f,initialized)
-
-end subroutine
-
 subroutine c_elsi_get_version(major,minor,patch) bind(C)
 
    implicit none
@@ -1314,6 +1299,21 @@ subroutine c_elsi_get_datestamp(datestamp) bind(C)
    integer(kind=c_int), intent(out) :: datestamp
 
    call elsi_get_datestamp(datestamp)
+
+end subroutine
+
+subroutine c_elsi_get_initialized(h_c,initialized) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), intent(out) :: initialized
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_get_initialized(h_f,initialized)
 
 end subroutine
 
