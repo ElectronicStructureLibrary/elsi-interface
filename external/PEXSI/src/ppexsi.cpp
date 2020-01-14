@@ -4596,12 +4596,12 @@ PPEXSIData::DFTDriver2 (
   }
 
 
-  if(muMax - muMin > muInertiaTolerance){
+  if(muMax - muMin > 2.0* muInertiaTolerance){
 
     // do the Inertia Counting
     // Inertia counting loop
-    // Hard coded: max inertia counting 10 steps
-    const Int maxTotalInertiaIter = 10;
+    // Hard coded: max inertia counting 1 steps
+    const Int maxTotalInertiaIter = 1;
 
     if( verbosity >= 1 ){
       PrintBlock( statusOFS, "Inertia counting phase" );
@@ -4614,9 +4614,11 @@ PPEXSIData::DFTDriver2 (
 
       // Number of shifts is exactly determined by the number of
       // independent groups to minimize the cost
-      // However, the minimum number of shifts is 10 to accelerate
-      // convergence.
+      // However, the minimum number of shifts is numMax-muMin/muInertiaTolerance
+      // to make sure muInertiaTolerance works.
       Int numShift = std::max( gridPole_->numProcRow, 10 );
+      numShift = std::min( numShift, (Int) std::ceil( (muMax-muMin)/ muInertiaTolerance) );
+
       std::vector<Real>  shiftVec( numShift );
       std::vector<Real>  inertiaVec( numShift );   // Zero temperature
 
@@ -4699,7 +4701,7 @@ PPEXSIData::DFTDriver2 (
 
       if ( ( ( idxMin == 0 ) && (idxMax == numShift-1 ) ) ||
           ( NeLower[idxMin] == 0 && NeUpper[idxMax] == matrix_size) ||
-          muMax - muMin < muInertiaTolerance ) {
+          muMax - muMin < 2.0* muInertiaTolerance ) {
 
         muMinInertia = shiftVec[idxMin];
         muMaxInertia = shiftVec[idxMax];
@@ -4809,7 +4811,7 @@ PPEXSIData::DFTDriver2 (
 
     GetTime( timePEXSIEnd );
     timePEXSI = timePEXSIEnd - timePEXSISta;
-
+    /*
     if( verbosity >= 1 ) {
       for(int i = 0; i < numShift; i++){
         statusOFS << " MuPEXSI from Point :" << i << " is  " << shiftVec[i]<< " numElectron " << NeVec[i] << std::endl;
@@ -4818,7 +4820,7 @@ PPEXSIData::DFTDriver2 (
         }
       }
     }
-
+    */
     InterpolateDMReal(
         numElectronExact,
         numElectronPEXSI,
@@ -5947,6 +5949,7 @@ void PPEXSIData::InterpolateDMReal(
   MPI_Comm_split( gridPole_->colComm, myPoint, myPointRank, &pointColComm);
   MPI_Comm_split( gridPole_->colComm, myPointRank, myPoint, &pointRowComm);
 
+  bool isMuReasonable = true;
   Int l, idxMin, idxMax;
   idxMin = -1;
   idxMax = nPoints;
@@ -5970,6 +5973,7 @@ void PPEXSIData::InterpolateDMReal(
       muMax = shiftVec[l];
       idxMax = l;
     }
+
   Real mu;
   if(numShift == 1) {
     mu = shiftVec[0];
@@ -6026,79 +6030,141 @@ void PPEXSIData::InterpolateDMReal(
         idxMin = numShift - 2;
     }
 
-    // check if converged.
-    bool isLinearInterplate = true;
-    for(Int mu_idx = idxMin; mu_idx <= idxMax; mu_idx++)
-    {
-      if (std::abs( NeVec[mu_idx] - numElectronExact ) < numElectronPEXSITolerance){
-        mu = shiftVec[mu_idx];
-        numElectronPEXSI = NeVec[mu_idx];
-        isLinearInterplate = false;
-        MPI_Bcast(rhoRealMat_.nzvalLocal.Data(), rhoRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
-        MPI_Bcast(energyDensityRealMat_.nzvalLocal.Data(),
-            energyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
+    for(int i = 0; i < numShift; i++){
+      if( (i < numShift-1 )&& (NeVec[i] > NeVec[i+1]) ) {
+        statusOFS << " MuPEXSI from Point :" << i << " is  " << shiftVec[i]<<
+          " numElectron " << NeVec[i] << std::endl;
+        statusOFS << " MuPEXSI from Point :" << i+1 << " is  " << shiftVec[i+1]<<
+          " numElectron " << NeVec[i+1] << std::endl;
+
+        statusOFS << std::endl << " Warning!"<< std::endl;
+        statusOFS << " Warning! Smaller chemical potential has bigger number of Electrons." << std::endl;
+        statusOFS << " Warning! IT MIGHT TAKE FOREVER TO CONVERGE........................." << std::endl;
+        statusOFS << " Warning: problem found in the evaluation of the number of electrons.";
+        statusOFS << " smaller mu has bigger number of Electons. This usually can be solved by: " << std::endl;
+        statusOFS << "   1. number of poles is not enough for the calculation, try increase the number of poles."
+                  << std::endl;
+        statusOFS << "   2. if the system is a gapped system, try increase the tolerance for interia counting."
+                  << std::endl;
+        statusOFS << "   3. change the tolerance for PEXSI electron tolerance (usually to bigger values)."
+                  << std::endl;
+        statusOFS << std::endl;
+        isMuReasonable = false;
+      }
+    }
+
+    if( isMuReasonable) {
+      // check if converged.
+      bool isLinearInterplate = true;
+      for(Int mu_idx = idxMin; mu_idx <= idxMax; mu_idx++)
+      {
+        if (std::abs( NeVec[mu_idx] - numElectronExact ) < numElectronPEXSITolerance){
+          mu = shiftVec[mu_idx];
+          numElectronPEXSI = NeVec[mu_idx];
+          isLinearInterplate = false;
+
+          // bcast the DM, EDM, FDM
+          MPI_Bcast(rhoRealMat_.nzvalLocal.Data(), rhoRealMat_.nnzLocal, MPI_DOUBLE,
+              mu_idx, pointRowComm);
+          MPI_Bcast(energyDensityRealMat_.nzvalLocal.Data(),
+              energyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
+          MPI_Bcast(freeEnergyDensityRealMat_.nzvalLocal.Data(),
+              freeEnergyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
+
+          if( verbosity >= 1 ) {
+            statusOFS << "PEXSI Converged " <<std::endl;
+            Print( statusOFS, "converged idx               = ", mu_idx);
+            Print( statusOFS, "converged NeVec[mu_idx]     = ", NeVec[mu_idx]);
+            Print( statusOFS, "numElectronTolerance        = ", numElectronPEXSITolerance);
+            Print( statusOFS, "Final mu                    = ", mu);
+          }
+          break;
+        }
+      }
+
+      if(isLinearInterplate) {
+        // Linear interpolation. when not converged.
+        numElectronPEXSI = numElectronExact;
+        mu = shiftVec[idxMin] + (numElectronExact - NeVec[idxMin])/
+          ( NeVec[idxMax] -NeVec[idxMin] ) * (shiftVec[idxMax] - shiftVec[idxMin]);
 
         if( verbosity >= 1 ) {
-          statusOFS << "PEXSI Converged " <<std::endl;
-          Print( statusOFS, "converged idx               = ", mu_idx);
-          Print( statusOFS, "converged NeVec[mu_idx]     = ", NeVec[mu_idx]);
-          Print( statusOFS, "numElectronTolerance        = ", numElectronPEXSITolerance);
-          Print( statusOFS, "Final mu                    = ", mu);
+          statusOFS << " idxMin = " << idxMin << " idxMax = " << idxMax <<std::endl;
+          Print( statusOFS, "idxMin                      = ", idxMin );
+          Print( statusOFS, "NeVec[min]                  = ", NeVec[idxMin] );
+          Print( statusOFS, "idxMax                      = ", idxMax );
+          Print( statusOFS, "NeVec[max]                  = ", NeVec[idxMax] );
+          Print( statusOFS, "Final mu                    = ", mu );
         }
-        break;
+
+        // linear combine density matrix.
+        Real facMin = (NeVec[idxMax]-numElectronExact) / (NeVec[idxMax] - NeVec[idxMin]);
+        Real facMax = (numElectronExact-NeVec[idxMin]) / (NeVec[idxMax] - NeVec[idxMin]);
+
+        DistSparseMatrix<Real> rhoMatMin ;
+        CopyPattern( rhoRealMat_, rhoMatMin );
+        rhoMatMin.nzvalLocal = rhoRealMat_.nzvalLocal;
+        MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
+
+        DistSparseMatrix<Real> rhoMatMax ;
+        CopyPattern( rhoRealMat_, rhoMatMax );
+        rhoMatMax.nzvalLocal = rhoRealMat_.nzvalLocal;
+        MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
+
+        SetValue( rhoRealMat_.nzvalLocal, 0.0 );
+        blas::Axpy( rhoRealMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1,
+            rhoRealMat_.nzvalLocal.Data(), 1 );
+        blas::Axpy( rhoRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1,
+            rhoRealMat_.nzvalLocal.Data(), 1 );
+
+        CopyPattern( energyDensityRealMat_, rhoMatMin );
+        rhoMatMin.nzvalLocal = energyDensityRealMat_.nzvalLocal;
+        MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
+
+        CopyPattern( energyDensityRealMat_, rhoMatMax );
+        rhoMatMax.nzvalLocal = energyDensityRealMat_.nzvalLocal;
+        MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
+
+        SetValue( energyDensityRealMat_.nzvalLocal, 0.0 );
+        blas::Axpy( energyDensityRealMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1,
+            energyDensityRealMat_.nzvalLocal.Data(), 1 );
+        blas::Axpy( energyDensityRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1,
+            energyDensityRealMat_.nzvalLocal.Data(), 1 );
+
+        if( !isEDMCorrection_ ){
+          CopyPattern( freeEnergyDensityRealMat_, rhoMatMin );
+          rhoMatMin.nzvalLocal = freeEnergyDensityRealMat_.nzvalLocal;
+          MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
+
+          CopyPattern( freeEnergyDensityRealMat_, rhoMatMax );
+          rhoMatMax.nzvalLocal = freeEnergyDensityRealMat_.nzvalLocal;
+          MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
+
+          SetValue( freeEnergyDensityRealMat_.nzvalLocal, 0.0 );
+          blas::Axpy( freeEnergyDensityRealMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1,
+              freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
+          blas::Axpy( freeEnergyDensityRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1,
+              freeEnergyDensityRealMat_.nzvalLocal.Data(), 1 );
+        }
+      }
+    }
+    else{
+      // update the DM, EDM, FDM using the 1st point
+      int mu_idx = 0;
+      mu = shiftVec[mu_idx];
+      numElectronPEXSI = NeVec[mu_idx];
+
+      // bcast the DM, EDM, FDM
+      MPI_Bcast(rhoRealMat_.nzvalLocal.Data(), rhoRealMat_.nnzLocal, MPI_DOUBLE,
+          mu_idx, pointRowComm);
+      MPI_Bcast(energyDensityRealMat_.nzvalLocal.Data(),
+          energyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
+      if( !isEDMCorrection_ ){
+        MPI_Bcast(freeEnergyDensityRealMat_.nzvalLocal.Data(),
+            freeEnergyDensityRealMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
       }
     }
 
-    if(isLinearInterplate) {
-      // Linear interpolation. when not converged.
-      numElectronPEXSI = numElectronExact;
-      mu = shiftVec[idxMin] + (numElectronExact - NeVec[idxMin])/
-        ( NeVec[idxMax] -NeVec[idxMin] ) * (shiftVec[idxMax] - shiftVec[idxMin]);
-
-      if( verbosity >= 1 ) {
-        statusOFS << " idxMin = " << idxMin << " idxMax = " << idxMax <<std::endl;
-        Print( statusOFS, "idxMin                      = ", idxMin );
-        Print( statusOFS, "NeVec[min]                  = ", NeVec[idxMin] );
-        Print( statusOFS, "idxMax                      = ", idxMax );
-        Print( statusOFS, "NeVec[max]                  = ", NeVec[idxMax] );
-        Print( statusOFS, "Final mu                    = ", mu );
-      }
-
-      // linear combine density matrix.
-      Real facMin = (NeVec[idxMax]-numElectronExact) / (NeVec[idxMax] - NeVec[idxMin]);
-      Real facMax = (numElectronExact-NeVec[idxMin]) / (NeVec[idxMax] - NeVec[idxMin]);
-
-      DistSparseMatrix<Real> rhoMatMin ;
-      CopyPattern( rhoRealMat_, rhoMatMin );
-      rhoMatMin.nzvalLocal = rhoRealMat_.nzvalLocal;
-      MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
-
-      DistSparseMatrix<Real> rhoMatMax ;
-      CopyPattern( rhoRealMat_, rhoMatMax );
-      rhoMatMax.nzvalLocal = rhoRealMat_.nzvalLocal;
-      MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
-
-      SetValue( rhoRealMat_.nzvalLocal, 0.0 );
-      blas::Axpy( rhoRealMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1,
-          rhoRealMat_.nzvalLocal.Data(), 1 );
-
-      blas::Axpy( rhoRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1,
-          rhoRealMat_.nzvalLocal.Data(), 1 );
-      CopyPattern( energyDensityRealMat_, rhoMatMin );
-      rhoMatMin.nzvalLocal = energyDensityRealMat_.nzvalLocal;
-      MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
-
-      CopyPattern( energyDensityRealMat_, rhoMatMax );
-      rhoMatMax.nzvalLocal = energyDensityRealMat_.nzvalLocal;
-      MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
-
-      SetValue( energyDensityRealMat_.nzvalLocal, 0.0 );
-      blas::Axpy( energyDensityRealMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1,
-          energyDensityRealMat_.nzvalLocal.Data(), 1 );
-
-      blas::Axpy( energyDensityRealMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1,
-          energyDensityRealMat_.nzvalLocal.Data(), 1 );
-    }
     // calculate the totalEnergyH_
     {
       Real local = 0.0;
@@ -6131,7 +6197,6 @@ void PPEXSIData::InterpolateDMReal(
     }
 
   }
-
   // FIXME A placeholder for the FDM -- check check
   // if( isFreeEnergyDensityMatrix )
   if( isEDMCorrection_ )
@@ -6144,16 +6209,22 @@ void PPEXSIData::InterpolateDMReal(
 
   muPEXSI = mu;
 
-  for(l = 0; l < numShift; l++)
-    if( NeVec[l] < numElectronExact - numElectronPEXSITolerance)
-      muMin = shiftVec[l];
+  // not to update the muMin && muMax when results are not reasonable.
+  if( isMuReasonable) {
+    for(l = 0; l < numShift; l++)
+      if( NeVec[l] < numElectronExact - numElectronPEXSITolerance)
+        muMin = shiftVec[l];
 
-  for(l = numShift-1; l >= 0; l--)
-    if( NeVec[l] > numElectronExact + numElectronPEXSITolerance)
-      muMax = shiftVec[l];
+    for(l = numShift-1; l >= 0; l--)
+      if( NeVec[l] > numElectronExact + numElectronPEXSITolerance)
+        muMax = shiftVec[l];
 
-  if ( muMax < muMin )
-    ErrorHandling( " muMax < muMin , Error occured in the PEXSI ");
+    if ( muMax < muMin )
+      ErrorHandling( " muMax < muMin , Error occured in the PEXSI ");
+  }
+  else{
+    statusOFS << " not to update muMin/muMax for mu is not reasonable " << std::endl;
+  }
 
   MPI_Comm_free(&pointColComm);
   MPI_Comm_free(&pointRowComm);
@@ -6186,6 +6257,7 @@ void PPEXSIData::InterpolateDMComplex(
   MPI_Comm_split( gridPole_->colComm, myPoint, myPointRank, &pointColComm);
   MPI_Comm_split( gridPole_->colComm, myPointRank, myPoint, &pointRowComm);
 
+  bool isMuReasonable = true;
   Int l, idxMin, idxMax;
   idxMin = -1;
   idxMax = nPoints;
@@ -6265,79 +6337,122 @@ void PPEXSIData::InterpolateDMComplex(
         idxMin = numShift - 2;
     }
 
-    // check if converged.
-    bool isLinearInterplate = true;
-    for(Int mu_idx = idxMin; mu_idx <= idxMax; mu_idx++)
-    {
-      if (std::abs( NeVec[mu_idx] - numElectronExact ) < numElectronPEXSITolerance){
-        mu = shiftVec[mu_idx];
-        numElectronPEXSI = NeVec[mu_idx];
-        isLinearInterplate = false;
-        MPI_Bcast(rhoComplexMat_.nzvalLocal.Data(), rhoComplexMat_.nnzLocal, MPI_DOUBLE_COMPLEX, mu_idx, pointRowComm);
-        MPI_Bcast(energyDensityComplexMat_.nzvalLocal.Data(),
-            energyDensityComplexMat_.nnzLocal, MPI_DOUBLE_COMPLEX, mu_idx, pointRowComm);
+    for(int i = 0; i < numShift; i++){
+      if( (i < numShift-1 )&& (NeVec[i] > NeVec[i+1]) ) {
+        statusOFS << " MuPEXSI from Point :" << i << " is  " << shiftVec[i]<<
+          " numElectron " << NeVec[i] << std::endl;
+        statusOFS << " MuPEXSI from Point :" << i+1 << " is  " << shiftVec[i+1]<<
+          " numElectron " << NeVec[i+1] << std::endl;
+
+        statusOFS << std::endl << " Warning!"<< std::endl;
+        statusOFS << " Warning! Smaller chemical potential has bigger number of Electrons." << std::endl;
+        statusOFS << " Warning! IT MIGHT TAKE FOREVER TO CONVERGE........................." << std::endl;
+        statusOFS << " Warning: problem found in the evaluation of the number of electrons.";
+        statusOFS << " smaller mu has bigger number of Electons. This usually can be solved by: " << std::endl;
+        statusOFS << "   1. number of poles is not enough for the calculation, try increase the number of poles."
+                  << std::endl;
+        statusOFS << "   2. if the system is a gapped system, try increase the tolerance for interia counting."
+                  << std::endl;
+        statusOFS << "   3. change the tolerance for PEXSI electron tolerance (usually to bigger values)."
+                  << std::endl;
+        statusOFS << std::endl;
+        isMuReasonable = false;
+      }
+    }
+
+
+    if( isMuReasonable) {
+      // check if converged.
+      bool isLinearInterplate = true;
+      for(Int mu_idx = idxMin; mu_idx <= idxMax; mu_idx++)
+      {
+        if (std::abs( NeVec[mu_idx] - numElectronExact ) < numElectronPEXSITolerance){
+          mu = shiftVec[mu_idx];
+          numElectronPEXSI = NeVec[mu_idx];
+          isLinearInterplate = false;
+          MPI_Bcast(rhoComplexMat_.nzvalLocal.Data(), rhoComplexMat_.nnzLocal, MPI_DOUBLE_COMPLEX, mu_idx, pointRowComm);
+          MPI_Bcast(energyDensityComplexMat_.nzvalLocal.Data(),
+              energyDensityComplexMat_.nnzLocal, MPI_DOUBLE_COMPLEX, mu_idx, pointRowComm);
+
+          if( verbosity >= 1 ) {
+            statusOFS << "PEXSI Converged " <<std::endl;
+            Print( statusOFS, "converged idx               = ", mu_idx);
+            Print( statusOFS, "converged NeVec[mu_idx]     = ", NeVec[mu_idx]);
+            Print( statusOFS, "numElectronTolerance        = ", numElectronPEXSITolerance);
+            Print( statusOFS, "Final mu                    = ", mu);
+          }
+          break;
+        }
+      }
+
+      if(isLinearInterplate) {
+        // Linear interpolation. when not converged.
+        numElectronPEXSI = numElectronExact;
+        mu = shiftVec[idxMin] + (numElectronExact - NeVec[idxMin])/
+          ( NeVec[idxMax] -NeVec[idxMin] ) * (shiftVec[idxMax] - shiftVec[idxMin]);
 
         if( verbosity >= 1 ) {
-          statusOFS << "PEXSI Converged " <<std::endl;
-          Print( statusOFS, "converged idx               = ", mu_idx);
-          Print( statusOFS, "converged NeVec[mu_idx]     = ", NeVec[mu_idx]);
-          Print( statusOFS, "numElectronTolerance        = ", numElectronPEXSITolerance);
-          Print( statusOFS, "Final mu                    = ", mu);
+          statusOFS << " idxMin = " << idxMin << " idxMax = " << idxMax <<std::endl;
+          Print( statusOFS, "idxMin                      = ", idxMin );
+          Print( statusOFS, "NeVec[min]                  = ", NeVec[idxMin] );
+          Print( statusOFS, "idxMax                      = ", idxMax );
+          Print( statusOFS, "NeVec[max]                  = ", NeVec[idxMax] );
+          Print( statusOFS, "Final mu                    = ", mu );
         }
-        break;
+
+        // linear combine density matrix.
+        Real facMin = (NeVec[idxMax]-numElectronExact) / (NeVec[idxMax] - NeVec[idxMin]);
+        Real facMax = (numElectronExact-NeVec[idxMin]) / (NeVec[idxMax] - NeVec[idxMin]);
+
+        DistSparseMatrix<Complex> rhoMatMin ;
+        CopyPattern( rhoComplexMat_, rhoMatMin );
+        rhoMatMin.nzvalLocal = rhoComplexMat_.nzvalLocal;
+        MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
+
+        DistSparseMatrix<Complex> rhoMatMax ;
+        CopyPattern( rhoComplexMat_, rhoMatMax );
+        rhoMatMax.nzvalLocal = rhoComplexMat_.nzvalLocal;
+        MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
+
+        SetValue( rhoComplexMat_.nzvalLocal, Z_ZERO );
+        blas::Axpy( rhoComplexMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1,
+            rhoComplexMat_.nzvalLocal.Data(), 1 );
+
+        blas::Axpy( rhoComplexMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1,
+            rhoComplexMat_.nzvalLocal.Data(), 1 );
+        CopyPattern( energyDensityComplexMat_, rhoMatMin );
+        rhoMatMin.nzvalLocal = energyDensityComplexMat_.nzvalLocal;
+        MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
+
+        CopyPattern( energyDensityComplexMat_, rhoMatMax );
+        rhoMatMax.nzvalLocal = energyDensityComplexMat_.nzvalLocal;
+        MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
+
+        SetValue( energyDensityComplexMat_.nzvalLocal, Z_ZERO );
+        blas::Axpy( energyDensityComplexMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1,
+            energyDensityComplexMat_.nzvalLocal.Data(), 1 );
+
+        blas::Axpy( energyDensityComplexMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1,
+            energyDensityComplexMat_.nzvalLocal.Data(), 1 );
+      }
+    }
+    else{
+      // update the DM, EDM, FDM using the 1st point
+      int mu_idx = 0;
+      mu = shiftVec[mu_idx];
+      numElectronPEXSI = NeVec[mu_idx];
+
+      // bcast the DM, EDM, FDM
+      MPI_Bcast(rhoComplexMat_.nzvalLocal.Data(), rhoComplexMat_.nnzLocal, MPI_DOUBLE,
+          mu_idx, pointRowComm);
+      MPI_Bcast(energyDensityComplexMat_.nzvalLocal.Data(),
+          energyDensityComplexMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
+      if( !isEDMCorrection_ ){
+        MPI_Bcast(freeEnergyDensityComplexMat_.nzvalLocal.Data(),
+            freeEnergyDensityComplexMat_.nnzLocal, MPI_DOUBLE, mu_idx, pointRowComm);
       }
     }
 
-    if(isLinearInterplate) {
-      // Linear interpolation. when not converged.
-      numElectronPEXSI = numElectronExact;
-      mu = shiftVec[idxMin] + (numElectronExact - NeVec[idxMin])/
-        ( NeVec[idxMax] -NeVec[idxMin] ) * (shiftVec[idxMax] - shiftVec[idxMin]);
-
-      if( verbosity >= 1 ) {
-        statusOFS << " idxMin = " << idxMin << " idxMax = " << idxMax <<std::endl;
-        Print( statusOFS, "idxMin                      = ", idxMin );
-        Print( statusOFS, "NeVec[min]                  = ", NeVec[idxMin] );
-        Print( statusOFS, "idxMax                      = ", idxMax );
-        Print( statusOFS, "NeVec[max]                  = ", NeVec[idxMax] );
-        Print( statusOFS, "Final mu                    = ", mu );
-      }
-
-      // linear combine density matrix.
-      Real facMin = (NeVec[idxMax]-numElectronExact) / (NeVec[idxMax] - NeVec[idxMin]);
-      Real facMax = (numElectronExact-NeVec[idxMin]) / (NeVec[idxMax] - NeVec[idxMin]);
-
-      DistSparseMatrix<Complex> rhoMatMin ;
-      CopyPattern( rhoComplexMat_, rhoMatMin );
-      rhoMatMin.nzvalLocal = rhoComplexMat_.nzvalLocal;
-      MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
-
-      DistSparseMatrix<Complex> rhoMatMax ;
-      CopyPattern( rhoComplexMat_, rhoMatMax );
-      rhoMatMax.nzvalLocal = rhoComplexMat_.nzvalLocal;
-      MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
-
-      SetValue( rhoComplexMat_.nzvalLocal, Z_ZERO );
-      blas::Axpy( rhoComplexMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1,
-          rhoComplexMat_.nzvalLocal.Data(), 1 );
-
-      blas::Axpy( rhoComplexMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1,
-          rhoComplexMat_.nzvalLocal.Data(), 1 );
-      CopyPattern( energyDensityComplexMat_, rhoMatMin );
-      rhoMatMin.nzvalLocal = energyDensityComplexMat_.nzvalLocal;
-      MPI_Bcast(rhoMatMin.nzvalLocal.Data(), rhoMatMin.nnzLocal, MPI_DOUBLE, idxMin, pointRowComm);
-
-      CopyPattern( energyDensityComplexMat_, rhoMatMax );
-      rhoMatMax.nzvalLocal = energyDensityComplexMat_.nzvalLocal;
-      MPI_Bcast(rhoMatMax.nzvalLocal.Data(), rhoMatMax.nnzLocal, MPI_DOUBLE, idxMax, pointRowComm);
-
-      SetValue( energyDensityComplexMat_.nzvalLocal, Z_ZERO );
-      blas::Axpy( energyDensityComplexMat_.nnzLocal, facMin, rhoMatMin.nzvalLocal.Data(), 1,
-          energyDensityComplexMat_.nzvalLocal.Data(), 1 );
-
-      blas::Axpy( energyDensityComplexMat_.nnzLocal, facMax, rhoMatMax.nzvalLocal.Data(), 1,
-          energyDensityComplexMat_.nzvalLocal.Data(), 1 );
-    }
     // calculate the totalEnergyH_
     {
       Real local = 0.0;
@@ -6383,16 +6498,22 @@ void PPEXSIData::InterpolateDMComplex(
 
   muPEXSI = mu;
 
-  for(l = 0; l < numShift; l++)
-    if( NeVec[l] < numElectronExact - numElectronPEXSITolerance)
-      muMin = shiftVec[l];
+  // not to update the muMin && muMax when results are not reasonable.
+  if( isMuReasonable) {
+    for(l = 0; l < numShift; l++)
+      if( NeVec[l] < numElectronExact - numElectronPEXSITolerance)
+        muMin = shiftVec[l];
 
-  for(l = numShift-1; l >= 0; l--)
-    if( NeVec[l] > numElectronExact + numElectronPEXSITolerance)
-      muMax = shiftVec[l];
+    for(l = numShift-1; l >= 0; l--)
+      if( NeVec[l] > numElectronExact + numElectronPEXSITolerance)
+        muMax = shiftVec[l];
 
-  if ( muMax < muMin )
-    ErrorHandling( " muMax < muMin , Error occured in the PEXSI ");
+    if ( muMax < muMin )
+      ErrorHandling( " muMax < muMin , Error occured in the PEXSI ");
+  }
+  else{
+    statusOFS << " not to update muMin/muMax for mu is not reasonable " << std::endl;
+  }
 
   MPI_Comm_free(&pointColComm);
   MPI_Comm_free(&pointRowComm);
