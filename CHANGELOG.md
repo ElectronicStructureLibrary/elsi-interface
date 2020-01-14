@@ -13,6 +13,8 @@
 
 ### PEXSI
 * Updated redistributed SuperLU\_DIST source code to version 6.2.0.
+* Added support for computing the electronic entropy via the free energy density
+  matrix.
 
 ### Known issues
 * ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
