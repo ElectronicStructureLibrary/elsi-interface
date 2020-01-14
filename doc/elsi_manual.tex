@@ -183,7 +183,7 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 
 \begin{tabular}[]{|p{50mm}|p{15mm}|p{20mm}|p{80mm}|}
 \hline
-\multicolumn{1}{|c|}{\textbf{Option}} & \multicolumn{1}{c|}{\textbf{Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Option}} & \multicolumn{1}{l|}{\textbf{Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{ADD\_UNDERSCORE}          & boolean & ON          & Suffix C functions with an underscore\\
 \hline
@@ -325,13 +325,12 @@ In the source code of ELSI, there may exist subroutines that are not documented 
 \subsection{Initializing ELSI}
 \label{subsec:setup_init}
 The ELSI interface must be initialized via the \tcb{elsi\_init} subroutine before any other ELSI subroutine may be called.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_init}(handle, solver, parallel\_mode, matrix\_format, n\_basis, n\_electron, n\_state)]
-\end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{30mm}|p{15mm}|p{90mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_init}(handle, solver, parallel\_mode, matrix\_format, n\_basis, n\_electron, n\_state)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}         & type(elsi\_handle) & out & Handle to ELSI.\\
 \hline
@@ -405,13 +404,12 @@ Please note that when there is more than one $k$-point, a global MPI communicato
 \subsection{Setting Up MPI}
 \label{subsec:setup_mpi}
 The MPI communicator used by ELSI is passed into ELSI by the calling code via the \tcb{elsi\_set\_mpi} subroutine. When there is more than one $k$-point and/or spin channel, this communicator will be used only for solving one problem corresponding to one $k$-point and one spin channel. See \ref{subsec:setup_kpt} for details.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_mpi}(handle, mpi\_comm)]
-\end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{30mm}|p{15mm}|p{90mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_mpi}(handle, mpi\_comm)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}    & type(elsi\_handle) & inout & Handle to ELSI.\\
 \hline
@@ -424,13 +422,12 @@ The MPI communicator used by ELSI is passed into ELSI by the calling code via th
 Four matrix formats are supported by ELSI, namely 2D block-cyclic distributed dense matrix format (\tcb{BLACS\_DENSE}), 1D block distributed compressed sparse column format (\tcb{PEXSI\_CSC}), 1D block-cyclic distributed compressed sparse column format, (\tcb{SIESTA\_CSC}), arbitrarily distributed coordinate sparse format (\tcb{GENERIC\_COO}).
 
 When using the \tcb{BLACS\_DENSE} format, BLACS parameters are passed into ELSI via the \tcb{elsi\_set\_blacs} subroutine. The matrix format used internally in the ELSI interface and the ELPA solver requires the block sizes of the 2-dimensional block-cyclic distribution are the same in the row and column directions. It is necessary to call this subroutine before calling any solver interface that makes use of the \tcb{BLACS\_DENSE} format.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_blacs}(handle, blacs\_ctxt, block\_size)]
-\end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{30mm}|p{15mm}|p{90mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_blacs}(handle, blacs\_ctxt, block\_size)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}      & type(elsi\_handle) & inout & Handle to ELSI.\\
 \hline
@@ -441,13 +438,12 @@ When using the \tcb{BLACS\_DENSE} format, BLACS parameters are passed into ELSI 
 \end{tabular}
 
 When using the \tcb{PEXSI\_CSC} or \tcb{SIESTA\_CSC} format, the sparsity pattern should be passed into ELSI via the \tcb{elsi\_set\_csc} subroutine. It is necessary to call this subroutine before calling any solver interface that makes use of the CSC sparse matrix formats.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_csc}(handle, global\_nnz, local\_nnz, local\_col, row\_idx, col\_ptr)]
-\end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{35mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_csc}(handle, global\_nnz, local\_nnz, local\_col, row\_idx, col\_ptr)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}      & type(elsi\_handle)    & inout & Handle to ELSI.\\
 \hline
@@ -465,14 +461,11 @@ When using the \tcb{PEXSI\_CSC} or \tcb{SIESTA\_CSC} format, the sparsity patter
 
 The block size of the \tcb{PEXSI\_CSC} format cannot be set by the user. This is because the PEXSI solver requires that the block size must be floor(\tcb{$\text{N}\_\text{basis}$}/\tcb{$\text{N}\_\text{procs}$}), where floor(x) is the greatest integer less than or equal to x, \tcb{\text{N}\_\text{basis}} and \tcb{\text{N}\_\text{procs}} are the number of basis functions and the number of MPI tasks, respectively. The block size of the \tcb{SIESTA\_CSC} must be explicitly set by calling \tcb{elsi\_set\_csc\_blk}.
 
-\newpage
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_csc\_blk}(handle, block\_size)]
-\end{labeling}
-
 \begin{tabular}[]{|p{30mm}|p{30mm}|p{15mm}|p{90mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_csc\_blk}(handle, block\_size)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}      & type(elsi\_handle) & inout & Handle to ELSI.\\
 \hline
@@ -483,13 +476,12 @@ The block size of the \tcb{PEXSI\_CSC} format cannot be set by the user. This is
 In most cases, input and output matrices should be distributed across all MPI tasks. The only exception is when using the PEXSI solver, the sparse density matrix interface \tcb{elsi\_dm\_\{real$\vert$complex\}\_sparse}, and the \tcb{PEXSI\_CSC} matrix format. In this case, an additional parameter, \tcb{pexsi\_np\_per\_pole}, must be set by the user. Input and output matrices should be 1D-block-distributed among the first \tcb{pexsi\_np\_per\_pole} MPI tasks (not all the MPI tasks). Please also read the 2$^\text{nd}$ remark in \ref{subsec:setter_pexsi} for more information.
 
 When using the \tcb{GENERIC\_COO} format, the sparsity pattern should be passed into ELSI via the \tcb{elsi\_set\_coo} subroutine. It is necessary to call this subroutine before calling any solver interface that makes use of the COO sparse matrix format.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_coo}(handle, global\_nnz, local\_nnz, row\_idx, col\_idx)]
-\end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{35mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_coo}(handle, global\_nnz, local\_nnz, row\_idx, col\_idx)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}      & type(elsi\_handle)    & inout & Handle to ELSI.\\
 \hline
@@ -512,13 +504,12 @@ When there is more than one $k$-point and/or spin channel in the simulating syst
 To set up the ELSI interface for a calculation with more than one $k$-point and/or more than one spin channel, the \tcb{elsi\_set\_kpoint} and/or \tcb{elsi\_set\_spin} subroutines are called to pass the required information into ELSI. The MPI communicator for each unit task is passed into ELSI by calling \tcb{elsi\_set\_mpi}. In addition, a global MPI communicator for all tasks is passed into ELSI by calling \tcb{elsi\_set\_mpi\_global}. Note that the current ELSI interface only supports the case where the eigenproblems for all the $k$-points and spin channels are fully parallelized, i.e., there is no MPI task handling more than one $k$-point and/or more than one spin channel. In ELSI, the two spin channels are always coupled by a uniform chemical potential. The distribution of electrons among the two channels, and thus the net spin moment of the system, cannot be specified. Calculations with a fixed, user-specified spin moment can be performed by initializing two independent ELSI instances for the two spin channels.
 
 In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-polarized and/or periodic calculations.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_kpoint}(handle, n\_kpt, i\_kpt, weight)]
-\end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{30mm}|p{15mm}|p{90mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_kpoint}(handle, n\_kpt, i\_kpt, weight)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle) & inout & Handle to ELSI.\\
 \hline
@@ -530,14 +521,11 @@ In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-pol
 \hline
 \end{tabular}
 
-\newpage
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_spin}(handle, n\_spin, i\_spin)]
-\end{labeling}
-
 \begin{tabular}[]{|p{30mm}|p{30mm}|p{15mm}|p{90mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_spin}(handle, n\_spin, i\_spin)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}  & type(elsi\_handle) & inout & Handle to ELSI.\\
 \hline
@@ -547,13 +535,11 @@ In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-pol
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_mpi\_global}(handle, mpi\_comm\_global)]
-\end{labeling}
-
 \begin{tabular}[]{|p{30mm}|p{30mm}|p{15mm}|p{90mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_mpi\_global}(handle, mpi\_comm\_global)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}            & type(elsi\_handle) & inout & Handle to ELSI.\\
 \hline
@@ -561,16 +547,15 @@ In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-pol
 \hline
 \end{tabular}
 
-\subsection{Reinitializaing ELSI}
+\subsection{Re-initializaing ELSI}
 \label{subsec:setup_reinit}
 When a geometry update takes place in geometry optimization or molecular dynamics calculations, the overlap matrix changes due to the movement of localized basis functions. Calling \textbf{elsi\_reinit} instructs ELSI to flush geometry-related variables and arrays that cannot be used in the new geometry step, e.g., the overlap matrix and its sparsity pattern. Other runtime parameters are kept within the ELSI instance and reused throughout multiple geometry steps. Note that the chemical potential determination in PEXSI must be restarted for every new geometry. See the 5$^\text{th}$ remark in \ref{subsec:setter_pexsi} for details.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_reinit}(handle)]
-\end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{30mm}|p{15mm}|p{90mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_reinit}(handle)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle) & inout & Handle to ELSI.\\
 \hline
@@ -579,13 +564,12 @@ When a geometry update takes place in geometry optimization or molecular dynamic
 \subsection{Finalizing ELSI}
 \label{subsec:setup_final}
 When an ELSI instance is no longer needed, its associated handle should be cleaned up by calling \tcb{elsi\_finalize}.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_finalize}(handle)]
-\end{labeling}
 
 \begin{tabular}[]{|p{30mm}|p{30mm}|p{15mm}|p{90mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_finalize}(handle)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle) & inout & Handle to ELSI.\\
 \hline
@@ -594,13 +578,12 @@ When an ELSI instance is no longer needed, its associated handle should be clean
 \section{Solving Eigenvalues and Eigenvectors}
 \label{sec:ev}
 The following subroutines return all the eigenvalues and a subset of eigenvectors of the provided generalized eigenproblem defined by H and S matrices. For standard eigenproblems, please see \tcb{elsi\_set\_unit\_ovlp} in \ref{subsec:setter_elsi}. ELPA, EigenExa, SLEPc-SIPs, or MAGMA may be selected as the solver when using these subroutines.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_ev\_real}(handle, ham, ovlp, eval, evec)]
-\end{labeling}
 
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_ev\_real}(handle, ham, ovlp, eval, evec)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)        & inout & Handle to ELSI.\\
 \hline
@@ -614,13 +597,11 @@ The following subroutines return all the eigenvalues and a subset of eigenvector
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_ev\_complex}(handle, ham, ovlp, eval, evec)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_ev\_complex}(handle, ham, ovlp, eval, evec)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)           & inout & Handle to ELSI.\\
 \hline
@@ -634,15 +615,13 @@ The following subroutines return all the eigenvalues and a subset of eigenvector
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_ev\_real\_sparse}(handle, ham, ovlp, eval, evec)]
-\end{labeling}
-
 \begin{table}[h]
 \centering
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_ev\_real\_sparse}(handle, ham, ovlp, eval, evec)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)        & inout & Handle to ELSI.\\
 \hline
@@ -657,15 +636,13 @@ The following subroutines return all the eigenvalues and a subset of eigenvector
 \end{tabular}
 \end{table}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_ev\_complex\_sparse}(handle, ham, ovlp, eval, evec)]
-\end{labeling}
-
 \begin{table}[h]
 \centering
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_ev\_complex\_sparse}(handle, ham, ovlp, eval, evec)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)           & inout & Handle to ELSI.\\
 \hline
@@ -691,13 +668,12 @@ The following subroutines return all the eigenvalues and a subset of eigenvector
 \section{Computing Density Matrices}
 \label{sec:dm}
 The following subroutines return the density matrix computed from the provided H and S matrices, as well as the band structure energy.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_dm\_real}(handle, ham, ovlp, dm, bs\_energy)]
-\end{labeling}
 
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_dm\_real}(handle, ham, ovlp, dm, e\_bs)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)        & inout & Handle to ELSI.\\
 \hline
@@ -707,17 +683,15 @@ The following subroutines return the density matrix computed from the provided H
 \hline
 \tcb{dm}     & real double, rank-2 array & out   & Real density matrix in 2D block-cyclic dense format.\\
 \hline
-\tcb{energy} & real double               & out   & Band structure energy.\\
+\tcb{e\_bs}  & real double               & out   & Band structure energy.\\
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_dm\_complex}(handle, ham, ovlp, dm, energy)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_dm\_complex}(handle, ham, ovlp, dm, e\_bs)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)           & inout & Handle to ELSI.\\
 \hline
@@ -727,17 +701,15 @@ The following subroutines return the density matrix computed from the provided H
 \hline
 \tcb{dm}     & complex double, rank-2 array & out   & Complex density matrix in 2D block-cyclic dense format.\\
 \hline
-\tcb{energy} & real double                  & out   & Band structure energy.\\
+\tcb{e\_bs}  & real double                  & out   & Band structure energy.\\
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_dm\_real\_sparse}(handle, ham, ovlp, dm, energy)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_dm\_real\_sparse}(handle, ham, ovlp, dm, e\_bs)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)        & inout & Handle to ELSI.\\
 \hline
@@ -747,17 +719,15 @@ The following subroutines return the density matrix computed from the provided H
 \hline
 \tcb{dm}     & real double, rank-1 array & out   & Non-zero values of the real density matrix in 1D block CSC, 1D block-cyclic CSC, or generic COO sparse format.\\
 \hline
-\tcb{energy} & real double               & out   & Band structure energy.\\
+\tcb{e\_bs}  & real double               & out   & Band structure energy.\\
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_dm\_complex\_sparse}(handle, ham, ovlp, dm, energy)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_dm\_complex\_sparse}(handle, ham, ovlp, dm, e\_bs)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)           & inout & Handle to ELSI.\\
 \hline
@@ -767,7 +737,7 @@ The following subroutines return the density matrix computed from the provided H
 \hline
 \tcb{dm}     & complex double, rank-1 array & out   & Non-zero values of the complex density matrix in 1D block CSC, 1D block-cyclic CSC, or generic COO sparse format.\\
 \hline
-\tcb{energy} & real double                  & out   & Band structure energy.\\
+\tcb{e\_bs}  & real double                  & out   & Band structure energy.\\
 \hline
 \end{tabular}
 
@@ -782,31 +752,30 @@ In ELSI, reasonable default values have been provided for a number of parameters
 \subsection{Customizing the ELSI Interface}
 \label{subsec:setter_elsi}
 In all the subroutines listed below, the first argument (input and output) is an elsi\_handle. The second argument (input) of each subroutine is the name of parameter to set. Note that logical variables are not used in ELSI API. Integers are used to represent logical, with 0 being false and any positive integer being true.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_output}(handle, output\_level)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_output\_unit}(handle, output\_unit)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_output\_log}(handle, output\_log)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_save\_ovlp}(handle, save\_ovlp)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_unit\_ovlp}(handle, unit\_ovlp)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_zero\_def}(handle, zero\_def)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_illcond\_check}(handle, illcond\_check)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_illcond\_tol}(handle, illcond\_tol)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_spin\_degeneracy}(handle, spin\_degeneracy)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_energy\_gap}(handle, energy\_gap)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_spectrum\_width}(handle, spectrum\_width)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_dimensionality}(handle, dimensionality)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_mu\_broaden\_scheme}(handle, mu\_broaden\_scheme)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_mu\_broaden\_width}(handle, mu\_broaden\_width)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_mu\_tol}(handle, mu\_tol)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_mu\_mp\_order}(handle, mu\_mp\_order)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_write\_unit}(handle, write\_unit)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_sing\_check}(handle, sing\_check)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_sing\_tol}(handle, sing\_tol)]
-\end{labeling}
 
 \begin{longtable}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_output}(handle, output\_level)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_output\_unit}(handle, output\_unit)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_output\_log}(handle, output\_log)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_save\_ovlp}(handle, save\_ovlp)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_unit\_ovlp}(handle, unit\_ovlp)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_zero\_def}(handle, zero\_def)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_illcond\_check}(handle, illcond\_check)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_illcond\_tol}(handle, illcond\_tol)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_spin\_degeneracy}(handle, spin\_degeneracy)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_energy\_gap}(handle, energy\_gap)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_spectrum\_width}(handle, spectrum\_width)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_dimensionality}(handle, dimensionality)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_mu\_broaden\_scheme}(handle, mu\_broaden\_scheme)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_mu\_broaden\_width}(handle, mu\_broaden\_width)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_mu\_tol}(handle, mu\_tol)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_mu\_mp\_order}(handle, mu\_mp\_order)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_write\_unit}(handle, write\_unit)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_sing\_check}(handle, sing\_check)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_sing\_tol}(handle, sing\_tol)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{output\_level}       & integer     & 0           & Output level of the ELSI interface. 0: no output. 1: standard ELSI output. 2: 1 + info from the solvers. 3: 2 + additional debug info.\\
 \hline
@@ -862,17 +831,15 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \subsection{Customizing the ELPA Solver}
 \label{subsec:setter_elpa}
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_elpa\_solver}(handle, elpa\_solver)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_elpa\_n\_single}(handle, elpa\_n\_single)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_elpa\_gpu}(handle, elpa\_gpu)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_elpa\_autotune}(handle, elpa\_autotune)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_elpa\_gpu\_kernels}(handle, elpa\_gpu\_kernels)]
-\end{labeling}
-
-\begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\begin{longtable}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_elpa\_solver}(handle, elpa\_solver)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_elpa\_n\_single}(handle, elpa\_n\_single)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_elpa\_gpu}(handle, elpa\_gpu)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_elpa\_autotune}(handle, elpa\_autotune)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_elpa\_gpu\_kernels}(handle, elpa\_gpu\_kernels)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{elpa\_solver}       & integer & 2 & 1: ELPA 1-stage solver. 2: ELPA 2-stage solver. The latter is usually faster and more scalable.\\
 \hline
@@ -884,7 +851,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \tcb{elpa\_gpu\_kernels} & integer & 0 & Deprecated. No effect.\\
 \hline
-\end{tabular}
+\end{longtable}
 
 \textbf{Remarks}
 
@@ -896,15 +863,13 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \subsection{Customizing the libOMM Solver}
 \label{subsec:setter_omm}
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_omm\_flavor}(handle, omm\_flavor)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_omm\_n\_elpa}(handle, omm\_n\_elpa)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_omm\_tol}(handle, omm\_tol)]
-\end{labeling}
-
 \begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_omm\_flavor}(handle, omm\_flavor)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_omm\_n\_elpa}(handle, omm\_n\_elpa)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_omm\_tol}(handle, omm\_tol)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{omm\_flavor}  & integer     & 0          & Method to perform OMM minimization. See remark 1.\\
 \hline
@@ -924,23 +889,21 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \subsection{Customizing the PEXSI Solver}
 \label{subsec:setter_pexsi}
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_pexsi\_method}(handle, pexsi\_method)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_pexsi\_n\_pole}(handle, pexsi\_n\_pole)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_pexsi\_n\_mu}(handle, pexsi\_n\_mu)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_pexsi\_np\_per\_pole}(handle, pexsi\_np\_per\_pole)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_pexsi\_np\_symbo}(handle, pexsi\_np\_symbo)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_pexsi\_temp}(handle, pexsi\_temp)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_pexsi\_mu\_min}(handle, pexsi\_mu\_min)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_pexsi\_mu\_max}(handle, pexsi\_mu\_max)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_pexsi\_inertia\_tol}(handle, pexsi\_inertia\_tol)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_pexsi\_gap}(handle, pexsi\_gap)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_pexsi\_delta\_e}(handle, pexsi\_delta\_e)]
-\end{labeling}
-
-\begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\begin{longtable}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_pexsi\_method}(handle, pexsi\_method)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_pexsi\_n\_pole}(handle, pexsi\_n\_pole)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_pexsi\_n\_mu}(handle, pexsi\_n\_mu)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_pexsi\_np\_per\_pole}(handle, pexsi\_np\_per\_pole)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_pexsi\_np\_symbo}(handle, pexsi\_np\_symbo)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_pexsi\_temp}(handle, pexsi\_temp)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_pexsi\_mu\_min}(handle, pexsi\_mu\_min)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_pexsi\_mu\_max}(handle, pexsi\_mu\_max)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_pexsi\_inertia\_tol}(handle, pexsi\_inertia\_tol)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_pexsi\_gap}(handle, pexsi\_gap)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_pexsi\_delta\_e}(handle, pexsi\_delta\_e)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{pexsi\_method}        & integer     & 2     & Pole expansion method used by PEXSI. 1: Contour integral. 2: Minimax rational approximation. See remark 1.\\
 \hline
@@ -964,11 +927,13 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \tcb{pexsi\_delta\_e}      & real double & 10.0  & Deprecated. Use \tcb{elsi\_set\_spectrum\_width} instead.\\
 \hline
-\end{tabular}
+\end{longtable}
 
 \textbf{Remarks}
 
-\textbf{1)} When using the pole expansion method based on contour integral, 60 to 100 poles are typically needed to get an accuracy that is comparable with the result obtained from diagonalization. The electronic entropy is available with this method, and may be accessed via \tcb{elsi\_get\_entropy}. When using the pole expansion method based on minimax rational approximation, 20 to 30 poles are recommended. PEXSI outputs an error message when it detects an unsupported choice of number of poles. The electronic entropy cannot be computed with this method.
+\textbf{1)} When using the pole expansion method based on contour integral, allowed numbers for \tcb{pexsi\_n\_pole} are: 10, 20, 30, ..., 120. 60 to 100 poles are typically needed to get an accuracy that is comparable with the result obtained from diagonalization. The electronic entropy is available with this method, and may be accessed via \tcb{elsi\_get\_entropy}.
+
+When using the pole expansion method based on minimax rational approximation, allowed numbers for \tcb{pexsi\_n\_pole} are: 10, 15, 20, ..., 40. 20 to 30 poles are typically needed to get an accuracy that is comparable with the result obtained from diagonalization. PEXSI outputs an error message when it detects an unsupported choice of number of poles. The electronic entropy cannot be computed with this method.
 
 \textbf{2)} PEXSI determines the chemical potential by performing Fermi operator expansion at several chemical potential values (referred to as ``points'') in an SCF step, then interpolating the results at all points to the final answer. The \tcb{pexsi\_n\_mu} parameter controls the number of chemical potential ``points'' to be evaluated. Two points followed by a simple linear interpolation often yield reasonable results.
 
@@ -982,7 +947,9 @@ when using the \tcb{PEXSI\_CSC} matrix format with the ELPA, libOMM, EigenExa, S
 
 \textbf{4)} \tcb{pexsi\_np\_symbo}: Unless there is a memory bottleneck, using 1 MPI task for matrix reordering and symbolic factorization is favorable. When running in serial, the matrix reordering in PT-SCOTCH or ParMETIS introduces a minimal number of ``fill-ins'' to the factorized matrices. Using more MPI tasks introduces more fill-ins. As the matrix reordering and symbolic factorization are performed only once per SCF cycle (with a fixed overlap matrix), using 1 MPI task should not affect the overall timing too much. On the other hand, more fill-ins lead to slower numerical factorization in every SCF step. In addition, the number of MPI tasks used for matrix reordering and symbolic factorization cannot be too large. Otherwise, the symbolic factorization may fail. Therefore, the default number of MPI tasks for symbolic factorization is 1. It is worth testing and increasing this number for large-scale calculations.
 
-\textbf{5)} \tcb{pexsi\_temp}: This value corresponds to the $1/k_\text{B} T$ term (not $T$) in the Fermi-Dirac distribution function.
+\textbf{5)} \tcb{pexsi\_temp}: This value corresponds to the $k_\text{B} T$ term (not $T$) in the Fermi-Dirac distribution function.
+
+\textbf{6)} The chemical potential determination in PEXSI relies on inertia counting to narrow down the chemical potential searching interval in the first few SCF steps. The \tcb{pexsi\_inertia\_tol} parameter controls the stopping criterion of the inertia counting procedure. With a small interval obtained from the inertia counting step, PEXSI then selects a number of points in this interval to perform Fermi operator calculations, based on which a final chemical potential will be determined. The trick of this algorithm is that the chemical potential interval of the current SCF step can be used as a descent guess in the next SCF step. Therefore, the mechanism to choose input values for \tcb{pexsi\_mu\_min} and \tcb{pexsi\_mu\_max} is two-fold. For the first SCF iteration of each geometry step, they should be set to safe values that guarantee the true chemical potential lies in this interval. Then, for the n$^\text{th}$ SCF step, \tcb{pexsi\_mu\_min} should be set to ($\mu_\text{min}^\text{n-1} + \Delta V_\text{min}$), \tcb{pexsi\_mu\_max} should be set to ($\mu_\text{max}^\text{n-1} + \Delta V_\text{max}$). Here, $\mu_\text{min}^\text{n-1}$ and $\mu_\text{max}^\text{n-1}$ are the lower bound and the upper bound of the chemical potential that are determined by PEXSI in the (n-1)$^\text{th}$ SCF step. They can be retrieved by calling \tcb{elsi\_get\_pexsi\_mu\_min} and \tcb{elsi\_get\_pexsi\_mu\_max}, respectively (see \ref{subsec:getter_pexsi}. Suppose the effective potential (Hartree potential, exchange-correlation potential, and external potential) is stored in an array $V$, whose dimension is the number of grid points. From one SCF iteration to the next, $\Delta V$ denotes the potential change, and $\Delta V_\text{min}$ and $\Delta V_\text{max}$ are the minimum and maximum values in the array $\Delta V$, respectively. The whole process is summarized in the pseudo-code below. The (re-)initialization and finalization of ELSI are omitted.
 
 \begin{tcolorbox}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -1015,19 +982,15 @@ end do
 \end{Verbatim}
 \end{tcolorbox}
 
-\textbf{6)} The chemical potential determination in PEXSI relies on inertia counting to narrow down the chemical potential searching interval in the first few SCF steps. The \tcb{pexsi\_inertia\_tol} parameter controls the stopping criterion of the inertia counting procedure. With a small interval obtained from the inertia counting step, PEXSI then selects a number of points in this interval to perform Fermi operator calculations, based on which a final chemical potential will be determined. The trick of this algorithm is that the chemical potential interval of the current SCF step can be used as a descent guess in the next SCF step. Therefore, the mechanism to choose input values for \tcb{pexsi\_mu\_min} and \tcb{pexsi\_mu\_max} is two-fold. For the first SCF iteration of each geometry step, they should be set to safe values that guarantee the true chemical potential lies in this interval. Then, for the n$^\text{th}$ SCF step, \tcb{pexsi\_mu\_min} should be set to ($\mu_\text{min}^\text{n-1} + \Delta V_\text{min}$), \tcb{pexsi\_mu\_max} should be set to ($\mu_\text{max}^\text{n-1} + \Delta V_\text{max}$). Here, $\mu_\text{min}^\text{n-1}$ and $\mu_\text{max}^\text{n-1}$ are the lower bound and the upper bound of the chemical potential that are determined by PEXSI in the (n-1)$^\text{th}$ SCF step. They can be retrieved by calling \tcb{elsi\_get\_pexsi\_mu\_min} and \tcb{elsi\_get\_pexsi\_mu\_max}, respectively (see \ref{subsec:getter_pexsi}. Suppose the effective potential (Hartree potential, exchange-correlation potential, and external potential) is stored in an array $V$, whose dimension is the number of grid points. From one SCF iteration to the next, $\Delta V$ denotes the potential change, and $\Delta V_\text{min}$ and $\Delta V_\text{max}$ are the minimum and maximum values in the array $\Delta V$, respectively. The whole process is summarized in the pseudo-code above. The (re-)initialization and finalization of ELSI are omitted.
-
-\textbf{7)} \tcb{pexsi\_gap}: The PEXSI method does not require an energy gap. If no knowledge is available, the default value usually works.
+\textbf{7)} \tcb{pexsi\_gap}: The PEXSI method does not require an energy gap. Use the default value if no knowledge is available.
 
 \subsection{Customizing the EigenExa Solver}
 \label{subsec:setter_eigenexa}
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_eigenexa\_method}(handle, eigenexa\_method)]
-\end{labeling}
-
 \begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_eigenexa\_method}(handle, eigenexa\_method)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{eigenexa\_method} & integer & 2 & 1: Tridiagonalization solver eigen\_s. 2: Pentadiagonalization solver eigen\_sx. The latter is usually faster and more scalable.\\
 \hline
@@ -1035,17 +998,15 @@ end do
 
 \subsection{Customizing the SLEPc-SIPs Solver}
 \label{subsec:setter_sips}
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_sips\_ev\_min}(handle, sips\_ev\_min)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_sips\_ev\_max}(handle, sips\_ev\_max)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_sips\_n\_elpa}(handle, sips\_n\_elpa)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_sips\_n\_slice}(handle, sips\_n\_slice)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_sips\_interval}(handle, sips\_lower, sips\_upper)]
-\end{labeling}
-
-\begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\begin{longtable}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_sips\_ev\_min}(handle, sips\_ev\_min)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_sips\_ev\_max}(handle, sips\_ev\_max)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_sips\_n\_elpa}(handle, sips\_n\_elpa)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_sips\_n\_slice}(handle, sips\_n\_slice)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_sips\_interval}(handle, sips\_lower, sips\_upper)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{sips\_ev\_min}  & real double & -2.0 & Lower bound of eigenspectrum. See remark 1.\\
 \hline
@@ -1059,7 +1020,7 @@ end do
 \hline
 \tcb{sips\_upper}    & real double & 2.0  & Deprecated. Use \tcb{elsi\_set\_sips\_ev\_max} instead.\\
 \hline
-\end{tabular}
+\end{longtable}
 
 \textbf{Remarks}
 
@@ -1071,15 +1032,13 @@ end do
 
 \subsection{Customizing the NTPoly Solver}
 \label{subsec:setter_ntpoly}
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_ntpoly\_method}(handle, ntpoly\_method)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_ntpoly\_filter}(handle, ntpoly\_filter)]
-\item [\hspace{0.3cm} \tcb{elsi\_set\_ntpoly\_tol}(handle, ntpoly\_tol)]
-\end{labeling}
-
 \begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_ntpoly\_method}(handle, ntpoly\_method)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_ntpoly\_filter}(handle, ntpoly\_filter)}\\
+\multicolumn{4}{l}{\tcb{elsi\_set\_ntpoly\_tol}(handle, ntpoly\_tol)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{ntpoly\_method} & integer     & 2          & Method to perform density matrix purification. See remark 1.\\
 \hline
@@ -1097,13 +1056,11 @@ end do
 
 \subsection{Customizing the MAGMA Solver}
 \label{subsec:setter_magma}
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_magma\_solver}(handle, magma\_solver)]
-\end{labeling}
-
 \begin{tabular}[]{|p{30mm}|p{20mm}|p{15mm}|p{100mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_magma\_solver}(handle, magma\_solver)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Default}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{magma\_solver} & integer & 1 & 1: MAGMA 1-stage eigensolver. 2: MAGMA 2-stage eigensolver.\\
 \hline
@@ -1115,34 +1072,33 @@ end do
 
 \section{Getting Additional Results from ELSI}
 \label{sec:getter}
-In \ref{sec:ev} and \ref{sec:dm}, the interfaces to compute and return the eigensolutions and the density matrices have been introduced. Internally, ELSI and the solvers perform additional calculations whose results may only be useful at a certain stage of a calculation. One example is the energy-weighted density matrix that is employed to evaluate the Pulay forces during a geometry optimization calculation. The subroutines introduced in the following subsections are used to retrieve such additional results from ELSI.
+In \ref{sec:ev} and \ref{sec:dm}, the interfaces to compute and return the eigensolutions and the density matrices have been introduced. ELSI and the solvers may perform additional calculations whose results are useful at a certain stage of a calculation. One example is the energy-weighted density matrix that is employed to evaluate the Pulay forces during a geometry optimization calculation. The subroutines introduced in the following subsections are used to retrieve such additional results from ELSI.
 
 \subsection{Getting Results from the ELSI Interface}
 \label{subsec:getter_elsi}
 In all the subroutines listed below, the first argument (input and output) is an \texttt{elsi\_handle}. The second argument (output) of each subroutine is the name of the parameter to get.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_get\_version}(major, minor, patch)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_datestamp}(date\_stamp)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_initialized}(handle, handle\_init)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_n\_illcond}(handle, n\_illcond)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_ovlp\_ev\_min}(handle, ev\_min)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_ovlp\_ev\_max}(handle, ev\_max)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_mu}(handle, mu)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_entropy}(handle, ts)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_edm\_real}(handle, edm\_real)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_edm\_complex}(handle, edm\_complex)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_edm\_real\_sparse}(handle, edm\_real\_sparse)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_edm\_complex\_sparse}(handle, edm\_complex\_sparse)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_eval}(handle, eval)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_evec\_real}(handle, evec\_real)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_evec\_complex}(handle, evec\_complex)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_occ}(handle, occ)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_n\_sing}(handle, n\_sing)]
-\end{labeling}
 
-\begin{tabular}[]{|p{30mm}|p{45mm}|p{90mm}|}
+\begin{longtable}[]{|p{30mm}|p{45mm}|p{90mm}|}
+\multicolumn{3}{l}{\tcb{elsi\_get\_version}(major, minor, patch)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_datestamp}(date\_stamp)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_initialized}(handle, handle\_init)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_n\_illcond}(handle, n\_illcond)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_ovlp\_ev\_min}(handle, ev\_min)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_ovlp\_ev\_max}(handle, ev\_max)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_mu}(handle, mu)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_entropy}(handle, ts)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_edm\_real}(handle, edm\_real)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_edm\_complex}(handle, edm\_complex)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_edm\_real\_sparse}(handle, edm\_real\_sparse)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_edm\_complex\_sparse}(handle, edm\_complex\_sparse)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_eval}(handle, eval)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_evec\_real}(handle, evec\_real)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_evec\_complex}(handle, evec\_complex)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_occ}(handle, occ)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_n\_sing}(handle, n\_sing)}\\
+\multicolumn{3}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{major}                & integer                      & Major version number.\\
 \hline
@@ -1182,7 +1138,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \tcb{n\_sing}              & integer                      & Deprecated. Use \tcb{elsi\_get\_n\_illcond} instead.\\
 \hline
-\end{tabular}
+\end{longtable}
 
 \textbf{Remarks}
 
@@ -1196,14 +1152,12 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \subsection{Getting Results from the PEXSI Solver}
 \label{subsec:getter_pexsi}
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_get\_pexsi\_mu\_min}(handle, pexsi\_mu\_min)]
-\item [\hspace{0.3cm} \tcb{elsi\_get\_pexsi\_mu\_max}(handle, pexsi\_mu\_max)]
-\end{labeling}
-
 \begin{tabular}[]{|p{30mm}|p{45mm}|p{90mm}|}
+\multicolumn{3}{l}{\tcb{elsi\_get\_pexsi\_mu\_min}(handle, pexsi\_mu\_min)}\\
+\multicolumn{3}{l}{\tcb{elsi\_get\_pexsi\_mu\_max}(handle, pexsi\_mu\_max)}\\
+\multicolumn{3}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{pexsi\_mu\_min} & real double & Minimum value of mu. See remark 1.\\
 \hline
@@ -1218,13 +1172,12 @@ In all the subroutines listed below, the first argument (input and output) is an
 \subsection{Extrapolation of Wavefunctions and Density Matrices}
 \label{subsec:extrapolation}
 In a single point total energy calculation, a simple way to construct an initial guess of the electron density is using the superposition of free atom densities. In geometry calculations, the initial guess in the (n+1)$^\text{th}$ geometry step can be made better than free atom superposition, by reusing the wavefunctions or density matrix calculated in the n$^\text{th}$ geometry step. However, due to the movement of atoms and localized basis functions around them, wavefunctions obtained in the n$^\text{th}$ geometry step are no longer orthonormalized in the (n+1)$^\text{th}$ geometry step. The following subroutines orthonormalize eigenvectors (coefficients of wavefunctions) in the n$^\text{th}$ geometry step with respect to the overlap matrix in the (n+1)$^\text{th}$ geometry step with a Gram-Schmidt algorithm.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_orthonormalize\_ev\_real}(handle, ovlp, evec)]
-\end{labeling}
 
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_orthonormalize\_ev\_real}(handle, ovlp, evec)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)        & inout & Handle to ELSI.\\
 \hline
@@ -1234,13 +1187,11 @@ In a single point total energy calculation, a simple way to construct an initial
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_orthonormalize\_ev\_complex}(handle, ovlp, evec)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_orthonormalize\_ev\_complex}(handle, ovlp, evec)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)           & inout & Handle to ELSI.\\
 \hline
@@ -1250,14 +1201,11 @@ In a single point total energy calculation, a simple way to construct an initial
 \hline
 \end{tabular}
 
-\newpage
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_orthonormalize\_ev\_real\_sparse}(handle, ovlp, evec)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_orthonormalize\_ev\_real\_sparse}(handle, ovlp, evec)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)        & inout & Handle to ELSI.\\
 \hline
@@ -1267,13 +1215,11 @@ In a single point total energy calculation, a simple way to construct an initial
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_orthonormalize\_ev\_complex\_sparse}(handle, ovlp, evec)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_orthonormalize\_ev\_complex\_sparse}(handle, ovlp, evec)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)           & inout & Handle to ELSI.\\
 \hline
@@ -1285,17 +1231,15 @@ In a single point total energy calculation, a simple way to construct an initial
 
 \textbf{Remarks}
 
-\textbf{1)} When using \tcb{elsi\_orthonormalize\_ev\_\{real$\vert$complex\}\_sparse}, the eigenvectors are stored in a dense format (\tcb{BLACS\_DENSE}), as they are in general not sparse.
+\textbf{1)} Even when using \tcb{elsi\_orthonormalize\_ev\_\{real$\vert$complex\}\_sparse}, the eigenvectors are still stored in a dense format (\tcb{BLACS\_DENSE}), as they are in general not sparse.
 
 The following subroutines extrapolate density matrix in the n$^\text{th}$ geometry step to the overlap matrix in the (n+1)$^\text{th}$ geometry step.
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_extrapolate\_dm\_real}(handle, ovlp, dm)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_extrapolate\_dm\_real}(handle, ovlp, dm)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)        & inout & Handle to ELSI.\\
 \hline
@@ -1305,13 +1249,11 @@ The following subroutines extrapolate density matrix in the n$^\text{th}$ geomet
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_extrapolate\_dm\_complex}(handle, ovlp, dm)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_extrapolate\_dm\_complex}(handle, ovlp, dm)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)           & inout & Handle to ELSI.\\
 \hline
@@ -1321,13 +1263,11 @@ The following subroutines extrapolate density matrix in the n$^\text{th}$ geomet
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_extrapolate\_dm\_real\_sparse}(handle, ovlp, dm)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_extrapolate\_dm\_real\_sparse}(handle, ovlp, dm)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)        & inout & Handle to ELSI.\\
 \hline
@@ -1337,14 +1277,11 @@ The following subroutines extrapolate density matrix in the n$^\text{th}$ geomet
 \hline
 \end{tabular}
 
-\newpage
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_extrapolate\_dm\_complex\_sparse}(handle, ovlp, dm)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_extrapolate\_dm\_complex\_sparse}(handle, ovlp, dm)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_handle)           & inout & Handle to ELSI.\\
 \hline
@@ -1372,13 +1309,11 @@ Writing the distributed matrices into $N_\text{procs}$ separate files, where $N_
 \label{subsec:rw_init}
 An \texttt{elsi\_rw\_handle} must be initialized via the \tcb{elsi\_init\_rw} subroutine before any other matrix I/O subroutine may be called. This \texttt{elsi\_rw\_handle} is subsequently passed to all other matrix I/O subroutine calls.
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_init\_rw}(handle, task, parallel\_mode, n\_basis, n\_electron)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_init\_rw}(handle, task, parallel\_mode, n\_basis, n\_electron)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}         & type(elsi\_rw\_handle) & out & Handle to matrix I/O instance.\\
 \hline
@@ -1392,7 +1327,6 @@ An \texttt{elsi\_rw\_handle} must be initialized via the \tcb{elsi\_init\_rw} su
 \hline
 \end{tabular}
 
-\newpage
 \textbf{Remarks}
 
 \textbf{1)} \tcb{n\_electron}: Matrices written out with ELSI matrix I/O are usually from actual electronic structure calculations. Having the number of electrons available makes the matrix file useful for testing density matrix solvers such as PEXSI. Therefore, it is recommended to set the correct number of electrons when initializing an matrix I/O handle, although setting it to an arbitrary number will not affect the matrix I/O operation.
@@ -1401,13 +1335,11 @@ An \texttt{elsi\_rw\_handle} must be initialized via the \tcb{elsi\_init\_rw} su
 
 The MPI communicator which encloses the MPI tasks to perform the matrix I/O operation needs to be passed into ELSI via the \tcb{elsi\_set\_rw\_mpi} subroutine.
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_rw\_mpi}(handle, mpi\_comm)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_rw\_mpi}(handle, mpi\_comm)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}    & type(elsi\_rw\_handle) & inout & Handle to matrix I/O instance.\\
 \hline
@@ -1416,13 +1348,12 @@ The MPI communicator which encloses the MPI tasks to perform the matrix I/O oper
 \end{tabular}
 
 When reading or writing a dense matrix, BLACS parameters are passed into ELSI via the \tcb{elsi\_set\_rw\_blacs} subroutine.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_rw\_blacs}(handle, blacs\_ctxt, block\_size)]
-\end{labeling}
 
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_rw\_blacs}(handle, blacs\_ctxt, block\_size)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}      & type(elsi\_rw\_handle) & inout & Handle to matrix I/O instance.\\
 \hline
@@ -1434,13 +1365,11 @@ When reading or writing a dense matrix, BLACS parameters are passed into ELSI vi
 
 When writing a sparse matrix, its dimensions are passed into ELSI via the \tcb{elsi\_set\_rw\_csc} subroutine. The only sparse matrix format currently supported by ELSI matrix I/O is the \tcb{PEXSI\_CSC} format. When reading a sparse matrix, there is no need to call this subroutine. The relevant parameters will be read from file when calling \tcb{elsi\_read\_mat\_dim} or \tcb{elsi\_read\_mat\_dim\_sparse}.
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_rw\_csc}(handle, global\_nnz, local\_nnz, local\_col)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_rw\_csc}(handle, global\_nnz, local\_nnz, local\_col)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}      & type(elsi\_rw\_handle) & inout & Handle to matrix I/O instance.\\
 \hline
@@ -1453,13 +1382,12 @@ When writing a sparse matrix, its dimensions are passed into ELSI via the \tcb{e
 \end{tabular}
 
 When a matrix I/O instance is no longer needed, its associated handle should be cleaned up by calling \tcb{elsi\_finalize\_rw}.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_finalize\_rw}(handle)]
-\end{labeling}
 
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_finalize\_rw}(handle)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_rw\_handle) & inout & Handle to matrix I/O instance.\\
 \hline
@@ -1468,13 +1396,12 @@ When a matrix I/O instance is no longer needed, its associated handle should be 
 \subsection{Writing Matrices}
 \label{subsec:rw_write}
 The following two subroutines write a dense matrix to file. Before writing a dense matrix, MPI and BLACS should be set up properly using \tcb{elsi\_set\_rw\_mpi} and \tcb{elsi\_set\_rw\_blacs}.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_write\_mat\_real}(handle, filename, mat)]
-\end{labeling}
 
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_write\_mat\_real}(handle, filename, mat)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}   & type(elsi\_rw\_handle)    & in & Handle to matrix I/O instance.\\
 \hline
@@ -1484,13 +1411,11 @@ The following two subroutines write a dense matrix to file. Before writing a den
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_write\_mat\_complex}(handle, filename, mat)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_write\_mat\_complex}(handle, filename, mat)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}   & type(elsi\_rw\_handle)       & in & Handle to matrix I/O instance.\\
 \hline
@@ -1502,13 +1427,11 @@ The following two subroutines write a dense matrix to file. Before writing a den
 
 The following two subroutines write a sparse matrix to file. Before writing a sparse matrix, MPI and CSC matrix format should be set up properly using \tcb{elsi\_set\_rw\_mpi} and \tcb{elsi\_set\_rw\_csc}.
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_write\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_write\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}   & type(elsi\_rw\_handle)    & in & Handle to matrix I/O instance.\\
 \hline
@@ -1522,13 +1445,11 @@ The following two subroutines write a sparse matrix to file. Before writing a sp
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_write\_mat\_complex\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_write\_mat\_complex\_sparse}(handle, filename, row\_idx, col\_ptr, mat)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}   & type(elsi\_rw\_handle)       & in & Handle to matrix I/O instance.\\
 \hline
@@ -1543,13 +1464,12 @@ The following two subroutines write a sparse matrix to file. Before writing a sp
 \end{tabular}
 
 When writing a dense matrix to file, values smaller than a predefined threshold will be discarded. The default value of this threshold is $10^{-15}$. It can be overridden via \tcb{elsi\_set\_rw\_zero\_def}.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_rw\_zero\_def}(handle, zero\_def)]
-\end{labeling}
 
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_rw\_zero\_def}(handle, zero\_def)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}    & type(elsi\_rw\_handle) & inout & Handle to matrix I/O instance.\\
 \hline
@@ -1558,13 +1478,12 @@ When writing a dense matrix to file, values smaller than a predefined threshold 
 \end{tabular}
 
 An array of eight user-defined integers can be optionally set up via \tcb{elsi\_set\_rw\_header}. This array will be attached to the matrix file written out by the above subroutines. When reading a matrix file, this array may be retrieved via \tcb{elsi\_get\_rw\_header}.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_set\_rw\_header}(handle, header)]
-\end{labeling}
 
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_set\_rw\_header}(handle, header)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_rw\_handle) & inout & Handle to matrix I/O instance.\\
 \hline
@@ -1577,13 +1496,12 @@ An array of eight user-defined integers can be optionally set up via \tcb{elsi\_
 The following subroutines read a dense or sparse matrix from file. While writing a matrix to file can be done in one step, it is easier to read a matrix from file in two steps, i.e., first read the dimension of the matrix and allocate memory accordingly, then read the actual data of the matrix.
 
 The following three subroutines read a dense matrix from file. Before reading a dense matrix, MPI and BLACS should be set up properly using \tcb{elsi\_set\_rw\_mpi} and \tcb{elsi\_set\_rw\_blacs}. \tcb{elsi\_read\_mat\_dim} is used to read the dimension of a matrix, including the number of electrons in the physical system (for testing purpose), the global size of the matrix, and the local size of the matrix. Memory needs to be allocated according to the return values of \tcb{local\_row} and \tcb{local\_col}. Then \tcb{elsi\_read\_mat\_\{real$\vert$complex\}} may be called to read a real or complex matrix, respectively.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_read\_mat\_dim}(handle, filename, n\_electron, n\_basis, local\_row, local\_col)]
-\end{labeling}
 
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_read\_mat\_dim}(handle, filename, n\_electron, n\_basis, local\_row, local\_col)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}      & type(elsi\_rw\_handle) & inout & Handle to matrix I/O instance.\\
 \hline
@@ -1599,13 +1517,11 @@ The following three subroutines read a dense matrix from file. Before reading a 
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_read\_mat\_real}(handle, filename, mat)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_read\_mat\_real}(handle, filename, mat)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}   & type(elsi\_rw\_handle)    & inout & Handle to matrix I/O instance.\\
 \hline
@@ -1615,13 +1531,11 @@ The following three subroutines read a dense matrix from file. Before reading a 
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_read\_mat\_complex}(handle, filename, mat)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_read\_mat\_complex}(handle, filename, mat)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}   & type(elsi\_rw\_handle)       & inout & Handle to matrix I/O instance.\\
 \hline
@@ -1632,13 +1546,12 @@ The following three subroutines read a dense matrix from file. Before reading a 
 \end{tabular}
 
 The following three subroutines read a sparse matrix from file. Before reading a sparse matrix, MPI should be set up properly using \tcb{elsi\_set\_rw\_mpi}. \tcb{elsi\_read\_mat\_dim\_sparse} is used to read the dimension of a matrix, including the number of electrons in the physical system (for testing purpose), the global size of the matrix, and the local size of the matrix. Memory needs to be allocated according to the return values of \tcb{local\_nnz} and \tcb{local\_col}. Then \tcb{elsi\_read\_mat\_\{real$\vert$complex\}\_sparse} may be called to read a real or complex matrix, respectively.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_read\_mat\_dim\_sparse}(handle, filename, n\_electron, n\_basis, global\_nnz, local\_nnz, local\_col)]
-\end{labeling}
 
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_read\_mat\_dim\_sparse}(handle, filename, n\_electron, n\_basis, global\_nnz, local\_nnz, local\_col)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}      & type(elsi\_rw\_handle) & inout & Handle to matrix I/O instance.\\
 \hline
@@ -1656,13 +1569,11 @@ The following three subroutines read a sparse matrix from file. Before reading a
 \hline
 \end{tabular}
 
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_read\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_read\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}   & type(elsi\_rw\_handle)    & inout & Handle to matrix I/O instance.\\
 \hline
@@ -1676,14 +1587,11 @@ The following three subroutines read a sparse matrix from file. Before reading a
 \hline
 \end{tabular}
 
-\newpage
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_read\_mat\_complex\_sparse}(handle, filename, row\_idx, col\_ptr, mat)]
-\end{labeling}
-
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_read\_mat\_complex\_sparse}(handle, filename, row\_idx, col\_ptr, mat)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle}   & type(elsi\_rw\_handle)       & inout & Handle to matrix I/O instance.\\
 \hline
@@ -1698,13 +1606,12 @@ The following three subroutines read a sparse matrix from file. Before reading a
 \end{tabular}
 
 An array of eight user-defined integers can be optionally set up via \tcb{elsi\_set\_rw\_header}. This array will be attached to the matrix file written out by the above subroutines. When reading a matrix file, this array may be retrieved via \tcb{elsi\_get\_rw\_header}.
-\begin{labeling}{\hspace{6cm}}
-\item [\hspace{0.3cm} \tcb{elsi\_get\_rw\_header}(handle, header)]
-\end{labeling}
 
 \begin{tabular}[]{|p{20mm}|p{45mm}|p{15mm}|p{85mm}|}
+\multicolumn{4}{l}{\tcb{elsi\_get\_rw\_header}(handle, header)}\\
+\multicolumn{4}{l}{}\\
 \hline
-\multicolumn{1}{|c|}{\textbf{Argument}} & \multicolumn{1}{c|}{\textbf{Data Type}} & \multicolumn{1}{c|}{\textbf{in/out}} & \multicolumn{1}{c|}{\textbf{Explanation}}\\
+\multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
 \tcb{handle} & type(elsi\_rw\_handle) & inout & Handle to matrix I/O instance.\\
 \hline
