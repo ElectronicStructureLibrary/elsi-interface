@@ -1178,8 +1178,8 @@ subroutine elsi_set_pexsi_default(ph)
 
    call f_ppexsi_set_default_options(ph%pexsi_options)
 
-   ! Pole expansion method 2 for now (PEXSI default 3)
-   ph%pexsi_options%method = 2
+   ! Increase number of poles from 20 to 30
+   ph%pexsi_options%numPole = 30
 
 end subroutine
 
