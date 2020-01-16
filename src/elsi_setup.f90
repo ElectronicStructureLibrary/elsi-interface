@@ -407,7 +407,6 @@ subroutine elsi_reinit(eh)
       eh%ph%n_good = eh%ph%n_basis
       eh%ph%first_blacs_to_ntpoly = .true.
       eh%ph%first_blacs_to_pexsi = .true.
-      eh%ph%first_blacs_to_sips = .true.
       eh%ph%first_generic_to_blacs = .true.
       eh%ph%first_generic_to_ntpoly = .true.
       eh%ph%first_generic_to_pexsi = .true.
@@ -426,6 +425,7 @@ subroutine elsi_reinit(eh)
       call elsi_cleanup_pexsi(eh%ph)
       call elsi_cleanup_sips(eh%ph)
 
+      ! Dense
       if(allocated(eh%evec_real)) then
          call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
       end if
@@ -434,6 +434,7 @@ subroutine elsi_reinit(eh)
          call elsi_deallocate(eh%bh,eh%evec_cmplx,"evec_cmplx")
       end if
 
+      ! Sparse
       if(allocated(eh%ham_real_sp)) then
          call elsi_deallocate(eh%bh,eh%ham_real_sp,"ham_real_sp")
       end if
@@ -482,6 +483,7 @@ subroutine elsi_reinit(eh)
          call elsi_deallocate(eh%bh,eh%col_ind_sp3,"col_ind_sp3")
       end if
 
+      ! Matrix redistribution
       if(allocated(eh%map_den)) then
          call elsi_deallocate(eh%bh,eh%map_den,"map_den")
       end if
@@ -494,6 +496,7 @@ subroutine elsi_reinit(eh)
          call elsi_deallocate(eh%bh,eh%perm_sp3,"perm_sp3")
       end if
 
+      ! Auxiliary
       if(.not. eh%ph%solver == ELPA_SOLVER) then
          if(allocated(eh%ovlp_real_copy)) then
             call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
@@ -544,7 +547,7 @@ subroutine elsi_cleanup(eh)
    call elsi_cleanup_sips(eh%ph)
    call elsi_cleanup_magma(eh%ph)
 
-   ! Dense arrays
+   ! Dense
    if(allocated(eh%ham_real_den)) then
       call elsi_deallocate(eh%bh,eh%ham_real_den,"ham_real_den")
    end if
@@ -581,7 +584,7 @@ subroutine elsi_cleanup(eh)
       call elsi_deallocate(eh%bh,eh%dm_cmplx_den,"dm_cmplx_den")
    end if
 
-   ! Sparse arrays
+   ! Sparse
    if(allocated(eh%ham_real_sp)) then
       call elsi_deallocate(eh%bh,eh%ham_real_sp,"ham_real_sp")
    end if
@@ -630,7 +633,20 @@ subroutine elsi_cleanup(eh)
       call elsi_deallocate(eh%bh,eh%col_ind_sp3,"col_ind_sp3")
    end if
 
-   ! Auxiliary arrays
+   ! Matrix redistribution
+   if(allocated(eh%map_den)) then
+      call elsi_deallocate(eh%bh,eh%map_den,"map_den")
+   end if
+
+   if(allocated(eh%map_sp1)) then
+      call elsi_deallocate(eh%bh,eh%map_sp1,"map_sp1")
+   end if
+
+   if(allocated(eh%perm_sp3)) then
+      call elsi_deallocate(eh%bh,eh%perm_sp3,"perm_sp3")
+   end if
+
+   ! Auxiliary
    if(allocated(eh%ovlp_real_copy)) then
       call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
    end if
@@ -653,18 +669,6 @@ subroutine elsi_cleanup(eh)
 
    if(allocated(eh%pexsi_ne_vec)) then
       call elsi_deallocate(eh%bh,eh%pexsi_ne_vec,"pexsi_ne_vec")
-   end if
-
-   if(allocated(eh%map_den)) then
-      call elsi_deallocate(eh%bh,eh%map_den,"map_den")
-   end if
-
-   if(allocated(eh%map_sp1)) then
-      call elsi_deallocate(eh%bh,eh%map_sp1,"map_sp1")
-   end if
-
-   if(allocated(eh%perm_sp3)) then
-      call elsi_deallocate(eh%bh,eh%perm_sp3,"perm_sp3")
    end if
 
    if(eh%bh%json_init) then

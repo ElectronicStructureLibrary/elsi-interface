@@ -130,7 +130,6 @@ module ELSI_DATATYPE
       ! Matrix redistribution
       logical :: first_blacs_to_ntpoly
       logical :: first_blacs_to_pexsi
-      logical :: first_blacs_to_sips
       logical :: first_generic_to_blacs
       logical :: first_generic_to_ntpoly
       logical :: first_generic_to_pexsi
@@ -268,13 +267,15 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: row_ind_sp3(:)
       integer(kind=i4), allocatable :: col_ind_sp3(:)
 
+      ! Matrix redistribution
+      integer(kind=i4), allocatable :: map_den(:,:)
+      integer(kind=i4), allocatable :: map_sp1(:)
+      integer(kind=i4), allocatable :: perm_sp3(:)
+
       ! Auxiliary
       real(kind=r8), allocatable :: ovlp_real_copy(:,:)
       complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
       real(kind=r8), allocatable :: occ(:,:,:)
-      integer(kind=i4), allocatable :: map_den(:,:)
-      integer(kind=i4), allocatable :: map_sp1(:)
-      integer(kind=i4), allocatable :: perm_sp3(:)
       real(kind=r8), allocatable :: omm_c_real(:,:)
       complex(kind=r8), allocatable :: omm_c_cmplx(:,:)
       real(kind=r8), allocatable :: pexsi_ne_vec(:)
