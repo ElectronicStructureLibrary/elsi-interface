@@ -401,7 +401,6 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
@@ -500,9 +499,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 
    ! Redistribute packed data
    ! Row id
-   call elsi_allocate(bh,row_recv,bh%nnz_l_sp,"row_recv",caller)
-
-   call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
+   call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_ind,&
         recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -545,25 +542,22 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_recv,kind=i8)
+   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind,kind=i8)
 
-   ! Sort
-   call elsi_heapsort(bh%nnz_l_sp,gid,perm)
-   call elsi_permute(bh%nnz_l_sp,perm,ham_sp)
-   call elsi_permute(bh%nnz_l_sp,perm,row_recv)
-   call elsi_permute(bh%nnz_l_sp,perm,col_recv)
+   ! Only 1st pole computes row index and column pointer
+   if(ph%pexsi_my_prow == 0) then
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp,gid,perm)
+      call elsi_permute(bh%nnz_l_sp,perm,ham_sp)
+      call elsi_permute(bh%nnz_l_sp,perm,row_ind)
 
-   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
-      call elsi_permute(bh%nnz_l_sp,perm,ovlp_sp)
-   end if
+      if(ph%first_blacs_to_pexsi) then
+         call elsi_permute(bh%nnz_l_sp,perm,col_recv)
 
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
+         if(.not. ph%unit_ovlp) then
+            call elsi_permute(bh%nnz_l_sp,perm,ovlp_sp)
+         end if
 
-   if(ph%first_blacs_to_pexsi) then
-      ! Only 1st pole computes row index and column pointer
-      if(ph%pexsi_my_prow == 0) then
-         row_ind = row_recv
          col_ptr = 0
          col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
 
@@ -578,7 +572,8 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
       end if
    end if
 
-   call elsi_deallocate(bh,row_recv,"row_recv")
+   call elsi_deallocate(bh,gid,"gid")
+   call elsi_deallocate(bh,perm,"perm")
    call elsi_deallocate(bh,col_recv,"col_recv")
 
    call elsi_get_time(t1)
@@ -631,7 +626,6 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
@@ -730,9 +724,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 
    ! Redistribute packed data
    ! Row id
-   call elsi_allocate(bh,row_recv,bh%nnz_l_sp,"row_recv",caller)
-
-   call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
+   call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_ind,&
         recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -775,25 +767,22 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_recv,kind=i8)
+   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind,kind=i8)
 
-   ! Sort
-   call elsi_heapsort(bh%nnz_l_sp,gid,perm)
-   call elsi_permute(bh%nnz_l_sp,perm,ham_sp)
-   call elsi_permute(bh%nnz_l_sp,perm,row_recv)
-   call elsi_permute(bh%nnz_l_sp,perm,col_recv)
+   ! Only 1st pole computes row index and column pointer
+   if(ph%pexsi_my_prow == 0) then
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp,gid,perm)
+      call elsi_permute(bh%nnz_l_sp,perm,ham_sp)
+      call elsi_permute(bh%nnz_l_sp,perm,row_ind)
 
-   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
-      call elsi_permute(bh%nnz_l_sp,perm,ovlp_sp)
-   end if
+      if(ph%first_blacs_to_pexsi) then
+         call elsi_permute(bh%nnz_l_sp,perm,col_recv)
 
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
+         if(.not. ph%unit_ovlp) then
+            call elsi_permute(bh%nnz_l_sp,perm,ovlp_sp)
+         end if
 
-   if(ph%first_blacs_to_pexsi) then
-      ! Only 1st pole computes row index and column pointer
-      if(ph%pexsi_my_prow == 0) then
-         row_ind = row_recv
          col_ptr = 0
          col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
 
@@ -808,7 +797,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
       end if
    end if
 
-   call elsi_deallocate(bh,row_recv,"row_recv")
+   call elsi_deallocate(bh,gid,"gid")
+   call elsi_deallocate(bh,perm,"perm")
    call elsi_deallocate(bh,col_recv,"col_recv")
 
    call elsi_get_time(t1)
@@ -3208,22 +3198,20 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    ! Compute global 1D id
    gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind1,kind=i8)
 
-   ! Sort
-   call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
-   call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
-   call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
-   call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
+   ! Only 1st pole computes row index and column pointer
+   if(ph%pexsi_my_prow == 0) then
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
+      call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
+      call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
 
-   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
-      call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
-   end if
+      if(ph%first_siesta_to_pexsi) then
+         call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
 
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
+         if(.not. ph%unit_ovlp) then
+            call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
+         end if
 
-   if(ph%first_siesta_to_pexsi) then
-      ! Only 1st pole computes row index and column pointer
-      if(ph%pexsi_my_prow == 0) then
          col_ptr1 = 0
          col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
@@ -3238,6 +3226,8 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
       end if
    end if
 
+   call elsi_deallocate(bh,gid,"gid")
+   call elsi_deallocate(bh,perm,"perm")
    call elsi_deallocate(bh,col_recv,"col_recv")
 
    call elsi_get_time(t1)
@@ -3400,22 +3390,20 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    ! Compute global 1D id
    gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind1,kind=i8)
 
-   ! Sort
-   call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
-   call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
-   call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
-   call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
+   ! Only 1st pole computes row index and column pointer
+   if(ph%pexsi_my_prow == 0) then
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
+      call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
+      call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
 
-   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
-      call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
-   end if
+      if(ph%first_siesta_to_pexsi) then
+         call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
 
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
+         if(.not. ph%unit_ovlp) then
+            call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
+         end if
 
-   if(ph%first_siesta_to_pexsi) then
-      ! Only 1st pole computes row index and column pointer
-      if(ph%pexsi_my_prow == 0) then
          col_ptr1 = 0
          col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
@@ -3430,6 +3418,8 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
       end if
    end if
 
+   call elsi_deallocate(bh,gid,"gid")
+   call elsi_deallocate(bh,perm,"perm")
    call elsi_deallocate(bh,col_recv,"col_recv")
 
    call elsi_get_time(t1)
@@ -6372,26 +6362,21 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    ! Compute global 1D id
    gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind1,kind=i8)
 
-   ! Sort
-   call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
-   call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
-   call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
-   call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
+   ! Only 1st pole computes row index and column pointer
+   if(ph%pexsi_my_prow == 0) then
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
+      call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
+      call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
 
-   if(ph%first_generic_to_pexsi) then
-      if(.not. ph%unit_ovlp) then
-         call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
-      end if
+      if(ph%first_generic_to_pexsi) then
+         call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
+         call elsi_permute(bh%nnz_l_sp1,perm,map_sp1)
 
-      call elsi_permute(bh%nnz_l_sp1,perm,map_sp1)
-   end if
+         if(.not. ph%unit_ovlp) then
+            call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
+         end if
 
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
-
-   if(ph%first_generic_to_pexsi) then
-      ! Only 1st pole computes row index and column pointer
-      if(ph%pexsi_my_prow == 0) then
          col_ptr1 = 0
          col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
@@ -6406,6 +6391,8 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
       end if
    end if
 
+   call elsi_deallocate(bh,gid,"gid")
+   call elsi_deallocate(bh,perm,"perm")
    call elsi_deallocate(bh,col_recv,"col_recv")
 
    call elsi_get_time(t1)
@@ -6588,26 +6575,21 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    ! Compute global 1D id
    gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind1,kind=i8)
 
-   ! Sort
-   call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
-   call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
-   call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
-   call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
+   ! Only 1st pole computes row index and column pointer
+   if(ph%pexsi_my_prow == 0) then
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
+      call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
+      call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
 
-   if(ph%first_generic_to_pexsi) then
-      if(.not. ph%unit_ovlp) then
-         call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
-      end if
+      if(ph%first_generic_to_pexsi) then
+         call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
+         call elsi_permute(bh%nnz_l_sp1,perm,map_sp1)
 
-      call elsi_permute(bh%nnz_l_sp1,perm,map_sp1)
-   end if
+         if(.not. ph%unit_ovlp) then
+            call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
+         end if
 
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
-
-   if(ph%first_generic_to_pexsi) then
-      ! Only 1st pole computes row index and column pointer
-      if(ph%pexsi_my_prow == 0) then
          col_ptr1 = 0
          col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
@@ -6622,6 +6604,8 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
       end if
    end if
 
+   call elsi_deallocate(bh,gid,"gid")
+   call elsi_deallocate(bh,perm,"perm")
    call elsi_deallocate(bh,col_recv,"col_recv")
 
    call elsi_get_time(t1)
