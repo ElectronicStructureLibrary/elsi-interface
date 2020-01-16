@@ -576,16 +576,6 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
             col_ptr(i_col) = col_ptr(i_col+1)-col_ptr(i_col)
          end do
       end if
-
-      call MPI_Bcast(row_ind,bh%nnz_l_sp,mpi_integer4,0,&
-           ph%pexsi_comm_inter_pole,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
-
-      call MPI_Bcast(col_ptr,bh%n_lcol_sp+1,mpi_integer4,0,&
-           ph%pexsi_comm_inter_pole,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
    end if
 
    call elsi_deallocate(bh,row_recv,"row_recv")
@@ -816,16 +806,6 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
             col_ptr(i_col) = col_ptr(i_col+1)-col_ptr(i_col)
          end do
       end if
-
-      call MPI_Bcast(row_ind,bh%nnz_l_sp,mpi_integer4,0,&
-           ph%pexsi_comm_inter_pole,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
-
-      call MPI_Bcast(col_ptr,bh%n_lcol_sp+1,mpi_integer4,0,&
-           ph%pexsi_comm_inter_pole,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
    end if
 
    call elsi_deallocate(bh,row_recv,"row_recv")
@@ -859,20 +839,15 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: n_group
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   integer(kind=i4) :: row0
-   integer(kind=i4) :: row1
-   integer(kind=i4) :: nnz_l_aux
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -893,66 +868,49 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
    call elsi_get_time(t0)
 
-   n_group = bh%n_procs/ph%pexsi_np_per_pole
-   row0 = ph%pexsi_my_prow*(ph%n_basis/n_group)+1
-   row1 = (ph%pexsi_my_prow+1)*(ph%n_basis/n_group)
-
-   if(ph%pexsi_my_prow == n_group-1) then
-      row1 = ph%n_basis
-   end if
-
-   nnz_l_aux = 0
-
-   do i_val = 1,bh%nnz_l_sp
-      if(row_ind(i_val) >= row0 .and. row_ind(i_val) <= row1) then
-         nnz_l_aux = nnz_l_aux+1
-      end if
-   end do
-
-   call elsi_allocate(bh,dest,nnz_l_aux,"dest",caller)
-   call elsi_allocate(bh,perm,nnz_l_aux,"perm",caller)
-   call elsi_allocate(bh,val_send,nnz_l_aux,"val_send",caller)
-   call elsi_allocate(bh,row_send,nnz_l_aux,"row_send",caller)
-   call elsi_allocate(bh,col_send,nnz_l_aux,"col_send",caller)
+   call elsi_allocate(bh,val_send,bh%nnz_l_sp,"val_send",caller)
+   call elsi_allocate(bh,row_send,bh%nnz_l_sp,"row_send",caller)
+   call elsi_allocate(bh,col_send,bh%nnz_l_sp,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   i_col = 0
-   j_val = 0
+   if(ph%pexsi_my_prow == 0) then
+      call elsi_allocate(bh,dest,bh%nnz_l_sp,"dest",caller)
+      call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
-   do i_val = 1,bh%nnz_l_sp
-      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
-         i_col = i_col+1
-      end do
+      i_col = 0
 
-      i_row = row_ind(i_val)
+      do i_val = 1,bh%nnz_l_sp
+         do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
+            i_col = i_col+1
+         end do
 
-      if(row_ind(i_val) >= row0 .and. row_ind(i_val) <= row1) then
-         j_val = j_val+1
+         i_row = row_ind(i_val)
 
          ! Compute global id
-         row_send(j_val) = i_row
-         col_send(j_val) = i_col+ph%pexsi_my_pcol&
-            *(ph%n_basis/ph%pexsi_np_per_pole)
-         val_send(j_val) = dm_sp(i_val)
+         row_send(i_val) = i_row
+         col_send(i_val) = i_col+ph%pexsi_my_pcol*(ph%n_basis&
+            /ph%pexsi_np_per_pole)
+         val_send(i_val) = dm_sp(i_val)
 
          ! Compute destination
-         p_row = mod((row_send(j_val)-1)/bh%blk,bh%n_prow)
-         p_col = mod((col_send(j_val)-1)/bh%blk,bh%n_pcol)
-         dest(j_val) = p_col+p_row*bh%n_pcol
+         p_row = mod((row_send(i_val)-1)/bh%blk,bh%n_prow)
+         p_col = mod((col_send(i_val)-1)/bh%blk,bh%n_pcol)
+         dest(i_val) = p_col+p_row*bh%n_pcol
 
          ! Set send_count
-         send_count(dest(j_val)+1) = send_count(dest(j_val)+1)+1
-      end if
-   end do
+         send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+      end do
 
-   ! Sort
-   call elsi_heapsort(nnz_l_aux,dest,perm)
-   call elsi_permute(nnz_l_aux,perm,val_send)
-   call elsi_permute(nnz_l_aux,perm,row_send)
-   call elsi_permute(nnz_l_aux,perm,col_send)
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp,dest,perm)
+      call elsi_permute(bh%nnz_l_sp,perm,val_send)
+      call elsi_permute(bh%nnz_l_sp,perm,row_send)
+      call elsi_permute(bh%nnz_l_sp,perm,col_send)
 
-   call elsi_deallocate(bh,dest,"dest")
-   call elsi_deallocate(bh,perm,"perm")
+      call elsi_deallocate(bh,dest,"dest")
+      call elsi_deallocate(bh,perm,"perm")
+   end if
+
    call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
    call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
@@ -1048,20 +1006,15 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: n_group
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   integer(kind=i4) :: row0
-   integer(kind=i4) :: row1
-   integer(kind=i4) :: nnz_l_aux
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -1082,66 +1035,49 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
    call elsi_get_time(t0)
 
-   n_group = bh%n_procs/ph%pexsi_np_per_pole
-   row0 = ph%pexsi_my_prow*(ph%n_basis/n_group)+1
-   row1 = (ph%pexsi_my_prow+1)*(ph%n_basis/n_group)
-
-   if(ph%pexsi_my_prow == n_group-1) then
-      row1 = ph%n_basis
-   end if
-
-   nnz_l_aux = 0
-
-   do i_val = 1,bh%nnz_l_sp
-      if(row_ind(i_val) >= row0 .and. row_ind(i_val) <= row1) then
-         nnz_l_aux = nnz_l_aux+1
-      end if
-   end do
-
-   call elsi_allocate(bh,dest,nnz_l_aux,"dest",caller)
-   call elsi_allocate(bh,perm,nnz_l_aux,"perm",caller)
-   call elsi_allocate(bh,val_send,nnz_l_aux,"val_send",caller)
-   call elsi_allocate(bh,row_send,nnz_l_aux,"row_send",caller)
-   call elsi_allocate(bh,col_send,nnz_l_aux,"col_send",caller)
+   call elsi_allocate(bh,val_send,bh%nnz_l_sp,"val_send",caller)
+   call elsi_allocate(bh,row_send,bh%nnz_l_sp,"row_send",caller)
+   call elsi_allocate(bh,col_send,bh%nnz_l_sp,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   i_col = 0
-   j_val = 0
+   if(ph%pexsi_my_prow == 0) then
+      call elsi_allocate(bh,dest,bh%nnz_l_sp,"dest",caller)
+      call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
-   do i_val = 1,bh%nnz_l_sp
-      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
-         i_col = i_col+1
-      end do
+      i_col = 0
 
-      i_row = row_ind(i_val)
+      do i_val = 1,bh%nnz_l_sp
+         do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
+            i_col = i_col+1
+         end do
 
-      if(row_ind(i_val) >= row0 .and. row_ind(i_val) <= row1) then
-         j_val = j_val+1
+         i_row = row_ind(i_val)
 
          ! Compute global id
-         row_send(j_val) = i_row
-         col_send(j_val) = i_col+ph%pexsi_my_pcol&
-            *(ph%n_basis/ph%pexsi_np_per_pole)
-         val_send(j_val) = dm_sp(i_val)
+         row_send(i_val) = i_row
+         col_send(i_val) = i_col+ph%pexsi_my_pcol*(ph%n_basis&
+            /ph%pexsi_np_per_pole)
+         val_send(i_val) = dm_sp(i_val)
 
          ! Compute destination
-         p_row = mod((row_send(j_val)-1)/bh%blk,bh%n_prow)
-         p_col = mod((col_send(j_val)-1)/bh%blk,bh%n_pcol)
-         dest(j_val) = p_col+p_row*bh%n_pcol
+         p_row = mod((row_send(i_val)-1)/bh%blk,bh%n_prow)
+         p_col = mod((col_send(i_val)-1)/bh%blk,bh%n_pcol)
+         dest(i_val) = p_col+p_row*bh%n_pcol
 
          ! Set send_count
-         send_count(dest(j_val)+1) = send_count(dest(j_val)+1)+1
-      end if
-   end do
+         send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+      end do
 
-   ! Sort
-   call elsi_heapsort(nnz_l_aux,dest,perm)
-   call elsi_permute(nnz_l_aux,perm,val_send)
-   call elsi_permute(nnz_l_aux,perm,row_send)
-   call elsi_permute(nnz_l_aux,perm,col_send)
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp,dest,perm)
+      call elsi_permute(bh%nnz_l_sp,perm,val_send)
+      call elsi_permute(bh%nnz_l_sp,perm,row_send)
+      call elsi_permute(bh%nnz_l_sp,perm,col_send)
 
-   call elsi_deallocate(bh,dest,"dest")
-   call elsi_deallocate(bh,perm,"perm")
+      call elsi_deallocate(bh,dest,"dest")
+      call elsi_deallocate(bh,perm,"perm")
+   end if
+
    call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
    call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
