@@ -1177,7 +1177,7 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,mask,ham_sp,ovlp_sp,&
+   call elsi_blacs_to_pexsi_hs(ph,bh,ham_den,ovlp_den,mask,ham_sp,ovlp_sp,&
         row_ind,col_ptr)
 
 end subroutine
@@ -1207,8 +1207,8 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
-        ovlp_sp,row_ind,col_ptr)
+   call elsi_blacs_to_pexsi_hs(ph,bh,ham_den,ovlp_den,mask,ham_sp,ovlp_sp,&
+        row_ind,col_ptr)
 
 end subroutine
 
@@ -3654,7 +3654,7 @@ subroutine elsi_sips_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
+   call elsi_pexsi_to_blacs_dm(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
 end subroutine
 
@@ -3679,7 +3679,7 @@ subroutine elsi_sips_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
+   call elsi_pexsi_to_blacs_dm(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
 end subroutine
 
@@ -3707,8 +3707,8 @@ subroutine elsi_sips_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
-        row_ind2,col_ptr2)
+   call elsi_pexsi_to_siesta_dm(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,row_ind2,&
+        col_ptr2)
 
 end subroutine
 
@@ -3736,8 +3736,8 @@ subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
-        row_ind2,col_ptr2)
+   call elsi_pexsi_to_siesta_dm(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,row_ind2,&
+        col_ptr2)
 
 end subroutine
 
@@ -3812,7 +3812,7 @@ subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,col_ptr2,&
+   call elsi_siesta_to_pexsi_hs(ph,bh,ham_sp2,ovlp_sp2,row_ind2,col_ptr2,&
         ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
 
 end subroutine
@@ -3843,7 +3843,7 @@ subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,col_ptr2,&
+   call elsi_siesta_to_pexsi_hs(ph,bh,ham_sp2,ovlp_sp2,row_ind2,col_ptr2,&
         ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
 
 end subroutine
@@ -6496,7 +6496,7 @@ subroutine elsi_generic_to_sips_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,col_ind3,&
+   call elsi_generic_to_pexsi_hs(ph,bh,ham_sp3,ovlp_sp3,row_ind3,col_ind3,&
         ham_sp1,ovlp_sp1,row_ind1,col_ptr1,map_sp1)
 
 end subroutine
@@ -6528,7 +6528,7 @@ subroutine elsi_generic_to_sips_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,col_ind3,&
+   call elsi_generic_to_pexsi_hs(ph,bh,ham_sp3,ovlp_sp3,row_ind3,col_ind3,&
         ham_sp1,ovlp_sp1,row_ind1,col_ptr1,map_sp1)
 
 end subroutine
@@ -7194,8 +7194,8 @@ subroutine elsi_sips_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,&
-        dm_sp3,perm_sp3)
+   call elsi_pexsi_to_generic_dm(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,dm_sp3,&
+        perm_sp3)
 
 end subroutine
 
@@ -7222,8 +7222,8 @@ subroutine elsi_sips_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,&
-        dm_sp3,perm_sp3)
+   call elsi_pexsi_to_generic_dm(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,dm_sp3,&
+        perm_sp3)
 
 end subroutine
 
