@@ -16,7 +16,7 @@ module ELSI_SETUP
    use ELSI_ELPA, only: elsi_cleanup_elpa
    use ELSI_MAGMA, only: elsi_cleanup_magma
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_NTPOLY, only: elsi_cleanup_ntpoly
+   use ELSI_NTPOLY, only: elsi_cleanup_ntpoly,DestructMatrix
    use ELSI_OMM, only: elsi_cleanup_omm
    use ELSI_OUTPUT, only: fjson_close_file,fjson_finish_array,&
        fjson_reset_fj_handle
@@ -678,6 +678,12 @@ subroutine elsi_cleanup(eh)
    if(allocated(eh%pexsi_ne_vec)) then
       call elsi_deallocate(eh%bh,eh%pexsi_ne_vec,"pexsi_ne_vec")
    end if
+
+   call DestructMatrix(eh%nt_ham)
+   call DestructMatrix(eh%nt_ovlp)
+   call DestructMatrix(eh%nt_ovlp_copy)
+   call DestructMatrix(eh%nt_dm)
+   call DestructMatrix(eh%nt_map)
 
    if(eh%bh%json_init) then
       call fjson_finish_array(eh%jh)

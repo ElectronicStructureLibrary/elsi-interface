@@ -221,11 +221,6 @@ module ELSI_DATATYPE
       logical :: nt_output
       logical :: nt_first
       logical :: nt_started = .false.
-      type(Matrix_ps) :: nt_ham
-      type(Matrix_ps) :: nt_ovlp
-      type(Matrix_ps) :: nt_ovlp_copy
-      type(Matrix_ps) :: nt_dm
-      type(Matrix_ps) :: nt_map
       type(SolverParameters_t) :: nt_options
       type(Permutation_t) :: nt_perm
       type(ProcessGrid_t) :: nt_pgrid
@@ -267,6 +262,9 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: col_ptr_sp2(:)
       integer(kind=i4), allocatable :: row_ind_sp3(:)
       integer(kind=i4), allocatable :: col_ind_sp3(:)
+      type(Matrix_ps) :: nt_ham
+      type(Matrix_ps) :: nt_ovlp
+      type(Matrix_ps) :: nt_dm
 
       ! Matrix redistribution
       integer(kind=i4), allocatable :: mask(:,:)
@@ -281,6 +279,8 @@ module ELSI_DATATYPE
       real(kind=r8), allocatable :: omm_c_real(:,:)
       complex(kind=r8), allocatable :: omm_c_cmplx(:,:)
       real(kind=r8), allocatable :: pexsi_ne_vec(:)
+      type(Matrix_ps) :: nt_ovlp_copy
+      type(Matrix_ps) :: nt_map
 
       logical :: handle_init = .false.
 

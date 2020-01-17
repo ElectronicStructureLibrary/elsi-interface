@@ -290,11 +290,6 @@ subroutine elsi_cleanup_ntpoly(ph)
 
    if(ph%nt_started) then
       call DeactivateLogger()
-      call DestructMatrix(ph%nt_ham)
-      call DestructMatrix(ph%nt_ovlp)
-      call DestructMatrix(ph%nt_ovlp_copy)
-      call DestructMatrix(ph%nt_dm)
-      call DestructMatrix(ph%nt_map)
       call DestructPermutation(ph%nt_perm)
       call DestructProcessGrid(ph%nt_pgrid)
    end if
