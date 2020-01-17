@@ -484,6 +484,10 @@ subroutine elsi_reinit(eh)
       end if
 
       ! Matrix redistribution
+      if(allocated(eh%mask)) then
+         call elsi_deallocate(eh%bh,eh%mask,"mask")
+      end if
+
       if(allocated(eh%map_den)) then
          call elsi_deallocate(eh%bh,eh%map_den,"map_den")
       end if
@@ -634,6 +638,10 @@ subroutine elsi_cleanup(eh)
    end if
 
    ! Matrix redistribution
+   if(allocated(eh%mask)) then
+      call elsi_deallocate(eh%bh,eh%mask,"mask")
+   end if
+
    if(allocated(eh%map_den)) then
       call elsi_deallocate(eh%bh,eh%map_den,"map_den")
    end if

@@ -19,8 +19,8 @@ module ELSI_RW
        mpi_mode_rdonly,mpi_mode_wronly,mpi_mode_create,mpi_info_null,&
        mpi_status_ignore,elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4,i8
-   use ELSI_REDIST, only: elsi_sips_to_blacs_dm,elsi_blacs_to_sips_hs,&
-       elsi_blacs_to_sips_hs_dim
+   use ELSI_REDIST, only: elsi_blacs_to_mask,elsi_blacs_to_sips_hs_dim,&
+       elsi_blacs_to_sips_hs,elsi_sips_to_blacs_dm
    use ELSI_SETUP, only: elsi_init,elsi_set_mpi,elsi_set_blacs,elsi_cleanup
    use ELSI_UTIL, only: elsi_get_nnz,elsi_reset_basic,elsi_check_init
 
@@ -985,6 +985,7 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    real(kind=r8), allocatable :: mat_csc(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
+   integer(kind=i4), allocatable :: mask(:,:)
 
    type(elsi_handle) :: eh
 
@@ -1003,14 +1004,19 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
       eh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*eh%bh%n_lcol_sp
    end if
 
-   call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,mat,dummy1)
+   call elsi_allocate(rwh%bh,mask,rwh%bh%n_lrow,rwh%bh%n_lcol,"mask",caller)
+
+   call elsi_blacs_to_mask(eh%ph,eh%bh,mat,dummy1,mask)
+   call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,mask)
 
    call elsi_allocate(rwh%bh,mat_csc,eh%bh%nnz_l_sp,"mat_csc",caller)
    call elsi_allocate(rwh%bh,row_ind,eh%bh%nnz_l_sp,"row_ind",caller)
    call elsi_allocate(rwh%bh,col_ptr,eh%bh%n_lcol_sp+1,"col_ptr",caller)
 
-   call elsi_blacs_to_sips_hs(eh%ph,eh%bh,mat,dummy1,mat_csc,dummy2,row_ind,&
-        col_ptr)
+   call elsi_blacs_to_sips_hs(eh%ph,eh%bh,mat,dummy1,mask,mat_csc,dummy2,&
+        row_ind,col_ptr)
+
+   call elsi_deallocate(rwh%bh,mask,"mask")
 
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create
@@ -1111,6 +1117,7 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    complex(kind=r8), allocatable :: mat_csc(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
+   integer(kind=i4), allocatable :: mask(:,:)
 
    type(elsi_handle) :: eh
 
@@ -1129,14 +1136,19 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
       eh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*eh%bh%n_lcol_sp
    end if
 
-   call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,mat,dummy1)
+   call elsi_allocate(rwh%bh,mask,rwh%bh%n_lrow,rwh%bh%n_lcol,"mask",caller)
+
+   call elsi_blacs_to_mask(eh%ph,eh%bh,mat,dummy1,mask)
+   call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,mask)
 
    call elsi_allocate(rwh%bh,mat_csc,eh%bh%nnz_l_sp,"mat_csc",caller)
    call elsi_allocate(rwh%bh,row_ind,eh%bh%nnz_l_sp,"row_ind",caller)
    call elsi_allocate(rwh%bh,col_ptr,eh%bh%n_lcol_sp+1,"col_ptr",caller)
 
-   call elsi_blacs_to_sips_hs(eh%ph,eh%bh,mat,dummy1,mat_csc,dummy2,row_ind,&
-        col_ptr)
+   call elsi_blacs_to_sips_hs(eh%ph,eh%bh,mat,dummy1,mask,mat_csc,dummy2,&
+        row_ind,col_ptr)
+
+   call elsi_deallocate(rwh%bh,mask,"mask")
 
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create

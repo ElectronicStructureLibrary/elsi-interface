@@ -21,7 +21,7 @@ module ELSI_CONSTANT
    integer(kind=i4), parameter :: N_MATRIX_FORMATS = 4
    integer(kind=i4), parameter :: N_PARALLEL_MODES = 2
 
-   ! Method names
+   ! Solver
    integer(kind=i4), parameter :: AUTO_SOLVER = 0
    integer(kind=i4), parameter :: ELPA_SOLVER = 1
    integer(kind=i4), parameter :: OMM_SOLVER = 2
@@ -35,44 +35,49 @@ module ELSI_CONSTANT
    integer(kind=i4), parameter :: REAL_DATA = 0
    integer(kind=i4), parameter :: CMPLX_DATA = 1
 
-   ! Matrix formats
+   ! Matrix format
    integer(kind=i4), parameter :: BLACS_DENSE = 0
    integer(kind=i4), parameter :: PEXSI_CSC = 1
    integer(kind=i4), parameter :: SIESTA_CSC = 2
    integer(kind=i4), parameter :: GENERIC_COO = 3
+
+   ! Matrix conversion mask
+   integer(kind=i4), parameter :: MASK_HS = 0
+   integer(kind=i4), parameter :: MASK_H = 1
+   integer(kind=i4), parameter :: MASK_S = 2
 
    ! Triangular matrix
    integer(kind=i4), parameter :: FULL_MAT = 0
    integer(kind=i4), parameter :: UT_MAT = 1
    integer(kind=i4), parameter :: LT_MAT = 2
 
-   ! Parallel modes
+   ! Parallelization mode
    integer(kind=i4), parameter :: SINGLE_PROC = 0
    integer(kind=i4), parameter :: MULTI_PROC = 1
 
-   ! Broadening schemes
+   ! Broadening
    integer(kind=i4), parameter :: GAUSSIAN = 0
    integer(kind=i4), parameter :: FERMI = 1
    integer(kind=i4), parameter :: METHFESSEL_PAXTON = 2
    integer(kind=i4), parameter :: CUBIC = 3
    integer(kind=i4), parameter :: COLD = 4
 
-   ! PEXSI results
+   ! PEXSI result
    integer(kind=i4), parameter :: PEXSI_DM = 0
    integer(kind=i4), parameter :: PEXSI_EDM = 1
    integer(kind=i4), parameter :: PEXSI_FDM = 2
 
-   ! Density matrix purification methods
+   ! Density matrix purification
    integer(kind=i4), parameter :: NTPOLY_PM = 0
    integer(kind=i4), parameter :: NTPOLY_TRS2 = 1
    integer(kind=i4), parameter :: NTPOLY_TRS4 = 2
    integer(kind=i4), parameter :: NTPOLY_HPCP = 3
 
-   ! Density matrix extrapolation methods
+   ! Density matrix extrapolation
    integer(kind=i4), parameter :: EXTRA_FACTOR = 0
    integer(kind=i4), parameter :: EXTRA_TRS2 = 1
 
-   ! Solver decision status
+   ! Solver decision
    integer(kind=i4), parameter :: DECISION_INIT = 0
    integer(kind=i4), parameter :: DECISION_WIP = 1
    integer(kind=i4), parameter :: DECISION_DONE = 2

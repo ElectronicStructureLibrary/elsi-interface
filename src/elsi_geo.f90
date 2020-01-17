@@ -13,16 +13,16 @@ module ELSI_GEO
        GENERIC_COO
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_update_dm_elpa
-   use ELSI_MALLOC, only: elsi_allocate
+   use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop
    use ELSI_NTPOLY, only: elsi_update_dm_ntpoly,CopyMatrix
-   use ELSI_PRECISION, only: r8
-   use ELSI_REDIST, only: elsi_blacs_to_generic_dm,elsi_blacs_to_ntpoly_hs,&
-       elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,elsi_generic_to_blacs_hs,&
-       elsi_generic_to_ntpoly_hs,elsi_ntpoly_to_blacs_dm,&
-       elsi_ntpoly_to_generic_dm,elsi_ntpoly_to_siesta_dm,&
-       elsi_ntpoly_to_sips_dm,elsi_siesta_to_blacs_hs,elsi_siesta_to_ntpoly_hs,&
-       elsi_sips_to_blacs_hs,elsi_sips_to_ntpoly_hs
+   use ELSI_PRECISION, only: r8,i4
+   use ELSI_REDIST, only: elsi_blacs_to_generic_dm,elsi_blacs_to_mask,&
+       elsi_blacs_to_ntpoly_hs,elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,&
+       elsi_generic_to_blacs_hs,elsi_generic_to_ntpoly_hs,&
+       elsi_ntpoly_to_blacs_dm,elsi_ntpoly_to_generic_dm,&
+       elsi_ntpoly_to_siesta_dm,elsi_ntpoly_to_sips_dm,elsi_siesta_to_blacs_hs,&
+       elsi_siesta_to_ntpoly_hs,elsi_sips_to_blacs_hs,elsi_sips_to_ntpoly_hs
    use ELSI_UTIL, only: elsi_check_init,elsi_gram_schmidt
 
    implicit none
@@ -195,6 +195,8 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
 
    real(kind=r8) :: dummy(1,1)
 
+   integer(kind=i4), allocatable :: mask(:,:)
+
    character(len=*), parameter :: caller = "elsi_extrapolate_dm_real"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -207,15 +209,21 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
    case default
       eh%ph%unit_ovlp = .true.
 
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,dummy,eh%ph%nt_ham,&
+      call elsi_allocate(eh%bh,mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",caller)
+
+      call elsi_blacs_to_mask(eh%ph,eh%bh,dm,dummy,mask)
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,dummy,mask,eh%ph%nt_ham,&
            eh%ph%nt_dm)
 
       eh%ph%first_blacs_to_ntpoly = .true.
 
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,dummy,eh%ph%nt_ovlp,&
+      call elsi_blacs_to_mask(eh%ph,eh%bh,ovlp,dummy,mask)
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,dummy,mask,eh%ph%nt_ovlp,&
            eh%ph%nt_dm)
 
       eh%ph%unit_ovlp = .false.
+
+      call elsi_deallocate(eh%bh,mask,"mask")
 
       call elsi_update_dm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ovlp_copy,eh%ph%nt_ovlp,&
            eh%ph%nt_ham,eh%ph%nt_dm)
@@ -238,6 +246,8 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
 
    complex(kind=r8) :: dummy(1,1)
 
+   integer(kind=i4), allocatable :: mask(:,:)
+
    character(len=*), parameter :: caller = "elsi_extrapolate_dm_complex"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -250,15 +260,21 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
    case default
       eh%ph%unit_ovlp = .true.
 
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,dummy,eh%ph%nt_ham,&
+      call elsi_allocate(eh%bh,mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",caller)
+
+      call elsi_blacs_to_mask(eh%ph,eh%bh,dm,dummy,mask)
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,dm,dummy,mask,eh%ph%nt_ham,&
            eh%ph%nt_dm)
 
       eh%ph%first_blacs_to_ntpoly = .true.
 
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,dummy,eh%ph%nt_ovlp,&
+      call elsi_blacs_to_mask(eh%ph,eh%bh,ovlp,dummy,mask)
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,dummy,mask,eh%ph%nt_ovlp,&
            eh%ph%nt_dm)
 
       eh%ph%unit_ovlp = .false.
+
+      call elsi_deallocate(eh%bh,mask,"mask")
 
       call elsi_update_dm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ovlp_copy,eh%ph%nt_ovlp,&
            eh%ph%nt_ham,eh%ph%nt_dm)

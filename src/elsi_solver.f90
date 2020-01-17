@@ -27,21 +27,21 @@ module ELSI_SOLVER
    use ELSI_OUTPUT, only: elsi_add_log,elsi_get_time,fjson_get_datetime_rfc3339
    use ELSI_PEXSI, only: elsi_init_pexsi,elsi_solve_pexsi
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_REDIST, only: elsi_blacs_to_generic_dm,elsi_blacs_to_ntpoly_hs,&
-       elsi_blacs_to_pexsi_hs_dim,elsi_blacs_to_pexsi_hs,&
-       elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,elsi_blacs_to_sips_hs_dim,&
-       elsi_blacs_to_sips_hs,elsi_generic_to_blacs_hs,&
-       elsi_generic_to_ntpoly_hs,elsi_generic_to_pexsi_hs_dim,&
-       elsi_generic_to_pexsi_hs,elsi_generic_to_sips_hs_dim,&
-       elsi_generic_to_sips_hs,elsi_ntpoly_to_blacs_dm,&
-       elsi_ntpoly_to_generic_dm,elsi_ntpoly_to_siesta_dm,&
-       elsi_ntpoly_to_sips_dm,elsi_pexsi_to_blacs_dm,elsi_pexsi_to_generic_dm,&
-       elsi_pexsi_to_siesta_dm,elsi_siesta_to_blacs_hs,&
-       elsi_siesta_to_ntpoly_hs,elsi_siesta_to_pexsi_hs_dim,&
-       elsi_siesta_to_pexsi_hs,elsi_siesta_to_sips_hs_dim,&
-       elsi_siesta_to_sips_hs,elsi_sips_to_blacs_dm,elsi_sips_to_blacs_ev,&
-       elsi_sips_to_blacs_hs,elsi_sips_to_generic_dm,elsi_sips_to_ntpoly_hs,&
-       elsi_sips_to_siesta_dm
+   use ELSI_REDIST, only: elsi_blacs_to_generic_dm,elsi_blacs_to_mask,&
+       elsi_blacs_to_ntpoly_hs,elsi_blacs_to_pexsi_hs_dim,&
+       elsi_blacs_to_pexsi_hs,elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,&
+       elsi_blacs_to_sips_hs_dim,elsi_blacs_to_sips_hs,&
+       elsi_generic_to_blacs_hs,elsi_generic_to_ntpoly_hs,&
+       elsi_generic_to_pexsi_hs_dim,elsi_generic_to_pexsi_hs,&
+       elsi_generic_to_sips_hs_dim,elsi_generic_to_sips_hs,&
+       elsi_ntpoly_to_blacs_dm,elsi_ntpoly_to_generic_dm,&
+       elsi_ntpoly_to_siesta_dm,elsi_ntpoly_to_sips_dm,elsi_pexsi_to_blacs_dm,&
+       elsi_pexsi_to_generic_dm,elsi_pexsi_to_siesta_dm,&
+       elsi_siesta_to_blacs_hs,elsi_siesta_to_ntpoly_hs,&
+       elsi_siesta_to_pexsi_hs_dim,elsi_siesta_to_pexsi_hs,&
+       elsi_siesta_to_sips_hs_dim,elsi_siesta_to_sips_hs,elsi_sips_to_blacs_dm,&
+       elsi_sips_to_blacs_ev,elsi_sips_to_blacs_hs,elsi_sips_to_generic_dm,&
+       elsi_sips_to_ntpoly_hs,elsi_sips_to_siesta_dm
    use ELSI_SETUP, only: elsi_set_blacs
    use ELSI_SIPS, only: elsi_init_sips,elsi_solve_sips,elsi_build_dm_sips
    use ELSI_UTIL, only: elsi_check,elsi_check_init,elsi_reduce_energy,&
@@ -213,7 +213,11 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
       end if
 
       if(.not. allocated(eh%row_ind_sp1)) then
-         call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,ham,ovlp)
+         call elsi_allocate(eh%bh,eh%mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+              caller)
+
+         call elsi_blacs_to_mask(eh%ph,eh%bh,ham,ovlp,eh%mask)
+         call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,eh%mask)
 
          if(eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_real_sp,1,"ovlp_real_sp",caller)
@@ -232,7 +236,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
               "col_ptr_sp1",caller)
       end if
 
-      call elsi_blacs_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%ham_real_sp,&
+      call elsi_blacs_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%mask,eh%ham_real_sp,&
            eh%ovlp_real_sp,eh%row_ind_sp1,eh%col_ptr_sp1)
       call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
            eh%ham_real_sp,eh%ovlp_real_sp,eval,eh%evec_real)
@@ -595,6 +599,8 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
    character(len=29) :: dt0
    character(len=200) :: msg
 
+   integer(kind=i4), allocatable :: mask(:,:)
+
    character(len=*), parameter :: caller = "elsi_dm_real"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -708,7 +714,11 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
       if(.not. allocated(eh%row_ind_sp1)) then
-         call elsi_blacs_to_pexsi_hs_dim(eh%ph,eh%bh,ham,ovlp)
+         call elsi_allocate(eh%bh,eh%mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+              caller)
+
+         call elsi_blacs_to_mask(eh%ph,eh%bh,ham,ovlp,eh%mask)
+         call elsi_blacs_to_pexsi_hs_dim(eh%ph,eh%bh,eh%mask)
 
          if(eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_real_sp,1,"ovlp_real_sp",caller)
@@ -725,7 +735,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
               "col_ptr_sp1",caller)
       end if
 
-      call elsi_blacs_to_pexsi_hs(eh%ph,eh%bh,ham,ovlp,eh%ham_real_sp,&
+      call elsi_blacs_to_pexsi_hs(eh%ph,eh%bh,ham,ovlp,eh%mask,eh%ham_real_sp,&
            eh%ovlp_real_sp,eh%row_ind_sp1,eh%col_ptr_sp1)
 
       if(.not. allocated(eh%pexsi_ne_vec)) then
@@ -799,7 +809,11 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_init_sips(eh%ph,eh%bh)
 
       if(.not. allocated(eh%row_ind_sp1)) then
-         call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,ham,ovlp)
+         call elsi_allocate(eh%bh,eh%mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+              caller)
+
+         call elsi_blacs_to_mask(eh%ph,eh%bh,ham,ovlp,eh%mask)
+         call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,eh%mask)
 
          if(eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_real_sp,1,"ovlp_real_sp",caller)
@@ -816,7 +830,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
               "col_ptr_sp1",caller)
       end if
 
-      call elsi_blacs_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%ham_real_sp,&
+      call elsi_blacs_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%mask,eh%ham_real_sp,&
            eh%ovlp_real_sp,eh%row_ind_sp1,eh%col_ptr_sp1)
 
       if(.not. allocated(eh%eval)) then
@@ -853,7 +867,15 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       eh%ph%occ_ready = .true.
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%ph%nt_ham,&
+
+      if(.not. allocated(eh%mask)) then
+         call elsi_allocate(eh%bh,eh%mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+              caller)
+
+         call elsi_blacs_to_mask(eh%ph,eh%bh,ham,ovlp,eh%mask)
+      end if
+
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%mask,eh%ph%nt_ham,&
            eh%ph%nt_ovlp)
       call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
       call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
@@ -882,15 +904,22 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
             eh%ph%unit_ovlp = .true.
             eh%ph%first_blacs_to_ntpoly = .true.
 
+            call elsi_allocate(eh%bh,mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+                 caller)
+
             if(allocated(eh%ovlp_real_copy)) then
+               call elsi_blacs_to_mask(eh%ph,eh%bh,eh%ovlp_real_copy,ham,mask)
                call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,eh%ovlp_real_copy,ham,&
-                    eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+                    mask,eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
             else
-               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
+               call elsi_blacs_to_mask(eh%ph,eh%bh,ovlp,ham,mask)
+               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,mask,&
                     eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
             end if
 
             eh%ph%unit_ovlp = .false.
+
+            call elsi_deallocate(eh%bh,mask,"mask")
          end if
       end select
    end if
@@ -917,6 +946,8 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
    integer(kind=i4) :: solver
    character(len=29) :: dt0
    character(len=200) :: msg
+
+   integer(kind=i4), allocatable :: mask(:,:)
 
    character(len=*), parameter :: caller = "elsi_dm_complex"
 
@@ -1027,7 +1058,11 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
       if(.not. allocated(eh%row_ind_sp1)) then
-         call elsi_blacs_to_pexsi_hs_dim(eh%ph,eh%bh,ham,ovlp)
+         call elsi_allocate(eh%bh,eh%mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+              caller)
+
+         call elsi_blacs_to_mask(eh%ph,eh%bh,ham,ovlp,eh%mask)
+         call elsi_blacs_to_pexsi_hs_dim(eh%ph,eh%bh,eh%mask)
 
          if(eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_sp,1,"ovlp_cmplx_sp",caller)
@@ -1044,7 +1079,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
               "col_ptr_sp1",caller)
       end if
 
-      call elsi_blacs_to_pexsi_hs(eh%ph,eh%bh,ham,ovlp,eh%ham_cmplx_sp,&
+      call elsi_blacs_to_pexsi_hs(eh%ph,eh%bh,ham,ovlp,eh%mask,eh%ham_cmplx_sp,&
            eh%ovlp_cmplx_sp,eh%row_ind_sp1,eh%col_ptr_sp1)
 
       if(.not. allocated(eh%pexsi_ne_vec)) then
@@ -1066,7 +1101,15 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,PEXSI_SOLVER)
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%ph%nt_ham,&
+
+      if(.not. allocated(eh%mask)) then
+         call elsi_allocate(eh%bh,eh%mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+              caller)
+
+         call elsi_blacs_to_mask(eh%ph,eh%bh,ham,ovlp,eh%mask)
+      end if
+
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%mask,eh%ph%nt_ham,&
            eh%ph%nt_ovlp)
       call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
       call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
@@ -1094,15 +1137,22 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
             eh%ph%unit_ovlp = .true.
             eh%ph%first_blacs_to_ntpoly = .true.
 
+            call elsi_allocate(eh%bh,mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+                 caller)
+
             if(allocated(eh%ovlp_cmplx_copy)) then
+               call elsi_blacs_to_mask(eh%ph,eh%bh,eh%ovlp_cmplx_copy,ham,mask)
                call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,eh%ovlp_cmplx_copy,ham,&
-                    eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+                    mask,eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
             else
-               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
+               call elsi_blacs_to_mask(eh%ph,eh%bh,ovlp,ham,mask)
+               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,mask,&
                     eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
             end if
 
             eh%ph%unit_ovlp = .false.
+
+            call elsi_deallocate(eh%bh,mask,"mask")
          end if
       end if
    end if

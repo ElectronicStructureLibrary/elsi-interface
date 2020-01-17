@@ -128,6 +128,7 @@ module ELSI_DATATYPE
       integer(kind=i4) :: mu_mp_order
 
       ! Matrix redistribution
+      integer(kind=i4) :: sparsity_mask
       logical :: first_blacs_to_ntpoly
       logical :: first_blacs_to_pexsi
       logical :: first_generic_to_blacs
@@ -268,6 +269,7 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: col_ind_sp3(:)
 
       ! Matrix redistribution
+      integer(kind=i4), allocatable :: mask(:,:)
       integer(kind=i4), allocatable :: map_den(:,:)
       integer(kind=i4), allocatable :: map_sp1(:)
       integer(kind=i4), allocatable :: perm_sp3(:)
