@@ -588,6 +588,21 @@ subroutine c_elsi_set_zero_def(h_c,zero_def) bind(C)
 
 end subroutine
 
+subroutine c_elsi_set_sparsity_mask(h_c,sparsity_mask) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: sparsity_mask
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_sparsity_mask(h_f,sparsity_mask)
+
+end subroutine
+
 subroutine c_elsi_set_illcond_check(h_c,illcond_check) bind(C)
 
    implicit none
