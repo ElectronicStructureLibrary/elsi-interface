@@ -11,7 +11,7 @@ module ELSI_OUTPUT
 
    use ELSI_CONSTANT, only: MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
        SIESTA_CSC,GENERIC_COO,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
-       EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER,MAGMA_SOLVER
+       EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER,MAGMA_SOLVER,METHFESSEL_PAXTON
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_PRECISION, only: r8,i4
    use FORTJSON, only: fjson_handle,fjson_reset_fj_handle,fjson_open_file,&
@@ -134,8 +134,7 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
       call fjson_write_name_value(jh,"start_datetime",dt0)
       call fjson_write_name_value(jh,"record_datetime",dt_record)
       call fjson_write_name_value(jh,"total_time",t1-t0)
-      call elsi_print_handle_summary(ph,bh,jh)
-      call elsi_print_ovlp_summary(ph,jh)
+      call elsi_print_handle_summary(ph,bh,jh,caller)
       call fjson_write_name_value(jh,"solver_used",trim(solver_tag))
 
       select case(solver_use)
@@ -170,17 +169,16 @@ end subroutine
 !>
 !! Print the state of the handle.
 !!
-subroutine elsi_print_handle_summary(ph,bh,jh)
+subroutine elsi_print_handle_summary(ph,bh,jh,caller)
 
    implicit none
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    type(fjson_handle), intent(inout) :: jh
+   character(len=*), intent(in) :: caller
 
    real(kind=r8) :: sparsity
-
-   character(len=*), parameter :: caller = "elsi_print_handle_summary"
 
    call fjson_write_name_value(jh,"n_electrons",ph%n_electrons)
    call fjson_write_name_value(jh,"n_basis",ph%n_basis)
@@ -207,7 +205,8 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
       sparsity = 1.0_r8-(1.0_r8*bh%nnz_g/ph%n_basis/ph%n_basis)
 
       call fjson_write_name_value(jh,"sparsity",sparsity)
-      call fjson_write_name_value(jh,"nnz_g",bh%nnz_g)
+      call fjson_write_name_value(jh,"sparsity_mask",ph%sparsity_mask)
+      call fjson_write_name_value(jh,"nnz_global",bh%nnz_g)
    case(SINGLE_PROC)
       call fjson_write_name_value(jh,"parallel_mode","SINGLE_PROC")
    end select
@@ -233,6 +232,40 @@ subroutine elsi_print_handle_summary(ph,bh,jh)
    case(MAGMA_SOLVER)
       call fjson_write_name_value(jh,"solver_chosen","MAGMA")
    end select
+
+   call fjson_write_name_value(jh,"save_ovlp",ph%save_ovlp)
+   call fjson_write_name_value(jh,"unit_ovlp",ph%unit_ovlp)
+
+   select case(ph%solver)
+   case(ELPA_SOLVER,EIGENEXA_SOLVER)
+      call fjson_write_name_value(jh,"illcond_check",ph%ill_check)
+
+      if(ph%ill_check) then
+         call fjson_write_name_value(jh,"illcond_ovlp",ph%ill_ovlp)
+         call fjson_write_name_value(jh,"illcond_tol",ph%ill_tol)
+         call fjson_write_name_value(jh,"n_illcond",ph%n_basis-ph%n_good)
+         call fjson_write_name_value(jh,"ovlp_ev_min",ph%ovlp_ev_min)
+         call fjson_write_name_value(jh,"ovlp_ev_max",ph%ovlp_ev_max)
+      end if
+   end select
+
+   if(caller(6:6) == "d") then
+      call fjson_write_name_value(jh,"spin_degeneracy",ph%spin_degen)
+      call fjson_write_name_value(jh,"band_energy",ph%ebs)
+      call fjson_write_name_value(jh,"chemical_potential",ph%mu)
+      call fjson_write_name_value(jh,"electronic_entropy",ph%ts)
+
+      select case(ph%solver)
+      case(ELPA_SOLVER,EIGENEXA_SOLVER,SIPS_SOLVER)
+         call fjson_write_name_value(jh,"broadening_scheme",ph%mu_scheme)
+         call fjson_write_name_value(jh,"broadening_width",ph%mu_width)
+         call fjson_write_name_value(jh,"broadening_tol",ph%mu_tol)
+
+         if(ph%mu_scheme == METHFESSEL_PAXTON) then
+            call fjson_write_name_value(jh,"broadening_mp_order",ph%mu_mp_order)
+         end if
+      end select
+   end if
 
 end subroutine
 
@@ -265,30 +298,6 @@ subroutine elsi_print_version_summary(jh)
 end subroutine
 
 !>
-!! Print information about the overlap matrix.
-!!
-subroutine elsi_print_ovlp_summary(ph,jh)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(fjson_handle), intent(inout) :: jh
-
-   character(len=*), parameter :: caller = "elsi_print_ovlp_summary"
-
-   call fjson_write_name_value(jh,"save_ovlp",ph%save_ovlp)
-   call fjson_write_name_value(jh,"unit_ovlp",ph%unit_ovlp)
-   call fjson_write_name_value(jh,"ill_check",ph%ill_check)
-   call fjson_write_name_value(jh,"ill_ovlp",ph%ill_ovlp)
-   call fjson_write_name_value(jh,"ill_tol",ph%ill_tol)
-   call fjson_write_name_value(jh,"n_illcond",ph%n_basis-ph%n_good)
-   call fjson_write_name_value(jh,"n_states_solve",ph%n_states_solve)
-   call fjson_write_name_value(jh,"ovlp_ev_min",ph%ovlp_ev_min)
-   call fjson_write_name_value(jh,"ovlp_ev_max",ph%ovlp_ev_max)
-
-end subroutine
-
-!>
 !! Print settings for ELPA.
 !!
 subroutine elsi_print_elpa_settings(ph,jh)
@@ -303,7 +312,7 @@ subroutine elsi_print_elpa_settings(ph,jh)
    call fjson_start_name_object(jh,"solver_settings")
    call fjson_write_name_value(jh,"elpa_solver",ph%elpa_solver)
    call fjson_write_name_value(jh,"elpa_n_states",ph%n_states)
-   call fjson_write_name_value(jh,"elpa_n_single",ph%elpa_n_single)
+   call fjson_write_name_value(jh,"elpa_n_single_precision",ph%elpa_n_single)
    call fjson_write_name_value(jh,"elpa_gpu",ph%elpa_gpu)
    call fjson_write_name_value(jh,"elpa_autotune",ph%elpa_autotune)
    call fjson_finish_object(jh)
@@ -360,7 +369,7 @@ subroutine elsi_print_pexsi_settings(ph,jh)
         ph%pexsi_options%isInertiaCount)
    call fjson_write_name_value(jh,"pexsi_intertia_tol",&
         ph%pexsi_options%muInertiaTolerance)
-   call fjson_write_name_value(jh,"pexsi_tol",&
+   call fjson_write_name_value(jh,"pexsi_electron_tol",&
         ph%pexsi_options%numElectronPEXSITolerance)
    call fjson_write_name_value(jh,"pexsi_np_symbfact",&
         ph%pexsi_options%npSymbFact)
@@ -381,11 +390,11 @@ subroutine elsi_print_eigenexa_settings(ph,jh)
    character(len=*), parameter :: caller = "elsi_print_eigenexa_settings"
 
    call fjson_start_name_object(jh,"solver_settings")
-   call fjson_write_name_value(jh,"exa_n_prow",ph%exa_n_prow)
-   call fjson_write_name_value(jh,"exa_n_pcol",ph%exa_n_pcol)
-   call fjson_write_name_value(jh,"exa_method",ph%exa_method)
-   call fjson_write_name_value(jh,"exa_blk_fwd",ph%exa_blk_fwd)
-   call fjson_write_name_value(jh,"exa_blk_bkwd",ph%exa_blk_bkwd)
+   call fjson_write_name_value(jh,"eigenexa_n_prow",ph%exa_n_prow)
+   call fjson_write_name_value(jh,"eigenexa_n_pcol",ph%exa_n_pcol)
+   call fjson_write_name_value(jh,"eigenexa_method",ph%exa_method)
+   call fjson_write_name_value(jh,"eigenexa_blk_fwd",ph%exa_blk_fwd)
+   call fjson_write_name_value(jh,"eigenexa_blk_bkwd",ph%exa_blk_bkwd)
    call fjson_finish_object(jh)
 
 end subroutine
@@ -405,8 +414,8 @@ subroutine elsi_print_sips_settings(ph,jh)
    call fjson_start_name_object(jh,"solver_settings")
    call fjson_write_name_value(jh,"sips_n_states",ph%n_states)
    call fjson_write_name_value(jh,"sips_n_elpa",ph%sips_n_elpa)
-   call fjson_write_name_value(jh,"sips_slice_type",ph%sips_slice_type)
    call fjson_write_name_value(jh,"sips_n_slices",ph%sips_n_slices)
+   call fjson_write_name_value(jh,"sips_slice_type",ph%sips_slice_type)
    call fjson_write_name_value(jh,"sips_buffer",ph%sips_buffer)
    call fjson_finish_object(jh)
 
@@ -428,9 +437,9 @@ subroutine elsi_print_ntpoly_settings(ph,jh)
    call fjson_write_name_value(jh,"nt_n_prow",ph%nt_n_prow)
    call fjson_write_name_value(jh,"nt_n_pcol",ph%nt_n_pcol)
    call fjson_write_name_value(jh,"nt_method",ph%nt_method)
+   call fjson_write_name_value(jh,"nt_max_iter",ph%nt_max_iter)
    call fjson_write_name_value(jh,"nt_tol",ph%nt_tol)
    call fjson_write_name_value(jh,"nt_filter",ph%nt_filter)
-   call fjson_write_name_value(jh,"nt_max_iter",ph%nt_max_iter)
    call fjson_finish_object(jh)
 
 end subroutine
@@ -488,7 +497,7 @@ subroutine elsi_print_sparse_settings(bh,jh)
    character(len=*), parameter :: caller = "elsi_print_sparse_settings"
 
    call fjson_start_name_object(jh,"matrix_format_settings")
-   call fjson_write_name_value(jh,"def0",bh%def0)
+   call fjson_write_name_value(jh,"zero_filter",bh%def0)
    call fjson_write_name_value(jh,"blk_sp2",bh%blk_sp2)
    call fjson_write_name_value(jh,"pexsi_csc_ready",bh%pexsi_csc_ready)
    call fjson_write_name_value(jh,"siesta_csc_ready",bh%siesta_csc_ready)
