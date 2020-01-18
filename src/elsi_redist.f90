@@ -9,6 +9,7 @@
 !!
 module ELSI_REDIST
 
+   use ELSI_CONSTANT, only: MASK_H,MASK_S
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_real8,mpi_complex16,&
@@ -28,6 +29,7 @@ module ELSI_REDIST
 
    public :: elsi_blacs_to_eigenexa_h
    public :: elsi_blacs_to_generic_dm
+   public :: elsi_blacs_to_mask
    public :: elsi_blacs_to_ntpoly_hs
    public :: elsi_blacs_to_pexsi_hs_dim
    public :: elsi_blacs_to_pexsi_hs
@@ -71,14 +73,14 @@ module ELSI_REDIST
       module procedure elsi_blacs_to_generic_dm_cmplx
    end interface
 
+   interface elsi_blacs_to_mask
+      module procedure elsi_blacs_to_mask_real
+      module procedure elsi_blacs_to_mask_cmplx
+   end interface
+
    interface elsi_blacs_to_ntpoly_hs
       module procedure elsi_blacs_to_ntpoly_hs_real
       module procedure elsi_blacs_to_ntpoly_hs_cmplx
-   end interface
-
-   interface elsi_blacs_to_pexsi_hs_dim
-      module procedure elsi_blacs_to_pexsi_hs_dim_real
-      module procedure elsi_blacs_to_pexsi_hs_dim_cmplx
    end interface
 
    interface elsi_blacs_to_pexsi_hs
@@ -94,11 +96,6 @@ module ELSI_REDIST
    interface elsi_blacs_to_sips_dm
       module procedure elsi_blacs_to_sips_dm_real
       module procedure elsi_blacs_to_sips_dm_cmplx
-   end interface
-
-   interface elsi_blacs_to_sips_hs_dim
-      module procedure elsi_blacs_to_sips_hs_dim_real
-      module procedure elsi_blacs_to_sips_hs_dim_cmplx
    end interface
 
    interface elsi_blacs_to_sips_hs
@@ -217,10 +214,9 @@ module ELSI_REDIST
 contains
 
 !>
-!! Get local number of nonzero elements in matrices in 1D block CSC format
-!! converted from 2D block-cyclic dense format.
+!! Get a mask for dense to sparse conversion.
 !!
-subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
+subroutine elsi_blacs_to_mask_real(ph,bh,ham_den,ovlp_den,mask)
 
    implicit none
 
@@ -228,72 +224,55 @@ subroutine elsi_blacs_to_pexsi_hs_dim_real(ph,bh,ham_den,ovlp_den)
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(out) :: mask(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: g_col
-   integer(kind=i4) :: i_proc
    integer(kind=i4) :: ierr
 
-   integer(kind=i4), allocatable :: dest(:)
-   integer(kind=i4), allocatable :: nnz(:)
+   character(len=*), parameter :: caller = "elsi_blacs_to_mask_real"
 
-   character(len=*), parameter :: caller = "elsi_blacs_to_pexsi_hs_dim_real"
+   mask = 0
 
-   call elsi_allocate(bh,dest,ph%pexsi_np_per_pole,"dest",caller)
-   call elsi_allocate(bh,nnz,ph%pexsi_np_per_pole,"nnz",caller)
-
-   if(.not. ph%unit_ovlp) then
+   if(ph%unit_ovlp .or. ph%sparsity_mask == MASK_H) then
       do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
-
-         i_proc = (g_col-1)/(ph%n_basis/ph%pexsi_np_per_pole)
-         i_proc = min(i_proc,ph%pexsi_np_per_pole-1)
-
+         do i_row = 1,bh%n_lrow
+            if(abs(ham_den(i_row,i_col)) > bh%def0) then
+               mask(i_row,i_col) = 1
+            end if
+         end do
+      end do
+   else if(ph%sparsity_mask == MASK_S) then
+      do i_col = 1,bh%n_lcol
          do i_row = 1,bh%n_lrow
             if(abs(ovlp_den(i_row,i_col)) > bh%def0) then
-               dest(i_proc+1) = dest(i_proc+1)+1
+               mask(i_row,i_col) = 1
             end if
          end do
       end do
    else
       do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
-
-         i_proc = (g_col-1)/(ph%n_basis/ph%pexsi_np_per_pole)
-         i_proc = min(i_proc,ph%pexsi_np_per_pole-1)
-
          do i_row = 1,bh%n_lrow
-            if(abs(ham_den(i_row,i_col)) > bh%def0) then
-               dest(i_proc+1) = dest(i_proc+1)+1
+            if(abs(ovlp_den(i_row,i_col)) > bh%def0&
+               .or. abs(ham_den(i_row,i_col)) > bh%def0) then
+               mask(i_row,i_col) = 1
             end if
          end do
       end do
    end if
 
-   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,mpi_integer4,mpi_sum,&
-        bh%comm,ierr)
+   bh%nnz_l = sum(mask)
+
+   call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-   bh%nnz_l_sp = nnz(ph%pexsi_my_pcol+1)
-   bh%nnz_l_sp1 = bh%nnz_l_sp
-
-   call MPI_Allreduce(bh%nnz_l_sp,bh%nnz_g,1,mpi_integer4,mpi_sum,&
-        ph%pexsi_comm_intra_pole,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-   call elsi_deallocate(bh,dest,"dest")
-   call elsi_deallocate(bh,nnz,"nnz")
 
 end subroutine
 
 !>
-!! Get local number of nonzero elements in matrices in 1D block CSC format
-!! converted from 2D block-cyclic dense format.
+!! Get a mask for dense to sparse conversion.
 !!
-subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
+subroutine elsi_blacs_to_mask_cmplx(ph,bh,ham_den,ovlp_den,mask)
 
    implicit none
 
@@ -301,6 +280,62 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(out) :: mask(bh%n_lrow,bh%n_lcol)
+
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   integer(kind=i4) :: ierr
+
+   character(len=*), parameter :: caller = "elsi_blacs_to_mask_cmplx"
+
+   mask = 0
+
+   if(ph%unit_ovlp .or. ph%sparsity_mask == MASK_H) then
+      do i_col = 1,bh%n_lcol
+         do i_row = 1,bh%n_lrow
+            if(abs(ham_den(i_row,i_col)) > bh%def0) then
+               mask(i_row,i_col) = 1
+            end if
+         end do
+      end do
+   else if(ph%sparsity_mask == MASK_S) then
+      do i_col = 1,bh%n_lcol
+         do i_row = 1,bh%n_lrow
+            if(abs(ovlp_den(i_row,i_col)) > bh%def0) then
+               mask(i_row,i_col) = 1
+            end if
+         end do
+      end do
+   else
+      do i_col = 1,bh%n_lcol
+         do i_row = 1,bh%n_lrow
+            if(abs(ovlp_den(i_row,i_col)) > bh%def0&
+               .or. abs(ham_den(i_row,i_col)) > bh%def0) then
+               mask(i_row,i_col) = 1
+            end if
+         end do
+      end do
+   end if
+
+   bh%nnz_l = sum(mask)
+
+   call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
+
+   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+
+end subroutine
+
+!>
+!! Get local number of nonzero elements in matrices in 1D block CSC format
+!! converted from 2D block-cyclic dense format.
+!!
+subroutine elsi_blacs_to_pexsi_hs_dim(ph,bh,mask)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(inout) :: bh
+   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -311,38 +346,23 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
    integer(kind=i4), allocatable :: dest(:)
    integer(kind=i4), allocatable :: nnz(:)
 
-   character(len=*), parameter :: caller = "elsi_blacs_to_pexsi_hs_dim_cmplx"
+   character(len=*), parameter :: caller = "elsi_blacs_to_pexsi_hs_dim"
 
    call elsi_allocate(bh,dest,ph%pexsi_np_per_pole,"dest",caller)
    call elsi_allocate(bh,nnz,ph%pexsi_np_per_pole,"nnz",caller)
 
-   if(.not. ph%unit_ovlp) then
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
+   do i_col = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
-         i_proc = (g_col-1)/(ph%n_basis/ph%pexsi_np_per_pole)
-         i_proc = min(i_proc,ph%pexsi_np_per_pole-1)
+      i_proc = (g_col-1)/(ph%n_basis/ph%pexsi_np_per_pole)
+      i_proc = min(i_proc,ph%pexsi_np_per_pole-1)
 
-         do i_row = 1,bh%n_lrow
-            if(abs(ovlp_den(i_row,i_col)) > bh%def0) then
-               dest(i_proc+1) = dest(i_proc+1)+1
-            end if
-         end do
+      do i_row = 1,bh%n_lrow
+         if(mask(i_row,i_col) > 0) then
+            dest(i_proc+1) = dest(i_proc+1)+1
+         end if
       end do
-   else
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
-
-         i_proc = (g_col-1)/(ph%n_basis/ph%pexsi_np_per_pole)
-         i_proc = min(i_proc,ph%pexsi_np_per_pole-1)
-
-         do i_row = 1,bh%n_lrow
-            if(abs(ham_den(i_row,i_col)) > bh%def0) then
-               dest(i_proc+1) = dest(i_proc+1)+1
-            end if
-         end do
-      end do
-   end if
+   end do
 
    call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,mpi_integer4,mpi_sum,&
         bh%comm,ierr)
@@ -351,11 +371,6 @@ subroutine elsi_blacs_to_pexsi_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
 
    bh%nnz_l_sp = nnz(ph%pexsi_my_pcol+1)
    bh%nnz_l_sp1 = bh%nnz_l_sp
-
-   call MPI_Allreduce(bh%nnz_l_sp,bh%nnz_g,1,mpi_integer4,mpi_sum,&
-        ph%pexsi_comm_intra_pole,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
    call elsi_deallocate(bh,dest,"dest")
    call elsi_deallocate(bh,nnz,"nnz")
@@ -366,15 +381,16 @@ end subroutine
 !! Convert Halmitonian and overlap matrices stored in 2D block-cyclic dense
 !! format to 1D block CSC format.
 !!
-subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
-   row_ind,col_ptr)
+subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
+   ovlp_sp,row_ind,col_ptr)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(inout) :: bh
+   type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: ham_sp(bh%nnz_l_sp)
    real(kind=r8), intent(inout) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
@@ -382,132 +398,74 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: n_group
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: p_row
-   integer(kind=i4) :: p_col
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: g_col
    integer(kind=i4) :: g_row
-   integer(kind=i4) :: d1
-   integer(kind=i4) :: d2
-   integer(kind=i4) :: d11
-   integer(kind=i4) :: d21
-   integer(kind=i4) :: nnz_l_aux
+   integer(kind=i4) :: dest
+   integer(kind=i4) :: n_lcol_aux
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: h_val_send(:)
    real(kind=r8), allocatable :: s_val_send(:)
-   real(kind=r8), allocatable :: h_val_recv(:)
-   real(kind=r8), allocatable :: s_val_recv(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of columns
    integer(kind=i4), allocatable :: perm(:)
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
 
    character(len=*), parameter :: caller = "elsi_blacs_to_pexsi_hs_real"
 
    call elsi_get_time(t0)
 
-   ! Compute destination of columns
-   n_group = bh%n_procs/ph%pexsi_np_per_pole
-   d1 = ph%n_basis/ph%pexsi_np_per_pole
-   d2 = ph%n_basis-(ph%pexsi_np_per_pole-1)*d1
-   d11 = max(d1/n_group,1)
-   d21 = max(d2/n_group,1)
+   n_lcol_aux = ph%n_basis/ph%pexsi_np_per_pole
 
-   call elsi_allocate(bh,dest,bh%n_lcol,"dest",caller)
-
-   do i_col = 1,bh%n_lcol
-      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
-
-      p_col = (g_col-1)/d1
-      p_col = min(p_col,ph%pexsi_np_per_pole-1)
-
-      if(p_col < ph%pexsi_np_per_pole-1) then
-         p_row = mod(g_col-1,d1)/d11
-      else
-         p_row = (g_col-(ph%pexsi_np_per_pole-1)*d1-1)/d21
-      end if
-
-      p_row = min(p_row,n_group-1)
-
-      dest(i_col) = p_row+p_col*n_group
-   end do
-
-   if(ph%first_blacs_to_pexsi) then
-      if(.not. ph%unit_ovlp) then
-         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ovlp_den,bh%nnz_l)
-
-         call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
-      else
-         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham_den,bh%nnz_l)
-      end if
+   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
+      call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
    end if
 
+   call elsi_allocate(bh,h_val_send,bh%nnz_l,"h_val_send",caller)
    call elsi_allocate(bh,row_send,bh%nnz_l,"row_send",caller)
    call elsi_allocate(bh,col_send,bh%nnz_l,"col_send",caller)
-   call elsi_allocate(bh,h_val_send,bh%nnz_l,"h_val_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
    i_val = 0
 
-   if(.not. ph%unit_ovlp) then
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
+   do i_col = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
-         do i_row = 1,bh%n_lrow
-            if(abs(ovlp_den(i_row,i_col)) > bh%def0) then
-               i_val = i_val+1
+      ! Compute destination
+      dest = (g_col-1)/n_lcol_aux
+      dest = min(dest,ph%pexsi_np_per_pole-1)
 
-               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
+      do i_row = 1,bh%n_lrow
+         if(mask(i_row,i_col) > 0) then
+            i_val = i_val+1
 
-               row_send(i_val) = g_row
-               col_send(i_val) = g_col
-               h_val_send(i_val) = ham_den(i_row,i_col)
+            call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
 
-               if(ph%first_blacs_to_pexsi) then
-                  s_val_send(i_val) = ovlp_den(i_row,i_col)
-               end if
+            row_send(i_val) = g_row
+            col_send(i_val) = g_col
+            h_val_send(i_val) = ham_den(i_row,i_col)
 
-               ! Set send_count
-               send_count(dest(i_col)+1) = send_count(dest(i_col)+1)+1
+            if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
+               s_val_send(i_val) = ovlp_den(i_row,i_col)
             end if
-         end do
+
+            ! Set send_count
+            send_count(dest+1) = send_count(dest+1)+1
+         end if
       end do
-   else
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
+   end do
 
-         do i_row = 1,bh%n_lrow
-            if(abs(ham_den(i_row,i_col)) > bh%def0) then
-               i_val = i_val+1
-
-               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
-
-               row_send(i_val) = g_row
-               col_send(i_val) = g_col
-               h_val_send(i_val) = ham_den(i_row,i_col)
-
-               ! Set send_count
-               send_count(dest(i_col)+1) = send_count(dest(i_col)+1)+1
-            end if
-         end do
-      end do
-   end if
-
-   call elsi_deallocate(bh,dest,"dest")
    call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
    call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
@@ -518,20 +476,15 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
-   ! Set local number of nonzero
-   nnz_l_aux = sum(recv_count,1)
-
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
    ! Row id
-   call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
-
-   call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
+   call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_ind,&
         recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -539,7 +492,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    call elsi_deallocate(bh,row_send,"row_send")
 
    ! Column id
-   call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
+   call elsi_allocate(bh,col_recv,bh%nnz_l_sp,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
         recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
@@ -549,9 +502,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    call elsi_deallocate(bh,col_send,"col_send")
 
    ! Hamiltonian value
-   call elsi_allocate(bh,h_val_recv,nnz_l_aux,"h_val_recv",caller)
-
-   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_real8,h_val_recv,&
+   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_real8,ham_sp,&
         recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -560,9 +511,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 
    ! Overlap value
    if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
-      call elsi_allocate(bh,s_val_recv,nnz_l_aux,"s_val_recv",caller)
-
-      call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,s_val_recv,&
+      call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,ovlp_sp,&
            recv_count,recv_displ,mpi_real8,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -570,95 +519,35 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
       call elsi_deallocate(bh,s_val_send,"s_val_send")
    end if
 
-   call elsi_allocate(bh,gid,nnz_l_aux,"gid",caller)
-   call elsi_allocate(bh,perm,nnz_l_aux,"perm",caller)
-
-   ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_recv,kind=i8)
-
-   ! Sort
-   call elsi_heapsort(nnz_l_aux,gid,perm)
-   call elsi_permute(nnz_l_aux,perm,h_val_recv)
-   call elsi_permute(nnz_l_aux,perm,row_recv)
-   call elsi_permute(nnz_l_aux,perm,col_recv)
-
-   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
-      call elsi_permute(nnz_l_aux,perm,s_val_recv)
-   end if
-
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
-
-   ! Set send_count, all data sent to 1st pole
-   send_count = 0
-   send_count(bh%myid/n_group+1) = nnz_l_aux
-
-   ! Set recv_count
-   call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-        bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
-
-   ! Set send_displ and recv_displ
-   do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
-   end do
-
-   ! Redistribute packed data
-   if(ph%first_blacs_to_pexsi) then
-      ! Row id
-      call MPI_Alltoallv(row_recv,send_count,send_displ,mpi_integer4,row_ind,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-      call elsi_deallocate(bh,row_recv,"row_recv")
-
-      ! Column id
-      call elsi_allocate(bh,col_send,bh%nnz_l_sp,"col_send",caller)
-
-      call MPI_Alltoallv(col_recv,send_count,send_displ,mpi_integer4,col_send,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-      call elsi_deallocate(bh,col_recv,"col_recv")
-
-      if(.not. ph%unit_ovlp) then
-         ! Overlap value
-         call MPI_Alltoallv(s_val_recv,send_count,send_displ,mpi_real8,ovlp_sp,&
-              recv_count,recv_displ,mpi_real8,bh%comm,ierr)
-
-         call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-         call elsi_deallocate(bh,s_val_recv,"s_val_recv")
-      end if
-   else
-      call elsi_deallocate(bh,row_recv,"row_recv")
-      call elsi_deallocate(bh,col_recv,"col_recv")
-   end if
-
-   ! Hamiltonian value
-   call MPI_Alltoallv(h_val_recv,send_count,send_displ,mpi_real8,ham_sp,&
-        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-   call elsi_deallocate(bh,h_val_recv,"h_val_recv")
    call elsi_deallocate(bh,send_count,"send_count")
    call elsi_deallocate(bh,recv_count,"recv_count")
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
+   call elsi_allocate(bh,gid,bh%nnz_l_sp,"gid",caller)
+   call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
-   if(ph%first_blacs_to_pexsi) then
-      ! Only 1st pole computes row index and column pointer
-      if(ph%pexsi_my_prow == 0) then
+   ! Compute global 1D id
+   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind,kind=i8)
+
+   ! Only 1st pole computes row index and column pointer
+   if(ph%pexsi_my_prow == 0) then
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp,gid,perm)
+      call elsi_permute(bh%nnz_l_sp,perm,ham_sp)
+      call elsi_permute(bh%nnz_l_sp,perm,row_ind)
+
+      if(ph%first_blacs_to_pexsi) then
+         call elsi_permute(bh%nnz_l_sp,perm,col_recv)
+
+         if(.not. ph%unit_ovlp) then
+            call elsi_permute(bh%nnz_l_sp,perm,ovlp_sp)
+         end if
+
          col_ptr = 0
          col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
 
          do i_val = 1,bh%nnz_l_sp
-            i_col = col_send(i_val)-d1*ph%pexsi_my_pcol
+            i_col = col_recv(i_val)-n_lcol_aux*ph%pexsi_my_pcol
             col_ptr(i_col) = col_ptr(i_col)+1
          end do
 
@@ -666,19 +555,11 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
             col_ptr(i_col) = col_ptr(i_col+1)-col_ptr(i_col)
          end do
       end if
-
-      call elsi_deallocate(bh,col_send,"col_send")
-
-      call MPI_Bcast(row_ind,bh%nnz_l_sp,mpi_integer4,0,&
-           ph%pexsi_comm_inter_pole,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
-
-      call MPI_Bcast(col_ptr,bh%n_lcol_sp+1,mpi_integer4,0,&
-           ph%pexsi_comm_inter_pole,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
    end if
+
+   call elsi_deallocate(bh,gid,"gid")
+   call elsi_deallocate(bh,perm,"perm")
+   call elsi_deallocate(bh,col_recv,"col_recv")
 
    call elsi_get_time(t1)
 
@@ -695,15 +576,16 @@ end subroutine
 !! Convert Halmitonian and overlap matrices stored in 2D block-cyclic dense
 !! format to 1D block CSC format.
 !!
-subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
-   row_ind,col_ptr)
+subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
+   ovlp_sp,row_ind,col_ptr)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(inout) :: bh
+   type(elsi_basic_t), intent(in) :: bh
    complex(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: ham_sp(bh%nnz_l_sp)
    complex(kind=r8), intent(inout) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
@@ -711,132 +593,74 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: n_group
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: p_row
-   integer(kind=i4) :: p_col
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: g_col
    integer(kind=i4) :: g_row
-   integer(kind=i4) :: d1
-   integer(kind=i4) :: d2
-   integer(kind=i4) :: d11
-   integer(kind=i4) :: d21
-   integer(kind=i4) :: nnz_l_aux
+   integer(kind=i4) :: dest
+   integer(kind=i4) :: n_lcol_aux
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send(:)
    complex(kind=r8), allocatable :: s_val_send(:)
-   complex(kind=r8), allocatable :: h_val_recv(:)
-   complex(kind=r8), allocatable :: s_val_recv(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
    integer(kind=i4), allocatable :: send_displ(:)
-   integer(kind=i4), allocatable :: row_recv(:)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of columns
    integer(kind=i4), allocatable :: perm(:)
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
 
    character(len=*), parameter :: caller = "elsi_blacs_to_pexsi_hs_cmplx"
 
    call elsi_get_time(t0)
 
-   ! Compute destination of columns
-   n_group = bh%n_procs/ph%pexsi_np_per_pole
-   d1 = ph%n_basis/ph%pexsi_np_per_pole
-   d2 = ph%n_basis-(ph%pexsi_np_per_pole-1)*d1
-   d11 = max(d1/n_group,1)
-   d21 = max(d2/n_group,1)
+   n_lcol_aux = ph%n_basis/ph%pexsi_np_per_pole
 
-   call elsi_allocate(bh,dest,bh%n_lcol,"dest",caller)
-
-   do i_col = 1,bh%n_lcol
-      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
-
-      p_col = (g_col-1)/d1
-      p_col = min(p_col,ph%pexsi_np_per_pole-1)
-
-      if(p_col < ph%pexsi_np_per_pole-1) then
-         p_row = mod(g_col-1,d1)/d11
-      else
-         p_row = (g_col-(ph%pexsi_np_per_pole-1)*d1-1)/d21
-      end if
-
-      p_row = min(p_row,n_group-1)
-
-      dest(i_col) = p_row+p_col*n_group
-   end do
-
-   if(ph%first_blacs_to_pexsi) then
-      if(.not. ph%unit_ovlp) then
-         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ovlp_den,bh%nnz_l)
-
-         call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
-      else
-         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham_den,bh%nnz_l)
-      end if
+   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
+      call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
    end if
 
+   call elsi_allocate(bh,h_val_send,bh%nnz_l,"h_val_send",caller)
    call elsi_allocate(bh,row_send,bh%nnz_l,"row_send",caller)
    call elsi_allocate(bh,col_send,bh%nnz_l,"col_send",caller)
-   call elsi_allocate(bh,h_val_send,bh%nnz_l,"h_val_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
    i_val = 0
 
-   if(.not. ph%unit_ovlp) then
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
+   do i_col = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
-         do i_row = 1,bh%n_lrow
-            if(abs(ovlp_den(i_row,i_col)) > bh%def0) then
-               i_val = i_val+1
+      ! Compute destination
+      dest = (g_col-1)/n_lcol_aux
+      dest = min(dest,ph%pexsi_np_per_pole-1)
 
-               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
+      do i_row = 1,bh%n_lrow
+         if(mask(i_row,i_col) > 0) then
+            i_val = i_val+1
 
-               row_send(i_val) = g_row
-               col_send(i_val) = g_col
-               h_val_send(i_val) = ham_den(i_row,i_col)
+            call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
 
-               if(ph%first_blacs_to_pexsi) then
-                  s_val_send(i_val) = ovlp_den(i_row,i_col)
-               end if
+            row_send(i_val) = g_row
+            col_send(i_val) = g_col
+            h_val_send(i_val) = ham_den(i_row,i_col)
 
-               ! Set send_count
-               send_count(dest(i_col)+1) = send_count(dest(i_col)+1)+1
+            if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
+               s_val_send(i_val) = ovlp_den(i_row,i_col)
             end if
-         end do
+
+            ! Set send_count
+            send_count(dest+1) = send_count(dest+1)+1
+         end if
       end do
-   else
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
+   end do
 
-         do i_row = 1,bh%n_lrow
-            if(abs(ham_den(i_row,i_col)) > bh%def0) then
-               i_val = i_val+1
-
-               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
-
-               row_send(i_val) = g_row
-               col_send(i_val) = g_col
-               h_val_send(i_val) = ham_den(i_row,i_col)
-
-               ! Set send_count
-               send_count(dest(i_col)+1) = send_count(dest(i_col)+1)+1
-            end if
-         end do
-      end do
-   end if
-
-   call elsi_deallocate(bh,dest,"dest")
    call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
    call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
@@ -847,20 +671,15 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
-   ! Set local number of nonzero
-   nnz_l_aux = sum(recv_count,1)
-
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
    ! Row id
-   call elsi_allocate(bh,row_recv,nnz_l_aux,"row_recv",caller)
-
-   call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_recv,&
+   call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_ind,&
         recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
@@ -868,7 +687,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    call elsi_deallocate(bh,row_send,"row_send")
 
    ! Column id
-   call elsi_allocate(bh,col_recv,nnz_l_aux,"col_recv",caller)
+   call elsi_allocate(bh,col_recv,bh%nnz_l_sp,"col_recv",caller)
 
    call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
         recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
@@ -878,10 +697,8 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    call elsi_deallocate(bh,col_send,"col_send")
 
    ! Hamiltonian value
-   call elsi_allocate(bh,h_val_recv,nnz_l_aux,"h_val_recv",caller)
-
-   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_complex16,&
-        h_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_complex16,ham_sp,&
+        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
@@ -889,105 +706,43 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
 
    ! Overlap value
    if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
-      call elsi_allocate(bh,s_val_recv,nnz_l_aux,"s_val_recv",caller)
-
       call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
-           s_val_recv,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
+           ovlp_sp,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
 
       call elsi_deallocate(bh,s_val_send,"s_val_send")
    end if
 
-   call elsi_allocate(bh,gid,nnz_l_aux,"gid",caller)
-   call elsi_allocate(bh,perm,nnz_l_aux,"perm",caller)
-
-   ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_recv,kind=i8)
-
-   ! Sort
-   call elsi_heapsort(nnz_l_aux,gid,perm)
-   call elsi_permute(nnz_l_aux,perm,h_val_recv)
-   call elsi_permute(nnz_l_aux,perm,row_recv)
-   call elsi_permute(nnz_l_aux,perm,col_recv)
-
-   if(ph%first_blacs_to_pexsi .and. .not. ph%unit_ovlp) then
-      call elsi_permute(nnz_l_aux,perm,s_val_recv)
-   end if
-
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
-
-   ! Set send_count, all data sent to 1st pole
-   send_count = 0
-   send_count(bh%myid/n_group+1) = nnz_l_aux
-
-   ! Set recv_count
-   call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-        bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
-
-   ! Set send_displ and recv_displ
-   do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
-   end do
-
-   ! Redistribute packed data
-   if(ph%first_blacs_to_pexsi) then
-      ! Row id
-      call MPI_Alltoallv(row_recv,send_count,send_displ,mpi_integer4,row_ind,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-      call elsi_deallocate(bh,row_recv,"row_recv")
-
-      ! Column id
-      call elsi_allocate(bh,col_send,bh%nnz_l_sp,"col_send",caller)
-
-      call MPI_Alltoallv(col_recv,send_count,send_displ,mpi_integer4,col_send,&
-           recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-      call elsi_deallocate(bh,col_recv,"col_recv")
-
-      if(.not. ph%unit_ovlp) then
-         ! Overlap value
-         call MPI_Alltoallv(s_val_recv,send_count,send_displ,mpi_complex16,&
-              ovlp_sp,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
-
-         call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-         call elsi_deallocate(bh,s_val_recv,"s_val_recv")
-      end if
-   else
-      call elsi_deallocate(bh,row_recv,"row_recv")
-      call elsi_deallocate(bh,col_recv,"col_recv")
-   end if
-
-   ! Hamiltonian value
-   call MPI_Alltoallv(h_val_recv,send_count,send_displ,mpi_complex16,ham_sp,&
-        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-   call elsi_deallocate(bh,h_val_recv,"h_val_recv")
    call elsi_deallocate(bh,send_count,"send_count")
    call elsi_deallocate(bh,recv_count,"recv_count")
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
+   call elsi_allocate(bh,gid,bh%nnz_l_sp,"gid",caller)
+   call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
-   if(ph%first_blacs_to_pexsi) then
-      ! Only 1st pole computes row index and column pointer
-      if(ph%pexsi_my_prow == 0) then
+   ! Compute global 1D id
+   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind,kind=i8)
+
+   ! Only 1st pole computes row index and column pointer
+   if(ph%pexsi_my_prow == 0) then
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp,gid,perm)
+      call elsi_permute(bh%nnz_l_sp,perm,ham_sp)
+      call elsi_permute(bh%nnz_l_sp,perm,row_ind)
+
+      if(ph%first_blacs_to_pexsi) then
+         call elsi_permute(bh%nnz_l_sp,perm,col_recv)
+
+         if(.not. ph%unit_ovlp) then
+            call elsi_permute(bh%nnz_l_sp,perm,ovlp_sp)
+         end if
+
          col_ptr = 0
          col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
 
          do i_val = 1,bh%nnz_l_sp
-            i_col = col_send(i_val)-d1*ph%pexsi_my_pcol
+            i_col = col_recv(i_val)-n_lcol_aux*ph%pexsi_my_pcol
             col_ptr(i_col) = col_ptr(i_col)+1
          end do
 
@@ -995,19 +750,11 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
             col_ptr(i_col) = col_ptr(i_col+1)-col_ptr(i_col)
          end do
       end if
-
-      call elsi_deallocate(bh,col_send,"col_send")
-
-      call MPI_Bcast(row_ind,bh%nnz_l_sp,mpi_integer4,0,&
-           ph%pexsi_comm_inter_pole,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
-
-      call MPI_Bcast(col_ptr,bh%n_lcol_sp+1,mpi_integer4,0,&
-           ph%pexsi_comm_inter_pole,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
    end if
+
+   call elsi_deallocate(bh,gid,"gid")
+   call elsi_deallocate(bh,perm,"perm")
+   call elsi_deallocate(bh,col_recv,"col_recv")
 
    call elsi_get_time(t1)
 
@@ -1037,20 +784,15 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: n_group
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   integer(kind=i4) :: row0
-   integer(kind=i4) :: row1
-   integer(kind=i4) :: nnz_l_aux
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -1071,66 +813,49 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
    call elsi_get_time(t0)
 
-   n_group = bh%n_procs/ph%pexsi_np_per_pole
-   row0 = ph%pexsi_my_prow*(ph%n_basis/n_group)+1
-   row1 = (ph%pexsi_my_prow+1)*(ph%n_basis/n_group)
-
-   if(ph%pexsi_my_prow == n_group-1) then
-      row1 = ph%n_basis
-   end if
-
-   nnz_l_aux = 0
-
-   do i_val = 1,bh%nnz_l_sp
-      if(row_ind(i_val) >= row0 .and. row_ind(i_val) <= row1) then
-         nnz_l_aux = nnz_l_aux+1
-      end if
-   end do
-
-   call elsi_allocate(bh,dest,nnz_l_aux,"dest",caller)
-   call elsi_allocate(bh,perm,nnz_l_aux,"perm",caller)
-   call elsi_allocate(bh,val_send,nnz_l_aux,"val_send",caller)
-   call elsi_allocate(bh,row_send,nnz_l_aux,"row_send",caller)
-   call elsi_allocate(bh,col_send,nnz_l_aux,"col_send",caller)
+   call elsi_allocate(bh,val_send,bh%nnz_l_sp,"val_send",caller)
+   call elsi_allocate(bh,row_send,bh%nnz_l_sp,"row_send",caller)
+   call elsi_allocate(bh,col_send,bh%nnz_l_sp,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   i_col = 0
-   j_val = 0
+   if(ph%pexsi_my_prow == 0) then
+      call elsi_allocate(bh,dest,bh%nnz_l_sp,"dest",caller)
+      call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
-   do i_val = 1,bh%nnz_l_sp
-      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
-         i_col = i_col+1
-      end do
+      i_col = 0
 
-      i_row = row_ind(i_val)
+      do i_val = 1,bh%nnz_l_sp
+         do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
+            i_col = i_col+1
+         end do
 
-      if(row_ind(i_val) >= row0 .and. row_ind(i_val) <= row1) then
-         j_val = j_val+1
+         i_row = row_ind(i_val)
 
          ! Compute global id
-         row_send(j_val) = i_row
-         col_send(j_val) = i_col+ph%pexsi_my_pcol&
-            *(ph%n_basis/ph%pexsi_np_per_pole)
-         val_send(j_val) = dm_sp(i_val)
+         row_send(i_val) = i_row
+         col_send(i_val) = i_col+ph%pexsi_my_pcol*(ph%n_basis&
+            /ph%pexsi_np_per_pole)
+         val_send(i_val) = dm_sp(i_val)
 
          ! Compute destination
-         p_row = mod((row_send(j_val)-1)/bh%blk,bh%n_prow)
-         p_col = mod((col_send(j_val)-1)/bh%blk,bh%n_pcol)
-         dest(j_val) = p_col+p_row*bh%n_pcol
+         p_row = mod((row_send(i_val)-1)/bh%blk,bh%n_prow)
+         p_col = mod((col_send(i_val)-1)/bh%blk,bh%n_pcol)
+         dest(i_val) = p_col+p_row*bh%n_pcol
 
          ! Set send_count
-         send_count(dest(j_val)+1) = send_count(dest(j_val)+1)+1
-      end if
-   end do
+         send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+      end do
 
-   ! Sort
-   call elsi_heapsort(nnz_l_aux,dest,perm)
-   call elsi_permute(nnz_l_aux,perm,val_send)
-   call elsi_permute(nnz_l_aux,perm,row_send)
-   call elsi_permute(nnz_l_aux,perm,col_send)
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp,dest,perm)
+      call elsi_permute(bh%nnz_l_sp,perm,val_send)
+      call elsi_permute(bh%nnz_l_sp,perm,row_send)
+      call elsi_permute(bh%nnz_l_sp,perm,col_send)
 
-   call elsi_deallocate(bh,dest,"dest")
-   call elsi_deallocate(bh,perm,"perm")
+      call elsi_deallocate(bh,dest,"dest")
+      call elsi_deallocate(bh,perm,"perm")
+   end if
+
    call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
    call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
@@ -1141,12 +866,12 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
-   bh%nnz_l = sum(recv_count,1)
+   bh%nnz_l = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -1226,20 +951,15 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: n_group
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_val
-   integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   integer(kind=i4) :: row0
-   integer(kind=i4) :: row1
-   integer(kind=i4) :: nnz_l_aux
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -1260,66 +980,49 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
    call elsi_get_time(t0)
 
-   n_group = bh%n_procs/ph%pexsi_np_per_pole
-   row0 = ph%pexsi_my_prow*(ph%n_basis/n_group)+1
-   row1 = (ph%pexsi_my_prow+1)*(ph%n_basis/n_group)
-
-   if(ph%pexsi_my_prow == n_group-1) then
-      row1 = ph%n_basis
-   end if
-
-   nnz_l_aux = 0
-
-   do i_val = 1,bh%nnz_l_sp
-      if(row_ind(i_val) >= row0 .and. row_ind(i_val) <= row1) then
-         nnz_l_aux = nnz_l_aux+1
-      end if
-   end do
-
-   call elsi_allocate(bh,dest,nnz_l_aux,"dest",caller)
-   call elsi_allocate(bh,perm,nnz_l_aux,"perm",caller)
-   call elsi_allocate(bh,val_send,nnz_l_aux,"val_send",caller)
-   call elsi_allocate(bh,row_send,nnz_l_aux,"row_send",caller)
-   call elsi_allocate(bh,col_send,nnz_l_aux,"col_send",caller)
+   call elsi_allocate(bh,val_send,bh%nnz_l_sp,"val_send",caller)
+   call elsi_allocate(bh,row_send,bh%nnz_l_sp,"row_send",caller)
+   call elsi_allocate(bh,col_send,bh%nnz_l_sp,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   i_col = 0
-   j_val = 0
+   if(ph%pexsi_my_prow == 0) then
+      call elsi_allocate(bh,dest,bh%nnz_l_sp,"dest",caller)
+      call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
-   do i_val = 1,bh%nnz_l_sp
-      do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
-         i_col = i_col+1
-      end do
+      i_col = 0
 
-      i_row = row_ind(i_val)
+      do i_val = 1,bh%nnz_l_sp
+         do while(i_val == col_ptr(i_col+1) .and. i_col /= bh%n_lcol_sp)
+            i_col = i_col+1
+         end do
 
-      if(row_ind(i_val) >= row0 .and. row_ind(i_val) <= row1) then
-         j_val = j_val+1
+         i_row = row_ind(i_val)
 
          ! Compute global id
-         row_send(j_val) = i_row
-         col_send(j_val) = i_col+ph%pexsi_my_pcol&
-            *(ph%n_basis/ph%pexsi_np_per_pole)
-         val_send(j_val) = dm_sp(i_val)
+         row_send(i_val) = i_row
+         col_send(i_val) = i_col+ph%pexsi_my_pcol*(ph%n_basis&
+            /ph%pexsi_np_per_pole)
+         val_send(i_val) = dm_sp(i_val)
 
          ! Compute destination
-         p_row = mod((row_send(j_val)-1)/bh%blk,bh%n_prow)
-         p_col = mod((col_send(j_val)-1)/bh%blk,bh%n_pcol)
-         dest(j_val) = p_col+p_row*bh%n_pcol
+         p_row = mod((row_send(i_val)-1)/bh%blk,bh%n_prow)
+         p_col = mod((col_send(i_val)-1)/bh%blk,bh%n_pcol)
+         dest(i_val) = p_col+p_row*bh%n_pcol
 
          ! Set send_count
-         send_count(dest(j_val)+1) = send_count(dest(j_val)+1)+1
-      end if
-   end do
+         send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+      end do
 
-   ! Sort
-   call elsi_heapsort(nnz_l_aux,dest,perm)
-   call elsi_permute(nnz_l_aux,perm,val_send)
-   call elsi_permute(nnz_l_aux,perm,row_send)
-   call elsi_permute(nnz_l_aux,perm,col_send)
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp,dest,perm)
+      call elsi_permute(bh%nnz_l_sp,perm,val_send)
+      call elsi_permute(bh%nnz_l_sp,perm,row_send)
+      call elsi_permute(bh%nnz_l_sp,perm,col_send)
 
-   call elsi_deallocate(bh,dest,"dest")
-   call elsi_deallocate(bh,perm,"perm")
+      call elsi_deallocate(bh,dest,"dest")
+      call elsi_deallocate(bh,perm,"perm")
+   end if
+
    call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
    call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
    call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
@@ -1330,12 +1033,12 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
-   bh%nnz_l = sum(recv_count,1)
+   bh%nnz_l = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -1402,14 +1105,13 @@ end subroutine
 !! Get local number of nonzero elements in matrices in 1D block CSC format
 !! converted from 2D block-cyclic dense format.
 !!
-subroutine elsi_blacs_to_sips_hs_dim_real(ph,bh,ham_den,ovlp_den)
+subroutine elsi_blacs_to_sips_hs_dim(ph,bh,mask)
 
    implicit none
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   real(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -1420,38 +1122,23 @@ subroutine elsi_blacs_to_sips_hs_dim_real(ph,bh,ham_den,ovlp_den)
    integer(kind=i4), allocatable :: dest(:)
    integer(kind=i4), allocatable :: nnz(:)
 
-   character(len=*), parameter :: caller = "elsi_blacs_to_sips_hs_dim_real"
+   character(len=*), parameter :: caller = "elsi_blacs_to_sips_hs_dim"
 
    call elsi_allocate(bh,dest,bh%n_procs,"dest",caller)
    call elsi_allocate(bh,nnz,bh%n_procs,"nnz",caller)
 
-   if(.not. ph%unit_ovlp) then
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
+   do i_col = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
-         i_proc = (g_col-1)/(ph%n_basis/bh%n_procs)
-         i_proc = min(i_proc,bh%n_procs-1)
+      i_proc = (g_col-1)/(ph%n_basis/bh%n_procs)
+      i_proc = min(i_proc,bh%n_procs-1)
 
-         do i_row = 1,bh%n_lrow
-            if(abs(ovlp_den(i_row,i_col)) > bh%def0) then
-               dest(i_proc+1) = dest(i_proc+1)+1
-            end if
-         end do
+      do i_row = 1,bh%n_lrow
+         if(mask(i_row,i_col) > 0) then
+            dest(i_proc+1) = dest(i_proc+1)+1
+         end if
       end do
-   else
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
-
-         i_proc = (g_col-1)/(ph%n_basis/bh%n_procs)
-         i_proc = min(i_proc,bh%n_procs-1)
-
-         do i_row = 1,bh%n_lrow
-            if(abs(ham_den(i_row,i_col)) > bh%def0) then
-               dest(i_proc+1) = dest(i_proc+1)+1
-            end if
-         end do
-      end do
-   end if
+   end do
 
    call MPI_Allreduce(dest,nnz,bh%n_procs,mpi_integer4,mpi_sum,bh%comm,ierr)
 
@@ -1459,81 +1146,6 @@ subroutine elsi_blacs_to_sips_hs_dim_real(ph,bh,ham_den,ovlp_den)
 
    bh%nnz_l_sp = nnz(bh%myid+1)
    bh%nnz_l_sp1 = bh%nnz_l_sp
-
-   call MPI_Allreduce(bh%nnz_l_sp,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-   call elsi_deallocate(bh,dest,"dest")
-   call elsi_deallocate(bh,nnz,"nnz")
-
-end subroutine
-
-!>
-!! Get local number of nonzero elements in matrices in 1D block CSC format
-!! converted from 2D block-cyclic dense format.
-!!
-subroutine elsi_blacs_to_sips_hs_dim_cmplx(ph,bh,ham_den,ovlp_den)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(inout) :: bh
-   complex(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: g_col
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: ierr
-
-   integer(kind=i4), allocatable :: dest(:)
-   integer(kind=i4), allocatable :: nnz(:)
-
-   character(len=*), parameter :: caller = "elsi_blacs_to_sips_hs_dim_cmplx"
-
-   call elsi_allocate(bh,dest,bh%n_procs,"dest",caller)
-   call elsi_allocate(bh,nnz,bh%n_procs,"nnz",caller)
-
-   if(.not. ph%unit_ovlp) then
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
-
-         i_proc = (g_col-1)/(ph%n_basis/bh%n_procs)
-         i_proc = min(i_proc,bh%n_procs-1)
-
-         do i_row = 1,bh%n_lrow
-            if(abs(ovlp_den(i_row,i_col)) > bh%def0) then
-               dest(i_proc+1) = dest(i_proc+1)+1
-            end if
-         end do
-      end do
-   else
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
-
-         i_proc = (g_col-1)/(ph%n_basis/bh%n_procs)
-         i_proc = min(i_proc,bh%n_procs-1)
-
-         do i_row = 1,bh%n_lrow
-            if(abs(ham_den(i_row,i_col)) > bh%def0) then
-               dest(i_proc+1) = dest(i_proc+1)+1
-            end if
-         end do
-      end do
-   end if
-
-   call MPI_Allreduce(dest,nnz,bh%n_procs,mpi_integer4,mpi_sum,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-   bh%nnz_l_sp = nnz(bh%myid+1)
-   bh%nnz_l_sp1 = bh%nnz_l_sp
-
-   call MPI_Allreduce(bh%nnz_l_sp,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
    call elsi_deallocate(bh,dest,"dest")
    call elsi_deallocate(bh,nnz,"nnz")
@@ -1544,8 +1156,8 @@ end subroutine
 !! Convert Halmitonian and overlap matrices stored in 2D block-cyclic dense
 !! format to 1D block CSC format.
 !!
-subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
-   row_ind,col_ptr)
+subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
+   ovlp_sp,row_ind,col_ptr)
 
    implicit none
 
@@ -1553,212 +1165,20 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: ham_sp(bh%nnz_l_sp)
    real(kind=r8), intent(inout) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: g_col
-   integer(kind=i4) :: g_row
-   integer(kind=i4) :: dest ! Destination of an element
-   character(len=200) :: msg
-
-   ! See documentation of MPI_Alltoallv
-   real(kind=r8), allocatable :: h_val_send(:)
-   real(kind=r8), allocatable :: s_val_send(:)
-   integer(kind=i4), allocatable :: row_send(:)
-   integer(kind=i4), allocatable :: col_send(:)
-   integer(kind=i4), allocatable :: send_count(:)
-   integer(kind=i4), allocatable :: send_displ(:)
-   integer(kind=i4), allocatable :: col_recv(:)
-   integer(kind=i4), allocatable :: recv_count(:)
-   integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
-   integer(kind=i4), allocatable :: perm(:)
-
    character(len=*), parameter :: caller = "elsi_blacs_to_sips_hs_real"
 
-   call elsi_get_time(t0)
+   ph%pexsi_my_prow = 0
+   ph%pexsi_my_pcol = bh%myid
+   ph%pexsi_np_per_pole = bh%n_procs
 
-   if(ph%first_blacs_to_sips) then
-      if(.not. ph%unit_ovlp) then
-         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ovlp_den,bh%nnz_l)
-
-         call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
-      else
-         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham_den,bh%nnz_l)
-      end if
-   end if
-
-   call elsi_allocate(bh,row_send,bh%nnz_l,"row_send",caller)
-   call elsi_allocate(bh,col_send,bh%nnz_l,"col_send",caller)
-   call elsi_allocate(bh,h_val_send,bh%nnz_l,"h_val_send",caller)
-   call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
-
-   i_val = 0
-
-   if(.not. ph%unit_ovlp) then
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
-
-         ! Compute destination
-         dest = (g_col-1)/(ph%n_basis/bh%n_procs)
-         dest = min(dest,bh%n_procs-1)
-
-         do i_row = 1,bh%n_lrow
-            if(abs(ovlp_den(i_row,i_col)) > bh%def0) then
-               i_val = i_val+1
-
-               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
-
-               ! Pack global id and data into bufs
-               row_send(i_val) = g_row
-               col_send(i_val) = g_col
-               h_val_send(i_val) = ham_den(i_row,i_col)
-
-               if(ph%first_blacs_to_sips) then
-                  s_val_send(i_val) = ovlp_den(i_row,i_col)
-               end if
-
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-            end if
-         end do
-      end do
-   else
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
-
-         ! Compute destination
-         dest = (g_col-1)/(ph%n_basis/bh%n_procs)
-         dest = min(dest,bh%n_procs-1)
-
-         do i_row = 1,bh%n_lrow
-            if(abs(ham_den(i_row,i_col)) > bh%def0) then
-               i_val = i_val+1
-
-               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
-
-               ! Pack global id and data into bufs
-               row_send(i_val) = g_row
-               col_send(i_val) = g_col
-               h_val_send(i_val) = ham_den(i_row,i_col)
-
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-            end if
-         end do
-      end do
-   end if
-
-   call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
-   call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
-   call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
-
-   ! Set recv_count
-   call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-        bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
-
-   ! Set send_displ and recv_displ
-   do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
-   end do
-
-   ! Redistribute packed data
-   ! Row id
-   call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_ind,&
-        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-   call elsi_deallocate(bh,row_send,"row_send")
-
-   ! Column id
-   call elsi_allocate(bh,col_recv,bh%nnz_l_sp,"col_recv",caller)
-
-   call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-   call elsi_deallocate(bh,col_send,"col_send")
-
-   ! Hamiltonian value
-   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_real8,ham_sp,&
-        recv_count,recv_displ,mpi_real8,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-   call elsi_deallocate(bh,h_val_send,"h_val_send")
-
-   ! Overlap value
-   if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
-      call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_real8,ovlp_sp,&
-           recv_count,recv_displ,mpi_real8,bh%comm,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-      call elsi_deallocate(bh,s_val_send,"s_val_send")
-   end if
-
-   call elsi_deallocate(bh,send_count,"send_count")
-   call elsi_deallocate(bh,recv_count,"recv_count")
-   call elsi_deallocate(bh,send_displ,"send_displ")
-   call elsi_deallocate(bh,recv_displ,"recv_displ")
-   call elsi_allocate(bh,gid,bh%nnz_l_sp,"gid",caller)
-   call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
-
-   ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind,kind=i8)
-
-   ! Sort
-   call elsi_heapsort(bh%nnz_l_sp,gid,perm)
-   call elsi_permute(bh%nnz_l_sp,perm,ham_sp)
-   call elsi_permute(bh%nnz_l_sp,perm,row_ind)
-   call elsi_permute(bh%nnz_l_sp,perm,col_recv)
-
-   if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
-      call elsi_permute(bh%nnz_l_sp,perm,ovlp_sp)
-   end if
-
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
-
-   ! Compute row index and column pointer
-   if(ph%first_blacs_to_sips) then
-      col_ptr = 0
-      col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
-
-      do i_val = 1,bh%nnz_l_sp
-         i_col = col_recv(i_val)-(ph%n_basis/bh%n_procs)*bh%myid
-         col_ptr(i_col) = col_ptr(i_col)+1
-      end do
-
-      do i_col = bh%n_lcol_sp,1,-1
-         col_ptr(i_col) = col_ptr(i_col+1)-col_ptr(i_col)
-      end do
-   end if
-
-   call elsi_deallocate(bh,col_recv,"col_recv")
-
-   call elsi_get_time(t1)
-
-   write(msg,"(A)") "Finished matrix redistribution"
-   call elsi_say(bh,msg)
-   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,msg)
-
-   ph%first_blacs_to_sips = .false.
+   call elsi_blacs_to_pexsi_hs(ph,bh,ham_den,ovlp_den,mask,ham_sp,ovlp_sp,&
+        row_ind,col_ptr)
 
 end subroutine
 
@@ -1766,8 +1186,8 @@ end subroutine
 !! Convert Halmitonian and overlap matrices stored in 2D block-cyclic dense
 !! format to 1D block CSC format.
 !!
-subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
-   row_ind,col_ptr)
+subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
+   ovlp_sp,row_ind,col_ptr)
 
    implicit none
 
@@ -1775,212 +1195,20 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_sp,ovlp_sp,&
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: ham_sp(bh%nnz_l_sp)
    complex(kind=r8), intent(inout) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
-   integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i_proc
-   integer(kind=i4) :: g_col
-   integer(kind=i4) :: g_row
-   integer(kind=i4) :: dest ! Destination of an element
-   character(len=200) :: msg
-
-   ! See documentation of MPI_Alltoallv
-   complex(kind=r8), allocatable :: h_val_send(:)
-   complex(kind=r8), allocatable :: s_val_send(:)
-   integer(kind=i4), allocatable :: row_send(:)
-   integer(kind=i4), allocatable :: col_send(:)
-   integer(kind=i4), allocatable :: send_count(:)
-   integer(kind=i4), allocatable :: send_displ(:)
-   integer(kind=i4), allocatable :: col_recv(:)
-   integer(kind=i4), allocatable :: recv_count(:)
-   integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
-   integer(kind=i4), allocatable :: perm(:)
-
    character(len=*), parameter :: caller = "elsi_blacs_to_sips_hs_cmplx"
 
-   call elsi_get_time(t0)
+   ph%pexsi_my_prow = 0
+   ph%pexsi_my_pcol = bh%myid
+   ph%pexsi_np_per_pole = bh%n_procs
 
-   if(ph%first_blacs_to_sips) then
-      if(.not. ph%unit_ovlp) then
-         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ovlp_den,bh%nnz_l)
-
-         call elsi_allocate(bh,s_val_send,bh%nnz_l,"s_val_send",caller)
-      else
-         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham_den,bh%nnz_l)
-      end if
-   end if
-
-   call elsi_allocate(bh,row_send,bh%nnz_l,"row_send",caller)
-   call elsi_allocate(bh,col_send,bh%nnz_l,"col_send",caller)
-   call elsi_allocate(bh,h_val_send,bh%nnz_l,"h_val_send",caller)
-   call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
-
-   i_val = 0
-
-   if(.not. ph%unit_ovlp) then
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
-
-         ! Compute destination
-         dest = (g_col-1)/(ph%n_basis/bh%n_procs)
-         dest = min(dest,bh%n_procs-1)
-
-         do i_row = 1,bh%n_lrow
-            if(abs(ovlp_den(i_row,i_col)) > bh%def0) then
-               i_val = i_val+1
-
-               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
-
-               ! Pack global id and data into bufs
-               row_send(i_val) = g_row
-               col_send(i_val) = g_col
-               h_val_send(i_val) = ham_den(i_row,i_col)
-
-               if(ph%first_blacs_to_sips) then
-                  s_val_send(i_val) = ovlp_den(i_row,i_col)
-               end if
-
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-            end if
-         end do
-      end do
-   else
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
-
-         ! Compute destination
-         dest = (g_col-1)/(ph%n_basis/bh%n_procs)
-         dest = min(dest,bh%n_procs-1)
-
-         do i_row = 1,bh%n_lrow
-            if(abs(ham_den(i_row,i_col)) > bh%def0) then
-               i_val = i_val+1
-
-               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
-
-               ! Pack global id and data into bufs
-               row_send(i_val) = g_row
-               col_send(i_val) = g_col
-               h_val_send(i_val) = ham_den(i_row,i_col)
-
-               ! Set send_count
-               send_count(dest+1) = send_count(dest+1)+1
-            end if
-         end do
-      end do
-   end if
-
-   call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
-   call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
-   call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
-
-   ! Set recv_count
-   call MPI_Alltoall(send_count,1,mpi_integer4,recv_count,1,mpi_integer4,&
-        bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
-
-   ! Set send_displ and recv_displ
-   do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
-   end do
-
-   ! Redistribute packed data
-   ! Row id
-   call MPI_Alltoallv(row_send,send_count,send_displ,mpi_integer4,row_ind,&
-        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-   call elsi_deallocate(bh,row_send,"row_send")
-
-   ! Column id
-   call elsi_allocate(bh,col_recv,bh%nnz_l_sp,"col_recv",caller)
-
-   call MPI_Alltoallv(col_send,send_count,send_displ,mpi_integer4,col_recv,&
-        recv_count,recv_displ,mpi_integer4,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-   call elsi_deallocate(bh,col_send,"col_send")
-
-   ! Hamiltonian value
-   call MPI_Alltoallv(h_val_send,send_count,send_displ,mpi_complex16,ham_sp,&
-        recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
-
-   call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-   call elsi_deallocate(bh,h_val_send,"h_val_send")
-
-   ! Overlap value
-   if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
-      call MPI_Alltoallv(s_val_send,send_count,send_displ,mpi_complex16,&
-           ovlp_sp,recv_count,recv_displ,mpi_complex16,bh%comm,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Alltoallv",ierr,caller)
-
-      call elsi_deallocate(bh,s_val_send,"s_val_send")
-   end if
-
-   call elsi_deallocate(bh,send_count,"send_count")
-   call elsi_deallocate(bh,recv_count,"recv_count")
-   call elsi_deallocate(bh,send_displ,"send_displ")
-   call elsi_deallocate(bh,recv_displ,"recv_displ")
-   call elsi_allocate(bh,gid,bh%nnz_l_sp,"gid",caller)
-   call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
-
-   ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind,kind=i8)
-
-   ! Sort
-   call elsi_heapsort(bh%nnz_l_sp,gid,perm)
-   call elsi_permute(bh%nnz_l_sp,perm,ham_sp)
-   call elsi_permute(bh%nnz_l_sp,perm,row_ind)
-   call elsi_permute(bh%nnz_l_sp,perm,col_recv)
-
-   if(ph%first_blacs_to_sips .and. .not. ph%unit_ovlp) then
-      call elsi_permute(bh%nnz_l_sp,perm,ovlp_sp)
-   end if
-
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
-
-   ! Compute row index and column pointer
-   if(ph%first_blacs_to_sips) then
-      col_ptr = 0
-      col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
-
-      do i_val = 1,bh%nnz_l_sp
-         i_col = col_recv(i_val)-(ph%n_basis/bh%n_procs)*bh%myid
-         col_ptr(i_col) = col_ptr(i_col)+1
-      end do
-
-      do i_col = bh%n_lcol_sp,1,-1
-         col_ptr(i_col) = col_ptr(i_col+1)-col_ptr(i_col)
-      end do
-   end if
-
-   call elsi_deallocate(bh,col_recv,"col_recv")
-
-   call elsi_get_time(t1)
-
-   write(msg,"(A)") "Finished matrix redistribution"
-   call elsi_say(bh,msg)
-   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,msg)
-
-   ph%first_blacs_to_sips = .false.
+   call elsi_blacs_to_pexsi_hs(ph,bh,ham_den,ovlp_den,mask,ham_sp,ovlp_sp,&
+        row_ind,col_ptr)
 
 end subroutine
 
@@ -2095,12 +1323,12 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
-   bh%nnz_l = sum(recv_count,1)
+   bh%nnz_l = sum(recv_count)
 
    ! Set send_recv and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -2306,12 +1534,12 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
-   bh%nnz_l = sum(recv_count,1)
+   bh%nnz_l = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -2505,12 +1733,12 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
-   nnz_l_after = sum(recv_count,1)
+   nnz_l_after = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -2659,12 +1887,12 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
    ! Set local number of nonzero
-   nnz_l_aux = sum(recv_count,1)
+   nnz_l_aux = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -2815,12 +2043,12 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
    ! Set local number of nonzero
-   nnz_l_aux = sum(recv_count,1)
+   nnz_l_aux = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -2997,12 +2225,12 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
-   bh%nnz_l = sum(recv_count,1)
+   bh%nnz_l = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -3209,12 +2437,12 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
-   bh%nnz_l = sum(recv_count,1)
+   bh%nnz_l = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -3404,12 +2632,12 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,dm_den,dm_sp,row_ind,col_ptr)
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
    ! Set local number of nonzero
-   nnz_l_aux = sum(recv_count,1)
+   nnz_l_aux = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -3570,12 +2798,12 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,dm_den,dm_sp,row_ind,col_ptr)
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
    ! Set local number of nonzero
-   nnz_l_aux = sum(recv_count,1)
+   nnz_l_aux = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -3721,6 +2949,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: h_val_send(:)
    real(kind=r8), allocatable :: s_val_send(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
@@ -3728,7 +2957,6 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_siesta_to_pexsi_hs_real"
@@ -3785,8 +3013,8 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -3836,22 +3064,20 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    ! Compute global 1D id
    gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind1,kind=i8)
 
-   ! Sort
-   call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
-   call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
-   call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
-   call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
+   ! Only 1st pole computes row index and column pointer
+   if(ph%pexsi_my_prow == 0) then
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
+      call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
+      call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
 
-   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
-      call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
-   end if
+      if(ph%first_siesta_to_pexsi) then
+         call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
 
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
+         if(.not. ph%unit_ovlp) then
+            call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
+         end if
 
-   if(ph%first_siesta_to_pexsi) then
-      ! Only 1st pole computes row index and column pointer
-      if(ph%pexsi_my_prow == 0) then
          col_ptr1 = 0
          col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
@@ -3866,6 +3092,8 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
       end if
    end if
 
+   call elsi_deallocate(bh,gid,"gid")
+   call elsi_deallocate(bh,perm,"perm")
    call elsi_deallocate(bh,col_recv,"col_recv")
 
    call elsi_get_time(t1)
@@ -3913,6 +3141,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send(:)
    complex(kind=r8), allocatable :: s_val_send(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
@@ -3920,7 +3149,6 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_siesta_to_pexsi_hs_cmplx"
@@ -3977,8 +3205,8 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -4028,22 +3256,20 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    ! Compute global 1D id
    gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind1,kind=i8)
 
-   ! Sort
-   call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
-   call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
-   call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
-   call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
+   ! Only 1st pole computes row index and column pointer
+   if(ph%pexsi_my_prow == 0) then
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
+      call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
+      call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
 
-   if(ph%first_siesta_to_pexsi .and. .not. ph%unit_ovlp) then
-      call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
-   end if
+      if(ph%first_siesta_to_pexsi) then
+         call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
 
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
+         if(.not. ph%unit_ovlp) then
+            call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
+         end if
 
-   if(ph%first_siesta_to_pexsi) then
-      ! Only 1st pole computes row index and column pointer
-      if(ph%pexsi_my_prow == 0) then
          col_ptr1 = 0
          col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
@@ -4058,6 +3284,8 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
       end if
    end if
 
+   call elsi_deallocate(bh,gid,"gid")
+   call elsi_deallocate(bh,perm,"perm")
    call elsi_deallocate(bh,col_recv,"col_recv")
 
    call elsi_get_time(t1)
@@ -4171,8 +3399,8 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -4338,8 +3566,8 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -4426,7 +3654,7 @@ subroutine elsi_sips_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
+   call elsi_pexsi_to_blacs_dm(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
 end subroutine
 
@@ -4451,7 +3679,7 @@ subroutine elsi_sips_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
+   call elsi_pexsi_to_blacs_dm(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
 end subroutine
 
@@ -4479,8 +3707,8 @@ subroutine elsi_sips_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
-        row_ind2,col_ptr2)
+   call elsi_pexsi_to_siesta_dm(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,row_ind2,&
+        col_ptr2)
 
 end subroutine
 
@@ -4508,8 +3736,8 @@ subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
-        row_ind2,col_ptr2)
+   call elsi_pexsi_to_siesta_dm(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,row_ind2,&
+        col_ptr2)
 
 end subroutine
 
@@ -4584,7 +3812,7 @@ subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,col_ptr2,&
+   call elsi_siesta_to_pexsi_hs(ph,bh,ham_sp2,ovlp_sp2,row_ind2,col_ptr2,&
         ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
 
 end subroutine
@@ -4615,7 +3843,7 @@ subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,col_ptr2,&
+   call elsi_siesta_to_pexsi_hs(ph,bh,ham_sp2,ovlp_sp2,row_ind2,col_ptr2,&
         ham_sp1,ovlp_sp1,row_ind1,col_ptr1)
 
 end subroutine
@@ -4624,20 +3852,21 @@ end subroutine
 !! Construct Halmitonian and overlep matrices in NTPoly format from matrices
 !! stored in 2D block-cyclic dense format.
 !!
-subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
+subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,mask,ham_nt,&
+   ovlp_nt)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(inout) :: bh
+   type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_row
@@ -4663,61 +3892,31 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
 
    call ConstructTripletList(ham_list)
 
-   if(.not. ph%unit_ovlp) then
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
+   do i_col = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
-         do i_row = 1,bh%n_lrow
-            if(abs(ovlp_den(i_row,i_col)) > bh%def0) then
-               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
+      do i_row = 1,bh%n_lrow
+         if(mask(i_row,i_col) > 0) then
+            call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
 
-               coo%point_value = ham_den(i_row,i_col)
-               coo%index_column = g_col
-               coo%index_row = g_row
+            coo%point_value = ham_den(i_row,i_col)
+            coo%index_column = g_col
+            coo%index_row = g_row
 
-               call AppendToTripletList(ham_list,coo)
+            call AppendToTripletList(ham_list,coo)
 
-               if(ph%first_blacs_to_ntpoly) then
-                  coo%point_value = ovlp_den(i_row,i_col)
+            if(ph%first_blacs_to_ntpoly .and. .not. ph%unit_ovlp) then
+               coo%point_value = ovlp_den(i_row,i_col)
 
-                  call AppendToTripletList(ovlp_list,coo)
-               end if
+               call AppendToTripletList(ovlp_list,coo)
             end if
-         end do
+         end if
       end do
-   else
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
+   end do
 
-         do i_row = 1,bh%n_lrow
-            if(abs(ham_den(i_row,i_col)) > bh%def0) then
-               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
-
-               coo%point_value = ham_den(i_row,i_col)
-               coo%index_column = g_col
-               coo%index_row = g_row
-
-               call AppendToTripletList(ham_list,coo)
-            end if
-         end do
-      end do
-   end if
-
-   if(ph%first_blacs_to_ntpoly) then
-      if(.not. ph%unit_ovlp) then
-         call MPI_Allreduce(ovlp_list%CurrentSize,bh%nnz_g,1,mpi_integer4,&
-              mpi_sum,bh%comm,ierr)
-
-         call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-         call FillMatrixFromTripletList(ovlp_nt,ovlp_list)
-         call DestructTripletList(ovlp_list)
-      else
-         call MPI_Allreduce(ham_list%CurrentSize,bh%nnz_g,1,mpi_integer4,&
-              mpi_sum,bh%comm,ierr)
-
-         call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-      end if
+   if(ph%first_blacs_to_ntpoly .and. .not. ph%unit_ovlp) then
+      call FillMatrixFromTripletList(ovlp_nt,ovlp_list)
+      call DestructTripletList(ovlp_list)
    end if
 
    call FillMatrixFromTripletList(ham_nt,ham_list)
@@ -4738,20 +3937,21 @@ end subroutine
 !! Construct Halmitonian and overlep matrices in NTPoly format from matrices
 !! stored in 2D block-cyclic dense format.
 !!
-subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
+subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,mask,ham_nt,&
+   ovlp_nt)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(inout) :: bh
+   type(elsi_basic_t), intent(in) :: bh
    complex(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_row
@@ -4777,61 +3977,31 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,ham_nt,ovlp_nt)
 
    call ConstructTripletList(ham_list)
 
-   if(.not. ph%unit_ovlp) then
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
+   do i_col = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
 
-         do i_row = 1,bh%n_lrow
-            if(abs(ovlp_den(i_row,i_col)) > bh%def0) then
-               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
+      do i_row = 1,bh%n_lrow
+         if(mask(i_row,i_col) > 0) then
+            call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
 
-               coo%point_value = ham_den(i_row,i_col)
-               coo%index_column = g_col
-               coo%index_row = g_row
+            coo%point_value = ham_den(i_row,i_col)
+            coo%index_column = g_col
+            coo%index_row = g_row
 
-               call AppendToTripletList(ham_list,coo)
+            call AppendToTripletList(ham_list,coo)
 
-               if(ph%first_blacs_to_ntpoly) then
-                  coo%point_value = ovlp_den(i_row,i_col)
+            if(ph%first_blacs_to_ntpoly .and. .not. ph%unit_ovlp) then
+               coo%point_value = ovlp_den(i_row,i_col)
 
-                  call AppendToTripletList(ovlp_list,coo)
-               end if
+               call AppendToTripletList(ovlp_list,coo)
             end if
-         end do
+         end if
       end do
-   else
-      do i_col = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,g_col)
+   end do
 
-         do i_row = 1,bh%n_lrow
-            if(abs(ham_den(i_row,i_col)) > bh%def0) then
-               call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,g_row)
-
-               coo%point_value = ham_den(i_row,i_col)
-               coo%index_column = g_col
-               coo%index_row = g_row
-
-               call AppendToTripletList(ham_list,coo)
-            end if
-         end do
-      end do
-   end if
-
-   if(ph%first_blacs_to_ntpoly) then
-      if(.not. ph%unit_ovlp) then
-         call MPI_Allreduce(ovlp_list%CurrentSize,bh%nnz_g,1,mpi_integer4,&
-              mpi_sum,bh%comm,ierr)
-
-         call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-
-         call FillMatrixFromTripletList(ovlp_nt,ovlp_list)
-         call DestructTripletList(ovlp_list)
-      else
-         call MPI_Allreduce(ham_list%CurrentSize,bh%nnz_g,1,mpi_integer4,&
-              mpi_sum,bh%comm,ierr)
-
-         call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
-      end if
+   if(ph%first_blacs_to_ntpoly .and. .not. ph%unit_ovlp) then
+      call FillMatrixFromTripletList(ovlp_nt,ovlp_list)
+      call DestructTripletList(ovlp_list)
    end if
 
    call FillMatrixFromTripletList(ham_nt,ham_list)
@@ -4943,12 +4113,12 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
    ! Set local number of nonzero
-   nnz_l_aux = sum(recv_count,1)
+   nnz_l_aux = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -5106,12 +4276,12 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
    ! Set local number of nonzero
-   nnz_l_aux = sum(recv_count,1)
+   nnz_l_aux = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -5421,12 +4591,12 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
    ! Set local number of nonzero
-   nnz_l_aux = sum(recv_count,1)
+   nnz_l_aux = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -5574,12 +4744,12 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
    ! Set local number of nonzero
-   nnz_l_aux = sum(recv_count,1)
+   nnz_l_aux = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -5908,12 +5078,12 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
    ! Set local number of nonzero
-   nnz_l_aux = sum(recv_count,1)
+   nnz_l_aux = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -6073,12 +5243,12 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
    ! Set local number of nonzero
-   nnz_l_aux = sum(recv_count,1)
+   nnz_l_aux = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -6253,12 +5423,12 @@ subroutine elsi_generic_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
-   bh%nnz_l = sum(recv_count,1)
+   bh%nnz_l = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -6485,12 +5655,12 @@ subroutine elsi_generic_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
-   bh%nnz_l = sum(recv_count,1)
+   bh%nnz_l = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -6864,6 +6034,7 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: h_val_send(:)
    real(kind=r8), allocatable :: s_val_send(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: map_send(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
@@ -6872,7 +6043,6 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
    integer(kind=i4), allocatable :: perm(:)
 
@@ -6940,8 +6110,8 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -7000,26 +6170,21 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    ! Compute global 1D id
    gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind1,kind=i8)
 
-   ! Sort
-   call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
-   call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
-   call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
-   call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
+   ! Only 1st pole computes row index and column pointer
+   if(ph%pexsi_my_prow == 0) then
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
+      call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
+      call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
 
-   if(ph%first_generic_to_pexsi) then
-      if(.not. ph%unit_ovlp) then
-         call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
-      end if
+      if(ph%first_generic_to_pexsi) then
+         call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
+         call elsi_permute(bh%nnz_l_sp1,perm,map_sp1)
 
-      call elsi_permute(bh%nnz_l_sp1,perm,map_sp1)
-   end if
+         if(.not. ph%unit_ovlp) then
+            call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
+         end if
 
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
-
-   if(ph%first_generic_to_pexsi) then
-      ! Only 1st pole computes row index and column pointer
-      if(ph%pexsi_my_prow == 0) then
          col_ptr1 = 0
          col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
@@ -7034,6 +6199,8 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
       end if
    end if
 
+   call elsi_deallocate(bh,gid,"gid")
+   call elsi_deallocate(bh,perm,"perm")
    call elsi_deallocate(bh,col_recv,"col_recv")
 
    call elsi_get_time(t1)
@@ -7080,6 +6247,7 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: h_val_send(:)
    complex(kind=r8), allocatable :: s_val_send(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: map_send(:)
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
@@ -7088,7 +6256,6 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
    integer(kind=i4), allocatable :: perm(:)
 
@@ -7156,8 +6323,8 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -7216,26 +6383,21 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    ! Compute global 1D id
    gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind1,kind=i8)
 
-   ! Sort
-   call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
-   call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
-   call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
-   call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
+   ! Only 1st pole computes row index and column pointer
+   if(ph%pexsi_my_prow == 0) then
+      ! Sort
+      call elsi_heapsort(bh%nnz_l_sp1,gid,perm)
+      call elsi_permute(bh%nnz_l_sp1,perm,ham_sp1)
+      call elsi_permute(bh%nnz_l_sp1,perm,row_ind1)
 
-   if(ph%first_generic_to_pexsi) then
-      if(.not. ph%unit_ovlp) then
-         call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
-      end if
+      if(ph%first_generic_to_pexsi) then
+         call elsi_permute(bh%nnz_l_sp1,perm,col_recv)
+         call elsi_permute(bh%nnz_l_sp1,perm,map_sp1)
 
-      call elsi_permute(bh%nnz_l_sp1,perm,map_sp1)
-   end if
+         if(.not. ph%unit_ovlp) then
+            call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
+         end if
 
-   call elsi_deallocate(bh,gid,"gid")
-   call elsi_deallocate(bh,perm,"perm")
-
-   if(ph%first_generic_to_pexsi) then
-      ! Only 1st pole computes row index and column pointer
-      if(ph%pexsi_my_prow == 0) then
          col_ptr1 = 0
          col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
@@ -7250,6 +6412,8 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
       end if
    end if
 
+   call elsi_deallocate(bh,gid,"gid")
+   call elsi_deallocate(bh,perm,"perm")
    call elsi_deallocate(bh,col_recv,"col_recv")
 
    call elsi_get_time(t1)
@@ -7332,7 +6496,7 @@ subroutine elsi_generic_to_sips_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,col_ind3,&
+   call elsi_generic_to_pexsi_hs(ph,bh,ham_sp3,ovlp_sp3,row_ind3,col_ind3,&
         ham_sp1,ovlp_sp1,row_ind1,col_ptr1,map_sp1)
 
 end subroutine
@@ -7364,7 +6528,7 @@ subroutine elsi_generic_to_sips_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,col_ind3,&
+   call elsi_generic_to_pexsi_hs(ph,bh,ham_sp3,ovlp_sp3,row_ind3,col_ind3,&
         ham_sp1,ovlp_sp1,row_ind1,col_ptr1,map_sp1)
 
 end subroutine
@@ -7395,6 +6559,7 @@ subroutine elsi_blacs_to_generic_dm_real(ph,bh,dm_den,map_den,dm_sp,perm_sp)
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
@@ -7404,7 +6569,6 @@ subroutine elsi_blacs_to_generic_dm_real(ph,bh,dm_den,map_den,dm_sp,perm_sp)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_generic_dm_real"
@@ -7470,8 +6634,8 @@ subroutine elsi_blacs_to_generic_dm_real(ph,bh,dm_den,map_den,dm_sp,perm_sp)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -7557,6 +6721,7 @@ subroutine elsi_blacs_to_generic_dm_cmplx(ph,bh,dm_den,map_den,dm_sp,perm_sp)
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
@@ -7566,7 +6731,6 @@ subroutine elsi_blacs_to_generic_dm_cmplx(ph,bh,dm_den,map_den,dm_sp,perm_sp)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_generic_dm_cmplx"
@@ -7632,8 +6796,8 @@ subroutine elsi_blacs_to_generic_dm_cmplx(ph,bh,dm_den,map_den,dm_sp,perm_sp)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -7721,6 +6885,7 @@ subroutine elsi_pexsi_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,&
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
@@ -7729,7 +6894,6 @@ subroutine elsi_pexsi_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
    integer(kind=i4), allocatable :: perm(:)
 
@@ -7789,8 +6953,8 @@ subroutine elsi_pexsi_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,&
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -7878,6 +7042,7 @@ subroutine elsi_pexsi_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
@@ -7886,7 +7051,6 @@ subroutine elsi_pexsi_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
    integer(kind=i4), allocatable :: perm(:)
 
@@ -7946,8 +7110,8 @@ subroutine elsi_pexsi_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -8030,8 +7194,8 @@ subroutine elsi_sips_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,&
-        dm_sp3,perm_sp3)
+   call elsi_pexsi_to_generic_dm(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,dm_sp3,&
+        perm_sp3)
 
 end subroutine
 
@@ -8058,8 +7222,8 @@ subroutine elsi_sips_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    ph%pexsi_my_pcol = bh%myid
    ph%pexsi_np_per_pole = bh%n_procs
 
-   call elsi_pexsi_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,&
-        dm_sp3,perm_sp3)
+   call elsi_pexsi_to_generic_dm(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,dm_sp3,&
+        perm_sp3)
 
 end subroutine
 
@@ -8079,19 +7243,20 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i8) :: gid_map
+   integer(kind=i8) :: gid_dm
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i8) :: gid_map
-   integer(kind=i8) :: gid_dm
    integer(kind=i4) :: nnz_l_nt
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    real(kind=r8), allocatable :: val_send(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
@@ -8101,7 +7266,6 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: perm(:)
 
    type(TripletList_r) :: dm_list
@@ -8191,8 +7355,8 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -8268,19 +7432,20 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i8) :: gid_map
+   integer(kind=i8) :: gid_dm
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i8) :: gid_map
-   integer(kind=i8) :: gid_dm
    integer(kind=i4) :: nnz_l_nt
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
    complex(kind=r8), allocatable :: val_send(:)
+   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: row_send(:)
    integer(kind=i4), allocatable :: col_send(:)
    integer(kind=i4), allocatable :: send_count(:)
@@ -8290,7 +7455,6 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
    integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i8), allocatable :: gid(:) ! Global 1D id
    integer(kind=i4), allocatable :: perm(:)
 
    type(TripletList_c) :: dm_list
@@ -8381,8 +7545,8 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -8540,12 +7704,12 @@ subroutine elsi_blacs_to_eigenexa_h_real(ph,bh,ham_den,ham_exa)
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
    ! Set local number of nonzero
-   nnz_l_after = sum(recv_count,1)
+   nnz_l_after = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data
@@ -8569,7 +7733,7 @@ subroutine elsi_blacs_to_eigenexa_h_real(ph,bh,ham_den,ham_exa)
 
    call elsi_deallocate(bh,col_send,"col_send")
 
-   ! Density matrix value
+   ! Hamiltonian value
    call elsi_allocate(bh,val_recv,nnz_l_after,"val_recv",caller)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,mpi_real8,val_recv,&
@@ -8725,12 +7889,12 @@ subroutine elsi_eigenexa_to_blacs_ev_real(ph,bh,evec_exa,evec)
 
    call elsi_check_mpi(bh,"MPI_Alltoall",ierr,caller)
 
-   nnz_l_after = sum(recv_count,1)
+   nnz_l_after = sum(recv_count)
 
    ! Set send_displ and recv_displ
    do i_proc = 2,bh%n_procs
-      send_displ(i_proc) = sum(send_count(1:i_proc-1),1)
-      recv_displ(i_proc) = sum(recv_count(1:i_proc-1),1)
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
    end do
 
    ! Redistribute packed data

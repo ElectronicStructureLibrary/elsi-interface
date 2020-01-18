@@ -49,6 +49,7 @@ module ELSI
    public :: elsi_set_save_ovlp
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def
+   public :: elsi_set_sparsity_mask
    public :: elsi_set_illcond_check
    public :: elsi_set_illcond_tol
    public :: elsi_set_spin_degeneracy

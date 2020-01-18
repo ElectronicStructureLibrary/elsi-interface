@@ -315,8 +315,8 @@ subroutine elsi_get_edm_real(eh,edm)
       call elsi_sips_to_blacs_dm(eh%ph,eh%bh,eh%dm_real_sp,eh%row_ind_sp1,&
            eh%col_ptr_sp1,edm)
    case(NTPOLY_SOLVER)
-      call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
-      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,edm)
+      call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%nt_ham,eh%nt_dm)
+      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%nt_dm,edm)
    case default
       write(msg,"(A)") "Unsupported density matrix solver"
       call elsi_stop(eh%bh,msg,caller)
@@ -434,18 +434,18 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
          call elsi_stop(eh%bh,msg,caller)
       end select
    case(NTPOLY_SOLVER)
-      call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
+      call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%nt_ham,eh%nt_dm)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
-         call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%ph%nt_dm,edm,&
-              eh%row_ind_sp1,eh%col_ptr_sp1)
+         call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%nt_dm,edm,eh%row_ind_sp1,&
+              eh%col_ptr_sp1)
       case(SIESTA_CSC)
-         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%ph%nt_dm,edm,eh%row_ind_sp2,&
+         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%nt_dm,edm,eh%row_ind_sp2,&
               eh%col_ptr_sp2)
       case(GENERIC_COO)
-         call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%ph%nt_dm,eh%ph%nt_map,&
-              edm,eh%perm_sp3)
+         call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%nt_dm,eh%nt_map,edm,&
+              eh%perm_sp3)
       end select
    case default
       write(msg,"(A)") "Unsupported density matrix solver"
@@ -498,8 +498,8 @@ subroutine elsi_get_edm_complex(eh,edm)
       call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%dm_cmplx_sp,eh%row_ind_sp1,&
            eh%col_ptr_sp1,edm)
    case(NTPOLY_SOLVER)
-      call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
-      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,edm)
+      call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%nt_ham,eh%nt_dm)
+      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%nt_dm,edm)
    case default
       write(msg,"(A)") "Unsupported density matrix solver"
       call elsi_stop(eh%bh,msg,caller)
@@ -593,18 +593,18 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
          call elsi_stop(eh%bh,msg,caller)
       end select
    case(NTPOLY_SOLVER)
-      call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_dm)
+      call elsi_compute_edm_ntpoly(eh%ph,eh%bh,eh%nt_ham,eh%nt_dm)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
-         call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%ph%nt_dm,edm,&
-              eh%row_ind_sp1,eh%col_ptr_sp1)
+         call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%nt_dm,edm,eh%row_ind_sp1,&
+              eh%col_ptr_sp1)
       case(SIESTA_CSC)
-         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%ph%nt_dm,edm,eh%row_ind_sp2,&
+         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%nt_dm,edm,eh%row_ind_sp2,&
               eh%col_ptr_sp2)
       case(GENERIC_COO)
-         call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%ph%nt_dm,eh%ph%nt_map,&
-              edm,eh%perm_sp3)
+         call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%nt_dm,eh%nt_map,edm,&
+              eh%perm_sp3)
       end select
    case default
       write(msg,"(A)") "Unsupported density matrix solver"

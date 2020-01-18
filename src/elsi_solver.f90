@@ -27,21 +27,21 @@ module ELSI_SOLVER
    use ELSI_OUTPUT, only: elsi_add_log,elsi_get_time,fjson_get_datetime_rfc3339
    use ELSI_PEXSI, only: elsi_init_pexsi,elsi_solve_pexsi
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_REDIST, only: elsi_blacs_to_generic_dm,elsi_blacs_to_ntpoly_hs,&
-       elsi_blacs_to_pexsi_hs_dim,elsi_blacs_to_pexsi_hs,&
-       elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,elsi_blacs_to_sips_hs_dim,&
-       elsi_blacs_to_sips_hs,elsi_generic_to_blacs_hs,&
-       elsi_generic_to_ntpoly_hs,elsi_generic_to_pexsi_hs_dim,&
-       elsi_generic_to_pexsi_hs,elsi_generic_to_sips_hs_dim,&
-       elsi_generic_to_sips_hs,elsi_ntpoly_to_blacs_dm,&
-       elsi_ntpoly_to_generic_dm,elsi_ntpoly_to_siesta_dm,&
-       elsi_ntpoly_to_sips_dm,elsi_pexsi_to_blacs_dm,elsi_pexsi_to_generic_dm,&
-       elsi_pexsi_to_siesta_dm,elsi_siesta_to_blacs_hs,&
-       elsi_siesta_to_ntpoly_hs,elsi_siesta_to_pexsi_hs_dim,&
-       elsi_siesta_to_pexsi_hs,elsi_siesta_to_sips_hs_dim,&
-       elsi_siesta_to_sips_hs,elsi_sips_to_blacs_dm,elsi_sips_to_blacs_ev,&
-       elsi_sips_to_blacs_hs,elsi_sips_to_generic_dm,elsi_sips_to_ntpoly_hs,&
-       elsi_sips_to_siesta_dm
+   use ELSI_REDIST, only: elsi_blacs_to_generic_dm,elsi_blacs_to_mask,&
+       elsi_blacs_to_ntpoly_hs,elsi_blacs_to_pexsi_hs_dim,&
+       elsi_blacs_to_pexsi_hs,elsi_blacs_to_siesta_dm,elsi_blacs_to_sips_dm,&
+       elsi_blacs_to_sips_hs_dim,elsi_blacs_to_sips_hs,&
+       elsi_generic_to_blacs_hs,elsi_generic_to_ntpoly_hs,&
+       elsi_generic_to_pexsi_hs_dim,elsi_generic_to_pexsi_hs,&
+       elsi_generic_to_sips_hs_dim,elsi_generic_to_sips_hs,&
+       elsi_ntpoly_to_blacs_dm,elsi_ntpoly_to_generic_dm,&
+       elsi_ntpoly_to_siesta_dm,elsi_ntpoly_to_sips_dm,elsi_pexsi_to_blacs_dm,&
+       elsi_pexsi_to_generic_dm,elsi_pexsi_to_siesta_dm,&
+       elsi_siesta_to_blacs_hs,elsi_siesta_to_ntpoly_hs,&
+       elsi_siesta_to_pexsi_hs_dim,elsi_siesta_to_pexsi_hs,&
+       elsi_siesta_to_sips_hs_dim,elsi_siesta_to_sips_hs,elsi_sips_to_blacs_dm,&
+       elsi_sips_to_blacs_ev,elsi_sips_to_blacs_hs,elsi_sips_to_generic_dm,&
+       elsi_sips_to_ntpoly_hs,elsi_sips_to_siesta_dm
    use ELSI_SETUP, only: elsi_set_blacs
    use ELSI_SIPS, only: elsi_init_sips,elsi_solve_sips,elsi_build_dm_sips
    use ELSI_UTIL, only: elsi_check,elsi_check_init,elsi_reduce_energy,&
@@ -213,7 +213,11 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
       end if
 
       if(.not. allocated(eh%row_ind_sp1)) then
-         call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,ham,ovlp)
+         call elsi_allocate(eh%bh,eh%mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+              caller)
+
+         call elsi_blacs_to_mask(eh%ph,eh%bh,ham,ovlp,eh%mask)
+         call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,eh%mask)
 
          if(eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_real_sp,1,"ovlp_real_sp",caller)
@@ -232,7 +236,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
               "col_ptr_sp1",caller)
       end if
 
-      call elsi_blacs_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%ham_real_sp,&
+      call elsi_blacs_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%mask,eh%ham_real_sp,&
            eh%ovlp_real_sp,eh%row_ind_sp1,eh%col_ptr_sp1)
       call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
            eh%ham_real_sp,eh%ovlp_real_sp,eval,eh%evec_real)
@@ -595,6 +599,8 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
    character(len=29) :: dt0
    character(len=200) :: msg
 
+   integer(kind=i4), allocatable :: mask(:,:)
+
    character(len=*), parameter :: caller = "elsi_dm_real"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -708,7 +714,11 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
       if(.not. allocated(eh%row_ind_sp1)) then
-         call elsi_blacs_to_pexsi_hs_dim(eh%ph,eh%bh,ham,ovlp)
+         call elsi_allocate(eh%bh,eh%mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+              caller)
+
+         call elsi_blacs_to_mask(eh%ph,eh%bh,ham,ovlp,eh%mask)
+         call elsi_blacs_to_pexsi_hs_dim(eh%ph,eh%bh,eh%mask)
 
          if(eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_real_sp,1,"ovlp_real_sp",caller)
@@ -725,7 +735,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
               "col_ptr_sp1",caller)
       end if
 
-      call elsi_blacs_to_pexsi_hs(eh%ph,eh%bh,ham,ovlp,eh%ham_real_sp,&
+      call elsi_blacs_to_pexsi_hs(eh%ph,eh%bh,ham,ovlp,eh%mask,eh%ham_real_sp,&
            eh%ovlp_real_sp,eh%row_ind_sp1,eh%col_ptr_sp1)
 
       if(.not. allocated(eh%pexsi_ne_vec)) then
@@ -799,7 +809,11 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_init_sips(eh%ph,eh%bh)
 
       if(.not. allocated(eh%row_ind_sp1)) then
-         call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,ham,ovlp)
+         call elsi_allocate(eh%bh,eh%mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+              caller)
+
+         call elsi_blacs_to_mask(eh%ph,eh%bh,ham,ovlp,eh%mask)
+         call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,eh%mask)
 
          if(eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_real_sp,1,"ovlp_real_sp",caller)
@@ -816,7 +830,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
               "col_ptr_sp1",caller)
       end if
 
-      call elsi_blacs_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%ham_real_sp,&
+      call elsi_blacs_to_sips_hs(eh%ph,eh%bh,ham,ovlp,eh%mask,eh%ham_real_sp,&
            eh%ovlp_real_sp,eh%row_ind_sp1,eh%col_ptr_sp1)
 
       if(.not. allocated(eh%eval)) then
@@ -853,10 +867,18 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       eh%ph%occ_ready = .true.
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%ph%nt_ham,&
-           eh%ph%nt_ovlp)
-      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
-      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
+
+      if(.not. allocated(eh%mask)) then
+         call elsi_allocate(eh%bh,eh%mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+              caller)
+
+         call elsi_blacs_to_mask(eh%ph,eh%bh,ham,ovlp,eh%mask)
+      end if
+
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%mask,eh%nt_ham,&
+           eh%nt_ovlp)
+      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%nt_ham,eh%nt_ovlp,eh%nt_dm)
+      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%nt_dm,dm)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
    case default
       write(msg,"(A)") "Unsupported density matrix solver"
@@ -876,21 +898,28 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
             eh%ovlp_real_copy = ovlp
          end if
       case default
-         if(.not. allocated(eh%ph%nt_ovlp_copy%local_data_r)) then
+         if(.not. allocated(eh%nt_ovlp_copy%local_data_r)) then
             call elsi_init_ntpoly(eh%ph,eh%bh)
 
             eh%ph%unit_ovlp = .true.
             eh%ph%first_blacs_to_ntpoly = .true.
 
+            call elsi_allocate(eh%bh,mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+                 caller)
+
             if(allocated(eh%ovlp_real_copy)) then
+               call elsi_blacs_to_mask(eh%ph,eh%bh,eh%ovlp_real_copy,ham,mask)
                call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,eh%ovlp_real_copy,ham,&
-                    eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+                    mask,eh%nt_ovlp_copy,eh%nt_ham)
             else
-               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
-                    eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+               call elsi_blacs_to_mask(eh%ph,eh%bh,ovlp,ham,mask)
+               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,mask,&
+                    eh%nt_ovlp_copy,eh%nt_ham)
             end if
 
             eh%ph%unit_ovlp = .false.
+
+            call elsi_deallocate(eh%bh,mask,"mask")
          end if
       end select
    end if
@@ -917,6 +946,8 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
    integer(kind=i4) :: solver
    character(len=29) :: dt0
    character(len=200) :: msg
+
+   integer(kind=i4), allocatable :: mask(:,:)
 
    character(len=*), parameter :: caller = "elsi_dm_complex"
 
@@ -1027,7 +1058,11 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
       if(.not. allocated(eh%row_ind_sp1)) then
-         call elsi_blacs_to_pexsi_hs_dim(eh%ph,eh%bh,ham,ovlp)
+         call elsi_allocate(eh%bh,eh%mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+              caller)
+
+         call elsi_blacs_to_mask(eh%ph,eh%bh,ham,ovlp,eh%mask)
+         call elsi_blacs_to_pexsi_hs_dim(eh%ph,eh%bh,eh%mask)
 
          if(eh%ph%unit_ovlp) then
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_sp,1,"ovlp_cmplx_sp",caller)
@@ -1044,7 +1079,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
               "col_ptr_sp1",caller)
       end if
 
-      call elsi_blacs_to_pexsi_hs(eh%ph,eh%bh,ham,ovlp,eh%ham_cmplx_sp,&
+      call elsi_blacs_to_pexsi_hs(eh%ph,eh%bh,ham,ovlp,eh%mask,eh%ham_cmplx_sp,&
            eh%ovlp_cmplx_sp,eh%row_ind_sp1,eh%col_ptr_sp1)
 
       if(.not. allocated(eh%pexsi_ne_vec)) then
@@ -1066,10 +1101,18 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,PEXSI_SOLVER)
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
-      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%ph%nt_ham,&
-           eh%ph%nt_ovlp)
-      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
-      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%ph%nt_dm,dm)
+
+      if(.not. allocated(eh%mask)) then
+         call elsi_allocate(eh%bh,eh%mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+              caller)
+
+         call elsi_blacs_to_mask(eh%ph,eh%bh,ham,ovlp,eh%mask)
+      end if
+
+      call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%mask,eh%nt_ham,&
+           eh%nt_ovlp)
+      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%nt_ham,eh%nt_ovlp,eh%nt_dm)
+      call elsi_ntpoly_to_blacs_dm(eh%bh,eh%nt_dm,dm)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
    case default
       write(msg,"(A)") "Unsupported density matrix solver"
@@ -1088,21 +1131,28 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
             eh%ovlp_cmplx_copy = ovlp
          end if
       else
-         if(.not. allocated(eh%ph%nt_ovlp_copy%local_data_c)) then
+         if(.not. allocated(eh%nt_ovlp_copy%local_data_c)) then
             call elsi_init_ntpoly(eh%ph,eh%bh)
 
             eh%ph%unit_ovlp = .true.
             eh%ph%first_blacs_to_ntpoly = .true.
 
+            call elsi_allocate(eh%bh,mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
+                 caller)
+
             if(allocated(eh%ovlp_cmplx_copy)) then
+               call elsi_blacs_to_mask(eh%ph,eh%bh,eh%ovlp_cmplx_copy,ham,mask)
                call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,eh%ovlp_cmplx_copy,ham,&
-                    eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+                    mask,eh%nt_ovlp_copy,eh%nt_ham)
             else
-               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
-                    eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+               call elsi_blacs_to_mask(eh%ph,eh%bh,ovlp,ham,mask)
+               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,mask,&
+                    eh%nt_ovlp_copy,eh%nt_ham)
             end if
 
             eh%ph%unit_ovlp = .false.
+
+            call elsi_deallocate(eh%bh,mask,"mask")
          end if
       end if
    end if
@@ -1671,30 +1721,30 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
          call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp1,&
-              eh%col_ptr_sp1,eh%ph%nt_ham,eh%ph%nt_ovlp)
+              eh%col_ptr_sp1,eh%nt_ham,eh%nt_ovlp)
       case(SIESTA_CSC)
          call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp2,&
-              eh%col_ptr_sp2,eh%ph%nt_ham,eh%ph%nt_ovlp)
+              eh%col_ptr_sp2,eh%nt_ham,eh%nt_ovlp)
       case(GENERIC_COO)
          call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp3,&
-              eh%col_ind_sp3,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_map)
+              eh%col_ind_sp3,eh%nt_ham,eh%nt_ovlp,eh%nt_map)
       case default
          write(msg,"(A)") "Unsupported matrix format"
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
+      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%nt_ham,eh%nt_ovlp,eh%nt_dm)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
-         call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm,eh%row_ind_sp1,&
+         call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%nt_dm,dm,eh%row_ind_sp1,&
               eh%col_ptr_sp1)
       case(SIESTA_CSC)
-         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%ph%nt_dm,dm,eh%row_ind_sp2,&
+         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%nt_dm,dm,eh%row_ind_sp2,&
               eh%col_ptr_sp2)
       case(GENERIC_COO)
-         call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%ph%nt_dm,eh%ph%nt_map,&
-              dm,eh%perm_sp3)
+         call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%nt_dm,eh%nt_map,dm,&
+              eh%perm_sp3)
       case default
          write(msg,"(A)") "Unsupported matrix format"
          call elsi_stop(eh%bh,msg,caller)
@@ -1720,7 +1770,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
 
          eh%ham_real_den = eh%dm_real_den
       else
-         if(.not. allocated(eh%ph%nt_ovlp_copy%local_data_r)) then
+         if(.not. allocated(eh%nt_ovlp_copy%local_data_r)) then
             call elsi_init_ntpoly(eh%ph,eh%bh)
 
             eh%ph%unit_ovlp = .true.
@@ -1730,19 +1780,18 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
                eh%ph%first_sips_to_ntpoly = .true.
 
                call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+                    eh%col_ptr_sp1,eh%nt_ovlp_copy,eh%nt_ham)
             case(SIESTA_CSC)
                eh%ph%first_siesta_to_ntpoly = .true.
 
                call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
-                    eh%row_ind_sp2,eh%col_ptr_sp2,eh%ph%nt_ovlp_copy,&
-                    eh%ph%nt_ham)
+                    eh%row_ind_sp2,eh%col_ptr_sp2,eh%nt_ovlp_copy,eh%nt_ham)
             case(GENERIC_COO)
                eh%ph%first_generic_to_ntpoly = .true.
 
                call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
-                    eh%row_ind_sp3,eh%col_ind_sp3,eh%ph%nt_ovlp_copy,&
-                    eh%ph%nt_ham,eh%ph%nt_map)
+                    eh%row_ind_sp3,eh%col_ind_sp3,eh%nt_ovlp_copy,eh%nt_ham,&
+                    eh%nt_map)
             case default
                write(msg,"(A)") "Unsupported matrix format"
                call elsi_stop(eh%bh,msg,caller)
@@ -1754,13 +1803,13 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp1,&
-                 eh%col_ptr_sp1,eh%ph%nt_ham,eh%ph%nt_ovlp_copy)
+                 eh%col_ptr_sp1,eh%nt_ham,eh%nt_ovlp_copy)
          case(SIESTA_CSC)
             call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp2,&
-                 eh%col_ptr_sp2,eh%ph%nt_ham,eh%ph%nt_ovlp_copy)
+                 eh%col_ptr_sp2,eh%nt_ham,eh%nt_ovlp_copy)
          case(GENERIC_COO)
             call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp3,&
-                 eh%col_ind_sp3,eh%ph%nt_ham,eh%ph%nt_ovlp_copy,eh%ph%nt_map)
+                 eh%col_ind_sp3,eh%nt_ham,eh%nt_ovlp_copy,eh%nt_map)
          case default
             write(msg,"(A)") "Unsupported matrix format"
             call elsi_stop(eh%bh,msg,caller)
@@ -2109,30 +2158,30 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
          call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp1,&
-              eh%col_ptr_sp1,eh%ph%nt_ham,eh%ph%nt_ovlp)
+              eh%col_ptr_sp1,eh%nt_ham,eh%nt_ovlp)
       case(SIESTA_CSC)
          call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp2,&
-              eh%col_ptr_sp2,eh%ph%nt_ham,eh%ph%nt_ovlp)
+              eh%col_ptr_sp2,eh%nt_ham,eh%nt_ovlp)
       case(GENERIC_COO)
          call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp3,&
-              eh%col_ind_sp3,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_map)
+              eh%col_ind_sp3,eh%nt_ham,eh%nt_ovlp,eh%nt_map)
       case default
          write(msg,"(A)") "Unsupported matrix format"
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%ph%nt_ham,eh%ph%nt_ovlp,eh%ph%nt_dm)
+      call elsi_solve_ntpoly(eh%ph,eh%bh,eh%nt_ham,eh%nt_ovlp,eh%nt_dm)
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
-         call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%ph%nt_dm,dm,eh%row_ind_sp1,&
+         call elsi_ntpoly_to_sips_dm(eh%ph,eh%bh,eh%nt_dm,dm,eh%row_ind_sp1,&
               eh%col_ptr_sp1)
       case(SIESTA_CSC)
-         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%ph%nt_dm,dm,eh%row_ind_sp2,&
+         call elsi_ntpoly_to_siesta_dm(eh%bh,eh%nt_dm,dm,eh%row_ind_sp2,&
               eh%col_ptr_sp2)
       case(GENERIC_COO)
-         call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%ph%nt_dm,eh%ph%nt_map,&
-              dm,eh%perm_sp3)
+         call elsi_ntpoly_to_generic_dm(eh%ph,eh%bh,eh%nt_dm,eh%nt_map,dm,&
+              eh%perm_sp3)
       case default
          write(msg,"(A)") "Unsupported matrix format"
          call elsi_stop(eh%bh,msg,caller)
@@ -2158,7 +2207,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
 
          eh%ham_cmplx_den = eh%dm_cmplx_den
       else
-         if(.not. allocated(eh%ph%nt_ovlp_copy%local_data_r)) then
+         if(.not. allocated(eh%nt_ovlp_copy%local_data_r)) then
             call elsi_init_ntpoly(eh%ph,eh%bh)
 
             eh%ph%unit_ovlp = .true.
@@ -2168,19 +2217,18 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
                eh%ph%first_sips_to_ntpoly = .true.
 
                call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%ph%nt_ovlp_copy,eh%ph%nt_ham)
+                    eh%col_ptr_sp1,eh%nt_ovlp_copy,eh%nt_ham)
             case(SIESTA_CSC)
                eh%ph%first_siesta_to_ntpoly = .true.
 
                call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
-                    eh%row_ind_sp2,eh%col_ptr_sp2,eh%ph%nt_ovlp_copy,&
-                    eh%ph%nt_ham)
+                    eh%row_ind_sp2,eh%col_ptr_sp2,eh%nt_ovlp_copy,eh%nt_ham)
             case(GENERIC_COO)
                eh%ph%first_generic_to_ntpoly = .true.
 
                call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
-                    eh%row_ind_sp3,eh%col_ind_sp3,eh%ph%nt_ovlp_copy,&
-                    eh%ph%nt_ham,eh%ph%nt_map)
+                    eh%row_ind_sp3,eh%col_ind_sp3,eh%nt_ovlp_copy,eh%nt_ham,&
+                    eh%nt_map)
             case default
                write(msg,"(A)") "Unsupported matrix format"
                call elsi_stop(eh%bh,msg,caller)
@@ -2192,13 +2240,13 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          select case(eh%ph%matrix_format)
          case(PEXSI_CSC)
             call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp1,&
-                 eh%col_ptr_sp1,eh%ph%nt_ham,eh%ph%nt_ovlp_copy)
+                 eh%col_ptr_sp1,eh%nt_ham,eh%nt_ovlp_copy)
          case(SIESTA_CSC)
             call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp2,&
-                 eh%col_ptr_sp2,eh%ph%nt_ham,eh%ph%nt_ovlp_copy)
+                 eh%col_ptr_sp2,eh%nt_ham,eh%nt_ovlp_copy)
          case(GENERIC_COO)
             call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp3,&
-                 eh%col_ind_sp3,eh%ph%nt_ham,eh%ph%nt_ovlp_copy,eh%ph%nt_map)
+                 eh%col_ind_sp3,eh%nt_ham,eh%nt_ovlp_copy,eh%nt_map)
          case default
             write(msg,"(A)") "Unsupported matrix format"
             call elsi_stop(eh%bh,msg,caller)

@@ -133,6 +133,9 @@ void c_elsi_set_unit_ovlp(elsi_handle handle_c,
 void c_elsi_set_zero_def(elsi_handle handle_c,
      double zero_def);
 
+void c_elsi_set_sparsity_option(elsi_handle handle_c,
+     int sparsity_option);
+
 void c_elsi_set_illcond_check(elsi_handle handle_c,
      int illcond_check);
 

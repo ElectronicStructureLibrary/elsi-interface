@@ -114,9 +114,9 @@ subroutine elsi_reset_param(ph)
    ph%mu_tol = 1.0e-13_r8
    ph%mu_max_steps = 100
    ph%mu_mp_order = 1
+   ph%sparsity_mask = 2
    ph%first_blacs_to_ntpoly = .true.
    ph%first_blacs_to_pexsi = .true.
-   ph%first_blacs_to_sips = .true.
    ph%first_generic_to_blacs = .true.
    ph%first_generic_to_ntpoly = .true.
    ph%first_generic_to_pexsi = .true.

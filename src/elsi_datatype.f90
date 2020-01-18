@@ -128,9 +128,9 @@ module ELSI_DATATYPE
       integer(kind=i4) :: mu_mp_order
 
       ! Matrix redistribution
+      integer(kind=i4) :: sparsity_mask
       logical :: first_blacs_to_ntpoly
       logical :: first_blacs_to_pexsi
-      logical :: first_blacs_to_sips
       logical :: first_generic_to_blacs
       logical :: first_generic_to_ntpoly
       logical :: first_generic_to_pexsi
@@ -221,11 +221,6 @@ module ELSI_DATATYPE
       logical :: nt_output
       logical :: nt_first
       logical :: nt_started = .false.
-      type(Matrix_ps) :: nt_ham
-      type(Matrix_ps) :: nt_ovlp
-      type(Matrix_ps) :: nt_ovlp_copy
-      type(Matrix_ps) :: nt_dm
-      type(Matrix_ps) :: nt_map
       type(SolverParameters_t) :: nt_options
       type(Permutation_t) :: nt_perm
       type(ProcessGrid_t) :: nt_pgrid
@@ -267,17 +262,25 @@ module ELSI_DATATYPE
       integer(kind=i4), allocatable :: col_ptr_sp2(:)
       integer(kind=i4), allocatable :: row_ind_sp3(:)
       integer(kind=i4), allocatable :: col_ind_sp3(:)
+      type(Matrix_ps) :: nt_ham
+      type(Matrix_ps) :: nt_ovlp
+      type(Matrix_ps) :: nt_dm
+
+      ! Matrix redistribution
+      integer(kind=i4), allocatable :: mask(:,:)
+      integer(kind=i4), allocatable :: map_den(:,:)
+      integer(kind=i4), allocatable :: map_sp1(:)
+      integer(kind=i4), allocatable :: perm_sp3(:)
 
       ! Auxiliary
       real(kind=r8), allocatable :: ovlp_real_copy(:,:)
       complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
       real(kind=r8), allocatable :: occ(:,:,:)
-      integer(kind=i4), allocatable :: map_den(:,:)
-      integer(kind=i4), allocatable :: map_sp1(:)
-      integer(kind=i4), allocatable :: perm_sp3(:)
       real(kind=r8), allocatable :: omm_c_real(:,:)
       complex(kind=r8), allocatable :: omm_c_cmplx(:,:)
       real(kind=r8), allocatable :: pexsi_ne_vec(:)
+      type(Matrix_ps) :: nt_ovlp_copy
+      type(Matrix_ps) :: nt_map
 
       logical :: handle_init = .false.
 

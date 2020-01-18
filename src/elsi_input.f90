@@ -13,12 +13,12 @@ module ELSI_INPUT
    use ELSI_MPI, only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
    use ELSI_SET, only: elsi_set_output,elsi_set_output_log,elsi_set_zero_def,&
-       elsi_set_illcond_check,elsi_set_illcond_tol,elsi_set_energy_gap,&
-       elsi_set_spectrum_width,elsi_set_dimensionality,elsi_set_extrapolation,&
-       elsi_set_elpa_solver,elsi_set_elpa_n_single,elsi_set_elpa_gpu,&
-       elsi_set_elpa_autotune,elsi_set_omm_flavor,elsi_set_omm_n_elpa,&
-       elsi_set_omm_tol,elsi_set_pexsi_method,elsi_set_pexsi_n_mu,&
-       elsi_set_pexsi_n_pole,elsi_set_pexsi_np_per_pole,&
+       elsi_set_sparsity_mask,elsi_set_illcond_check,elsi_set_illcond_tol,&
+       elsi_set_energy_gap,elsi_set_spectrum_width,elsi_set_dimensionality,&
+       elsi_set_extrapolation,elsi_set_elpa_solver,elsi_set_elpa_n_single,&
+       elsi_set_elpa_gpu,elsi_set_elpa_autotune,elsi_set_omm_flavor,&
+       elsi_set_omm_n_elpa,elsi_set_omm_tol,elsi_set_pexsi_method,&
+       elsi_set_pexsi_n_mu,elsi_set_pexsi_n_pole,elsi_set_pexsi_np_per_pole,&
        elsi_set_pexsi_np_symbo,elsi_set_pexsi_inertia_tol,&
        elsi_set_eigenexa_method,elsi_set_sips_n_elpa,elsi_set_sips_n_slice,&
        elsi_set_ntpoly_method,elsi_set_ntpoly_tol,elsi_set_ntpoly_filter,&
@@ -124,6 +124,11 @@ subroutine elsi_set_input_file(eh,f_name)
 
          call elsi_check_read(eh%bh,ierr,kwd)
          call elsi_set_zero_def(eh,val_r8)
+      case("sparsity_mask")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_sparsity_mask(eh,val_i4)
       case("illcond_check")
          read(msg,*,iostat=ierr) kwd,val_str
 

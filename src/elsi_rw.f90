@@ -12,16 +12,15 @@ module ELSI_RW
    use, intrinsic :: ISO_C_BINDING
    use ELSI_CONSTANT, only: HEADER_SIZE,BLACS_DENSE,PEXSI_CSC,WRITE_FILE,&
        REAL_DATA,CMPLX_DATA,FILE_VERSION,PEXSI_SOLVER,SIPS_SOLVER,MULTI_PROC,&
-       SINGLE_PROC,UNSET,N_PARALLEL_MODES
-   use ELSI_DATATYPE, only: elsi_handle,elsi_rw_handle,elsi_basic_t
+       SINGLE_PROC,UNSET,N_PARALLEL_MODES,MASK_H
+   use ELSI_DATATYPE, only: elsi_rw_handle,elsi_basic_t,elsi_param_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: mpi_sum,mpi_real8,mpi_complex16,mpi_integer4,&
        mpi_mode_rdonly,mpi_mode_wronly,mpi_mode_create,mpi_info_null,&
        mpi_status_ignore,elsi_stop,elsi_check_mpi
    use ELSI_PRECISION, only: r8,i4,i8
-   use ELSI_REDIST, only: elsi_sips_to_blacs_dm,elsi_blacs_to_sips_hs,&
-       elsi_blacs_to_sips_hs_dim
-   use ELSI_SETUP, only: elsi_init,elsi_set_mpi,elsi_set_blacs,elsi_cleanup
+   use ELSI_REDIST, only: elsi_blacs_to_mask,elsi_blacs_to_sips_hs_dim,&
+       elsi_blacs_to_sips_hs,elsi_sips_to_blacs_dm
    use ELSI_UTIL, only: elsi_get_nnz,elsi_reset_basic,elsi_check_init
 
    implicit none
@@ -46,6 +45,26 @@ module ELSI_RW
    public :: elsi_write_mat_real_sparse
    public :: elsi_write_mat_complex
    public :: elsi_write_mat_complex_sparse
+
+   interface elsi_read_mat_mp
+      module procedure elsi_read_mat_mp_real
+      module procedure elsi_read_mat_mp_cmplx
+   end interface
+
+   interface elsi_read_mat_sp
+      module procedure elsi_read_mat_sp_real
+      module procedure elsi_read_mat_sp_cmplx
+   end interface
+
+   interface elsi_write_mat_mp
+      module procedure elsi_write_mat_mp_real
+      module procedure elsi_write_mat_mp_cmplx
+   end interface
+
+   interface elsi_write_mat_sp
+      module procedure elsi_write_mat_sp_real
+      module procedure elsi_write_mat_sp_cmplx
+   end interface
 
 contains
 
@@ -138,11 +157,6 @@ subroutine elsi_set_rw_blacs(rwh,blacs_ctxt,block_size)
    integer(kind=i4), intent(in) :: blacs_ctxt !< BLACS context
    integer(kind=i4), intent(in) :: block_size !< Block size
 
-   integer(kind=i4) :: n_prow
-   integer(kind=i4) :: n_pcol
-   integer(kind=i4) :: my_prow
-   integer(kind=i4) :: my_pcol
-
    integer(kind=i4), external :: numroc
 
    character(len=*), parameter :: caller = "elsi_set_rw_blacs"
@@ -153,13 +167,16 @@ subroutine elsi_set_rw_blacs(rwh,blacs_ctxt,block_size)
       rwh%bh%blacs_ctxt = blacs_ctxt
       rwh%bh%blk = block_size
 
-      if(rwh%rw_task == WRITE_FILE) then
-         ! Get processor grid information
-         call BLACS_Gridinfo(blacs_ctxt,n_prow,n_pcol,my_prow,my_pcol)
+      ! Get processor grid information
+      call BLACS_Gridinfo(blacs_ctxt,rwh%bh%n_prow,rwh%bh%n_pcol,&
+           rwh%bh%my_prow,rwh%bh%my_pcol)
 
+      if(rwh%rw_task == WRITE_FILE) then
          ! Get local size of matrix
-         rwh%bh%n_lrow = numroc(rwh%n_basis,rwh%bh%blk,my_prow,0,n_prow)
-         rwh%bh%n_lcol = numroc(rwh%n_basis,rwh%bh%blk,my_pcol,0,n_pcol)
+         rwh%bh%n_lrow = numroc(rwh%n_basis,rwh%bh%blk,rwh%bh%my_prow,0,&
+            rwh%bh%n_prow)
+         rwh%bh%n_lcol = numroc(rwh%n_basis,rwh%bh%blk,rwh%bh%my_pcol,0,&
+            rwh%bh%n_pcol)
       end if
    end if
 
@@ -339,9 +356,9 @@ subroutine elsi_read_mat_real(rwh,f_name,mat)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
 
    if(rwh%parallel_mode == MULTI_PROC) then
-      call elsi_read_mat_real_mp(rwh,f_name,mat)
+      call elsi_read_mat_mp(rwh,f_name,mat)
    else
-      call elsi_read_mat_real_sp(rwh,f_name,mat)
+      call elsi_read_mat_sp(rwh,f_name,mat)
    end if
 
 end subroutine
@@ -353,7 +370,7 @@ subroutine elsi_write_mat_real(rwh,f_name,mat)
 
    implicit none
 
-   type(elsi_rw_handle), intent(in) :: rwh !< Handle
+   type(elsi_rw_handle), intent(inout) :: rwh !< Handle
    character(len=*), intent(in) :: f_name !< File name
    real(kind=r8), intent(in) :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
@@ -363,9 +380,9 @@ subroutine elsi_write_mat_real(rwh,f_name,mat)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
 
    if(rwh%parallel_mode == MULTI_PROC) then
-      call elsi_write_mat_real_mp(rwh,f_name,mat)
+      call elsi_write_mat_mp(rwh,f_name,mat)
    else
-      call elsi_write_mat_real_sp(rwh,f_name,mat)
+      call elsi_write_mat_sp(rwh,f_name,mat)
    end if
 
 end subroutine
@@ -387,9 +404,9 @@ subroutine elsi_read_mat_complex(rwh,f_name,mat)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
 
    if(rwh%parallel_mode == MULTI_PROC) then
-      call elsi_read_mat_complex_mp(rwh,f_name,mat)
+      call elsi_read_mat_mp(rwh,f_name,mat)
    else
-      call elsi_read_mat_complex_sp(rwh,f_name,mat)
+      call elsi_read_mat_sp(rwh,f_name,mat)
    end if
 
 end subroutine
@@ -401,7 +418,7 @@ subroutine elsi_write_mat_complex(rwh,f_name,mat)
 
    implicit none
 
-   type(elsi_rw_handle), intent(in) :: rwh !< Handle
+   type(elsi_rw_handle), intent(inout) :: rwh !< Handle
    character(len=*), intent(in) :: f_name !< File name
    complex(kind=r8), intent(in) :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
@@ -411,9 +428,9 @@ subroutine elsi_write_mat_complex(rwh,f_name,mat)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
 
    if(rwh%parallel_mode == MULTI_PROC) then
-      call elsi_write_mat_complex_mp(rwh,f_name,mat)
+      call elsi_write_mat_mp(rwh,f_name,mat)
    else
-      call elsi_write_mat_complex_sp(rwh,f_name,mat)
+      call elsi_write_mat_sp(rwh,f_name,mat)
    end if
 
 end subroutine
@@ -436,10 +453,6 @@ subroutine elsi_read_mat_dim_mp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
    integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: n_prow
-   integer(kind=i4) :: n_pcol
-   integer(kind=i4) :: my_prow
-   integer(kind=i4) :: my_pcol
    integer(kind=i8) :: offset
 
    integer(kind=i4), external :: numroc
@@ -476,12 +489,9 @@ subroutine elsi_read_mat_dim_mp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    n_basis = header(4)
    n_electron = real(header(5),kind=r8)
 
-   ! Get processor grid information
-   call BLACS_Gridinfo(rwh%bh%blacs_ctxt,n_prow,n_pcol,my_prow,my_pcol)
-
    ! Get local size of matrix
-   n_lrow = numroc(n_basis,rwh%bh%blk,my_prow,0,n_prow)
-   n_lcol = numroc(n_basis,rwh%bh%blk,my_pcol,0,n_pcol)
+   n_lrow = numroc(n_basis,rwh%bh%blk,rwh%bh%my_prow,0,rwh%bh%n_prow)
+   n_lcol = numroc(n_basis,rwh%bh%blk,rwh%bh%my_pcol,0,rwh%bh%n_pcol)
 
    rwh%n_basis = n_basis
    rwh%n_electrons = n_electron
@@ -596,7 +606,7 @@ end subroutine
 !>
 !! Read a 2D block-cyclic dense matrix from file.
 !!
-subroutine elsi_read_mat_real_mp(rwh,f_name,mat)
+subroutine elsi_read_mat_mp_real(rwh,f_name,mat)
 
    implicit none
 
@@ -615,14 +625,9 @@ subroutine elsi_read_mat_real_mp(rwh,f_name,mat)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
-   type(elsi_handle) :: eh
+   type(elsi_param_t) :: ph
 
-   character(len=*), parameter :: caller = "elsi_read_mat_real_mp"
-
-   call elsi_init(eh,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rwh%n_basis,&
-        rwh%n_electrons,0)
-   call elsi_set_mpi(eh,rwh%bh%comm)
-   call elsi_set_blacs(eh,rwh%bh%blacs_ctxt,rwh%bh%blk)
+   character(len=*), parameter :: caller = "elsi_read_mat_mp_real"
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -686,20 +691,15 @@ subroutine elsi_read_mat_real_mp(rwh,f_name,mat)
    call elsi_check_mpi(rwh%bh,"MPI_File_close",ierr,caller)
 
    ! Redistribute matrix
-   eh%ph%matrix_format = PEXSI_CSC
-   eh%bh%nnz_g = rwh%bh%nnz_g
-   eh%bh%nnz_l_sp = rwh%bh%nnz_l_sp
-   eh%bh%nnz_l_sp1 = rwh%bh%nnz_l_sp
-   eh%bh%n_lcol_sp = rwh%bh%n_lcol_sp
-   eh%bh%n_lcol_sp1 = rwh%bh%n_lcol_sp
+   ph%n_basis = rwh%n_basis
+   rwh%bh%nnz_l_sp1 = rwh%bh%nnz_l_sp
+   rwh%bh%n_lcol_sp1 = rwh%bh%n_lcol_sp
 
-   call elsi_sips_to_blacs_dm(eh%ph,eh%bh,nnz_val,row_ind,col_ptr,mat)
+   call elsi_sips_to_blacs_dm(ph,rwh%bh,nnz_val,row_ind,col_ptr,mat)
 
    call elsi_deallocate(rwh%bh,col_ptr,"col_ptr")
    call elsi_deallocate(rwh%bh,row_ind,"row_ind")
    call elsi_deallocate(rwh%bh,nnz_val,"nnz_val")
-
-   call elsi_cleanup(eh)
 
 end subroutine
 
@@ -780,7 +780,7 @@ end subroutine
 !>
 !! Read a 2D block-cyclic dense matrix from file.
 !!
-subroutine elsi_read_mat_complex_mp(rwh,f_name,mat)
+subroutine elsi_read_mat_mp_cmplx(rwh,f_name,mat)
 
    implicit none
 
@@ -799,14 +799,9 @@ subroutine elsi_read_mat_complex_mp(rwh,f_name,mat)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
-   type(elsi_handle) :: eh
+   type(elsi_param_t) :: ph
 
-   character(len=*), parameter :: caller = "elsi_read_mat_complex_mp"
-
-   call elsi_init(eh,PEXSI_SOLVER,MULTI_PROC,BLACS_DENSE,rwh%n_basis,&
-        rwh%n_electrons,0)
-   call elsi_set_mpi(eh,rwh%bh%comm)
-   call elsi_set_blacs(eh,rwh%bh%blacs_ctxt,rwh%bh%blk)
+   character(len=*), parameter :: caller = "elsi_read_mat_mp_cmplx"
 
    ! Open file
    f_mode = mpi_mode_rdonly
@@ -870,20 +865,15 @@ subroutine elsi_read_mat_complex_mp(rwh,f_name,mat)
    call elsi_check_mpi(rwh%bh,"MPI_File_close",ierr,caller)
 
    ! Redistribute matrix
-   eh%ph%matrix_format = PEXSI_CSC
-   eh%bh%nnz_g = rwh%bh%nnz_g
-   eh%bh%nnz_l_sp = rwh%bh%nnz_l_sp
-   eh%bh%nnz_l_sp1 = rwh%bh%nnz_l_sp
-   eh%bh%n_lcol_sp = rwh%bh%n_lcol_sp
-   eh%bh%n_lcol_sp1 = rwh%bh%n_lcol_sp
+   ph%n_basis = rwh%n_basis
+   rwh%bh%nnz_l_sp1 = rwh%bh%nnz_l_sp
+   rwh%bh%n_lcol_sp1 = rwh%bh%n_lcol_sp
 
-   call elsi_sips_to_blacs_dm(eh%ph,eh%bh,nnz_val,row_ind,col_ptr,mat)
+   call elsi_sips_to_blacs_dm(ph,rwh%bh,nnz_val,row_ind,col_ptr,mat)
 
    call elsi_deallocate(rwh%bh,col_ptr,"col_ptr")
    call elsi_deallocate(rwh%bh,row_ind,"row_ind")
    call elsi_deallocate(rwh%bh,nnz_val,"nnz_val")
-
-   call elsi_cleanup(eh)
 
 end subroutine
 
@@ -964,11 +954,11 @@ end subroutine
 !>
 !! Write a 2D block-cyclic dense matrix to file.
 !!
-subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
+subroutine elsi_write_mat_mp_real(rwh,f_name,mat)
 
    implicit none
 
-   type(elsi_rw_handle), intent(in) :: rwh !< Handle
+   type(elsi_rw_handle), intent(inout) :: rwh !< Handle
    character(len=*), intent(in) :: f_name !< File name
    real(kind=r8), intent(in) :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
@@ -985,32 +975,35 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    real(kind=r8), allocatable :: mat_csc(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
+   integer(kind=i4), allocatable :: mask(:,:)
 
-   type(elsi_handle) :: eh
+   type(elsi_param_t) :: ph
 
-   character(len=*), parameter :: caller = "elsi_write_mat_real_mp"
+   character(len=*), parameter :: caller = "elsi_write_mat_mp_real"
 
-   call elsi_init(eh,SIPS_SOLVER,MULTI_PROC,BLACS_DENSE,rwh%n_basis,&
-        rwh%n_electrons,0)
-   call elsi_set_mpi(eh,rwh%bh%comm)
-   call elsi_set_blacs(eh,rwh%bh%blacs_ctxt,rwh%bh%blk)
-
-   eh%bh%def0 = rwh%bh%def0
-   eh%ph%unit_ovlp = .true.
-   eh%bh%n_lcol_sp = rwh%n_basis/rwh%bh%n_procs
+   ph%n_basis = rwh%n_basis
+   ph%unit_ovlp = .true.
+   ph%sparsity_mask = MASK_H
+   ph%first_blacs_to_pexsi = .true.
+   rwh%bh%n_lcol_sp = rwh%n_basis/rwh%bh%n_procs
 
    if(rwh%bh%myid == rwh%bh%n_procs-1) then
-      eh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*eh%bh%n_lcol_sp
+      rwh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*rwh%bh%n_lcol_sp
    end if
 
-   call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,mat,dummy1)
+   call elsi_allocate(rwh%bh,mask,rwh%bh%n_lrow,rwh%bh%n_lcol,"mask",caller)
 
-   call elsi_allocate(rwh%bh,mat_csc,eh%bh%nnz_l_sp,"mat_csc",caller)
-   call elsi_allocate(rwh%bh,row_ind,eh%bh%nnz_l_sp,"row_ind",caller)
-   call elsi_allocate(rwh%bh,col_ptr,eh%bh%n_lcol_sp+1,"col_ptr",caller)
+   call elsi_blacs_to_mask(ph,rwh%bh,mat,dummy1,mask)
+   call elsi_blacs_to_sips_hs_dim(ph,rwh%bh,mask)
 
-   call elsi_blacs_to_sips_hs(eh%ph,eh%bh,mat,dummy1,mat_csc,dummy2,row_ind,&
+   call elsi_allocate(rwh%bh,mat_csc,rwh%bh%nnz_l_sp,"mat_csc",caller)
+   call elsi_allocate(rwh%bh,row_ind,rwh%bh%nnz_l_sp,"row_ind",caller)
+   call elsi_allocate(rwh%bh,col_ptr,rwh%bh%n_lcol_sp+1,"col_ptr",caller)
+
+   call elsi_blacs_to_sips_hs(ph,rwh%bh,mat,dummy1,mask,mat_csc,dummy2,row_ind,&
         col_ptr)
+
+   call elsi_deallocate(rwh%bh,mask,"mask")
 
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create
@@ -1025,7 +1018,7 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    header(3) = REAL_DATA
    header(4) = rwh%n_basis
    header(5) = nint(rwh%n_electrons,kind=i4)
-   header(6) = eh%bh%nnz_g
+   header(6) = rwh%bh%nnz_g
    header(7:8) = UNSET
    header(9:16) = rwh%header_user
 
@@ -1041,7 +1034,7 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    ! Compute shift of column pointers
    prev_nnz = 0
 
-   call MPI_Exscan(eh%bh%nnz_l_sp,prev_nnz,1,mpi_integer4,mpi_sum,rwh%bh%comm,&
+   call MPI_Exscan(rwh%bh%nnz_l_sp,prev_nnz,1,mpi_integer4,mpi_sum,rwh%bh%comm,&
         ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_Exscan",ierr,caller)
@@ -1053,7 +1046,7 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    n_lcol0 = rwh%n_basis/rwh%bh%n_procs
    offset = int(HEADER_SIZE,kind=i8)*4+rwh%bh%myid*n_lcol0*4
 
-   call MPI_File_write_at_all(f_handle,offset,col_ptr,eh%bh%n_lcol_sp,&
+   call MPI_File_write_at_all(f_handle,offset,col_ptr,rwh%bh%n_lcol_sp,&
         mpi_integer4,mpi_status_ignore,ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_File_write_at_all",ierr,caller)
@@ -1061,16 +1054,16 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    ! Write row index
    offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
 
-   call MPI_File_write_at_all(f_handle,offset,row_ind,eh%bh%nnz_l_sp,&
+   call MPI_File_write_at_all(f_handle,offset,row_ind,rwh%bh%nnz_l_sp,&
         mpi_integer4,mpi_status_ignore,ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_File_write_at_all",ierr,caller)
 
    ! Write nonzero value
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+eh%bh%nnz_g*4+prev_nnz*8
+   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+rwh%bh%nnz_g*4+prev_nnz*8
 
-   call MPI_File_write_at_all(f_handle,offset,mat_csc,eh%bh%nnz_l_sp,mpi_real8,&
-        mpi_status_ignore,ierr)
+   call MPI_File_write_at_all(f_handle,offset,mat_csc,rwh%bh%nnz_l_sp,&
+        mpi_real8,mpi_status_ignore,ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_File_write_at_all",ierr,caller)
 
@@ -1083,18 +1076,16 @@ subroutine elsi_write_mat_real_mp(rwh,f_name,mat)
    call elsi_deallocate(rwh%bh,col_ptr,"col_ptr")
    call elsi_deallocate(rwh%bh,mat_csc,"mat_csc")
 
-   call elsi_cleanup(eh)
-
 end subroutine
 
 !>
 !! Write a 2D block-cyclic dense matrix to file.
 !!
-subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
+subroutine elsi_write_mat_mp_cmplx(rwh,f_name,mat)
 
    implicit none
 
-   type(elsi_rw_handle), intent(in) :: rwh !< Handle
+   type(elsi_rw_handle), intent(inout) :: rwh !< Handle
    character(len=*), intent(in) :: f_name !< File name
    complex(kind=r8), intent(in) :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
@@ -1111,32 +1102,35 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    complex(kind=r8), allocatable :: mat_csc(:)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
+   integer(kind=i4), allocatable :: mask(:,:)
 
-   type(elsi_handle) :: eh
+   type(elsi_param_t) :: ph
 
-   character(len=*), parameter :: caller = "elsi_write_mat_complex_mp"
+   character(len=*), parameter :: caller = "elsi_write_mat_mp_cmplx"
 
-   call elsi_init(eh,SIPS_SOLVER,MULTI_PROC,BLACS_DENSE,rwh%n_basis,&
-        rwh%n_electrons,0)
-   call elsi_set_mpi(eh,rwh%bh%comm)
-   call elsi_set_blacs(eh,rwh%bh%blacs_ctxt,rwh%bh%blk)
-
-   eh%bh%def0 = rwh%bh%def0
-   eh%ph%unit_ovlp = .true.
-   eh%bh%n_lcol_sp = rwh%n_basis/rwh%bh%n_procs
+   ph%n_basis = rwh%n_basis
+   ph%unit_ovlp = .true.
+   ph%sparsity_mask = MASK_H
+   ph%first_blacs_to_pexsi = .true.
+   rwh%bh%n_lcol_sp = rwh%n_basis/rwh%bh%n_procs
 
    if(rwh%bh%myid == rwh%bh%n_procs-1) then
-      eh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*eh%bh%n_lcol_sp
+      rwh%bh%n_lcol_sp = rwh%n_basis-(rwh%bh%n_procs-1)*rwh%bh%n_lcol_sp
    end if
 
-   call elsi_blacs_to_sips_hs_dim(eh%ph,eh%bh,mat,dummy1)
+   call elsi_allocate(rwh%bh,mask,rwh%bh%n_lrow,rwh%bh%n_lcol,"mask",caller)
 
-   call elsi_allocate(rwh%bh,mat_csc,eh%bh%nnz_l_sp,"mat_csc",caller)
-   call elsi_allocate(rwh%bh,row_ind,eh%bh%nnz_l_sp,"row_ind",caller)
-   call elsi_allocate(rwh%bh,col_ptr,eh%bh%n_lcol_sp+1,"col_ptr",caller)
+   call elsi_blacs_to_mask(ph,rwh%bh,mat,dummy1,mask)
+   call elsi_blacs_to_sips_hs_dim(ph,rwh%bh,mask)
 
-   call elsi_blacs_to_sips_hs(eh%ph,eh%bh,mat,dummy1,mat_csc,dummy2,row_ind,&
+   call elsi_allocate(rwh%bh,mat_csc,rwh%bh%nnz_l_sp,"mat_csc",caller)
+   call elsi_allocate(rwh%bh,row_ind,rwh%bh%nnz_l_sp,"row_ind",caller)
+   call elsi_allocate(rwh%bh,col_ptr,rwh%bh%n_lcol_sp+1,"col_ptr",caller)
+
+   call elsi_blacs_to_sips_hs(ph,rwh%bh,mat,dummy1,mask,mat_csc,dummy2,row_ind,&
         col_ptr)
+
+   call elsi_deallocate(rwh%bh,mask,"mask")
 
    ! Open file
    f_mode = mpi_mode_wronly+mpi_mode_create
@@ -1151,7 +1145,7 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    header(3) = CMPLX_DATA
    header(4) = rwh%n_basis
    header(5) = nint(rwh%n_electrons,kind=i4)
-   header(6) = eh%bh%nnz_g
+   header(6) = rwh%bh%nnz_g
    header(7:8) = UNSET
    header(9:16) = rwh%header_user
 
@@ -1167,7 +1161,7 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    ! Compute shift of column pointers
    prev_nnz = 0
 
-   call MPI_Exscan(eh%bh%nnz_l_sp,prev_nnz,1,mpi_integer4,mpi_sum,rwh%bh%comm,&
+   call MPI_Exscan(rwh%bh%nnz_l_sp,prev_nnz,1,mpi_integer4,mpi_sum,rwh%bh%comm,&
         ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_Exscan",ierr,caller)
@@ -1179,7 +1173,7 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    n_lcol0 = rwh%n_basis/rwh%bh%n_procs
    offset = int(HEADER_SIZE,kind=i8)*4+rwh%bh%myid*n_lcol0*4
 
-   call MPI_File_write_at_all(f_handle,offset,col_ptr,eh%bh%n_lcol_sp,&
+   call MPI_File_write_at_all(f_handle,offset,col_ptr,rwh%bh%n_lcol_sp,&
         mpi_integer4,mpi_status_ignore,ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_File_write_at_all",ierr,caller)
@@ -1187,15 +1181,15 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    ! Write row index
    offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
 
-   call MPI_File_write_at_all(f_handle,offset,row_ind,eh%bh%nnz_l_sp,&
+   call MPI_File_write_at_all(f_handle,offset,row_ind,rwh%bh%nnz_l_sp,&
         mpi_integer4,mpi_status_ignore,ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_File_write_at_all",ierr,caller)
 
    ! Write nonzero value
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+eh%bh%nnz_g*4+prev_nnz*16
+   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+rwh%bh%nnz_g*4+prev_nnz*16
 
-   call MPI_File_write_at_all(f_handle,offset,mat_csc,eh%bh%nnz_l_sp,&
+   call MPI_File_write_at_all(f_handle,offset,mat_csc,rwh%bh%nnz_l_sp,&
         mpi_complex16,mpi_status_ignore,ierr)
 
    call elsi_check_mpi(rwh%bh,"MPI_File_write_at_all",ierr,caller)
@@ -1208,8 +1202,6 @@ subroutine elsi_write_mat_complex_mp(rwh,f_name,mat)
    call elsi_deallocate(rwh%bh,col_ptr,"col_ptr")
    call elsi_deallocate(rwh%bh,row_ind,"row_ind")
    call elsi_deallocate(rwh%bh,mat_csc,"mat_csc")
-
-   call elsi_cleanup(eh)
 
 end subroutine
 
@@ -1469,7 +1461,7 @@ end subroutine
 !>
 !! Read a 2D block-cyclic dense matrix from file.
 !!
-subroutine elsi_read_mat_real_sp(rwh,f_name,mat)
+subroutine elsi_read_mat_sp_real(rwh,f_name,mat)
 
    implicit none
 
@@ -1490,7 +1482,7 @@ subroutine elsi_read_mat_real_sp(rwh,f_name,mat)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
-   character(len=*), parameter :: caller = "elsi_read_mat_real_sp"
+   character(len=*), parameter :: caller = "elsi_read_mat_sp_real"
 
    ! Open file
    open(99,file=f_name,access="stream",form="unformatted",status="old",&
@@ -1559,7 +1551,7 @@ end subroutine
 !>
 !! Read a 2D block-cyclic dense matrix from file.
 !!
-subroutine elsi_read_mat_complex_sp(rwh,f_name,mat)
+subroutine elsi_read_mat_sp_cmplx(rwh,f_name,mat)
 
    implicit none
 
@@ -1580,7 +1572,7 @@ subroutine elsi_read_mat_complex_sp(rwh,f_name,mat)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
-   character(len=*), parameter :: caller = "elsi_read_mat_complex_sp"
+   character(len=*), parameter :: caller = "elsi_read_mat_sp_cmplx"
 
    ! Open file
    open(99,file=f_name,access="stream",form="unformatted",status="old",&
@@ -1649,7 +1641,7 @@ end subroutine
 !>
 !! Write a 2D block-cyclic dense matrix to file.
 !!
-subroutine elsi_write_mat_real_sp(rwh,f_name,mat)
+subroutine elsi_write_mat_sp_real(rwh,f_name,mat)
 
    implicit none
 
@@ -1671,7 +1663,7 @@ subroutine elsi_write_mat_real_sp(rwh,f_name,mat)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
-   character(len=*), parameter :: caller = "elsi_write_mat_real_sp"
+   character(len=*), parameter :: caller = "elsi_write_mat_sp_real"
 
    ! Compute nnz
    call elsi_get_nnz(rwh%bh%def0,rwh%bh%n_lrow,rwh%bh%n_lcol,mat,nnz_g)
@@ -1747,7 +1739,7 @@ end subroutine
 !>
 !! Write a 2D block-cyclic dense matrix to file.
 !!
-subroutine elsi_write_mat_complex_sp(rwh,f_name,mat)
+subroutine elsi_write_mat_sp_cmplx(rwh,f_name,mat)
 
    implicit none
 
@@ -1769,7 +1761,7 @@ subroutine elsi_write_mat_complex_sp(rwh,f_name,mat)
    integer(kind=i4), allocatable :: row_ind(:)
    integer(kind=i4), allocatable :: col_ptr(:)
 
-   character(len=*), parameter :: caller = "elsi_write_mat_complex_sp"
+   character(len=*), parameter :: caller = "elsi_write_mat_sp_cmplx"
 
    ! Compute nnz
    call elsi_get_nnz(rwh%bh%def0,rwh%bh%n_lrow,rwh%bh%n_lcol,mat,nnz_g)

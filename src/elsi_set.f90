@@ -25,6 +25,7 @@ module ELSI_SET
    public :: elsi_set_save_ovlp
    public :: elsi_set_unit_ovlp
    public :: elsi_set_zero_def
+   public :: elsi_set_sparsity_mask
    public :: elsi_set_illcond_check
    public :: elsi_set_illcond_tol
    public :: elsi_set_spin_degeneracy
@@ -243,6 +244,31 @@ subroutine elsi_set_zero_def(eh,zero_def)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    eh%bh%def0 = zero_def
+
+end subroutine
+
+!>
+!! Set the sparsity pattern used in dense to sparse matrix conversion.
+!!
+subroutine elsi_set_sparsity_mask(eh,sparsity_mask)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: sparsity_mask !< Sparsity pattern mask
+
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_set_sparsity_mask"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(sparsity_mask < 0 .or. sparsity_mask > 2) then
+      write(msg,"(A)") "Input value should be 0, 1, or 2"
+      call elsi_stop(eh%bh,msg,caller)
+   end if
+
+   eh%ph%sparsity_mask = sparsity_mask
 
 end subroutine
 
