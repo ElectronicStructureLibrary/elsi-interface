@@ -8,19 +8,23 @@ The installation of ELSI makes use of the CMake software. Minimum requirements:
 * Fortran compiler (Fortran 2003 compliant)
 * C compiler (C99 compliant)
 * MPI (MPI-3 recommended)
-* BLAS, LAPACK, BLACS, ScaLAPACK
+* BLAS, LAPACK, ScaLAPACK (with PBLAS and BLACS)
 
-In addition, building the PEXSI solver (highly recommended) requires:
+Enabling the PEXSI solver (highly recommended) requires:
 
 * C++ compiler (C++11 compliant)
 
-By default, solver libraries and their dependencies redistributed within ELSI
-will be built. Optionally, they may be substituted by user's optimized versions:
+Enabling the EigenExa solver requires:
 
-* ELPA (2018.05 or newer)
-* libOMM
-* PEXSI (1.2 or newer)
-* NTPoly (2.2 or newer)
+* EigenExa (2.3 or newer)
+
+Enabling the SLEPc-SIPs solver requires:
+
+* SLEPc (3.9 or newer)
+
+Enabling the MAGMA solver requires:
+
+* MAGMA (2.5 or newer)
 
 ## Quick Start
 
@@ -64,15 +68,17 @@ optimization flags:
 
 ### 2) Solvers
 
-The ELPA, libOMM, NTPoly, and PEXSI solver libraries, as well as the
-SuperLU\_DIST and PT-SCOTCH libraries are redistributed through this ELSI
-package. Experienced users are encouraged to link the ELSI interface against
-external, better optimized solver libraries. Relevant options are:
+The ELPA, libOMM, NTPoly, BSEPACK, and PEXSI solver libraries, as well as the
+SuperLU\_DIST and PT-SCOTCH libraries (both required by PEXSI) are redistributed
+through this ELSI package. Experienced users are encouraged to link the ELSI
+interface against externally installed, better optimized solver libraries.
+Relevant options are:
 
 * `USE_EXTERNAL_ELPA`
 * `USE_EXTERNAL_OMM`
 * `USE_EXTERNAL_PEXSI`
 * `USE_EXTERNAL_NTPOLY`
+* `USE_EXTERNAL_BSEPACK`
 
 All external libraries and include paths should be set via:
 
@@ -88,11 +94,12 @@ formats:
 * `elpa;pexsi;blas` (name of library)
 * `libelpa.a;libpexsi.a;libblas.so` (full name of library)
 
-Please note that in the current version of ELSI, the PEXSI solver is not enabled
-unless `ENABLE_PEXSI` is switched on. `ENABLE_SIPS`, `ELABLE_EIGENEXA`, and
-`ENABLE_MAGMA` may be used to enable support for the SLEPc, EigenExa, and MAGMA
-solvers, respectively. These libraries are not redistributed with ELSI, thus
-must be installed separately by the user.
+Please note that in the current version of ELSI, the PEXSI and BSEPACK solvers
+are not enabled by default. They may be switched on by `ENABLE_PEXSI` and
+`ENABLE_BSEPACK`, respectively. In addition, `ENABLE_SIPS`, `ELABLE_EIGENEXA`,
+and `ENABLE_MAGMA` may be used to enable support for the SLEPc, EigenExa, and
+MAGMA solvers, respectively. These libraries are not redistributed with ELSI,
+thus must be installed separately by the user.
 
 ### 3) Tests
 
