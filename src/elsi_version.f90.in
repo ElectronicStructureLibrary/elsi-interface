@@ -100,3 +100,22 @@ subroutine elsi_get_magma_enabled(magma_enabled)
    end if
 
 end subroutine
+
+!>
+!! Return 0 if BSEPACK has not been enabled; return 1 otherwise.
+!!
+subroutine elsi_get_bsepack_enabled(bsepack_enabled)
+
+   implicit none
+
+   integer, intent(out) :: bsepack_enabled !< BSEPACK is available?
+
+   character(len=*), parameter :: tmp = "@ENABLE_BSEPACK@"
+
+   if(tmp == "ON") then
+      bsepack_enabled = 1
+   else
+      bsepack_enabled = 0
+   end if
+
+end subroutine

@@ -494,6 +494,13 @@ subroutine elsi_check(ph,bh,caller)
          call elsi_stop(bh,msg,caller)
       end if
    case(BSEPACK_SOLVER)
+      call elsi_get_bsepack_enabled(solver_enabled)
+
+      if(solver_enabled == 0) then
+         write(msg,"(A)") "BSEPACK is not enabled in this ELSI installation"
+         call elsi_stop(bh,msg,caller)
+      end if
+
       if(ph%parallel_mode /= MULTI_PROC) then
          write(msg,"(A)") "BSEPACK requires MULTI_PROC parallel mode"
          call elsi_stop(bh,msg,caller)
