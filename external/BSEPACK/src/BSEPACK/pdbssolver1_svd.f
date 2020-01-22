@@ -382,7 +382,7 @@
 !         IF ( MYROW+MYCOL .EQ. 0 )
 !     $      WRITE( *, * ) 't_diag = ', T_DIAG, ';'
          INFO = ITMP
-         WRITE( *, * ), '% WARNING: PDGESVD fails with INFO =', INFO
+         WRITE( *, * ) '% WARNING: PDGESVD fails with INFO =', INFO
 !         RETURN
       END IF
 !      CALL PDLAPRNT( N, N, WORK( INDU ), 1, 1, DESCU, 0, 0, 'U',

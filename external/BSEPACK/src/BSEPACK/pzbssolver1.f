@@ -459,7 +459,7 @@
 !     $   WRITE( *, * ) 't_diag1 = ', T_DIAG1, ';'
       IF ( ITMP .NE. 0 ) THEN
          INFO = ITMP
-         WRITE( *, * ), '% PDSTEBZ fails with INFO =', INFO
+         WRITE( *, * ) '% PDSTEBZ fails with INFO =', INFO
          RETURN
       END IF
 !      IF ( MYROW+MYCOL .EQ. 0 ) THEN
@@ -476,7 +476,7 @@
      $     IWORK( INDICLUSTR ), WORK( INDGAP ), ITMP )
       IF ( ITMP .NE. 0 ) THEN
          INFO = ITMP
-         WRITE( *, * ), '% PDSTEIN fails with INFO =', INFO
+         WRITE( *, * ) '% PDSTEIN fails with INFO =', INFO
          RETURN
       END IF
       T_DIAG2 = MPI_WTIME() - T_DIAG2
