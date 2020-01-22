@@ -115,6 +115,18 @@ void c_elsi_dm_complex_sparse(elsi_handle handle_c,
      double _Complex *dm,
      double *energy);
 
+void c_elsi_bse_real(elsi_handle handle_c,
+     double *mat_a,
+     double *mat_b,
+     double *eval,
+     double *evec);
+
+void c_elsi_bse_complex(elsi_handle handle_c,
+     double _Complex *mat_a,
+     double _Complex *mat_b,
+     double *eval,
+     double _Complex *evec);
+
 void c_elsi_set_input_file(elsi_handle handle_c,
      char *name_c);
 

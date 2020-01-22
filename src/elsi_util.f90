@@ -12,7 +12,7 @@ module ELSI_UTIL
    use ELSI_CONSTANT, only: UNSET,N_SOLVERS,N_PARALLEL_MODES,N_MATRIX_FORMATS,&
        MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,&
        AUTO_SOLVER,OMM_SOLVER,PEXSI_SOLVER,EIGENEXA_SOLVER,SIPS_SOLVER,&
-       NTPOLY_SOLVER,MAGMA_SOLVER,UT_MAT
+       NTPOLY_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,UT_MAT
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_comm_self,mpi_real8,mpi_sum
@@ -192,6 +192,9 @@ subroutine elsi_reset_param(ph)
    ph%magma_solver = 1
    ph%magma_n_gpus = 1
    ph%magma_started = .false.
+   ph%bse_n_lrow = UNSET
+   ph%bse_n_lcol = UNSET
+   ph%bse_desc = UNSET
 
 end subroutine
 
@@ -488,6 +491,23 @@ subroutine elsi_check(ph,bh,caller)
 
       if(ph%matrix_format /= BLACS_DENSE) then
          write(msg,"(A)") "MAGMA requires BLACS_DENSE matrix format"
+         call elsi_stop(bh,msg,caller)
+      end if
+   case(BSEPACK_SOLVER)
+      call elsi_get_bsepack_enabled(solver_enabled)
+
+      if(solver_enabled == 0) then
+         write(msg,"(A)") "BSEPACK is not enabled in this ELSI installation"
+         call elsi_stop(bh,msg,caller)
+      end if
+
+      if(ph%parallel_mode /= MULTI_PROC) then
+         write(msg,"(A)") "BSEPACK requires MULTI_PROC parallel mode"
+         call elsi_stop(bh,msg,caller)
+      end if
+
+      if(ph%matrix_format /= BLACS_DENSE) then
+         write(msg,"(A)") "BSEPACK requires BLACS_DENSE matrix format"
          call elsi_stop(bh,msg,caller)
       end if
    end select

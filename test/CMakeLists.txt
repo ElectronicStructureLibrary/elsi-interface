@@ -1,6 +1,8 @@
 ### Fortran tests ###
 LIST(APPEND ftest_src
   Fortran/elsi_test.f90
+  Fortran/test_bse_cmplx_den.f90
+  Fortran/test_bse_real_den.f90
   Fortran/test_dm_cmplx_den.f90
   Fortran/test_dm_cmplx_coo.f90
   Fortran/test_dm_cmplx_csc1.f90
@@ -48,6 +50,11 @@ MACRO(add_test_target arg1)
   IF(NOT USE_EXTERNAL_NTPOLY)
     TARGET_LINK_LIBRARIES(${arg1} PRIVATE NTPoly)
   ENDIF()
+  IF(ENABLE_BSEPACK)
+    IF(NOT USE_EXTERNAL_BSEPACK)
+      TARGET_LINK_LIBRARIES(${arg1} PRIVATE bsepack sseig)
+    ENDIF()
+  ENDIF()
   TARGET_LINK_LIBRARIES(${arg1} PRIVATE ${LIBS})
 
   TARGET_INCLUDE_DIRECTORIES(${arg1} PRIVATE
@@ -90,8 +97,12 @@ ENDIF()
 ### Test matrices ###
 SET(h_real "${PROJECT_SOURCE_DIR}/test/matrices/H_real.csc")
 SET(s_real "${PROJECT_SOURCE_DIR}/test/matrices/S_real.csc")
-SET(h_cmplx "${PROJECT_SOURCE_DIR}/test/matrices/H_complex.csc")
-SET(s_cmplx "${PROJECT_SOURCE_DIR}/test/matrices/S_complex.csc")
+SET(h_cmplx "${PROJECT_SOURCE_DIR}/test/matrices/H_cmplx.csc")
+SET(s_cmplx "${PROJECT_SOURCE_DIR}/test/matrices/S_cmplx.csc")
+SET(a_real "${PROJECT_SOURCE_DIR}/test/matrices/A_real.csc")
+SET(b_real "${PROJECT_SOURCE_DIR}/test/matrices/B_real.csc")
+SET(a_cmplx "${PROJECT_SOURCE_DIR}/test/matrices/A_cmplx.csc")
+SET(b_cmplx "${PROJECT_SOURCE_DIR}/test/matrices/B_cmplx.csc")
 
 ### CTest ###
 INCLUDE(CTest)
@@ -190,6 +201,12 @@ test_fortran(05_ntpoly d 2 r 6 ${h_real} ${s_real})
 test_fortran(06_ntpoly d 2 c 6 ${h_cmplx} ${s_cmplx})
 test_fortran(07_ntpoly d 3 r 6 ${h_real} ${s_real})
 test_fortran(08_ntpoly d 3 c 6 ${h_cmplx} ${s_cmplx})
+
+### Parallel Fortran tests: bse + BSEPACK ###
+IF(ENABLE_BSEPACK)
+  test_fortran(01_bsepack b 0 r 8 ${a_real} ${b_real})
+  test_fortran(02_bsepack b 0 c 8 ${a_cmplx} ${b_cmplx})
+ENDIF()
 
 ### Serial Fortran tests: ev + LAPACK ###
 ADD_TEST(test_serial_01_lapack

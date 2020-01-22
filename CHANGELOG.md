@@ -8,6 +8,9 @@
   interfaces with an eigensolver.
 * Fixed Marzari-Vanderbilt broadening.
 
+### Solvers
+* Added support for the Bethe-Salpeter eigensolvers in the BSEPACK library.
+
 ### ELPA
 * Interface for externally linked ELPA compatible with ELPA 2019.11.
 
@@ -15,6 +18,10 @@
 * Updated redistributed SuperLU\_DIST source code to version 6.2.0.
 * Added support for computing the electronic entropy via the free energy density
   matrix.
+
+### BSEPACK
+* Redistributed source code of BSEPACK 0.1.
+* Added parallel BSE eigensolvers PDBSEIG and PZBSEIG.
 
 ### Known issues
 * ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete

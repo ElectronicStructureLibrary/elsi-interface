@@ -494,6 +494,84 @@ subroutine c_elsi_dm_complex_sparse(h_c,ham_c,ovlp_c,dm_c,energy) bind(C)
 
 end subroutine
 
+subroutine c_elsi_bse_real(h_c,mat_a_c,mat_b_c,eval_c,evec_c) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: mat_a_c
+   type(c_ptr), value, intent(in) :: mat_b_c
+   type(c_ptr), value, intent(in) :: eval_c
+   type(c_ptr), value, intent(in) :: evec_c
+
+   type(elsi_handle), pointer :: h_f
+   real(kind=c_double), pointer :: mat_a_f(:,:)
+   real(kind=c_double), pointer :: mat_b_f(:,:)
+   real(kind=c_double), pointer :: eval_f(:)
+   real(kind=c_double), pointer :: evec_f(:,:)
+
+   integer(kind=c_int) :: n_basis
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+   integer(kind=c_int) :: lrow2
+   integer(kind=c_int) :: lcol2
+
+   call c_f_pointer(h_c,h_f)
+
+   n_basis = h_f%ph%n_basis
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+   lrow2 = h_f%ph%bse_n_lrow
+   lcol2 = h_f%ph%bse_n_lcol
+
+   call c_f_pointer(mat_a_c,mat_a_f,shape=[lrow,lcol])
+   call c_f_pointer(mat_b_c,mat_b_f,shape=[lrow,lcol])
+   call c_f_pointer(eval_c,eval_f,shape=[n_basis])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow2,lcol2])
+
+   call elsi_bse_real(h_f,mat_a_f,mat_b_f,eval_f,evec_f)
+
+end subroutine
+
+subroutine c_elsi_bse_complex(h_c,mat_a_c,mat_b_c,eval_c,evec_c) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: mat_a_c
+   type(c_ptr), value, intent(in) :: mat_b_c
+   type(c_ptr), value, intent(in) :: eval_c
+   type(c_ptr), value, intent(in) :: evec_c
+
+   type(elsi_handle), pointer :: h_f
+   complex(kind=c_double), pointer :: mat_a_f(:,:)
+   complex(kind=c_double), pointer :: mat_b_f(:,:)
+   real(kind=c_double), pointer :: eval_f(:)
+   complex(kind=c_double), pointer :: evec_f(:,:)
+
+   integer(kind=c_int) :: n_basis
+   integer(kind=c_int) :: lrow
+   integer(kind=c_int) :: lcol
+   integer(kind=c_int) :: lrow2
+   integer(kind=c_int) :: lcol2
+
+   call c_f_pointer(h_c,h_f)
+
+   n_basis = h_f%ph%n_basis
+   lrow = h_f%bh%n_lrow
+   lcol = h_f%bh%n_lcol
+   lrow2 = h_f%ph%bse_n_lrow
+   lcol2 = h_f%ph%bse_n_lcol
+
+   call c_f_pointer(mat_a_c,mat_a_f,shape=[lrow,lcol])
+   call c_f_pointer(mat_b_c,mat_b_f,shape=[lrow,lcol])
+   call c_f_pointer(eval_c,eval_f,shape=[n_basis])
+   call c_f_pointer(evec_c,evec_f,shape=[lrow2,lcol2])
+
+   call elsi_bse_complex(h_f,mat_a_f,mat_b_f,eval_f,evec_f)
+
+end subroutine
+
 subroutine c_elsi_set_input_file(h_c,name_c) bind(C)
 
    implicit none

@@ -132,6 +132,8 @@ module ELSI
    public :: elsi_dm_complex
    public :: elsi_dm_real_sparse
    public :: elsi_dm_complex_sparse
+   public :: elsi_bse_real
+   public :: elsi_bse_complex
 
    ! Tool
    public :: elsi_orthonormalize_ev_real

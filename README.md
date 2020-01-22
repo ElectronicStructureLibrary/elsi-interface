@@ -16,7 +16,7 @@ The standard installation of ELSI requires:
 * C compiler (C99)
 * C++ compiler (C++11)
 * MPI
-* BLAS, LAPACK, BLACS, ScaLAPACK
+* BLAS, LAPACK, ScaLAPACK
 
 Installation with recent versions of Cray, GNU, IBM, Intel, NAG, and PGI
 compilers has been tested. For a complete description of the installation
