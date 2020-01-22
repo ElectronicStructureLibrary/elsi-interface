@@ -15,7 +15,7 @@ program elsi_test
 
    include "mpif.h"
 
-   character(len=100) :: arg1 ! ev or dm
+   character(len=100) :: arg1 ! ev, dm, or bse
    character(len=100) :: arg2 ! dense or sparse
    character(len=100) :: arg3 ! real or cmplx
    character(len=100) :: arg4 ! solver
@@ -125,6 +125,15 @@ program elsi_test
       case default
          call test_die()
       end select
+   case("b") ! bse
+      select case(arg3(1:1))
+      case("r") ! real
+         call test_bse_real_den(MPI_COMM_WORLD,solver,arg5,arg6)
+      case("c") ! complex
+         call test_bse_cmplx_den(MPI_COMM_WORLD,solver,arg5,arg6)
+      case default
+         call test_die()
+      end select
    case default
       call test_die()
    end select
@@ -142,7 +151,7 @@ subroutine test_die()
       write(*,"(A)") "  ##                                    ##"
       write(*,"(A)") "  ##  Wrong command line argument(s)!!  ##"
       write(*,"(A)") "  ##                                    ##"
-      write(*,"(A)") "  ##  Arg #1: 'ev' or 'dm'              ##"
+      write(*,"(A)") "  ##  Arg #1: 'ev', 'dm', or 'bse'      ##"
       write(*,"(A)") "  ##  Arg #2: 0 = BLACS_DENSE           ##"
       write(*,"(A)") "  ##          1 = PEXSI_CSC             ##"
       write(*,"(A)") "  ##          2 = SIESTA_CSC            ##"
@@ -155,6 +164,7 @@ subroutine test_die()
       write(*,"(A)") "  ##          5 = SLEPc-SIPs            ##"
       write(*,"(A)") "  ##          6 = NTPoly                ##"
       write(*,"(A)") "  ##          7 = MAGMA                 ##"
+      write(*,"(A)") "  ##          8 = BSEPACK               ##"
       write(*,"(A)") "  ##  Arg #5: H matrix file             ##"
       write(*,"(A)") "  ##  Arg #6: S matrix file             ##"
       write(*,"(A)") "  ##                                    ##"
