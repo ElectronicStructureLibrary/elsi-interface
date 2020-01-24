@@ -349,6 +349,10 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       end if
    end if
 
+   ! Save chemical potential bounds
+   ph%pexsi_mu_min = ph%pexsi_options%muMin0
+   ph%pexsi_mu_max = ph%pexsi_options%muMax0
+
    ! Fermi operator expansion
    call elsi_get_time(t0)
 
@@ -554,7 +558,7 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
    end select
 
    ! Check convergence
-   mu_range = ph%pexsi_options%muMax0-ph%pexsi_options%muMin0
+   mu_range = ph%pexsi_mu_max-ph%pexsi_mu_min
    shift_width = mu_range/(ph%pexsi_options%nPoints+1)
    converged = .false.
    aux_min = 0
@@ -563,7 +567,7 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
    call elsi_allocate(bh,shifts,ph%pexsi_options%nPoints,"shifts",caller)
 
    do i = 1,ph%pexsi_options%nPoints
-      shifts(i) = ph%pexsi_options%muMin0+i*shift_width
+      shifts(i) = ph%pexsi_mu_min+i*shift_width
    end do
 
    do i = 1,ph%pexsi_options%nPoints
@@ -849,6 +853,10 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       end if
    end if
 
+   ! Save chemical potential bounds
+   ph%pexsi_mu_min = ph%pexsi_options%muMin0
+   ph%pexsi_mu_max = ph%pexsi_options%muMax0
+
    ! Fermi operator expansion
    call elsi_get_time(t0)
 
@@ -1056,7 +1064,7 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
    end select
 
    ! Check convergence
-   mu_range = ph%pexsi_options%muMax0-ph%pexsi_options%muMin0
+   mu_range = ph%pexsi_mu_max-ph%pexsi_mu_min
    shift_width = mu_range/(ph%pexsi_options%nPoints+1)
    converged = .false.
    aux_min = 0
@@ -1065,7 +1073,7 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
    call elsi_allocate(bh,shifts,ph%pexsi_options%nPoints,"shifts",caller)
 
    do i = 1,ph%pexsi_options%nPoints
-      shifts(i) = ph%pexsi_options%muMin0+i*shift_width
+      shifts(i) = ph%pexsi_mu_min+i*shift_width
    end do
 
    do i = 1,ph%pexsi_options%nPoints

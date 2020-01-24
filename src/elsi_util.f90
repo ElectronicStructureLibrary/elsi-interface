@@ -156,6 +156,8 @@ subroutine elsi_reset_param(ph)
    ph%pexsi_comm_inter_pole = UNSET
    ph%pexsi_comm_inter_point = UNSET
    ph%pexsi_ne = 0.0_r8
+   ph%pexsi_mu_min = 0.0_r8
+   ph%pexsi_mu_max = 0.0_r8
    ph%pexsi_first = .true.
    ph%pexsi_started = .false.
    ph%exa_n_lrow = UNSET
