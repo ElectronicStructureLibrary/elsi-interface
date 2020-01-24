@@ -181,6 +181,8 @@ module ELSI_DATATYPE
       integer(kind=i4) :: pexsi_comm_inter_pole
       integer(kind=i4) :: pexsi_comm_inter_point
       real(kind=r8) :: pexsi_ne
+      real(kind=r8) :: pexsi_mu_min
+      real(kind=r8) :: pexsi_mu_max
       logical :: pexsi_first
       logical :: pexsi_started = .false.
       integer(kind=c_intptr_t) :: pexsi_plan

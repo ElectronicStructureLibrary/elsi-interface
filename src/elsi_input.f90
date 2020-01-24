@@ -19,7 +19,7 @@ module ELSI_INPUT
        elsi_set_elpa_gpu,elsi_set_elpa_autotune,elsi_set_omm_flavor,&
        elsi_set_omm_n_elpa,elsi_set_omm_tol,elsi_set_pexsi_method,&
        elsi_set_pexsi_n_mu,elsi_set_pexsi_n_pole,elsi_set_pexsi_np_per_pole,&
-       elsi_set_pexsi_np_symbo,elsi_set_pexsi_inertia_tol,&
+       elsi_set_pexsi_np_symbo,elsi_set_pexsi_temp,elsi_set_pexsi_inertia_tol,&
        elsi_set_eigenexa_method,elsi_set_sips_n_elpa,elsi_set_sips_n_slice,&
        elsi_set_ntpoly_method,elsi_set_ntpoly_tol,elsi_set_ntpoly_filter,&
        elsi_set_magma_solver,elsi_set_mu_broaden_scheme,&
@@ -222,6 +222,11 @@ subroutine elsi_set_input_file(eh,f_name)
 
          call elsi_check_read(eh%bh,ierr,kwd)
          call elsi_set_pexsi_np_symbo(eh,val_i4)
+      case("pexsi_temp")
+         read(msg,*,iostat=ierr) kwd,val_r8
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_pexsi_temp(eh,val_r8)
       case("pexsi_inertia_tol")
          read(msg,*,iostat=ierr) kwd,val_r8
 
