@@ -14,6 +14,9 @@
 ### ELPA
 * Interface for externally linked ELPA compatible with ELPA 2019.11.
 
+### NTPoly
+* Updated redistributed NTPoly source code to version 2.4.0.
+
 ### PEXSI
 * Updated redistributed SuperLU\_DIST source code to version 6.2.0.
 * Added support for computing the electronic entropy via the free energy density
