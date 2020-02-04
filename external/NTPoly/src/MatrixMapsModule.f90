@@ -44,11 +44,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        FUNCTION proc(row, column, val) RESULT(valid)
          USE DataTypesModule, ONLY : NTREAL
          !> The row value of an element.
-         INTEGER, INTENT(INOUT) :: row
+         INTEGER, INTENT(INOUT), OPTIONAL :: row
          !> The column value of an element.
-         INTEGER, INTENT(INOUT) :: column
+         INTEGER, INTENT(INOUT), OPTIONAL :: column
          !> The actual value of an element.
-         REAL(KIND=NTREAL), INTENT(INOUT) :: val
+         REAL(KIND=NTREAL), INTENT(INOUT), OPTIONAL :: val
          !> Set this to false to filter an element.
          LOGICAL :: valid
        END FUNCTION proc
@@ -80,11 +80,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        FUNCTION proc(row, column, val) RESULT(valid)
          USE DataTypesModule, ONLY : NTCOMPLEX
          !> The row value of an element.
-         INTEGER, INTENT(INOUT) :: row
+         INTEGER, INTENT(INOUT), OPTIONAL :: row
          !> The column value of an element.
-         INTEGER, INTENT(INOUT) :: column
+         INTEGER, INTENT(INOUT), OPTIONAL :: column
          !> The actual value of an element.
-         COMPLEX(KIND=NTCOMPLEX), INTENT(INOUT) :: val
+         COMPLEX(KIND=NTCOMPLEX), INTENT(INOUT), OPTIONAL :: val
          !> Set this to false to filter an element.
          LOGICAL :: valid
        END FUNCTION proc
@@ -117,11 +117,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        FUNCTION proc(row, column, val) RESULT(valid)
          USE DataTypesModule, ONLY : NTREAL
          !> The row value of an element.
-         INTEGER, INTENT(INOUT) :: row
+         INTEGER, INTENT(INOUT), OPTIONAL :: row
          !> The column value of an element.
-         INTEGER, INTENT(INOUT) :: column
+         INTEGER, INTENT(INOUT), OPTIONAL :: column
          !> The actual value of an element.
-         REAL(KIND=NTREAL), INTENT(INOUT) :: val
+         REAL(KIND=NTREAL), INTENT(INOUT), OPTIONAL :: val
          !> Set this to false to filter an element.
          LOGICAL :: valid
        END FUNCTION proc
@@ -172,11 +172,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        FUNCTION proc(row, column, val) RESULT(valid)
          USE DataTypesModule, ONLY : NTCOMPLEX
          !> The row value of an element.
-         INTEGER, INTENT(INOUT) :: row
+         INTEGER, INTENT(INOUT), OPTIONAL :: row
          !> The column value of an element.
-         INTEGER, INTENT(INOUT) :: column
+         INTEGER, INTENT(INOUT), OPTIONAL :: column
          !> The actual value of an element.
-         COMPLEX(KIND=NTCOMPLEX), INTENT(INOUT) :: val
+         COMPLEX(KIND=NTCOMPLEX), INTENT(INOUT), OPTIONAL :: val
          !> Set this to false to filter an element.
          LOGICAL :: valid
        END FUNCTION proc
@@ -226,13 +226,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        FUNCTION proc(row, column, val, supp_in) RESULT(valid)
          USE DataTypesModule, ONLY : NTREAL
          !> The row value of an element.
-         INTEGER, INTENT(INOUT) :: row
+         INTEGER, INTENT(INOUT), OPTIONAL :: row
          !> The column value of an element.
-         INTEGER, INTENT(INOUT) :: column
+         INTEGER, INTENT(INOUT), OPTIONAL :: column
          !> The actual value of an element.
-         REAL(KIND=NTREAL), INTENT(INOUT) :: val
+         REAL(KIND=NTREAL), INTENT(INOUT), OPTIONAL :: val
          !> Any supplementary data you need to pass the map can packed here.
-         REAL(KIND=NTREAL), DIMENSION(:), INTENT(IN) :: supp_in
+         REAL(KIND=NTREAL), DIMENSION(:), INTENT(IN), OPTIONAL :: supp_in
          !> Set this to false to filter an element.
          LOGICAL :: valid
        END FUNCTION proc
@@ -266,13 +266,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        FUNCTION proc(row, column, val, supp_in) RESULT(valid)
          USE DataTypesModule, ONLY : NTCOMPLEX
          !> The row value of an element.
-         INTEGER, INTENT(INOUT) :: row
+         INTEGER, INTENT(INOUT), OPTIONAL :: row
          !> The column value of an element.
-         INTEGER, INTENT(INOUT) :: column
+         INTEGER, INTENT(INOUT), OPTIONAL :: column
          !> The actual value of an element.
-         COMPLEX(KIND=NTCOMPLEX), INTENT(INOUT) :: val
+         COMPLEX(KIND=NTCOMPLEX), INTENT(INOUT), OPTIONAL :: val
          !> Any supplementary data you need to pass the map can packed here.
-         COMPLEX(KIND=NTCOMPLEX), DIMENSION(:), INTENT(IN) :: supp_in
+         COMPLEX(KIND=NTCOMPLEX), DIMENSION(:), INTENT(IN), OPTIONAL :: supp_in
          !> Set this to false to filter an element.
          LOGICAL :: valid
        END FUNCTION proc
@@ -307,13 +307,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        FUNCTION proc(row, column, val, supp_in) RESULT(valid)
          USE DataTypesModule, ONLY : NTREAL
          !> The row value of an element.
-         INTEGER, INTENT(INOUT) :: row
+         INTEGER, INTENT(INOUT), OPTIONAL :: row
          !> The column value of an element.
-         INTEGER, INTENT(INOUT) :: column
+         INTEGER, INTENT(INOUT), OPTIONAL :: column
          !> The actual value of an element.
-         REAL(KIND=NTREAL), INTENT(INOUT) :: val
+         REAL(KIND=NTREAL), INTENT(INOUT), OPTIONAL :: val
          !> Any supplementary data you need to pass the map can packed here.
-         REAL(KIND=NTREAL), DIMENSION(:), INTENT(IN) :: supp_in
+         REAL(KIND=NTREAL), DIMENSION(:), INTENT(IN), OPTIONAL :: supp_in
          !> Set this to false to filter an element.
          LOGICAL :: valid
        END FUNCTION proc
@@ -366,13 +366,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        FUNCTION proc(row, column, val, supp_in) RESULT(valid)
          USE DataTypesModule, ONLY : NTCOMPLEX
          !> The row value of an element.
-         INTEGER, INTENT(INOUT) :: row
+         INTEGER, INTENT(INOUT), OPTIONAL :: row
          !> The column value of an element.
-         INTEGER, INTENT(INOUT) :: column
+         INTEGER, INTENT(INOUT), OPTIONAL :: column
          !> The actual value of an element.
-         COMPLEX(KIND=NTCOMPLEX), INTENT(INOUT) :: val
+         COMPLEX(KIND=NTCOMPLEX), INTENT(INOUT), OPTIONAL :: val
          !> Any supplementary data you need to pass the map can packed here.
-         COMPLEX(KIND=NTCOMPLEX), DIMENSION(:), INTENT(IN) :: supp_in
+         COMPLEX(KIND=NTCOMPLEX), DIMENSION(:), INTENT(IN), OPTIONAL :: supp_in
          !> Set this to false to filter an element.
          LOGICAL :: valid
        END FUNCTION proc

@@ -5,7 +5,8 @@
 MODULE SMatrixAlgebraModule
   USE DataTypesModule, ONLY : NTREAL, NTCOMPLEX
   USE DMatrixModule, ONLY : Matrix_ldr, Matrix_ldc, ConstructMatrixDFromS, &
-       & ConstructMatrixSFromD, MultiplyMatrix, DestructMatrix
+       & ConstructMatrixSFromD, CopyMatrix, MultiplyMatrix, TransposeMatrix, &
+       & DestructMatrix
   USE MatrixMemoryPoolModule, ONLY : MatrixMemoryPool_lr, MatrixMemoryPool_lc, &
        & DestructMatrixMemoryPool, CheckMemoryPoolValidity, SetPoolSparsity, &
        & ConstructMatrixMemoryPool
@@ -926,30 +927,17 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Threshold for flushing values.
     REAL(NTREAL), INTENT(IN) :: threshold
     !! Local Data
-    TYPE(Matrix_lsr) :: untransposedMatA
-    TYPE(Matrix_lsr) :: untransposedMatB
     TYPE(Matrix_ldr) :: DenseA
     TYPE(Matrix_ldr) :: DenseB
     TYPE(Matrix_ldr) :: DenseC
 
-  !! Handle Transposed Case
-  IF (IsATransposed) THEN
-     CALL TransposeMatrix(matA,untransposedMatA)
-  ELSE
-     CALL CopyMatrix(matA,untransposedMatA)
-  END IF
-  IF (IsBTransposed) THEN
-     CALL TransposeMatrix(matB,untransposedMatB)
-  ELSE
-     CALL CopyMatrix(matB,untransposedMatB)
-  END IF
-
   !! Convert Forward
-  CALL ConstructMatrixDFromS(untransposedMatA, DenseA)
-  CALL ConstructMatrixDFromS(untransposedMatB, DenseB)
+  CALL ConstructMatrixDFromS(matA, DenseA)
+  CALL ConstructMatrixDFromS(matB, DenseB)
 
   !! Multiply
-  CALL MultiplyMatrix(DenseA, DenseB, DenseC)
+  CALL MultiplyMatrix(DenseA, DenseB, DenseC, &
+       & IsATransposed_in = IsATransposed, IsBTransposed_in = IsBTransposed)
 
   !! Convert Back
   CALL ConstructMatrixSFromD(DenseC, matC, threshold)
@@ -979,30 +967,17 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Threshold for flushing values.
     REAL(NTREAL), INTENT(IN) :: threshold
     !! Local Data
-    TYPE(Matrix_lsc) :: untransposedMatA
-    TYPE(Matrix_lsc) :: untransposedMatB
     TYPE(Matrix_ldc) :: DenseA
     TYPE(Matrix_ldc) :: DenseB
     TYPE(Matrix_ldc) :: DenseC
 
-  !! Handle Transposed Case
-  IF (IsATransposed) THEN
-     CALL TransposeMatrix(matA,untransposedMatA)
-  ELSE
-     CALL CopyMatrix(matA,untransposedMatA)
-  END IF
-  IF (IsBTransposed) THEN
-     CALL TransposeMatrix(matB,untransposedMatB)
-  ELSE
-     CALL CopyMatrix(matB,untransposedMatB)
-  END IF
-
   !! Convert Forward
-  CALL ConstructMatrixDFromS(untransposedMatA, DenseA)
-  CALL ConstructMatrixDFromS(untransposedMatB, DenseB)
+  CALL ConstructMatrixDFromS(matA, DenseA)
+  CALL ConstructMatrixDFromS(matB, DenseB)
 
   !! Multiply
-  CALL MultiplyMatrix(DenseA, DenseB, DenseC)
+  CALL MultiplyMatrix(DenseA, DenseB, DenseC, &
+       & IsATransposed_in = IsATransposed, IsBTransposed_in = IsBTransposed)
 
   !! Convert Back
   CALL ConstructMatrixSFromD(DenseC, matC, threshold)

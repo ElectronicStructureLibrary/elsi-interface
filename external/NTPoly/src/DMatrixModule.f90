@@ -7,9 +7,10 @@
 !! performance.
 MODULE DMatrixModule
   USE DataTypesModule, ONLY : NTREAL, NTCOMPLEX
-  USE SMatrixModule, ONLY : Matrix_lsr, Matrix_lsc
+  USE SMatrixModule, ONLY : Matrix_lsr, Matrix_lsc, &
+       & ConstructMatrixFromTripletList
   USE TripletListModule, ONLY : TripletList_r, TripletList_c, &
-       & AppendToTripletList, ConstructTripletList
+       & AppendToTripletList, ConstructTripletList, DestructTripletList
   USE TripletModule, ONLY : Triplet_r, Triplet_c
   IMPLICIT NONE
   PRIVATE
@@ -103,6 +104,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Columns of the matrix
     INTEGER, INTENT(IN) :: columns
 
+    CALL DestructMatrix(this)
     this = ConstructEmptyMatrix_ldr(rows, columns)
   END SUBROUTINE ConstructEmptyMatrixSup_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -204,7 +206,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      END DO
   END IF
 
-  sparse_matrix = Matrix_lsr(temporary_list, rows, columns)
+  CALL ConstructMatrixFromTripletList(sparse_matrix, temporary_list, &
+       & rows, columns)
+  CALL DestructTripletList(temporary_list)
 
   END SUBROUTINE ConstructMatrixSFromD_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -321,6 +325,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Allocate Memory
   CALL ConstructEmptyMatrix(out_matrix, out_columns, out_rows)
 
+  !! Copy
   DO JJ = 1, block_columns
      DO II = 1, block_rows
         out_matrix%data(row_offsets(II):row_offsets(II+1)-1, &
@@ -397,16 +402,21 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END SUBROUTINE SplitMatrix_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> A wrapper for multiplying two dense matrices.
-  SUBROUTINE MultiplyMatrix_ldr(MatA,MatB,MatC)
+  SUBROUTINE MultiplyMatrix_ldr(MatA, MatB, MatC, IsATransposed_in, &
+      & IsBTransposed_in)
     !> The first matrix.
     TYPE(Matrix_ldr), INTENT(IN) :: MatA
     !> The second matrix.
     TYPE(Matrix_ldr), INTENT(IN) :: MatB
     !> MatC = MatA*MatB.
     TYPE(Matrix_ldr), INTENT(INOUT) :: MatC
+    !> True if A is already transposed.
+    LOGICAL, OPTIONAL, INTENT(IN) :: IsATransposed_in
+    !> True if B is already transposed.
+    LOGICAL, OPTIONAL, INTENT(IN) :: IsBTransposed_in
     !! Local variables
-    CHARACTER, PARAMETER :: TRANSA = 'N'
-    CHARACTER, PARAMETER :: TRANSB = 'N'
+    CHARACTER :: TRANSA
+    CHARACTER :: TRANSB
     INTEGER :: M
     INTEGER :: N
     INTEGER :: K
@@ -416,16 +426,55 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE PRECISION, PARAMETER :: BETA = 0.0
     INTEGER :: LDC
 
-    MatC = Matrix_ldr(MatA%rows,MatB%columns)
+    !! Optional Parameters
+    TRANSA = 'N'
+    IF (PRESENT(IsATransposed_in)) THEN
+       IF (IsATransposed_in) THEN
+        TRANSA = 'T'
+       END IF
+    END IF
+    TRANSB = 'N'
+    IF (PRESENT(IsBTransposed_in)) THEN
+       IF (IsBTransposed_in) THEN
+        TRANSB = 'T'
+       END IF
+    END IF
 
     !! Setup Lapack
-    M = MatA%rows
-    N = MatB%columns
-    K = MatA%columns
-    LDA = M
-    LDB = K
+    IF (TRANSA .EQ. 'T') THEN
+      M = MatA%columns
+    ELSE
+      M = MatA%rows
+    END IF
+
+    IF (TRANSB .EQ. 'T') THEN
+      N = MatB%rows
+    ELSE
+      N = MatB%columns
+    END IF
+
+    IF (TRANSA .EQ. 'T') THEN
+      K = MatA%rows
+    ELSE
+      K = MatA%columns
+    END IF
+
+    IF (TRANSA .EQ. 'T') THEN
+      LDA = K
+    ELSE
+      LDA = M
+    END IF
+
+    IF (TRANSB .EQ. 'T') THEN
+      LDB = N
+    ELSE
+      LDB = K
+    END IF
+
     LDC = M
 
+    !! Multiply
+    CALL ConstructEmptyMatrix(MatC, M, N)
     CALL DGEMM(TRANSA, TRANSB, M, N, K, ALPHA, MatA%data, LDA, MatB%data, &
          & LDB, BETA, MatC%data, LDC)
 
@@ -440,6 +489,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The number of columns o the matrix.
     INTEGER, INTENT(IN) :: columns
 
+    CALL DestructMatrix(this)
     this = ConstructEmptyMatrix_ldc(rows, columns)
   END SUBROUTINE ConstructEmptyMatrixSup_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -541,7 +591,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      END DO
   END IF
 
-  sparse_matrix = Matrix_lsc(temporary_list, rows, columns)
+  CALL ConstructMatrixFromTripletList(sparse_matrix, temporary_list, &
+       & rows, columns)
+  CALL DestructTripletList(temporary_list)
 
   END SUBROUTINE ConstructMatrixSFromD_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -599,12 +651,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL) :: norm
     !! Local Variables
     INTEGER :: II, JJ
+    COMPLEX(NTCOMPLEX) :: val, conjval
 
     norm = 0
     DO II =1, this%rows
        DO JJ = 1,  this%columns
-          norm = norm + &
-               & REAL(this%data(II,JJ)*CONJG(this%data(II,JJ)),KIND=NTREAL)
+          val = this%data(II,JJ)
+          conjval = CONJG(val)
+          norm = norm + REAL(val*conjval,KIND=NTREAL)
        END DO
     END DO
   END FUNCTION MatrixNorm_ldc
@@ -659,6 +713,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Allocate Memory
   CALL ConstructEmptyMatrix(out_matrix, out_columns, out_rows)
 
+  !! Copy
   DO JJ = 1, block_columns
      DO II = 1, block_rows
         out_matrix%data(row_offsets(II):row_offsets(II+1)-1, &
@@ -735,16 +790,21 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END SUBROUTINE SplitMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> A wrapper for multiplying two dense matrices.
-  SUBROUTINE MultiplyMatrix_ldc(MatA,MatB,MatC)
+  SUBROUTINE MultiplyMatrix_ldc(MatA, MatB, MatC, IsATransposed_in, &
+      & IsBTransposed_in)
     !> The first matrix.
     TYPE(Matrix_ldc), INTENT(IN) :: MatA
     !> The second matrix.
     TYPE(Matrix_ldc), INTENT(IN) :: MatB
     !> MatC = MatA*MatB.
     TYPE(Matrix_ldc), INTENT(INOUT) :: MatC
+    !> True if A is already transposed.
+    LOGICAL, OPTIONAL, INTENT(IN) :: IsATransposed_in
+    !> True if B is already transposed.
+    LOGICAL, OPTIONAL, INTENT(IN) :: IsBTransposed_in
     !! Local variables
-    CHARACTER, PARAMETER :: TRANSA = 'N'
-    CHARACTER, PARAMETER :: TRANSB = 'N'
+    CHARACTER :: TRANSA
+    CHARACTER :: TRANSB
     INTEGER :: M
     INTEGER :: N
     INTEGER :: K
@@ -754,16 +814,55 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     COMPLEX*16, PARAMETER :: BETA = 0.0
     INTEGER :: LDC
 
-    MatC = Matrix_ldc(MatA%rows,MatB%columns)
+    !! Optional Parameters
+    TRANSA = 'N'
+    IF (PRESENT(IsATransposed_in)) THEN
+       IF (IsATransposed_in) THEN
+        TRANSA = 'T'
+       END IF
+    END IF
+    TRANSB = 'N'
+    IF (PRESENT(IsBTransposed_in)) THEN
+       IF (IsBTransposed_in) THEN
+        TRANSB = 'T'
+       END IF
+    END IF
 
     !! Setup Lapack
-    M = MatA%rows
-    N = MatB%columns
-    K = MatA%columns
-    LDA = M
-    LDB = K
+    IF (TRANSA .EQ. 'T') THEN
+      M = MatA%columns
+    ELSE
+      M = MatA%rows
+    END IF
+
+    IF (TRANSB .EQ. 'T') THEN
+      N = MatB%rows
+    ELSE
+      N = MatB%columns
+    END IF
+
+    IF (TRANSA .EQ. 'T') THEN
+      K = MatA%rows
+    ELSE
+      K = MatA%columns
+    END IF
+
+    IF (TRANSA .EQ. 'T') THEN
+      LDA = K
+    ELSE
+      LDA = M
+    END IF
+
+    IF (TRANSB .EQ. 'T') THEN
+      LDB = N
+    ELSE
+      LDB = K
+    END IF
+
     LDC = M
 
+    !! Multiply
+    CALL ConstructEmptyMatrix(MatC, M, N)
     CALL ZGEMM(TRANSA, TRANSB, M, N, K, ALPHA, MatA%data, LDA, MatB%data, &
          & LDB, BETA, MatC%data, LDC)
 
