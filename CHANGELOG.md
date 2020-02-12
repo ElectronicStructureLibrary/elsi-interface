@@ -1,6 +1,6 @@
 # ELSI changelog
 
-## Not released
+## v2.5.0 (February 2020)
 
 ### ELSI interface
 * Added utility subroutines to retrieve the internally computed eigenvalues,
@@ -168,10 +168,6 @@
 * Switched to the [semantic versioning scheme](http://semver.org).
 * Fixed building ELSI as a shared library with tests enabled.
 * Improved stability when calling PBLAS routines pdtran and pztranc.
-
-### Known issues
-* Depending on the choice of k-points, the complex PEXSI solver may randomly
-  fail at the inertia counting stage.
 
 ## v2.0.0 (May 2018)
 
