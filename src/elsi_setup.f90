@@ -5,12 +5,12 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! Provide routines to set up an ELSI instance.
+!! Provide routines to set up ELSI.
 !!
 module ELSI_SETUP
 
-   use ELSI_CONSTANT, only: UNSET,AUTO_SOLVER,ELPA_SOLVER,PEXSI_SOLVER,&
-       BSEPACK_SOLVER,SINGLE_PROC,MULTI_PROC,PEXSI_CSC,SIESTA_CSC,DECISION_INIT
+   use ELSI_CONSTANT, only: UNSET,AUTO_SOLVER,PEXSI_SOLVER,BSEPACK_SOLVER,&
+       SINGLE_PROC,MULTI_PROC,PEXSI_CSC,SIESTA_CSC
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_EIGENEXA, only: elsi_cleanup_eigenexa
    use ELSI_ELPA, only: elsi_cleanup_elpa
@@ -93,11 +93,6 @@ subroutine elsi_init(eh,solver,parallel_mode,matrix_format,n_basis,n_electron,&
    if(solver == PEXSI_SOLVER .or. solver == AUTO_SOLVER) then
       ! This overrides user settings, so must call it here
       call elsi_set_pexsi_default(eh%ph)
-   end if
-
-   if(solver == AUTO_SOLVER) then
-      eh%ph%decision_stage = DECISION_INIT
-      eh%bh%print_json = 1
    end if
 
 end subroutine
@@ -511,17 +506,6 @@ subroutine elsi_reinit(eh)
 
       if(allocated(eh%perm_sp3)) then
          call elsi_deallocate(eh%bh,eh%perm_sp3,"perm_sp3")
-      end if
-
-      ! Auxiliary
-      if(.not. eh%ph%solver == ELPA_SOLVER) then
-         if(allocated(eh%ovlp_real_copy)) then
-            call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
-         end if
-
-         if(allocated(eh%ovlp_cmplx_copy)) then
-            call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
-         end if
       end if
    end if
 

@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! Provide routines to retrieve information from ELSI and the solvers.
+!! Provide routines to get information from ELSI and the solvers.
 !!
 module ELSI_GET
 

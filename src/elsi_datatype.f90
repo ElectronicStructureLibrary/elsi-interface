@@ -140,10 +140,6 @@ module ELSI_DATATYPE
       logical :: first_sips_to_blacs
       logical :: first_sips_to_ntpoly
 
-      ! Solver decision
-      integer(kind=i4) :: decision_stage
-      real(kind=r8) :: decision_data(N_SOLVERS-1)
-
       ! ELPA
       integer(kind=i4) :: elpa_solver
       integer(kind=i4) :: elpa_n_single

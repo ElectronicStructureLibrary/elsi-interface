@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! Provide interfaces to libOMM.
+!! Interface to libOMM.
 !!
 module ELSI_OMM
 

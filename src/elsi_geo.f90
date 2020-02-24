@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! Perform wavefunction and density matrix extrapolation between geometry steps.
+!! Perform wavefunction and density matrix extrapolation.
 !!
 module ELSI_GEO
 

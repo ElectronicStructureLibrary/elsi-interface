@@ -5,11 +5,11 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! Interfaces to ELPA-AEO.
+!! Interface to ELPA-AEO.
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANT, only: LT_MAT,UT_MAT,UNSET,ELPA_SOLVER,DECISION_WIP
+   use ELSI_CONSTANT, only: LT_MAT,UT_MAT,UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4
@@ -212,10 +212,6 @@ subroutine elsi_reduce_evp_elpa_real(ph,bh,ham,ovlp,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_stage == DECISION_WIP) then
-      ph%decision_data(ELPA_SOLVER) = t1-t0
-   end if
-
 end subroutine
 
 !>
@@ -329,10 +325,6 @@ subroutine elsi_back_ev_elpa_real(ph,bh,ham,ovlp,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_stage == DECISION_WIP) then
-      ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
-   end if
-
 end subroutine
 
 !>
@@ -400,10 +392,6 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
-
-   if(ph%decision_stage == DECISION_WIP) then
-      ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
-   end if
 
    ! Back-transform eigenvectors
    if(.not. ph%unit_ovlp) then
@@ -575,10 +563,6 @@ subroutine elsi_reduce_evp_elpa_cmplx(ph,bh,ham,ovlp,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_stage == DECISION_WIP) then
-      ph%decision_data(ELPA_SOLVER) = t1-t0
-   end if
-
 end subroutine
 
 !>
@@ -692,10 +676,6 @@ subroutine elsi_back_ev_elpa_cmplx(ph,bh,ham,ovlp,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_stage == DECISION_WIP) then
-      ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
-   end if
-
 end subroutine
 
 !>
@@ -763,10 +743,6 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
-
-   if(ph%decision_stage == DECISION_WIP) then
-      ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
-   end if
 
    ! Back-transform eigenvectors
    if(.not. ph%unit_ovlp) then
