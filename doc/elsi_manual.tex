@@ -258,9 +258,9 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 
 (3) \texttt{ELPA2\_KERNEL}: There are a number of computational kernels available with the ELPA solver. Choose from ``\texttt{AVX}'' (Intel AVX), ``\texttt{AVX2}'' (Intel AVX2), and ``\texttt{AVX512}'' (Intel AVX512). See Sec.~\ref{subsec:config_solvers} for more information.
 
-(4) \texttt{SCOTCH\_LAST\_RESORT}: The compilation of PT-SCOTCH is a multi-step process. First, two auxiliary executables are created. Then, some header files are generated on-the-fly by the two executables. Finally, the main source files are compiled with the generated header files included. The header generation step may fail on platforms where directly running an executable is prohibited, e.g. login nodes of a supercomputer. Often this can be circumvented by requesting an interactive session to a compute node and compiling the code there, or by submitting the compilation as a job to the queuing system. However, this may still fail on platforms where an executable compiled with MPI must be launched by an MPI job launcher (aprun, mpirun, srun, etc). If the standard compilation of PT-SCOTCH fails due to this reason, the user may set \texttt{SCOTCH\_LAST\_RESORT} to the command that starts an MPI job with one MPI task, e.g. ``\texttt{mpirun -n 1}''. This command will be used to launch the auxiliary executables to generate necessary header files for PT-SCOTCH.
+(4) \texttt{SCOTCH\_LAST\_RESORT}: The compilation of PT-SCOTCH is a multi-step process. First, two auxiliary executables are created. Then, some header files are generated on-the-fly by the two executables. Finally, the main source files are compiled with the generated header files included. The header generation step may fail on platforms where directly running an executable is prohibited, e.g. login nodes of a supercomputer. Often this can be circumvented by requesting an interactive session to a compute node and compiling the code there, or by submitting the compilation as a job to the queuing system. However, this may still fail on platforms where an executable compiled with MPI must be launched by an MPI job launcher (aprun, mpirun, srun, etc). If the standard compilation of PT-SCOTCH fails due to this reason, the user may set \texttt{SCOTCH\_LAST\_RESORT} to the command that starts an MPI job with one MPI task, e.g. ``\texttt{mpirun -n 1}''. This command is then used to launch the auxiliary executables to generate necessary header files for PT-SCOTCH.
 
-(5) External libraries: ELSI redistributes source code of ELPA, libOMM, NTPoly, PEXSI, SuperLU\_DIST, and PT-SCOTCH libraries, which by default will be built together with the ELSI interface. Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries. See Sec.~\ref{subsec:config_solvers} for more information.
+(5) External libraries: ELSI redistributes source code of ELPA, libOMM, NTPoly, PEXSI, SuperLU\_DIST, and PT-SCOTCH libraries, which are built by default together with the ELSI interface. Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries. See Sec.~\ref{subsec:config_solvers} for more information.
 
 (6) \texttt{USE\_MPI\_IALLGATHER}: NTPoly makes use of non-blocking collective MPI functions such as \texttt{MPI\_Iallgatherv} to overlap its computation and communication. If these MPI functions are not available in the user's MPI version, set \texttt{USE\_MPI\_IALLGATHER} to ``OFF''. Using this flag may lead to reduced performance. Upgrade MPI if possible.
 
@@ -297,7 +297,7 @@ ELSI_LIB     = -L/PATH/TO/BUILD/ELSI/lib -lelsi \
 \end{verbatim}
 \end{tcolorbox}
 
-Enabling/disabling PEXSI, EigenExa, SLEPc-SIPs, BSEPACK, MAGMA or linking ELSI against externally installed solver libraries will require the user modify these flags accordingly.
+Enabling/disabling PEXSI, EigenExa, SLEPc-SIPs, BSEPACK, MAGMA or linking ELSI against externally installed solver libraries requires the user modify these flags accordingly.
 
 \subsection{Using ELSI}
 \label{subsec:import_use}
@@ -314,8 +314,6 @@ For codes written in C, the ELSI wrapper may be imported by including the header
 #include <elsi.h>
 \end{verbatim}
 \end{tcolorbox}
-
-These import statements give the electronic structure code access to the ELSI interface, which we will describe in the next chapter.
 
 % Chapter3
 \chapter{The ELSI API}
@@ -361,7 +359,7 @@ The ELSI interface must be initialized via the \texttt{elsi\_init} subroutine be
 
 (1) \texttt{solver}: The ``\texttt{AUTO}'' option attempts to automate the solver selection procedure based on benchmarks performed and experiences gained in the ELSI project. User-supplied information may assist in finding the optimal solver. In particular, see \texttt{elsi\_set\_dimensionality} and \texttt{elsi\_set\_energy\_gap} in Sec.~\ref{sec:setter}. Simply put, the solver selection favors ELPA for small-and-medium-sized problems, PEXSI for large, sparse, low-dimensional problems, and NTPoly for extra-large, sparse systems with a decent energy gap.
 
-When the ELPA solver is chosen for the ``\texttt{SINGLE\_PROC}'' parallel mode, the tridiagonalization and back-transformation routines in LAPACK and the divide-and-conquer tridiagonal solver routine in ELPA will be used.
+When the ELPA solver is chosen for the ``\texttt{SINGLE\_PROC}'' parallel mode, the tridiagonalization and back-transformation routines in LAPACK and the divide-and-conquer tridiagonal solver routine in ELPA are used.
 
 The table below summarizes the supported problem types for each solver.
 
@@ -436,17 +434,17 @@ Please note that when there is more than one $k$-point, a global MPI communicato
 
 \subsection{Setting Up MPI}
 \label{subsec:setup_mpi}
-The MPI communicator used by ELSI is passed into ELSI by the calling code via the \api{elsi\_set\_mpi} subroutine. When there is more than one $k$-point and/or spin channel, this communicator will be used only for solving one problem corresponding to one $k$-point and one spin channel. See Sec.~\ref{subsec:setup_kpt} for details.
+The MPI communicator used by ELSI is passed into ELSI by the calling code via the \api{elsi\_set\_mpi} subroutine. When there is more than one $k$-point and/or spin channel, this communicator is used only for solving one problem corresponding to one $k$-point and one spin channel. See Sec.~\ref{subsec:setup_kpt} for details.
 
-\begin{tabular}[]{|p{25mm}|p{20mm}|p{10mm}|p{107mm}|}
-\multicolumn{4}{l}{\api{elsi\_set\_mpi}(handle, mpi\_comm)}\\
+\begin{tabular}[]{|p{20mm}|p{20mm}|p{10mm}|p{112mm}|}
+\multicolumn{4}{l}{\api{elsi\_set\_mpi}(handle, comm)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}    & elsi\_handle & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle & inout & ELSI handle.\\
 \hline
-\texttt{mpi\_comm} & integer      & in    & MPI communicator.\\
+\texttt{comm}   & integer      & in    & MPI communicator.\\
 \hline
 \end{tabular}
 
@@ -456,7 +454,7 @@ Four matrix formats are supported by ELSI, namely the 2D block-cyclic distribute
 
 When using the ``\texttt{BLACS\_DENSE}'' format, BLACS parameters are passed into ELSI via the \api{elsi\_set\_blacs} subroutine. The matrix format used internally in the ELSI interface and the ELPA solver requires the block sizes of the 2-dimensional block-cyclic distribution are the same in the row and column directions. It is necessary to call this subroutine before calling any solver interface that makes use of the ``\texttt{BLACS\_DENSE}'' format.
 
-\begin{tabular}[]{|p{25mm}|p{20mm}|p{10mm}|p{107mm}|}
+\begin{tabular}[]{|p{20mm}|p{20mm}|p{10mm}|p{112mm}|}
 \multicolumn{4}{l}{\api{elsi\_set\_blacs}(handle, blacs\_ctxt, block\_size)}\\
 \multicolumn{4}{l}{}\\
 \hline
@@ -472,29 +470,29 @@ When using the ``\texttt{BLACS\_DENSE}'' format, BLACS parameters are passed int
 
 When using the ``\texttt{PEXSI\_CSC}'' or ``\texttt{SIESTA\_CSC}'' format, the sparsity pattern should be passed into ELSI via the \api{elsi\_set\_csc} subroutine. It is necessary to call this subroutine before calling any solver interface that makes use of the CSC sparse matrix formats.
 
-\begin{tabular}[]{|p{25mm}|p{35mm}|p{10mm}|p{92mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_set\_csc}(handle, global\_nnz, local\_nnz, local\_col, row\_idx, col\_ptr)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}      & elsi\_handle          & inout & ELSI handle.\\
+\texttt{handle}      & elsi\_handle     & inout & ELSI handle.\\
 \hline
-\texttt{global\_nnz} & integer               & in    & Global number of non-zeros.\\
+\texttt{global\_nnz} & integer          & in    & Global number of non-zeros.\\
 \hline
-\texttt{local\_nnz}  & integer               & in    & Local number of non-zeros.\\
+\texttt{local\_nnz}  & integer          & in    & Local number of non-zeros.\\
 \hline
-\texttt{local\_col}  & integer               & in    & Local number of matrix columns.\\
+\texttt{local\_col}  & integer          & in    & Local number of matrix columns.\\
 \hline
-\texttt{row\_idx}    & integer, rank-1 array & in    & Local row index array. Dimension: local\_nnz.\\
+\texttt{row\_idx}    & 1D integer array & in    & Local row index array. Dimension: local\_nnz.\\
 \hline
-\texttt{col\_ptr}    & integer, rank-1 array & in    & Local column pointer array. Dimension: local\_col+1.\\
+\texttt{col\_ptr}    & 1D integer array & in    & Local column pointer array. Dimension: local\_col+1.\\
 \hline
 \end{tabular}
 
 The block size of the ``\texttt{PEXSI\_CSC}'' format cannot be set by the user. This is because the PEXSI solver requires that the block size must be floor($\text{N}_\text{basis}$/$\text{N}_\text{procs}$), where floor(x) is the greatest integer less than or equal to x, $\text{N}_\text{basis}$ and $\text{N}_\text{procs}$ are the number of basis functions and the number of MPI tasks, respectively. The block size of the ``\texttt{SIESTA\_CSC}'' format must be explicitly set by calling \api{elsi\_set\_csc\_blk}.
 
-\begin{tabular}[]{|p{25mm}|p{20mm}|p{10mm}|p{107mm}|}
+\begin{tabular}[]{|p{20mm}|p{20mm}|p{10mm}|p{112mm}|}
 \multicolumn{4}{l}{\api{elsi\_set\_csc\_blk}(handle, block\_size)}\\
 \multicolumn{4}{l}{}\\
 \hline
@@ -510,33 +508,33 @@ In most cases, input and output matrices should be distributed across all MPI ta
 
 When using the ``\texttt{GENERIC\_COO}'' format, the sparsity pattern should be passed into ELSI via the \api{elsi\_set\_coo} subroutine. It is necessary to call this subroutine before calling any solver interface that makes use of the COO sparse matrix format. The distribution of matrix elements in the ``\texttt{GENERIC\_COO}'' format is arbitrary. Both sorted and unsorted inputs are supported.
 
-\begin{tabular}[]{|p{25mm}|p{35mm}|p{10mm}|p{92mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_set\_coo}(handle, global\_nnz, local\_nnz, row\_idx, col\_idx)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}      & elsi\_handle          & inout & ELSI handle.\\
+\texttt{handle}      & elsi\_handle     & inout & ELSI handle.\\
 \hline
-\texttt{global\_nnz} & integer               & in    & Global number of non-zeros.\\
+\texttt{global\_nnz} & integer          & in    & Global number of non-zeros.\\
 \hline
-\texttt{local\_nnz}  & integer               & in    & Local number of non-zeros.\\
+\texttt{local\_nnz}  & integer          & in    & Local number of non-zeros.\\
 \hline
-\texttt{row\_idx}    & integer, rank-1 array & in    & Local row index array. Dimension: local\_nnz.\\
+\texttt{row\_idx}    & 1D integer array & in    & Local row index array. Dimension: local\_nnz.\\
 \hline
-\texttt{col\_idx}    & integer, rank-1 array & in    & Local column index array. Dimension: local\_nnz.\\
+\texttt{col\_idx}    & 1D integer array & in    & Local column index array. Dimension: local\_nnz.\\
 \hline
 \end{tabular}
 
 \subsection{Setting Up Multiple \textit{k}-points and/or Spin Channels}
 \label{subsec:setup_kpt}
-When there is more than one $k$-point and/or spin channel in the simulating system, the ELSI interface can be set up to support parallel calculation of the $k$-points and/or spin channels. The base case is a system isolated in space, e.g. free atoms, molecules, clusters, without spin-polarization. In this case, there is one eigenproblem in each iteration of an SCF cycle. When a spin-polarized periodic system is considered, there is an index $\alpha$ denoting the spin channel, and an index $k$ denoting points in reciprocal space. In total, there are $\text{N}_\text{kpt} \times \text{N}_\text{spin}$ eigenproblems that can be solved in an embarrassingly parallel fashion. In ELSI, these eigenproblems are considered as equivalent ``unit tasks''. The available computer processes are divided into $\text{N}_\text{kpt} \times \text{N}_\text{spin}$ groups, each of which is responsible for one unit task.
+When there is more than one $k$-point and/or spin channel in the physical system being simulated, the ELSI interface can be set up to support parallel calculation of the $k$-points and/or spin channels. The base case is a system isolated in space, e.g. free atoms, molecules, clusters, without spin-polarization. In this case, there is one eigenproblem in each iteration of an SCF cycle. When a spin-polarized periodic system is considered, there is an index $\alpha$ denoting the spin channel, and an index $k$ denoting points in reciprocal space. In total, there are $\text{N}_\text{kpt} \times \text{N}_\text{spin}$ eigenproblems that can be solved in an embarrassingly parallel fashion. In ELSI, these eigenproblems are considered as equivalent ``unit tasks''. The available computer processes are divided into $\text{N}_\text{kpt} \times \text{N}_\text{spin}$ groups, each of which is responsible for one unit task.
 
 To set up the ELSI interface for a calculation with more than one $k$-point and/or more than one spin channel, the \api{elsi\_set\_kpoint} and/or \api{elsi\_set\_spin} subroutines are called to pass the required information into ELSI. The MPI communicator for each unit task is passed into ELSI by calling \api{elsi\_set\_mpi}. In addition, a global MPI communicator for all tasks is passed into ELSI by calling \api{elsi\_set\_mpi\_global}. Note that the current ELSI interface only supports the case where the eigenproblems for all the $k$-points and spin channels are fully parallelized, i.e., there is no MPI task handling more than one $k$-point and/or more than one spin channel. In ELSI, the two spin channels are always coupled by a uniform chemical potential. The distribution of electrons among the two channels, and thus the net spin moment of the system, cannot be specified. Calculations with a fixed, user-specified spin moment can be performed by initializing two independent ELSI instances for the two spin channels.
 
 In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-polarized and/or periodic calculations.
 
-\begin{tabular}[]{|p{25mm}|p{20mm}|p{10mm}|p{107mm}|}
+\begin{tabular}[]{|p{20mm}|p{20mm}|p{10mm}|p{112mm}|}
 \multicolumn{4}{l}{\api{elsi\_set\_kpoint}(handle, n\_kpt, i\_kpt, weight)}\\
 \multicolumn{4}{l}{}\\
 \hline
@@ -552,7 +550,7 @@ In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-pol
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{25mm}|p{20mm}|p{10mm}|p{107mm}|}
+\begin{tabular}[]{|p{20mm}|p{20mm}|p{10mm}|p{112mm}|}
 \multicolumn{4}{l}{\api{elsi\_set\_spin}(handle, n\_spin, i\_spin)}\\
 \multicolumn{4}{l}{}\\
 \hline
@@ -566,23 +564,23 @@ In this version of ELSI, the SLEPc-SIPs eigensolver is not supported in spin-pol
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{25mm}|p{20mm}|p{10mm}|p{107mm}|}
-\multicolumn{4}{l}{\api{elsi\_set\_mpi\_global}(handle, mpi\_comm\_global)}\\
+\begin{tabular}[]{|p{20mm}|p{20mm}|p{10mm}|p{112mm}|}
+\multicolumn{4}{l}{\api{elsi\_set\_mpi\_global}(handle, comm\_global)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}            & elsi\_handle & inout & ELSI handle.\\
+\texttt{handle}       & elsi\_handle & inout & ELSI handle.\\
 \hline
-\texttt{mpi\_comm\_global} & integer      & in    & Global MPI communicator used for communications among all $k$-points and spin channels.\\
+\texttt{comm\_global} & integer      & in    & Global MPI communicator used for communications among all $k$-points and spin channels.\\
 \hline
 \end{tabular}
 
-\subsection{Re-initializaing ELSI}
+\subsection{Re-initializing ELSI}
 \label{subsec:setup_reinit}
 When a geometry update takes place in geometry optimization or molecular dynamics calculations, the overlap matrix changes due to the movement of localized basis functions. Calling \textbf{elsi\_reinit} instructs ELSI to flush geometry-related variables and arrays that cannot be used in the new geometry step, e.g., the overlap matrix and its sparsity pattern. Other runtime parameters are kept within the ELSI instance and reused throughout multiple geometry steps. Note that the chemical potential determination in PEXSI must be restarted for every new geometry. See Sec.~\ref{subsec:setter_pexsi} for details.
 
-\begin{tabular}[]{|p{25mm}|p{20mm}|p{10mm}|p{107mm}|}
+\begin{tabular}[]{|p{20mm}|p{20mm}|p{10mm}|p{112mm}|}
 \multicolumn{4}{l}{\api{elsi\_reinit}(handle)}\\
 \multicolumn{4}{l}{}\\
 \hline
@@ -596,7 +594,7 @@ When a geometry update takes place in geometry optimization or molecular dynamic
 \label{subsec:setup_final}
 When an ELSI instance is no longer needed, its associated handle should be cleaned up by calling \api{elsi\_finalize}.
 
-\begin{tabular}[]{|p{25mm}|p{20mm}|p{10mm}|p{107mm}|}
+\begin{tabular}[]{|p{20mm}|p{20mm}|p{10mm}|p{112mm}|}
 \multicolumn{4}{l}{\api{elsi\_finalize}(handle)}\\
 \multicolumn{4}{l}{}\\
 \hline
@@ -610,81 +608,81 @@ When an ELSI instance is no longer needed, its associated handle should be clean
 \label{sec:ev}
 \api{elsi\_ev\_\{real$\vert$complex\}\{\_sparse\}} returns all the eigenvalues and a subset of eigenvectors of a generalized eigenproblem defined in Eq.~\ref{eq:ks}. See \api{elsi\_set\_unit\_ovlp} in Sec.~\ref{subsec:setter_elsi} for standard eigenproblems. ELPA, EigenExa, SLEPc-SIPs, or MAGMA may be selected as the solver when using these subroutines.
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_ev\_real}(handle, ham, ovlp, eval, evec)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle              & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle         & inout & ELSI handle.\\
 \hline
-\texttt{ham}    & real double, rank-2 array & inout & Hamiltonian matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{ham}    & 2D real double array & inout & Hamiltonian matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
 \hline
-\texttt{ovlp}   & real double, rank-2 array & inout & Overlap matrix (or its Cholesky factorization) in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{ovlp}   & 2D real double array & inout & Overlap matrix (or its Cholesky factorization) in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
 \hline
-\texttt{eval}   & real double, rank-1 array & inout & Eigenvalues. See remark 2.\\
+\texttt{eval}   & 1D real double array & inout & Eigenvalues. See remark 2.\\
 \hline
-\texttt{evec}   & real double, rank-2 array & out   & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 3.\\
+\texttt{evec}   & 2D real double array & out   & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 3.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_ev\_complex}(handle, ham, ovlp, eval, evec)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle                 & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle            & inout & ELSI handle.\\
 \hline
-\texttt{ham}    & complex double, rank-2 array & inout & Hamiltonian matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{ham}    & 2D complex double array & inout & Hamiltonian matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
 \hline
-\texttt{ovlp}   & complex double, rank-2 array & inout & Overlap matrix (or its Cholesky factorization) in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{ovlp}   & 2D complex double array & inout & Overlap matrix (or its Cholesky factorization) in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
 \hline
-\texttt{eval}   & real double, rank-1 array    & inout & Eigenvalues. See remark 2.\\
+\texttt{eval}   & 1D real double array    & inout & Eigenvalues. See remark 2.\\
 \hline
-\texttt{evec}   & complex double, rank-2 array & out   & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 3.\\
+\texttt{evec}   & 2D complex double array & out   & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 3.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_ev\_real\_sparse}(handle, ham, ovlp, eval, evec)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle              & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle         & inout & ELSI handle.\\
 \hline
-\texttt{ham}    & real double, rank-1 array & inout & Hamiltonian matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
+\texttt{ham}    & 1D real double array & inout & Hamiltonian matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{ovlp}   & real double, rank-1 array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
+\texttt{ovlp}   & 1D real double array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{eval}   & real double, rank-1 array & inout & Eigenvalues. See remark 2.\\
+\texttt{eval}   & 1D real double array & inout & Eigenvalues. See remark 2.\\
 \hline
-\texttt{evec}   & real double, rank-2 array & out   & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 3.\\
+\texttt{evec}   & 2D real double array & out   & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 3.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_ev\_complex\_sparse}(handle, ham, ovlp, eval, evec)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle                 & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle            & inout & ELSI handle.\\
 \hline
-\texttt{ham}    & complex double, rank-1 array & inout & Hamiltonian matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
+\texttt{ham}    & 1D complex double array & inout & Hamiltonian matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{ovlp}   & complex double, rank-1 array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
+\texttt{ovlp}   & 1D complex double array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{eval}   & real double, rank-1 array    & inout & Eigenvalues. See remark 2.\\
+\texttt{eval}   & 1D real double array    & inout & Eigenvalues. See remark 2.\\
 \hline
-\texttt{evec}   & complex double, rank-2 array & out   & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 3.\\
+\texttt{evec}   & 2D complex double array & out   & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 3.\\
 \hline
 \end{tabular}
 
 \textbf{Remarks}
 
-(1) The Hamiltonian matrix will be destroyed during computation. When using \api{elsi\_ev\_\{real$\vert$complex\}}, the overlap matrix will be overridden by its Cholesky factorization. When using \api{elsi\_ev\_\{real$\vert$complex\}\_sparse}, the Cholesky factorization (not sparse) is stored internally in the ``\texttt{BLACS\_DENSE}'' format.
+(1) When using \api{elsi\_ev\_\{real$\vert$complex\}} with ELPA or EigenExa, the Hamiltonian matrix is destroyed during the computation, the overlap matrix is used to store its Cholesky factorization, which can be reused until the overlap matrix changes. When using \api{elsi\_ev\_\{real$\vert$complex\}\_sparse}, the Cholesky factorization is stored internally in the ``\texttt{BLACS\_DENSE}'' format.
 
 (2) The dimension of \texttt{eval} should always be \texttt{n\_basis}, regardless of the choice of \texttt{n\_state} specified in \api{elsi\_init}.
 
@@ -706,39 +704,39 @@ The BSE Hamiltonian $\boldsymbol{H}_\text{BS}$ has the following structure
 
 where $\boldsymbol{A}$ and $\boldsymbol{B}$ are N by N matrices, $\boldsymbol{H}_\text{BS}$ and $\boldsymbol{C}$ are therefore 2N by 2N matrices. $^\text{H}$ and $^\text{T}$ denote the conjugate transpose and the transpose of a matrix, respectively. $\boldsymbol{A} = \boldsymbol{A}^\text{H}$ and $\boldsymbol{B} = \boldsymbol{B}^\text{T}$. BSEPACK must be selected as the solver when using these subroutines.
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_bse\_real}(handle, A, B, eval, evec)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle              & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle         & inout & ELSI handle.\\
 \hline
-\texttt{A}      & real double, rank-2 array & inout & Matrix A in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{A}      & 2D real double array & inout & Matrix A in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
-\texttt{B}      & real double, rank-2 array & in    & Matrix B in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{B}      & 2D real double array & in    & Matrix B in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
-\texttt{eval}   & real double, rank-1 array & out   & Eigenvalues.\\
+\texttt{eval}   & 1D real double array & out   & Eigenvalues.\\
 \hline
-\texttt{evec}   & real double, rank-2 array & out   & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{evec}   & 2D real double array & out   & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_bse\_complex}(handle, A, B, eval, evec)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle                 & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle            & inout & ELSI handle.\\
 \hline
-\texttt{A}      & complex double, rank-2 array & inout & Matrix A in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{A}      & 2D complex double array & inout & Matrix A in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
-\texttt{B}      & complex double, rank-2 array & in    & Matrix B in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{B}      & 2D complex double array & in    & Matrix B in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
-\texttt{eval}   & real double, rank-1 array    & out   & Eigenvalues.\\
+\texttt{eval}   & 1D real double array    & out   & Eigenvalues.\\
 \hline
-\texttt{evec}   & complex double, rank-2 array & out   & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{evec}   & 2D complex double array & out   & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
 \hline
 \end{tabular}
 
@@ -750,85 +748,85 @@ where $\boldsymbol{A}$ and $\boldsymbol{B}$ are N by N matrices, $\boldsymbol{H}
 \label{sec:dm}
 \api{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} returns the density matrix computed from the provided H and S matrices, as well as the band structure energy.
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_dm\_real}(handle, ham, ovlp, dm, e\_bs)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle              & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle         & inout & ELSI handle.\\
 \hline
-\texttt{ham}    & real double, rank-2 array & inout & Hamiltonian matrix in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{ham}    & 2D real double array & inout & Hamiltonian matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
-\texttt{ovlp}   & real double, rank-2 array & inout & Overlap matrix (or Cholesky factorization) in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{ovlp}   & 2D real double array & inout & Overlap matrix (or Cholesky factorization) in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
 \hline
-\texttt{dm}     & real double, rank-2 array & out   & Density matrix in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{dm}     & 2D real double array & out   & Density matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
-\texttt{e\_bs}  & real double               & out   & Band structure energy.\\
+\texttt{e\_bs}  & real double          & out   & Band structure energy.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_dm\_complex}(handle, ham, ovlp, dm, e\_bs)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle                 & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle            & inout & ELSI handle.\\
 \hline
-\texttt{ham}    & complex double, rank-2 array & inout & Hamiltonian matrix in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{ham}    & 2D complex double array & inout & Hamiltonian matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
-\texttt{ovlp}   & complex double, rank-2 array & inout & Overlap matrix (or its Cholesky factorization) in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{ovlp}   & 2D complex double array & inout & Overlap matrix (or its Cholesky factorization) in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
 \hline
-\texttt{dm}     & complex double, rank-2 array & out   & Density matrix in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{dm}     & 2D complex double array & out   & Density matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
-\texttt{e\_bs}  & real double                  & out   & Band structure energy.\\
+\texttt{e\_bs}  & real double             & out   & Band structure energy.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_dm\_real\_sparse}(handle, ham, ovlp, dm, e\_bs)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle              & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle         & inout & ELSI handle.\\
 \hline
-\texttt{ham}    & real double, rank-1 array & inout & Hamiltonian matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
+\texttt{ham}    & 1D real double array & inout & Hamiltonian matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{ovlp}   & real double, rank-1 array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
+\texttt{ovlp}   & 1D real double array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{dm}     & real double, rank-1 array & out   & Density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
+\texttt{dm}     & 1D real double array & out   & Density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{e\_bs}  & real double               & out   & Band structure energy.\\
+\texttt{e\_bs}  & real double          & out   & Band structure energy.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_dm\_complex\_sparse}(handle, ham, ovlp, dm, e\_bs)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle                 & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle            & inout & ELSI handle.\\
 \hline
-\texttt{ham}    & complex double, rank-1 array & inout & Hamiltonian matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
+\texttt{ham}    & 1D complex double array & inout & Hamiltonian matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{ovlp}   & complex double, rank-1 array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
+\texttt{ovlp}   & 1D complex double array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{dm}     & complex double, rank-1 array & out   & Density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
+\texttt{dm}     & 1D complex double array & out   & Density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{e\_bs}  & real double                  & out   & Band structure energy.\\
+\texttt{e\_bs}  & real double             & out   & Band structure energy.\\
 \hline
 \end{tabular}
 
 \textbf{Remarks}
 
-(1) When using \api{elsi\_dm\_\{real$\vert$complex\}} with ELPA, libOMM, or EigenExa, the Hamiltonian matrix will be destroyed during the computation. The overlap matrix will be used to store its Cholesky factorization, which will be reused until the overlap matrix changes.
+(1) When using \api{elsi\_dm\_\{real$\vert$complex\}} with ELPA, libOMM, or EigenExa, the Hamiltonian matrix is destroyed during the computation. The overlap matrix is used to store its Cholesky factorization, which can be reused until the overlap matrix changes.
 
 \section{Customizing ELSI}
 \label{sec:setter}
-In ELSI, reasonable default values have been provided for a number of parameters used in the ELSI interface the the supported solvers. However, no set of default parameters can adequately cover all use cases. Parameters that can be overridden are described in the following subsections.
+ELSI provides reasonable default values for parameters used in the ELSI interface and the supported solvers. However, no set of default parameters can adequately cover all use cases. Parameters that can be adjusted are described in the following subsections.
 
 \subsection{Customizing the ELSI Interface}
 \label{subsec:setter_elsi}
@@ -859,21 +857,21 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{output\_level}       & integer     & 0           & 0: no output. 1: standard ELSI output. 2: 1 + info from the solvers. 3: 1 + 2 + additional debug info.\\
+\texttt{output\_level}       & integer     & 0           & 0: No output. 1: Informative output from ELSI. 2: Informative output from ELSI and the solvers. 3: Informative and debugging output from ELSI and the solvers.\\
 \hline
-\texttt{output\_unit}        & integer     & 6           & Unit used in ELSI to write out information.\\
+\texttt{output\_unit}        & integer     & 6           & Unit used by ELSI to write out information.\\
 \hline
-\texttt{output\_log}         & integer     & 0           & If not 0, a separate log file in JSON format will be written out.\\
+\texttt{output\_log}         & integer     & 0           & If not 0, a separate JSON log file will be written out.\\
 \hline
-\texttt{save\_ovlp}          & integer     & 0           & If not 0, the overlap matrix will be saved for extrapolation of density matrix or eigenvectors to a new geometry.\\
+\texttt{save\_ovlp}          & integer     & 0           & If not 0, the overlap matrix will be saved for density matrix extrapolation.\\
 \hline
-\texttt{unit\_ovlp}          & integer     & 0           & If not 0, the overlap matrix will be treated as an identity (unit) matrix in ELSI and the solvers. See remark 1.\\
+\texttt{unit\_ovlp}          & integer     & 0           & If not 0, the overlap matrix is treated as an identity (unit) matrix. See remark 1.\\
 \hline
-\texttt{zero\_def}           & real double & $10^{-15}$  & When converting a matrix from dense to sparse format, values below this threshold will be discarded.\\
+\texttt{zero\_def}           & real double & $10^{-15}$  & When converting a matrix from dense to sparse format, values below this threshold are discarded.\\
 \hline
-\texttt{sparsity\_mask}      & integer     & 2           & Which sparsity pattern to use when converting a matrix from dense to sparse format. 0: The union of the sparsity patterns of the Hamiltonian and overlap matrices. 1: Sparsity pattern of the Hamiltonian matrix. 2: Sparsity pattern of the overlap matrix.\\
+\texttt{sparsity\_mask}      & integer     & 2           & Which sparsity pattern to use when converting a matrix from dense to sparse format. 0: The union of the sparsity patterns of the Hamiltonian and overlap matrices. 1: The sparsity pattern of the Hamiltonian matrix. 2: The sparsity pattern of the overlap matrix.\\
 \hline
-\texttt{illcond\_check}      & integer     & 0           & If not 0, the eigenvalues of the overlap matrix will be calculated in order to check if it is ill-conditioned. See remark 2.\\
+\texttt{illcond\_check}      & integer     & 0           & If not 0, the eigenvalues of the overlap matrix will be calculated to check if the overlap matrix is ill-conditioned. See remark 2.\\
 \hline
 \texttt{illcond\_tol}        & real double & $10^{-5}$   & Eigenfunctions of the overlap matrix with eigenvalues smaller than this threshold will be removed to avoid ill-conditioning. See remark 2.\\
 \hline
@@ -883,7 +881,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \texttt{spectrum\_width}     & real double & $10^{3}$    & Width of the eigenspectrum. See remark 3.\\
 \hline
-\texttt{dimensionality}      & integer     & 3           & Dimensionality (1, 2, or 3) of the simulating system. Only used for automatic solver selection.\\
+\texttt{dimensionality}      & integer     & 3           & Dimensionality (1, 2, or 3) of the physical system being simulated. Only used for automatic solver selection.\\
 \hline
 \texttt{mu\_broaden\_scheme} & integer     & 0           & Broadening scheme employed to compute the occupation numbers and the Fermi level. 0: Gaussian. 1: Fermi-Dirac. 2: Methfessel-Paxton. 4: Marzari-Vanderbilt. See remark 4.\\
 \hline
@@ -891,7 +889,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \texttt{mu\_tol}             & real double & $10^{-13}$  & Convergence tolerance (in terms of the absolute error in electron count) of the bisection algorithm employed to compute the occupation numbers and the Fermi level.\\
 \hline
-\texttt{mu\_mp\_order}       & integer     & 0           & Order of the Methfessel-Paxton broadening scheme. No effect if Methfessel-Paxton is not the chosen broadening scheme.\\
+\texttt{mu\_mp\_order}       & integer     & 0           & Order of the Methfessel-Paxton broadening scheme. No effect if Methfessel-Paxton is not used.\\
 \hline
 \texttt{write\_unit}         & integer     & 6           & Deprecated. Use \api{elsi\_set\_output\_unit} instead.\\
 \hline
@@ -903,15 +901,15 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \textbf{Remarks}
 
-(1) If the overlap matrix is set to be an identity matrix, all settings related to the singularity (ill-conditioning) check take no effect. The \texttt{ovlp} passed into \api{elsi\_\{ev$\vert$dm\}\_\{real$\vert$complex\}\{\_sparse\}} will not be referenced.
+(1) If the overlap matrix is an identity matrix, all settings related to the singularity (ill-conditioning) check are ignored. The \texttt{ovlp} passed into \api{elsi\_\{ev$\vert$dm\}\_\{real$\vert$complex\}\{\_sparse\}} is not referenced.
 
-(2) If the ill-conditioning check is not disabled, in the first iteration of each SCF cycle, all eigenvalues of the overlap matrix will be computed. If there is any eigenvalue smaller than \texttt{illcond\_tol}, the matrix is considered to be ill-conditioned.
+(2) If the ill-conditioning check is not disabled, in the first iteration of each SCF cycle, all eigenvalues of the overlap matrix are computed. If there is any eigenvalue smaller than \texttt{illcond\_tol}, the matrix is considered to be ill-conditioned.
 
 (3) \texttt{spectrum\_width} and \texttt{energy\_gap} refer to the width and the gap of the eigenspectrum. Simply use the default values if there is no better estimate.
 
 (4) \texttt{mu\_broaden\_scheme}, \texttt{mu\_broaden\_width}, and  \texttt{mu\_tol} are only referenced when using \api{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} and an eigensolver. They are ignored when using \api{elsi\_ev\_\{real$\vert$complex\}\{\_sparse\}}, or \api{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} with a density matrix solver.
 
-(5) In all supported broadening schemes, there is a term $(\epsilon - E_\text{F})/W$ in the distribution function, where $\epsilon$ is the energy of an eigenstate, and $E_\text{F}$ is the Fermi level. The \texttt{broadening\_width} parameter should be $W$ in the same unit of $\epsilon$ and $E_\text{F}$.
+(5) In all supported broadening schemes, there is a term $(\epsilon - E_\text{F})/W$ in the distribution function, where $\epsilon$ is the energy of an eigenstate, and $E_\text{F}$ is the Fermi level. \texttt{broadening\_width} should be $W$ in the same unit of $\epsilon$ and $E_\text{F}$.
 
 \subsection{Customizing the ELPA Solver}
 \label{subsec:setter_elpa}
@@ -939,7 +937,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \textbf{Remarks}
 
-(1) \texttt{elpa\_n\_single}: If single precision arithmetic is available in an externally complied ELPA library, it may be enabled by setting \texttt{elpa\_n\_single} to a positive integer, then the standard eigenprolems in the first \texttt{elpa\_n\_single} SCF steps will be solved with single precision. The transformations between generalized eigenproblem and the standard form are always performed with double precision. Although this keyword accelerates the solution of standard eigenproblems, the overall SCF convergence may be slower, depending on the physical system and the SCF settings used in the electronic structure code. This keyword is ignored if single precision calculations are not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with single precision support.
+(1) \texttt{elpa\_n\_single}: If single precision arithmetic is available in an externally complied ELPA library, it may be enabled by setting \texttt{elpa\_n\_single} to a positive integer, then the standard eigenproblems in the first \texttt{elpa\_n\_single} SCF steps are solved with single precision. The transformations between generalized eigenproblem and the standard form are always performed with double precision. Although this keyword accelerates the solution of standard eigenproblems, the overall SCF convergence may be slower, depending on the physical system and the SCF settings used in the electronic structure code. This keyword is ignored if single precision calculations are not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with single precision support.
 
 (2) \texttt{elpa\_gpu}: If GPU-acceleration is available in an externally compiled ELPA library, it may be enabled by setting \texttt{elpa\_gpu} to a nonzero integer. This keyword is ignored if GPU-acceleration is not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with GPU support.
 
@@ -993,19 +991,19 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \texttt{pexsi\_n\_mu}         & integer     & 2     & Number of mu points used by PEXSI. See remark 2.\\
 \hline
-\texttt{pexsi\_np\_per\_pole} & integer     & -     & Number of MPI tasks assigned to each mu point. See remark 3.\\
+\texttt{pexsi\_np\_per\_pole} & integer     & -     & Number of MPI tasks assigned to one pole. See remark 3.\\
 \hline
 \texttt{pexsi\_np\_symbo}     & integer     & 1     & Number of MPI tasks for symbolic factorization. See remark 4.\\
 \hline
 \texttt{pexsi\_temp}          & real double & 0.002 & Electronic temperature. See remark 5.\\
 \hline
-\texttt{pexsi\_mu\_min}       & real double & -10.0 & Minimum value of mu. See remark 6.\\
-\hline
-\texttt{pexsi\_mu\_max}       & real double & 10.0  & Maximum value of mu. See remark 6.\\
-\hline
 \texttt{pexsi\_inertia\_tol}  & real double & 0.05  & Stopping criterion of inertia counting. See remark 6.\\
 \hline
-\texttt{pexsi\_gap}           & real double & 0.0   & Deprecated. Use \api{elsi\_set\_energy\_gap} instead. See remark 7.\\
+\texttt{pexsi\_mu\_min}       & real double & -10.0 & Lower bound of mu. See remark 7.\\
+\hline
+\texttt{pexsi\_mu\_max}       & real double & 10.0  & Upper bound of mu. See remark 7.\\
+\hline
+\texttt{pexsi\_gap}           & real double & 0.0   & Deprecated. Use \api{elsi\_set\_energy\_gap} instead. See remark 8.\\
 \hline
 \texttt{pexsi\_delta\_e}      & real double & 10.0  & Deprecated. Use \api{elsi\_set\_spectrum\_width} instead.\\
 \hline
@@ -1019,17 +1017,17 @@ When using the pole expansion method based on minimax rational approximation, al
 
 (2) PEXSI determines the chemical potential by performing Fermi operator expansion at several chemical potential values (referred to as ``points'') in an SCF step, then interpolating the results at all points to the final answer. The \texttt{pexsi\_n\_mu} parameter controls the number of chemical potential ``points'' to be evaluated. Two points followed by a simple linear interpolation often yield reasonable results.
 
-(3) \texttt{pexsi\_np\_per\_pole}: PEXSI has, by construction, a 3-level parallelism: the 1st level independently handles all the poles in parallel; within each pole, the 2nd level evaluates the Fermi operator at all the chemical potential points in parallel; finally, within each point, parallel selected inversion is performed as the 3rd level. The value of \texttt{pexsi\_np\_per\_pole} is the number of MPI tasks assigned to a single chemical potential point, for the parallel selected inversion at that point. Ideally, the total number of MPI tasks should be \texttt{pexsi\_np\_per\_pole} $\times$ \texttt{pexsi\_n\_mu} $\times$ \texttt{pexsi\_n\_pole}, i.e., all the three levels of parallelism are fully exploited. In case that this is not feasible, PEXSI can also process the poles in serial, whereas all the chemical potential points must be evaluated simultaneously. The user should make sure that the total number of MPI tasks is divisible by the product of the number of MPI tasks per pole and the number of points. The code will stop if this requirement is not fulfilled.
+(3) \texttt{pexsi\_np\_per\_pole}: PEXSI has three levels of parallelism: the first level evaluates the Fermi operator at all the chemical potential points in parallel; at each chemical potential point, the second level handles the poles in parallel; finally, for each pole, parallel selected inversion is performed as the third level. The value of \texttt{pexsi\_np\_per\_pole} is the number of MPI tasks assigned to one pole at one chemical potential point for the parallel selected inversion. Ideally, the total number of MPI tasks should be \texttt{pexsi\_np\_per\_pole} $\times$ \texttt{pexsi\_n\_mu} $\times$ \texttt{pexsi\_n\_pole}, i.e., all the three levels of parallelism are fully exploited. In case that this is not feasible, PEXSI can also process the poles in serial, whereas all the chemical potential points must be evaluated simultaneously. The user should make sure that the total number of MPI tasks is divisible by the product of the number of MPI tasks per pole and the number of points.
 
-When using the ``\texttt{BLACS\_DENSE}'' or ``\texttt{SIESTA\_CSC}'' matrix formats, \texttt{pexsi\_np\_per\_pole} is automatically determined to balance the three levels of parallelism in PEXSI. Input and output matrices should be distributed across all MPI tasks in either a 2D block-cyclic distribution (``\texttt{BLACS\_DENSE}'') or a 1D block-cyclic distribution (``\texttt{SIESTA\_CSC}'').
-
-Please note that when using the ``\texttt{PEXSI\_CSC}'' matrix format together with the PEXSI solver, input and output matrices should be distributed among the first \texttt{pexsi\_np\_per\_pole} MPI tasks (not all the MPI tasks) in a 1D block distribution. The block size of the distribution must be floor($\text{N}_\text{basis}$/$\text{N}_\text{procs}$), where floor(x) is the greatest integer less than or equal to x, $\text{N}_\text{basis}$ and $\text{N}_\text{procs}$ are the number of basis functions and the number of MPI tasks, respectively.
-
-when using the ``\texttt{PEXSI\_CSC}'' matrix format with the ELPA, libOMM, EigenExa, SLEPc-SIPs, or NTPoly solver, input and output matrices should be distributed across all the MPI tasks in a 1D block distribution. Again, the block size of the distribution must be floor($\text{N}_\text{basis}$/$\text{N}_\text{procs}$).
+When not using the ``\texttt{PEXSI\_CSC}'' matrix format, \texttt{pexsi\_np\_per\_pole} can be automatically determined to balance the three levels of parallelism in PEXSI. Please note that when using the ``\texttt{PEXSI\_CSC}'' matrix format together with the PEXSI solver, input and output matrices should be distributed among the first \texttt{pexsi\_np\_per\_pole} MPI tasks (not all) in a 1D block distribution. The block size of the distribution must be floor($\text{N}_\text{basis}$/$\text{N}_\text{procs\_per\_pole}$), where floor(x) is the greatest integer less than or equal to x, $\text{N}_\text{basis}$ and $\text{N}_\text{procs\_per\_pole}$ are the number of basis functions and the value of \texttt{pexsi\_np\_per\_pole}, respectively. When using the ``\texttt{PEXSI\_CSC}'' matrix format with the ELPA, libOMM, EigenExa, SLEPc-SIPs, or NTPoly solver, input and output matrices should be distributed across all the MPI tasks in a 1D block distribution. Again, the block size of the distribution must be floor($\text{N}_\text{basis}$/$\text{N}_\text{procs}$).
 
 (4) \texttt{pexsi\_np\_symbo}: Unless there is a memory bottleneck, using 1 MPI task for matrix reordering and symbolic factorization is favorable. When running in serial, the matrix reordering in PT-SCOTCH or ParMETIS introduces a minimal number of ``fill-ins'' to the factorized matrices. Using more MPI tasks introduces more fill-ins. As the matrix reordering and symbolic factorization are performed only once per SCF cycle (with a fixed overlap matrix), using 1 MPI task should not affect the overall timing too much. On the other hand, more fill-ins lead to slower numerical factorization in every SCF step. In addition, the number of MPI tasks used for matrix reordering and symbolic factorization cannot be too large. Otherwise, the symbolic factorization may fail. Therefore, the default number of MPI tasks for symbolic factorization is 1. It is worth testing and increasing this number for large-scale calculations.
 
 (5) \texttt{pexsi\_temp}: This value corresponds to the $k_\text{B} T$ term (not $T$) in the Fermi-Dirac distribution function.
+
+(6) The chemical potential determination in PEXSI relies on an inertia counting step to narrow down the chemical potential searching interval in the first few SCF steps. The inertia counting step is skipped if the difference between \texttt{pexsi\_mu\_min} and \texttt{pexsi\_mu\_max} becomes smaller than \texttt{pexsi\_inertia\_tol}.
+
+(7) PEXSI performs Fermi operator calculations at a number of points within the chemical potential search interval, based on which the chemical potential is determined. In the first SCF iteration of each geometry step, \texttt{pexsi\_mu\_min} and \texttt{pexsi\_mu\_max} should be set to safe values that guarantee the true chemical potential lies in this interval. Then, for the n$^\text{th}$ SCF step, \texttt{pexsi\_mu\_min} should be set to ($\mu_\text{min}^\text{n-1} + \Delta V_\text{min}$), \texttt{pexsi\_mu\_max} should be set to ($\mu_\text{max}^\text{n-1} + \Delta V_\text{max}$). Here, $\mu_\text{min}^\text{n-1}$ and $\mu_\text{max}^\text{n-1}$ are the lower bound and the upper bound of the chemical potential, determined by PEXSI in the (n-1)$^\text{th}$ SCF step. They can be retrieved by calling \api{elsi\_get\_pexsi\_mu\_min} and \api{elsi\_get\_pexsi\_mu\_max}, respectively (see Sec.~\ref{subsec:getter_pexsi}). Suppose the effective potential (Hartree potential, exchange-correlation potential, and external potential) is stored in an array $V$, whose dimension is the number of grid points. From one SCF iteration to the next, $\Delta V$ denotes the potential change, and $\Delta V_\text{min}$ and $\Delta V_\text{max}$ are the minimum and maximum values in the array $\Delta V$, respectively. The whole process is summarized in the pseudo-code below. The (re-)initialization and finalization of ELSI are omitted.
 
 \begin{tcolorbox}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -1062,9 +1060,7 @@ end do
 \end{Verbatim}
 \end{tcolorbox}
 
-(6) The chemical potential determination in PEXSI relies on inertia counting to narrow down the chemical potential searching interval in the first few SCF steps. The \texttt{pexsi\_inertia\_tol} parameter controls the stopping criterion of the inertia counting procedure. With a small interval obtained from the inertia counting step, PEXSI then selects a number of points in this interval to perform Fermi operator calculations, based on which a final chemical potential will be determined. The trick of this algorithm is that the chemical potential interval of the current SCF step can be used as a descent guess in the next SCF step. Therefore, the mechanism to choose input values for \texttt{pexsi\_mu\_min} and \texttt{pexsi\_mu\_max} is two-fold. For the first SCF iteration of each geometry step, they should be set to safe values that guarantee the true chemical potential lies in this interval. Then, for the n$^\text{th}$ SCF step, \texttt{pexsi\_mu\_min} should be set to ($\mu_\text{min}^\text{n-1} + \Delta V_\text{min}$), \texttt{pexsi\_mu\_max} should be set to ($\mu_\text{max}^\text{n-1} + \Delta V_\text{max}$). Here, $\mu_\text{min}^\text{n-1}$ and $\mu_\text{max}^\text{n-1}$ are the lower bound and the upper bound of the chemical potential that are determined by PEXSI in the (n-1)$^\text{th}$ SCF step. They can be retrieved by calling \api{elsi\_get\_pexsi\_mu\_min} and \api{elsi\_get\_pexsi\_mu\_max}, respectively (see Sec.~\ref{subsec:getter_pexsi}. Suppose the effective potential (Hartree potential, exchange-correlation potential, and external potential) is stored in an array $V$, whose dimension is the number of grid points. From one SCF iteration to the next, $\Delta V$ denotes the potential change, and $\Delta V_\text{min}$ and $\Delta V_\text{max}$ are the minimum and maximum values in the array $\Delta V$, respectively. The whole process is summarized in the pseudo-code above. The (re-)initialization and finalization of ELSI are omitted.
-
-(7) \texttt{pexsi\_gap}: The PEXSI method does not require an energy gap. Use the default value if no knowledge is available.
+(8) \texttt{pexsi\_gap}: The PEXSI method does not require an energy gap. Use the default value if no knowledge is available.
 
 \subsection{Customizing the EigenExa Solver}
 \label{subsec:setter_eigenexa}
@@ -1106,11 +1102,11 @@ end do
 
 \textbf{Remarks}
 
-(1) \texttt{sips\_ev\_min} and \texttt{sips\_ev\_max}: SLEPc-SIPs relies on some inertia counting steps to estimate the lower and upper bounds of the eigenspectrum. Only eigenvalues within this interval, and their associated eigenvectors, will be solved. The inertia-counting-based eigenvalue searching starts from the interval determined by \texttt{ev\_min} and \texttt{ev\_max}. Depending on the results of inertia counting, this interval may expand or shrink to make sure that the 1$^\text{st}$ to the \texttt{n\_state}$^\text{th}$ eigenvalues are all within this interval. If a good estimate of the lower or upper bounds of the eigenspectrum is available, it should be set by \api{elsi\_set\_sips\_ev\_min} or \api{elsi\_set\_sips\_ev\_max}.
+(1) \texttt{sips\_ev\_min} and \texttt{sips\_ev\_max}: SLEPc-SIPs relies on an inertia counting step to estimate the lower and upper bounds of the eigenspectrum. Only eigenvalues within this interval, and their associated eigenvectors, are solved. The inertia counting starts from the interval determined by \texttt{sips\_ev\_min} and \texttt{sips\_ev\_max}. This interval may expand or shrink to make sure that it encloses the 1$^\text{st}$ to the \texttt{n\_state}$^\text{th}$ eigenvalues. If a good estimate of the lower or upper bounds of the eigenspectrum is available, it should be set by \api{elsi\_set\_sips\_ev\_min} or \api{elsi\_set\_sips\_ev\_max}.
 
-(2) \texttt{sips\_n\_elpa}: The performance of SLEPc-SIPs mainly depends on the load balance across slices. Optimal performance is expected if the desired eigenvalues are evenly distributed across slices. In an SCF calculation, eigenvalues obtained in the current SCF step can be used as an approximated distribution of eigenvalues in the next SCF step. This approximation should become better as the SCF cycle approaches its convergence. On the other hand, at the beginning of an SCF cycle, the load balance is only coarsely checked by inertia calculations. Using the direct eigensolver ELPA in the first \texttt{sips\_n\_elpa} SCF steps can circumvent the load imbalance of spectrum slicing in the initial SCF steps.
+(2) \texttt{sips\_n\_elpa}: The performance of SLEPc-SIPs mainly depends on the load balance across slices. Optimal performance is expected if the desired eigenvalues are evenly distributed across slices. In an SCF calculation, eigenvalues obtained in one SCF step can be used as an approximate distribution of eigenvalues in the next SCF step. This approximation should become better as the SCF cycle approaches its convergence. Using the direct eigensolver ELPA in the first \texttt{sips\_n\_elpa} SCF steps can circumvent the load imbalance of spectrum slicing in the initial SCF steps.
 
-(3) \texttt{sips\_n\_slice}: SLEPc-SIPs partitions the eigenspectrum into slices and solves the slices in parallel. The \texttt{sips\_n\_slice} parameter controls the number of slices to use in SLEPc-SIPs. The default value, 1, should always work, but by no means leads to the optimal performance of the solver. There are some general rules to set this parameter. Firstly, as a requirement of the SLEPc library, the total number of MPI tasks must by divisible by \texttt{sips\_n\_slice}. Secondly, setting \texttt{sips\_n\_slice} to be equal to the number of computing nodes (not MPI tasks) usually yields better performance, as the communication between nodes is minimized in this case. The optimal value of \texttt{sips\_n\_slice} depends on the actual problem as well as the computing hardware.
+(3) \texttt{sips\_n\_slice}: SLEPc-SIPs partitions the eigenspectrum into slices and solves the slices in parallel. The number of slices is controlled by \texttt{sips\_n\_slice}. The default value, 1, should always work, but by no means leads to the optimal performance of the solver. There are some general rules to set this parameter. First, as a requirement of the SLEPc library, the total number of MPI tasks must by divisible by \texttt{sips\_n\_slice}. Second, setting \texttt{sips\_n\_slice} to the number of compute nodes usually yields better performance, as the inter-node communication is minimized. The optimal value of \texttt{sips\_n\_slice} depends on the actual problem as well as the hardware.
 
 \subsection{Customizing the NTPoly Solver}
 \label{subsec:setter_ntpoly}
@@ -1124,7 +1120,7 @@ end do
 \hline
 \texttt{ntpoly\_method} & integer     & 2          & 0: Canonical purification~\cite{purification_palser_1998}. 1: 2$^\text{nd}$ order trace resetting purification~\cite{purification_niklasson_2002}. 2: 4$^\text{th}$ order trace resetting purification~\cite{purification_niklasson_2002}. 3: Generalized hole-particle canonical purification~\cite{purification_truflandier_2016}. 1 and 2 are recommended.\\
 \hline
-\texttt{ntpoly\_filter} & real double & $10^{-15}$ & When performing sparse matrix multiplications, values below this filter will be discarded. See remark 1.\\
+\texttt{ntpoly\_filter} & real double & $10^{-15}$ & When performing sparse matrix multiplications, values below this filter are discarded. See remark 1.\\
 \hline
 \texttt{ntpoly\_tol}    & real double & $10^{-8}$  & Convergence tolerance of purification. See remark 1.\\
 \hline
@@ -1148,7 +1144,7 @@ end do
 
 \textbf{Remarks}
 
-(1) MAGMA is enable to make use of multiple GPUs. The number of GPUs is controlled by the environment variable \texttt{MAGMA\_NUM\_GPUS}. Refer to the users' guide of MAGMA for more information.
+(1) MAGMA can use multiple GPUs, controlled by the environment variable \texttt{MAGMA\_NUM\_GPUS}. Refer to the users' guide of MAGMA for more information.
 
 \section{Getting Additional Results from ELSI}
 \label{sec:getter}
@@ -1158,7 +1154,7 @@ In Sec.~\ref{sec:ev} and Sec.~\ref{sec:dm}, the interfaces to compute and return
 \label{subsec:getter_elsi}
 In all the subroutines listed below, the first argument (input and output) is an \texttt{elsi\_handle}. The second argument (output) of each subroutine is the name of the parameter to get.
 
-\begin{longtable}[]{|p{30mm}|p{45mm}|p{87mm}|}
+\begin{longtable}[]{|p{35mm}|p{40mm}|p{87mm}|}
 \multicolumn{3}{l}{\api{elsi\_get\_version}(major, minor, patch)}\\
 \multicolumn{3}{l}{\api{elsi\_get\_datestamp}(date\_stamp)}\\
 \multicolumn{3}{l}{\api{elsi\_get\_initialized}(handle, handle\_init)}\\
@@ -1180,51 +1176,51 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{major}                & integer                      & Major version number.\\
+\texttt{major}                & integer                 & Major version number.\\
 \hline
-\texttt{minor}                & integer                      & Minor version number.\\
+\texttt{minor}                & integer                 & Minor version number.\\
 \hline
-\texttt{patch}                & integer                      & Patch level.\\
+\texttt{patch}                & integer                 & Patch level.\\
 \hline
-\texttt{date\_stamp}          & integer                      & Date stamp of ELSI (yyyymmdd).\\
+\texttt{date\_stamp}          & integer                 & Date stamp of ELSI (yyyymmdd).\\
 \hline
-\texttt{handle\_init}         & integer                      & 0 if the ELSI handle has not been initialized; 1 if initialized.\\
+\texttt{handle\_init}         & integer                 & 0 if the ELSI handle has not been initialized; 1 if initialized.\\
 \hline
-\texttt{n\_illcond}           & integer                      & Number of eigenvalues of the overlap matrix that are smaller than the ill-conditioning tolerance. See Sec.~\ref{subsec:setter_elsi}.\\
+\texttt{n\_illcond}           & integer                 & Number of eigenvalues of the overlap matrix that are smaller than the ill-conditioning tolerance. See Sec.~\ref{subsec:setter_elsi}.\\
 \hline
-\texttt{ev\_min}              & real double                  & Lowest eigenvalue of the overlap matrix. See remark 1.\\
+\texttt{ovlp\_ev\_min}        & real double             & Lowest eigenvalue of the overlap matrix. See remark 1.\\
 \hline
-\texttt{ev\_max}              & real double                  & Highest eigenvalue of the overlap matrix. See remark 1.\\
+\texttt{ovlp\_ev\_max}        & real double             & Highest eigenvalue of the overlap matrix. See remark 1.\\
 \hline
-\texttt{mu}                   & real double                  & Chemical potential. See remark 2.\\
+\texttt{mu}                   & real double             & Chemical potential. See remark 2.\\
 \hline
-\texttt{ts}                   & real double                  & Entropy. See remark 2.\\
+\texttt{ts}                   & real double             & Entropy. See remark 2.\\
 \hline
-\texttt{edm\_real}            & real double, rank-2 array    & Energy-weighted density matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 3.\\
+\texttt{edm\_real}            & 2D real double array    & Energy-weighted density matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 3.\\
 \hline
-\texttt{edm\_complex}         & complex double, rank-2 array & Energy-weighted density matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 3.\\
+\texttt{edm\_complex}         & 2D complex double array & Energy-weighted density matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 3.\\
 \hline
-\texttt{edm\_real\_sparse}    & real double, rank-1 array    & Energy-weighted density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 3.\\
+\texttt{edm\_real\_sparse}    & 1D real double array    & Energy-weighted density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 3.\\
 \hline
-\texttt{edm\_complex\_sparse} & complex double, rank-1 array & Energy-weighted density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 3.\\
+\texttt{edm\_complex\_sparse} & 1D complex double array & Energy-weighted density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 3.\\
 \hline
-\texttt{eval}                 & real double, rank-1 array    & Eigenvalues. See remark 4.\\
+\texttt{eval}                 & 1D real double array    & Eigenvalues. See remark 4.\\
 \hline
-\texttt{evec\_real}           & real double, rank-2 array    & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 4.\\
+\texttt{evec\_real}           & 2D real double array    & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 4.\\
 \hline
-\texttt{evec\_complex}        & complex double, rank-2 array & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 4.\\
+\texttt{evec\_complex}        & 2D complex double array & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 4.\\
 \hline
-\texttt{occ}                  & real double, rank-1 array    & Occupation numbers. See remark 4.\\
+\texttt{occ}                  & 1D real double array    & Occupation numbers. See remark 4.\\
 \hline
-\texttt{n\_sing}              & integer                      & Deprecated. Use \api{elsi\_get\_n\_illcond} instead.\\
+\texttt{n\_sing}              & integer                 & Deprecated. Use \api{elsi\_get\_n\_illcond} instead.\\
 \hline
 \end{longtable}
 
 \textbf{Remarks}
 
-(1) Ill-conditioning check of the overlap matrix is enabled by default when ELPA is the chosen solver. It may be disabled by calling \api{elsi\_set\_illcond\_check}, and is automatically disabled when the chosen solver is not ELPA. \texttt{ev\_min} and \texttt{ev\_max} are computed only if ill-conditioning check is enabled. Otherwise the return value may be zero.
+(1) Ill-conditioning check of the overlap matrix is enabled by default when ELPA is the chosen solver. It may be disabled by calling \api{elsi\_set\_illcond\_check}, and is automatically disabled when the chosen solver is not ELPA. \texttt{ovlp\_ev\_min} and \texttt{ovlp\_ev\_max} are computed only if ill-conditioning check is enabled. Otherwise the return value may be zero.
 
-(2) The chemical potential will only be available if \api{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} has been called, with ELPA, PEXSI, SLEPc-SIPs, EigenExa, or NTPoly being the chosen solver. The chemical potential can be retrieved by calling \api{elsi\_get\_mu}. The entropy will only be available if \api{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} has been called with ELPA, PEXSI (see also \api{elsi\_set\_pexsi\_method}), SLEPc-SIPs, or EigenExa being the chosen solver. ELSI may return zero when the chemical potential or the entropy is not available.
+(2) The chemical potential is available only if \api{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} has been called, with ELPA, PEXSI, SLEPc-SIPs, EigenExa, or NTPoly being the chosen solver. The entropy is available only if \api{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} has been called with ELPA, PEXSI (see also \api{elsi\_set\_pexsi\_method}), SLEPc-SIPs, or EigenExa being the chosen solver. ELSI may return zero when the chemical potential or the entropy is not available.
 
 (3) In general, the energy-weighted density matrix is only needed in a late stage of an SCF cycle to evaluate forces. It is, therefore, not calculated when any of the density matrix solver interface is called. When the energy-weighted density matrix is actually needed, it can be requested by calling \api{elsi\_get\_edm\_\{real$\vert$complex\}\{\_sparse\}}. These subroutines have the requirement that the corresponding \api{elsi\_dm} subroutine must have been invoked. For instance, \api{elsi\_get\_edm\_real\_sparse} only makes sense if \api{elsi\_dm\_real\_sparse} has been successfully executed.
 
@@ -1232,7 +1228,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \subsection{Getting Results from the PEXSI Solver}
 \label{subsec:getter_pexsi}
-\begin{tabular}[]{|p{30mm}|p{45mm}|p{87mm}|}
+\begin{tabular}[]{|p{30mm}|p{20mm}|p{112mm}|}
 \multicolumn{3}{l}{\api{elsi\_get\_pexsi\_mu\_min}(handle, pexsi\_mu\_min)}\\
 \multicolumn{3}{l}{\api{elsi\_get\_pexsi\_mu\_max}(handle, pexsi\_mu\_max)}\\
 \multicolumn{3}{l}{}\\
@@ -1253,59 +1249,59 @@ In all the subroutines listed below, the first argument (input and output) is an
 \label{subsec:extrapolation}
 In geometry optimization and molecular dynamics calculations, the initial guess of the electron density in the (n+1)$^\text{th}$ geometry step can be constructed from the wavefunctions or density matrix calculated in the n$^\text{th}$ geometry step. However, due to the movement of atoms and localized basis functions around them, wavefunctions obtained in the n$^\text{th}$ geometry step are no longer orthonormalized in the (n+1)$^\text{th}$ geometry step. \api{elsi\_orthonormalize\_ev\_\{real$\vert$complex\}\{\_sparse\}} orthonormalizes eigenvectors (coefficients of wavefunctions) in the n$^\text{th}$ geometry step with respect to the overlap matrix in the (n+1)$^\text{th}$ geometry step with a Gram-Schmidt algorithm.
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_orthonormalize\_ev\_real}(handle, ovlp, evec)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle              & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle         & inout & ELSI handle.\\
 \hline
-\texttt{ovlp}   & real double, rank-2 array & in    & Overlap matrix in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{ovlp}   & 2D real double array & in    & Overlap matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
-\texttt{evec}   & real double, rank-2 array & inout & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{evec}   & 2D real double array & inout & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_orthonormalize\_ev\_complex}(handle, ovlp, evec)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle                 & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle            & inout & ELSI handle.\\
 \hline
-\texttt{ovlp}   & complex double, rank-2 array & in    & Overlap matrix in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{ovlp}   & 2D complex double array & in    & Overlap matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
-\texttt{evec}   & complex double, rank-2 array & inout & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{evec}   & 2D complex double array & inout & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_orthonormalize\_ev\_real\_sparse}(handle, ovlp, evec)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle              & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle         & inout & ELSI handle.\\
 \hline
-\texttt{ovlp}   & real double, rank-1 array & in    & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
+\texttt{ovlp}   & 1D real double array & in    & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{evec}   & real double, rank-2 array & inout & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{evec}   & 2D real double array & inout & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_orthonormalize\_ev\_complex\_sparse}(handle, ovlp, evec)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle                 & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle            & inout & ELSI handle.\\
 \hline
-\texttt{ovlp}   & complex double, rank-1 array & in    & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
+\texttt{ovlp}   & 1D complex double array & in    & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{evec}   & complex double, rank-2 array & inout & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{evec}   & 2D complex double array & inout & Eigenvectors in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
 \hline
 \end{tabular}
 
@@ -1315,65 +1311,65 @@ In geometry optimization and molecular dynamics calculations, the initial guess 
 
 \api{elsi\_extrapolate\_dm\_\{real$\vert$complex\}\{\_sparse\}} extrapolates density matrix in the n$^\text{th}$ geometry step to the overlap matrix in the (n+1)$^\text{th}$ geometry step.
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_extrapolate\_dm\_real}(handle, ovlp, dm)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle              & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle         & inout & ELSI handle.\\
 \hline
-\texttt{ovlp}   & real double, rank-2 array & inout & Overlap matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{ovlp}   & 2D real double array & inout & Overlap matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
 \hline
-\texttt{dm}     & real double, rank-2 array & inout & Density matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 2.\\
+\texttt{dm}     & 2D real double array & inout & Density matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 2.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_extrapolate\_dm\_complex}(handle, ovlp, dm)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle                 & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle            & inout & ELSI handle.\\
 \hline
-\texttt{ovlp}   & complex double, rank-2 array & inout & Overlap matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{ovlp}   & 2D complex double array & inout & Overlap matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
 \hline
-\texttt{dm}     & complex double, rank-2 array & inout & Density matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 2.\\
+\texttt{dm}     & 2D complex double array & inout & Density matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 2.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_extrapolate\_dm\_real\_sparse}(handle, ovlp, dm)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle              & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle         & inout & ELSI handle.\\
 \hline
-\texttt{ovlp}   & real double, rank-1 array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 1.\\
+\texttt{ovlp}   & 1D real double array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 1.\\
 \hline
-\texttt{dm}     & real double, rank-1 array & out   & Density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 2.\\
+\texttt{dm}     & 1D real double array & out   & Density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 2.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_extrapolate\_dm\_complex\_sparse}(handle, ovlp, dm)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_handle                 & inout & ELSI handle.\\
+\texttt{handle} & elsi\_handle            & inout & ELSI handle.\\
 \hline
-\texttt{ovlp}   & complex double, rank-1 array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 1.\\
+\texttt{ovlp}   & 1D complex double array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 1.\\
 \hline
-\texttt{dm}     & complex double, rank-1 array & out   & Density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 2.\\
+\texttt{dm}     & 1D complex double array & out   & Density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 2.\\
 \hline
 \end{tabular}
 
 \textbf{Remarks}
 
-(1) \texttt{ovlp}: This should be the overlap matrix in the (n+1)$^\text{th}$ geometry step. \api{elsi\_set\_save\_ovlp} must have been called to store the overlap matrix in the n$^\text{th}$ geometry step internally. Depending on the chosen solver, \texttt{ovlp} may be overridden by its Cholesky factorization, which will be reused by subsequent calls to the solver interfaces.
+(1) \texttt{ovlp}: This should be the overlap matrix in the (n+1)$^\text{th}$ geometry step. \api{elsi\_set\_save\_ovlp} must have been called to store the overlap matrix in the n$^\text{th}$ geometry step internally. Depending on the chosen solver, \texttt{ovlp} may be overridden by its Cholesky factorization, which can be reused by subsequent calls to the solver interfaces.
 
 (2) \texttt{dm}: When using \api{elsi\_extrapolate\_dm\_\{real$\vert$complex\}}, input should be the density matrix in the n$^\text{th}$ geometry step. Output is the extrapolated density matrix. When using \api{elsi\_extrapolate\_dm\_\{real$\vert$complex\}\{\_sparse\}}, the density matrix in the n$^\text{th}$ geometry step is stored internally. Output is the extrapolated density matrix.
 
@@ -1385,7 +1381,7 @@ Writing the distributed matrices into $\text{N}_\text{procs}$ separate files, wh
 
 \subsection{Setting Up Matrix I/O}
 \label{subsec:rw_init}
-An \texttt{elsi\_rw\_handle} must be initialized via the \api{elsi\_init\_rw} subroutine before any other matrix I/O subroutine may be called. This \texttt{elsi\_rw\_handle} is subsequently passed to all other matrix I/O subroutine calls.
+An \texttt{elsi\_rw\_handle} must be initialized via the \api{elsi\_init\_rw} subroutine before any other matrix I/O subroutine may be called. This \texttt{elsi\_rw\_handle} must be passed to all other matrix I/O subroutine calls.
 
 \begin{tabular}[]{|p{25mm}|p{25mm}|p{10mm}|p{102mm}|}
 \multicolumn{4}{l}{\api{elsi\_init\_rw}(handle, task, parallel\_mode, n\_basis, n\_electron)}\\
@@ -1407,21 +1403,21 @@ An \texttt{elsi\_rw\_handle} must be initialized via the \api{elsi\_init\_rw} su
 
 \textbf{Remarks}
 
-(1) \texttt{n\_electron}: Matrices written out with ELSI matrix I/O are usually from actual electronic structure calculations. Having the number of electrons available makes the matrix file useful for testing density matrix solvers such as PEXSI. Therefore, it is recommended to set the correct number of electrons when initializing an matrix I/O handle, although setting it to an arbitrary number will not affect the matrix I/O operation.
+(1) \texttt{n\_electron}: Matrices written out with ELSI matrix I/O are usually from actual electronic structure calculations. Having the number of electrons available makes the matrix file useful for testing density matrix solvers such as PEXSI. Therefore, it is recommended to set the correct number of electrons when initializing an matrix I/O handle, although setting it to an arbitrary number does not affect the matrix I/O operation.
 
-(2) \texttt{n\_basis}: This can be set to an arbitrary value if \texttt{task} is ``\texttt{READ\_MATRIX}''. Its value will be read from file when calling \api{elsi\_read\_mat\_dim} or \api{elsi\_read\_mat\_dim\_sparse}.
+(2) \texttt{n\_basis}: This can be set to an arbitrary value if \texttt{task} is ``\texttt{READ\_MATRIX}''. Its value is read from file when calling \api{elsi\_read\_mat\_dim} or \api{elsi\_read\_mat\_dim\_sparse}.
 
 The MPI communicator which encloses the MPI tasks to perform the matrix I/O operation needs to be passed into ELSI via the \api{elsi\_set\_rw\_mpi} subroutine.
 
 \begin{tabular}[]{|p{25mm}|p{25mm}|p{10mm}|p{102mm}|}
-\multicolumn{4}{l}{\api{elsi\_set\_rw\_mpi}(handle, mpi\_comm)}\\
+\multicolumn{4}{l}{\api{elsi\_set\_rw\_mpi}(handle, comm)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}    & elsi\_rw\_handle & inout & ELSI matrix I/O handle.\\
+\texttt{handle} & elsi\_rw\_handle & inout & ELSI matrix I/O handle.\\
 \hline
-\texttt{mpi\_comm} & integer          & in    & MPI communicator.\\
+\texttt{comm}   & integer          & in    & MPI communicator.\\
 \hline
 \end{tabular}
 
@@ -1441,7 +1437,7 @@ When reading or writing a dense matrix, BLACS parameters are passed into ELSI vi
 \hline
 \end{tabular}
 
-When writing a sparse matrix, its dimensions are passed into ELSI via the \api{elsi\_set\_rw\_csc} subroutine. The only sparse matrix format currently supported by ELSI matrix I/O is the ``\texttt{PEXSI\_CSC}'' format. When reading a sparse matrix, there is no need to call this subroutine. The relevant parameters will be read from file when calling \api{elsi\_read\_mat\_dim} or \api{elsi\_read\_mat\_dim\_sparse}.
+When writing a sparse matrix, its dimensions are passed into ELSI via the \api{elsi\_set\_rw\_csc} subroutine. The only sparse matrix format currently supported by ELSI matrix I/O is the ``\texttt{PEXSI\_CSC}'' format. When reading a sparse matrix, there is no need to call this subroutine. The relevant parameters are read from file when calling \api{elsi\_read\_mat\_dim} or \api{elsi\_read\_mat\_dim\_sparse}.
 
 \begin{tabular}[]{|p{25mm}|p{25mm}|p{10mm}|p{102mm}|}
 \multicolumn{4}{l}{\api{elsi\_set\_rw\_csc}(handle, global\_nnz, local\_nnz, local\_col)}\\
@@ -1475,75 +1471,75 @@ When a matrix I/O instance is no longer needed, its associated handle should be 
 \label{subsec:rw_write}
 \api{elsi\_write\_mat\_\{real$\vert$complex\}} writes a dense matrix to file. Before writing a dense matrix, MPI and BLACS should be set up properly using \api{elsi\_set\_rw\_mpi} and \api{elsi\_set\_rw\_blacs}.
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_write\_mat\_real}(handle, filename, mat)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}   & elsi\_rw\_handle          & in & ELSI matrix I/O handle.\\
+\texttt{handle}   & elsi\_rw\_handle     & in & ELSI matrix I/O handle.\\
 \hline
-\texttt{filename} & string                    & in & Name of file to write.\\
+\texttt{filename} & string               & in & Name of file to write.\\
 \hline
-\texttt{mat}      & real double, rank-2 array & in & Matrix in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{mat}      & 2D real double array & in & Matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_write\_mat\_complex}(handle, filename, mat)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}   & elsi\_rw\_handle             & in & ELSI matrix I/O handle.\\
+\texttt{handle}   & elsi\_rw\_handle        & in & ELSI matrix I/O handle.\\
 \hline
-\texttt{filename} & string                       & in & Name of file to write.\\
+\texttt{filename} & string                  & in & Name of file to write.\\
 \hline
-\texttt{mat}      & complex double, rank-2 array & in & Matrix in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{mat}      & 2D complex double array & in & Matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
 \end{tabular}
 
 \api{elsi\_write\_mat\_\{real$\vert$complex\}\_sparse} writes a sparse matrix to file. Before writing a sparse matrix, MPI and CSC matrix format should be set up properly using \api{elsi\_set\_rw\_mpi} and \api{elsi\_set\_rw\_csc}.
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_write\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}   & elsi\_rw\_handle          & in & ELSI matrix I/O handle.\\
+\texttt{handle}   & elsi\_rw\_handle     & in & ELSI matrix I/O handle.\\
 \hline
-\texttt{filename} & string                    & in & Name of file to write.\\
+\texttt{filename} & string               & in & Name of file to write.\\
 \hline
-\texttt{row\_idx} & integer, rank-1 array     & in & Local row index array.\\
+\texttt{row\_idx} & 1D integer array     & in & Local row index array.\\
 \hline
-\texttt{col\_ptr} & integer, rank-1 array     & in & Local column pointer array.\\
+\texttt{col\_ptr} & 1D integer array     & in & Local column pointer array.\\
 \hline
-\texttt{mat}      & real double, rank-1 array & in & Matrix in ``\texttt{PEXSI\_CSC}'' format.\\
+\texttt{mat}      & 1D real double array & in & Matrix in ``\texttt{PEXSI\_CSC}'' format.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_write\_mat\_complex\_sparse}(handle, filename, row\_idx, col\_ptr, mat)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}   & elsi\_rw\_handle             & in & ELSI matrix I/O handle.\\
+\texttt{handle}   & elsi\_rw\_handle        & in & ELSI matrix I/O handle.\\
 \hline
-\texttt{filename} & string                       & in & Name of file to write.\\
+\texttt{filename} & string                  & in & Name of file to write.\\
 \hline
-\texttt{row\_idx} & integer, rank-1 array        & in & Local row index array.\\
+\texttt{row\_idx} & 1D integer array        & in & Local row index array.\\
 \hline
-\texttt{col\_ptr} & integer, rank-1 array        & in & Local column pointer array.\\
+\texttt{col\_ptr} & 1D integer array        & in & Local column pointer array.\\
 \hline
-\texttt{mat}      & complex double, rank-1 array & in & Matrix in ``\texttt{PEXSI\_CSC}'' format.\\
+\texttt{mat}      & 1D complex double array & in & Matrix in ``\texttt{PEXSI\_CSC}'' format.\\
 \hline
 \end{tabular}
 
-When writing a dense matrix to file, values smaller than a predefined threshold will be discarded. The default value of this threshold is $10^{-15}$. It can be overridden via \api{elsi\_set\_rw\_zero\_def}.
+When writing a dense matrix to file, values smaller than a predefined threshold are discarded. The default value of this threshold is $10^{-15}$. It can be overridden via \api{elsi\_set\_rw\_zero\_def}.
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_set\_rw\_zero\_def}(handle, zero\_def)}\\
 \multicolumn{4}{l}{}\\
 \hline
@@ -1551,21 +1547,21 @@ When writing a dense matrix to file, values smaller than a predefined threshold 
 \hline
 \texttt{handle}    & elsi\_rw\_handle & inout & ELSI matrix I/O handle.\\
 \hline
-\texttt{zero\_def} & real double      & in    & When writing a dense matrix to file, values below this threshold will be discarded.\\
+\texttt{zero\_def} & real double      & in    & When writing a dense matrix to file, values below this threshold are discarded.\\
 \hline
 \end{tabular}
 
-An array of eight user-defined integers can be optionally set up via \api{elsi\_set\_rw\_header}. This array will be attached to the matrix file written out by \api{elsi\_write\_mat\_\{real$\vert$complex\}\{\_sparse\}}. When reading a matrix file, this array may be retrieved via \api{elsi\_get\_rw\_header}.
+An array of eight user-defined integers can be optionally set up via \api{elsi\_set\_rw\_header}. This array is attached to the matrix file written out by \api{elsi\_write\_mat\_\{real$\vert$complex\}\{\_sparse\}}. When reading a matrix file, this array may be retrieved via \api{elsi\_get\_rw\_header}.
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_set\_rw\_header}(handle, header)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_rw\_handle      & inout & ELSI matrix I/O handle.\\
+\texttt{handle} & elsi\_rw\_handle & inout & ELSI matrix I/O handle.\\
 \hline
-\texttt{header} & integer, rank-1 array & in    & An array of eight integers.\\
+\texttt{header} & 1D integer array & in    & An array of eight integers.\\
 \hline
 \end{tabular}
 
@@ -1575,7 +1571,7 @@ An array of eight user-defined integers can be optionally set up via \api{elsi\_
 
 Before reading a dense matrix, MPI and BLACS should be set up properly using \api{elsi\_set\_rw\_mpi} and \api{elsi\_set\_rw\_blacs}. \api{elsi\_read\_mat\_dim} is used to read the dimension of a matrix, including the number of electrons in the physical system (for testing purpose), the global size of the matrix, and the local size of the matrix. Memory needs to be allocated according to the return values of \texttt{local\_row} and \texttt{local\_col}. Then \api{elsi\_read\_mat\_\{real$\vert$complex\}} may be called to read a real or complex matrix, respectively.
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_read\_mat\_dim}(handle, filename, n\_electron, n\_basis, local\_row, local\_col)}\\
 \multicolumn{4}{l}{}\\
 \hline
@@ -1595,37 +1591,37 @@ Before reading a dense matrix, MPI and BLACS should be set up properly using \ap
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_read\_mat\_real}(handle, filename, mat)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}   & elsi\_rw\_handle          & inout & ELSI matrix I/O handle.\\
+\texttt{handle}   & elsi\_rw\_handle     & inout & ELSI matrix I/O handle.\\
 \hline
-\texttt{filename} & string                    & in    & Name of file to read.\\
+\texttt{filename} & string               & in    & Name of file to read.\\
 \hline
-\texttt{mat}      & real double, rank-2 array & out   & Matrix in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{mat}      & 2D real double array & out   & Matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_read\_mat\_complex}(handle, filename, mat)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}   & elsi\_rw\_handle             & inout & ELSI matrix I/O handle.\\
+\texttt{handle}   & elsi\_rw\_handle        & inout & ELSI matrix I/O handle.\\
 \hline
-\texttt{filename} & string                       & in    & Name of file to read.\\
+\texttt{filename} & string                  & in    & Name of file to read.\\
 \hline
-\texttt{mat}      & complex double, rank-2 array & out   & Matrix in ``\texttt{BLACS\_DENSE}'' format.\\
+\texttt{mat}      & 2D complex double array & out   & Matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
 \end{tabular}
 
 Before reading a sparse matrix, MPI should be set up properly using \api{elsi\_set\_rw\_mpi}. \api{elsi\_read\_mat\_dim\_sparse} is used to read the dimension of a matrix, including the number of electrons in the physical system (for testing purpose), the global size of the matrix, and the local size of the matrix. Memory needs to be allocated according to the return values of \texttt{local\_nnz} and \texttt{local\_col}. Then \api{elsi\_read\_mat\_\{real$\vert$complex\}\_sparse} may be called to read a real or complex matrix, respectively.
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_read\_mat\_dim\_sparse}(handle, filename, n\_electron, n\_basis, global\_nnz, local\_nnz, local\_col)}\\
 \multicolumn{4}{l}{}\\
 \hline
@@ -1647,53 +1643,53 @@ Before reading a sparse matrix, MPI should be set up properly using \api{elsi\_s
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_read\_mat\_real\_sparse}(handle, filename, row\_idx, col\_ptr, mat)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}   & elsi\_rw\_handle          & inout & ELSI matrix I/O handle.\\
+\texttt{handle}   & elsi\_rw\_handle     & inout & ELSI matrix I/O handle.\\
 \hline
-\texttt{filename} & string                    & in    & Name of file to read.\\
+\texttt{filename} & string               & in    & Name of file to read.\\
 \hline
-\texttt{row\_idx} & integer, rank-1 array     & out   & Local row index array.\\
+\texttt{row\_idx} & 1D integer array     & out   & Local row index array.\\
 \hline
-\texttt{col\_ptr} & integer, rank-1 array     & out   & Local column pointer array.\\
+\texttt{col\_ptr} & 1D integer array     & out   & Local column pointer array.\\
 \hline
-\texttt{mat}      & real double, rank-1 array & out   & Matrix in ``\texttt{PEXSI\_CSC}'' format.\\
+\texttt{mat}      & 1D real double array & out   & Matrix in ``\texttt{PEXSI\_CSC}'' format.\\
 \hline
 \end{tabular}
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_read\_mat\_complex\_sparse}(handle, filename, row\_idx, col\_ptr, mat)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle}   & elsi\_rw\_handle             & inout & ELSI matrix I/O handle.\\
+\texttt{handle}   & elsi\_rw\_handle        & inout & ELSI matrix I/O handle.\\
 \hline
-\texttt{filename} & string                       & in    & Name of file to read.\\
+\texttt{filename} & string                  & in    & Name of file to read.\\
 \hline
-\texttt{row\_idx} & integer, rank-1 array        & out   & Local row index array.\\
+\texttt{row\_idx} & 1D integer array        & out   & Local row index array.\\
 \hline
-\texttt{col\_ptr} & integer, rank-1 array        & out   & Local column pointer array.\\
+\texttt{col\_ptr} & 1D integer array        & out   & Local column pointer array.\\
 \hline
-\texttt{mat}      & complex double, rank-1 array & out   & Matrix in ``\texttt{PEXSI\_CSC}'' format.\\
+\texttt{mat}      & 1D complex double array & out   & Matrix in ``\texttt{PEXSI\_CSC}'' format.\\
 \hline
 \end{tabular}
 
-An array of eight user-defined integers can be optionally set up via \api{elsi\_set\_rw\_header}. This array will be attached to the matrix file written out by \api{elsi\_write\_mat\_\{real$\vert$complex\}\{\_sparse\}}. When reading a matrix file, this array may be retrieved via \api{elsi\_get\_rw\_header}.
+An array of eight user-defined integers can be optionally set up via \api{elsi\_set\_rw\_header}. This array is attached to the matrix file written out by \api{elsi\_write\_mat\_\{real$\vert$complex\}\{\_sparse\}}. When reading a matrix file, this array may be retrieved via \api{elsi\_get\_rw\_header}.
 
-\begin{tabular}[]{|p{20mm}|p{45mm}|p{10mm}|p{87mm}|}
+\begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_get\_rw\_header}(handle, header)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{in/out}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{handle} & elsi\_rw\_handle       & inout & ELSI matrix I/O handle.\\
+\texttt{handle} & elsi\_rw\_handle  & inout & ELSI matrix I/O handle.\\
 \hline
-\texttt{header} & integer, rank-1 array  & out   & An array of eight integers.\\
+\texttt{header} & 1D integer array  & out   & An array of eight integers.\\
 \hline
 \end{tabular}
 
