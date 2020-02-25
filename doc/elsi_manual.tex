@@ -1309,7 +1309,7 @@ In geometry optimization and molecular dynamics calculations, the initial guess 
 
 (1) Even when using \api{elsi\_orthonormalize\_ev\_\{real$\vert$complex\}\_sparse}, the eigenvectors are still stored in a dense format (``\texttt{BLACS\_DENSE}''), as they are in general not sparse.
 
-\api{elsi\_extrapolate\_dm\_\{real$\vert$complex\}\{\_sparse\}} extrapolates density matrix in the n$^\text{th}$ geometry step to the overlap matrix in the (n+1)$^\text{th}$ geometry step.
+\api{elsi\_extrapolate\_dm\_\{real$\vert$complex\}\{\_sparse\}} extrapolates density matrix in the n$^\text{th}$ geometry step to the overlap matrix in the (n+1)$^\text{th}$ geometry step. \api{elsi\_set\_save\_ovlp} must have been called to store the relevant matrices in the n$^\text{th}$ geometry step within ELSI.
 
 \begin{tabular}[]{|p{20mm}|p{40mm}|p{10mm}|p{92mm}|}
 \multicolumn{4}{l}{\api{elsi\_extrapolate\_dm\_real}(handle, ovlp, dm)}\\
@@ -1319,9 +1319,9 @@ In geometry optimization and molecular dynamics calculations, the initial guess 
 \hline
 \texttt{handle} & elsi\_handle         & inout & ELSI handle.\\
 \hline
-\texttt{ovlp}   & 2D real double array & inout & Overlap matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{ovlp}   & 2D real double array & in    & New overlap matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
-\texttt{dm}     & 2D real double array & inout & Density matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 2.\\
+\texttt{dm}     & 2D real double array & out   & New density matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
 \end{tabular}
 
@@ -1333,9 +1333,9 @@ In geometry optimization and molecular dynamics calculations, the initial guess 
 \hline
 \texttt{handle} & elsi\_handle            & inout & ELSI handle.\\
 \hline
-\texttt{ovlp}   & 2D complex double array & inout & Overlap matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 1.\\
+\texttt{ovlp}   & 2D complex double array & in    & New overlap matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
-\texttt{dm}     & 2D complex double array & inout & Density matrix in ``\texttt{BLACS\_DENSE}'' format. See remark 2.\\
+\texttt{dm}     & 2D complex double array & out   & New density matrix in ``\texttt{BLACS\_DENSE}'' format.\\
 \hline
 \end{tabular}
 
@@ -1347,9 +1347,9 @@ In geometry optimization and molecular dynamics calculations, the initial guess 
 \hline
 \texttt{handle} & elsi\_handle         & inout & ELSI handle.\\
 \hline
-\texttt{ovlp}   & 1D real double array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 1.\\
+\texttt{ovlp}   & 1D real double array & in    & New overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{dm}     & 1D real double array & out   & Density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 2.\\
+\texttt{dm}     & 1D real double array & out   & New density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
 \end{tabular}
 
@@ -1361,17 +1361,11 @@ In geometry optimization and molecular dynamics calculations, the initial guess 
 \hline
 \texttt{handle} & elsi\_handle            & inout & ELSI handle.\\
 \hline
-\texttt{ovlp}   & 1D complex double array & inout & Overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 1.\\
+\texttt{ovlp}   & 1D complex double array & in    & New overlap matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
-\texttt{dm}     & 1D complex double array & out   & Density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format. See remark 2.\\
+\texttt{dm}     & 1D complex double array & out   & New density matrix in ``\texttt{PEXSI\_CSC}'', ``\texttt{SIESTA\_CSC}'', or ``\texttt{GENERIC\_COO}'' sparse format.\\
 \hline
 \end{tabular}
-
-\textbf{Remarks}
-
-(1) \texttt{ovlp}: This should be the overlap matrix in the (n+1)$^\text{th}$ geometry step. \api{elsi\_set\_save\_ovlp} must have been called to store the overlap matrix in the n$^\text{th}$ geometry step internally. Depending on the chosen solver, \texttt{ovlp} may be overridden by its Cholesky factorization, which can be reused by subsequent calls to the solver interfaces.
-
-(2) \texttt{dm}: When using \api{elsi\_extrapolate\_dm\_\{real$\vert$complex\}}, input should be the density matrix in the n$^\text{th}$ geometry step. Output is the extrapolated density matrix. When using \api{elsi\_extrapolate\_dm\_\{real$\vert$complex\}\{\_sparse\}}, the density matrix in the n$^\text{th}$ geometry step is stored internally. Output is the extrapolated density matrix.
 
 \section{Parallel Matrix I/O}
 \label{sec:rw}
