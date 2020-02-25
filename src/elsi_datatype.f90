@@ -12,7 +12,6 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANT, only: N_SOLVERS
    use ELSI_PRECISION, only: r8,i4
    use ELPA, only: elpa_t,elpa_autotune_t
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
@@ -139,10 +138,6 @@ module ELSI_DATATYPE
       logical :: first_siesta_to_pexsi
       logical :: first_sips_to_blacs
       logical :: first_sips_to_ntpoly
-
-      ! Solver decision
-      integer(kind=i4) :: decision_stage
-      real(kind=r8) :: decision_data(N_SOLVERS-1)
 
       ! ELPA
       integer(kind=i4) :: elpa_solver
@@ -282,11 +277,14 @@ module ELSI_DATATYPE
       ! Auxiliary
       real(kind=r8), allocatable :: ovlp_real_copy(:,:)
       complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
+      real(kind=r8), allocatable :: dm_real_copy(:,:)
+      complex(kind=r8), allocatable :: dm_cmplx_copy(:,:)
       real(kind=r8), allocatable :: occ(:,:,:)
       real(kind=r8), allocatable :: omm_c_real(:,:)
       complex(kind=r8), allocatable :: omm_c_cmplx(:,:)
       real(kind=r8), allocatable :: pexsi_ne_vec(:)
       type(Matrix_ps) :: nt_ovlp_copy
+      type(Matrix_ps) :: nt_dm_copy
       type(Matrix_ps) :: nt_map
 
       logical :: handle_init = .false.

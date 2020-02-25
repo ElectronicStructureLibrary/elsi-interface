@@ -5,15 +5,14 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! Provide interface routines to solve an eigenproblem or to compute the density
-!! matrix, using one of the solvers: ELPA, libOMM, PEXSI, SLEPc-SIPs, NTPoly.
+!! Provide interface routines to eigensolvers and density matrix solvers.
 !!
 module ELSI_SOLVER
 
    use ELSI_BSEPACK, only: elsi_solve_bsepack
    use ELSI_CONSTANT, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
        NTPOLY_SOLVER,EIGENEXA_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,MULTI_PROC,&
-       SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,DECISION_WIP,DECISION_DONE
+       SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,GENERIC_COO
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_DECISION, only: elsi_decide_ev,elsi_decide_dm
    use ELSI_EIGENEXA, only: elsi_init_eigenexa,elsi_solve_eigenexa
@@ -188,7 +187,9 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
       if(.not. allocated(eh%ovlp_real_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_real_copy",caller)
+      end if
 
+      if(eh%ph%n_calls == 1) then
          eh%ovlp_real_copy = ovlp
       end if
    end if
@@ -208,11 +209,9 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    case(SIPS_SOLVER)
       call elsi_init_sips(eh%ph,eh%bh)
 
-      if(allocated(eh%ovlp_real_copy)) then
+      if(eh%ph%sips_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%sips_n_elpa+1) then
          ! Restore overlap
          ovlp = eh%ovlp_real_copy
-
-         call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
       end if
 
       if(.not. allocated(eh%row_ind_sp1)) then
@@ -602,8 +601,6 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
    character(len=29) :: dt0
    character(len=200) :: msg
 
-   integer(kind=i4), allocatable :: mask(:,:)
-
    character(len=*), parameter :: caller = "elsi_dm_real"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -624,11 +621,13 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       solver = ELPA_SOLVER
    end if
 
-   if(eh%ph%solver /= solver .or. eh%ph%decision_stage == DECISION_WIP) then
+   if(eh%ph%solver /= solver .or. eh%ph%save_ovlp) then
       if(.not. allocated(eh%ovlp_real_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_real_copy",caller)
+      end if
 
+      if(eh%ph%n_calls == 1) then
          eh%ovlp_real_copy = ovlp
       end if
    end if
@@ -651,22 +650,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
               eh%ph%n_kpts,"occ",caller)
       end if
 
-      if(eh%ph%decision_stage == DECISION_DONE) then
-         if(allocated(eh%ovlp_real_copy)) then
-            ovlp = eh%ovlp_real_copy
-
-            call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
-         end if
-      end if
-
       call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eh%eval,eh%evec_real)
-
-      if(eh%ph%decision_stage == DECISION_WIP) then
-         ham = ovlp
-         ovlp = eh%ovlp_real_copy
-         eh%ovlp_real_copy = ham
-      end if
-
       call elsi_get_occ_for_dm(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%evec_real,dm)
@@ -679,13 +663,11 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_init_omm(eh%ph,eh%bh)
 
-      if(allocated(eh%ovlp_real_copy)) then
+      if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
          if(eh%ph%omm_flavor == 0) then
             ! Restore overlap
             ovlp = eh%ovlp_real_copy
          end if
-
-         call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
       end if
 
       if(.not. allocated(eh%omm_c_real)) then
@@ -776,22 +758,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
               eh%ph%n_kpts,"occ",caller)
       end if
 
-      if(eh%ph%decision_stage == DECISION_DONE) then
-         if(allocated(eh%ovlp_real_copy)) then
-            ovlp = eh%ovlp_real_copy
-
-            call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
-         end if
-      end if
-
       call elsi_solve_eigenexa(eh%ph,eh%bh,ham,ovlp,eh%eval,eh%evec_real)
-
-      if(eh%ph%decision_stage == DECISION_WIP) then
-         ham = ovlp
-         ovlp = eh%ovlp_real_copy
-         eh%ovlp_real_copy = ham
-      end if
-
       call elsi_get_occ_for_dm(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%evec_real,dm)
@@ -801,11 +768,10 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       eh%ph%evec_ready = .true.
       eh%ph%occ_ready = .true.
    case(SIPS_SOLVER)
-      if(allocated(eh%ovlp_real_copy)) then
+      if(eh%ph%sips_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%sips_n_elpa+1) then
          ! Restore overlap
          ovlp = eh%ovlp_real_copy
 
-         call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
          call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
       end if
 
@@ -890,41 +856,13 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
 
    eh%ph%edm_ready = .true.
 
-   ! Save information for density matrix extrapolation
    if(eh%ph%save_ovlp) then
-      select case(eh%ph%solver)
-      case(ELPA_SOLVER,EIGENEXA_SOLVER)
-         if(.not. allocated(eh%ovlp_real_copy)) then
-            call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
-                 eh%bh%n_lcol,"ovlp_real_copy",caller)
+      if(.not. allocated(eh%dm_real_copy)) then
+         call elsi_allocate(eh%bh,eh%dm_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
+              "dm_real_copy",caller)
+      end if
 
-            eh%ovlp_real_copy = ovlp
-         end if
-      case default
-         if(.not. allocated(eh%nt_ovlp_copy%local_data_r)) then
-            call elsi_init_ntpoly(eh%ph,eh%bh)
-
-            eh%ph%unit_ovlp = .true.
-            eh%ph%first_blacs_to_ntpoly = .true.
-
-            call elsi_allocate(eh%bh,mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
-                 caller)
-
-            if(allocated(eh%ovlp_real_copy)) then
-               call elsi_blacs_to_mask(eh%ph,eh%bh,eh%ovlp_real_copy,ham,mask)
-               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,eh%ovlp_real_copy,ham,&
-                    mask,eh%nt_ovlp_copy,eh%nt_ham)
-            else
-               call elsi_blacs_to_mask(eh%ph,eh%bh,ovlp,ham,mask)
-               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,mask,&
-                    eh%nt_ovlp_copy,eh%nt_ham)
-            end if
-
-            eh%ph%unit_ovlp = .false.
-
-            call elsi_deallocate(eh%bh,mask,"mask")
-         end if
-      end select
+      eh%dm_real_copy = dm
    end if
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
@@ -950,8 +888,6 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
    character(len=29) :: dt0
    character(len=200) :: msg
 
-   integer(kind=i4), allocatable :: mask(:,:)
-
    character(len=*), parameter :: caller = "elsi_dm_complex"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -968,11 +904,13 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       solver = ELPA_SOLVER
    end if
 
-   if(eh%ph%solver /= solver .or. eh%ph%decision_stage == DECISION_WIP) then
+   if(eh%ph%solver /= solver .or. eh%ph%save_ovlp) then
       if(.not. allocated(eh%ovlp_cmplx_copy)) then
          call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
               "ovlp_cmplx_copy",caller)
+      end if
 
+      if(eh%ph%n_calls == 1) then
          eh%ovlp_cmplx_copy = ovlp
       end if
    end if
@@ -995,22 +933,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
               eh%ph%n_kpts,"occ",caller)
       end if
 
-      if(eh%ph%decision_stage == DECISION_DONE) then
-         if(allocated(eh%ovlp_cmplx_copy)) then
-            ovlp = eh%ovlp_cmplx_copy
-
-            call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
-         end if
-      end if
-
       call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eh%eval,eh%evec_cmplx)
-
-      if(eh%ph%decision_stage == DECISION_WIP) then
-         ham = ovlp
-         ovlp = eh%ovlp_cmplx_copy
-         eh%ovlp_cmplx_copy = ham
-      end if
-
       call elsi_get_occ_for_dm(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%evec_cmplx,dm)
@@ -1023,13 +946,11 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_init_omm(eh%ph,eh%bh)
 
-      if(allocated(eh%ovlp_cmplx_copy)) then
+      if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
          if(eh%ph%omm_flavor == 0) then
             ! Restore overlap
             ovlp = eh%ovlp_cmplx_copy
          end if
-
-         call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
       end if
 
       if(.not. allocated(eh%omm_c_cmplx)) then
@@ -1124,40 +1045,13 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
 
    eh%ph%edm_ready = .true.
 
-   ! Save information for density matrix extrapolation
    if(eh%ph%save_ovlp) then
-      if(eh%ph%solver == ELPA_SOLVER) then
-         if(.not. allocated(eh%ovlp_cmplx_copy)) then
-            call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
-                 eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
-
-            eh%ovlp_cmplx_copy = ovlp
-         end if
-      else
-         if(.not. allocated(eh%nt_ovlp_copy%local_data_c)) then
-            call elsi_init_ntpoly(eh%ph,eh%bh)
-
-            eh%ph%unit_ovlp = .true.
-            eh%ph%first_blacs_to_ntpoly = .true.
-
-            call elsi_allocate(eh%bh,mask,eh%bh%n_lrow,eh%bh%n_lcol,"mask",&
-                 caller)
-
-            if(allocated(eh%ovlp_cmplx_copy)) then
-               call elsi_blacs_to_mask(eh%ph,eh%bh,eh%ovlp_cmplx_copy,ham,mask)
-               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,eh%ovlp_cmplx_copy,ham,&
-                    mask,eh%nt_ovlp_copy,eh%nt_ham)
-            else
-               call elsi_blacs_to_mask(eh%ph,eh%bh,ovlp,ham,mask)
-               call elsi_blacs_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,mask,&
-                    eh%nt_ovlp_copy,eh%nt_ham)
-            end if
-
-            eh%ph%unit_ovlp = .false.
-
-            call elsi_deallocate(eh%bh,mask,"mask")
-         end if
+      if(.not. allocated(eh%dm_real_copy)) then
+         call elsi_allocate(eh%bh,eh%dm_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
+              "dm_real_copy",caller)
       end if
+
+      eh%dm_real_copy = dm
    end if
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
@@ -1266,31 +1160,15 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          if(.not. allocated(eh%ovlp_real_copy)) then
             call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_real_copy",caller)
-
-            eh%ovlp_real_copy = eh%ovlp_real_den
          end if
-      end if
 
-      if(eh%ph%decision_stage == DECISION_DONE) then
-         if(allocated(eh%ovlp_real_copy)) then
-            eh%ovlp_real_den = eh%ovlp_real_copy
-
-            call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
+         if(eh%ph%n_calls == 1) then
+            eh%ovlp_real_copy = eh%ovlp_real_den
          end if
       end if
 
       call elsi_solve_elpa(eh%ph,eh%bh,eh%ham_real_den,eh%ovlp_real_den,&
            eh%eval,eh%evec_real)
-
-      if(eh%ph%decision_stage == DECISION_WIP) then
-         if(.not. allocated(eh%ovlp_real_copy)) then
-            call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
-                 eh%bh%n_lcol,"ovlp_real_copy",caller)
-
-            eh%ovlp_real_copy = eh%ovlp_real_den
-         end if
-      end if
-
       call elsi_get_occ_for_dm(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%evec_real,eh%dm_real_den)
@@ -1384,11 +1262,11 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      if(allocated(eh%ovlp_real_copy)) then
-         ! Restore overlap
-         eh%ovlp_real_den = eh%ovlp_real_copy
-
-         call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
+      if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
+         if(eh%ph%omm_flavor == 0) then
+            ! Restore overlap
+            eh%ovlp_real_den = eh%ovlp_real_copy
+         end if
       end if
 
       call elsi_solve_omm(eh%ph,eh%bh,eh%ham_real_den,eh%ovlp_real_den,&
@@ -1555,26 +1433,8 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
               eh%ph%n_kpts,"occ",caller)
       end if
 
-      if(eh%ph%decision_stage == DECISION_DONE) then
-         if(allocated(eh%ovlp_real_copy)) then
-            eh%ovlp_real_den = eh%ovlp_real_copy
-
-            call elsi_deallocate(eh%bh,eh%ovlp_real_copy,"ovlp_real_copy")
-         end if
-      end if
-
       call elsi_solve_eigenexa(eh%ph,eh%bh,eh%ham_real_den,eh%ovlp_real_den,&
            eh%eval,eh%evec_real)
-
-      if(eh%ph%decision_stage == DECISION_WIP) then
-         if(.not. allocated(eh%ovlp_real_copy)) then
-            call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
-                 eh%bh%n_lcol,"ovlp_real_copy",caller)
-
-            eh%ovlp_real_copy = eh%ovlp_real_den
-         end if
-      end if
-
       call elsi_get_occ_for_dm(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%evec_real,eh%dm_real_den)
@@ -1761,63 +1621,35 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
 
    eh%ph%edm_ready = .true.
 
-   ! Save information for density matrix extrapolation
    if(eh%ph%save_ovlp) then
-      if(eh%ph%solver == ELPA_SOLVER) then
-         if(.not. allocated(eh%ovlp_real_copy)) then
-            call elsi_allocate(eh%bh,eh%ovlp_real_copy,eh%bh%n_lrow,&
-                 eh%bh%n_lcol,"ovlp_real_copy",caller)
+      call elsi_init_ntpoly(eh%ph,eh%bh)
 
-            eh%ovlp_real_copy = eh%ovlp_real_den
+      select case(eh%ph%matrix_format)
+      case(PEXSI_CSC)
+         if(eh%ph%n_calls == 1) then
+            eh%ph%first_sips_to_ntpoly = .true.
          end if
 
-         eh%ham_real_den = eh%dm_real_den
-      else
-         if(.not. allocated(eh%nt_ovlp_copy%local_data_r)) then
-            call elsi_init_ntpoly(eh%ph,eh%bh)
-
-            eh%ph%unit_ovlp = .true.
-
-            select case(eh%ph%matrix_format)
-            case(PEXSI_CSC)
-               eh%ph%first_sips_to_ntpoly = .true.
-
-               call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%nt_ovlp_copy,eh%nt_ham)
-            case(SIESTA_CSC)
-               eh%ph%first_siesta_to_ntpoly = .true.
-
-               call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
-                    eh%row_ind_sp2,eh%col_ptr_sp2,eh%nt_ovlp_copy,eh%nt_ham)
-            case(GENERIC_COO)
-               eh%ph%first_generic_to_ntpoly = .true.
-
-               call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
-                    eh%row_ind_sp3,eh%col_ind_sp3,eh%nt_ovlp_copy,eh%nt_ham,&
-                    eh%nt_map)
-            case default
-               write(msg,"(A)") "Unsupported matrix format"
-               call elsi_stop(eh%bh,msg,caller)
-            end select
-
-            eh%ph%unit_ovlp = .false.
+         call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp1,&
+              eh%col_ptr_sp1,eh%nt_dm_copy,eh%nt_ovlp_copy)
+      case(SIESTA_CSC)
+         if(eh%ph%n_calls == 1) then
+            eh%ph%first_siesta_to_ntpoly = .true.
          end if
 
-         select case(eh%ph%matrix_format)
-         case(PEXSI_CSC)
-            call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp1,&
-                 eh%col_ptr_sp1,eh%nt_ham,eh%nt_ovlp_copy)
-         case(SIESTA_CSC)
-            call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp2,&
-                 eh%col_ptr_sp2,eh%nt_ham,eh%nt_ovlp_copy)
-         case(GENERIC_COO)
-            call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp3,&
-                 eh%col_ind_sp3,eh%nt_ham,eh%nt_ovlp_copy,eh%nt_map)
-         case default
-            write(msg,"(A)") "Unsupported matrix format"
-            call elsi_stop(eh%bh,msg,caller)
-         end select
-      end if
+         call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp2,&
+              eh%col_ptr_sp2,eh%nt_dm_copy,eh%nt_ovlp_copy)
+      case(GENERIC_COO)
+         if(eh%ph%n_calls == 1) then
+            eh%ph%first_generic_to_ntpoly = .true.
+         end if
+
+         call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp3,&
+              eh%col_ind_sp3,eh%nt_dm_copy,eh%nt_ovlp_copy,eh%nt_map)
+      case default
+         write(msg,"(A)") "Unsupported matrix format"
+         call elsi_stop(eh%bh,msg,caller)
+      end select
    end if
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
@@ -1922,31 +1754,15 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          if(.not. allocated(eh%ovlp_cmplx_copy)) then
             call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
                  eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
-
-            eh%ovlp_cmplx_copy = eh%ovlp_cmplx_den
          end if
-      end if
 
-      if(eh%ph%decision_stage == DECISION_DONE) then
-         if(allocated(eh%ovlp_cmplx_copy)) then
-            eh%ovlp_cmplx_den = eh%ovlp_cmplx_copy
-
-            call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
+         if(eh%ph%n_calls == 1) then
+            eh%ovlp_cmplx_copy = eh%ovlp_cmplx_den
          end if
       end if
 
       call elsi_solve_elpa(eh%ph,eh%bh,eh%ham_cmplx_den,eh%ovlp_cmplx_den,&
            eh%eval,eh%evec_cmplx)
-
-      if(eh%ph%decision_stage == DECISION_WIP) then
-         if(.not. allocated(eh%ovlp_cmplx_copy)) then
-            call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
-                 eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
-
-            eh%ovlp_cmplx_copy = eh%ovlp_cmplx_den
-         end if
-      end if
-
       call elsi_get_occ_for_dm(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%evec_cmplx,eh%dm_cmplx_den)
@@ -2041,11 +1857,11 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      if(allocated(eh%ovlp_cmplx_copy)) then
-         ! Restore overlap
-         eh%ovlp_cmplx_den = eh%ovlp_cmplx_copy
-
-         call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
+      if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
+         if(eh%ph%omm_flavor == 0) then
+            ! Restore overlap
+            eh%ovlp_cmplx_den = eh%ovlp_cmplx_copy
+         end if
       end if
 
       call elsi_solve_omm(eh%ph,eh%bh,eh%ham_cmplx_den,eh%ovlp_cmplx_den,&
@@ -2198,63 +2014,35 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
 
    eh%ph%edm_ready = .true.
 
-   ! Save information for density matrix extrapolation
    if(eh%ph%save_ovlp) then
-      if(eh%ph%solver == ELPA_SOLVER) then
-         if(.not. allocated(eh%ovlp_cmplx_copy)) then
-            call elsi_allocate(eh%bh,eh%ovlp_cmplx_copy,eh%bh%n_lrow,&
-                 eh%bh%n_lcol,"ovlp_cmplx_copy",caller)
+      call elsi_init_ntpoly(eh%ph,eh%bh)
 
-            eh%ovlp_cmplx_copy = eh%ovlp_cmplx_den
+      select case(eh%ph%matrix_format)
+      case(PEXSI_CSC)
+         if(eh%ph%n_calls == 1) then
+            eh%ph%first_sips_to_ntpoly = .true.
          end if
 
-         eh%ham_cmplx_den = eh%dm_cmplx_den
-      else
-         if(.not. allocated(eh%nt_ovlp_copy%local_data_r)) then
-            call elsi_init_ntpoly(eh%ph,eh%bh)
-
-            eh%ph%unit_ovlp = .true.
-
-            select case(eh%ph%matrix_format)
-            case(PEXSI_CSC)
-               eh%ph%first_sips_to_ntpoly = .true.
-
-               call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,eh%row_ind_sp1,&
-                    eh%col_ptr_sp1,eh%nt_ovlp_copy,eh%nt_ham)
-            case(SIESTA_CSC)
-               eh%ph%first_siesta_to_ntpoly = .true.
-
-               call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
-                    eh%row_ind_sp2,eh%col_ptr_sp2,eh%nt_ovlp_copy,eh%nt_ham)
-            case(GENERIC_COO)
-               eh%ph%first_generic_to_ntpoly = .true.
-
-               call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,ovlp,ham,&
-                    eh%row_ind_sp3,eh%col_ind_sp3,eh%nt_ovlp_copy,eh%nt_ham,&
-                    eh%nt_map)
-            case default
-               write(msg,"(A)") "Unsupported matrix format"
-               call elsi_stop(eh%bh,msg,caller)
-            end select
-
-            eh%ph%unit_ovlp = .false.
+         call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp1,&
+              eh%col_ptr_sp1,eh%nt_dm_copy,eh%nt_ovlp_copy)
+      case(SIESTA_CSC)
+         if(eh%ph%n_calls == 1) then
+            eh%ph%first_siesta_to_ntpoly = .true.
          end if
 
-         select case(eh%ph%matrix_format)
-         case(PEXSI_CSC)
-            call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp1,&
-                 eh%col_ptr_sp1,eh%nt_ham,eh%nt_ovlp_copy)
-         case(SIESTA_CSC)
-            call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp2,&
-                 eh%col_ptr_sp2,eh%nt_ham,eh%nt_ovlp_copy)
-         case(GENERIC_COO)
-            call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp3,&
-                 eh%col_ind_sp3,eh%nt_ham,eh%nt_ovlp_copy,eh%nt_map)
-         case default
-            write(msg,"(A)") "Unsupported matrix format"
-            call elsi_stop(eh%bh,msg,caller)
-         end select
-      end if
+         call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp2,&
+              eh%col_ptr_sp2,eh%nt_dm_copy,eh%nt_ovlp_copy)
+      case(GENERIC_COO)
+         if(eh%ph%n_calls == 1) then
+            eh%ph%first_generic_to_ntpoly = .true.
+         end if
+
+         call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp3,&
+              eh%col_ind_sp3,eh%nt_dm_copy,eh%nt_ovlp_copy,eh%nt_map)
+      case default
+         write(msg,"(A)") "Unsupported matrix format"
+         call elsi_stop(eh%bh,msg,caller)
+      end select
    end if
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)

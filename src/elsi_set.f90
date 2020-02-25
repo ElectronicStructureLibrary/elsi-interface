@@ -5,11 +5,10 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! Provide routines to modify parameters of ELSI and the solvers.
+!! Provide routines to set parameters of ELSI and the solvers.
 !!
 module ELSI_SET
 
-   use ELSI_CONSTANT, only: SINGLE_PROC
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_MPI, only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
@@ -185,8 +184,7 @@ subroutine elsi_set_output_log(eh,output_log)
 end subroutine
 
 !>
-!! Set whether to save the overlap matrix or its Cholesky factor for density
-!! matrix extrapolation.
+!! Set whether to save the overlap matrix for density matrix extrapolation.
 !!
 subroutine elsi_set_save_ovlp(eh,save_ovlp)
 

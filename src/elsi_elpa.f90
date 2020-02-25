@@ -9,7 +9,7 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANT, only: LT_MAT,UT_MAT,UNSET,ELPA_SOLVER,DECISION_WIP
+   use ELSI_CONSTANT, only: LT_MAT,UT_MAT,UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4,&
@@ -228,10 +228,6 @@ subroutine elsi_reduce_evp_elpa_real(ph,bh,ham,ovlp,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_stage == DECISION_WIP) then
-      ph%decision_data(ELPA_SOLVER) = t1-t0
-   end if
-
 end subroutine
 
 !>
@@ -345,10 +341,6 @@ subroutine elsi_back_ev_elpa_real(ph,bh,ham,ovlp,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_stage == DECISION_WIP) then
-      ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
-   end if
-
 end subroutine
 
 !>
@@ -419,10 +411,6 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_stage == DECISION_WIP) then
-      ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
-   end if
-
    ! Back-transform eigenvectors
    if(.not. ph%unit_ovlp) then
       call elsi_back_ev_elpa(ph,bh,ham,ovlp,evec)
@@ -436,7 +424,7 @@ end subroutine
 !! Extrapolate density matrix using Cholesky decomposition of the old and new
 !! overlap matrices.
 !!
-subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm)
+subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm0,dm1)
 
    implicit none
 
@@ -444,58 +432,48 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm)
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(inout) :: ovlp0(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp1(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: dm0(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: dm1(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    character(len=200) :: msg
 
-   real(kind=r8), allocatable :: tmp(:,:)
-
    character(len=*), parameter :: caller = "elsi_update_dm_elpa_real"
 
    call elsi_get_time(t0)
 
-   if(ph%elpa_first) then
-      call elsi_factor_ovlp_elpa(ph,bh,ovlp1)
-   end if
+   ! ovlp0 = U_0
+   call elsi_elpa_cholesky(ph,bh,ovlp0)
 
-   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
+   ! ovlp1 = (U_1)^(-1)
+   call elsi_factor_ovlp_elpa(ph,bh,ovlp1)
 
-   ! tmp = U_1^(-T)
-   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,tmp,1,1,&
+   ! dm1 = U_1^(-T)
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,dm1,1,1,&
         bh%desc)
 
-   ! ovlp0 = U_0
-   call elsi_elpa_invert(ph,bh,ovlp0)
-
    ! ovlp1 = U_1^(-1) U_0
-   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,tmp,ovlp0,ovlp1)
+   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,dm1,ovlp0,ovlp1)
 
    ! ovlp0 = U_0^T U_1^(-T)
    call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,ovlp0,1,1,&
         bh%desc)
 
    ! ovlp1 = U_1^(-1) U_0 P_0
-   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,ovlp0,dm,ovlp1)
+   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,ovlp0,dm0,ovlp1)
 
-   ! dm = P_0 U_0^T U_1^(-T)
-   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,dm,1,1,&
+   ! dm0 = P_0 U_0^T U_1^(-T)
+   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,dm0,1,1,&
         bh%desc)
 
    ! ovlp1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
-   call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm,ovlp1)
+   call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm0,ovlp1)
 
    call elsi_set_full_mat(ph,bh,LT_MAT,ovlp1)
 
-   ! dm = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
-   dm = ovlp1
-
-   ! ovlp1 = U_1^(-1)
-   call pdtran(ph%n_basis,ph%n_basis,1.0_r8,tmp,1,1,bh%desc,0.0_r8,ovlp1,1,1,&
-        bh%desc)
-
-   call elsi_deallocate(bh,tmp,"tmp")
+   ! dm1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
+   dm1 = ovlp1
 
    call elsi_get_time(t1)
 
@@ -503,8 +481,6 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
-
-   ph%elpa_first = .false.
 
 end subroutine
 
@@ -592,10 +568,6 @@ subroutine elsi_reduce_evp_elpa_cmplx(ph,bh,ham,ovlp,evec)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
-
-   if(ph%decision_stage == DECISION_WIP) then
-      ph%decision_data(ELPA_SOLVER) = t1-t0
-   end if
 
 end subroutine
 
@@ -710,10 +682,6 @@ subroutine elsi_back_ev_elpa_cmplx(ph,bh,ham,ovlp,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_stage == DECISION_WIP) then
-      ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
-   end if
-
 end subroutine
 
 !>
@@ -784,10 +752,6 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
 
-   if(ph%decision_stage == DECISION_WIP) then
-      ph%decision_data(ELPA_SOLVER) = ph%decision_data(ELPA_SOLVER)+t1-t0
-   end if
-
    ! Back-transform eigenvectors
    if(.not. ph%unit_ovlp) then
       call elsi_back_ev_elpa(ph,bh,ham,ovlp,evec)
@@ -801,7 +765,7 @@ end subroutine
 !! Extrapolate density matrix using Cholesky decomposition of the old and new
 !! overlap matrices.
 !!
-subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm)
+subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm0,dm1)
 
    implicit none
 
@@ -809,58 +773,48 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm)
    type(elsi_basic_t), intent(in) :: bh
    complex(kind=r8), intent(inout) :: ovlp0(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp1(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(inout) :: dm(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: dm0(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(out) :: dm1(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    character(len=200) :: msg
 
-   complex(kind=r8), allocatable :: tmp(:,:)
-
    character(len=*), parameter :: caller = "elsi_update_dm_elpa_cmplx"
 
    call elsi_get_time(t0)
 
-   if(ph%elpa_first) then
-      call elsi_factor_ovlp_elpa(ph,bh,ovlp1)
-   end if
-
-   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
-
-   ! tmp = U_1^(-T)
-   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
-        (0.0_r8,0.0_r8),tmp,1,1,bh%desc)
-
    ! ovlp0 = U_0
-   call elsi_elpa_invert(ph,bh,ovlp0)
+   call elsi_elpa_cholesky(ph,bh,ovlp0)
+
+   ! ovlp1 = (U_1)^(-1)
+   call elsi_factor_ovlp_elpa(ph,bh,ovlp1)
+
+   ! dm1 = U_1^(-T)
+   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
+        (0.0_r8,0.0_r8),dm1,1,1,bh%desc)
 
    ! ovlp1 = U_1^(-1) U_0
-   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,tmp,ovlp0,ovlp1)
+   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,dm1,ovlp0,ovlp1)
 
    ! ovlp0 = U_0^T U_1^(-T)
    call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
         (0.0_r8,0.0_r8),ovlp0,1,1,bh%desc)
 
    ! ovlp1 = U_1^(-1) U_0 P_0
-   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,ovlp0,dm,ovlp1)
+   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,ovlp0,dm0,ovlp1)
 
-   ! dm = P_0 U_0^T U_1^(-T)
+   ! dm0 = P_0 U_0^T U_1^(-T)
    call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
-        (0.0_r8,0.0_r8),dm,1,1,bh%desc)
+        (0.0_r8,0.0_r8),dm0,1,1,bh%desc)
 
    ! ovlp1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
-   call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm,ovlp1)
+   call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm0,ovlp1)
 
    call elsi_set_full_mat(ph,bh,LT_MAT,ovlp1)
 
-   ! dm = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
-   dm = ovlp1
-
-   ! ovlp1 = U_1^(-1)
-   call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),tmp,1,1,bh%desc,&
-        (0.0_r8,0.0_r8),ovlp1,1,1,bh%desc)
-
-   call elsi_deallocate(bh,tmp,"tmp")
+   ! dm1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
+   dm1 = ovlp1
 
    call elsi_get_time(t1)
 
@@ -868,8 +822,6 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
-
-   ph%elpa_first = .false.
 
 end subroutine
 

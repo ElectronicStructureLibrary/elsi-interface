@@ -10,8 +10,8 @@
 !!
 module ELSI_DECISION
 
-   use ELSI_CONSTANT, only: N_SOLVERS,AUTO_SOLVER,ELPA_SOLVER,PEXSI_SOLVER,&
-       NTPOLY_SOLVER,UNSET,DECISION_INIT,DECISION_WIP,DECISION_DONE
+   use ELSI_CONSTANT, only: AUTO_SOLVER,ELPA_SOLVER,PEXSI_SOLVER,NTPOLY_SOLVER,&
+       UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_integer4,mpi_real8
    use ELSI_OUTPUT, only: elsi_say
@@ -74,8 +74,7 @@ subroutine elsi_decide_dm_real(ph,bh,mat)
 
    character(len=*), parameter :: caller = "elsi_decide_dm_real"
 
-   select case(ph%decision_stage)
-   case(DECISION_INIT)
+   if(ph%solver == AUTO_SOLVER) then
       if(ph%i_spin == 1 .and. ph%i_kpt == 1) then
          call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,mat,nnz_l)
 
@@ -91,9 +90,7 @@ subroutine elsi_decide_dm_real(ph,bh,mat)
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
       call elsi_decide_dm_smart(ph,bh,sparsity)
-   case(DECISION_WIP)
-      call elsi_decide_dm_stupid(ph,bh)
-   end select
+   end if
 
 end subroutine
 
@@ -115,8 +112,7 @@ subroutine elsi_decide_dm_cmplx(ph,bh,mat)
 
    character(len=*), parameter :: caller = "elsi_decide_dm_cmplx"
 
-   select case(ph%decision_stage)
-   case(DECISION_INIT)
+   if(ph%solver == AUTO_SOLVER) then
       if(ph%i_spin == 1 .and. ph%i_kpt == 1) then
          call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,mat,nnz_l)
 
@@ -132,9 +128,7 @@ subroutine elsi_decide_dm_cmplx(ph,bh,mat)
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
       call elsi_decide_dm_smart(ph,bh,sparsity)
-   case(DECISION_WIP)
-      call elsi_decide_dm_stupid(ph,bh)
-   end select
+   end if
 
 end subroutine
 
@@ -153,8 +147,7 @@ subroutine elsi_decide_dm_sparse(ph,bh)
 
    character(len=*), parameter :: caller = "elsi_decide_dm_sparse"
 
-   select case(ph%decision_stage)
-   case(DECISION_INIT)
+   if(ph%solver == AUTO_SOLVER) then
       sparsity = 1.0_r8-(1.0_r8*bh%nnz_g/ph%n_basis/ph%n_basis)
 
       call MPI_Bcast(sparsity,1,mpi_real8,0,bh%comm_all,ierr)
@@ -162,9 +155,7 @@ subroutine elsi_decide_dm_sparse(ph,bh)
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
       call elsi_decide_dm_smart(ph,bh,sparsity)
-   case(DECISION_WIP)
-      call elsi_decide_dm_stupid(ph,bh)
-   end select
+   end if
 
 end subroutine
 
@@ -226,7 +217,6 @@ subroutine elsi_decide_dm_smart(ph,bh,sparsity)
 
    if(.not. try_pexsi .and. .not. try_ntpoly) then
       ph%solver = ELPA_SOLVER
-      ph%decision_stage = DECISION_DONE
 
       write(msg,"(A)") "ELPA selected"
       call elsi_say(bh,msg)
@@ -234,7 +224,6 @@ subroutine elsi_decide_dm_smart(ph,bh,sparsity)
 
    if(try_pexsi .and. ph%dimensionality < 3) then
       ph%solver = PEXSI_SOLVER
-      ph%decision_stage = DECISION_DONE
 
       write(msg,"(A)") "PEXSI selected"
       call elsi_say(bh,msg)
@@ -242,98 +231,13 @@ subroutine elsi_decide_dm_smart(ph,bh,sparsity)
 
    if(try_ntpoly .and. ph%n_basis > 100000 .and. sparsity > 0.99_r8) then
       ph%solver = NTPOLY_SOLVER
-      ph%decision_stage = DECISION_DONE
 
       write(msg,"(A)") "NTPoly selected"
       call elsi_say(bh,msg)
    end if
 
-   if(ph%decision_stage /= DECISION_DONE) then
+   if(ph%solver == AUTO_SOLVER) then
       ph%solver = ELPA_SOLVER
-      ph%decision_stage = DECISION_WIP
-      ph%decision_data = 1.0e6_r8
-      ph%decision_data(ELPA_SOLVER) = -1.0_r8
-
-      if(try_pexsi) then
-         ph%decision_data(PEXSI_SOLVER) = -1.0_r8
-      end if
-
-      if(try_ntpoly) then
-         ph%decision_data(NTPOLY_SOLVER) = -1.0_r8
-      end if
-   end if
-
-end subroutine
-
-!>
-!! Decide which density matrix solver to use by recording their timings.
-!!
-subroutine elsi_decide_dm_stupid(ph,bh)
-
-   implicit none
-
-   type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-
-   integer(kind=i4) :: i_solver
-   integer(kind=i4) :: ierr
-   logical :: done
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_decide_dm_stupid"
-
-   done = .true.
-
-   ! Try next candidate solver
-   do i_solver = 1,N_SOLVERS-1
-      if(ph%decision_data(i_solver) < 0.0_r8) then
-         ph%solver = i_solver
-         done = .false.
-
-         exit
-      end if
-   end do
-
-   ! All candidates tried
-   if(done) then
-      ph%decision_stage = DECISION_DONE
-      ph%solver = minloc(ph%decision_data,1)
-
-      call MPI_Bcast(ph%solver,1,mpi_integer4,0,bh%comm_all,ierr)
-
-      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
-
-      write(msg,"(A)") "Finished solver selection"
-      call elsi_say(bh,msg)
-
-      do i_solver = 1,N_SOLVERS-1
-         if(ph%decision_data(i_solver) < 1.0e6_r8) then
-            select case(i_solver)
-            case(ELPA_SOLVER)
-               write(msg,"(A,F10.3,A)") "| ELPA   time :",&
-                  ph%decision_data(i_solver)," s"
-            case(PEXSI_SOLVER)
-               write(msg,"(A,F10.3,A)") "| PEXSI  time :",&
-                  ph%decision_data(i_solver)," s"
-            case(NTPOLY_SOLVER)
-               write(msg,"(A,F10.3,A)") "| NTPoly time :",&
-                  ph%decision_data(i_solver)," s"
-            end select
-
-            call elsi_say(bh,msg)
-         end if
-      end do
-
-      select case(ph%solver)
-      case(ELPA_SOLVER)
-         write(msg,"(A)") "ELPA selected"
-      case(PEXSI_SOLVER)
-         write(msg,"(A)") "PEXSI selected"
-      case(NTPOLY_SOLVER)
-         write(msg,"(A)") "NTPoly selected"
-      end select
-
-      call elsi_say(bh,msg)
    end if
 
 end subroutine

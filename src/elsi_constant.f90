@@ -78,11 +78,6 @@ module ELSI_CONSTANT
    integer(kind=i4), parameter :: EXTRA_FACTOR = 0
    integer(kind=i4), parameter :: EXTRA_TRS2 = 1
 
-   ! Solver decision
-   integer(kind=i4), parameter :: DECISION_INIT = 0
-   integer(kind=i4), parameter :: DECISION_WIP = 1
-   integer(kind=i4), parameter :: DECISION_DONE = 2
-
    ! Matrix reading and writing
    integer(kind=i4), parameter :: HEADER_SIZE = 16
    integer(kind=i4), parameter :: FILE_VERSION = 170915
