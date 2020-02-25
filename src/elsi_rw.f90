@@ -10,9 +10,8 @@
 module ELSI_RW
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANT, only: HEADER_SIZE,BLACS_DENSE,PEXSI_CSC,WRITE_FILE,&
-       REAL_DATA,CMPLX_DATA,FILE_VERSION,PEXSI_SOLVER,SIPS_SOLVER,MULTI_PROC,&
-       SINGLE_PROC,UNSET,N_PARALLEL_MODES,MASK_H
+   use ELSI_CONSTANT, only: HEADER_SIZE,WRITE_FILE,REAL_DATA,CMPLX_DATA,&
+       FILE_VERSION,MULTI_PROC,SINGLE_PROC,UNSET,N_PARALLEL_MODES,MASK_H
    use ELSI_DATATYPE, only: elsi_rw_handle,elsi_basic_t,elsi_param_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: mpi_sum,mpi_real8,mpi_complex16,mpi_integer4,&
@@ -992,7 +991,6 @@ subroutine elsi_write_mat_mp_real(rwh,f_name,mat)
    if(bh%myid == bh%n_procs-1) then
       bh%n_lcol_sp = rwh%n_basis-(bh%n_procs-1)*bh%n_lcol_sp
    end if
-
 
    call elsi_allocate(bh,mask,bh%n_lrow,bh%n_lcol,"mask",caller)
 

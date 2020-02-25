@@ -12,7 +12,6 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_CONSTANT, only: N_SOLVERS
    use ELSI_PRECISION, only: r8,i4
    use ELPA, only: elpa_t,elpa_autotune_t
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options

@@ -9,7 +9,6 @@
 !!
 module ELSI_SET
 
-   use ELSI_CONSTANT, only: SINGLE_PROC
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_MPI, only: elsi_stop
    use ELSI_PRECISION, only: r8,i4
