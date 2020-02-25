@@ -278,11 +278,14 @@ module ELSI_DATATYPE
       ! Auxiliary
       real(kind=r8), allocatable :: ovlp_real_copy(:,:)
       complex(kind=r8), allocatable :: ovlp_cmplx_copy(:,:)
+      real(kind=r8), allocatable :: dm_real_copy(:,:)
+      complex(kind=r8), allocatable :: dm_cmplx_copy(:,:)
       real(kind=r8), allocatable :: occ(:,:,:)
       real(kind=r8), allocatable :: omm_c_real(:,:)
       complex(kind=r8), allocatable :: omm_c_cmplx(:,:)
       real(kind=r8), allocatable :: pexsi_ne_vec(:)
       type(Matrix_ps) :: nt_ovlp_copy
+      type(Matrix_ps) :: nt_dm_copy
       type(Matrix_ps) :: nt_map
 
       logical :: handle_init = .false.

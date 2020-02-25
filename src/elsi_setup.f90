@@ -660,6 +660,14 @@ subroutine elsi_cleanup(eh)
       call elsi_deallocate(eh%bh,eh%ovlp_cmplx_copy,"ovlp_cmplx_copy")
    end if
 
+   if(allocated(eh%dm_real_copy)) then
+      call elsi_deallocate(eh%bh,eh%dm_real_copy,"dm_real_copy")
+   end if
+
+   if(allocated(eh%dm_cmplx_copy)) then
+      call elsi_deallocate(eh%bh,eh%dm_cmplx_copy,"dm_cmplx_copy")
+   end if
+
    if(allocated(eh%occ)) then
       call elsi_deallocate(eh%bh,eh%occ,"occ")
    end if
@@ -680,6 +688,7 @@ subroutine elsi_cleanup(eh)
    call DestructMatrix(eh%nt_ovlp)
    call DestructMatrix(eh%nt_ovlp_copy)
    call DestructMatrix(eh%nt_dm)
+   call DestructMatrix(eh%nt_dm_copy)
    call DestructMatrix(eh%nt_map)
 
    if(eh%bh%json_init) then

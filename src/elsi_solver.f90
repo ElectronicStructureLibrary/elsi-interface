@@ -856,6 +856,15 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
 
    eh%ph%edm_ready = .true.
 
+   if(eh%ph%save_ovlp) then
+      if(.not. allocated(eh%dm_real_copy)) then
+         call elsi_allocate(eh%bh,eh%dm_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
+              "dm_real_copy",caller)
+      end if
+
+      eh%dm_real_copy = dm
+   end if
+
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
 
 end subroutine
@@ -1035,6 +1044,15 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
    end select
 
    eh%ph%edm_ready = .true.
+
+   if(eh%ph%save_ovlp) then
+      if(.not. allocated(eh%dm_real_copy)) then
+         call elsi_allocate(eh%bh,eh%dm_real_copy,eh%bh%n_lrow,eh%bh%n_lcol,&
+              "dm_real_copy",caller)
+      end if
+
+      eh%dm_real_copy = dm
+   end if
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
 
@@ -1603,6 +1621,37 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
 
    eh%ph%edm_ready = .true.
 
+   if(eh%ph%save_ovlp) then
+      call elsi_init_ntpoly(eh%ph,eh%bh)
+
+      select case(eh%ph%matrix_format)
+      case(PEXSI_CSC)
+         if(eh%ph%n_calls == 1) then
+            eh%ph%first_sips_to_ntpoly = .true.
+         end if
+
+         call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp1,&
+              eh%col_ptr_sp1,eh%nt_dm_copy,eh%nt_ovlp_copy)
+      case(SIESTA_CSC)
+         if(eh%ph%n_calls == 1) then
+            eh%ph%first_siesta_to_ntpoly = .true.
+         end if
+
+         call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp2,&
+              eh%col_ptr_sp2,eh%nt_dm_copy,eh%nt_ovlp_copy)
+      case(GENERIC_COO)
+         if(eh%ph%n_calls == 1) then
+            eh%ph%first_generic_to_ntpoly = .true.
+         end if
+
+         call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp3,&
+              eh%col_ind_sp3,eh%nt_dm_copy,eh%nt_ovlp_copy,eh%nt_map)
+      case default
+         write(msg,"(A)") "Unsupported matrix format"
+         call elsi_stop(eh%bh,msg,caller)
+      end select
+   end if
+
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
 
 end subroutine
@@ -1964,6 +2013,37 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
    end select
 
    eh%ph%edm_ready = .true.
+
+   if(eh%ph%save_ovlp) then
+      call elsi_init_ntpoly(eh%ph,eh%bh)
+
+      select case(eh%ph%matrix_format)
+      case(PEXSI_CSC)
+         if(eh%ph%n_calls == 1) then
+            eh%ph%first_sips_to_ntpoly = .true.
+         end if
+
+         call elsi_sips_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp1,&
+              eh%col_ptr_sp1,eh%nt_dm_copy,eh%nt_ovlp_copy)
+      case(SIESTA_CSC)
+         if(eh%ph%n_calls == 1) then
+            eh%ph%first_siesta_to_ntpoly = .true.
+         end if
+
+         call elsi_siesta_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp2,&
+              eh%col_ptr_sp2,eh%nt_dm_copy,eh%nt_ovlp_copy)
+      case(GENERIC_COO)
+         if(eh%ph%n_calls == 1) then
+            eh%ph%first_generic_to_ntpoly = .true.
+         end if
+
+         call elsi_generic_to_ntpoly_hs(eh%ph,eh%bh,dm,ovlp,eh%row_ind_sp3,&
+              eh%col_ind_sp3,eh%nt_dm_copy,eh%nt_ovlp_copy,eh%nt_map)
+      case default
+         write(msg,"(A)") "Unsupported matrix format"
+         call elsi_stop(eh%bh,msg,caller)
+      end select
+   end if
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
 

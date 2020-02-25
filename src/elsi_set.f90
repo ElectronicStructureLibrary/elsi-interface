@@ -185,8 +185,7 @@ subroutine elsi_set_output_log(eh,output_log)
 end subroutine
 
 !>
-!! Set whether to save the overlap matrix or its Cholesky factor for density
-!! matrix extrapolation.
+!! Set whether to save the overlap matrix for density matrix extrapolation.
 !!
 subroutine elsi_set_save_ovlp(eh,save_ovlp)
 
