@@ -20,7 +20,7 @@ LIST(APPEND superlu_src
   src/dsp_blas2_dist.c
   src/dsp_blas3_dist.c
   src/dutil_dist.c
-  src/etree.c 
+  src/etree.c
   src/get_perm_c.c
   src/get_perm_c_parmetis.c
   src/mc64ad_dist.c
@@ -106,7 +106,7 @@ IF(ADD_UNDERSCORE)
 ENDIF()
 
 IF(NOT CMAKE_VERSION VERSION_LESS 3.8.2)
-  TARGET_COMPILE_FEATURES(superlu_dist PRIVATE c_std_99)
+  TARGET_COMPILE_FEATURES(superlu_dist PRIVATE c_std_99 cxx_std_11)
 ENDIF()
 
 ADD_DEPENDENCIES(superlu_dist
