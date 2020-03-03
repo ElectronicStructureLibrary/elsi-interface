@@ -62,10 +62,10 @@ program test_standard_ev_real
    call MPI_Comm_rank(mpi_comm,myid,ierr)
 
    ! Read command line arguments
-   if(COMMAND_ARGUMENT_COUNT() == 3) then
-      call GET_COMMAND_ARGUMENT(1,arg1)
-      call GET_COMMAND_ARGUMENT(2,arg2)
-      call GET_COMMAND_ARGUMENT(3,arg3)
+   if(command_argument_count() == 3) then
+      call get_command_argument(1,arg1)
+      call get_command_argument(2,arg2)
+      call get_command_argument(3,arg3)
 
       read(arg1,*) n_basis
       if(n_basis <= 0) then
@@ -137,13 +137,13 @@ program test_standard_ev_real
    allocate(mat_a(l_rows,l_cols))
    allocate(mat_tmp(l_rows,l_cols))
 
-   seed = myid
+   seed(:) = myid
 
    call random_seed(put=seed)
    call random_number(mat_a)
 
    ! Symmetrize test matrix
-   mat_tmp = mat_a
+   mat_tmp(:,:) = mat_a
 
    call pdtran(n_basis,n_basis,1.0_r8,mat_tmp,1,1,desc,1.0_r8,mat_a,1,1,desc)
 

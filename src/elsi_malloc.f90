@@ -87,7 +87,7 @@ subroutine elsi_allocate_real4_1d(bh,array,dim_1,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = 0.0_r4
+   array(:) = 0.0_r4
 
 end subroutine
 
@@ -122,7 +122,7 @@ subroutine elsi_allocate_real8_1d(bh,array,dim_1,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = 0.0_r8
+   array(:) = 0.0_r8
 
 end subroutine
 
@@ -157,7 +157,7 @@ subroutine elsi_allocate_integer4_1d(bh,array,dim_1,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = 0
+   array(:) = 0
 
 end subroutine
 
@@ -192,7 +192,7 @@ subroutine elsi_allocate_integer8_1d(bh,array,dim_1,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = 0
+   array(:) = 0
 
 end subroutine
 
@@ -227,7 +227,7 @@ subroutine elsi_allocate_complex16_1d(bh,array,dim_1,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = (0.0_r8,0.0_r8)
+   array(:) = (0.0_r8,0.0_r8)
 
 end subroutine
 
@@ -263,7 +263,7 @@ subroutine elsi_allocate_real4_2d(bh,array,dim_1,dim_2,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = 0.0_r4
+   array(:,:) = 0.0_r4
 
 end subroutine
 
@@ -299,7 +299,7 @@ subroutine elsi_allocate_real8_2d(bh,array,dim_1,dim_2,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = 0.0_r8
+   array(:,:) = 0.0_r8
 
 end subroutine
 
@@ -335,7 +335,7 @@ subroutine elsi_allocate_integer4_2d(bh,array,dim_1,dim_2,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = 0
+   array(:,:) = 0
 
 end subroutine
 
@@ -371,7 +371,7 @@ subroutine elsi_allocate_complex8_2d(bh,array,dim_1,dim_2,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = (0.0_r4,0.0_r4)
+   array(:,:) = (0.0_r4,0.0_r4)
 
 end subroutine
 
@@ -407,7 +407,7 @@ subroutine elsi_allocate_complex16_2d(bh,array,dim_1,dim_2,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = (0.0_r8,0.0_r8)
+   array(:,:) = (0.0_r8,0.0_r8)
 
 end subroutine
 
@@ -444,7 +444,7 @@ subroutine elsi_allocate_real8_3d(bh,array,dim_1,dim_2,dim_3,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = 0.0_r8
+   array(:,:,:) = 0.0_r8
 
 end subroutine
 
@@ -481,7 +481,7 @@ subroutine elsi_allocate_integer4_3d(bh,array,dim_1,dim_2,dim_3,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = 0
+   array(:,:,:) = 0
 
 end subroutine
 
@@ -518,7 +518,7 @@ subroutine elsi_allocate_complex16_3d(bh,array,dim_1,dim_2,dim_3,label,caller)
       call elsi_stop(bh,msg,caller)
    end if
 
-   array = (0.0_r8,0.0_r8)
+   array(:,:,:) = (0.0_r8,0.0_r8)
 
 end subroutine
 

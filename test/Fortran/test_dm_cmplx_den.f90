@@ -71,7 +71,7 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
    e_sq = 0.0_r8
    e_ref = e_elpa
    tol = 1.0e-8_r8
-   header = 0
+   header(:) = 0
 
    if(myid == 0) then
       write(*,"(2X,A)") "################################"
@@ -128,8 +128,8 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
 
    call elsi_finalize_rw(rwh)
 
-   ham_save = ham
-   ovlp_save = ovlp
+   ham_save(:,:) = ham
+   ovlp_save(:,:) = ovlp
 
    t2 = MPI_Wtime()
 
@@ -175,7 +175,7 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
       write(*,*)
    end if
 
-   ham = ham_save
+   ham(:,:) = ham_save
 
    t1 = MPI_Wtime()
 
@@ -190,7 +190,7 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
       write(*,*)
    end if
 
-   ham = ham_save
+   ham(:,:) = ham_save
 
    t1 = MPI_Wtime()
 
@@ -211,8 +211,8 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
    call elsi_set_omm_flavor(eh,2)
    call elsi_set_ntpoly_method(eh,1)
 
-   ham = ham_save
-   ovlp = ovlp_save
+   ham(:,:) = ham_save
+   ovlp(:,:) = ovlp_save
 
    t1 = MPI_Wtime()
 
@@ -227,7 +227,7 @@ subroutine test_dm_cmplx_den(mpi_comm,solver,h_file,s_file)
       write(*,*)
    end if
 
-   ham = ham_save
+   ham(:,:) = ham_save
 
    t1 = MPI_Wtime()
 

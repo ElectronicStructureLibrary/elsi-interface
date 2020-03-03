@@ -43,7 +43,7 @@ subroutine str_c2f(str_c,str_f)
 
    allocate(character(len=str_f_len) :: str_f)
 
-   str_f = transfer(str_c(1:str_f_len),str_f)
+   str_f(:) = transfer(str_c(1:str_f_len),str_f)
 
 end subroutine
 

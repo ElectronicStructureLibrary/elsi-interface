@@ -84,13 +84,13 @@ program test_dm_kpt_spin_cmplx_den
    e_sq = 0.0_r8
    e_ref = e_elpa
    tol = 1.0e-8_r8
-   header = 0
+   header(:) = 0
 
    ! Read command line arguments
-   if(COMMAND_ARGUMENT_COUNT() == 3) then
-      call GET_COMMAND_ARGUMENT(1,arg1)
-      call GET_COMMAND_ARGUMENT(2,arg2)
-      call GET_COMMAND_ARGUMENT(3,arg3)
+   if(command_argument_count() == 3) then
+      call get_command_argument(1,arg1)
+      call get_command_argument(2,arg2)
+      call get_command_argument(3,arg3)
       read(arg1,*) solver
    else
       if(myid == 0) then
@@ -210,8 +210,8 @@ program test_dm_kpt_spin_cmplx_den
 
    call elsi_finalize_rw(rwh)
 
-   ham_save = ham
-   ovlp_save = ovlp
+   ham_save(:,:) = ham
+   ovlp_save(:,:) = ovlp
 
    t2 = MPI_Wtime()
 
@@ -256,7 +256,7 @@ program test_dm_kpt_spin_cmplx_den
       write(*,*)
    end if
 
-   ham = ham_save
+   ham(:,:) = ham_save
 
    t1 = MPI_Wtime()
 
@@ -270,7 +270,7 @@ program test_dm_kpt_spin_cmplx_den
       write(*,*)
    end if
 
-   ham = ham_save
+   ham(:,:) = ham_save
 
    t1 = MPI_Wtime()
 
@@ -290,8 +290,8 @@ program test_dm_kpt_spin_cmplx_den
    call elsi_set_omm_flavor(eh,2)
    call elsi_set_ntpoly_method(eh,1)
 
-   ham = ham_save
-   ovlp = ovlp_save
+   ham(:,:) = ham_save
+   ovlp(:,:) = ovlp_save
 
    t1 = MPI_Wtime()
 
@@ -305,7 +305,7 @@ program test_dm_kpt_spin_cmplx_den
       write(*,*)
    end if
 
-   ham = ham_save
+   ham(:,:) = ham_save
 
    t1 = MPI_Wtime()
 

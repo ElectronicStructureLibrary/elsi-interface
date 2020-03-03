@@ -65,7 +65,7 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
    call MPI_Comm_rank(mpi_comm,myid,ierr)
 
    tol = 1.0e-8_r8
-   header = 0
+   header(:) = 0
 
    if(myid == 0) then
       write(*,"(2X,A)") "################################"
@@ -127,8 +127,8 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
 
    call elsi_finalize_rw(rwh)
 
-   ham_save = ham
-   ovlp_save = ovlp
+   ham_save(:,:) = ham
+   ovlp_save(:,:) = ovlp
 
    t2 = MPI_Wtime()
 
@@ -177,10 +177,10 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
       write(*,*)
    end if
 
-   ham = ham_save
+   ham(:,:) = ham_save
 
    if(n_proc == 1) then
-      ovlp = ovlp_save
+      ovlp(:,:) = ovlp_save
    end if
 
    t1 = MPI_Wtime()
@@ -196,10 +196,10 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
       write(*,*)
    end if
 
-   ham = ham_save
+   ham(:,:) = ham_save
 
    if(n_proc == 1) then
-      ovlp = ovlp_save
+      ovlp(:,:) = ovlp_save
    end if
 
    t1 = MPI_Wtime()
@@ -221,8 +221,8 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
    call elsi_set_eigenexa_method(eh,1)
    call elsi_set_magma_solver(eh,2)
 
-   ham = ham_save
-   ovlp = ovlp_save
+   ham(:,:) = ham_save
+   ovlp(:,:) = ovlp_save
 
    t1 = MPI_Wtime()
 
@@ -237,10 +237,10 @@ subroutine test_ev_real_den(mpi_comm,solver,h_file,s_file)
       write(*,*)
    end if
 
-   ham = ham_save
+   ham(:,:) = ham_save
 
    if(n_proc == 1) then
-      ovlp = ovlp_save
+      ovlp(:,:) = ovlp_save
    end if
 
    t1 = MPI_Wtime()

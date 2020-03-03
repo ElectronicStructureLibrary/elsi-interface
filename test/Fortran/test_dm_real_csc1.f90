@@ -74,7 +74,7 @@ subroutine test_dm_real_csc1(mpi_comm,solver,h_file,s_file)
    e_sq = 0.0_r8
    e_ref = e_elpa
    tol = 1.0e-8_r8
-   header = 0
+   header(:) = 0
 
    if(myid == 0) then
       write(*,"(2X,A)") "################################"

@@ -63,7 +63,7 @@ subroutine test_bse_real_den(mpi_comm,solver,a_file,b_file)
    call MPI_Comm_rank(mpi_comm,myid,ierr)
 
    tol = 1.0e-8_r8
-   header = 0
+   header(:) = 0
 
    if(myid == 0) then
       write(*,"(2X,A)") "################################"

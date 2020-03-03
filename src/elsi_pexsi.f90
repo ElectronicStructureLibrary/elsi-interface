@@ -278,16 +278,16 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          call f_ppexsi_inertia_count_real_matrix(ph%pexsi_plan,&
               ph%pexsi_options,n_shift,shifts,inertias,ierr)
 
-         inertias = inertias*ph%spin_degen*ph%i_wt
+         inertias(:) = inertias*ph%spin_degen*ph%i_wt
 
          ! Get global inertias
          if(ph%n_spins*ph%n_kpts > 1) then
             call elsi_allocate(bh,send_buf,n_shift,"send_buf",caller)
 
             if(bh%myid == 0) then
-               send_buf = inertias
+               send_buf(:) = inertias
             else
-               send_buf = 0.0_r8
+               send_buf(:) = 0.0_r8
             end if
 
             call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
@@ -378,9 +378,9 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    ! Get global number of electrons
    if(ph%n_spins*ph%n_kpts > 1) then
       if(bh%myid == 0) then
-         send_buf = ne_vec
+         send_buf(:) = ne_vec
       else
-         send_buf = 0.0_r8
+         send_buf(:) = 0.0_r8
       end if
 
       call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,mpi_real8,&
@@ -583,7 +583,7 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
 
    if(ph%pexsi_options%nPoints == 1) then
       ! Scale density matrix
-      tmp = (ph%n_electrons/ph%pexsi_ne)*tmp
+      tmp(:) = (ph%n_electrons/ph%pexsi_ne)*tmp
       converged = .true.
       ph%mu = shifts(1)
    else
@@ -635,9 +635,9 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
       call elsi_allocate(bh,send_buf,bh%nnz_l_sp1,"send_buf",caller)
 
       if(ph%pexsi_my_point == aux_min-1) then
-         send_buf = factor_min*tmp
+         send_buf(:) = factor_min*tmp
       else if(ph%pexsi_my_point == aux_max-1) then
-         send_buf = factor_max*tmp
+         send_buf(:) = factor_max*tmp
       end if
 
       call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,mpi_real8,mpi_sum,&
@@ -649,7 +649,7 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
    end if
 
    if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
-      dm = tmp
+      dm(:) = tmp
    end if
 
    call elsi_deallocate(bh,tmp,"tmp")
@@ -778,16 +778,16 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          call f_ppexsi_inertia_count_complex_matrix(ph%pexsi_plan,&
               ph%pexsi_options,n_shift,shifts,inertias,ierr)
 
-         inertias = inertias*ph%spin_degen*ph%i_wt
+         inertias(:) = inertias*ph%spin_degen*ph%i_wt
 
          ! Get global inertias
          if(ph%n_spins*ph%n_kpts > 1) then
             call elsi_allocate(bh,send_buf,n_shift,"send_buf",caller)
 
             if(bh%myid == 0) then
-               send_buf = inertias
+               send_buf(:) = inertias
             else
-               send_buf = 0.0_r8
+               send_buf(:) = 0.0_r8
             end if
 
             call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
@@ -878,9 +878,9 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    ! Get global number of electrons
    if(ph%n_spins*ph%n_kpts > 1) then
       if(bh%myid == 0) then
-         send_buf = ne_vec
+         send_buf(:) = ne_vec
       else
-         send_buf = 0.0_r8
+         send_buf(:) = 0.0_r8
       end if
 
       call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,mpi_real8,&
@@ -1085,7 +1085,7 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
 
    if(ph%pexsi_options%nPoints == 1) then
       ! Scale density matrix
-      tmp = (ph%n_electrons/ph%pexsi_ne)*tmp
+      tmp(:) = (ph%n_electrons/ph%pexsi_ne)*tmp
       converged = .true.
       ph%mu = shifts(1)
    else
@@ -1137,9 +1137,9 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
       call elsi_allocate(bh,send_buf,bh%nnz_l_sp1,"send_buf",caller)
 
       if(ph%pexsi_my_point == aux_min-1) then
-         send_buf = factor_min*tmp
+         send_buf(:) = factor_min*tmp
       else if(ph%pexsi_my_point == aux_max-1) then
-         send_buf = factor_max*tmp
+         send_buf(:) = factor_max*tmp
       end if
 
       call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,mpi_complex16,mpi_sum,&
@@ -1151,7 +1151,7 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
    end if
 
    if(.not. (ph%matrix_format == PEXSI_CSC .and. ph%pexsi_my_prow /= 0)) then
-      dm = tmp
+      dm(:) = tmp
    end if
 
    call elsi_deallocate(bh,tmp,"tmp")

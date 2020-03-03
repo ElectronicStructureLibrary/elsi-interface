@@ -190,7 +190,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
       end if
 
       if(eh%ph%n_calls == 1) then
-         eh%ovlp_real_copy = ovlp
+         eh%ovlp_real_copy(:,:) = ovlp
       end if
    end if
 
@@ -211,7 +211,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
 
       if(eh%ph%sips_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%sips_n_elpa+1) then
          ! Restore overlap
-         ovlp = eh%ovlp_real_copy
+         ovlp(:,:) = eh%ovlp_real_copy
       end if
 
       if(.not. allocated(eh%row_ind_sp1)) then
@@ -628,7 +628,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       end if
 
       if(eh%ph%n_calls == 1) then
-         eh%ovlp_real_copy = ovlp
+         eh%ovlp_real_copy(:,:) = ovlp
       end if
    end if
 
@@ -666,7 +666,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
          if(eh%ph%omm_flavor == 0) then
             ! Restore overlap
-            ovlp = eh%ovlp_real_copy
+            ovlp(:,:) = eh%ovlp_real_copy
          end if
       end if
 
@@ -733,7 +733,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
               caller)
       end if
 
-      eh%dm_real_sp = 0.0_r8
+      eh%dm_real_sp(:) = 0.0_r8
 
       call elsi_solve_pexsi(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
            eh%pexsi_ne_vec,eh%ham_real_sp,eh%ovlp_real_sp,eh%dm_real_sp)
@@ -770,7 +770,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
    case(SIPS_SOLVER)
       if(eh%ph%sips_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%sips_n_elpa+1) then
          ! Restore overlap
-         ovlp = eh%ovlp_real_copy
+         ovlp(:,:) = eh%ovlp_real_copy
 
          call elsi_deallocate(eh%bh,eh%evec_real,"evec_real")
       end if
@@ -821,7 +821,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
               caller)
       end if
 
-      eh%dm_real_sp = 0.0_r8
+      eh%dm_real_sp(:) = 0.0_r8
 
       call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
            eh%ham_real_sp,eh%ovlp_real_sp,eh%eval,eh%evec_real)
@@ -862,7 +862,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
               "dm_real_copy",caller)
       end if
 
-      eh%dm_real_copy = dm
+      eh%dm_real_copy(:,:) = dm
    end if
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
@@ -911,7 +911,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       end if
 
       if(eh%ph%n_calls == 1) then
-         eh%ovlp_cmplx_copy = ovlp
+         eh%ovlp_cmplx_copy(:,:) = ovlp
       end if
    end if
 
@@ -949,7 +949,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
          if(eh%ph%omm_flavor == 0) then
             ! Restore overlap
-            ovlp = eh%ovlp_cmplx_copy
+            ovlp(:,:) = eh%ovlp_cmplx_copy
          end if
       end if
 
@@ -1016,7 +1016,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
               caller)
       end if
 
-      eh%dm_cmplx_sp = (0.0_r8,0.0_r8)
+      eh%dm_cmplx_sp(:) = (0.0_r8,0.0_r8)
 
       call elsi_solve_pexsi(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
            eh%pexsi_ne_vec,eh%ham_cmplx_sp,eh%ovlp_cmplx_sp,eh%dm_cmplx_sp)
@@ -1051,7 +1051,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
               "dm_real_copy",caller)
       end if
 
-      eh%dm_real_copy = dm
+      eh%dm_real_copy(:,:) = dm
    end if
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
@@ -1163,7 +1163,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          end if
 
          if(eh%ph%n_calls == 1) then
-            eh%ovlp_real_copy = eh%ovlp_real_den
+            eh%ovlp_real_copy(:,:) = eh%ovlp_real_den
          end if
       end if
 
@@ -1265,7 +1265,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
       if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
          if(eh%ph%omm_flavor == 0) then
             ! Restore overlap
-            eh%ovlp_real_den = eh%ovlp_real_copy
+            eh%ovlp_real_den(:,:) = eh%ovlp_real_copy
          end if
       end if
 
@@ -1328,7 +1328,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
                  "dm_real_sp",caller)
          end if
 
-         eh%dm_real_sp = 0.0_r8
+         eh%dm_real_sp(:) = 0.0_r8
 
          call elsi_solve_pexsi(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
               eh%pexsi_ne_vec,eh%ham_real_sp,eh%ovlp_real_sp,eh%dm_real_sp)
@@ -1524,7 +1524,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
                  "dm_real_sp",caller)
          end if
 
-         eh%dm_real_sp = 0.0_r8
+         eh%dm_real_sp(:) = 0.0_r8
 
          call elsi_solve_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
               eh%ham_real_sp,eh%ovlp_real_sp,eh%eval,eh%evec_real)
@@ -1757,7 +1757,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          end if
 
          if(eh%ph%n_calls == 1) then
-            eh%ovlp_cmplx_copy = eh%ovlp_cmplx_den
+            eh%ovlp_cmplx_copy(:,:) = eh%ovlp_cmplx_den
          end if
       end if
 
@@ -1860,7 +1860,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
       if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
          if(eh%ph%omm_flavor == 0) then
             ! Restore overlap
-            eh%ovlp_cmplx_den = eh%ovlp_cmplx_copy
+            eh%ovlp_cmplx_den(:,:) = eh%ovlp_cmplx_copy
          end if
       end if
 
@@ -1924,7 +1924,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
                  "dm_cmplx_sp",caller)
          end if
 
-         eh%dm_cmplx_sp = (0.0_r8,0.0_r8)
+         eh%dm_cmplx_sp(:) = (0.0_r8,0.0_r8)
 
          call elsi_solve_pexsi(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
               eh%pexsi_ne_vec,eh%ham_cmplx_sp,eh%ovlp_cmplx_sp,eh%dm_cmplx_sp)

@@ -145,7 +145,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    call elsi_allocate(bh,slices,ph%sips_n_slices+1,"slices",caller)
 
    if(ph%sips_first .and. ph%elpa_first) then
-      eval = ph%sips_interval(2)
+      eval(:) = ph%sips_interval(2)
       eval(1) = ph%sips_interval(1)
    end if
 
@@ -240,7 +240,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    ! Get solutions
    call elsi_allocate(bh,eval_save,ph%n_states,"eval_save",caller)
 
-   eval_save = eval
+   eval_save(:) = eval
 
    call sips_get_eigenvalues(ph%n_states,eval(1:ph%n_states))
    call sips_get_eigenvectors(ph%n_states,bh%n_lcol_sp1,evec)
