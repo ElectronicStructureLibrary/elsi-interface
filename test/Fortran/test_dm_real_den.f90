@@ -7,16 +7,15 @@
 !>
 !! This subroutine tests real density matrix solver, BLACS_DENSE format.
 !!
-subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
+subroutine test_dm_real_den(comm,solver,h_file,s_file)
 
-   use ELSI_PRECISION, only: r8,i4
    use ELSI
+   use ELSI_MPI
+   use ELSI_PRECISION, only: r8,i4
 
    implicit none
 
-   include "mpif.h"
-
-   integer(kind=i4), intent(in) :: mpi_comm
+   integer(kind=i4), intent(in) :: comm
    integer(kind=i4), intent(in) :: solver
    character(len=*), intent(in) :: h_file
    character(len=*), intent(in) :: s_file
@@ -64,8 +63,8 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
 
    real(kind=r8), external :: ddot
 
-   call MPI_Comm_size(mpi_comm,n_proc,ierr)
-   call MPI_Comm_rank(mpi_comm,myid,ierr)
+   call MPI_Comm_size(comm,n_proc,ierr)
+   call MPI_Comm_rank(comm,myid,ierr)
 
    e_hp = 0.0_r8
    e_sq = 0.0_r8
@@ -107,12 +106,12 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
    blk = 32
 
    ! Set up BLACS
-   blacs_ctxt = mpi_comm
+   blacs_ctxt = comm
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
    ! Read H and S matrices
    call elsi_init_rw(rwh,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rwh,mpi_comm)
+   call elsi_set_rw_mpi(rwh,comm)
    call elsi_set_rw_blacs(rwh,blacs_ctxt,blk)
 
    call elsi_read_mat_dim(rwh,h_file,n_electrons,n_basis,l_rows,l_cols)
@@ -147,7 +146,7 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
    n_states = min(int(n_electrons,kind=i4),n_basis)
 
    call elsi_init(eh,solver,1,0,n_basis,n_electrons,n_states)
-   call elsi_set_mpi(eh,mpi_comm)
+   call elsi_set_mpi(eh,comm)
    call elsi_set_blacs(eh,blacs_ctxt,blk)
 
    ! Customize ELSI
@@ -248,12 +247,12 @@ subroutine test_dm_real_den(mpi_comm,solver,h_file,s_file)
    ! Compute band energy
    tmp = ddot(l_rows*l_cols,ovlp_save,1,edm,1)
 
-   call MPI_Reduce(tmp,e_sq,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
+   call MPI_Reduce(tmp,e_sq,1,MPI_REAL8,MPI_SUM,0,comm,ierr)
 
    ! Compute electron count
    tmp = ddot(l_rows*l_cols,ovlp_save,1,dm,1)
 
-   call MPI_Reduce(tmp,n_sp,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
+   call MPI_Reduce(tmp,n_sp,1,MPI_REAL8,MPI_SUM,0,comm,ierr)
 
    if(myid == 0) then
       write(*,"(2X,A)") "Finished SCF #5"

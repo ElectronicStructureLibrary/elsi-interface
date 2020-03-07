@@ -7,16 +7,15 @@
 !>
 !! This subroutine tests reading and writing real matrices.
 !!
-subroutine test_rw_real(mpi_comm,h_file,s_file)
+subroutine test_rw_real(comm,h_file,s_file)
 
-   use ELSI_PRECISION, only: r8,i4
    use ELSI
+   use ELSI_MPI
+   use ELSI_PRECISION, only: r8,i4
 
    implicit none
 
-   include "mpif.h"
-
-   integer(kind=i4), intent(in) :: mpi_comm
+   integer(kind=i4), intent(in) :: comm
    character(len=*), intent(in) :: h_file
    character(len=*), intent(in) :: s_file
 
@@ -56,8 +55,8 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
 
    real(kind=r8), parameter :: tol = 1.0e-20_r8
 
-   call MPI_Comm_size(mpi_comm,n_proc,ierr)
-   call MPI_Comm_rank(mpi_comm,myid,ierr)
+   call MPI_Comm_size(comm,n_proc,ierr)
+   call MPI_Comm_rank(comm,myid,ierr)
 
    if(myid == 0) then
       write(*,"(2X,A)") "################################"
@@ -76,7 +75,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    blk = 32
 
    ! Set up BLACS
-   blacs_ctxt = mpi_comm
+   blacs_ctxt = comm
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
    ! Read H and S matrices
@@ -86,7 +85,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    else
       ! Test MULTI_PROC mode
       call elsi_init_rw(rwh,0,1,0,0.0_r8)
-      call elsi_set_rw_mpi(rwh,mpi_comm)
+      call elsi_set_rw_mpi(rwh,comm)
       call elsi_set_rw_blacs(rwh,blacs_ctxt,blk)
    end if
 
@@ -121,7 +120,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    else
       ! Test MULTI_PROC mode
       call elsi_init_rw(rwh,1,1,n_basis,n_electrons)
-      call elsi_set_rw_mpi(rwh,mpi_comm)
+      call elsi_set_rw_mpi(rwh,comm)
       call elsi_set_rw_blacs(rwh,blacs_ctxt,blk)
    end if
 
@@ -147,7 +146,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
    else
       ! Test MULTI_PROC mode
       call elsi_init_rw(rwh,0,1,0,0.0_r8)
-      call elsi_set_rw_mpi(rwh,mpi_comm)
+      call elsi_set_rw_mpi(rwh,comm)
       call elsi_set_rw_blacs(rwh,blacs_ctxt,blk)
    end if
 
@@ -181,7 +180,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
 
    ! Read H and S matrices
    call elsi_init_rw(rwh,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rwh,mpi_comm)
+   call elsi_set_rw_mpi(rwh,comm)
 
    call elsi_read_mat_dim_sparse(rwh,h_file,n_electrons,n_basis,nnz_g,nnz_l,&
         l_cols)
@@ -213,7 +212,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
 
    ! Test MULTI_PROC mode
    call elsi_init_rw(rwh,1,1,n_basis,n_electrons)
-   call elsi_set_rw_mpi(rwh,mpi_comm)
+   call elsi_set_rw_mpi(rwh,comm)
    call elsi_set_rw_csc(rwh,nnz_g,nnz_l,l_cols)
 
    call elsi_write_mat_real_sparse(rwh,"H_real.tmp",row_ind,col_ptr,ham_csc)
@@ -231,7 +230,7 @@ subroutine test_rw_real(mpi_comm,h_file,s_file)
 
    ! Read H and S matrices
    call elsi_init_rw(rwh,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rwh,mpi_comm)
+   call elsi_set_rw_mpi(rwh,comm)
 
    call elsi_read_mat_dim_sparse(rwh,"H_real.tmp",n_electrons,n_basis,nnz_g,&
         nnz_l,l_cols)

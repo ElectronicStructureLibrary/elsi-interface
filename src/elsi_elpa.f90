@@ -12,8 +12,8 @@ module ELSI_ELPA
    use ELSI_CONSTANT, only: LT_MAT,UT_MAT,UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_integer4,&
-       mpi_comm_self
+   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,MPI_SUM,MPI_INTEGER4,&
+       MPI_COMM_SELF
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTIL, only: elsi_get_nnz,elsi_get_gid,elsi_set_full_mat
@@ -372,7 +372,7 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
          call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham,bh%nnz_l)
       end if
 
-      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
+      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    end if
@@ -713,7 +713,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
          call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham,bh%nnz_l)
       end if
 
-      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
+      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    end if
@@ -1133,10 +1133,10 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
 
    if(sing_check) then
       ok = elpa_solve_tridi_double(ph%n_basis,ph%n_basis,d,e,q,ph%n_basis,&
-         bh%blk,mpi_comm_self,mpi_comm_self)
+         bh%blk,MPI_COMM_SELF,MPI_COMM_SELF)
    else
       ok = elpa_solve_tridi_double(ph%n_good,ph%n_states_solve,d,e,q,ph%n_good,&
-         bh%blk,mpi_comm_self,mpi_comm_self)
+         bh%blk,MPI_COMM_SELF,MPI_COMM_SELF)
    end if
 
    if(.not. ok) then

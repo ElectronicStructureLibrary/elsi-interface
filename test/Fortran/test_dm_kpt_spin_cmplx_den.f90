@@ -10,12 +10,11 @@
 !!
 program test_dm_kpt_spin_cmplx_den
 
-   use ELSI_PRECISION, only: r8,i4
    use ELSI
+   use ELSI_MPI
+   use ELSI_PRECISION, only: r8,i4
 
    implicit none
-
-   include "mpif.h"
 
    character(len=100) :: arg1 ! solver
    character(len=999) :: arg2 ! H file
@@ -31,8 +30,8 @@ program test_dm_kpt_spin_cmplx_den
    integer(kind=i4) :: myid_in_group
    integer(kind=i4) :: n_group
    integer(kind=i4) :: group_size
-   integer(kind=i4) :: mpi_comm
-   integer(kind=i4) :: mpi_comm_group
+   integer(kind=i4) :: comm
+   integer(kind=i4) :: comm_group
    integer(kind=i4) :: ierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
@@ -76,9 +75,9 @@ program test_dm_kpt_spin_cmplx_den
 
    ! Initialize MPI
    call MPI_Init(ierr)
-   mpi_comm = MPI_COMM_WORLD
-   call MPI_Comm_size(mpi_comm,n_proc,ierr)
-   call MPI_Comm_rank(mpi_comm,myid,ierr)
+   comm = MPI_COMM_WORLD
+   call MPI_Comm_size(comm,n_proc,ierr)
+   call MPI_Comm_rank(comm,myid,ierr)
 
    e_hp = 0.0_r8
    e_sq = 0.0_r8
@@ -103,7 +102,7 @@ program test_dm_kpt_spin_cmplx_den
          write(*,"(2X,A)") "##  Arg#2: H matrix file                      ##"
          write(*,"(2X,A)") "##  Arg#3: S matrix file                      ##"
          write(*,"(2X,A)") "################################################"
-         call MPI_Abort(mpi_comm,0,ierr)
+         call MPI_Abort(comm,0,ierr)
          stop
       end if
    end if
@@ -118,7 +117,7 @@ program test_dm_kpt_spin_cmplx_den
                " be a multiple of 8!!  ##"
             write(*,"(2X,A)") "#############################################"//&
                "#########################"
-            call MPI_Abort(mpi_comm,0,ierr)
+            call MPI_Abort(comm,0,ierr)
             stop
          end if
       end if
@@ -131,7 +130,7 @@ program test_dm_kpt_spin_cmplx_den
                " be a multiple of 4!!  ##"
             write(*,"(2X,A)") "#############################################"//&
                "#########################"
-            call MPI_Abort(mpi_comm,0,ierr)
+            call MPI_Abort(comm,0,ierr)
             stop
          end if
       end if
@@ -169,7 +168,7 @@ program test_dm_kpt_spin_cmplx_den
    my_spin = 1+my_group/n_spin
    my_kpt = 1+mod(my_group,n_kpt)
 
-   call MPI_Comm_split(mpi_comm,my_group,myid_in_group,mpi_comm_group,ierr)
+   call MPI_Comm_split(comm,my_group,myid_in_group,comm_group,ierr)
 
    write(*,"(2X,A,I4,A,I2,A,I2)") "| Task",myid," solving spin channel",&
       my_spin," and k-point",my_kpt
@@ -184,13 +183,13 @@ program test_dm_kpt_spin_cmplx_den
    blk = 16
 
    ! Set up BLACS
-   blacs_ctxt = mpi_comm_group
+   blacs_ctxt = comm_group
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
    ! Read H and S matrices
    ! H and S are the same for all k-points and spin channels in this example
    call elsi_init_rw(rwh,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rwh,mpi_comm_group)
+   call elsi_set_rw_mpi(rwh,comm_group)
    call elsi_set_rw_blacs(rwh,blacs_ctxt,blk)
 
    call elsi_read_mat_dim(rwh,arg2,n_electrons,n_basis,l_rows,l_cols)
@@ -226,10 +225,10 @@ program test_dm_kpt_spin_cmplx_den
    n_states = min(int(n_electrons,kind=i4),n_basis)
 
    call elsi_init(eh,solver,1,0,n_basis,n_electrons,n_states)
-   call elsi_set_mpi(eh,mpi_comm_group)
+   call elsi_set_mpi(eh,comm_group)
    call elsi_set_blacs(eh,blacs_ctxt,blk)
    ! Required for spin/kpt calculations
-   call elsi_set_mpi_global(eh,mpi_comm)
+   call elsi_set_mpi_global(eh,comm)
    call elsi_set_kpoint(eh,n_kpt,my_kpt,k_weights(my_kpt))
    call elsi_set_spin(eh,n_spin,my_spin)
 
@@ -325,12 +324,12 @@ program test_dm_kpt_spin_cmplx_den
    ! Compute band energy
    tmp = real(zdotc(l_rows*l_cols,ovlp_save,1,edm,1),kind=r8)*k_weights(my_kpt)
 
-   call MPI_Reduce(tmp,e_sq,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
+   call MPI_Reduce(tmp,e_sq,1,MPI_REAL8,MPI_SUM,0,comm,ierr)
 
    ! Compute electron count
    tmp = real(zdotc(l_rows*l_cols,ovlp_save,1,dm,1),kind=r8)*k_weights(my_kpt)
 
-   call MPI_Reduce(tmp,n_sp,1,mpi_real8,mpi_sum,0,mpi_comm,ierr)
+   call MPI_Reduce(tmp,n_sp,1,MPI_REAL8,MPI_SUM,0,comm,ierr)
 
    if(myid == 0) then
       write(*,"(2X,A)") "Finished SCF #5"
@@ -370,7 +369,7 @@ program test_dm_kpt_spin_cmplx_den
 
    call BLACS_Gridexit(blacs_ctxt)
    call BLACS_Exit(1)
-   call MPI_Comm_free(mpi_comm_group,ierr)
+   call MPI_Comm_free(comm_group,ierr)
    call MPI_Finalize(ierr)
 
 end program

@@ -5,9 +5,9 @@
 !> just writing "USE MPI" does not work.
 MODULE NTMPIModule
 
-  USE MPI
-
   IMPLICIT NONE
+
+  INCLUDE "mpif.h"
 
   PUBLIC
 

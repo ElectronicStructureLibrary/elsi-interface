@@ -9,11 +9,10 @@
 !!
 program elsi_test
 
+   use ELSI_MPI
    use ELSI_PRECISION, only: i4
 
    implicit none
-
-   include "mpif.h"
 
    character(len=100) :: arg1 ! ev, dm, or bse
    character(len=100) :: arg2 ! dense or sparse

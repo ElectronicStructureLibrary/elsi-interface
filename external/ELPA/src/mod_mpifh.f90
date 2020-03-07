@@ -43,9 +43,9 @@
 
 module elpa_mpi
 
-  use mpi
-
   implicit none
+
+  include 'mpif.h'
 
   public
 

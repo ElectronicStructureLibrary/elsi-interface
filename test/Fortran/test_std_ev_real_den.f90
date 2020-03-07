@@ -10,12 +10,11 @@
 !!
 program test_standard_ev_real
 
-   use ELSI_PRECISION, only: r8,i4
    use ELSI
+   use ELSI_MPI
+   use ELSI_PRECISION, only: r8,i4
 
    implicit none
-
-   include "mpif.h"
 
    character(len=100) :: arg1
    character(len=100) :: arg2
@@ -27,7 +26,7 @@ program test_standard_ev_real
    integer(kind=i4) :: myid
    integer(kind=i4) :: myprow
    integer(kind=i4) :: mypcol
-   integer(kind=i4) :: mpi_comm
+   integer(kind=i4) :: comm
    integer(kind=i4) :: ierr
    integer(kind=i4) :: blk
    integer(kind=i4) :: blacs_ctxt
@@ -57,9 +56,9 @@ program test_standard_ev_real
 
    ! Initialize MPI
    call MPI_Init(ierr)
-   mpi_comm = MPI_COMM_WORLD
-   call MPI_Comm_size(mpi_comm,n_proc,ierr)
-   call MPI_Comm_rank(mpi_comm,myid,ierr)
+   comm = MPI_COMM_WORLD
+   call MPI_Comm_size(comm,n_proc,ierr)
+   call MPI_Comm_rank(comm,myid,ierr)
 
    ! Read command line arguments
    if(command_argument_count() == 3) then
@@ -88,7 +87,7 @@ program test_standard_ev_real
          write(*,"(2X,A)") "##         4 = EigenExa                       ##"
          write(*,"(2X,A)") "##         5 = SLEPc-SIPs                     ##"
          write(*,"(2X,A)") "################################################"
-         call MPI_Abort(mpi_comm,0,ierr)
+         call MPI_Abort(comm,0,ierr)
          stop
       end if
    end if
@@ -118,7 +117,7 @@ program test_standard_ev_real
    blk = 32
 
    ! Set up BLACS
-   blacs_ctxt = mpi_comm
+   blacs_ctxt = comm
 
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
    call BLACS_Gridinfo(blacs_ctxt,nprow,npcol,myprow,mypcol)
@@ -157,7 +156,7 @@ program test_standard_ev_real
 
    ! Initialize ELSI
    call elsi_init(eh,solver,1,0,n_basis,0.0_r8,n_states)
-   call elsi_set_mpi(eh,mpi_comm)
+   call elsi_set_mpi(eh,comm)
    call elsi_set_blacs(eh,blacs_ctxt,blk)
 
    allocate(mat_b(1,1)) ! Dummy allocation

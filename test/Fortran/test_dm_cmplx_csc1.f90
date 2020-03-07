@@ -7,16 +7,15 @@
 !>
 !! This subroutine tests complex density matrix solver, PEXSI_CSC format.
 !!
-subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
+subroutine test_dm_cmplx_csc1(comm,solver,h_file,s_file)
 
-   use ELSI_PRECISION, only: r8,i4
    use ELSI
+   use ELSI_MPI
+   use ELSI_PRECISION, only: r8,i4
 
    implicit none
 
-   include "mpif.h"
-
-   integer(kind=i4), intent(in) :: mpi_comm
+   integer(kind=i4), intent(in) :: comm
    integer(kind=i4), intent(in) :: solver
    character(len=*), intent(in) :: h_file
    character(len=*), intent(in) :: s_file
@@ -67,8 +66,8 @@ subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
 
    complex(kind=r8), external :: zdotc
 
-   call MPI_Comm_size(mpi_comm,n_proc,ierr)
-   call MPI_Comm_rank(mpi_comm,myid,ierr)
+   call MPI_Comm_size(comm,n_proc,ierr)
+   call MPI_Comm_rank(comm,myid,ierr)
 
    e_hp = 0.0_r8
    e_sq = 0.0_r8
@@ -104,8 +103,8 @@ subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
       id_in_task = myid
    end if
 
-   call MPI_Comm_split(mpi_comm,task_id,id_in_task,comm_in_task,ierr)
-   call MPI_Comm_split(mpi_comm,id_in_task,task_id,comm_among_task,ierr)
+   call MPI_Comm_split(comm,task_id,id_in_task,comm_in_task,ierr)
+   call MPI_Comm_split(comm,id_in_task,task_id,comm_among_task,ierr)
 
    if(task_id == 0) then
       ! Read H and S matrices
@@ -126,7 +125,7 @@ subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
          buffer(5) = n_l_cols
       end if
 
-      call MPI_Bcast(buffer,5,mpi_integer4,0,comm_among_task,ierr)
+      call MPI_Bcast(buffer,5,MPI_INTEGER4,0,comm_among_task,ierr)
 
       n_electrons = real(buffer(1),kind=r8)
       n_basis = buffer(2)
@@ -163,7 +162,7 @@ subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
    n_states = min(int(n_electrons,kind=i4),n_basis)
 
    call elsi_init(eh,solver,1,1,n_basis,n_electrons,n_states)
-   call elsi_set_mpi(eh,mpi_comm)
+   call elsi_set_mpi(eh,comm)
    call elsi_set_csc(eh,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
 
    ! Customize ELSI
@@ -255,12 +254,12 @@ subroutine test_dm_cmplx_csc1(mpi_comm,solver,h_file,s_file)
       ! Compute band energy
       tmp = real(zdotc(nnz_l,ovlp,1,edm,1),kind=r8)
 
-      call MPI_Reduce(tmp,e_sq,1,mpi_real8,mpi_sum,0,comm_in_task,ierr)
+      call MPI_Reduce(tmp,e_sq,1,MPI_REAL8,MPI_SUM,0,comm_in_task,ierr)
 
       ! Compute electron count
       tmp = real(zdotc(nnz_l,ovlp,1,dm,1),kind=r8)
 
-      call MPI_Reduce(tmp,n_sp,1,mpi_real8,mpi_sum,0,comm_in_task,ierr)
+      call MPI_Reduce(tmp,n_sp,1,MPI_REAL8,MPI_SUM,0,comm_in_task,ierr)
    end if
 
    if(myid == 0) then
