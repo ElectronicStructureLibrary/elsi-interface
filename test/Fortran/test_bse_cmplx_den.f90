@@ -7,16 +7,15 @@
 !>
 !! This subroutine tests real BSE solver, BLACS_DENSE format.
 !!
-subroutine test_bse_cmplx_den(mpi_comm,solver,a_file,b_file)
+subroutine test_bse_cmplx_den(comm,solver,a_file,b_file)
 
-   use ELSI_PRECISION, only: r8,i4
    use ELSI
+   use ELSI_MPI
+   use ELSI_PRECISION, only: r8,i4
 
    implicit none
 
-   include "mpif.h"
-
-   integer(kind=i4), intent(in) :: mpi_comm
+   integer(kind=i4), intent(in) :: comm
    integer(kind=i4), intent(in) :: solver
    character(len=*), intent(in) :: a_file
    character(len=*), intent(in) :: b_file
@@ -59,8 +58,8 @@ subroutine test_bse_cmplx_den(mpi_comm,solver,a_file,b_file)
 
    character(len=*), parameter :: file_name = "elsi.in"
 
-   call MPI_Comm_size(mpi_comm,n_proc,ierr)
-   call MPI_Comm_rank(mpi_comm,myid,ierr)
+   call MPI_Comm_size(comm,n_proc,ierr)
+   call MPI_Comm_rank(comm,myid,ierr)
 
    tol = 1.0e-8_r8
    header(:) = 0
@@ -86,13 +85,13 @@ subroutine test_bse_cmplx_den(mpi_comm,solver,a_file,b_file)
    blk = 8
 
    ! Set up BLACS
-   blacs_ctxt = mpi_comm
+   blacs_ctxt = comm
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
    call BLACS_Gridinfo(blacs_ctxt,nprow,npcol,myprow,mypcol)
 
    ! Read A and B matrices
    call elsi_init_rw(rwh,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rwh,mpi_comm)
+   call elsi_set_rw_mpi(rwh,comm)
    call elsi_set_rw_blacs(rwh,blacs_ctxt,blk)
 
    call elsi_read_mat_dim(rwh,a_file,n_electrons,n_basis,l_rows,l_cols)
@@ -123,7 +122,7 @@ subroutine test_bse_cmplx_den(mpi_comm,solver,a_file,b_file)
 
    ! Initialize ELSI
    call elsi_init(eh,solver,1,0,n_basis,n_electrons,n_basis)
-   call elsi_set_mpi(eh,mpi_comm)
+   call elsi_set_mpi(eh,comm)
    call elsi_set_blacs(eh,blacs_ctxt,blk)
 
    ! Customize ELSI

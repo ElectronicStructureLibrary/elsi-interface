@@ -7,16 +7,15 @@
 !>
 !! This subroutine tests complex eigensolver, PEXSI_CSC format.
 !!
-subroutine test_ev_cmplx_csc2(mpi_comm,solver,h_file,s_file)
+subroutine test_ev_cmplx_csc2(comm,solver,h_file,s_file)
 
-   use ELSI_PRECISION, only: r8,i4
    use ELSI
+   use ELSI_MPI
+   use ELSI_PRECISION, only: r8,i4
 
    implicit none
 
-   include "mpif.h"
-
-   integer(kind=i4), intent(in) :: mpi_comm
+   integer(kind=i4), intent(in) :: comm
    integer(kind=i4), intent(in) :: solver
    character(len=*), intent(in) :: h_file
    character(len=*), intent(in) :: s_file
@@ -71,8 +70,8 @@ subroutine test_ev_cmplx_csc2(mpi_comm,solver,h_file,s_file)
 
    integer(kind=i4), external :: numroc
 
-   call MPI_Comm_size(mpi_comm,n_proc,ierr)
-   call MPI_Comm_rank(mpi_comm,myid,ierr)
+   call MPI_Comm_size(comm,n_proc,ierr)
+   call MPI_Comm_rank(comm,myid,ierr)
 
    tol = 1.0e-8_r8
    header(:) = 0
@@ -98,13 +97,13 @@ subroutine test_ev_cmplx_csc2(mpi_comm,solver,h_file,s_file)
    blk = 32
 
    ! Set up BLACS
-   blacs_ctxt = mpi_comm
+   blacs_ctxt = comm
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
    call BLACS_Gridinfo(blacs_ctxt,nprow,npcol,myprow,mypcol)
 
    ! Read H and S matrices
    call elsi_init_rw(rwh,0,1,0,0.0_r8)
-   call elsi_set_rw_mpi(rwh,mpi_comm)
+   call elsi_set_rw_mpi(rwh,comm)
 
    call elsi_read_mat_dim_sparse(rwh,h_file,n_electrons,n_basis,nnz_g,nnz_l,&
         n_l_cols)
@@ -122,7 +121,7 @@ subroutine test_ev_cmplx_csc2(mpi_comm,solver,h_file,s_file)
          write(*,"(2X,A)") "################################################"//&
             "######################"
       end if
-      call MPI_Abort(mpi_comm,0,ierr)
+      call MPI_Abort(comm,0,ierr)
       stop
    else
       blk2 = n_basis/n_proc
@@ -159,7 +158,7 @@ subroutine test_ev_cmplx_csc2(mpi_comm,solver,h_file,s_file)
    weight(1) = 1.0_r8
 
    call elsi_init(eh,solver,1,2,n_basis,n_electrons,n_states)
-   call elsi_set_mpi(eh,mpi_comm)
+   call elsi_set_mpi(eh,comm)
    call elsi_set_csc(eh,nnz_g,nnz_l,n_l_cols,row_ind,col_ptr)
    call elsi_set_csc_blk(eh,blk2)
    call elsi_set_blacs(eh,blacs_ctxt,blk)

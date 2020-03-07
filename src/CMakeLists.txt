@@ -21,7 +21,6 @@ LIST(APPEND elsi_src
   elsi_interface.f90
   elsi_lapack.f90
   elsi_malloc.f90
-  elsi_mpi.f90
   elsi_ntpoly.f90
   elsi_occ.f90
   elsi_omm.f90
@@ -35,6 +34,12 @@ LIST(APPEND elsi_src
   elsi_solver.f90
   elsi_sort.f90
   elsi_util.f90)
+
+IF(USE_MPI_MODULE)
+  LIST(APPEND elsi_src elsi_mpi.f90)
+ELSE()
+  LIST(APPEND elsi_src elsi_mpifh.f90)
+ENDIF()
 
 SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/elsi_version.f90
   PROPERTIES GENERATED TRUE)

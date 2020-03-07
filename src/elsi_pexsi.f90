@@ -12,7 +12,7 @@ module ELSI_PEXSI
    use ELSI_CONSTANT, only: UNSET,PEXSI_CSC,PEXSI_DM,PEXSI_EDM,PEXSI_FDM
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8,mpi_complex16
+   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,MPI_SUM,MPI_REAL8,MPI_COMPLEX16
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_initialize,&
@@ -290,7 +290,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
                send_buf(:) = 0.0_r8
             end if
 
-            call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
+            call MPI_Allreduce(send_buf,inertias,n_shift,MPI_REAL8,MPI_SUM,&
                  bh%comm_all,ierr)
 
             call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
@@ -370,8 +370,8 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    send_buf(ph%pexsi_my_point+1) = ph%pexsi_ne*ph%i_wt
 
-   call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,mpi_real8,&
-        mpi_sum,ph%pexsi_comm_inter_point,ierr)
+   call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,MPI_REAL8,&
+        MPI_SUM,ph%pexsi_comm_inter_point,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -383,8 +383,8 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          send_buf(:) = 0.0_r8
       end if
 
-      call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,mpi_real8,&
-           mpi_sum,bh%comm_all,ierr)
+      call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,MPI_REAL8,&
+           MPI_SUM,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    end if
@@ -413,13 +413,13 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       if(ph%pexsi_my_prow == 0) then
          local_energy = ddot(bh%nnz_l_sp1,ovlp,1,dm,1)
 
-         call MPI_Reduce(local_energy,free_energy,1,mpi_real8,mpi_sum,0,&
+         call MPI_Reduce(local_energy,free_energy,1,MPI_REAL8,MPI_SUM,0,&
               ph%pexsi_comm_intra_pole,ierr)
 
          call elsi_check_mpi(bh,"MPI_Reduce",ierr,caller)
       end if
 
-      call MPI_Bcast(free_energy,1,mpi_real8,0,bh%comm,ierr)
+      call MPI_Bcast(free_energy,1,MPI_REAL8,0,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
    end if
@@ -433,13 +433,13 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    if(ph%pexsi_my_prow == 0) then
       local_energy = ddot(bh%nnz_l_sp1,ham,1,dm,1)
 
-      call MPI_Reduce(local_energy,ph%ebs,1,mpi_real8,mpi_sum,0,&
+      call MPI_Reduce(local_energy,ph%ebs,1,MPI_REAL8,MPI_SUM,0,&
            ph%pexsi_comm_intra_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Reduce",ierr,caller)
    end if
 
-   call MPI_Bcast(ph%ebs,1,mpi_real8,0,bh%comm,ierr)
+   call MPI_Bcast(ph%ebs,1,MPI_REAL8,0,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
@@ -610,7 +610,7 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
             ph%mu = shifts(i)
             converged = .true.
 
-            call MPI_Bcast(tmp,bh%nnz_l_sp1,mpi_real8,i-1,&
+            call MPI_Bcast(tmp,bh%nnz_l_sp1,MPI_REAL8,i-1,&
                  ph%pexsi_comm_inter_point,ierr)
 
             call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
@@ -640,7 +640,7 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
          send_buf(:) = factor_max*tmp
       end if
 
-      call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,mpi_real8,mpi_sum,&
+      call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,MPI_REAL8,MPI_SUM,&
            ph%pexsi_comm_inter_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
@@ -790,7 +790,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
                send_buf(:) = 0.0_r8
             end if
 
-            call MPI_Allreduce(send_buf,inertias,n_shift,mpi_real8,mpi_sum,&
+            call MPI_Allreduce(send_buf,inertias,n_shift,MPI_REAL8,MPI_SUM,&
                  bh%comm_all,ierr)
 
             call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
@@ -870,8 +870,8 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    send_buf(ph%pexsi_my_point+1) = ph%pexsi_ne*ph%i_wt
 
-   call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,mpi_real8,&
-        mpi_sum,ph%pexsi_comm_inter_point,ierr)
+   call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,MPI_REAL8,&
+        MPI_SUM,ph%pexsi_comm_inter_point,ierr)
 
    call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -883,8 +883,8 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          send_buf(:) = 0.0_r8
       end if
 
-      call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,mpi_real8,&
-           mpi_sum,bh%comm_all,ierr)
+      call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,MPI_REAL8,&
+           MPI_SUM,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
    end if
@@ -914,13 +914,13 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          local_cmplx = zdotc(bh%nnz_l_sp1,ovlp,1,dm,1)
          local_energy = real(local_cmplx,kind=r8)
 
-         call MPI_Reduce(local_energy,free_energy,1,mpi_real8,mpi_sum,0,&
+         call MPI_Reduce(local_energy,free_energy,1,MPI_REAL8,MPI_SUM,0,&
               ph%pexsi_comm_intra_pole,ierr)
 
          call elsi_check_mpi(bh,"MPI_Reduce",ierr,caller)
       end if
 
-      call MPI_Bcast(free_energy,1,mpi_real8,0,bh%comm,ierr)
+      call MPI_Bcast(free_energy,1,MPI_REAL8,0,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
    end if
@@ -935,13 +935,13 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       local_cmplx = zdotc(bh%nnz_l_sp1,ham,1,dm,1)
       local_energy = real(local_cmplx,kind=r8)
 
-      call MPI_Reduce(local_energy,ph%ebs,1,mpi_real8,mpi_sum,0,&
+      call MPI_Reduce(local_energy,ph%ebs,1,MPI_REAL8,MPI_SUM,0,&
            ph%pexsi_comm_intra_pole,ierr)
 
       call elsi_check_mpi(bh,"MPI_Reduce",ierr,caller)
    end if
 
-   call MPI_Bcast(ph%ebs,1,mpi_real8,0,bh%comm,ierr)
+   call MPI_Bcast(ph%ebs,1,MPI_REAL8,0,bh%comm,ierr)
 
    call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
@@ -1112,7 +1112,7 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
             ph%mu = shifts(i)
             converged = .true.
 
-            call MPI_Bcast(tmp,bh%nnz_l_sp1,mpi_complex16,i-1,&
+            call MPI_Bcast(tmp,bh%nnz_l_sp1,MPI_COMPLEX16,i-1,&
                  ph%pexsi_comm_inter_point,ierr)
 
             call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
@@ -1142,7 +1142,7 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
          send_buf(:) = factor_max*tmp
       end if
 
-      call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,mpi_complex16,mpi_sum,&
+      call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,MPI_COMPLEX16,MPI_SUM,&
            ph%pexsi_comm_inter_point,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)

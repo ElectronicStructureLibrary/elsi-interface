@@ -199,14 +199,14 @@ contains
           nullify(m_name%iaux1)
        end if
     end if
-!    if (associated(m_name%iaux2)) then
-!       if (m_name%iaux2_is_allocated) then
-!          deallocate(m_name%iaux2)
-!          m_name%iaux2_is_allocated=.false.
-!       else
-!          nullify(m_name%iaux2)
-!       end if
-!    end if
+    if (associated(m_name%iaux2)) then
+       if (m_name%iaux2_is_allocated) then
+          deallocate(m_name%iaux2)
+          m_name%iaux2_is_allocated=.false.
+       else
+          nullify(m_name%iaux2)
+       end if
+    end if
     if (associated(m_name%iaux3)) then
        if (m_name%iaux3_is_allocated) then
           deallocate(m_name%iaux3)
@@ -1515,7 +1515,6 @@ contains
 
   subroutine m_ztrace(A,alpha,label)
     implicit none
-    include 'mpif.h'
 
     !**** INPUT ***********************************!
 
@@ -1529,16 +1528,9 @@ contains
 
     !**** INTERNAL ********************************!
 
-    integer :: ot, i, j
+    integer :: ot, i
 
     real(dp) :: real_alpha
-
-    complex(dp) :: alpha_loc
-
-    integer :: l_row, l_col
-    integer :: g_row, g_col
-    integer :: ms_lap_myprow, ms_lap_mypcol
-    integer :: mpierr
 
     !**** EXTERNAL ********************************!
 
@@ -1595,32 +1587,7 @@ contains
           alpha=alpha+A%zval(i,i)
        end do
     case (2)
-!       alpha=pzlatra(A%dim1,A%zval,1,1,A%iaux1)
-
-       alpha_loc = (0.0_dp,0.0_dp)
-
-       call blacs_pcoord(ms_lap_icontxt,ms_mpi_rank,ms_lap_myprow,ms_lap_mypcol)
-
-       l_row = numroc(A%dim1,ms_lap_bs_def,ms_lap_myprow,0,ms_lap_nprow)
-       l_col = numroc(A%dim1,ms_lap_bs_def,ms_lap_mypcol,0,ms_lap_npcol)
-
-       do i = 1,l_col
-          g_col = ms_lap_mypcol*ms_lap_bs_def+&
-                     (i-1)/ms_lap_bs_def*ms_lap_bs_def*ms_lap_npcol+&
-                     i-(i-1)/ms_lap_bs_def*ms_lap_bs_def
-
-          do j = 1,l_row
-             g_row = ms_lap_myprow*ms_lap_bs_def+&
-                        (j-1)/ms_lap_bs_def*ms_lap_bs_def*ms_lap_nprow+&
-                        j-(j-1)/ms_lap_bs_def*ms_lap_bs_def
-
-             if(g_row == g_col) then
-                alpha_loc = alpha_loc+A%zval(j,i)
-             endif
-          enddo
-       enddo
-
-       call mpi_allreduce(alpha_loc,alpha,1,mpi_complex16,mpi_sum,ms_mpi_comm,mpierr)
+       alpha=pzlatra(A%dim1,A%zval,1,1,A%iaux1)
     end select
 
   end subroutine m_ztrace
@@ -1630,8 +1597,9 @@ contains
   ! alpha := tr(A^H*B) = tr(B*A^H)                 !
   !================================================!
   subroutine mm_dtrace(A,B,alpha,label)
+    use ms_mpi
+
     implicit none
-    include 'mpif.h'
 
     !**** INPUT ***********************************!
 
@@ -1727,8 +1695,9 @@ contains
   end subroutine mm_dtrace
 
   subroutine mm_ztrace(A,B,alpha,label)
+    use ms_mpi
+
     implicit none
-    include 'mpif.h'
 
     !**** INPUT ***********************************!
 
@@ -2735,15 +2704,16 @@ contains
   !================================================!
   ! implementation: ScaLAPACK                      !
   !================================================!
-  subroutine ms_scalapack_setup(mpi_comm,nprow,order,bs_def,bs_list,icontxt)
+  subroutine ms_scalapack_setup(mpi_comm_in,nprow,order,bs_def,bs_list,icontxt)
+    use ms_mpi
+
     implicit none
-    include 'mpif.h'
 
     !**** INPUT ***********************************!
 
     character(1), intent(in) :: order ! ordering of processor grid: 'r/R' or other for row-major, 'c/C' for column-major
 
-    integer, intent(in) :: mpi_comm ! MPI communicator
+    integer, intent(in) :: mpi_comm_in ! MPI communicator
     integer, intent(in) :: nprow ! number of rows in the processor grid
     integer, intent(in) :: bs_def ! default block size
     ! This is a list of exceptions to the default block size for specific matrix dimension sizes. The list has to be formatted as:
@@ -2761,7 +2731,7 @@ contains
 
     !**********************************************!
 
-    ms_mpi_comm=mpi_comm
+    ms_mpi_comm=mpi_comm_in
     call mpi_comm_size(ms_mpi_comm,ms_mpi_size,mpi_err)
     call mpi_comm_rank(ms_mpi_comm,ms_mpi_rank,mpi_err)
     ms_lap_nprow=nprow

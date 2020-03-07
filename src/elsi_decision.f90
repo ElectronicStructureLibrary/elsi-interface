@@ -13,7 +13,7 @@ module ELSI_DECISION
    use ELSI_CONSTANT, only: AUTO_SOLVER,ELPA_SOLVER,PEXSI_SOLVER,NTPOLY_SOLVER,&
        UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_MPI, only: elsi_check_mpi,mpi_sum,mpi_integer4,mpi_real8
+   use ELSI_MPI, only: elsi_check_mpi,MPI_SUM,MPI_INTEGER4,MPI_REAL8
    use ELSI_OUTPUT, only: elsi_say
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTIL, only: elsi_get_nnz
@@ -78,14 +78,14 @@ subroutine elsi_decide_dm_real(ph,bh,mat)
       if(ph%i_spin == 1 .and. ph%i_kpt == 1) then
          call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,mat,nnz_l)
 
-         call MPI_Allreduce(nnz_l,nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
+         call MPI_Allreduce(nnz_l,nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
 
          call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
          sparsity = 1.0_r8-(1.0_r8*nnz_g/ph%n_basis/ph%n_basis)
       end if
 
-      call MPI_Bcast(sparsity,1,mpi_real8,0,bh%comm_all,ierr)
+      call MPI_Bcast(sparsity,1,MPI_REAL8,0,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
@@ -116,14 +116,14 @@ subroutine elsi_decide_dm_cmplx(ph,bh,mat)
       if(ph%i_spin == 1 .and. ph%i_kpt == 1) then
          call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,mat,nnz_l)
 
-         call MPI_Allreduce(nnz_l,nnz_g,1,mpi_integer4,mpi_sum,bh%comm,ierr)
+         call MPI_Allreduce(nnz_l,nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
 
          call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
          sparsity = 1.0_r8-(1.0_r8*nnz_g/ph%n_basis/ph%n_basis)
       end if
 
-      call MPI_Bcast(sparsity,1,mpi_real8,0,bh%comm_all,ierr)
+      call MPI_Bcast(sparsity,1,MPI_REAL8,0,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 
@@ -150,7 +150,7 @@ subroutine elsi_decide_dm_sparse(ph,bh)
    if(ph%solver == AUTO_SOLVER) then
       sparsity = 1.0_r8-(1.0_r8*bh%nnz_g/ph%n_basis/ph%n_basis)
 
-      call MPI_Bcast(sparsity,1,mpi_real8,0,bh%comm_all,ierr)
+      call MPI_Bcast(sparsity,1,MPI_REAL8,0,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 

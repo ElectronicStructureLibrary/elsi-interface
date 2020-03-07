@@ -11,9 +11,10 @@ module ELSI_MPI
 
    use ELSI_DATATYPE, only: elsi_basic_t
    use ELSI_PRECISION, only: i4
-   use MPI
 
    implicit none
+
+   include "mpif.h"
 
    public :: elsi_stop
    public :: elsi_check_mpi

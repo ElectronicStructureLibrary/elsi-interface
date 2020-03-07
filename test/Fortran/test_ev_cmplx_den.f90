@@ -7,16 +7,15 @@
 !>
 !! This subroutine tests complex eigensolver, BLACS_DENSE format.
 !!
-subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
+subroutine test_ev_cmplx_den(comm,solver,h_file,s_file)
 
-   use ELSI_PRECISION, only: r8,i4
    use ELSI
+   use ELSI_MPI
+   use ELSI_PRECISION, only: r8,i4
 
    implicit none
 
-   include "mpif.h"
-
-   integer(kind=i4), intent(in) :: mpi_comm
+   integer(kind=i4), intent(in) :: comm
    integer(kind=i4), intent(in) :: solver
    character(len=*), intent(in) :: h_file
    character(len=*), intent(in) :: s_file
@@ -62,8 +61,8 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
 
    character(len=*), parameter :: file_name = "elsi.in"
 
-   call MPI_Comm_size(mpi_comm,n_proc,ierr)
-   call MPI_Comm_rank(mpi_comm,myid,ierr)
+   call MPI_Comm_size(comm,n_proc,ierr)
+   call MPI_Comm_rank(comm,myid,ierr)
 
    tol = 1.0e-8_r8
    header(:) = 0
@@ -92,7 +91,7 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
    blk = 32
 
    ! Set up BLACS
-   blacs_ctxt = mpi_comm
+   blacs_ctxt = comm
    call BLACS_Gridinit(blacs_ctxt,'r',nprow,npcol)
 
    ! Read H and S matrices
@@ -102,7 +101,7 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
    else
       ! Test MULTI_PROC mode
       call elsi_init_rw(rwh,0,1,0,0.0_r8)
-      call elsi_set_rw_mpi(rwh,mpi_comm)
+      call elsi_set_rw_mpi(rwh,comm)
       call elsi_set_rw_blacs(rwh,blacs_ctxt,blk)
    end if
 
@@ -145,7 +144,7 @@ subroutine test_ev_cmplx_den(mpi_comm,solver,h_file,s_file)
    else
       ! Test MULTI_PROC mode
       call elsi_init(eh,solver,1,0,n_basis,n_electrons,n_states)
-      call elsi_set_mpi(eh,mpi_comm)
+      call elsi_set_mpi(eh,comm)
       call elsi_set_blacs(eh,blacs_ctxt,blk)
    end if
 

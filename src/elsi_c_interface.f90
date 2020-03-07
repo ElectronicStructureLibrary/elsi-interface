@@ -71,33 +71,33 @@ subroutine c_elsi_init(h_c,solver,parallel_mode,matrix_format,n_basis,&
 
 end subroutine
 
-subroutine c_elsi_set_mpi(h_c,mpi_comm) bind(C)
+subroutine c_elsi_set_mpi(h_c,comm) bind(C)
 
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), value, intent(in) :: mpi_comm
+   integer(kind=c_int), value, intent(in) :: comm
 
    type(elsi_handle), pointer :: h_f
 
    call c_f_pointer(h_c,h_f)
 
-   call elsi_set_mpi(h_f,mpi_comm)
+   call elsi_set_mpi(h_f,comm)
 
 end subroutine
 
-subroutine c_elsi_set_mpi_global(h_c,mpi_comm_global) bind(C)
+subroutine c_elsi_set_mpi_global(h_c,comm_global) bind(C)
 
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), value, intent(in) :: mpi_comm_global
+   integer(kind=c_int), value, intent(in) :: comm_global
 
    type(elsi_handle), pointer :: h_f
 
    call c_f_pointer(h_c,h_f)
 
-   call elsi_set_mpi_global(h_f,mpi_comm_global)
+   call elsi_set_mpi_global(h_f,comm_global)
 
 end subroutine
 
@@ -1950,18 +1950,18 @@ subroutine c_elsi_init_rw(h_c,rw_task,parallel_mode,n_basis,n_electron) bind(C)
 
 end subroutine
 
-subroutine c_elsi_set_rw_mpi(h_c,mpi_comm) bind(C)
+subroutine c_elsi_set_rw_mpi(h_c,comm) bind(C)
 
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), value, intent(in) :: mpi_comm
+   integer(kind=c_int), value, intent(in) :: comm
 
    type(elsi_rw_handle), pointer :: h_f
 
    call c_f_pointer(h_c,h_f)
 
-   call elsi_set_rw_mpi(h_f,mpi_comm)
+   call elsi_set_rw_mpi(h_f,comm)
 
 end subroutine
 

@@ -9,11 +9,10 @@
 !!
 program elsi_test_rw
 
+   use ELSI_MPI
    use ELSI_PRECISION, only: i4
 
    implicit none
-
-   include "mpif.h"
 
    character(len=100) :: arg1 ! real or cmplx
    character(len=999) :: arg2 ! H file

@@ -13,7 +13,7 @@ module ELSI_OCC
        SQRT_PI,INVERT_SQRT_PI
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_sum,mpi_real8
+   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,MPI_SUM,MPI_REAL8
    use ELSI_OUTPUT, only: elsi_say
    use ELSI_PRECISION, only: r8,i4
    use ELSI_SORT, only: elsi_heapsort,elsi_permute,elsi_unpermute
@@ -639,7 +639,7 @@ subroutine elsi_get_occ_for_dm(ph,bh,eval,occ)
          tmp1(ph%i_kpt) = ph%i_wt
       end if
 
-      call MPI_Allreduce(tmp1,k_wt,ph%n_kpts,mpi_real8,mpi_sum,bh%comm_all,ierr)
+      call MPI_Allreduce(tmp1,k_wt,ph%n_kpts,MPI_REAL8,MPI_SUM,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 
@@ -656,7 +656,7 @@ subroutine elsi_get_occ_for_dm(ph,bh,eval,occ)
       end if
 
       call MPI_Allreduce(tmp2,eval_all,ph%n_states*ph%n_spins*ph%n_kpts,&
-           mpi_real8,mpi_sum,bh%comm_all,ierr)
+           MPI_REAL8,MPI_SUM,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 

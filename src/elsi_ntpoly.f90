@@ -12,7 +12,7 @@ module ELSI_NTPOLY
    use ELSI_CONSTANT, only: NTPOLY_SOLVER,NTPOLY_PM,NTPOLY_TRS2,NTPOLY_TRS4,&
        NTPOLY_HPCP,EXTRA_FACTOR,EXTRA_TRS2
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_MPI, only: elsi_check_mpi,mpi_logical
+   use ELSI_MPI, only: elsi_check_mpi,MPI_LOGICAL
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use NTPOLY, only: PM,TRS2,TRS4,HPCP,EnergyDensityMatrix,LowdinExtrapolate,&
@@ -84,7 +84,7 @@ subroutine elsi_init_ntpoly(ph,bh)
       ph%nt_n_prow = n_prow
       ph%nt_n_pcol = n_pcol
 
-      call MPI_Bcast(ph%nt_output,1,mpi_logical,0,bh%comm,ierr)
+      call MPI_Bcast(ph%nt_output,1,MPI_LOGICAL,0,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
 

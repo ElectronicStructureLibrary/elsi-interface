@@ -15,7 +15,7 @@ module ELSI_UTIL
        NTPOLY_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,UT_MAT
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,mpi_comm_self,mpi_real8,mpi_sum
+   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,MPI_COMM_SELF,MPI_REAL8,MPI_SUM
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: i4,r8
 
@@ -312,7 +312,7 @@ subroutine elsi_check(ph,bh,caller)
    end if
 
    if(.not. bh%mpi_ready) then
-      bh%comm = mpi_comm_self
+      bh%comm = MPI_COMM_SELF
       bh%n_procs = 1
       bh%myid = 0
    end if
@@ -654,7 +654,7 @@ subroutine elsi_reduce_energy(ph,bh,energy)
          energy = 0.0_r8
       end if
 
-      call MPI_Allreduce(energy,tmp,1,mpi_real8,mpi_sum,bh%comm_all,ierr)
+      call MPI_Allreduce(energy,tmp,1,MPI_REAL8,MPI_SUM,bh%comm_all,ierr)
 
       call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
 

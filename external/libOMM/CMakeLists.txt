@@ -8,6 +8,12 @@ LIST(APPEND ms_src
   src/MatrixSwitch/ms_m_register.f90
   src/MatrixSwitch/MatrixSwitch.f90)
 
+IF(USE_MPI_MODULE)
+  LIST(APPEND ms_src src/MatrixSwitch/ms_mpi.f90)
+ELSE()
+  LIST(APPEND ms_src src/MatrixSwitch/ms_mpifh.f90)
+ENDIF()
+
 ### libOMM source files ###
 LIST(APPEND omm_src
   src/libOMM/omm_params.f90

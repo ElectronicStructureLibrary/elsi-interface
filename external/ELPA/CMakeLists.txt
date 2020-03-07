@@ -8,11 +8,16 @@ LIST(APPEND elpa_src
   src/elpa2_compute.f90
   src/elpa2.f90
   src/elpa_utilities.f90
-  src/mod_mpi.f90
   src/mod_pack_unpack_complex.f90
   src/mod_pack_unpack_real.f90
   src/mod_precision.f90
   src/mod_single_hh_trafo_real.f90)
+
+IF(USE_MPI_MODULE)
+  LIST(APPEND elpa_src src/mod_mpi.f90)
+ELSE()
+  LIST(APPEND elpa_src src/mod_mpifh.f90)
+ENDIF()
 
 ### Kernels ###
 IF(ELPA2_KERNEL STREQUAL "AVX512")
