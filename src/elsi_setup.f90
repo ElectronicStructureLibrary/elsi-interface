@@ -285,8 +285,8 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
       call elsi_allocate(eh%bh,eh%row_ind_sp1,nnz_l,"row_ind_sp1",caller)
       call elsi_allocate(eh%bh,eh%col_ptr_sp1,n_lcol+1,"col_ptr_sp1",caller)
 
-      eh%row_ind_sp1 = row_ind
-      eh%col_ptr_sp1 = col_ptr
+      eh%row_ind_sp1(:) = row_ind
+      eh%col_ptr_sp1(:) = col_ptr
 
       eh%bh%pexsi_csc_ready = .true.
    case(SIESTA_CSC)
@@ -304,8 +304,8 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
       call elsi_allocate(eh%bh,eh%row_ind_sp2,nnz_l,"row_ind_sp2",caller)
       call elsi_allocate(eh%bh,eh%col_ptr_sp2,n_lcol+1,"col_ptr_sp2",caller)
 
-      eh%row_ind_sp2 = row_ind
-      eh%col_ptr_sp2 = col_ptr
+      eh%row_ind_sp2(:) = row_ind
+      eh%col_ptr_sp2(:) = col_ptr
 
       eh%bh%siesta_csc_ready = .true.
    end select
@@ -373,11 +373,12 @@ subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
    call elsi_allocate(eh%bh,eh%perm_sp3,nnz_l,"perm_sp3",caller)
    call elsi_allocate(eh%bh,gid,nnz_l,"gid",caller)
 
-   eh%row_ind_sp3 = row_ind
-   eh%col_ind_sp3 = col_ind
+   eh%row_ind_sp3(:) = row_ind
+   eh%col_ind_sp3(:) = col_ind
 
    ! Compute global 1D id
-   gid = int(col_ind-1,kind=i8)*int(eh%ph%n_basis,kind=i8)+int(row_ind,kind=i8)
+   gid(:) = int(col_ind-1,kind=i8)*int(eh%ph%n_basis,kind=i8)&
+      +int(row_ind,kind=i8)
 
    ! Sort
    call elsi_heapsort(nnz_l,gid,eh%perm_sp3)

@@ -232,7 +232,7 @@ subroutine elsi_blacs_to_mask_real(ph,bh,ham_den,ovlp_den,mask)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_mask_real"
 
-   mask = 0
+   mask(:,:) = 0
 
    if(ph%unit_ovlp .or. ph%sparsity_mask == MASK_H) then
       do i_col = 1,bh%n_lcol
@@ -288,7 +288,7 @@ subroutine elsi_blacs_to_mask_cmplx(ph,bh,ham_den,ovlp_den,mask)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_mask_cmplx"
 
-   mask = 0
+   mask(:,:) = 0
 
    if(ph%unit_ovlp .or. ph%sparsity_mask == MASK_H) then
       do i_col = 1,bh%n_lcol
@@ -527,7 +527,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
    call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind,kind=i8)
+   gid(:) = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind,kind=i8)
 
    ! Only 1st pole computes row index and column pointer
    if(ph%pexsi_my_prow == 0) then
@@ -543,7 +543,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
             call elsi_permute(bh%nnz_l_sp,perm,ovlp_sp)
          end if
 
-         col_ptr = 0
+         col_ptr(:) = 0
          col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
 
          do i_val = 1,bh%nnz_l_sp
@@ -722,7 +722,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
    call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind,kind=i8)
+   gid(:) = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind,kind=i8)
 
    ! Only 1st pole computes row index and column pointer
    if(ph%pexsi_my_prow == 0) then
@@ -738,7 +738,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
             call elsi_permute(bh%nnz_l_sp,perm,ovlp_sp)
          end if
 
-         col_ptr = 0
+         col_ptr(:) = 0
          col_ptr(bh%n_lcol_sp+1) = bh%nnz_l_sp+1
 
          do i_val = 1,bh%nnz_l_sp
@@ -909,7 +909,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_den = 0.0_r8
+   dm_den(:,:) = 0.0_r8
 
    ! Unpack density matrix
    do i_val = 1,bh%nnz_l
@@ -1076,7 +1076,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_den = (0.0_r8,0.0_r8)
+   dm_den(:,:) = (0.0_r8,0.0_r8)
 
    ! Unpack density matrix
    do i_val = 1,bh%nnz_l
@@ -1381,8 +1381,8 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
    ! Unpack matrix
    if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
-      ham_den = 0.0_r8
-      ovlp_den = 0.0_r8
+      ham_den(:,:) = 0.0_r8
+      ovlp_den(:,:) = 0.0_r8
 
       do i_val = 1,bh%nnz_l
          ! Compute local id
@@ -1396,7 +1396,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
       call elsi_deallocate(bh,s_val_recv,"s_val_recv")
    else
-      ham_den = 0.0_r8
+      ham_den(:,:) = 0.0_r8
 
       do i_val = 1,bh%nnz_l
          ! Compute local id
@@ -1592,8 +1592,8 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
    ! Unpack matrix
    if(ph%first_sips_to_blacs .and. .not. ph%unit_ovlp) then
-      ham_den = (0.0_r8,0.0_r8)
-      ovlp_den = (0.0_r8,0.0_r8)
+      ham_den(:,:) = (0.0_r8,0.0_r8)
+      ovlp_den(:,:) = (0.0_r8,0.0_r8)
 
       do i_val = 1,bh%nnz_l
          ! Compute local id
@@ -1607,7 +1607,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
       call elsi_deallocate(bh,s_val_recv,"s_val_recv")
    else
-      ham_den = (0.0_r8,0.0_r8)
+      ham_den(:,:) = (0.0_r8,0.0_r8)
 
       do i_val = 1,bh%nnz_l
          ! Compute local id
@@ -1776,7 +1776,7 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   evec = 0.0_r8
+   evec(:,:) = 0.0_r8
 
    ! Unpack eigenvectors
    do i_val = 1,nnz_l_after
@@ -1930,7 +1930,7 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_sp = 0.0_r8
+   dm_sp(:) = 0.0_r8
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
@@ -2086,7 +2086,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_sp = (0.0_r8,0.0_r8)
+   dm_sp(:) = (0.0_r8,0.0_r8)
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
@@ -2283,8 +2283,8 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
    ! Unpack matrix
    if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
-      ham_den = 0.0_r8
-      ovlp_den = 0.0_r8
+      ham_den(:,:) = 0.0_r8
+      ovlp_den(:,:) = 0.0_r8
 
       do i_val = 1,bh%nnz_l
          ! Compute local id
@@ -2298,7 +2298,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
       call elsi_deallocate(bh,s_val_recv,"s_val_recv")
    else
-      ham_den = 0.0_r8
+      ham_den(:,:) = 0.0_r8
 
       do i_val = 1,bh%nnz_l
          ! Compute local id
@@ -2495,8 +2495,8 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
    ! Unpack matrix
    if(ph%first_siesta_to_blacs .and. .not. ph%unit_ovlp) then
-      ham_den = (0.0_r8,0.0_r8)
-      ovlp_den = (0.0_r8,0.0_r8)
+      ham_den(:,:) = (0.0_r8,0.0_r8)
+      ovlp_den(:,:) = (0.0_r8,0.0_r8)
 
       do i_val = 1,bh%nnz_l
          ! Compute local id
@@ -2510,7 +2510,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
       call elsi_deallocate(bh,s_val_recv,"s_val_recv")
    else
-      ham_den = (0.0_r8,0.0_r8)
+      ham_den(:,:) = (0.0_r8,0.0_r8)
 
       do i_val = 1,bh%nnz_l
          ! Compute local id
@@ -2675,7 +2675,7 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,dm_den,dm_sp,row_ind,col_ptr)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_sp = 0.0_r8
+   dm_sp(:) = 0.0_r8
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
@@ -2841,7 +2841,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,dm_den,dm_sp,row_ind,col_ptr)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_sp = (0.0_r8,0.0_r8)
+   dm_sp(:) = (0.0_r8,0.0_r8)
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
@@ -3062,7 +3062,8 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    call elsi_allocate(bh,perm,bh%nnz_l_sp1,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind1,kind=i8)
+   gid(:) = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_ind1,kind=i8)
 
    ! Only 1st pole computes row index and column pointer
    if(ph%pexsi_my_prow == 0) then
@@ -3078,7 +3079,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
             call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
          end if
 
-         col_ptr1 = 0
+         col_ptr1(:) = 0
          col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
          do i_val = 1,bh%nnz_l_sp1
@@ -3254,7 +3255,8 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    call elsi_allocate(bh,perm,bh%nnz_l_sp1,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind1,kind=i8)
+   gid(:) = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_ind1,kind=i8)
 
    ! Only 1st pole computes row index and column pointer
    if(ph%pexsi_my_prow == 0) then
@@ -3270,7 +3272,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
             call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
          end if
 
-         col_ptr1 = 0
+         col_ptr1(:) = 0
          col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
          do i_val = 1,bh%nnz_l_sp1
@@ -3438,7 +3440,7 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_sp2 = 0.0_r8
+   dm_sp2(:) = 0.0_r8
 
    ! Unpack matrix
    do i_val = 1,bh%nnz_l_sp2
@@ -3605,7 +3607,7 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_sp2 = (0.0_r8,0.0_r8)
+   dm_sp2(:) = (0.0_r8,0.0_r8)
 
    ! Unpack matrix
    do i_val = 1,bh%nnz_l_sp2
@@ -4156,7 +4158,7 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_den = 0.0_r8
+   dm_den(:,:) = 0.0_r8
 
    ! Unpack density matrix
    do i_val = 1,nnz_l_aux
@@ -4319,7 +4321,7 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_den = (0.0_r8,0.0_r8)
+   dm_den(:,:) = (0.0_r8,0.0_r8)
 
    ! Unpack density matrix
    do i_val = 1,nnz_l_aux
@@ -4634,7 +4636,7 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_sp = 0.0_r8
+   dm_sp(:) = 0.0_r8
 
    ! Unpack density matrix
    do i_val = 1,nnz_l_aux
@@ -4787,7 +4789,7 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_sp = (0.0_r8,0.0_r8)
+   dm_sp(:) = (0.0_r8,0.0_r8)
 
    ! Unpack density matrix
    do i_val = 1,nnz_l_aux
@@ -5121,7 +5123,7 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_sp = 0.0_r8
+   dm_sp(:) = 0.0_r8
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
@@ -5286,7 +5288,7 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,dm_nt,dm_sp,row_ind,col_ptr)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   dm_sp = (0.0_r8,0.0_r8)
+   dm_sp(:) = (0.0_r8,0.0_r8)
 
    ! Unpack matrix
    do i_val = 1,nnz_l_aux
@@ -5373,7 +5375,7 @@ subroutine elsi_generic_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
 
       call elsi_allocate(bh,map_send,bh%nnz_l_sp,"map_send",caller)
 
-      map_send = bh%myid
+      map_send(:) = bh%myid
    end if
 
    call elsi_allocate(bh,dest,bh%nnz_l_sp,"dest",caller)
@@ -5383,12 +5385,12 @@ subroutine elsi_generic_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    call elsi_allocate(bh,col_send,bh%nnz_l_sp,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   row_send = row_ind
-   col_send = col_ind
-   h_val_send = ham_sp
+   row_send(:) = row_ind
+   col_send(:) = col_ind
+   h_val_send(:) = ham_sp
 
    if(ph%first_generic_to_blacs .and. .not. ph%unit_ovlp) then
-      s_val_send = ovlp_sp
+      s_val_send(:) = ovlp_sp
    end if
 
    do i_val = 1,bh%nnz_l_sp
@@ -5492,11 +5494,11 @@ subroutine elsi_generic_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
 
    ! Unpack matrix
    if(ph%first_generic_to_blacs) then
-      ham_den = 0.0_r8
-      map_den = -1
+      ham_den(:,:) = 0.0_r8
+      map_den(:,:) = -1
 
       if(.not. ph%unit_ovlp) then
-         ovlp_den = 0.0_r8
+         ovlp_den(:,:) = 0.0_r8
       end if
 
       do i_val = 1,bh%nnz_l
@@ -5519,7 +5521,7 @@ subroutine elsi_generic_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
          call elsi_deallocate(bh,s_val_recv,"s_val_recv")
       end if
    else
-      ham_den = 0.0_r8
+      ham_den(:,:) = 0.0_r8
 
       do i_val = 1,bh%nnz_l
          ! Compute local id
@@ -5605,7 +5607,7 @@ subroutine elsi_generic_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
 
       call elsi_allocate(bh,map_send,bh%nnz_l_sp,"map_send",caller)
 
-      map_send = bh%myid
+      map_send(:) = bh%myid
    end if
 
    call elsi_allocate(bh,dest,bh%nnz_l_sp,"dest",caller)
@@ -5615,12 +5617,12 @@ subroutine elsi_generic_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    call elsi_allocate(bh,col_send,bh%nnz_l_sp,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   row_send = row_ind
-   col_send = col_ind
-   h_val_send = ham_sp
+   row_send(:) = row_ind
+   col_send(:) = col_ind
+   h_val_send(:) = ham_sp
 
    if(ph%first_generic_to_blacs .and. .not. ph%unit_ovlp) then
-      s_val_send = ovlp_sp
+      s_val_send(:) = ovlp_sp
    end if
 
    do i_val = 1,bh%nnz_l_sp
@@ -5724,11 +5726,11 @@ subroutine elsi_generic_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
 
    ! Unpack matrix
    if(ph%first_generic_to_blacs) then
-      ham_den = (0.0_r8,0.0_r8)
-      map_den = -1
+      ham_den(:,:) = (0.0_r8,0.0_r8)
+      map_den(:,:) = -1
 
       if(.not. ph%unit_ovlp) then
-         ovlp_den = (0.0_r8,0.0_r8)
+         ovlp_den(:,:) = (0.0_r8,0.0_r8)
       end if
 
       do i_val = 1,bh%nnz_l
@@ -5751,7 +5753,7 @@ subroutine elsi_generic_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
          call elsi_deallocate(bh,s_val_recv,"s_val_recv")
       end if
    else
-      ham_den = (0.0_r8,0.0_r8)
+      ham_den(:,:) = (0.0_r8,0.0_r8)
 
       do i_val = 1,bh%nnz_l
          ! Compute local id
@@ -6059,7 +6061,7 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
 
       call elsi_allocate(bh,map_send,bh%nnz_l_sp3,"map_send",caller)
 
-      map_send = bh%myid
+      map_send(:) = bh%myid
    end if
 
    call elsi_allocate(bh,dest,bh%nnz_l_sp3,"dest",caller)
@@ -6069,12 +6071,12 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    call elsi_allocate(bh,col_send,bh%nnz_l_sp3,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   h_val_send = ham_sp3
-   row_send = row_ind3
-   col_send = col_ind3
+   h_val_send(:) = ham_sp3
+   row_send(:) = row_ind3
+   col_send(:) = col_ind3
 
    if(ph%first_generic_to_pexsi .and. .not. ph%unit_ovlp) then
-      s_val_send = ovlp_sp3
+      s_val_send(:) = ovlp_sp3
    end if
 
    do i_val = 1,bh%nnz_l_sp3
@@ -6168,7 +6170,8 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    call elsi_allocate(bh,perm,bh%nnz_l_sp1,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind1,kind=i8)
+   gid(:) = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_ind1,kind=i8)
 
    ! Only 1st pole computes row index and column pointer
    if(ph%pexsi_my_prow == 0) then
@@ -6185,7 +6188,7 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
             call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
          end if
 
-         col_ptr1 = 0
+         col_ptr1(:) = 0
          col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
          do i_val = 1,bh%nnz_l_sp1
@@ -6272,7 +6275,7 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
 
       call elsi_allocate(bh,map_send,bh%nnz_l_sp3,"map_send",caller)
 
-      map_send = bh%myid
+      map_send(:) = bh%myid
    end if
 
    call elsi_allocate(bh,dest,bh%nnz_l_sp3,"dest",caller)
@@ -6282,12 +6285,12 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    call elsi_allocate(bh,col_send,bh%nnz_l_sp3,"col_send",caller)
    call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
 
-   h_val_send = ham_sp3
-   row_send = row_ind3
-   col_send = col_ind3
+   h_val_send(:) = ham_sp3
+   row_send(:) = row_ind3
+   col_send(:) = col_ind3
 
    if(ph%first_generic_to_pexsi .and. .not. ph%unit_ovlp) then
-      s_val_send = ovlp_sp3
+      s_val_send(:) = ovlp_sp3
    end if
 
    do i_val = 1,bh%nnz_l_sp3
@@ -6381,7 +6384,8 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    call elsi_allocate(bh,perm,bh%nnz_l_sp1,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_ind1,kind=i8)
+   gid(:) = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_ind1,kind=i8)
 
    ! Only 1st pole computes row index and column pointer
    if(ph%pexsi_my_prow == 0) then
@@ -6398,7 +6402,7 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
             call elsi_permute(bh%nnz_l_sp1,perm,ovlp_sp1)
          end if
 
-         col_ptr1 = 0
+         col_ptr1(:) = 0
          col_ptr1(bh%n_lcol_sp1+1) = bh%nnz_l_sp1+1
 
          do i_val = 1,bh%nnz_l_sp1
@@ -6674,7 +6678,8 @@ subroutine elsi_blacs_to_generic_dm_real(ph,bh,dm_den,map_den,dm_sp,perm_sp)
    call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_recv,kind=i8)
+   gid(:) = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_recv,kind=i8)
 
    ! Sort
    call elsi_heapsort(bh%nnz_l_sp,gid,perm)
@@ -6836,7 +6841,8 @@ subroutine elsi_blacs_to_generic_dm_cmplx(ph,bh,dm_den,map_den,dm_sp,perm_sp)
    call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_recv,kind=i8)
+   gid(:) = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_recv,kind=i8)
 
    ! Sort
    call elsi_heapsort(bh%nnz_l_sp,gid,perm)
@@ -6993,7 +6999,8 @@ subroutine elsi_pexsi_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    call elsi_allocate(bh,perm,bh%nnz_l_sp3,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_recv,kind=i8)
+   gid(:) = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_recv,kind=i8)
 
    ! Sort
    call elsi_heapsort(bh%nnz_l_sp3,gid,perm)
@@ -7150,7 +7157,8 @@ subroutine elsi_pexsi_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    call elsi_allocate(bh,perm,bh%nnz_l_sp3,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_recv,kind=i8)
+   gid(:) = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_recv,kind=i8)
 
    ! Sort
    call elsi_heapsort(bh%nnz_l_sp3,gid,perm)
@@ -7395,7 +7403,8 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_recv,kind=i8)
+   gid(:) = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_recv,kind=i8)
 
    ! Sort
    call elsi_heapsort(bh%nnz_l_sp,gid,perm)
@@ -7585,7 +7594,8 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    call elsi_allocate(bh,perm,bh%nnz_l_sp,"perm",caller)
 
    ! Compute global 1D id
-   gid = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)+int(row_recv,kind=i8)
+   gid(:) = int(col_recv-1,kind=i8)*int(ph%n_basis,kind=i8)&
+      +int(row_recv,kind=i8)
 
    ! Sort
    call elsi_heapsort(bh%nnz_l_sp,gid,perm)
@@ -7747,7 +7757,7 @@ subroutine elsi_blacs_to_eigenexa_h_real(ph,bh,ham_den,ham_exa)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   ham_exa = 0.0_r8
+   ham_exa(:,:) = 0.0_r8
 
    ! Unpack matrix
    do i_val = 1,nnz_l_after
@@ -7932,7 +7942,7 @@ subroutine elsi_eigenexa_to_blacs_ev_real(ph,bh,evec_exa,evec)
    call elsi_deallocate(bh,send_displ,"send_displ")
    call elsi_deallocate(bh,recv_displ,"recv_displ")
 
-   evec = 0.0_r8
+   evec(:,:) = 0.0_r8
 
    ! Unpack eigenvectors
    do i_val = 1,nnz_l_after

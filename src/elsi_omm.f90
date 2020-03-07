@@ -162,7 +162,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
         0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,ph%omm_tol,&
         ph%omm_output,.false.,"pddbc","lap")
 
-   dm = ph%spin_degen*dm
+   dm(:,:) = ph%spin_degen*dm
 
    call m_deallocate(ham_omm)
    call m_deallocate(ovlp_omm)
@@ -216,7 +216,7 @@ subroutine elsi_compute_edm_omm_real(ph,bh,coeff,edm)
         0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,ph%omm_tol,&
         ph%omm_output,.false.,"pddbc","lap")
 
-   edm = ph%spin_degen*edm
+   edm(:,:) = ph%spin_degen*edm
 
    call m_deallocate(c_omm)
    call m_deallocate(edm_omm)
@@ -320,7 +320,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
         0.0_r8,c_omm,coeff_ready,t_omm,0.0_r8,ph%omm_flavor,1,1,ph%omm_tol,&
         ph%omm_output,.false.,"pzdbc","lap")
 
-   dm = ph%spin_degen*dm
+   dm(:,:) = ph%spin_degen*dm
 
    call m_deallocate(ham_omm)
    call m_deallocate(ovlp_omm)
@@ -374,7 +374,7 @@ subroutine elsi_compute_edm_omm_cmplx(ph,bh,coeff,edm)
         0.0_r8,c_omm,.true.,t_omm,0.0_r8,ph%omm_flavor,1,1,ph%omm_tol,&
         ph%omm_output,.false.,"pzdbc","lap")
 
-   edm = ph%spin_degen*edm
+   edm(:,:) = ph%spin_degen*edm
 
    call m_deallocate(c_omm)
    call m_deallocate(edm_omm)

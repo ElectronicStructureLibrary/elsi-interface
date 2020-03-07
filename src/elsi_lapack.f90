@@ -183,7 +183,7 @@ subroutine elsi_back_ev_sp_real(ph,bh,ovlp,evec)
    if(ph%ill_ovlp) then
       call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-      tmp = evec
+      tmp(:,:) = evec
 
       call dgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,&
            ph%n_basis,tmp,ph%n_basis,0.0_r8,evec,ph%n_basis)
@@ -317,7 +317,7 @@ subroutine elsi_check_ovlp_sp_real(ph,bh,ovlp,eval,evec)
    call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
 
    ! Overlap will be destroyed by eigenvalue calculation
-   copy = -ovlp
+   copy(:,:) = -ovlp
 
    call elsi_allocate(bh,offd,ph%n_basis,"offd",caller)
    call elsi_allocate(bh,tau,ph%n_basis,"tau",caller)
@@ -329,7 +329,7 @@ subroutine elsi_check_ovlp_sp_real(ph,bh,ovlp,eval,evec)
    call elsi_elpa_tridiag(ph,bh,eval,offd,tmp,.true.)
 
    ! Get the number of nonsingular eigenvalues
-   eval = -eval
+   eval(:) = -eval
 
    do i = 1,ph%n_basis
       if(eval(i) < ph%ill_tol) then
@@ -341,7 +341,7 @@ subroutine elsi_check_ovlp_sp_real(ph,bh,ovlp,eval,evec)
 
    ! Eigenvectors computed only for singular overlap matrix
    if(ph%n_good < ph%n_basis) then
-      evec = tmp
+      evec(:,:) = tmp
 
       call dormtr("L","U","N",ph%n_basis,ph%n_basis,copy,ph%n_basis,tau,evec,&
            ph%n_basis,tmp,ph%n_basis*ph%n_basis,ierr)
@@ -528,7 +528,7 @@ subroutine elsi_back_ev_sp_cmplx(ph,bh,ovlp,evec)
    if(ph%ill_ovlp) then
       call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-      tmp = evec
+      tmp(:,:) = evec
 
       call zgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&
            (1.0_r8,0.0_r8),ovlp,ph%n_basis,tmp,ph%n_basis,(0.0_r8,0.0_r8),evec,&
@@ -669,7 +669,7 @@ subroutine elsi_check_ovlp_sp_cmplx(ph,bh,ovlp,eval,evec)
    call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
 
    ! Overlap will be destroyed by eigenvalue calculation
-   copy = -ovlp
+   copy(:,:) = -ovlp
 
    call elsi_allocate(bh,offd,ph%n_basis,"offd",caller)
    call elsi_allocate(bh,tau,ph%n_basis,"tau",caller)
@@ -682,7 +682,7 @@ subroutine elsi_check_ovlp_sp_cmplx(ph,bh,ovlp,eval,evec)
    call elsi_elpa_tridiag(ph,bh,eval,offd,tmp_real,.true.)
 
    ! Get the number of nonsingular eigenvalues
-   eval = -eval
+   eval(:) = -eval
 
    do i = 1,ph%n_basis
       if(eval(i) < ph%ill_tol) then
@@ -694,7 +694,7 @@ subroutine elsi_check_ovlp_sp_cmplx(ph,bh,ovlp,eval,evec)
 
    ! Eigenvectors computed only for singular overlap matrix
    if(ph%n_good < ph%n_basis) then
-      evec = tmp_real
+      evec(:,:) = tmp_real
 
       call zunmtr("L","U","N",ph%n_basis,ph%n_basis,copy,ph%n_basis,tau,evec,&
            ph%n_basis,tmp_cmplx,ph%n_basis*ph%n_basis,ierr)

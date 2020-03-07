@@ -90,7 +90,7 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
       mu_max = mu_max+1.0_r8
    end if
 
-   occ = 0.0_r8
+   occ(:,:,:) = 0.0_r8
 
    ! Compute electron count error
    call elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&

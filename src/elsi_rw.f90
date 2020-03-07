@@ -235,7 +235,7 @@ subroutine elsi_set_rw_header(rwh,header_user)
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
 
-   rwh%header_user = header_user
+   rwh%header_user(:) = header_user
 
 end subroutine
 
@@ -253,7 +253,7 @@ subroutine elsi_get_rw_header(rwh,header_user)
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
 
-   header_user = rwh%header_user
+   header_user(:) = rwh%header_user
 
 end subroutine
 
@@ -307,7 +307,7 @@ subroutine elsi_reset_rw(rwh)
    rwh%matrix_format = UNSET
    rwh%n_electrons = 0.0_r8
    rwh%n_basis = UNSET
-   rwh%header_user = UNSET
+   rwh%header_user(:) = UNSET
    rwh%handle_init = .false.
 
 end subroutine
@@ -497,7 +497,7 @@ subroutine elsi_read_mat_dim_mp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    rwh%bh%n_lrow = n_lrow
    rwh%bh%n_lcol = n_lcol
    rwh%bh%nnz_g = header(6)
-   rwh%header_user = header(9:16)
+   rwh%header_user(:) = header(9:16)
 
 end subroutine
 
@@ -586,7 +586,7 @@ subroutine elsi_read_mat_dim_sparse(rwh,f_name,n_electron,n_basis,nnz_g,&
 
    ! Shift column pointer
    prev_nnz = col_ptr(1)-1
-   col_ptr = col_ptr-prev_nnz
+   col_ptr(:) = col_ptr-prev_nnz
 
    ! Compute nnz_l_sp
    nnz_l_sp = col_ptr(n_lcol_sp+1)-col_ptr(1)
@@ -598,7 +598,7 @@ subroutine elsi_read_mat_dim_sparse(rwh,f_name,n_electron,n_basis,nnz_g,&
    rwh%bh%nnz_g = nnz_g
    rwh%bh%nnz_l_sp = nnz_l_sp
    rwh%bh%n_lcol_sp = n_lcol_sp
-   rwh%header_user = header(9:16)
+   rwh%header_user(:) = header(9:16)
 
 end subroutine
 
@@ -659,7 +659,7 @@ subroutine elsi_read_mat_mp_real(rwh,f_name,mat)
 
    ! Shift column pointer
    prev_nnz = col_ptr(1)-1
-   col_ptr = col_ptr-prev_nnz
+   col_ptr(:) = col_ptr-prev_nnz
 
    ! Compute nnz_l_sp
    rwh%bh%nnz_l_sp = col_ptr(rwh%bh%n_lcol_sp+1)-col_ptr(1)
@@ -751,7 +751,7 @@ subroutine elsi_read_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
 
    ! Shift column pointer
    prev_nnz = col_ptr(1)-1
-   col_ptr = col_ptr-prev_nnz
+   col_ptr(:) = col_ptr-prev_nnz
 
    ! Read row index
    offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
@@ -833,7 +833,7 @@ subroutine elsi_read_mat_mp_cmplx(rwh,f_name,mat)
 
    ! Shift column pointer
    prev_nnz = col_ptr(1)-1
-   col_ptr = col_ptr-prev_nnz
+   col_ptr(:) = col_ptr-prev_nnz
 
    ! Compute nnz_l_sp
    rwh%bh%nnz_l_sp = col_ptr(rwh%bh%n_lcol_sp+1)-col_ptr(1)
@@ -925,7 +925,7 @@ subroutine elsi_read_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
 
    ! Shift column pointer
    prev_nnz = col_ptr(1)-1
-   col_ptr = col_ptr-prev_nnz
+   col_ptr(:) = col_ptr-prev_nnz
 
    ! Read row index
    offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
@@ -1040,7 +1040,7 @@ subroutine elsi_write_mat_mp_real(rwh,f_name,mat)
    call elsi_check_mpi(bh,"MPI_Exscan",ierr,caller)
 
    ! Shift column pointer
-   col_ptr = col_ptr+prev_nnz
+   col_ptr(:) = col_ptr+prev_nnz
 
    ! Write column pointer
    n_lcol0 = rwh%n_basis/bh%n_procs
@@ -1168,7 +1168,7 @@ subroutine elsi_write_mat_mp_cmplx(rwh,f_name,mat)
    call elsi_check_mpi(bh,"MPI_Exscan",ierr,caller)
 
    ! Shift column pointer
-   col_ptr = col_ptr+prev_nnz
+   col_ptr(:) = col_ptr+prev_nnz
 
    ! Write column pointer
    n_lcol0 = rwh%n_basis/bh%n_procs
@@ -1272,7 +1272,7 @@ subroutine elsi_write_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    call elsi_allocate(rwh%bh,col_ptr_shift,rwh%bh%n_lcol_sp+1,"col_ptr_shift",&
         caller)
 
-   col_ptr_shift = col_ptr+prev_nnz
+   col_ptr_shift(:) = col_ptr+prev_nnz
 
    ! Write column pointer
    n_lcol0 = rwh%n_basis/rwh%bh%n_procs
@@ -1374,7 +1374,7 @@ subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    call elsi_allocate(rwh%bh,col_ptr_shift,rwh%bh%n_lcol_sp+1,"col_ptr_shift",&
         caller)
 
-   col_ptr_shift = col_ptr+prev_nnz
+   col_ptr_shift(:) = col_ptr+prev_nnz
 
    ! Write column pointer
    n_lcol0 = rwh%n_basis/rwh%bh%n_procs
@@ -1455,7 +1455,7 @@ subroutine elsi_read_mat_dim_sp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    rwh%n_electrons = n_electron
    rwh%bh%n_lrow = n_lrow
    rwh%bh%n_lcol = n_lcol
-   rwh%header_user = header(9:16)
+   rwh%header_user(:) = header(9:16)
 
 end subroutine
 
@@ -1530,7 +1530,7 @@ subroutine elsi_read_mat_sp_real(rwh,f_name,mat)
    close(unit=99)
 
    ! Convert to dense
-   mat = 0.0_r8
+   mat(:,:) = 0.0_r8
 
    i_val = 0
    do i = 1,rwh%n_basis
@@ -1620,7 +1620,7 @@ subroutine elsi_read_mat_sp_cmplx(rwh,f_name,mat)
    close(unit=99)
 
    ! Convert to dense
-   mat = (0.0_r8,0.0_r8)
+   mat(:,:) = (0.0_r8,0.0_r8)
 
    i_val = 0
    do i = 1,rwh%n_basis
@@ -1675,7 +1675,7 @@ subroutine elsi_write_mat_sp_real(rwh,f_name,mat)
    call elsi_allocate(rwh%bh,nnz_val,nnz_g,"nnz_val",caller)
 
    i_val = 0
-   col_ptr = 1
+   col_ptr(:) = 1
 
    do i = 1,rwh%bh%n_lcol
       this_nnz = 0
@@ -1773,7 +1773,7 @@ subroutine elsi_write_mat_sp_cmplx(rwh,f_name,mat)
    call elsi_allocate(rwh%bh,nnz_val,nnz_g,"nnz_val",caller)
 
    i_val = 0
-   col_ptr = 1
+   col_ptr(:) = 1
 
    do i = 1,rwh%bh%n_lcol
       this_nnz = 0

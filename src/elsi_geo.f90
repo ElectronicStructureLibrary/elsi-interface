@@ -198,7 +198,7 @@ subroutine elsi_extrapolate_dm_real(eh,ovlp,dm)
 
    call elsi_allocate(eh%bh,tmp,eh%bh%n_lrow,eh%bh%n_lcol,"tmp",caller)
 
-   tmp = ovlp
+   tmp(:,:) = ovlp
 
    call elsi_update_dm_elpa(eh%ph,eh%bh,eh%ovlp_real_copy,tmp,eh%dm_real_copy,&
         dm)
@@ -226,7 +226,7 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
 
    call elsi_allocate(eh%bh,tmp,eh%bh%n_lrow,eh%bh%n_lcol,"tmp",caller)
 
-   tmp = ovlp
+   tmp(:,:) = ovlp
 
    call elsi_update_dm_elpa(eh%ph,eh%bh,eh%ovlp_cmplx_copy,tmp,&
         eh%dm_cmplx_copy,dm)

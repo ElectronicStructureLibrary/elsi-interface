@@ -155,7 +155,7 @@ subroutine elsi_solve_magma_real(ph,bh,ham,ovlp,eval,evec)
    call elsi_deallocate(bh,work,"work")
    call elsi_deallocate(bh,iwork,"iwork")
 
-   evec = ham
+   evec(:,:) = ham
 
    call elsi_get_time(t1)
 
@@ -273,7 +273,7 @@ subroutine elsi_solve_magma_cmplx(ph,bh,ham,ovlp,eval,evec)
    call elsi_deallocate(bh,rwork,"rwork")
    call elsi_deallocate(bh,iwork,"iwork")
 
-   evec = ham
+   evec(:,:) = ham
 
    call elsi_get_time(t1)
 

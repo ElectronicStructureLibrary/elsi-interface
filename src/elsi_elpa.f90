@@ -214,7 +214,7 @@ subroutine elsi_reduce_evp_elpa_real(ph,bh,ham,ovlp,evec)
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
            bh%desc)
 
-      evec = ham
+      evec(:,:) = ham
 
       call elsi_elpa_multiply(ph,bh,"U","U",ph%n_basis,ovlp,evec,ham)
 
@@ -319,7 +319,7 @@ subroutine elsi_back_ev_elpa_real(ph,bh,ham,ovlp,evec)
 
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   tmp = evec
+   tmp(:,:) = evec
 
    if(ph%ill_ovlp) then
       call pdgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,1.0_r8,ovlp,1,&
@@ -473,7 +473,7 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm0,dm1)
    call elsi_set_full_mat(ph,bh,LT_MAT,ovlp1)
 
    ! dm1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
-   dm1 = ovlp1
+   dm1(:,:) = ovlp1
 
    call elsi_get_time(t1)
 
@@ -555,7 +555,7 @@ subroutine elsi_reduce_evp_elpa_cmplx(ph,bh,ham,ovlp,evec)
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),evec,1,1,bh%desc,&
            (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
-      evec = ham
+      evec(:,:) = ham
 
       call elsi_elpa_multiply(ph,bh,"U","U",ph%n_basis,ovlp,evec,ham)
 
@@ -660,7 +660,7 @@ subroutine elsi_back_ev_elpa_cmplx(ph,bh,ham,ovlp,evec)
 
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   tmp = evec
+   tmp(:,:) = evec
 
    if(ph%ill_ovlp) then
       call pzgemm("N","N",ph%n_basis,ph%n_states_solve,ph%n_good,&
@@ -814,7 +814,7 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm0,dm1)
    call elsi_set_full_mat(ph,bh,LT_MAT,ovlp1)
 
    ! dm1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
-   dm1 = ovlp1
+   dm1(:,:) = ovlp1
 
    call elsi_get_time(t1)
 
@@ -849,7 +849,7 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
    if(sing_check) then
       call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
 
-      copy = mat
+      copy(:,:) = mat
 
       ! Use modified ELPA2, which computes eigenvectors only for singular matrix
       ok = elpa_check_pd_real_double(ph%n_basis,ph%n_basis,copy,bh%n_lrow,eval,&
@@ -909,7 +909,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
    if(sing_check) then
       call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
 
-      copy = mat
+      copy(:,:) = mat
 
       ! Use modified ELPA2, which computes eigenvectors only for singular matrix
       ok = elpa_check_pd_complex_double(ph%n_basis,ph%n_basis,copy,bh%n_lrow,&

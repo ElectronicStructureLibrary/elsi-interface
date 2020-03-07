@@ -638,7 +638,7 @@ subroutine elsi_get_eval(eh,eval)
       call elsi_stop(eh%bh,msg,caller)
    end if
 
-   eval = eh%eval(1:eh%ph%n_states)
+   eval(:) = eh%eval(1:eh%ph%n_states)
    eh%ph%eval_ready = .false.
 
 end subroutine
@@ -664,7 +664,7 @@ subroutine elsi_get_evec_real(eh,evec)
       call elsi_stop(eh%bh,msg,caller)
    end if
 
-   evec = eh%evec_real
+   evec(:,:) = eh%evec_real
    eh%ph%evec_ready = .false.
 
 end subroutine
@@ -690,7 +690,7 @@ subroutine elsi_get_evec_complex(eh,evec)
       call elsi_stop(eh%bh,msg,caller)
    end if
 
-   evec = eh%evec_cmplx
+   evec(:,:) = eh%evec_cmplx
    eh%ph%evec_ready = .false.
 
 end subroutine
@@ -717,7 +717,7 @@ subroutine elsi_get_occ(eh,occ)
       call elsi_stop(eh%bh,msg,caller)
    end if
 
-   occ = eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt)
+   occ(:) = eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt)
    eh%ph%occ_ready = .false.
 
 end subroutine

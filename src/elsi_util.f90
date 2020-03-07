@@ -137,7 +137,7 @@ subroutine elsi_reset_param(ph)
    ph%omm_n_lrow = UNSET
    ph%omm_n_elpa = 5
    ph%omm_flavor = 0
-   ph%omm_desc = UNSET
+   ph%omm_desc(:) = UNSET
    ph%omm_tol = 1.0e-12_r8
    ph%omm_output = .false.
    ph%omm_first = .true.
@@ -194,7 +194,7 @@ subroutine elsi_reset_param(ph)
    ph%magma_started = .false.
    ph%bse_n_lrow = UNSET
    ph%bse_n_lcol = UNSET
-   ph%bse_desc = UNSET
+   ph%bse_desc(:) = UNSET
 
 end subroutine
 
@@ -222,7 +222,7 @@ subroutine elsi_reset_basic(bh)
    bh%mpi_ready = .false.
    bh%mpi_all_ready = .false.
    bh%blacs_ctxt = UNSET
-   bh%desc = UNSET
+   bh%desc(:) = UNSET
    bh%blk = UNSET
    bh%n_prow = UNSET
    bh%n_pcol = UNSET
@@ -719,7 +719,7 @@ subroutine elsi_set_full_mat_real(ph,bh,uplo,mat)
    call pdtran(ph%n_basis,ph%n_basis,1.0_r8,mat,1,1,bh%desc,0.0_r8,tmp,1,1,&
         bh%desc)
 
-   mat = mat+tmp(:,1:bh%n_lcol)
+   mat(:,:) = mat+tmp(:,1:bh%n_lcol)
 
    call elsi_deallocate(bh,tmp,"tmp")
 
@@ -781,7 +781,7 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,mat)
    call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),mat,1,1,bh%desc,&
         (0.0_r8,0.0_r8),tmp,1,1,bh%desc)
 
-   mat = mat+tmp(:,1:bh%n_lcol)
+   mat(:,:) = mat+tmp(:,1:bh%n_lcol)
 
    call elsi_deallocate(bh,tmp,"tmp")
 
@@ -831,8 +831,8 @@ subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
    call elsi_allocate(bh,factor,ph%n_states_solve,"factor",caller)
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   tmp = evec
-   dm = 0.0_r8
+   tmp(:,:) = evec
+   dm(:,:) = 0.0_r8
    max_state = 0
    use_gemm = .false.
 
@@ -923,8 +923,8 @@ subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
    call elsi_allocate(bh,factor,ph%n_states_solve,"factor",caller)
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   tmp = evec
-   dm = (0.0_r8,0.0_r8)
+   tmp(:,:) = evec
+   dm(:,:) = (0.0_r8,0.0_r8)
    max_state = 0
    use_gemm = .false.
 
@@ -1019,8 +1019,8 @@ subroutine elsi_build_edm_real(ph,bh,occ,eval,evec,edm)
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
    max_state = 0
-   tmp = evec
-   edm = 0.0_r8
+   tmp(:,:) = evec
+   edm(:,:) = 0.0_r8
    use_gemm = .false.
 
    do i = 1,ph%n_states_solve
@@ -1114,8 +1114,8 @@ subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
    max_state = 0
-   tmp = evec
-   edm = (0.0_r8,0.0_r8)
+   tmp(:,:) = evec
+   edm(:,:) = (0.0_r8,0.0_r8)
    use_gemm = .false.
 
    do i = 1,ph%n_states_solve
