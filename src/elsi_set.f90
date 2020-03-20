@@ -51,7 +51,6 @@ module ELSI_SET
    public :: elsi_set_eigenexa_method
    public :: elsi_set_sips_n_elpa
    public :: elsi_set_sips_n_slice
-   public :: elsi_set_sips_buffer
    public :: elsi_set_sips_inertia_tol
    public :: elsi_set_sips_ev_min
    public :: elsi_set_sips_ev_max
@@ -860,31 +859,6 @@ subroutine elsi_set_sips_n_slice(eh,n_slice)
    end if
 
    eh%ph%sips_n_slices = n_slice
-
-end subroutine
-
-!>
-!! Set a small buffer to expand the eigenvalue interval in SLEPc-SIPs.
-!!
-subroutine elsi_set_sips_buffer(eh,buffer)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   real(kind=r8), intent(in) :: buffer !< Buffer to expand interval
-
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_set_sips_buffer"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   if(buffer <= 0.0_r8) then
-      write(msg,"(A)") "Input value should be positive"
-      call elsi_stop(eh%bh,msg,caller)
-   end if
-
-   eh%ph%sips_buffer = buffer
 
 end subroutine
 
