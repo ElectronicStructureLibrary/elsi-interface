@@ -75,7 +75,6 @@ module ELSI
    public :: elsi_set_eigenexa_method
    public :: elsi_set_sips_n_elpa
    public :: elsi_set_sips_n_slice
-   public :: elsi_set_sips_buffer
    public :: elsi_set_sips_inertia_tol
    public :: elsi_set_sips_ev_min
    public :: elsi_set_sips_ev_max

@@ -241,9 +241,6 @@ void c_elsi_set_sips_n_elpa(elsi_handle handle_c,
 void c_elsi_set_sips_n_slice(elsi_handle handle_c,
      int n_slice);
 
-void c_elsi_set_sips_buffer(elsi_handle handle_c,
-     double buffer);
-
 void c_elsi_set_sips_inertia_tol(elsi_handle handle_c,
      double inertia_tol);
 

@@ -1131,21 +1131,6 @@ subroutine c_elsi_set_sips_n_slice(h_c,n_slice) bind(C)
 
 end subroutine
 
-subroutine c_elsi_set_sips_buffer(h_c,buffer) bind(C)
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   real(kind=c_double), value, intent(in) :: buffer
-
-   type(elsi_handle), pointer :: h_f
-
-   call c_f_pointer(h_c,h_f)
-
-   call elsi_set_sips_buffer(h_f,buffer)
-
-end subroutine
-
 subroutine c_elsi_set_sips_inertia_tol(h_c,inertia_tol) bind(C)
 
    implicit none
