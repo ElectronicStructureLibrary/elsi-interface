@@ -87,7 +87,6 @@ subroutine test_ev_real_coo(comm,solver,h_file,s_file)
          write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + EigenExa"
       else if(solver == 5) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_real_sparse + SLEPc-SIPs"
-         tol = 1.0e-6_r8
       end if
       write(*,*)
    end if

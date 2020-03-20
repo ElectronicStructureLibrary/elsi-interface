@@ -1131,21 +1131,6 @@ subroutine c_elsi_set_sips_n_slice(h_c,n_slice) bind(C)
 
 end subroutine
 
-subroutine c_elsi_set_sips_slice_type(h_c,slice_type) bind(C)
-
-   implicit none
-
-   type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), value, intent(in) :: slice_type
-
-   type(elsi_handle), pointer :: h_f
-
-   call c_f_pointer(h_c,h_f)
-
-   call elsi_set_sips_slice_type(h_f,slice_type)
-
-end subroutine
-
 subroutine c_elsi_set_sips_buffer(h_c,buffer) bind(C)
 
    implicit none

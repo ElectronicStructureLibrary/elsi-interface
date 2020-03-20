@@ -146,7 +146,6 @@ module ELSI_DATATYPE
       integer(kind=i4) :: elpa_comm_col
       logical :: elpa_gpu
       logical :: elpa_autotune
-      logical :: elpa_output
       logical :: elpa_first
       logical :: elpa_started = .false.
       class(elpa_t), pointer :: elpa_aux
@@ -199,7 +198,6 @@ module ELSI_DATATYPE
       ! SLEPc-SIPs
       integer(kind=i4) :: sips_n_elpa
       integer(kind=i4) :: sips_n_slices
-      integer(kind=i4) :: sips_slice_type
       real(kind=r8) :: sips_buffer ! Buffer for adjusting interval
       real(kind=r8) :: sips_interval(2)
       real(kind=r8) :: sips_inertia_tol

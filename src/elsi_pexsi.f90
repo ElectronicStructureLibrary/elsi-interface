@@ -154,6 +154,12 @@ subroutine elsi_init_pexsi(ph,bh)
          bh%n_lcol_sp = bh%n_lcol_sp1
       end if
 
+      if(bh%print_info > 1) then
+         ph%pexsi_options%verbosity = 2
+      else
+         ph%pexsi_options%verbosity = 1
+      end if
+
       ph%pexsi_started = .true.
    end if
 

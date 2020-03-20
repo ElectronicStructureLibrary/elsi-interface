@@ -364,7 +364,11 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_real"
 
-   elpa_print_times = ph%elpa_output
+   if(bh%print_info > 1) then
+      elpa_print_times = .true.
+   else
+      elpa_print_times = .false.
+   end if
 
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
@@ -705,7 +709,11 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    character(len=*), parameter :: caller = "elsi_solve_elpa_cmplx"
 
-   elpa_print_times = ph%elpa_output
+   if(bh%print_info > 1) then
+      elpa_print_times = .true.
+   else
+      elpa_print_times = .false.
+   end if
 
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then

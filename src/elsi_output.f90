@@ -316,7 +316,6 @@ subroutine elsi_print_elpa_settings(ph,jh)
 
    call fjson_start_name_object(jh,"solver_settings")
    call fjson_write_name_value(jh,"elpa_solver",ph%elpa_solver)
-   call fjson_write_name_value(jh,"elpa_n_states",ph%n_states)
    call fjson_write_name_value(jh,"elpa_n_single_precision",ph%elpa_n_single)
    call fjson_write_name_value(jh,"elpa_gpu",ph%elpa_gpu)
    call fjson_write_name_value(jh,"elpa_autotune",ph%elpa_autotune)
@@ -417,10 +416,8 @@ subroutine elsi_print_sips_settings(ph,jh)
    character(len=*), parameter :: caller = "elsi_print_sips_settings"
 
    call fjson_start_name_object(jh,"solver_settings")
-   call fjson_write_name_value(jh,"sips_n_states",ph%n_states)
    call fjson_write_name_value(jh,"sips_n_elpa",ph%sips_n_elpa)
    call fjson_write_name_value(jh,"sips_n_slices",ph%sips_n_slices)
-   call fjson_write_name_value(jh,"sips_slice_type",ph%sips_slice_type)
    call fjson_write_name_value(jh,"sips_buffer",ph%sips_buffer)
    call fjson_finish_object(jh)
 

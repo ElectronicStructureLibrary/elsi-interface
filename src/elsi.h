@@ -241,9 +241,6 @@ void c_elsi_set_sips_n_elpa(elsi_handle handle_c,
 void c_elsi_set_sips_n_slice(elsi_handle handle_c,
      int n_slice);
 
-void c_elsi_set_sips_slice_type(elsi_handle handle_c,
-     int slice_type);
-
 void c_elsi_set_sips_buffer(elsi_handle handle_c,
      double buffer);
 
@@ -274,9 +271,6 @@ void c_elsi_set_ntpoly_filter(elsi_handle handle_c,
 
 void c_elsi_set_ntpoly_max_iter(elsi_handle handle_c,
      int max_iter);
-
-void c_elsi_set_ntpoly_n_layer(elsi_handle handle_c,
-     int n_layer);
 
 void c_elsi_set_magma_solver(elsi_handle handle_c,
      int solver);
