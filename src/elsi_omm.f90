@@ -67,6 +67,12 @@ subroutine elsi_init_omm(ph,bh)
       call descinit(ph%omm_desc,ns,ph%n_basis,bh%blk,bh%blk,0,0,bh%blacs_ctxt,&
            max(1,ph%omm_n_lrow),ierr)
 
+      if(bh%print_info > 1) then
+         ph%omm_output = .true.
+      else
+         ph%omm_output = .false.
+      end if
+
       ph%omm_started = .true.
    end if
 

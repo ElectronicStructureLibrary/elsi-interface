@@ -84,6 +84,12 @@ subroutine elsi_init_ntpoly(ph,bh)
       ph%nt_n_prow = n_prow
       ph%nt_n_pcol = n_pcol
 
+      if(bh%print_info > 1) then
+         ph%nt_output = .true.
+      else
+         ph%nt_output = .false.
+      end if
+
       call MPI_Bcast(ph%nt_output,1,MPI_LOGICAL,0,bh%comm,ierr)
 
       call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)

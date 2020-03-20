@@ -51,7 +51,6 @@ module ELSI_SET
    public :: elsi_set_eigenexa_method
    public :: elsi_set_sips_n_elpa
    public :: elsi_set_sips_n_slice
-   public :: elsi_set_sips_slice_type
    public :: elsi_set_sips_buffer
    public :: elsi_set_sips_inertia_tol
    public :: elsi_set_sips_ev_min
@@ -118,32 +117,13 @@ subroutine elsi_set_output(eh,output)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   select case(output)
-   case(1)
-      eh%bh%print_info = 1
-      eh%ph%omm_output = .false.
-      eh%ph%pexsi_options%verbosity = 1
-      eh%ph%elpa_output = .false.
-      eh%ph%nt_output = .false.
-   case(2)
-      eh%bh%print_info = 2
-      eh%ph%omm_output = .true.
-      eh%ph%pexsi_options%verbosity = 2
-      eh%ph%elpa_output = .true.
-      eh%ph%nt_output = .true.
-   case(3)
-      eh%bh%print_info = 3
-      eh%ph%omm_output = .true.
-      eh%ph%pexsi_options%verbosity = 2
-      eh%ph%elpa_output = .true.
-      eh%ph%nt_output = .true.
-   case default
+   if(output < 0) then
       eh%bh%print_info = 0
-      eh%ph%omm_output = .false.
-      eh%ph%pexsi_options%verbosity = 1
-      eh%ph%elpa_output = .false.
-      eh%ph%nt_output = .false.
-   end select
+   else if(output > 3) then
+      eh%bh%print_info = 3
+   else
+      eh%bh%print_info = output
+   end if
 
 end subroutine
 
@@ -850,8 +830,8 @@ subroutine elsi_set_sips_n_elpa(eh,n_elpa)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   if(n_elpa < 0) then
-      eh%ph%sips_n_elpa = 0
+   if(n_elpa < 1) then
+      eh%ph%sips_n_elpa = 1
    else
       eh%ph%sips_n_elpa = n_elpa
    end if
@@ -880,31 +860,6 @@ subroutine elsi_set_sips_n_slice(eh,n_slice)
    end if
 
    eh%ph%sips_n_slices = n_slice
-
-end subroutine
-
-!>
-!! Set the type of slices to be used in SLEPc-SIPs.
-!!
-subroutine elsi_set_sips_slice_type(eh,slice_type)
-
-   implicit none
-
-   type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: slice_type !< Slice type
-
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_set_sips_slice_type"
-
-   call elsi_check_init(eh%bh,eh%handle_init,caller)
-
-   if(slice_type /= 0 .and. slice_type /= 2) then
-      write(msg,"(A)") "Input value should be 0 or 2"
-      call elsi_stop(eh%bh,msg,caller)
-   end if
-
-   eh%ph%sips_slice_type = slice_type
 
 end subroutine
 

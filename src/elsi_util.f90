@@ -131,7 +131,6 @@ subroutine elsi_reset_param(ph)
    ph%elpa_comm_col = UNSET
    ph%elpa_gpu = .false.
    ph%elpa_autotune = .false.
-   ph%elpa_output = .false.
    ph%elpa_first = .true.
    ph%elpa_started = .false.
    ph%omm_n_lrow = UNSET
@@ -169,12 +168,10 @@ subroutine elsi_reset_param(ph)
    ph%exa_blk_bkwd = 128
    ph%exa_first = .true.
    ph%exa_started = .false.
-   ph%sips_n_elpa = 0
+   ph%sips_n_elpa = 1
    ph%sips_n_slices = UNSET
-   ph%sips_slice_type = 2
-   ph%sips_buffer = 1.0e-2_r8
-   ph%sips_interval(1) = -2.0_r8
-   ph%sips_interval(2) = 2.0_r8
+   ph%sips_buffer = 1.0e-1_r8
+   ph%sips_interval(:) = 0.0_r8
    ph%sips_inertia_tol = 1.0e-3_r8
    ph%sips_do_inertia = .true.
    ph%sips_first = .true.

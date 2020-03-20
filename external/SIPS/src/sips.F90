@@ -637,7 +637,7 @@ CONTAINS
 
     ! Returns subintervals for given cluster ids and evals.
     FUNCTION get_subs_from_cluster_ids(buffer,subbuffer,nsub,ids,nev,evals) &
-                 result(subs)
+        RESULT(subs)
 
         IMPLICIT NONE
 

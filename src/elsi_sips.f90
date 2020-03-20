@@ -100,8 +100,8 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   real(kind=r8) :: max_diff
-   integer(kind=i4) :: i
+   real(kind=r8) :: diff
+   integer(kind=i4) :: i_val
    integer(kind=i4) :: n_solved
    logical :: inertia_ok
    character(len=200) :: msg
@@ -143,13 +143,11 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    call elsi_say(bh,msg)
 
    call elsi_allocate(bh,slices,ph%sips_n_slices+1,"slices",caller)
+   call elsi_allocate(bh,eval_save,ph%n_states,"eval_save",caller)
 
-   if(ph%sips_first .and. ph%elpa_first) then
-      eval(:) = ph%sips_interval(2)
-      eval(1) = ph%sips_interval(1)
-   end if
+   eval_save(:) = eval
 
-   if(ph%sips_do_inertia) then
+   if(ph%sips_first .or. ph%sips_do_inertia) then
       call elsi_get_time(t0)
 
       call elsi_allocate(bh,inertias,ph%sips_n_slices+1,"inertias",caller)
@@ -169,11 +167,11 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
             eval(1) = eval(1)-ph%sips_buffer
             inertia_ok = .false.
          else
-            do i = 1,ph%sips_n_slices
-               if(inertias(i+1) > 0) then
-                  eval(1) = slices(i)
+            do i_val = 1,ph%sips_n_slices
+               if(inertias(i_val+1) > 0) then
+                  eval(1) = slices(i_val)
 
-                  if(i > 1) then
+                  if(i_val > 1) then
                      inertia_ok = .false.
                   end if
 
@@ -186,11 +184,11 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
             eval(ph%n_states) = eval(ph%n_states)+ph%sips_buffer
             inertia_ok = .false.
          else
-            do i = ph%sips_n_slices+1,2,-1
-               if(inertias(i-1) < ph%n_states) then
-                  eval(ph%n_states) = slices(i)
+            do i_val = ph%sips_n_slices+1,2,-1
+               if(inertias(i_val-1) < ph%n_states) then
+                  eval(ph%n_states) = slices(i_val)
 
-                  if(i < ph%sips_n_slices+1) then
+                  if(i_val < ph%sips_n_slices+1) then
                      inertia_ok = .false.
                   end if
 
@@ -212,7 +210,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
       write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,msg)
    else
-      call sips_get_slices(ph%sips_slice_type,ph%n_states,ph%sips_n_slices,&
+      call sips_get_slices(2,ph%n_states,ph%sips_n_slices,&
            ph%sips_inertia_tol*2,1.0e-5_r8,eval,slices)
    end if
 
@@ -238,16 +236,12 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    call elsi_get_time(t0)
 
    ! Get solutions
-   call elsi_allocate(bh,eval_save,ph%n_states,"eval_save",caller)
-
-   eval_save(:) = eval
-
    call sips_get_eigenvalues(ph%n_states,eval(1:ph%n_states))
    call sips_get_eigenvectors(ph%n_states,bh%n_lcol_sp1,evec)
 
-   max_diff = maxval(abs(eval_save-eval))
+   diff = maxval(abs(eval_save-eval))
 
-   if(max_diff > ph%sips_inertia_tol) then
+   if(diff > ph%sips_inertia_tol) then
       ph%sips_do_inertia = .true.
    else
       ph%sips_do_inertia = .false.

@@ -77,7 +77,6 @@ subroutine test_ev_real_den(comm,solver,h_file,s_file)
          write(*,"(2X,A)") "Now start testing  elsi_ev_real + EigenExa"
       else if(solver == 5) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_real + SLEPc-SIPs"
-         tol = 1.0e-6_r8
       else if(solver == 7) then
          write(*,"(2X,A)") "Now start testing  elsi_ev_real + MAGMA"
       end if

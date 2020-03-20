@@ -209,7 +209,7 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    case(SIPS_SOLVER)
       call elsi_init_sips(eh%ph,eh%bh)
 
-      if(eh%ph%sips_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%sips_n_elpa+1) then
+      if(eh%ph%n_calls > 1 .and. eh%ph%n_calls == eh%ph%sips_n_elpa+1) then
          ! Restore overlap
          ovlp(:,:) = eh%ovlp_real_copy
       end if
@@ -654,7 +654,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_get_occ_for_dm(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%evec_real,dm)
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
 
       eh%ph%eval_ready = .true.
       eh%ph%evec_ready = .true.
@@ -663,7 +663,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_init_omm(eh%ph,eh%bh)
 
-      if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
+      if(eh%ph%n_calls > 1 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
          if(eh%ph%omm_flavor == 0) then
             ! Restore overlap
             ovlp(:,:) = eh%ovlp_real_copy
@@ -694,7 +694,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       end if
 
       call elsi_solve_omm(eh%ph,eh%bh,ham,ovlp,eh%omm_c_real,dm)
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,OMM_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
@@ -739,7 +739,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
            eh%pexsi_ne_vec,eh%ham_real_sp,eh%ovlp_real_sp,eh%dm_real_sp)
       call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%dm_real_sp,eh%row_ind_sp1,&
            eh%col_ptr_sp1,dm)
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,PEXSI_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
    case(EIGENEXA_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_init_eigenexa(eh%ph,eh%bh)
@@ -762,13 +762,13 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
       call elsi_get_occ_for_dm(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%evec_real,dm)
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
 
       eh%ph%eval_ready = .true.
       eh%ph%evec_ready = .true.
       eh%ph%occ_ready = .true.
    case(SIPS_SOLVER)
-      if(eh%ph%sips_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%sips_n_elpa+1) then
+      if(eh%ph%n_calls > 1 .and. eh%ph%n_calls == eh%ph%sips_n_elpa+1) then
          ! Restore overlap
          ovlp(:,:) = eh%ovlp_real_copy
 
@@ -830,7 +830,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
            eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_sp)
       call elsi_sips_to_blacs_dm(eh%ph,eh%bh,eh%dm_real_sp,eh%row_ind_sp1,&
            eh%col_ptr_sp1,dm)
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,SIPS_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
 
       eh%ph%eval_ready = .true.
       eh%ph%occ_ready = .true.
@@ -848,7 +848,7 @@ subroutine elsi_dm_real(eh,ham,ovlp,dm,ebs)
            eh%nt_ovlp)
       call elsi_solve_ntpoly(eh%ph,eh%bh,eh%nt_ham,eh%nt_ovlp,eh%nt_dm)
       call elsi_ntpoly_to_blacs_dm(eh%bh,eh%nt_dm,dm)
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
    case default
       write(msg,"(A)") "Unsupported density matrix solver"
       call elsi_stop(eh%bh,msg,caller)
@@ -937,7 +937,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_get_occ_for_dm(eh%ph,eh%bh,eh%eval,eh%occ)
       call elsi_build_dm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
            eh%evec_cmplx,dm)
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
 
       eh%ph%eval_ready = .true.
       eh%ph%evec_ready = .true.
@@ -946,7 +946,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_init_elpa(eh%ph,eh%bh)
       call elsi_init_omm(eh%ph,eh%bh)
 
-      if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
+      if(eh%ph%n_calls > 1 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
          if(eh%ph%omm_flavor == 0) then
             ! Restore overlap
             ovlp(:,:) = eh%ovlp_cmplx_copy
@@ -977,7 +977,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       end if
 
       call elsi_solve_omm(eh%ph,eh%bh,ham,ovlp,eh%omm_c_cmplx,dm)
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,OMM_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
@@ -1022,7 +1022,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
            eh%pexsi_ne_vec,eh%ham_cmplx_sp,eh%ovlp_cmplx_sp,eh%dm_cmplx_sp)
       call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%dm_cmplx_sp,eh%row_ind_sp1,&
            eh%col_ptr_sp1,dm)
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,PEXSI_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
 
@@ -1037,7 +1037,7 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
            eh%nt_ovlp)
       call elsi_solve_ntpoly(eh%ph,eh%bh,eh%nt_ham,eh%nt_ovlp,eh%nt_dm)
       call elsi_ntpoly_to_blacs_dm(eh%bh,eh%nt_dm,dm)
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
    case default
       write(msg,"(A)") "Unsupported density matrix solver"
       call elsi_stop(eh%bh,msg,caller)
@@ -1188,7 +1188,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
 
       eh%ph%eval_ready = .true.
       eh%ph%evec_ready = .true.
@@ -1262,7 +1262,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
+      if(eh%ph%n_calls > 1 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
          if(eh%ph%omm_flavor == 0) then
             ! Restore overlap
             eh%ovlp_real_den(:,:) = eh%ovlp_real_copy
@@ -1287,7 +1287,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,OMM_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
@@ -1373,7 +1373,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,PEXSI_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
    case(EIGENEXA_SOLVER)
       call elsi_init_blacs(eh)
       call elsi_init_elpa(eh%ph,eh%bh)
@@ -1454,7 +1454,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,EIGENEXA_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
 
       eh%ph%eval_ready = .true.
       eh%ph%evec_ready = .true.
@@ -1495,7 +1495,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_get_occ_for_dm(eh%ph,eh%bh,eh%eval,eh%occ)
          call elsi_build_dm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
               eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),dm)
-         call elsi_get_band_energy(eh%ph,eh%bh,ebs,SIPS_SOLVER)
+         call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
       case(SIESTA_CSC)
          if(.not. allocated(eh%row_ind_sp1)) then
             call elsi_siesta_to_sips_hs_dim(eh%ph,eh%bh,eh%col_ptr_sp2)
@@ -1533,7 +1533,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
               eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_sp)
          call elsi_sips_to_siesta_dm(eh%ph,eh%bh,eh%dm_real_sp,eh%row_ind_sp1,&
               eh%col_ptr_sp1,dm,eh%row_ind_sp2,eh%col_ptr_sp2)
-         call elsi_get_band_energy(eh%ph,eh%bh,ebs,SIPS_SOLVER)
+         call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
       case(GENERIC_COO)
          if(.not. allocated(eh%row_ind_sp1)) then
             call elsi_generic_to_sips_hs_dim(eh%ph,eh%bh,eh%col_ind_sp3)
@@ -1613,7 +1613,7 @@ subroutine elsi_dm_real_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
    case default
       write(msg,"(A)") "Unsupported density matrix solver"
       call elsi_stop(eh%bh,msg,caller)
@@ -1782,7 +1782,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,ELPA_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
 
       eh%ph%eval_ready = .true.
       eh%ph%evec_ready = .true.
@@ -1857,7 +1857,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      if(eh%ph%omm_n_elpa > 0 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
+      if(eh%ph%n_calls > 1 .and. eh%ph%n_calls == eh%ph%omm_n_elpa+1) then
          if(eh%ph%omm_flavor == 0) then
             ! Restore overlap
             eh%ovlp_cmplx_den(:,:) = eh%ovlp_cmplx_copy
@@ -1882,7 +1882,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,OMM_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
    case(PEXSI_SOLVER)
       call elsi_init_pexsi(eh%ph,eh%bh)
 
@@ -1970,7 +1970,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,PEXSI_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
 
@@ -2006,7 +2006,7 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
          call elsi_stop(eh%bh,msg,caller)
       end select
 
-      call elsi_get_band_energy(eh%ph,eh%bh,ebs,NTPOLY_SOLVER)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
    case default
       write(msg,"(A)") "Unsupported density matrix solver"
       call elsi_stop(eh%bh,msg,caller)
