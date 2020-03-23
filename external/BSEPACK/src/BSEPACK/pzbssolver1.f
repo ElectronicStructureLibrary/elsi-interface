@@ -233,7 +233,7 @@
 *     ..
 *     .. Local Arrays ..
       INTEGER            DESCU( DLEN_ ), DESCV( DLEN_ ), DESCW( DLEN_ ),
-     $                   ITMP2( 14 )
+     $                   ITMP2( 14 ), ITMP3( N )
       DOUBLE PRECISION   DTMP( 1 )
       DOUBLE PRECISION   DTMP2( 7 )
 *     ..
@@ -324,7 +324,10 @@
      $        DTMP2, -1, ITMP2, -1, ITMP )
          LWKOPT = MAX( LWKOPT, INT( DTMP2( 1 ) ) )
          LIWKOPT = ITMP2( 1 )
-         CALL PDSTEIN( TWON, DTMP, DTMP, N, LAMBDA, ITMP, ITMP,
+         DO I = 1, N
+            ITMP3(I) = I
+         END DO
+         CALL PDSTEIN( TWON, DTMP, DTMP, N, LAMBDA, ITMP3, ITMP,
      $        ORFAC, DTMP, 1, 1, DESCU, WORK, -1, IWORK, -1, ITMP,
      $        ITMP, DTMP, ITMP )
          LWKOPT = MAX( LWKOPT, INT( WORK( 1 ) ) )
