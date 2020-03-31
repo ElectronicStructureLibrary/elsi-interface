@@ -148,9 +148,9 @@ module ELSI_DATATYPE
       logical :: elpa_autotune
       logical :: elpa_first
       logical :: elpa_started = .false.
-      class(elpa_t), pointer :: elpa_aux
-      class(elpa_t), pointer :: elpa_solve
-      class(elpa_autotune_t), pointer :: elpa_tune
+      class(elpa_t), pointer :: elpa_aux => null()
+      class(elpa_t), pointer :: elpa_solve => null()
+      class(elpa_autotune_t), pointer :: elpa_tune => null()
 
       ! libOMM
       integer(kind=i4) :: omm_n_lrow

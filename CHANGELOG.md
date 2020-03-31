@@ -120,7 +120,7 @@
 
 ### ELPA
 * Interface for externally linked ELPA compatible with ELPA 2018.11.
-* Fixed single precision calculations with an externally linked ELPA.
+* Fixed single precision calculations with externally linked ELPA.
 * Fixed internal ELPA two-stage real solver with AVX512 kernel.
 
 ### NTPoly

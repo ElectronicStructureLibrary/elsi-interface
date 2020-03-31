@@ -41,12 +41,9 @@
 !
 ! Author: Andreas Marek, MPCDF
 
+!> \brief Fortran module which exports the MPI functions to ELPA
 module elpa_mpi
-
-  use mpi
-
-  implicit none
-
-  public
-
+   use mpi
+   implicit none
+   public
 end module
