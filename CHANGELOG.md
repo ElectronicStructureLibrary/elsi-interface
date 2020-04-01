@@ -1,5 +1,10 @@
 # ELSI changelog
 
+## Not released
+
+### SLEPc-SIPs
+* Interface compatible with PETSc 3.13 and SLEPc 3.13.
+
 ## v2.5.0 (February 2020)
 
 ### ELSI interface
