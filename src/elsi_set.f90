@@ -476,9 +476,9 @@ subroutine elsi_set_elpa_gpu(eh,gpu)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(gpu == 0) then
-      eh%ph%elpa_gpu = .false.
+      eh%ph%elpa_gpu = 0
    else
-      eh%ph%elpa_gpu = .true.
+      eh%ph%elpa_gpu = 1
    end if
 
 end subroutine
@@ -499,9 +499,9 @@ subroutine elsi_set_elpa_autotune(eh,autotune)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(autotune == 0) then
-      eh%ph%elpa_autotune = .false.
+      eh%ph%elpa_autotune = 0
    else
-      eh%ph%elpa_autotune = .true.
+      eh%ph%elpa_autotune = 1
    end if
 
 end subroutine

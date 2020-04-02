@@ -11,8 +11,8 @@ module ELSI_UTIL
 
    use ELSI_CONSTANT, only: UNSET,N_SOLVERS,N_PARALLEL_MODES,N_MATRIX_FORMATS,&
        MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,&
-       AUTO_SOLVER,OMM_SOLVER,PEXSI_SOLVER,EIGENEXA_SOLVER,SIPS_SOLVER,&
-       NTPOLY_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,UT_MAT
+       AUTO_SOLVER,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,EIGENEXA_SOLVER,&
+       SIPS_SOLVER,NTPOLY_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,UT_MAT
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,elsi_check_mpi,MPI_COMM_SELF,MPI_REAL8,MPI_SUM
@@ -125,12 +125,14 @@ subroutine elsi_reset_param(ph)
    ph%first_siesta_to_pexsi = .true.
    ph%first_sips_to_blacs = .true.
    ph%first_sips_to_ntpoly = .true.
-   ph%elpa_solver = 2
-   ph%elpa_n_single = 0
    ph%elpa_comm_row = UNSET
    ph%elpa_comm_col = UNSET
-   ph%elpa_gpu = .false.
-   ph%elpa_autotune = .false.
+   ph%elpa_solver = UNSET
+   ph%elpa_n_single = 0
+   ph%elpa_gpu = UNSET
+   ph%elpa_autotune = UNSET
+   ph%elpa_n_lrow = UNSET
+   ph%elpa_n_lcol = UNSET
    ph%elpa_first = .true.
    ph%elpa_started = .false.
    ph%omm_n_lrow = UNSET
@@ -382,6 +384,12 @@ subroutine elsi_check(ph,bh,caller)
 
    ! Specific check for each solver
    select case(ph%solver)
+   case(ELPA_SOLVER)
+      if(ph%ill_check .and. ph%elpa_autotune > 0) then
+         write(msg,"(A)") "ELPA autotuning not compatible with"//&
+            " ill-conditioning check"
+         call elsi_stop(bh,msg,caller)
+      end if
    case(OMM_SOLVER)
       if(ph%parallel_mode /= MULTI_PROC) then
          write(msg,"(A)") "libOMM requires MULTI_PROC parallel mode"

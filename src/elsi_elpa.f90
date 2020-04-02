@@ -18,9 +18,9 @@ module ELSI_ELPA
    use ELSI_PRECISION, only: r4,r8,i4
    use ELSI_UTIL, only: elsi_get_nnz,elsi_get_gid,elsi_set_full_mat
    use ELPA, only: elpa_init,elpa_allocate,elpa_deallocate,&
-       elpa_autotune_deallocate,ELPA_SOLVER_1STAGE,ELPA_SOLVER_2STAGE,&
-       ELPA_2STAGE_REAL_GPU,ELPA_2STAGE_COMPLEX_GPU,ELPA_AUTOTUNE_EXTENSIVE,&
-       ELPA_AUTOTUNE_DOMAIN_REAL,ELPA_AUTOTUNE_DOMAIN_COMPLEX
+       elpa_autotune_deallocate,ELPA_2STAGE_REAL_GPU,ELPA_2STAGE_COMPLEX_GPU,&
+       ELPA_AUTOTUNE_FAST,ELPA_AUTOTUNE_MEDIUM,ELPA_AUTOTUNE_DOMAIN_REAL,&
+       ELPA_AUTOTUNE_DOMAIN_COMPLEX
 
    implicit none
 
@@ -827,6 +827,8 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
    integer(kind=i4) :: ierr
    character(len=200) :: msg
 
+   integer(kind=i4), external :: numroc
+
    character(len=*), parameter :: caller = "elsi_elpa_setup"
 
    if(is_aux) then
@@ -848,37 +850,37 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
          call elsi_stop(bh,msg,caller)
       end if
 
-      if(ph%elpa_solver == 1) then
-         call ph%elpa_aux%set("solver",ELPA_SOLVER_1STAGE,ierr)
-      else
-         call ph%elpa_aux%set("solver",ELPA_SOLVER_2STAGE,ierr)
-      end if
+      if(ph%elpa_solver == UNSET .or. ph%elpa_solver == 2) then
+         call ph%elpa_aux%set("solver",2,ierr)
 
-      if(ph%elpa_gpu) then
-         call ph%elpa_aux%set("gpu",1,ierr)
-
-         if(ph%elpa_solver == 1) then
-            call ph%elpa_aux%set("gpu_tridiag",1,ierr)
-            call ph%elpa_aux%set("gpu_solve_tridi",1,ierr)
-            call ph%elpa_aux%set("gpu_trans_ev",1,ierr)
+         if(ph%elpa_gpu == UNSET .or. ph%elpa_gpu == 0) then
+            call ph%elpa_aux%set("gpu",0,ierr)
          else
-            call ph%elpa_aux%set("gpu_bandred",1,ierr)
-            call ph%elpa_aux%set("gpu_tridiag_band",1,ierr)
-            call ph%elpa_aux%set("gpu_solve_tridi",1,ierr)
-            call ph%elpa_aux%set("gpu_trans_ev_tridi_to_band",1,ierr)
-            call ph%elpa_aux%set("gpu_trans_ev_band_to_full",1,ierr)
+            call ph%elpa_aux%set("gpu",1,ierr)
             call ph%elpa_aux%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
             call ph%elpa_aux%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,ierr)
          end if
+      else
+         call ph%elpa_aux%set("solver",1,ierr)
+
+         if(ph%elpa_gpu == UNSET .or. ph%elpa_gpu == 0) then
+            call ph%elpa_aux%set("gpu",0,ierr)
+         else
+            call ph%elpa_aux%set("gpu",1,ierr)
+         end if
       end if
    else
+      ! Dimension should be number of non-ill-conditioned basis functions
+      ph%elpa_n_lrow = numroc(ph%n_good,bh%blk,bh%my_prow,0,bh%n_prow)
+      ph%elpa_n_lcol = numroc(ph%n_good,bh%blk,bh%my_pcol,0,bh%n_pcol)
+
       ph%elpa_solve => elpa_allocate(ierr)
 
       call ph%elpa_solve%set("na",ph%n_good,ierr)
       call ph%elpa_solve%set("nev",ph%n_states_solve,ierr)
       call ph%elpa_solve%set("nblk",bh%blk,ierr)
-      call ph%elpa_solve%set("local_nrows",bh%n_lrow,ierr)
-      call ph%elpa_solve%set("local_ncols",bh%n_lcol,ierr)
+      call ph%elpa_solve%set("local_nrows",ph%elpa_n_lrow,ierr)
+      call ph%elpa_solve%set("local_ncols",ph%elpa_n_lcol,ierr)
       call ph%elpa_solve%set("mpi_comm_parent",bh%comm,ierr)
       call ph%elpa_solve%set("mpi_comm_rows",ph%elpa_comm_row,ierr)
       call ph%elpa_solve%set("mpi_comm_cols",ph%elpa_comm_col,ierr)
@@ -890,15 +892,31 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
          call elsi_stop(bh,msg,caller)
       end if
 
-      if(ph%elpa_solver == 1) then
-         call ph%elpa_solve%set("solver",ELPA_SOLVER_1STAGE,ierr)
+      if(ph%elpa_autotune > 0) then
+         if(ph%elpa_gpu == UNSET) then
+            ph%elpa_autotune = ELPA_AUTOTUNE_MEDIUM
+         else
+            ph%elpa_autotune = ELPA_AUTOTUNE_FAST
+         end if
       else
-         call ph%elpa_solve%set("solver",ELPA_SOLVER_2STAGE,ierr)
+         if(ph%elpa_gpu == UNSET) then
+            ph%elpa_gpu = 0
+         end if
+
+         if(ph%elpa_solver == UNSET) then
+            ph%elpa_solver = 2
+         end if
       end if
 
-      if(ph%elpa_gpu) then
-         call ph%elpa_solve%set("gpu",1,ierr)
+      if(ph%elpa_solver /= UNSET) then
+         call ph%elpa_solve%set("solver",ph%elpa_solver,ierr)
+      end if
 
+      if(ph%elpa_gpu /= UNSET) then
+         call ph%elpa_solve%set("gpu",ph%elpa_gpu,ierr)
+      end if
+
+      if(ph%elpa_gpu == 1) then
          if(ph%elpa_solver == 1) then
             call ph%elpa_solve%set("gpu_tridiag",1,ierr)
             call ph%elpa_solve%set("gpu_solve_tridi",1,ierr)
@@ -910,8 +928,7 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
             call ph%elpa_solve%set("gpu_trans_ev_tridi_to_band",1,ierr)
             call ph%elpa_solve%set("gpu_trans_ev_band_to_full",1,ierr)
             call ph%elpa_solve%set("real_kernel",ELPA_2STAGE_REAL_GPU,ierr)
-            call ph%elpa_solve%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,&
-                 ierr)
+            call ph%elpa_solve%set("complex_kernel",ELPA_2STAGE_COMPLEX_GPU,ierr)
          end if
       end if
    end if
@@ -974,7 +991,9 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
 
          copy_r4(:,:) = real(mat,kind=r4)
 
-         call ph%elpa_solve%eigenvectors(copy_r4,eval_r4,evec_r4,ierr)
+         call ph%elpa_solve%eigenvectors(&
+              copy_r4(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),eval_r4,&
+              evec_r4(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),ierr)
 
          eval(:) = real(eval_r4,kind=r8)
          evec(:,:) = real(evec_r4,kind=r8)
@@ -983,10 +1002,10 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
          call elsi_deallocate(bh,evec_r4,"evec_r4")
          call elsi_deallocate(bh,copy_r4,"copy_r4")
       else
-         if(ph%elpa_autotune) then
+         if(ph%elpa_autotune > 0) then
             if(.not. associated(ph%elpa_tune)) then
-               ph%elpa_tune => ph%elpa_solve%autotune_setup(&
-                  ELPA_AUTOTUNE_EXTENSIVE,ELPA_AUTOTUNE_DOMAIN_REAL,ierr)
+               ph%elpa_tune => ph%elpa_solve%autotune_setup(ph%elpa_autotune,&
+                  ELPA_AUTOTUNE_DOMAIN_REAL,ierr)
             end if
 
             if(.not. ph%elpa_solve%autotune_step(ph%elpa_tune,ierr)) then
@@ -994,10 +1013,14 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
                call elpa_autotune_deallocate(ph%elpa_tune,ierr)
 
                nullify(ph%elpa_tune)
+
+               ph%elpa_autotune = 0
             end if
          end if
 
-         call ph%elpa_solve%eigenvectors(mat,eval,evec,ierr)
+         call ph%elpa_solve%eigenvectors(&
+              mat(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),eval,&
+              evec(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),ierr)
       end if
 
       if(ierr /= 0) then
@@ -1064,7 +1087,9 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
 
          copy_r4(:,:) = cmplx(mat,kind=r4)
 
-         call ph%elpa_solve%eigenvectors(copy_r4,eval_r4,evec_r4,ierr)
+         call ph%elpa_solve%eigenvectors(&
+              copy_r4(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),eval_r4,&
+              evec_r4(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),ierr)
 
          eval(:) = real(eval_r4,kind=r8)
          evec(:,:) = cmplx(evec_r4,kind=r8)
@@ -1073,10 +1098,10 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
          call elsi_deallocate(bh,evec_r4,"evec_r4")
          call elsi_deallocate(bh,copy_r4,"copy_r4")
       else
-         if(ph%elpa_autotune) then
+         if(ph%elpa_autotune > 0) then
             if(.not. associated(ph%elpa_tune)) then
-               ph%elpa_tune => ph%elpa_solve%autotune_setup(&
-                  ELPA_AUTOTUNE_EXTENSIVE,ELPA_AUTOTUNE_DOMAIN_COMPLEX,ierr)
+               ph%elpa_tune => ph%elpa_solve%autotune_setup(ph%elpa_autotune,&
+                  ELPA_AUTOTUNE_DOMAIN_COMPLEX,ierr)
             end if
 
             if(.not. ph%elpa_solve%autotune_step(ph%elpa_tune,ierr)) then
@@ -1084,10 +1109,14 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
                call elpa_autotune_deallocate(ph%elpa_tune,ierr)
 
                nullify(ph%elpa_tune)
+
+               ph%elpa_autotune = 0
             end if
          end if
 
-         call ph%elpa_solve%eigenvectors(mat,eval,evec,ierr)
+         call ph%elpa_solve%eigenvectors(&
+              mat(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),eval,&
+              evec(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),ierr)
       end if
 
       if(ierr /= 0) then
