@@ -80,7 +80,7 @@ ELSI is a National Science Foundation Software Infrastructure for Sustained Inno
 \chapter{Installation of ELSI}
 \section{Prerequisites}
 \label{sec:prereq}
-The ELSI package contains the ELSI interface software as well as redistributed source code for the solver libraries ELPA (version 2016.11.001), libOMM (version 1.0.0), PEXSI (version 1.2.0), and NTPoly (version 2.4.0). The installation of ELSI makes use of the \href{http://cmake.org}{CMake} software. Minimum requirements include:
+The ELSI package contains the ELSI interface software as well as redistributed source code for the solver libraries ELPA (version 2020.05.001), libOMM (version 1.0.0), PEXSI (version 1.2.0), and NTPoly (version 2.4.0). The installation of ELSI makes use of the \href{http://cmake.org}{CMake} software. Minimum requirements include:
 \begin{Verbatim}[commandchars=\\\{\}]
 \tcb{CMake}  [minimum version 3.0; newer version recommended]
 \tcb{Fortran compiler}  [Fortran 2003 compliant]
@@ -123,6 +123,8 @@ We recommend preparing configuration settings in a toolchain file that can be re
 # Modify contents in \tcr{red} if necessary
 set(CMAKE_Fortran_COMPILER \tcr{"mpiifort"} CACHE STRING "MPI Fortran compiler")
 set(CMAKE_Fortran_FLAGS \tcr{"-O3 -ip -fp-model precise"} CACHE STRING "Fortran flags")
+set(CMAKE_C_COMPILER \tcr{"mpiicc"} CACHE STRING "MPI C compiler")
+set(CMAKE_C_FLAGS \tcr{"-O3 -ip -fp-model precise -std=c99"} CACHE STRING "C flags")
 set(LIB_PATHS \tcr{"$ENV{MKLROOT}/lib/intel64"} CACHE STRING "External library paths")
 set(LIBS \tcr{"mkl_scalapack_lp64 mkl_blacs_intelmpi_lp64 mkl_intel_lp64 mkl_sequential mkl_core"}
     CACHE STRING "External libraries")
@@ -246,8 +248,6 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 \hline
 \texttt{USE\_EXTERNAL\_PEXSI}     & boolean & OFF         & Use external PEXSI (if PEXSI enabled)\\
 \hline
-\texttt{USE\_MPI\_IALLGATHER}     & boolean & ON          & Use non-blocking collective MPI functions\\
-\hline
 \texttt{USE\_MPI\_MODULE}         & boolean & OFF         & Use MPI module instead of ``\texttt{mpif.h}'' in Fortran code\\
 \hline
 \end{longtable}
@@ -263,8 +263,6 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 (4) \texttt{SCOTCH\_LAST\_RESORT}: The compilation of PT-SCOTCH is a multi-step process. First, two auxiliary executables are created. Then, some header files are generated on-the-fly by the two executables. Finally, the main source files are compiled with the generated header files included. The header generation step may fail on platforms where directly running an executable is prohibited, e.g. login nodes of a supercomputer. Often this can be circumvented by requesting an interactive session to a compute node and compiling the code there, or by submitting the compilation as a job to the queuing system. However, this may still fail on platforms where an executable compiled with MPI must be launched by an MPI job launcher (aprun, mpirun, srun, etc). If the standard compilation of PT-SCOTCH fails due to this reason, the user may set \texttt{SCOTCH\_LAST\_RESORT} to the command that starts an MPI job with one MPI task, e.g. ``\texttt{mpirun -n 1}''. This command is then used to launch the auxiliary executables to generate necessary header files for PT-SCOTCH.
 
 (5) External libraries: ELSI redistributes source code of ELPA, libOMM, NTPoly, PEXSI, SuperLU\_DIST, and PT-SCOTCH libraries, which are built by default together with the ELSI interface. Experienced users are encouraged to link the ELSI interface against external, better optimized solver libraries. See Sec.~\ref{subsec:config_solvers} for more information.
-
-(6) \texttt{USE\_MPI\_IALLGATHER}: NTPoly makes use of non-blocking collective MPI functions such as \texttt{MPI\_Iallgatherv} to overlap its computation and communication. If these MPI functions are not available in the user's MPI version, set \texttt{USE\_MPI\_IALLGATHER} to ``OFF''. Using this flag may lead to reduced performance. Upgrade MPI if possible.
 
 \section{Importing ELSI into Third-Party Code Projects}
 \label{sec:import}
@@ -893,8 +891,6 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \texttt{mu\_mp\_order}       & integer     & 0           & Order of the Methfessel-Paxton broadening scheme. No effect if Methfessel-Paxton is not used.\\
 \hline
-\texttt{write\_unit}         & integer     & 6           & Deprecated. Use \api{elsi\_set\_output\_unit} instead.\\
-\hline
 \texttt{sing\_check}         & integer     & 0           & Deprecated. Use \api{elsi\_set\_illcond\_check} instead.\\
 \hline
 \texttt{sing\_tol}           & real double & $10^{-5}$   & Deprecated. Use \api{elsi\_set\_illcond\_tol} instead.\\
@@ -929,21 +925,17 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \texttt{elpa\_n\_single}    & integer & 0 & Number of SCF steps using single precision ELPA to solve standard eigenproblems. See remark 1.\\
 \hline
-\texttt{elpa\_gpu}          & integer & 0 & If not 0, try to enable GPU-acceleration in ELPA. See remark 2.\\
+\texttt{elpa\_gpu}          & integer & 0 & If not 0, enable GPU-acceleration in ELPA. See remark 2.\\
 \hline
-\texttt{elpa\_autotune}     & integer & 1 & If not 0, try to enable auto-tuning of runtime parameters in ELPA. See remark 3.\\
-\hline
-\texttt{elpa\_gpu\_kernels} & integer & 0 & Deprecated. No effect.\\
+\texttt{elpa\_autotune}     & integer & 1 & If not 0, enable auto-tuning of runtime parameters in ELPA. Not compatible with \texttt{illcond\_check}.\\
 \hline
 \end{tabular}
 
 \textbf{Remarks}
 
-(1) \texttt{elpa\_n\_single}: If single precision arithmetic is available in an externally complied ELPA library, it may be enabled by setting \texttt{elpa\_n\_single} to a positive integer, then the standard eigenproblems in the first \texttt{elpa\_n\_single} SCF steps are solved with single precision. The transformations between generalized eigenproblem and the standard form are always performed with double precision. Although this keyword accelerates the solution of standard eigenproblems, the overall SCF convergence may be slower, depending on the physical system and the SCF settings used in the electronic structure code. This keyword is ignored if single precision calculations are not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with single precision support.
+(1) \texttt{elpa\_n\_single}: If single precision arithmetic is available in an externally complied ELPA library, it may be enabled by setting \texttt{elpa\_n\_single} to a positive integer, then the standard eigenproblems in the first \texttt{elpa\_n\_single} SCF steps are solved with single precision. The transformations between generalized eigenproblem and the standard form are always performed with double precision. Although this keyword accelerates the solution of standard eigenproblems, the overall SCF convergence may be slower, depending on the physical system and the SCF settings used in the electronic structure code.
 
-(2) \texttt{elpa\_gpu}: If GPU-acceleration is available in an externally compiled ELPA library, it may be enabled by setting \texttt{elpa\_gpu} to a nonzero integer. This keyword is ignored if GPU-acceleration is not available, which is the case if the internal version of ELPA is used, or if an external ELPA has not been complied with GPU support.
-
-(3) \texttt{elpa\_autotune}: If auto-tuning of runtime parameters is available in an externally complied ELPA library, it may be enabled by setting \texttt{elpa\_autotune} to a nonzero integer. This keyword is ignored if auto-tuning is not available, which is the case if the internal version of ELPA is used.
+(2) \texttt{elpa\_gpu}: If ELPA is compiled with GPU support, GPU acceleration may be enabled by setting \texttt{elpa\_gpu} to a nonzero integer. This keyword is ignored if no GPU support is available.
 
 \subsection{Customizing the libOMM Solver}
 \label{subsec:setter_omm}
@@ -987,9 +979,9 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{pexsi\_method}        & integer     & 2     & 1: Contour integral~\cite{pexsi_lin_2013}. 2: Minimax rational approximation~\cite{pole_moussa_2016} (recommended). See remark 1.\\
+\texttt{pexsi\_method}        & integer     & 3     & 1: Contour integral~\cite{pexsi_lin_2013}. 2: Minimax rational approximation~\cite{pole_moussa_2016}. 3: Adaptive Antoulas-Anderson (AAA)~\cite{aaa_nakatsukasa_2018}. See remark 1.\\
 \hline
-\texttt{pexsi\_n\_pole}       & integer     & 20    & Number of poles used by PEXSI. See remark 1.\\
+\texttt{pexsi\_n\_pole}       & integer     & 30    & Number of poles used by PEXSI. See remark 1.\\
 \hline
 \texttt{pexsi\_n\_mu}         & integer     & 2     & Number of mu points used by PEXSI. See remark 2.\\
 \hline
@@ -1013,9 +1005,9 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 \textbf{Remarks}
 
-(1) When using the pole expansion method based on contour integral, allowed numbers for \texttt{pexsi\_n\_pole} are: 10, 20, 30, ..., 120. 60 to 100 poles are typically needed to get an accuracy that is comparable with the result obtained from diagonalization. The electronic entropy is available with this method, and may be accessed via \api{elsi\_get\_entropy}.
+(1) When using the pole expansion method based on contour integral, allowed numbers for \texttt{pexsi\_n\_pole} are: 10, 20, 30, ..., 110, 120. 60 to 100 poles are typically needed to get an accuracy that is comparable with the result obtained from diagonalization. When using the minimax rational approximation or the Adaptive Antoulas-Anderson method, allowed numbers for \texttt{pexsi\_n\_pole} are: 10, 15, 20, ..., 35, 40. 20 to 30 poles are typically needed to get an accuracy that is comparable with the result obtained from diagonalization. PEXSI outputs an error message when it detects an unsupported choice of number of poles.
 
-When using the pole expansion method based on minimax rational approximation, allowed numbers for \texttt{pexsi\_n\_pole} are: 10, 15, 20, ..., 40. 20 to 30 poles are typically needed to get an accuracy that is comparable with the result obtained from diagonalization. PEXSI outputs an error message when it detects an unsupported choice of number of poles. The electronic entropy cannot be computed with this method.
+The electronic entropy can only be computed with the contour integral method and the Adaptive Antoulas-Anderson method. It may be accessed via \api{elsi\_get\_entropy}.
 
 (2) PEXSI determines the chemical potential by performing Fermi operator expansion at several chemical potential values (referred to as ``points'') in an SCF step, then interpolating the results at all points to the final answer. The \texttt{pexsi\_n\_mu} parameter controls the number of chemical potential ``points'' to be evaluated. Two points followed by a simple linear interpolation often yield reasonable results.
 
@@ -1095,10 +1087,6 @@ end do
 \texttt{sips\_n\_elpa}  & integer     & 0    & Number of SCF steps using ELPA. See remark 2.\\
 \hline
 \texttt{sips\_n\_slice} & integer     & 1    & Number of slices. See remark 3.\\
-\hline
-\texttt{sips\_lower}    & real double & -2.0 & Deprecated. Use \api{elsi\_set\_sips\_ev\_min} instead.\\
-\hline
-\texttt{sips\_upper}    & real double & 2.0  & Deprecated. Use \api{elsi\_set\_sips\_ev\_max} instead.\\
 \hline
 \end{tabular}
 
@@ -1226,7 +1214,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 (3) In general, the energy-weighted density matrix is only needed in a late stage of an SCF cycle to evaluate forces. It is, therefore, not calculated when any of the density matrix solver interface is called. When the energy-weighted density matrix is actually needed, it can be requested by calling \api{elsi\_get\_edm\_\{real$\vert$complex\}\{\_sparse\}}. These subroutines have the requirement that the corresponding \api{elsi\_dm} subroutine must have been invoked. For instance, \api{elsi\_get\_edm\_real\_sparse} only makes sense if \api{elsi\_dm\_real\_sparse} has been successfully executed.
 
-(4) When using \api{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} with an eigensolver, ELSI internally computes and stores the eigenvalues, eigenvectors, and occupation numbers, which are the ingredients to assemble the density matrix. These quantities may be retrieved by calling \api{elsi\_get\_eval}, \api{elsi\_get\_evec\_\{real$\vert$complex\}}, and \api{elsi\_get\_occ}. The dimension of \texttt{eval} and \texttt{occ} should be equal to the value of \texttt{n\_states} set in \api{elsi\_init}. Even with \api{elsi\_dm\_\{real$\vert$complex\}\_sparse}, the eigenvectors are returned in a dense format (``\texttt{BLACS\_DENSE}''), as they are in general not sparse. The size of \texttt{evec\_\{real$\vert$complex\}} should always correspond to a global array of size \texttt{n\_basis} by \texttt{n\_basis}, regardless of the value of \texttt{n\_states}.
+(4) When using \api{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} with an eigensolver, ELSI internally computes and stores the eigenvalues, eigenvectors, and occupation numbers. These quantities may be retrieved by calling \api{elsi\_get\_eval}, \api{elsi\_get\_evec\_\{real$\vert$complex\}}, and \api{elsi\_get\_occ}. The dimension of \texttt{eval} and \texttt{occ} should be equal to the value of \texttt{n\_states} set in \api{elsi\_init}. Even with \api{elsi\_dm\_\{real$\vert$complex\}\_sparse}, the eigenvectors are returned in a dense format (``\texttt{BLACS\_DENSE}''), as they are in general not sparse. The size of \texttt{evec\_\{real$\vert$complex\}} should always correspond to a global array of size \texttt{n\_basis} by \texttt{n\_basis}, regardless of the value of \texttt{n\_states}.
 
 \subsection{Getting Results from the PEXSI Solver}
 \label{subsec:getter_pexsi}
@@ -1971,6 +1959,6 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 \end{Verbatim}
 \end{tcolorbox}
 
-The source code of ELPA 2016.11.001 (LGPL3), libOMM 1.0.0 (BSD2), NTPoly 2.4.0 (MIT), PEXSI 1.2.0 (BSD3), PT-SCOTCH 6.0.0 (CeCILL-C), SuperLU\_DIST 6.2.0 (BSD3), and BSEPACK 0.1 (BSD3) are redistributed through this version of ELSI. Individual license of each library can be found in the corresponding subfolder.
+The source code of ELPA 2020.05.001 (LGPL3), libOMM 1.0.0 (BSD2), NTPoly 2.4.0 (MIT), PEXSI 1.2.0 (BSD3), PT-SCOTCH 6.0.0 (CeCILL-C), SuperLU\_DIST 6.2.0 (BSD3), and BSEPACK 0.1 (BSD3) are redistributed through this version of ELSI. Individual license of each library can be found in the corresponding subfolder.
 
 \end{document}

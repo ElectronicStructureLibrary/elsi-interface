@@ -5,7 +5,7 @@
 ELSI provides and enhances open-source software packages which solve or
 circumvent eigenvalue problems in self-consistent field calculations based on
 the Kohn-Sham density-functional theory. For more information, please visit the
-[ELSI interchange](http://elsi-interchange.org) website.
+[ELSI interchange](https://elsi-interchange.org) website.
 
 ## Installation
 
@@ -15,12 +15,12 @@ The standard installation of ELSI requires:
 * Fortran compiler (Fortran 2003)
 * C compiler (C99)
 * C++ compiler (C++11)
-* MPI
+* MPI (MPI-3)
 * BLAS, LAPACK, ScaLAPACK
 
-Installation with recent versions of Cray, GNU, IBM, Intel, NAG, and PGI
-compilers has been tested. For a complete description of the installation
-process, please refer to [`./INSTALL.md`](./INSTALL.md).
+Installation with recent versions of Cray, GNU, IBM, Intel, and PGI compilers
+has been tested. For a complete description of the installation process, please
+refer to [`./INSTALL.md`](./INSTALL.md).
 
 ## More
 
