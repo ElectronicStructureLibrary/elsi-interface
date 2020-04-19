@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -56,9 +56,9 @@ at the top-level directory.
 #define SUPERLU_MAX(x, y) 	( (x) > (y) ? (x) : (y) )
 #define SUPERLU_MIN(x, y) 	( (x) < (y) ? (x) : (y) )
 
-    
-/* 
- * Constants 
+   
+/*
+ * Constants
  */
 #define EMPTY	(-1)
 #ifndef FALSE
@@ -120,7 +120,7 @@ typedef struct {
 				      4: llvl; level number in L for ILU(k)
 				      5: ulvl; level number in U for ILU(k)
 				   */
-#endif	  
+#endif	 
 
 /* Macros to manipulate stack */
 #define SuperLU_StackFull(x)         ( x + stack.used >= stack.size )

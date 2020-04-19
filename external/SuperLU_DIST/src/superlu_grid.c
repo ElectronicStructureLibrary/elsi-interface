@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -38,7 +38,7 @@ void superlu_gridinit(MPI_Comm Bcomm, /* The base communicator upon which
     usermap = (int_t *) SUPERLU_MALLOC(Np*sizeof(int_t));
     for (j = 0; j < npcol; ++j)
 	for (i = 0; i < nprow; ++i) usermap[j*nprow+i] = i*npcol+j;
-    
+   
     /* Check MPI environment initialization. */
     MPI_Initialized( &info );
     if ( !info )
@@ -49,7 +49,7 @@ void superlu_gridinit(MPI_Comm Bcomm, /* The base communicator upon which
 	ABORT("Number of processes is smaller than NPROW * NPCOL");
 
     superlu_gridmap(Bcomm, nprow, npcol, usermap, nprow, grid);
-    
+   
     SUPERLU_FREE(usermap);
 }
 
@@ -72,7 +72,7 @@ void superlu_gridmap(
     int Np = nprow * npcol, mycol, myrow;
     int *pranks;
     int i, j, info;
-    
+   
     /* Create datatype in C for MPI complex. */
     if ( SuperLU_MPI_DOUBLE_COMPLEX == MPI_DATATYPE_NULL ) {
 	MPI_Type_contiguous( 2, MPI_DOUBLE, &SuperLU_MPI_DOUBLE_COMPLEX );
@@ -92,7 +92,7 @@ void superlu_gridmap(
     for (j = 0; j < npcol; ++j)
 	for (i = 0; i < nprow; ++i)
 	    pranks[i*npcol+j] = usermap[j*ldumap+i];
-    
+   
     /*
      * Form MPI communicator for all.
      */

@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -33,23 +33,23 @@ at the top-level directory.
 #define IBM             6
 
 #ifdef _SGI
-#define MACH SGI 
+#define MACH SGI
 #endif
 
 #ifdef _ORIGIN
-#define MACH ORIGIN 
+#define MACH ORIGIN
 #endif
 
 #ifdef _DEC
-#define MACH DEC 
+#define MACH DEC
 #endif
 
 #ifdef _CRAY
-#define MACH CRAY_T3E 
+#define MACH CRAY_T3E
 #endif
 
 #ifdef _SOLARIS
-#define MACH SUN 
+#define MACH SUN
 #endif
 
 #ifdef _PTHREAD

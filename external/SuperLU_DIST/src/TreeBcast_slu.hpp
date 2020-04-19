@@ -76,7 +76,7 @@ namespace SuperLU_ASYNCOMM {
         TreeBcast_slu(const MPI_Comm & pComm, Int * ranks, Int rank_cnt,Int msgSize);
         TreeBcast_slu(const TreeBcast_slu & Tree);
         virtual ~TreeBcast_slu();
-        virtual TreeBcast_slu * clone() const = 0; 
+        virtual TreeBcast_slu * clone() const = 0;
         virtual void Copy(const TreeBcast_slu & Tree);
         virtual void Reset();
 

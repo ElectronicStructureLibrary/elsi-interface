@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -28,7 +28,7 @@ at the top-level directory.
  * NOCHANGE indicates that fortran will be calling, and that it expects
  * the name called by fortran to be identical to that compiled by the C
  * (RS6K's do this).  UPCASE says it expects C routines called by fortran
- * to be in all upcase (CRAY wants this). 
+ * to be in all upcase (CRAY wants this).
  */
 
 #define ADD_       0
@@ -80,7 +80,7 @@ at the top-level directory.
 #define f_get_gridinfo                   f_get_gridinfo_
 #define f_get_SuperMatrix                f_get_supermatrix_
 #define f_set_SuperMatrix                f_set_supermatrix_
-#define f_get_CompRowLoc_Matrix          f_get_comprowloc_matrix_ 
+#define f_get_CompRowLoc_Matrix          f_get_comprowloc_matrix_
 #define f_set_CompRowLoc_Matrix          f_set_comprowloc_matrix_
 #define f_get_superlu_options            f_get_superlu_options_
 #define f_set_superlu_options            f_set_superlu_options_
@@ -111,7 +111,7 @@ at the top-level directory.
 #if (F77_CALL_C == UPCASE)
 /*
  * These defines set up the naming scheme required to have a fortran 77
- * routine call a C routine 
+ * routine call a C routine
  * following Fortran to C interface:
  *           FORTRAN CALL               C DECLARATION
  *           call dgemm(...)           void DGEMM(...)
@@ -245,7 +245,7 @@ at the top-level directory.
 #if (F77_CALL_C == NOCHANGE)
 /*
  * These defines set up the naming scheme required to have a fortran 77
- * routine call a C routine 
+ * routine call a C routine
  * for following Fortran to C interface:
  *           FORTRAN CALL               C DECLARATION
  *           call dgemm(...)           void dgemm(...)
@@ -348,7 +348,7 @@ at the top-level directory.
 #define f_get_gridinfo                   f_get_gridinfo
 #define f_get_SuperMatrix                f_get_supermatrix
 #define f_set_SuperMatrix                f_set_supermatrix
-#define f_get_CompRowLoc_Matrix          f_get_comprowloc_matrix 
+#define f_get_CompRowLoc_Matrix          f_get_comprowloc_matrix
 #define f_set_CompRowLoc_Matrix          f_set_comprowloc_matrix
 #define f_get_superlu_options            f_get_superlu_options
 #define f_set_superlu_options            f_set_superlu_options

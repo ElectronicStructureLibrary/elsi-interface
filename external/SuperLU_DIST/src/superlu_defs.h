@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -54,7 +54,7 @@ at the top-level directory.
 // #define USE_VTUNE
 // #endif
 #if ( VTUNE>=1 )
-#include <ittnotify.h>			 
+#include <ittnotify.h>			
 #endif
 
 /*************************************************************************
@@ -99,16 +99,16 @@ at the top-level directory.
 
 #define ISORT     /* NOTE: qsort() has bug on Mac */
 
-/*********************************************************************** 
+/***********************************************************************
  * Constants
  ***********************************************************************/
-/* 
- * For each block column of L, the index[] array contains both the row 
+/*
+ * For each block column of L, the index[] array contains both the row
  * subscripts and the integers describing the size of the blocks.
  * The organization of index[] looks like:
  *
  *     [ BLOCK COLUMN HEADER (size BC_HEADER)
- *           number of blocks 
+ *           number of blocks
  *           number of row subscripts, i.e., LDA of nzval[]
  *       BLOCK 0                                        <----
  *           BLOCK DESCRIPTOR (of size LB_DESCRIPTOR)  |
@@ -117,7 +117,7 @@ at the top-level directory.
  *           actual row subscripts                          |
  *       BLOCK 1                                            | Repeat ...
  *           BLOCK DESCRIPTOR                               | number of blocks
- *               block number (global)                      | 
+ *               block number (global)                      |
  *               number of full rows in the block           |
  *           actual row subscripts                          |
  *       .                                                  |
@@ -128,7 +128,7 @@ at the top-level directory.
  * For each block row of U, the organization of index[] looks like:
  *
  *     [ BLOCK ROW HEADER (of size BR_HEADER)
- *           number of blocks 
+ *           number of blocks
  *           number of entries in nzval[]
  *           number of entries in index[]
  *       BLOCK 0                                        <----
@@ -178,18 +178,18 @@ at the top-level directory.
     /* For triangular solves. */
 #define XK_H     2  /* The header preceding each X block. */
 #define LSUM_H   2  /* The header preceding each MOD block. */
-#define GSUM     20 
+#define GSUM     20
 #define Xk       21
 #define Yk       22
-#define LSUM     23    
+#define LSUM     23   
 
- 
+
 static const int BC_L=1;	/* MPI tag for x in L-solve*/	
 static const int RD_L=2;	/* MPI tag for lsum in L-solve*/	
 static const int BC_U=3;	/* MPI tag for x in U-solve*/
 static const int RD_U=4;	/* MPI tag for lsum in U-solve*/	
 
-/* 
+/*
  * Communication scopes
  */
 #define COMM_ALL      100
@@ -235,11 +235,11 @@ static const int RD_U=4;	/* MPI tag for lsum in U-solve*/
 #define SuperLU_timer_  SuperLU_timer_dist_
 #define LOG2(x)   (log10((double) x) / log10(2.0))
 
-#if ( VAMPIR>=1 ) 
+#if ( VAMPIR>=1 )
 #define VT_TRACEON    VT_traceon()
 #define VT_TRACEOFF   VT_traceoff()
 #else
-#define VT_TRACEON 
+#define VT_TRACEON
 #define VT_TRACEOFF
 #endif
 
@@ -274,7 +274,7 @@ extern "C" {
  * New data types
  ***********************************************************************/
 
-/* 
+/*
  *   Define the 2D mapping of matrix blocks to process grid.
  *
  *   Process grid:
@@ -284,7 +284,7 @@ extern "C" {
  *
  *   Matrix blocks:
  *     Matrix is partitioned according to supernode partitions, both
- *     column and row-wise. 
+ *     column and row-wise.
  *     The k-th block columns (rows) contains columns (rows) (s:t), where
  *             s=xsup[k], t=xsup[k+1]-1.
  *     Block A(I,J) contains
@@ -296,7 +296,7 @@ extern "C" {
  *
  *  Mapping of matrix block (I,J) to process grid (pr,pc):
  *     (pr,pc) = ( MOD(I,NPROW), MOD(J,NPCOL) )
- *  
+ * 
  *  (xsup[nsupers],supno[n]) are replicated on all processors.
  *
  */
@@ -327,7 +327,7 @@ typedef struct {
  *      supno[i] is the supernode no to which column i belongs;
  *	e.g.   supno 0 1 2 2 3 3 3 4 4 4 4 4   (n=12)
  *	        xsup 0 1 2 4 7 12
- *	Note: dfs will be performed on supernode rep. relative to the new 
+ *	Note: dfs will be performed on supernode rep. relative to the new
  *	      row pivoting ordering
  *
  * This is allocated during symbolic factorization SYMBFACT.
@@ -339,10 +339,10 @@ typedef struct {
 
 /*
  *-- The structures are determined by SYMBFACT and used by DDISTRIBUTE.
- * 
+ *
  * (xlsub,lsub): lsub[*] contains the compressed subscript of
  *	rectangular supernodes; xlsub[j] points to the starting
- *	location of the j-th column in lsub[*]. Note that xlsub 
+ *	location of the j-th column in lsub[*]. Note that xlsub
  *	is indexed by column.
  *	Storage: original row subscripts
  *
@@ -378,12 +378,12 @@ typedef struct {
  *      imposed on the rows.) Because the segment is full, we don't store all
  *      the row indices. Instead, only the leading nonzero index is stored.
  *      The rest can be found together with xsup/supno pair.
- *      For example, 
+ *      For example,
  *          usub[xsub[j+1]] - usub[xsub[j]] = number of segments in column j.
- *          for any i in usub[], 
+ *          for any i in usub[],
  *              supno[i]         = block number in which i belongs to
  *  	        xsup[supno[i]+1] = first row of the next block
- *              The nonzeros of this segment are: 
+ *              The nonzeros of this segment are:
  *                  i, i+1 ... xsup[supno[i]+1]-1 (only i is stored in usub[])
  *
  */
@@ -401,7 +401,7 @@ typedef struct {
 } Glu_freeable_t;
 
 
-/* 
+/*
  *-- The structure used to store matrix A of the linear system and
  *   several vectors describing the transformations done to matrix A.
  *
@@ -409,13 +409,13 @@ typedef struct {
  *        Matrix A in A*X=B, of dimension (A->nrow, A->ncol).
  *        The number of linear equations is A->nrow. The type of A can be:
  *        Stype = SLU_NC; Dtype = SLU_D; Mtype = SLU_GE.
- *         
+ *        
  * DiagScale  (DiagScale_t)
  *        Specifies the form of equilibration that was done.
  *        = NOEQUIL: No equilibration.
  *        = ROW:  Row equilibration, i.e., A was premultiplied by diag(R).
  *        = COL:  Column equilibration, i.e., A was postmultiplied by diag(C).
- *        = BOTH: Both row and column equilibration, i.e., A was replaced 
+ *        = BOTH: Both row and column equilibration, i.e., A was replaced
  *                 by diag(R)*A*diag(C).
  *
  * R      double*, dimension (A->nrow)
@@ -427,21 +427,21 @@ typedef struct {
  *        The column scale factors for A.
  *        If DiagScale = COL or BOTH, A is multiplied on the right by diag(C).
  *        If DiagScale = NOEQUIL or ROW, C is not defined.
- *         
+ *        
  * perm_r (int*) dimension (A->nrow)
  *        Row permutation vector which defines the permutation matrix Pr,
  *        perm_r[i] = j means row i of A is in position j in Pr*A.
  *
  * perm_c (int*) dimension (A->ncol)
- *	  Column permutation vector, which defines the 
- *        permutation matrix Pc; perm_c[i] = j means column i of A is 
+ *	  Column permutation vector, which defines the
+ *        permutation matrix Pc; perm_c[i] = j means column i of A is
  *        in position j in A*Pc.
  *
  */
 typedef struct {
     DiagScale_t DiagScale;
     double *R;
-    double *C; 
+    double *C;
     int_t  *perm_r;
     int_t  *perm_c;
 } ScalePermstruct_t;
@@ -466,7 +466,7 @@ typedef struct {
     void   *recv_dbuf2;
 } pxgstrs_comm_t;
 
-/* 
+/*
  *-- This contains the options used to control the solution process.
  *
  * Fact   (fact_t)
@@ -478,7 +478,7 @@ typedef struct {
  *        = SamePattern: The matrix A will be factorized assuming
  *             that a factorization of a matrix with the same sparsity
  *             pattern was performed prior to this one. Therefore, this
- *             factorization will reuse column permutation vector 
+ *             factorization will reuse column permutation vector
  *             ScalePermstruct->perm_c and the column elimination tree
  *             LUstruct->etree.
  *        = SamePattern_SameRowPerm: The matrix A will be factorized
@@ -488,7 +488,7 @@ typedef struct {
  *             both row and column scaling factors R and C, both row and
  *             column permutation vectors perm_r and perm_c, and the
  *             data structure set up from the previous symbolic factorization.
- *        = FACTORED: On entry, L, U, perm_r and perm_c contain the 
+ *        = FACTORED: On entry, L, U, perm_r and perm_c contain the
  *              factored form of A. If DiagScale is not NOEQUIL, the matrix
  *              A has been equilibrated with scaling factors R and C.
  *
@@ -502,12 +502,12 @@ typedef struct {
  *
  * ColPerm (colperm_t)
  *        Specifies what type of column permutation to use to reduce fill.
- *        = NATURAL: use the natural ordering 
+ *        = NATURAL: use the natural ordering
  *        = MMD_ATA: use minimum degree ordering on structure of A'*A
  *        = MMD_AT_PLUS_A: use minimum degree ordering on structure of A'+A
  *        = COLAMD: use approximate minimum degree column ordering
  *        = MY_PERMC: use the ordering specified by the user
- *         
+ *        
  * Trans  (trans_t)
  *        Specifies the form of the system of equations:
  *        = NOTRANS: A * X = B        (No transpose)
@@ -526,7 +526,7 @@ typedef struct {
  *        acceptable pivot.
  *
  * SymmetricMode (yest_no_t) (only for serial SuperLU)
- *        Specifies whether to use symmetric mode. Symmetric mode gives 
+ *        Specifies whether to use symmetric mode. Symmetric mode gives
  *        preference to diagonal pivots, and uses an (A'+A)-based column
  *        permutation algorithm.
  *
@@ -580,7 +580,7 @@ typedef struct {
  * ILU_MILU (milu_t)  (only for serial SuperLU)
  *        Specifies which version of MILU to use.
  *
- * ILU_MILU_Dim (double) 
+ * ILU_MILU_Dim (double)
  *        Dimension of the PDE if available.
  *
  * ReplaceTinyPivot (yes_no_t) (only for SuperLU_DIST)
@@ -600,7 +600,7 @@ typedef struct {
  *        Specifies the number of levels in the look-ahead factorization
  *
  * lookahead_etree (yes_no_t) (only for SuperLU_DIST)
- *        Specifies whether to use the elimination tree computed from the 
+ *        Specifies whether to use the elimination tree computed from the
  *        serial symbolic factorization to perform scheduling.
  *
  * SymPattern (yes_no_t) (only for SuperLU_DIST)
@@ -646,7 +646,7 @@ typedef struct {
     int64_t nnzL, nnzU;
 } superlu_dist_mem_usage_t;
 
-/* 
+/*
  *-- The new structures added in the hybrid CUDA + OpenMP + MPI code.
  */
 typedef struct {
@@ -706,8 +706,8 @@ extern int    sp_coletree_dist (int_t *, int_t *, int_t *, int_t, int_t, int_t *
 extern void   get_perm_c_dist(int_t, int_t, SuperMatrix *, int_t *);
 extern void   at_plus_a_dist(const int_t, const int_t, int_t *, int_t *,
 			     int_t *, int_t **, int_t **);
-extern int    genmmd_dist_(int_t *, int_t *, int_t *a, 
-			   int_t *, int_t *, int_t *, int_t *, 
+extern int    genmmd_dist_(int_t *, int_t *, int_t *a,
+			   int_t *, int_t *, int_t *, int_t *,
 			   int_t *, int_t *, int_t *, int_t *, int_t *);
 extern void  bcast_tree(void *, int, MPI_Datatype, int, int,
 			gridinfo_t *, int, int *);
@@ -732,7 +732,7 @@ extern int_t   *intCalloc_dist (int_t);
 extern int_t   mc64id_dist(int_t *);
 extern int     c2cpp_GetAWPM(SuperMatrix *, gridinfo_t *, ScalePermstruct_t *);
 extern void  arrive_at_ublock (int_t, int_t *, int_t *, int_t *,
-			       int_t *, int_t *, int_t, int_t, 
+			       int_t *, int_t *, int_t, int_t,
 			       int_t *, int_t *, int_t *, gridinfo_t *);
 extern int_t estimate_bigu_size (int_t, int_t **, Glu_persist_t *,
 				 gridinfo_t *, int_t *, int_t*);
@@ -743,7 +743,7 @@ extern void   superlu_abort_and_exit_dist(char *);
 extern int_t  sp_ienv_dist (int_t);
 extern void   ifill_dist (int_t *, int_t, int_t);
 extern void   super_stats_dist (int_t, int_t *);
-extern void   ScalePermstructInit(const int_t, const int_t, 
+extern void   ScalePermstructInit(const int_t, const int_t,
 				   ScalePermstruct_t *);
 extern void   ScalePermstructFree(ScalePermstruct_t *);
 extern void  get_diag_procs(int_t, Glu_persist_t *, gridinfo_t *, int_t *,
@@ -768,19 +768,19 @@ extern float symbfact_dist
  Pslu_freeable_t *, MPI_Comm *, MPI_Comm *,  superlu_dist_mem_usage_t *);
 
 /* Get the column permutation using parmetis */
-extern float get_perm_c_parmetis 
-(SuperMatrix *, int_t *, int_t *, int, int, 
+extern float get_perm_c_parmetis
+(SuperMatrix *, int_t *, int_t *, int, int,
  int_t **, int_t **, gridinfo_t *, MPI_Comm *);
 
 /* Auxiliary routines for memory expansions used during
    the parallel symbolic factorization routine */
 
 extern int_t psymbfact_LUXpandMem
-(int_t, int_t, int_t, int_t, int_t, int_t, int_t, int_t, 
+(int_t, int_t, int_t, int_t, int_t, int_t, int_t, int_t,
  Pslu_freeable_t *, Llu_symbfact_t *,  vtcsInfo_symbfact_t *, psymbfact_stat_t *);
 
 extern int_t psymbfact_LUXpand
-(int_t, int_t, int_t, int_t, int_t *, int_t, int_t, int_t, int_t, 
+(int_t, int_t, int_t, int_t, int_t *, int_t, int_t, int_t, int_t,
  Pslu_freeable_t *, Llu_symbfact_t *,  vtcsInfo_symbfact_t *, psymbfact_stat_t *);
 
 extern int_t psymbfact_LUXpand_RL
@@ -826,7 +826,7 @@ typedef void* StdList;
 #endif
 
 // typedef enum {NO, YES}  yes_no_t;
-extern RdTree   RdTree_Create(MPI_Comm comm, int* ranks, int rank_cnt, int msgSize, double rseed, char precision);  
+extern RdTree   RdTree_Create(MPI_Comm comm, int* ranks, int rank_cnt, int msgSize, double rseed, char precision); 
 extern void   	RdTree_Destroy(RdTree Tree, char precision);
 extern void 	RdTree_SetTag(RdTree Tree, int tag, char precision);
 extern yes_no_t RdTree_IsRoot(RdTree Tree, char precision);
@@ -836,16 +836,16 @@ extern int  	RdTree_GetDestCount(RdTree Tree, char precision);
 extern int  	RdTree_GetMsgSize(RdTree Tree, char precision);
 extern void 	RdTree_waitSendRequest(RdTree Tree, char precision);
 
-extern BcTree   BcTree_Create(MPI_Comm comm, int* ranks, int rank_cnt, int msgSize, double rseed, char precision);  
+extern BcTree   BcTree_Create(MPI_Comm comm, int* ranks, int rank_cnt, int msgSize, double rseed, char precision); 
 extern void   	BcTree_Destroy(BcTree Tree, char precision);
 extern void 	BcTree_SetTag(BcTree Tree, int tag, char precision);
 extern yes_no_t BcTree_IsRoot(BcTree Tree, char precision);
 extern void 	BcTree_forwardMessageSimple(BcTree Tree, void* localBuffer, int msgSize, char precision);
 extern void 	BcTree_allocateRequest(BcTree Tree, char precision);
-extern int 		BcTree_getDestCount(BcTree Tree, char precision); 
-extern int 		BcTree_GetMsgSize(BcTree Tree, char precision); 
+extern int 		BcTree_getDestCount(BcTree Tree, char precision);
+extern int 		BcTree_GetMsgSize(BcTree Tree, char precision);
 extern void 	BcTree_waitSendRequest(BcTree Tree, char precision);
- 
+
 extern StdList 	StdList_Init();
 extern void 	StdList_Pushback(StdList lst, int_t dat);
 extern void 	StdList_Pushfront(StdList lst, int_t dat);

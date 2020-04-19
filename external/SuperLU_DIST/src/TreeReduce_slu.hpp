@@ -28,7 +28,7 @@ namespace SuperLU_ASYNCOMM{
         TreeReduce_slu(const TreeReduce_slu & Tree);
 
         virtual ~TreeReduce_slu();
-        virtual TreeReduce_slu * clone() const = 0; 
+        virtual TreeReduce_slu * clone() const = 0;
         virtual void Copy(const TreeReduce_slu & Tree);
         virtual void Reset();
 
@@ -79,7 +79,7 @@ class ModBTreeReduce_slu: public TreeReduce_slu<T>{
 protected:
   double rseed_;
   virtual void buildTree(Int * ranks, Int rank_cnt);
-  
+ 
 public:
   ModBTreeReduce_slu(const MPI_Comm & pComm, Int * ranks, Int rank_cnt, Int msgSize, double rseed);
   virtual void Copy(const ModBTreeReduce_slu<T> & Tree);

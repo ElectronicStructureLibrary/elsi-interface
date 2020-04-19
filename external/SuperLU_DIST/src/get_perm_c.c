@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -63,7 +63,7 @@ get_metis(
 	 ABORT("SUPERLU_MALLOC fails for b_colptr_int.");
     for (i = 0; i < n+1; ++i) b_colptr_int[i] = b_colptr[i];
     SUPERLU_FREE(b_colptr);
-    
+   
     if ( !(b_rowind_int = (int*) SUPERLU_MALLOC(bnz * sizeof(int))) )
 	ABORT("SUPERLU_MALLOC fails for b_rowind_int.");
 
@@ -185,7 +185,7 @@ getata_dist(
     if ( !(t_rowind = (int_t*) SUPERLU_MALLOC( nz * sizeof(int_t)) ) )
 	ABORT("SUPERLU_MALLOC fails for t_rowind[]");
 
-    
+   
     /* Get counts of each column of T, and set up column pointers */
     for (i = 0; i < m; ++i) marker[i] = 0;
     for (j = 0; j < n; ++j) {
@@ -206,7 +206,7 @@ getata_dist(
 	    ++marker[col];
 	}
 
-    
+   
     /* ----------------------------------------------------------------
        compute B = T * A, where column j of B is:
 
@@ -214,7 +214,7 @@ getata_dist(
                         A_kj != 0
 
        do not include the diagonal entry
-   
+  
        ( Partition A as: A = (A_*1, ..., A_*n)
          Then B = T * A = (T * A_*1, ..., T * A_*n), where
          T * A_*j = (T_*1, ..., T_*m) * A_*j.  )
@@ -242,7 +242,7 @@ getata_dist(
 	}
     }
     *atanz = num_nz;
-    
+   
     /* Allocate storage for A'*A */
     if ( !(*ata_colptr = (int_t*) SUPERLU_MALLOC( (n+1) * sizeof(int_t)) ) )
 	ABORT("SUPERLU_MALLOC fails for ata_colptr[]");
@@ -254,10 +254,10 @@ getata_dist(
     }
     b_colptr = *ata_colptr; /* aliasing */
     b_rowind = *ata_rowind;
-    
+   
     /* Zero the diagonal flag */
     for (i = 0; i < n; ++i) marker[i] = -1;
-    
+   
     /* Compute each column of B, one at a time */
     num_nz = 0;
     for (j = 0; j < n; ++j) {
@@ -279,7 +279,7 @@ getata_dist(
 	}
     }
     b_colptr[n] = num_nz;
-       
+      
     SUPERLU_FREE(marker);
     SUPERLU_FREE(t_colptr);
     SUPERLU_FREE(t_rowind);
@@ -389,10 +389,10 @@ at_plus_a_dist(
 	if ( !(*b_rowind = (int_t*) SUPERLU_MALLOC( *bnz * sizeof(int_t)) ) )
 	    ABORT("SUPERLU_MALLOC fails for b_rowind[]");
     }
-    
+   
     /* Zero the diagonal flag */
     for (i = 0; i < n; ++i) marker[i] = -1;
-    
+   
     /* Compute each column of B, one at a time */
     num_nz = 0;
     for (j = 0; j < n; ++j) {
@@ -420,7 +420,7 @@ at_plus_a_dist(
 	}
     }
     (*b_colptr)[n] = num_nz;
-       
+      
     SUPERLU_FREE(marker);
     SUPERLU_FREE(t_colptr);
     SUPERLU_FREE(t_rowind);
@@ -435,7 +435,7 @@ at_plus_a_dist(
  * GET_PERM_C_DIST obtains a permutation matrix Pc, by applying the multiple
  * minimum degree ordering code by Joseph Liu to matrix A'*A or A+A',
  * or using approximate minimum degree column ordering by Davis et. al.
- * The LU factorization of A*Pc tends to have less fill than the LU 
+ * The LU factorization of A*Pc tends to have less fill than the LU
  * factorization of A.
  *
  * Arguments
@@ -447,16 +447,16 @@ at_plus_a_dist(
  *         = MMD_AT_PLUS_A: minimum degree ordering on structure of A'+A
  *         = MMD_ATA: minimum degree ordering on structure of A'*A
  *         = METIS_AT_PLUS_A: MeTis on A'+A
- * 
+ *
  * A       (input) SuperMatrix*
  *         Matrix A in A*X=B, of dimension (A->nrow, A->ncol). The number
- *         of the linear equations is A->nrow. Currently, the type of A 
+ *         of the linear equations is A->nrow. Currently, the type of A
  *         can be: Stype = SLU_NC; Dtype = SLU_D; Mtype = SLU_GE.
  *         In the future, more general A can be handled.
  *
  * perm_c  (output) int*
- *	   Column permutation vector of size A->ncol, which defines the 
- *         permutation matrix Pc; perm_c[i] = j means column i of A is 
+ *	   Column permutation vector of size A->ncol, which defines the
+ *         permutation matrix Pc; perm_c[i] = j means column i of A is
  *         in position j in A*Pc.
  * </pre>
  */
@@ -562,7 +562,7 @@ get_perm_c_dist(int_t pnum, int_t ispec, SuperMatrix *A, int_t *perm_c)
 	for (i = 0; i <= n; ++i) ++b_colptr[i];
 	for (i = 0; i < bnz; ++i) ++b_rowind[i];
 	
-	genmmd_dist_(&n, b_colptr, b_rowind, perm_c, invp, &delta, dhead, 
+	genmmd_dist_(&n, b_colptr, b_rowind, perm_c, invp, &delta, dhead,
 		     qsize, llist, marker, &maxint, &nofsub);
 
 	/* Transform perm_c into 0-based indexing. */

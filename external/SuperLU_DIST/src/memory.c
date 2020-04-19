@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -15,7 +15,7 @@ at the top-level directory.
  * -- Distributed SuperLU routine (version 5.2) --
  * Lawrence Berkeley National Lab, Univ. of California Berkeley.
  * September 1, 1999
- * 
+ *
  * Modified:
  *   September 30, 2017, add aligned malloc for Intel
  * </pre>
@@ -96,7 +96,7 @@ void superlu_free_dist(void *addr)
     if ( !p )
 	ABORT("superlu_free: tried to free NULL+DWORD pointer");
 
-    { 
+    {
 	int_t n = ((size_t *) p)[0];
 	//printf("superlu_free-dist: n %d\n", n);
 	
@@ -118,10 +118,10 @@ void superlu_free_dist(void *addr)
     }
 
 }
- 
+
 #else  /* The production mode. */
 
-//#if  0 
+//#if  0
 #if (__STDC_VERSION__ >= 201112L)
 
 void * superlu_malloc_dist(size_t size) {void* ptr;int alignment=1<<12;if(size>1<<19){alignment=1<<21;}posix_memalign( (void**)&(ptr), alignment, size );return(ptr);}
@@ -137,7 +137,7 @@ void * superlu_malloc_dist(size_t size) {
 }
 void  superlu_free_dist(void * ptr)  { _mm_free(ptr); }
 
-#else // normal malloc/free 
+#else // normal malloc/free
 
 void *superlu_malloc_dist(size_t size) {
     void *buf;
@@ -195,7 +195,7 @@ int_t *intCalloc_dist(int_t n)
 void *user_malloc_dist(int_t bytes, int_t which_end)
 {
     void *buf;
-    
+   
     if ( SuperLU_StackFull(bytes) ) return (NULL);
 
     if ( which_end == HEAD ) {
@@ -205,7 +205,7 @@ void *user_malloc_dist(int_t bytes, int_t which_end)
 	stack.top2 -= bytes;
 	buf = (char*) stack.array + stack.top2;
     }
-    
+   
     stack.used += bytes;
     return buf;
 }
@@ -282,7 +282,7 @@ int_t symbfact_SubInit
 
     expanders = (SuperLU_ExpHeader *) SUPERLU_MALLOC( NO_MEMTYPE*sizeof(SuperLU_ExpHeader) );
     if ( !expanders ) ABORT("SUPERLU_MALLOC fails for expanders");
-    
+   
     if ( fact == DOFACT || fact == SamePattern ) {
 	/* Guess for L\U factors */
 	nzlmax = FILL * annz;
@@ -296,7 +296,7 @@ int_t symbfact_SubInit
 	}
 	
 #if ( PRNTlevel>=2 )
-	printf(".. symbfact_SubInit(): annz %ld, nzlmax %ld, nzumax %ld\n", 
+	printf(".. symbfact_SubInit(): annz %ld, nzlmax %ld, nzumax %ld\n",
 		annz, nzlmax, nzumax);
 #endif	
 	
@@ -318,7 +318,7 @@ int_t symbfact_SubInit
 
 	while ( !lsub || !usub ) {
 	    if ( Glu_freeable->MemModel == SYSTEM ) {
-		SUPERLU_FREE(lsub); 
+		SUPERLU_FREE(lsub);
 		SUPERLU_FREE(usub);
 	    } else {
 		user_free_dist((nzlmax+nzumax)*iword, HEAD);
@@ -373,7 +373,7 @@ int_t symbfact_SubInit
 #endif
 
     return 0;
-    
+   
 } /* SYMBFACT_SUBINIT */
 
 /************************************************************************/
@@ -398,15 +398,15 @@ int_t symbfact_SubXpand
  )
 {
     void   *new_mem;
-    
+   
 #if ( DEBUGlevel>=1 )
     printf("symbfact_SubXpand(): jcol " IFMT ", next " IFMT ", maxlen " IFMT
 	   ", MemType " IFMT "\n",
 	   jcol, next, *maxlen, mem_type);
-#endif    
+#endif   
 
     new_mem = expand(maxlen, mem_type, next, 0, Glu_freeable);
-    
+   
     if ( !new_mem ) {
 	int_t    nzlmax  = Glu_freeable->nzlmax;
 	int_t    nzumax  = Glu_freeable->nzumax;
@@ -421,9 +421,9 @@ int_t symbfact_SubXpand
 	Glu_freeable->usub   = (int_t *) new_mem;
 	Glu_freeable->nzumax = *maxlen;
     } else ABORT("Tries to expand nonexisting memory type.\n");
-    
+   
     return 0;
-    
+   
 } /* LUSUB_XPAND */
 
 /************************************************************************/
@@ -443,14 +443,14 @@ int_t symbfact_SubFree(Glu_freeable_t *Glu_freeable)
     MPI_Comm_rank( MPI_COMM_WORLD, &iam );
     CHECK_MALLOC(iam, "Enter symbfact_SubFree()");
 #endif
-    
+   
     SUPERLU_FREE(expanders);
     SUPERLU_FREE(Glu_freeable->lsub);
     SUPERLU_FREE(Glu_freeable->xlsub);
     SUPERLU_FREE(Glu_freeable->usub);
     SUPERLU_FREE(Glu_freeable->xusub);
 
-#if ( DEBUGlevel>=1 )    
+#if ( DEBUGlevel>=1 )   
     CHECK_MALLOC(iam, "Exit symbfact_SubFree()");
 #endif
     return 0;
@@ -501,7 +501,7 @@ static void *expand
 		    if ( ++tries > 10 ) return (NULL);
 		    alpha = SuperLU_Reduce(alpha);
 		    new_len = alpha * *prev_len;
-		    new_mem = (void*) SUPERLU_MALLOC((size_t)new_len * lword); 
+		    new_mem = (void*) SUPERLU_MALLOC((size_t)new_len * lword);
 		    /* new_mem = (void *) calloc(new_len, lword); */
 		}
 	    }
@@ -525,7 +525,7 @@ static void *expand
 		    if ( ++tries > 10 ) return (NULL);
 		    alpha = SuperLU_Reduce(alpha);
 		    new_len = alpha * *prev_len;
-		    extra = (new_len - *prev_len) * lword;	    
+		    extra = (new_len - *prev_len) * lword;	   
 		}
 	    }
 
@@ -554,9 +554,9 @@ static void *expand
     expanders[type].size = new_len;
     *prev_len = new_len;
     if ( no_expand ) ++no_expand;
-    
+   
     return (void *) expanders[type].mem;
-    
+   
 } /* EXPAND */
 
 /************************************************************************/

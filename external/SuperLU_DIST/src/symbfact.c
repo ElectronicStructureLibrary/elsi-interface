@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -17,10 +17,10 @@ at the top-level directory.
  * September 1, 1999
 
   Copyright (c) 1994 by Xerox Corporation.  All rights reserved.
- 
+
   THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY
   EXPRESSED OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
- 
+
   Permission is hereby granted to use or copy this program for any
   purpose, provided the above notices are retained on all copies.
   Permission to modify the code and to distribute modified code is
@@ -63,7 +63,7 @@ static void  pruneL(const int_t, const int_t *, const int_t, const int_t,
  * <pre>
  * Purpose
  * =======
- *   symbfact() performs a symbolic factorization on matrix A and sets up 
+ *   symbfact() performs a symbolic factorization on matrix A and sets up
  *   the nonzero data structures which are suitable for supernodal Gaussian
  *   elimination with no pivoting (GENP). This routine features:
  *        o depth-first search (DFS)
@@ -135,18 +135,18 @@ int_t symbfact
 	ABORT("Malloc fails for desc[]");;
     relax_snode(n, etree, relax, desc, relax_end);
     SUPERLU_FREE(desc);
-    
+   
     for (j = 0; j < min_mn; ) {
 	if ( relax_end[j] != EMPTY ) { /* beginning of a relaxed snode */
    	    k = relax_end[j];          /* end of the relaxed snode */
-	 
+	
 	    /* Determine union of the row structure of supernode (j:k). */
 	    if ( (info = snode_dfs(A, j, k, xprune, marker,
 				   Glu_persist, Glu_freeable)) != 0 )
 		return info;
 
 	    for (i = j; i <= k; ++i)
-		pivotL(i, perm_r, &pivrow, Glu_persist, Glu_freeable); 
+		pivotL(i, perm_r, &pivrow, Glu_persist, Glu_freeable);
 
 	    j = k+1;
 	} else {
@@ -156,13 +156,13 @@ int_t symbfact
 				   xprune, marker, parent, xplore,
 				   Glu_persist, Glu_freeable)) != 0)
 		return info;
-	    
+	   
 	    /* Copy the U-segments to usub[*]. */
 	    if ((info = set_usub(min_mn, j, nseg, segrep, repfnz,
 				 Glu_persist, Glu_freeable)) != 0)
 		return info;
 
-	    pivotL(j, perm_r, &pivrow, Glu_persist, Glu_freeable); 
+	    pivotL(j, perm_r, &pivrow, Glu_persist, Glu_freeable);
 
 	    /* Prune columns [0:j-1] using column j. */
 	    pruneL(j, perm_r, pivrow, nseg, segrep, repfnz, xprune,
@@ -184,7 +184,7 @@ int_t symbfact
     nnzLSUB = fixupL_dist(min_mn, perm_r, Glu_persist, Glu_freeable);
 
     if ( !pnum && (options->PrintStat == YES)) {
-	nnzLU = nnzL + nnzU - min_mn;				   
+	nnzLU = nnzL + nnzU - min_mn;				  
 	printf("\tNonzeros in L       " IFMT "\n", nnzL);
 	printf("\tNonzeros in U       " IFMT "\n", nnzU);
 	printf("\tnonzeros in L+U     " IFMT "\n", nnzLU);
@@ -217,10 +217,10 @@ int_t symbfact
  * <pre>
  * Purpose
  * =======
- *   relax_snode() identifies the initial relaxed supernodes, assuming that 
+ *   relax_snode() identifies the initial relaxed supernodes, assuming that
  *   the matrix has been reordered according to an postorder of the etree.
  * </pre>
- */ 
+ */
 static void relax_snode
 /************************************************************************/
 (
@@ -234,7 +234,7 @@ static void relax_snode
 
     register int_t j, parent, nsuper;
     register int_t fsupc; /* beginning of a snode */
-    
+   
     ifill_dist(relax_end, n, EMPTY);
     ifill_dist(desc, n+1, 0);
     nsuper = 0;
@@ -247,7 +247,7 @@ static void relax_snode
     }
 
     /* Identify the relaxed supernodes by postorder traversal of the etree. */
-    for (j = 0; j < n; ) { 
+    for (j = 0; j < n; ) {
      	parent = et[j];
         fsupc = j;
  	while ( parent != n && desc[parent] < relax ) {
@@ -271,12 +271,12 @@ static void relax_snode
 /************************************************************************/
 /*! \brief
  *
- * <pre> 
+ * <pre>
  * Purpose
  * =======
- *    snode_dfs() determines the union of the row structures of those 
+ *    snode_dfs() determines the union of the row structures of those
  *    columns within the relaxed snode.
- *    Note: The relaxed snodes are leaves of the supernodal etree, therefore, 
+ *    Note: The relaxed snodes are leaves of the supernodal etree, therefore,
  *    the part outside the rectangular supernode must be zero.
  *
  * Return value
@@ -305,7 +305,7 @@ static int_t snode_dfs
     int_t  *xsup, *supno;
     int_t  *lsub, *xlsub;
     int_t  nzlmax, nextu;
-    
+   
     Astore   = A->Store;
     asub     = Astore->rowind;
     xa_begin = Astore->colbeg;
@@ -382,9 +382,9 @@ static int_t snode_dfs
  * ======
  *   A supernode representative is the last column of a supernode.
  *   The nonzeros in U[*,j] are segments that end at supernodal
- *   representatives. The routine returns a list of such supernodal 
- *   representatives ( segrep[*] ) in topological order of the DFS that 
- *   generates them. The location of the first nonzero in each such 
+ *   representatives. The routine returns a list of such supernodal
+ *   representatives ( segrep[*] ) in topological order of the DFS that
+ *   generates them. The location of the first nonzero in each such
  *   supernodal segment is also returned ( repfnz[*] ).
  *
  * Data structure
@@ -392,7 +392,7 @@ static int_t snode_dfs
  *   (lsub, xlsub):
  *      lsub[*] contains the compressed subscripts of the supernodes;
  *      xlsub[j] points to the starting location of the j-th column in
- *               lsub[*]; 
+ *               lsub[*];
  *	Storage: original row subscripts in A.
  *
  *      During the course of symbolic factorization, we also use
@@ -419,8 +419,8 @@ static int_t snode_dfs
  *                       xlsub[s]    xlsub[s+1]  xlsub[t+1]
  *                                       :           :
  *                                       :         xprune[t]
- *                                   xlsub[t]      
- *                                   xprune[s]    
+ *                                   xlsub[t]     
+ *                                   xprune[s]   
  *
  *      (2) if t == s, i.e., a singleton supernode, the same subscript set
  *          is used for both G(L) and pruned graph:
@@ -428,8 +428,8 @@ static int_t snode_dfs
  *                  --------------------------------------
  *          lsub[*]    ... |      s     | ...
  *                  --------------------------------------
- *                          ^            ^   
- *                       xlsub[s]   xlsub[s+1]  
+ *                          ^            ^  
+ *                       xlsub[s]   xlsub[s+1] 
  *                                  xprune[s]
  *
  *       DFS will traverse the second subscript list, i.e., the part of the
@@ -484,7 +484,7 @@ static int_t column_dfs
     int_t     nzlmax;
     static int_t first = 1, maxsuper;
     int_t     mem_error;
-    
+   
     /* Initializations */
     Astore   = A->Store;
     asub     = Astore->rowind;
@@ -503,7 +503,7 @@ static int_t column_dfs
 	maxsuper = sp_ienv_dist(3);
 	first = 0;
     }
-    
+   
     *nseg = 0;
 
     /* For each nonzero in A[*,jcol] perform depth-first search. */
@@ -512,9 +512,9 @@ static int_t column_dfs
 	kmark = marker[krow];
 
 	/* krow was visited before, go to the next nonzero. */
-	if ( kmark == jcol ) continue; 
+	if ( kmark == jcol ) continue;
 	
-	/* 
+	/*
 	 * For each unmarked neighber krow of jcol ...
 	 */
 	marker[krow] = jcol; /* mark as "visited" */
@@ -542,7 +542,7 @@ static int_t column_dfs
 	     */
 	    krep = xsup[supno[kperm]+1] - 1;
 	    myfnz = repfnz[krep];
-	    
+	   
 	    if ( myfnz != EMPTY ) { /* krep was visited before */
 		if ( kperm < myfnz ) repfnz[krep] = kperm;
 		/* continue; */
@@ -555,8 +555,8 @@ static int_t column_dfs
 		maxdfs = xprune[krep];
 		
 		do {
-		    /* 
-		     * For each unmarked kchild of krep 
+		    /*
+		     * For each unmarked kchild of krep
 		     */
 		    while ( xdfs < maxdfs ) {
 			kchild = lsub[xdfs++];
@@ -565,7 +565,7 @@ static int_t column_dfs
 			if ( chmark != jcol ) { /* Not reached yet */
 			    marker[kchild] = jcol;
 			    chperm = perm_r[kchild];
-			    
+			   
 			    /* Case kchild is in L: place it in L[*,k] */
 			    if ( chperm == EMPTY ) {
 				lsub[nextl++] = kchild;
@@ -579,8 +579,8 @@ static int_t column_dfs
 				}
 				if ( chmark != jcolm1 ) jsuper = EMPTY;
 			    } else {
-				/* Case kchild is in U: 
-				 * chrep = its supernode-rep. If its rep 
+				/* Case kchild is in U:
+				 * chrep = its supernode-rep. If its rep
 				 * has been explored, update its repfnz[*].
 				 */
 				chrep = xsup[supno[chperm]+1] - 1;
@@ -594,14 +594,14 @@ static int_t column_dfs
 				    krep = chrep; /* Go deeper down G(L') */
 				    parent[krep] = oldrep;
 				    repfnz[krep] = chperm;
-				    xdfs = xlsub[krep];     
+				    xdfs = xlsub[krep];    
 				    maxdfs = xprune[krep];
 				} /* else */
 			    } /* else */
 			} /* if chmark != jcol */
 			
 		    } /* while */
-		    
+		   
 		    /* krow has no more unexplored neighbors:
 		     *    place supernode-rep krep in postorder DFS;
 		     *    backtrack DFS to its parent.
@@ -617,7 +617,7 @@ static int_t column_dfs
 	    } /* else */
 	} /* else: krow is in U */
     } /* for each nonzero in A[*, jcol] */
-    
+   
     /* Check to see if jcol belongs in the same supernode as jcol-1 */
     if ( jcol == 0 ) { /* Do nothing for column 0 */
 	nsuper = supno[0] = 0;
@@ -656,8 +656,8 @@ static int_t column_dfs
 	    supno[jcol] = nsuper;
 	} /* if a new supernode */
 	
-    } /* else: jcol > 0 */ 
-    
+    } /* else: jcol > 0 */
+   
     /* Tidy up the pointers before exit */
     xsup[nsuper+1] = jcolp1;
     supno[jcolp1]  = nsuper;
@@ -726,7 +726,7 @@ static int_t pivotL
     *pivrow = lsub_ptr[diag];
     perm_r[*pivrow] = jcol;  /* perm_r[] should be Identity. */
     /*assert(*pivrow==jcol);*/
-    
+   
     /* Interchange row subscripts. */
     if ( diag != nsupc ) {
 	itemp = lsub_ptr[diag];
@@ -741,12 +741,12 @@ static int_t pivotL
 /************************************************************************/
 /*! \brief
  *
- * <pre> 
+ * <pre>
  * Purpose
  * =======
  *   set_usub() sets up data structure to store supernodal segments in U.
  *   The supernodal segments in each column are stored in topological order.
- *   
+ *  
  * NOTE
  * ====
  *   For each supernodal segment, we only store the index of the first
@@ -847,7 +847,7 @@ static void pruneL
     supno  = Glu_persist->supno;
     lsub   = Glu_freeable->lsub;
     xlsub  = Glu_freeable->xlsub;
-    
+   
     /*
      * For each supernode-rep irep in U[*,j]
      */
@@ -867,21 +867,21 @@ static void pruneL
 	    if ( xprune[irep] >= xlsub[irep1] ) {
 		kmin = xlsub[irep];
 		kmax = xlsub[irep1] - 1;
-		for (krow = kmin; krow <= kmax; ++krow) 
+		for (krow = kmin; krow <= kmax; ++krow)
 		    if ( lsub[krow] == pivrow ) {
 			do_prune = TRUE;
 			break;
 		    }
 	    }
-	    
+	   
     	    if ( do_prune ) {
 	     	/* Do a quicksort-type partition. */
 	        while ( kmin <= kmax ) {
-	    	    if ( perm_r[lsub[kmax]] == EMPTY ) 
+	    	    if ( perm_r[lsub[kmax]] == EMPTY )
 			kmax--;
 		    else if ( perm_r[lsub[kmin]] != EMPTY )
 			kmin++;
-		    else { /* kmin below pivrow, and kmax above pivrow: 
+		    else { /* kmin below pivrow, and kmax above pivrow:
 		            * 	   interchange the two subscripts
 			    */
 		        ktemp = lsub[kmin];

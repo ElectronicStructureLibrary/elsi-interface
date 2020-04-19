@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -38,7 +38,7 @@ at the top-level directory.
 
 static float
 a_plus_at_CompRow_loc
-(int, int_t *, int, int_t *, int_t , int_t *, int_t *,  
+(int, int_t *, int, int_t *, int_t , int_t *, int_t *,
  int, int_t *, int_t *, int_t **,  int_t **, gridinfo_t *);
 
 /*! \brief
@@ -51,7 +51,7 @@ a_plus_at_CompRow_loc
  * graph partitioning algorithm to the symmetrized graph A+A'.  The
  * multilevel graph partitioning algorithm used is the
  * ParMETIS_V3_NodeND routine available in the parallel graph
- * partitioning package parMETIS.  
+ * partitioning package parMETIS.
  *
  * The number of independent sub-domains noDomains computed by this
  * algorithm has to be a power of 2.  Hence noDomains is the larger
@@ -67,13 +67,13 @@ a_plus_at_CompRow_loc
  *         in NRformat_loc format.
  *
  * perm_r  (input) int_t*
- *         Row permutation vector of size A->nrow, which defines the 
- *         permutation matrix Pr; perm_r[i] = j means row i of A is in 
+ *         Row permutation vector of size A->nrow, which defines the
+ *         permutation matrix Pr; perm_r[i] = j means row i of A is in
  *         position j in Pr*A.
  *
  * perm_c  (output) int_t*
- *	   Column permutation vector of size A->ncol, which defines the 
- *         permutation matrix Pc; perm_c[i] = j means column i of A is 
+ *	   Column permutation vector of size A->ncol, which defines the
+ *         permutation matrix Pc; perm_c[i] = j means column i of A is
  *         in position j in A*Pc.
  *
  * nprocs_i (input) int*
@@ -87,7 +87,7 @@ a_plus_at_CompRow_loc
  *
  * sizes   (output) int_t**, of size 2 * noDomains
  *         Returns pointer to an array containing the number of nodes
- *         for each sub-domain and each separator.  Separators are stored 
+ *         for each sub-domain and each separator.  Separators are stored
  *         from left to right.
  *         Memory for the array is allocated in this routine.
  *
@@ -104,7 +104,7 @@ a_plus_at_CompRow_loc
  */
 float
 get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
-		     int nprocs_i, int noDomains, 
+		     int nprocs_i, int noDomains,
 		     int_t **sizes, int_t **fstVtxSep,
 		     gridinfo_t *grid, MPI_Comm *metis_comm)
 
@@ -128,7 +128,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
   int  *recvcnts, *displs;
   /* first row index on each processor when the matrix is distributed
      on nprocs (vtxdist_i) or noDomains processors (vtxdist_o) */
-  int_t  *vtxdist_i, *vtxdist_o; 
+  int_t  *vtxdist_i, *vtxdist_o;
   int_t szSep, k, noNodes;
   float apat_mem_l; /* memory used during the computation of the graph of A+A' */
   MPI_Status status;
@@ -148,7 +148,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
   fst_row = Astore->fst_row; /* global index of the first row */
   rowptr = Astore->rowptr;   /* pointer to rows and column indices */
   colind = Astore->colind;
-  
+
 #if ( PRNTlevel>=1 )
   if ( !iam ) printf(".. Use parMETIS ordering on A'+A with %d sub-domains. sizeof(int_t) %lu\n",
 		     noDomains, sizeof(int_t));
@@ -178,7 +178,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
       k += i;
       if (p < j)  k++;
     }
-    /* The remaining non-participating processors get the same 
+    /* The remaining non-participating processors get the same
        first-row-number as the last processor.   */
     for (p = noDomains; p <= nprocs_i; p++)
       vtxdist_o[p] = k;
@@ -187,17 +187,17 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
 #if ( DEBUGlevel>=2 )
   if (!iam)
     PrintInt10 ("vtxdist_o", nprocs_i + 1, vtxdist_o);
-#endif  
+#endif
 
   /* Compute distributed A + A' */
-  if ((apat_mem_l = 
+  if ((apat_mem_l =
        a_plus_at_CompRow_loc(iam, perm_r, nprocs_i, vtxdist_i,
 			     n, rowptr, colind, noDomains, vtxdist_o,
 			     &bnz, &b_rowptr, &b_colind, grid)) > 0)
     return (apat_mem_l);
   mem += -apat_mem_l;
-  
-  /* Initialize and allocate storage for parMetis. */    
+
+  /* Initialize and allocate storage for parMetis. */
   (*sizes) = (int_t *) SUPERLU_MALLOC(2 * noDomains * sizeof(int_t));
   if (!(*sizes)) ABORT("SUPERLU_MALLOC fails for sizes.");
   l_sizes = *sizes;
@@ -205,8 +205,8 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
   if (!(*fstVtxSep)) ABORT("SUPERLU_MALLOC fails for fstVtxSep.");
   l_fstVtxSep = *fstVtxSep;
   m_loc = vtxdist_o[iam+1] - vtxdist_o[iam];
-  
-  if ( iam < noDomains) 
+
+  if ( iam < noDomains)
     /* dist_order is the perm returned by parMetis, distributed */
     if (! (dist_order = (int_t *) SUPERLU_MALLOC(m_loc * sizeof(int_t))))
       ABORT("SUPERLU_MALLOC fails for dist_order.");
@@ -220,14 +220,14 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
 #if defined (_LONGINT)
   l_sizes_int = (int *) SUPERLU_MALLOC(2 * noDomains * sizeof(int));
   if (!(l_sizes_int)) ABORT("SUPERLU_MALLOC fails for l_sizes_int.");
-  
+
   /* Allocate storage */
   if ( !(b_rowptr_int = (int*) SUPERLU_MALLOC((m_loc+1) * sizeof(int))))
     ABORT("SUPERLU_MALLOC fails for b_rowptr_int[]");
   for (i = 0; i <= m_loc; i++)
     b_rowptr_int[i] = b_rowptr[i];
   SUPERLU_FREE (b_rowptr);
-  
+
   if ( bnz ) {
     if ( !(b_colind_int = (int *) SUPERLU_MALLOC( bnz * sizeof(int))))
       ABORT("SUPERLU_MALLOC fails for b_colind_int[]");
@@ -235,8 +235,8 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
       b_colind_int[i] = b_colind[i];
     SUPERLU_FREE (b_colind);
   }
-  
-  if ( !(vtxdist_o_int = 
+
+  if ( !(vtxdist_o_int =
 	 (int *) SUPERLU_MALLOC((nprocs_i+1) * sizeof(int))))
     ABORT("SUPERLU_MALLOC fails for vtxdist_o_int.");
   for (i = 0; i <= nprocs_i; i++)
@@ -254,7 +254,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
 
   if ( iam < noDomains) {
 
-    ParMETIS_V3_NodeND(vtxdist_o, b_rowptr, b_colind, 
+    ParMETIS_V3_NodeND(vtxdist_o, b_rowptr, b_colind,
 		       &numflag, options,
 		       dist_order, l_sizes, metis_comm);
   }
@@ -262,7 +262,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
   if (bnz) SUPERLU_FREE (b_colind);
   SUPERLU_FREE (b_rowptr);
 
-#if 0  
+#if 0
   if ( iam < noDomains) {
     SUPERLU_FREE (options);
   }
@@ -276,17 +276,17 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
     for (i = 0; i < m_loc; i++)
       dist_order[i] = dist_order_int[i];
     SUPERLU_FREE(dist_order_int);
-    
+
     for (i = 0; i < 2*noDomains; i++)
       l_sizes[i] = l_sizes_int[i];
     SUPERLU_FREE(l_sizes_int);
   }
-#else 
+#else
   dist_order = dist_order_int;
 #endif
 
 #endif
-  
+
   /* Allgatherv dist_order to get perm_c */
   if (!(displs = (int *) SUPERLU_MALLOC (nprocs_i * sizeof(int))))
     ABORT ("SUPERLU_MALLOC fails for displs.");
@@ -295,10 +295,10 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
   for (i = 0; i < nprocs_i; i++)
     recvcnts[i] = vtxdist_o[i+1] - vtxdist_o[i];
   displs[0]=0;
-  for(i=1; i < nprocs_i; i++) 
+  for(i=1; i < nprocs_i; i++)
     displs[i] = displs[i-1] + recvcnts[i-1];
-  
-  MPI_Allgatherv (dist_order, m_loc, mpi_int_t, perm_c, recvcnts, displs, 
+
+  MPI_Allgatherv (dist_order, m_loc, mpi_int_t, perm_c, recvcnts, displs,
 		  mpi_int_t, grid->comm);
 
   if ( iam < noDomains) {
@@ -308,7 +308,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
   SUPERLU_FREE (vtxdist_o);
   SUPERLU_FREE (recvcnts);
   SUPERLU_FREE (displs);
-  
+
   /* send l_sizes to every processor p >= noDomains */
   if (!iam)
     for (p = noDomains; p < nprocs_i; p++)
@@ -316,8 +316,8 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
   if (noDomains <= iam && iam < nprocs_i)
     MPI_Recv (l_sizes, 2*noDomains, mpi_int_t, 0, 0, grid->comm,
 	      &status);
-  
-  /* Determine the first node in each separator, store it in l_fstVtxSep */  
+
+  /* Determine the first node in each separator, store it in l_fstVtxSep */
   for (j = 0; j < 2 * noDomains; j++)
     l_fstVtxSep[j] = 0;
   l_fstVtxSep[2*noDomains - 2] = l_sizes[2*noDomains - 2];
@@ -325,16 +325,16 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
   i = 0;
   while (szSep != 1) {
     for (j = i; j < i + szSep; j++) {
-      l_fstVtxSep[j] += l_sizes[j]; 	      
+      l_fstVtxSep[j] += l_sizes[j];
     }
     for (j = i; j < i + szSep; j++) {
       k = i + szSep + (j-i) / 2;
-      l_fstVtxSep[k] += l_fstVtxSep[j]; 
+      l_fstVtxSep[k] += l_fstVtxSep[j];
     }
     i += szSep;
     szSep = szSep / 2;
   }
-  
+
   l_fstVtxSep[2 * noDomains - 2] -= l_sizes[2 * noDomains - 2];
   i = 2 * noDomains - 2;
   szSep = 1;
@@ -343,7 +343,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
       k = (i - 2 * szSep) + (j-i) * 2 + 1;
       noNodes = l_fstVtxSep[k];
       l_fstVtxSep[k] = l_fstVtxSep[j] - l_sizes[k];
-      l_fstVtxSep[k-1] = l_fstVtxSep[k] + l_sizes[k] - 
+      l_fstVtxSep[k-1] = l_fstVtxSep[k] + l_sizes[k] -
 	noNodes - l_sizes[k-1];
     }
     szSep *= 2;
@@ -360,7 +360,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
 #if ( DEBUGlevel>=1 )
   CHECK_MALLOC(iam, "Exit get_perm_c_parmetis()");
 #endif
-  
+
 #endif /* HAVE_PARMETIS */
   return (-mem);
 } /* get_perm_c_parmetis */
@@ -386,7 +386,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
  *
  * Let iam by my process number.  Let fst_row, lst_row = m_loc +
  * fst_row be the first/last row stored on iam.
- * 
+ *
  * Compute Pr' - the inverse row permutation, stored in iperm_r.
  *
  * Compute the transpose  of the block row of Pr*A that iam owns:
@@ -404,7 +404,7 @@ get_perm_c_parmetis (SuperMatrix *A, int_t *perm_r, int_t *perm_c,
  * according to the block row distribution in vtxdist_i, vtxdist_o.
  * </pre>
  */
-  
+
 static float
 a_plus_at_CompRow_loc
 (
@@ -438,23 +438,23 @@ a_plus_at_CompRow_loc
   int_t *sdispls, *rdispls;
   int_t *b_rowptr, *b_colind, bnz_t, *b_rowptr_t, *b_colind_t;
   int_t p, t_ind, nelts, ipcol;
-  int_t m_loc, m_loc_o;      /* number of local rows */ 
+  int_t m_loc, m_loc_o;      /* number of local rows */
   int_t fst_row, fst_row_o;  /* index of first local row */
   int_t nnz_loc;    /* number of local nonzeros in matrix A */
   float apat_mem, apat_mem_max;
-  int   *intBuf1, *intBuf2, *intBuf3, *intBuf4;  
+  int   *intBuf1, *intBuf2, *intBuf3, *intBuf4;
 
 #if ( DEBUGlevel>=1 )
   CHECK_MALLOC(iam, "Enter a_plus_at_CompRow_loc()");
 #endif
-  
+
   fst_row    = vtxdist_i[iam];
   m_loc      = vtxdist_i[iam+1] - vtxdist_i[iam];
   nnz_loc    = rowptr[m_loc];
-  redist_pra = FALSE;  
+  redist_pra = FALSE;
   nprocs     = SUPERLU_MAX(nprocs_i, nprocs_o);
   apat_mem_max = 0.;
-  
+
   if (!(marker = (int_t*) SUPERLU_MALLOC( (n+1) * sizeof(int_t))))
     ABORT("SUPERLU_MALLOC fails for marker[]");
   if (!(iperm_r = (int_t*) SUPERLU_MALLOC( n * sizeof(int_t))))
@@ -475,7 +475,7 @@ a_plus_at_CompRow_loc
   intBuf3 = intBuf1 + 2 * nprocs;
   intBuf4 = intBuf1 + 3 * nprocs;
   apat_mem += 4*nprocs*sizeof(int) / sizeof(int_t);
-#endif  
+#endif
 
   /* compute the inverse row permutation vector */
   for (i = 0; i < n; i++) {
@@ -498,34 +498,34 @@ a_plus_at_CompRow_loc
   /* determine number of elements to be sent to each processor */
   for (p = 0; p < nprocs_i; p++) {
     sendCnts[p] = 0;
-    for (i = vtxdist_i[p]; i < vtxdist_i[p+1]; i++) 
+    for (i = vtxdist_i[p]; i < vtxdist_i[p+1]; i++)
       sendCnts[p] += marker[i];
   }
   /* exchange send/receive counts information in between all processors */
   MPI_Alltoall (sendCnts, 1, mpi_int_t,
 		recvCnts, 1, mpi_int_t, grid->comm);
   sendCnts[iam] = 0;
-  
+
   for (i = 0, j = 0, p = 0; p < nprocs_i; p++) {
     rdispls[p] = j;
     j += recvCnts[p];
-    sdispls[p] = i;  
+    sdispls[p] = i;
     i += sendCnts[p];
   }
   recvCnts[iam] = 0;
   sz_tcolind_recv = j;
   sz_tcolind_send = i;
-  
+
   /* allocate memory to receive necessary blocks of transpose matrix T */
   if (sz_tcolind_recv) {
-    if ( !(tcolind_recv = (int_t*) SUPERLU_MALLOC( sz_tcolind_recv 
+    if ( !(tcolind_recv = (int_t*) SUPERLU_MALLOC( sz_tcolind_recv
 						   * sizeof(int_t) )))
       ABORT("SUPERLU_MALLOC fails tcolind_recv[]");
     apat_mem += sz_tcolind_recv;
   }
   /* allocate memory to send blocks of local transpose matrix T to other processors */
   if (sz_tcolind_send) {
-    if (!(tcolind_send = (int_t*) SUPERLU_MALLOC( (sz_tcolind_send) 
+    if (!(tcolind_send = (int_t*) SUPERLU_MALLOC( (sz_tcolind_send)
 						  * sizeof(int_t))))
       ABORT("SUPERLU_MALLOC fails for tcolind_send[]");
     apat_mem += sz_tcolind_send;
@@ -533,7 +533,7 @@ a_plus_at_CompRow_loc
 
   /* Set up marker[] to point at the beginning of each row in the
      send/receive buffer.  For each row, we store first its number of
-     elements, and then the elements. */  
+     elements, and then the elements. */
   ind_rcv = rdispls[iam];
   for (p = 0; p < nprocs_i; p++) {
     for (i = vtxdist_i[p]; i < vtxdist_i[p+1]; i++) {
@@ -552,17 +552,17 @@ a_plus_at_CompRow_loc
   }
   /* reset sdispls vector */
   for (i = 0, p = 0; p < nprocs_i; p++) {
-    sdispls[p] = i;  
+    sdispls[p] = i;
     i += sendCnts[p];
   }
   /* Second pass of the local matrix A to copy data to be sent */
   for (j = 0; j < m_loc; j++)
     for (i = rowptr[j]; i < rowptr[j+1]; i++) {
       col = colind[i];
-      ipcol = iperm_r[col];      
+      ipcol = iperm_r[col];
       if (ipcol >= fst_row && ipcol < fst_row + m_loc)  /* local data */
-	tcolind_recv[marker[ipcol]] = perm_r[j + fst_row];      
-      else /* remote */ 
+	tcolind_recv[marker[ipcol]] = perm_r[j + fst_row];
+      else /* remote */
 	tcolind_send[marker[ipcol]] = perm_r[j + fst_row];
       marker[ipcol] ++;
     }
@@ -583,7 +583,7 @@ a_plus_at_CompRow_loc
   intBuf1 = sendCnts;  intBuf2 = sdispls;
   intBuf3 = recvCnts;  intBuf4 = rdispls;
 #endif
-  
+
   /* send/receive transpose matrix T */
   MPI_Alltoallv (tcolind_send, intBuf1, intBuf2, mpi_int_t,
 		 tcolind_recv, intBuf3, intBuf4, mpi_int_t,
@@ -602,9 +602,9 @@ a_plus_at_CompRow_loc
        compute B = A + T, where row j of B is:
        Struct (B(j,:)) = Struct (A(j,:)) UNION Struct (T(j,:))
        do not include the diagonal entry
-     THIS COUNTS FOR TWO PASSES OF THE LOCAL ROWS OF A AND T.   
+     THIS COUNTS FOR TWO PASSES OF THE LOCAL ROWS OF A AND T.
      ------------------------------------------------------------------ */
-  
+
   /* Reset marker to EMPTY */
   for (i = 0; i < n; ++i) marker[i] = EMPTY;
   /* save rdispls information */
@@ -616,7 +616,7 @@ a_plus_at_CompRow_loc
   for (j = 0; j < m_loc; j++) {
     /* Flag the diagonal so it's not included in the B matrix */
     marker[perm_r[j + fst_row]] = j;
-    
+
     /* Add pattern of row A(j,:) to B(j,:) */
     for (i = rowptr[j]; i < rowptr[j+1]; i++) {
       k = colind[i];
@@ -625,7 +625,7 @@ a_plus_at_CompRow_loc
 	++num_nz;
       }
     }
-    
+
     /* Add pattern of row T(j,:) to B(j,:) */
     for (p = 0; p < nprocs_i; p++) {
       t_ind = rdispls[p];
@@ -653,19 +653,19 @@ a_plus_at_CompRow_loc
   apat_mem += m_loc + 1 + bnz_t;
   if (apat_mem > apat_mem_max)
     apat_mem_max = apat_mem;
-  
+
   /* Reset marker to EMPTY */
   for (i = 0; i < n; i++) marker[i] = EMPTY;
   /* restore rdispls information */
   for (p = 0; p < nprocs_i; p++)
     rdispls[p] = sdispls[p];
-  
+
   /* Second pass, compute each row of B, one at a time */
   num_nz = 0;
   t_ind = 0;
   for (j = 0; j < m_loc; j++) {
     b_rowptr_t[j] = num_nz;
-    
+
     /* Flag the diagonal so it's not included in the B matrix */
     marker[perm_r[j + fst_row]] = j;
 
@@ -695,10 +695,10 @@ a_plus_at_CompRow_loc
   }
   b_rowptr_t[m_loc] = num_nz;
 
-  for (p = 0; p <= SUPERLU_MIN(nprocs_i, nprocs_o); p++) 
+  for (p = 0; p <= SUPERLU_MIN(nprocs_i, nprocs_o); p++)
     if (vtxdist_i[p] != vtxdist_o[p])
       redist_pra = TRUE;
-  
+
   if (sz_tcolind_recv) {
     SUPERLU_FREE (tcolind_recv);
     apat_mem -= sz_tcolind_recv;
@@ -706,14 +706,14 @@ a_plus_at_CompRow_loc
   SUPERLU_FREE (marker);
   SUPERLU_FREE (iperm_r);
   apat_mem -= 2 * n + 1;
-  
+
   /* redistribute permuted matrix (by rows) from nproc_i processors
      to nproc_o processors */
   if (redist_pra) {
     m_loc_o = vtxdist_o[iam+1] - vtxdist_o[iam];
     fst_row_o = vtxdist_o[iam];
     nnz_loc = 0;
-    
+
     if ( !(b_rowptr = intMalloc_dist(m_loc_o + 1)) )
       ABORT("Malloc fails for *b_rowptr[].");
     apat_mem += m_loc_o + 1;
@@ -732,7 +732,7 @@ a_plus_at_CompRow_loc
       while (!j) {
 	if (vtxdist_o[p] <= k && k < vtxdist_o[p+1])
 	  j = TRUE;
-	else 
+	else
 	  p ++;
       }
       if (p == iam) {
@@ -745,11 +745,11 @@ a_plus_at_CompRow_loc
     /* exchange send/receive counts information in between all processors */
     MPI_Alltoall (sendCnts, 1, mpi_int_t,
 		  recvCnts, 1, mpi_int_t, grid->comm);
-    
+
     for (i = 0, j = 0, p = 0; p < nprocs_i; p++) {
       rdispls[p] = j;
       j += recvCnts[p];
-      sdispls[p] = i;  
+      sdispls[p] = i;
       i += sendCnts[p];
     }
     rdispls[p] = j;
@@ -761,14 +761,14 @@ a_plus_at_CompRow_loc
     tcolind_recv = NULL;
     tcolind_send = NULL;
     if (sz_tcolind_recv) {
-      if ( !(tcolind_recv = (int_t*) SUPERLU_MALLOC( sz_tcolind_recv 
+      if ( !(tcolind_recv = (int_t*) SUPERLU_MALLOC( sz_tcolind_recv
 						     * sizeof(int_t) )))
 	ABORT("SUPERLU_MALLOC fails tcolind_recv[]");
       apat_mem += sz_tcolind_recv;
     }
     /* allocate memory to receive necessary data */
     if (sz_tcolind_send) {
-      if (!(tcolind_send = (int_t*) SUPERLU_MALLOC( (sz_tcolind_send) 
+      if (!(tcolind_send = (int_t*) SUPERLU_MALLOC( (sz_tcolind_send)
 						    * sizeof(int_t))))
 	ABORT("SUPERLU_MALLOC fails for tcolind_send[]");
       apat_mem += sz_tcolind_send;
@@ -785,10 +785,10 @@ a_plus_at_CompRow_loc
       while (!j) {
 	if (vtxdist_o[p] <= k && k < vtxdist_o[p+1])
 	  j = TRUE;
-	else 
+	else
 	  p ++;
       }
-      if (p != iam) { /* remote */ 
+      if (p != iam) { /* remote */
 	tcolind_send[sdispls[p]] = k;
 	tcolind_send[sdispls[p]+1] = b_rowptr_t[i+1] - b_rowptr_t[i];
 	sdispls[p] += 2;
@@ -797,15 +797,15 @@ a_plus_at_CompRow_loc
 	}
       }
     }
-  
+
     /* reset sdispls vector */
     for (i = 0, p = 0; p < nprocs_i; p++) {
-      sdispls[p] = i;  
+      sdispls[p] = i;
       i += sendCnts[p];
     }
     sendCnts[iam] = 0;
     recvCnts[iam] = 0;
-    
+
 #if defined (_LONGINT)
     for (p=0; p<nprocs; p++) {
       if (sendCnts[p] > INT_MAX || sdispls[p] > INT_MAX ||
@@ -832,7 +832,7 @@ a_plus_at_CompRow_loc
       SUPERLU_FREE( tcolind_send );
       apat_mem -= sz_tcolind_send;
     }
-    
+
     /* ------------------------------------------------------------
        STORE ROWS IN ASCENDING ORDER OF THEIR NUMBER
        ------------------------------------------------------------*/
@@ -866,7 +866,7 @@ a_plus_at_CompRow_loc
       k += i;
     }
     if (m_loc_o) b_rowptr[j] = k;
-    
+
     /* Copy the data into the row oriented storage */
     for (p = 0; p < nprocs; p++) {
       if (p != iam) {
@@ -874,8 +874,8 @@ a_plus_at_CompRow_loc
 	while (i < rdispls[p+1]) {
 	  j = tcolind_recv[i];
 	  nelts = tcolind_recv[i+1];
-	  for (i += 2, k = b_rowptr[j-fst_row_o]; 
-	       k < b_rowptr[j-fst_row_o+1]; i++, k++) 
+	  for (i += 2, k = b_rowptr[j-fst_row_o];
+	       k < b_rowptr[j-fst_row_o+1]; i++, k++)
 	    b_colind[k] = tcolind_recv[i];
 	}
       }
@@ -888,14 +888,14 @@ a_plus_at_CompRow_loc
 	  b_colind[ind] = b_colind_t[j];
       }
     }
-    
+
     SUPERLU_FREE(b_rowptr_t);
     if ( bnz_t )
       SUPERLU_FREE(b_colind_t);
     if (sz_tcolind_recv)
       SUPERLU_FREE(tcolind_recv);
     apat_mem -= bnz_t + m_loc + sz_tcolind_recv;
-    
+
     *p_bnz = nnz_loc;
     *p_b_rowptr = b_rowptr;
     *p_b_colind = b_colind;
@@ -905,7 +905,7 @@ a_plus_at_CompRow_loc
     *p_b_rowptr = b_rowptr_t;
     *p_b_colind = b_colind_t;
   }
-  
+
   SUPERLU_FREE (rdispls);
   SUPERLU_FREE (sdispls);
   SUPERLU_FREE (sendCnts);
@@ -915,11 +915,11 @@ a_plus_at_CompRow_loc
   SUPERLU_FREE (intBuf1);
   apat_mem -= 4*nprocs*sizeof(int) / sizeof(int_t);
 #endif
-  
+
 #if ( DEBUGlevel>=1 )
   CHECK_MALLOC(iam, "Exit a_plus_at_CompRow_loc()");
 #endif
-  
+
   return (- apat_mem_max * sizeof(int_t));
 } /* a_plus_at_CompRow_loc */
 

@@ -24,11 +24,11 @@ namespace SuperLU_ASYNCOMM{
 	void BcTree_Destroy(BcTree Tree, char precision){
 		if(precision=='d'){
 			TreeBcast_slu<double>* BcastTree = (TreeBcast_slu<double>*) Tree;
-			delete BcastTree; 
+			delete BcastTree;
 		}
 		if(precision=='z'){
 			TreeBcast_slu<doublecomplex>* BcastTree = (TreeBcast_slu<doublecomplex>*) Tree;
-			delete BcastTree; 
+			delete BcastTree;
 		}
 
 	}		
@@ -36,11 +36,11 @@ namespace SuperLU_ASYNCOMM{
 	void BcTree_SetTag(BcTree Tree, Int tag, char precision){
 		if(precision=='d'){
 		TreeBcast_slu<double>* BcastTree = (TreeBcast_slu<double>*) Tree;
-		BcastTree->SetTag(tag); 
+		BcastTree->SetTag(tag);
 		}
 		if(precision=='z'){
 		TreeBcast_slu<doublecomplex>* BcastTree = (TreeBcast_slu<doublecomplex>*) Tree;
-		BcastTree->SetTag(tag); 
+		BcastTree->SetTag(tag);
 		}
 	}
 
@@ -175,7 +175,7 @@ namespace SuperLU_ASYNCOMM{
 	void RdTree_Destroy(RdTree Tree, char precision){
 		if(precision=='d'){
 		TreeReduce_slu<double>* ReduceTree = (TreeReduce_slu<double>*) Tree;
-		delete ReduceTree; 
+		delete ReduceTree;
 		}
 		if(precision=='z'){
 		TreeReduce_slu<doublecomplex>* ReduceTree = (TreeReduce_slu<doublecomplex>*) Tree;
@@ -191,7 +191,7 @@ namespace SuperLU_ASYNCOMM{
 		}
 		if(precision=='z'){
 		TreeReduce_slu<doublecomplex>* ReduceTree = (TreeReduce_slu<doublecomplex>*) Tree;
-		ReduceTree->SetTag(tag); 
+		ReduceTree->SetTag(tag);
 		}
 	}
 

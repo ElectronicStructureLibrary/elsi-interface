@@ -1,7 +1,7 @@
 MACRO(cpp_scotch arg1)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_VERSION=6)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_RELEASE=0)
-  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_PATCHLEVEL=5)
+  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_PATCHLEVEL=0)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE COMMON_RANDOM_FIXED_SEED)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_RENAME)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE IDXSIZE32)
@@ -16,14 +16,11 @@ MACRO(inc_scotch arg1)
     ${INC_PATHS})
 ENDMACRO()
 
-SET(SCOTCH_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/SCOTCH/src")
+SET(SCOTCH_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotch")
 
 ### Generate headers ###
-LIST(APPEND dsize_src src/libscotch/dummysizes.c)
-LIST(APPEND pdsize_src src/libscotch/ptdummysizes.c)
-
-ADD_EXECUTABLE(dummysizes ${dsize_src})
-ADD_EXECUTABLE(ptdummysizes ${pdsize_src})
+ADD_EXECUTABLE(dummysizes src/libscotch/dummysizes.c)
+ADD_EXECUTABLE(ptdummysizes src/libscotch/ptdummysizes.c)
 
 cpp_scotch(dummysizes)
 cpp_scotch(ptdummysizes)
@@ -33,39 +30,32 @@ inc_scotch(dummysizes)
 inc_scotch(ptdummysizes)
 
 IF(NOT SCOTCH_LAST_RESORT STREQUAL "NOT_USED")
-  SEPARATE_ARGUMENTS(SCOTCH_LAST_RESORT UNIX_COMMAND "${SCOTCH_LAST_RESORT}")
-
-  ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/scotch.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
-    COMMAND ${SCOTCH_LAST_RESORT} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library.h ${PROJECT_BINARY_DIR}/generated/scotch.h
-    COMMAND ${SCOTCH_LAST_RESORT} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_f.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
-    DEPENDS dummysizes
-    VERBATIM)
-
-  ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/ptscotch.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
-    COMMAND ${SCOTCH_LAST_RESORT} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt.h ${PROJECT_BINARY_DIR}/generated/ptscotch.h
-    COMMAND ${SCOTCH_LAST_RESORT} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt_f.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
-    DEPENDS ptdummysizes
-    VERBATIM)
+  SEPARATE_ARGUMENTS(dummy_command UNIX_COMMAND "${SCOTCH_LAST_RESORT} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dummysizes")
+  SEPARATE_ARGUMENTS(ptdummy_command UNIX_COMMAND "${SCOTCH_LAST_RESORT} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ptdummysizes")
 ELSE()
-  ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/scotch.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
-    COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library.h ${PROJECT_BINARY_DIR}/generated/scotch.h
-    COMMAND dummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_f.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
-    DEPENDS dummysizes
-    VERBATIM)
-
-  ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/ptscotch.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
-    COMMAND ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt.h ${PROJECT_BINARY_DIR}/generated/ptscotch.h
-    COMMAND ptdummysizes ${SCOTCH_SOURCE_DIR}/libscotch/library_pt_f.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
-    DEPENDS ptdummysizes
-    VERBATIM)
+  SET(dummy_command "dummysizes")
+  SET(ptdummy_command "ptdummysizes")
 ENDIF()
 
+ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/scotch.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
+  COMMAND ${dummy_command} ${SCOTCH_SOURCE_DIR}/library.h ${PROJECT_BINARY_DIR}/generated/scotch.h
+  COMMAND ${dummy_command} ${SCOTCH_SOURCE_DIR}/library_f.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
+  DEPENDS dummysizes ${SCOTCH_SOURCE_DIR}/library.h ${SCOTCH_SOURCE_DIR}/library_f.h
+  VERBATIM)
+
+ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/ptscotch.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
+  COMMAND ${ptdummy_command} ${SCOTCH_SOURCE_DIR}/library_pt.h ${PROJECT_BINARY_DIR}/generated/ptscotch.h
+  COMMAND ${ptdummy_command} ${SCOTCH_SOURCE_DIR}/library_pt_f.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
+  DEPENDS ptdummysizes ${SCOTCH_SOURCE_DIR}/library_pt.h ${SCOTCH_SOURCE_DIR}/library_pt_f.h
+  VERBATIM)
+
 ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/parser_ll.c ${PROJECT_BINARY_DIR}/generated/parser_yy.c
-  COMMAND bison -pscotchyy -y -b y -d -v -o${PROJECT_BINARY_DIR}/generated/tmp2.c ${SCOTCH_SOURCE_DIR}/libscotch/parser_yy.y
+  COMMAND bison -pscotchyy -y -b y -d -v -o${PROJECT_BINARY_DIR}/generated/tmp2.c ${SCOTCH_SOURCE_DIR}/parser_yy.y
   COMMAND mv ${PROJECT_BINARY_DIR}/generated/tmp2.c ${PROJECT_BINARY_DIR}/generated/parser_yy.c
   COMMAND mv ${PROJECT_BINARY_DIR}/generated/tmp2.h ${PROJECT_BINARY_DIR}/generated/parser_ly.h
-  COMMAND flex -Pscotchyy -o${PROJECT_BINARY_DIR}/generated/tmp1.c ${SCOTCH_SOURCE_DIR}/libscotch/parser_ll.l
+  COMMAND flex -Pscotchyy -o${PROJECT_BINARY_DIR}/generated/tmp1.c ${SCOTCH_SOURCE_DIR}/parser_ll.l
   COMMAND mv ${PROJECT_BINARY_DIR}/generated/tmp1.c ${PROJECT_BINARY_DIR}/generated/parser_ll.c
+  DEPENDS ${SCOTCH_SOURCE_DIR}/parser_yy.y ${SCOTCH_SOURCE_DIR}/parser_ll.l ${SCOTCH_SOURCE_DIR}/parser_yy.h ${SCOTCH_SOURCE_DIR}/parser_ll.h
   VERBATIM)
 
 ### Source files ###
@@ -392,55 +382,6 @@ LIST(APPEND ptscotch_src
   src/libscotch/vdgraph_separate_zr.c
   src/libscotch/vdgraph_store.c)
 
-SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/scotch.h
-  PROPERTIES GENERATED TRUE)
-
-SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/scotchf.h
-  PROPERTIES GENERATED TRUE)
-
-SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/ptscotch.h
-  PROPERTIES GENERATED TRUE)
-
-SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/ptscotchf.h
-  PROPERTIES GENERATED TRUE)
-
-SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/parser_ll.c
-  PROPERTIES GENERATED TRUE)
-
-SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/parser_yy.c
-  PROPERTIES GENERATED TRUE)
-
-SET_SOURCE_FILES_PROPERTIES(src/libscotch/common.c
-  PROPERTIES COMPILE_DEFINITIONS SCOTCH_COMMON_RENAME)
-
-SET_SOURCE_FILES_PROPERTIES(src/libscotch/common_file.c
-  PROPERTIES COMPILE_DEFINITIONS SCOTCH_COMMON_RENAME)
-
-SET_SOURCE_FILES_PROPERTIES(src/libscotch/common_file_compress.c
-  PROPERTIES COMPILE_DEFINITIONS SCOTCH_COMMON_RENAME)
-
-SET_SOURCE_FILES_PROPERTIES(src/libscotch/common_file_uncompress.c
-  PROPERTIES COMPILE_DEFINITIONS SCOTCH_COMMON_RENAME)
-
-SET_SOURCE_FILES_PROPERTIES(src/libscotch/common_integer.c
-  PROPERTIES COMPILE_DEFINITIONS SCOTCH_COMMON_RENAME)
-
-SET_SOURCE_FILES_PROPERTIES(src/libscotch/common_memory.c
-  PROPERTIES COMPILE_DEFINITIONS SCOTCH_COMMON_RENAME)
-
-SET_SOURCE_FILES_PROPERTIES(src/libscotch/common_string.c
-  PROPERTIES COMPILE_DEFINITIONS SCOTCH_COMMON_RENAME)
-
-SET_SOURCE_FILES_PROPERTIES(src/libscotch/common_stub.c
-  PROPERTIES COMPILE_DEFINITIONS SCOTCH_COMMON_RENAME)
-
-SET_SOURCE_FILES_PROPERTIES(src/libscotch/common_thread.c
-  PROPERTIES COMPILE_DEFINITIONS SCOTCH_COMMON_RENAME)
-
-LIST(APPEND scotcherr_src src/libscotch/library_error.c)
-
-LIST(APPEND ptscotcherr_src src/libscotch/library_error_pt.c)
-
 LIST(APPEND scotchmetis_src
   src/libscotchmetis/metis_graph_order.c
   src/libscotchmetis/metis_graph_order_f.c
@@ -453,11 +394,38 @@ LIST(APPEND ptscotchparmetis_src
   src/libscotchmetis/parmetis_dgraph_part.c
   src/libscotchmetis/parmetis_dgraph_part_f.c)
 
+LIST(APPEND generated_src
+  ${PROJECT_BINARY_DIR}/generated/scotch.h
+  ${PROJECT_BINARY_DIR}/generated/scotchf.h
+  ${PROJECT_BINARY_DIR}/generated/ptscotch.h
+  ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
+  ${PROJECT_BINARY_DIR}/generated/parser_ll.c
+  ${PROJECT_BINARY_DIR}/generated/parser_yy.c)
+
+FOREACH(_src ${generated_src})
+  SET_SOURCE_FILES_PROPERTIES(${_src} PROPERTIES GENERATED TRUE)
+ENDFOREACH()
+
+LIST(APPEND common_rename_src
+  src/libscotch/common.c
+  src/libscotch/common_file.c
+  src/libscotch/common_file_compress.c
+  src/libscotch/common_file_uncompress.c
+  src/libscotch/common_integer.c
+  src/libscotch/common_memory.c
+  src/libscotch/common_string.c
+  src/libscotch/common_stub.c
+  src/libscotch/common_thread.c)
+
+FOREACH(_src ${common_rename_src})
+  SET_SOURCE_FILES_PROPERTIES(${_src} PROPERTIES COMPILE_DEFINITIONS SCOTCH_COMMON_RENAME)
+ENDFOREACH()
+
 ADD_LIBRARY(scotch ${scotch_src})
-ADD_LIBRARY(scotcherr ${scotcherr_src})
+ADD_LIBRARY(scotcherr src/libscotch/library_error.c)
 ADD_LIBRARY(scotchmetis ${scotchmetis_src})
 ADD_LIBRARY(ptscotch ${ptscotch_src})
-ADD_LIBRARY(ptscotcherr ${ptscotcherr_src})
+ADD_LIBRARY(ptscotcherr src/libscotch/library_error_pt.c)
 ADD_LIBRARY(ptscotchparmetis ${ptscotchparmetis_src})
 
 ADD_DEPENDENCIES(scotcherr scotch)
@@ -472,46 +440,24 @@ cpp_scotch(ptscotch)
 cpp_scotch(ptscotcherr)
 TARGET_COMPILE_DEFINITIONS(ptscotch PRIVATE SCOTCH_PTSCOTCH)
 TARGET_COMPILE_DEFINITIONS(ptscotcherr PRIVATE SCOTCH_PTSCOTCH)
-TARGET_COMPILE_DEFINITIONS(scotchmetis PRIVATE SCOTCHLIB=ptscotch)
 TARGET_COMPILE_DEFINITIONS(ptscotchparmetis PRIVATE SCOTCH_PTSCOTCH)
-TARGET_COMPILE_DEFINITIONS(ptscotchparmetis PRIVATE SCOTCHLIB=ptscotch)
 
-IF(NOT CMAKE_VERSION VERSION_LESS 3.8.2)
-  TARGET_COMPILE_FEATURES(scotch PRIVATE c_std_99)
-  TARGET_COMPILE_FEATURES(scotcherr PRIVATE c_std_99)
-  TARGET_COMPILE_FEATURES(scotchmetis PRIVATE c_std_99)
-  TARGET_COMPILE_FEATURES(ptscotch PRIVATE c_std_99)
-  TARGET_COMPILE_FEATURES(ptscotcherr PRIVATE c_std_99)
-  TARGET_COMPILE_FEATURES(ptscotchparmetis PRIVATE c_std_99)
-ENDIF()
+LIST(APPEND scotch_target
+  scotch
+  scotcherr
+  scotchmetis
+  ptscotch
+  ptscotcherr
+  ptscotchparmetis)
 
-inc_scotch(scotch)
-inc_scotch(scotcherr)
-inc_scotch(scotchmetis)
-inc_scotch(ptscotch)
-inc_scotch(ptscotcherr)
-inc_scotch(ptscotchparmetis)
+FOREACH(_target ${scotch_target})
+  IF(NOT CMAKE_VERSION VERSION_LESS 3.8.2)
+    TARGET_COMPILE_FEATURES(${_target} PRIVATE c_std_99)
+  ENDIF()
 
-INSTALL(TARGETS scotch
-  EXPORT elsiConfig
-  DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  inc_scotch(${_target})
 
-INSTALL(TARGETS scotcherr
-  EXPORT elsiConfig
-  DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-INSTALL(TARGETS scotchmetis
-  EXPORT elsiConfig
-  DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-INSTALL(TARGETS ptscotch
-  EXPORT elsiConfig
-  DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-INSTALL(TARGETS ptscotcherr
-  EXPORT elsiConfig
-  DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-INSTALL(TARGETS ptscotchparmetis
-  EXPORT elsiConfig
-  DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  INSTALL(TARGETS ${_target}
+    EXPORT elsiConfig
+    DESTINATION ${CMAKE_INSTALL_LIBDIR})
+ENDFOREACH()
