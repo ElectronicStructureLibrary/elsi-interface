@@ -20,7 +20,7 @@
 static int_t c__1 = 1;
 static int_t c__2 = 2;
 
-/*! @file 
+/*! @file
  * \brief Permute large entries to the main diagonal
  */
 /* CCCC COPYRIGHT (c) 1999  Council for the Central Laboratory of the */
@@ -119,7 +119,7 @@ static int_t c__2 = 2;
 
 /* ********************************************************************** */
 /* Subroutine */ int_t mc64ad_dist(int_t *job, int_t *n, int_t *ne, int_t *
-	ip, int_t *irn, double *a, int_t *num, int_t *cperm, 
+	ip, int_t *irn, double *a, int_t *num, int_t *cperm,
 	int_t *liw, int_t *iw, int_t *ldw, double *dw, int_t *
 	icntl, int_t *info)
 {
@@ -134,16 +134,16 @@ static int_t c__2 = 2;
     int_t i__, j, k;
     double fact, rinf;
 
-    extern /* Subroutine */ int_t mc21ad_dist(int_t *, int_t *, int_t *, 
+    extern /* Subroutine */ int_t mc21ad_dist(int_t *, int_t *, int_t *,
 	    int_t *, int_t *, int_t *, int_t *, int_t *),
-	    mc64bd_dist(int_t *, int_t *, int_t *, int_t *, double *, int_t 
+	    mc64bd_dist(int_t *, int_t *, int_t *, int_t *, double *, int_t
 	    *, int_t *, int_t *, int_t *, int_t *, int_t *, double *),
 	    mc64rd_dist(int_t *, int_t *, int_t *, int_t *, double *),
 	    mc64sd_dist(int_t *, int_t *, int_t *, int_t *
-	    , double *, int_t *, int_t *, int_t *, int_t *, 
+	    , double *, int_t *, int_t *, int_t *, int_t *,
 	    int_t *, int_t *, int_t *, int_t *, int_t *),
-	    mc64wd_dist(int_t *, int_t *, int_t *, int_t *, double *, int_t 
-	    *, int_t *, int_t *, int_t *, int_t *, int_t *, int_t 
+	    mc64wd_dist(int_t *, int_t *, int_t *, int_t *, double *, int_t
+	    *, int_t *, int_t *, int_t *, int_t *, int_t *, int_t
 	    *, double *, double *);
 
 /* *** Copyright (c) 1999  Council for the Central Laboratory of the */
@@ -160,23 +160,23 @@ static int_t c__2 = 2;
 
 /*! \brief
  * <pre>
- * This subroutine attempts to find a column permutation for an NxN 
- * sparse matrix A = {a_ij} that makes the permuted matrix have N 
- * entries on its diagonal. 
- * If the matrix is structurally nonsingular, the subroutine optionally 
- * returns a column permutation that maximizes the smallest element 
- * on the diagonal, maximizes the sum of the diagonal entries, or 
- * maximizes the product of the diagonal entries of the permuted matrix. 
- * For the latter option, the subroutine also finds scaling factors 
- * that may be used to scale the matrix so that the nonzero diagonal 
- * entries of the permuted matrix are one in absolute value and all the 
- * off-diagonal entries are less than or equal to one in absolute value. 
- * The natural logarithms of the scaling factors u(i), i=1..N, for the 
- * rows and v(j), j=1..N, for the columns are returned so that the 
- * scaled matrix B = {b_ij} has entries b_ij = a_ij * EXP(u_i + v_j). 
+ * This subroutine attempts to find a column permutation for an NxN
+ * sparse matrix A = {a_ij} that makes the permuted matrix have N
+ * entries on its diagonal.
+ * If the matrix is structurally nonsingular, the subroutine optionally
+ * returns a column permutation that maximizes the smallest element
+ * on the diagonal, maximizes the sum of the diagonal entries, or
+ * maximizes the product of the diagonal entries of the permuted matrix.
+ * For the latter option, the subroutine also finds scaling factors
+ * that may be used to scale the matrix so that the nonzero diagonal
+ * entries of the permuted matrix are one in absolute value and all the
+ * off-diagonal entries are less than or equal to one in absolute value.
+ * The natural logarithms of the scaling factors u(i), i=1..N, for the
+ * rows and v(j), j=1..N, for the columns are returned so that the
+ * scaled matrix B = {b_ij} has entries b_ij = a_ij * EXP(u_i + v_j).
  * </pre>
  */
- 
+
 /*  Parameters */
 /*  ========== */
 
@@ -349,7 +349,7 @@ static int_t c__2 = 2;
 	info[1] = -1;
 	info[2] = *job;
 	if (icntl[1] >= 0) {
-	    printf(" ****** Error in MC64A/AD. INFO(1) = " IFMT 
+	    printf(" ****** Error in MC64A/AD. INFO(1) = " IFMT
 		   " because JOB = " IFMT "\n",  info[1], *job);
 	}
 	goto L99;
@@ -359,7 +359,7 @@ static int_t c__2 = 2;
 	info[1] = -2;
 	info[2] = *n;
 	if (icntl[1] >= 0) {
-	    printf(" ****** Error in MC64A/AD. INFO(1) = " IFMT 
+	    printf(" ****** Error in MC64A/AD. INFO(1) = " IFMT
 		   " because N = " IFMT "\n", info[1], *job);
 	}
 	goto L99;
@@ -394,7 +394,7 @@ static int_t c__2 = 2;
 	info[1] = -4;
 	info[2] = k;
 	if (icntl[1] >= 0) {
-	    printf(" ****** Error in MC64A/AD. INFO(1) = " IFMT 
+	    printf(" ****** Error in MC64A/AD. INFO(1) = " IFMT
 		   " LIW too small, must be at least " IFMT "\n", info[1], k);
 	}
 	goto L99;
@@ -418,7 +418,7 @@ static int_t c__2 = 2;
 	    info[1] = -5;
 	    info[2] = k;
 	    if (icntl[1] >= 0) {
-		printf(" ****** Error in MC64A/AD. INFO(1) = " IFMT 
+		printf(" ****** Error in MC64A/AD. INFO(1) = " IFMT
 		       " LDW too small, must be at least " IFMT "\n", info[1], k);
 	    }
 	    goto L99;
@@ -441,8 +441,8 @@ static int_t c__2 = 2;
 		    info[1] = -6;
 		    info[2] = j;
 		    if (icntl[1] >= 0) {
-			printf(" ****** Error in MC64A/AD. INFO(1) = " IFMT 
-			       " Column " IFMT 
+			printf(" ****** Error in MC64A/AD. INFO(1) = " IFMT
+			       " Column " IFMT
 			       " contains an entry with invalid row index " IFMT "\n",
 			       info[1], j, i__);
 		    }
@@ -453,7 +453,7 @@ static int_t c__2 = 2;
 		    info[1] = -7;
 		    info[2] = j;
 		    if (icntl[1] >= 0) {
-			printf(" ****** Error in MC64A/AD. INFO(1) = " IFMT 
+			printf(" ****** Error in MC64A/AD. INFO(1) = " IFMT
 			       "        Column " IFMT
 			       " contains two or more entries with row index " IFMT "\n",
 			       info[1], j, i__);
@@ -559,7 +559,7 @@ static int_t c__2 = 2;
 	}
 /* B = DW(2N+1:2N+NE); IW(1:5N) and DW(1:2N) are workspaces */
 	mc64wd_dist(n, ne, &ip[1], &irn[1], &dw[(*n << 1) + 1], &cperm[1],
-		    num, &iw[1], &iw[*n + 1], &iw[(*n << 1) + 1], 
+		    num, &iw[1], &iw[*n + 1], &iw[(*n << 1) + 1],
 		    &iw[*n * 3 + 1], &iw[(*n << 2) + 1], &dw[1], &dw[*n + 1]);
 	goto L90;
     }
@@ -668,7 +668,7 @@ L99:
 
 /* ********************************************************************** */
 /* Subroutine */ int_t mc64bd_dist(int_t *n, int_t *ne, int_t *ip, int_t *
-	irn, double *a, int_t *iperm, int_t *num, int_t *jperm, 
+	irn, double *a, int_t *iperm, int_t *num, int_t *jperm,
 	int_t *pr, int_t *q, int_t *l, double *d__)
 {
     /* System generated locals */
@@ -690,7 +690,7 @@ L99:
     double dnew;
     int_t jord, qlen, idum, jdum;
     double rinf;
-    extern /* Subroutine */ int_t mc64dd_dist(int_t *, int_t *, int_t *, 
+    extern /* Subroutine */ int_t mc64dd_dist(int_t *, int_t *, int_t *,
 	    double *, int_t *, int_t *), mc64ed_dist(int_t *, int_t *,
 	     int_t *, double *, int_t *, int_t *), mc64fd_dist(int_t *
 	    , int_t *, int_t *, int_t *, double *, int_t *, int_t *);
@@ -982,7 +982,7 @@ L153:
 		    if (dnew >= bv) {
 /* Delete row I from Q (if necessary); add row I to Q2 */
 			if (di != -1.) {
-			    mc64fd_dist(&l[i__], &qlen, n, &q[1], &d__[1], &l[1], 
+			    mc64fd_dist(&l[i__], &qlen, n, &q[1], &d__[1], &l[1],
 				    &c__1);
 			}
 			l[i__] = 0;
@@ -1094,7 +1094,7 @@ L1000:
 } /* mc64bd_ */
 
 /* ********************************************************************** */
-/* Subroutine */ int_t mc64dd_dist(int_t *i__, int_t *n, int_t *q, double 
+/* Subroutine */ int_t mc64dd_dist(int_t *i__, int_t *n, int_t *q, double
 	*d__, int_t *l, int_t *iway)
 {
     /* System generated locals */
@@ -1172,7 +1172,7 @@ L20:
 } /* mc64dd_dist */
 
 /* ********************************************************************** */
-/* Subroutine */ int_t mc64ed_dist(int_t *qlen, int_t *n, int_t *q, 
+/* Subroutine */ int_t mc64ed_dist(int_t *qlen, int_t *n, int_t *q,
 	double *d__, int_t *l, int_t *iway)
 {
     /* System generated locals */
@@ -1267,7 +1267,7 @@ L20:
 } /* mc64ed_dist */
 
 /* ********************************************************************** */
-/* Subroutine */ int_t mc64fd_dist(int_t *pos0, int_t *qlen, int_t *n, 
+/* Subroutine */ int_t mc64fd_dist(int_t *pos0, int_t *qlen, int_t *n,
 	int_t *q, double *d__, int_t *l, int_t *iway)
 {
     /* System generated locals */
@@ -1554,8 +1554,8 @@ L100:
 
 /* ********************************************************************** */
 /* Subroutine */ int_t mc64sd_dist(int_t *n, int_t *ne, int_t *ip, int_t *
-	irn, double *a, int_t *iperm, int_t *numx, int_t *w, 
-	int_t *len, int_t *lenl, int_t *lenh, int_t *fc, int_t *iw, 
+	irn, double *a, int_t *iperm, int_t *numx, int_t *w,
+	int_t *len, int_t *lenl, int_t *lenh, int_t *fc, int_t *iw,
 	int_t *iw4)
 {
     /* System generated locals */
@@ -1565,10 +1565,10 @@ L100:
     int_t i__, j, k, l, ii, mod, cnt, num;
     double bval, bmin, bmax, rinf;
     int_t nval, wlen, idum1, idum2, idum3;
-    extern /* Subroutine */ int_t mc64qd_dist(int_t *, int_t *, int_t *, 
-	    int_t *, int_t *, double *, int_t *, double *), 
-	    mc64ud_dist(int_t *, int_t *, int_t *, int_t *, int_t *, 
-	    int_t *, int_t *, int_t *, int_t *, int_t *, int_t *, 
+    extern /* Subroutine */ int_t mc64qd_dist(int_t *, int_t *, int_t *,
+	    int_t *, int_t *, double *, int_t *, double *),
+	    mc64ud_dist(int_t *, int_t *, int_t *, int_t *, int_t *,
+	    int_t *, int_t *, int_t *, int_t *, int_t *, int_t *,
 	    int_t *, int_t *, int_t *, int_t *);
 
 /* *** Copyright (c) 1999  Council for the Central Laboratory of the */
@@ -1870,7 +1870,7 @@ L1000:
 } /* mc64sd_ */
 
 /* ********************************************************************** */
-/* Subroutine */ int_t mc64qd_dist(int_t *ip, int_t *lenl, int_t *lenh, 
+/* Subroutine */ int_t mc64qd_dist(int_t *ip, int_t *lenl, int_t *lenh,
 	int_t *w, int_t *wlen, double *a, int_t *nval, double *val)
 {
     /* System generated locals */
@@ -1966,14 +1966,14 @@ L11:
 /* ********************************************************************** */
 /* Subroutine */ int_t mc64ud_dist(int_t *id, int_t *mod, int_t *n, int_t *
 	irn, int_t *lirn, int_t *ip, int_t *lenc, int_t *fc, int_t *
-	iperm, int_t *num, int_t *numx, int_t *pr, int_t *arp, 
+	iperm, int_t *num, int_t *numx, int_t *pr, int_t *arp,
 	int_t *cv, int_t *out)
 {
     /* System generated locals */
     int_t i__1, i__2, i__3, i__4;
 
     /* Local variables */
-    int_t i__, j, k, j1, ii, kk, id0, id1, in1, in2, nfc, num0, num1, num2, 
+    int_t i__, j, k, j1, ii, kk, id0, id1, in1, in2, nfc, num0, num1, num2,
 	    jord, last;
 
 
@@ -2168,8 +2168,8 @@ L101:
 
 /* ********************************************************************** */
 /* Subroutine */ int_t mc64wd_dist(int_t *n, int_t *ne, int_t *ip, int_t *
-	irn, double *a, int_t *iperm, int_t *num, int_t *jperm, 
-	int_t *out, int_t *pr, int_t *q, int_t *l, double *u, 
+	irn, double *a, int_t *iperm, int_t *num, int_t *jperm,
+	int_t *out, int_t *pr, int_t *q, int_t *l, double *u,
 	double *d__)
 {
     /* System generated locals */
@@ -2188,10 +2188,10 @@ L101:
     double dmin__, dnew;
     int_t jord, qlen, jdum;
     double rinf;
-    extern /* Subroutine */ int_t mc64dd_dist(int_t *, int_t *, int_t *, 
+    extern /* Subroutine */ int_t mc64dd_dist(int_t *, int_t *, int_t *,
 	    double *, int_t *, int_t *), mc64ed_dist(int_t *, int_t *,
 	     int_t *, double *, int_t *, int_t *), mc64fd_dist(int_t *
-	    , int_t *, int_t *, int_t *, double *, int_t *, 
+	    , int_t *, int_t *, int_t *, double *, int_t *,
 	    int_t *);
 
 
@@ -2523,7 +2523,7 @@ L153:
 		    d__[i__] = dnew;
 		    if (dnew <= dmin__) {
 			if (l[i__] != 0) {
-			    mc64fd_dist(&l[i__], &qlen, n, &q[1], &d__[1], &l[1], 
+			    mc64fd_dist(&l[i__], &qlen, n, &q[1], &d__[1], &l[1],
 				    &c__2);
 			}
 			--low;

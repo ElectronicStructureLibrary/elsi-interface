@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -18,15 +18,15 @@ at the top-level directory.
     // cout << "NBody.GPU" << endl << "=========" << endl << endl;
 
     printf("CUDA version:   v %d\n",CUDART_VERSION);
-    //cout << "Thrust version: v" << THRUST_MAJOR_VERSION << "." << THRUST_MINOR_VERSION << endl << endl; 
+    //cout << "Thrust version: v" << THRUST_MAJOR_VERSION << "." << THRUST_MINOR_VERSION << endl << endl;
 
     int devCount;
     cudaGetDeviceCount(&devCount);
-    printf( "CUDA Devices: \n \n"); 
+    printf( "CUDA Devices: \n \n");
 
     for(int i = 0; i < devCount; ++i)
     {
-        struct cudaDeviceProp props;       
+        struct cudaDeviceProp props;      
         cudaGetDeviceProperties(&props, i);
         printf("%d : %s %d %d\n",i, props.name,props.major,props.minor );
         // cout << i << ": " << props.name << ": " << props.major << "." << props.minor << endl;
@@ -62,11 +62,11 @@ const char* cublasGetErrorString(cublasStatus_t status)
         case CUBLAS_STATUS_SUCCESS: return "CUBLAS_STATUS_SUCCESS";
         case CUBLAS_STATUS_NOT_INITIALIZED: return "CUBLAS_STATUS_NOT_INITIALIZED";
         case CUBLAS_STATUS_ALLOC_FAILED: return "CUBLAS_STATUS_ALLOC_FAILED";
-        case CUBLAS_STATUS_INVALID_VALUE: return "CUBLAS_STATUS_INVALID_VALUE"; 
-        case CUBLAS_STATUS_ARCH_MISMATCH: return "CUBLAS_STATUS_ARCH_MISMATCH"; 
+        case CUBLAS_STATUS_INVALID_VALUE: return "CUBLAS_STATUS_INVALID_VALUE";
+        case CUBLAS_STATUS_ARCH_MISMATCH: return "CUBLAS_STATUS_ARCH_MISMATCH";
         case CUBLAS_STATUS_MAPPING_ERROR: return "CUBLAS_STATUS_MAPPING_ERROR";
-        case CUBLAS_STATUS_EXECUTION_FAILED: return "CUBLAS_STATUS_EXECUTION_FAILED"; 
-        case CUBLAS_STATUS_INTERNAL_ERROR: return "CUBLAS_STATUS_INTERNAL_ERROR"; 
+        case CUBLAS_STATUS_EXECUTION_FAILED: return "CUBLAS_STATUS_EXECUTION_FAILED";
+        case CUBLAS_STATUS_INTERNAL_ERROR: return "CUBLAS_STATUS_INTERNAL_ERROR";
     }
     return "unknown error";
 }

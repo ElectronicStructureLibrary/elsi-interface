@@ -4,11 +4,11 @@
 
 namespace SuperLU_ASYNCOMM {
 
-  template< typename T> 
+  template< typename T>
     TreeBcast_slu<T>::TreeBcast_slu(){
       comm_ = MPI_COMM_NULL;
       myRank_=-1;
-      myRoot_ = -1; 
+      myRoot_ = -1;
       msgSize_ = -1;
       recvCount_ = -1;
       sendCount_ = -1;
@@ -28,7 +28,7 @@ namespace SuperLU_ASYNCOMM {
 
     }
 
-  template< typename T> 
+  template< typename T>
     TreeBcast_slu<T>::TreeBcast_slu(const MPI_Comm & pComm, Int * ranks, Int rank_cnt,Int msgSize):TreeBcast_slu(){
       comm_ = pComm;
       MPI_Comm_rank(comm_,&myRank_);
@@ -45,16 +45,16 @@ namespace SuperLU_ASYNCOMM {
     }
 
 
-  template< typename T> 
+  template< typename T>
     TreeBcast_slu<T>::TreeBcast_slu(const TreeBcast_slu & Tree){
       this->Copy(Tree);
     }
 
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_slu<T>::Copy(const TreeBcast_slu & Tree){
       this->comm_ = Tree.comm_;
       this->myRank_ = Tree.myRank_;
-      this->myRoot_ = Tree.myRoot_; 
+      this->myRoot_ = Tree.myRoot_;
       this->msgSize_ = Tree.msgSize_;
 
       this->recvCount_ = Tree.recvCount_;
@@ -78,7 +78,7 @@ namespace SuperLU_ASYNCOMM {
       this->done_= Tree.done_;
     }
 
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_slu<T>::Reset(){
       assert(done_);
       cleanupBuffers();
@@ -97,101 +97,101 @@ namespace SuperLU_ASYNCOMM {
     }
 
 
-  template< typename T> 
+  template< typename T>
     TreeBcast_slu<T>::~TreeBcast_slu(){
       cleanupBuffers();
       MPI_Type_free( &type_ );
     }
 
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_slu<T>::GetNumRecvMsg(){
       return recvCount_;
     }
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_slu<T>::GetNumMsgToSend(){
       return this->GetDestCount();
     }
 
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_slu<T>::GetNumMsgToRecv(){
       return 1;//always one even for root//myRank_==myRoot_?0:1;
     }
 
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_slu<T>::GetNumSendMsg(){
       return sendCount_;
     }
-  template< typename T> 
-    inline void TreeBcast_slu<T>::SetDataReady(bool rdy){ 
+  template< typename T>
+    inline void TreeBcast_slu<T>::SetDataReady(bool rdy){
       isReady_=rdy;
     }
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_slu<T>::SetTag(Int tag){
       tag_ = tag;
     }
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_slu<T>::GetTag(){
       return tag_;
     }
 
 
-  template< typename T> 
+  template< typename T>
     inline Int * TreeBcast_slu<T>::GetDests(){
       return &myDests_[0];
     }
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_slu<T>::GetDest(Int i){
       return myDests_[i];
     }
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_slu<T>::GetDestCount(){
       return this->myDests_.size();
     }
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_slu<T>::GetRoot(){
       return this->myRoot_;
     }
 
-  template< typename T> 
+  template< typename T>
     inline bool TreeBcast_slu<T>::IsRoot(){
       return this->myRoot_==this->myRank_;
     }
 	
-  template< typename T> 
+  template< typename T>
     inline Int TreeBcast_slu<T>::GetMsgSize(){
       return this->msgSize_;
     }
 
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_slu<T>::forwardMessageSimple(T * locBuffer, Int msgSize){
         MPI_Status status;
 		Int flag;
 		for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
           Int iProc = this->myDests_[idxRecv];
           // Use Isend to send to multiple targets
-          Int error_code = MPI_Isend( locBuffer, msgSize, this->type_, 
+          Int error_code = MPI_Isend( locBuffer, msgSize, this->type_,
               iProc, this->tag_,this->comm_, &this->sendRequests_[idxRecv] );
-			  
-			  MPI_Test(&this->sendRequests_[idxRecv],&flag,&status) ; 
-			  
-			  // MPI_Wait(&this->sendRequests_[idxRecv],&status) ; 
+			 
+			  MPI_Test(&this->sendRequests_[idxRecv],&flag,&status) ;
+			 
+			  // MPI_Wait(&this->sendRequests_[idxRecv],&status) ;
 			  // std::cout<<this->myRank_<<" FWD to "<<iProc<<" on tag "<<this->tag_<<std::endl;
         } // for (iProc)
-    }	  
+    }	 
 
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_slu<T>::waitSendRequest(){
         MPI_Status status;
 		for( Int idxRecv = 0; idxRecv < this->myDests_.size(); ++idxRecv ){
-			  MPI_Wait(&this->sendRequests_[idxRecv],&status) ; 
+			  MPI_Wait(&this->sendRequests_[idxRecv],&status) ;
         } // for (iProc)
     }	
 	
 	
 
- 
 
-  template< typename T> 
+
+  template< typename T>
     inline void TreeBcast_slu<T>::allocateRequest(){
         if(this->sendRequests_.size()!=this->GetDestCount()){
           this->sendRequests_.resize(this->GetDestCount());
@@ -204,7 +204,7 @@ namespace SuperLU_ASYNCOMM {
 	
 	
 	
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_slu<T>::cleanupBuffers(){
       this->recvRequests_.clear();
       this->recvStatuses_.clear();
@@ -227,13 +227,13 @@ namespace SuperLU_ASYNCOMM {
       this->sendDoneIdx_.shrink_to_fit();
       this->sendDataPtrs_.shrink_to_fit();
       this->sendTempBuffer_.shrink_to_fit();
-	  
+	 
 	  this->myDests_.clear();
-	  
+	 
     }
 
 
-  template< typename T> 
+  template< typename T>
     inline void TreeBcast_slu<T>::AllocateBuffer()
     {
 
@@ -278,7 +278,7 @@ namespace SuperLU_ASYNCOMM {
       if(this->IsRoot() ){
         this->myDests_.insert(this->myDests_.end(),&ranks[1],&ranks[0]+rank_cnt);
       }
-#if (defined(BCAST_VERBOSE)) 
+#if (defined(BCAST_VERBOSE))
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(Int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
@@ -299,7 +299,7 @@ namespace SuperLU_ASYNCOMM {
     inline FTreeBcast2<T> * FTreeBcast2<T>::clone() const{
       FTreeBcast2 * out = new FTreeBcast2(*this);
       return out;
-    } 
+    }
 
 
 
@@ -325,7 +325,7 @@ namespace SuperLU_ASYNCOMM {
     inline void BTreeBcast2<T>::buildTree(Int * ranks, Int rank_cnt){
 
       Int myIdx = 0;
-      Int ii=0; 
+      Int ii=0;
 	  Int child,root;
 	  for (ii=0;ii<rank_cnt;ii++)
 		  if(this->myRank_ == ranks[ii]){
@@ -338,13 +338,13 @@ namespace SuperLU_ASYNCOMM {
 			   this->myDests_.push_back(child);
 		  }		
 	  }
-	  	   
+	  	  
 	  if(myIdx!=0){
 		  this->myRoot_ = ranks[(Int)floor((double)(myIdx-1.0)/(double)DEG_TREE)];
 	  }else{
 		  this->myRoot_ = this->myRank_;
-	  } 
-	  
+	  }
+	 
     }
 
 
@@ -371,7 +371,7 @@ namespace SuperLU_ASYNCOMM {
 
       //sort the ranks with the modulo like operation
       if(rank_cnt>1){
-        Int new_idx = (Int)this->rseed_ % (rank_cnt - 1) + 1; 
+        Int new_idx = (Int)this->rseed_ % (rank_cnt - 1) + 1;
         Int * new_start = &ranks[new_idx];
         std::rotate(&ranks[1], new_start, &ranks[0]+rank_cnt);
       }
@@ -410,10 +410,10 @@ namespace SuperLU_ASYNCOMM {
             }
             this->myRoot_ = prevRoot;
             break;
-          } 
+          }
 
           //not true anymore ?
-          //first half to 
+          //first half to
          // TIMER_START(FIND_RANK);
           Int * pos = std::find(&ranks[idxStartL], &ranks[idxStartH], this->myRank_);
          // TIMER_STOP(FIND_RANK);

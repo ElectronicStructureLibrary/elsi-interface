@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -28,7 +28,7 @@ at the top-level directory.
  *   Broadcast an array of *dtype* numbers. The communication pattern
  *   is a tree with number of branches equal to NBRANCHES.
  *   The process ranks are between 0 and Np-1.
- * 
+ *
  *   The following two pairs of graphs give different ways of viewing the same
  *   algorithm.  The first pair shows the trees as they should be visualized
  *   when examining the algorithm.  The second pair are isomorphic graphs of
@@ -38,7 +38,7 @@ at the top-level directory.
  *   power of two to work).
  *
  *    TREE BROADCAST, NBRANCHES = 2     *    TREE BROADCAST, NBRANCHES = 3
- *       
+ *      
  *     root=2
  * i=4   &______________                *
  *       |              \               *       root=2
@@ -63,7 +63,7 @@ at the top-level directory.
  *
  * Arguments
  * =========
- * 
+ *
  * scope
  * </pre>
  */
@@ -84,14 +84,14 @@ bcast_tree(void *buf, int count, MPI_Datatype dtype, int root, int tag,
     Np = scp->Np;
     if ( Np < 2 ) return;
     Iam = scp->Iam;
-    
+   
     if ( Iam == root ) {
 	for (i = nbranches; i < Np; i *= nbranches);
 	for (i /= nbranches; i > 0; i /= nbranches) {
 	    for (j = 1; j < nbranches; ++j) {
 		destdist = i*j;
 		if ( destdist < Np )
-		    MPI_Send( buf, count, dtype, (Iam+destdist)%Np, 
+		    MPI_Send( buf, count, dtype, (Iam+destdist)%Np,
 			     tag, scp->comm );
 	    }
 	}
@@ -109,7 +109,7 @@ bcast_tree(void *buf, int count, MPI_Datatype dtype, int root, int tag,
 	    for (j = 1; j < nbranches; ++j) {
 		destdist = mydist + j*i;
 		if ( destdist < Np )
-		    MPI_Send( buf, *recvcnt, dtype, (root+destdist)%Np, 
+		    MPI_Send( buf, *recvcnt, dtype, (root+destdist)%Np,
 			     tag, scp->comm );
 	    }
 	}

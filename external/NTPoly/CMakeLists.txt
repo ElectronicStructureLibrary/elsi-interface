@@ -1,4 +1,4 @@
-### Source file ###
+### Source files ###
 LIST(APPEND ntpoly_src
   src/ChebyshevSolversModule.f90
   src/DataTypesModule.f90

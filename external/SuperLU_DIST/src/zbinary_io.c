@@ -1,7 +1,7 @@
 #include "superlu_zdefs.h"
 
 int
-zread_binary(FILE *fp, int_t *m, int_t *n, int_t *nnz, 
+zread_binary(FILE *fp, int_t *m, int_t *n, int_t *nnz,
 	     doublecomplex **nzval, int_t **rowind, int_t **colptr)
 {
     size_t isize = sizeof(int_t), dsize = sizeof(double);
@@ -23,7 +23,7 @@ zread_binary(FILE *fp, int_t *m, int_t *n, int_t *nnz,
 int
 zwrite_binary(int_t n, int_t nnz,
 	      doublecomplex *values, int_t *rowind, int_t *colptr)
-{       
+{      
     FILE  *fp1;
     int nnz_written;
     size_t isize = sizeof(int_t), dsize = sizeof(double);

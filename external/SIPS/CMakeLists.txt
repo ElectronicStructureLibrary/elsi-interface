@@ -1,7 +1,4 @@
-### Source file ###
-LIST(APPEND sips_src src/sips.F90)
-
-ADD_LIBRARY(sips ${sips_src})
+ADD_LIBRARY(sips src/sips.F90)
 
 TARGET_LINK_LIBRARIES(sips PRIVATE ${LIBS})
 

@@ -1,7 +1,7 @@
 #include "superlu_ddefs.h"
 
 int
-dread_binary(FILE *fp, int_t *m, int_t *n, int_t *nnz, 
+dread_binary(FILE *fp, int_t *m, int_t *n, int_t *nnz,
 	     double **nzval, int_t **rowind, int_t **colptr)
 {
     size_t isize = sizeof(int_t), dsize = sizeof(double);
@@ -23,7 +23,7 @@ dread_binary(FILE *fp, int_t *m, int_t *n, int_t *nnz,
 int
 dwrite_binary(int_t n, int_t nnz,
 	      double *values, int_t *rowind, int_t *colptr)
-{       
+{      
       FILE  *fp1;
       int nnz_written;
       size_t isize = sizeof(int_t), dsize = sizeof(double);

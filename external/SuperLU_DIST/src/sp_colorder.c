@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -46,7 +46,7 @@ int check_perm_dist(char *, int_t, int_t *);
  *
  * options (input) superlu_dist_options_t*
  *         Specifies whether or not the elimination tree will be re-used.
- *         If options->Fact == DOFACT, this means first time factor A, 
+ *         If options->Fact == DOFACT, this means first time factor A,
  *         etree is computed and output.
  *         Otherwise, re-factor A, etree is input, unchanged on exit.
  *
@@ -57,13 +57,13 @@ int check_perm_dist(char *, int_t, int_t *);
  *         In the future, more general A can be handled.
  *
  * perm_c  (input/output) int*
- *	   Column permutation vector of size A->ncol, which defines the 
- *         permutation matrix Pc; perm_c[i] = j means column i of A is 
+ *	   Column permutation vector of size A->ncol, which defines the
+ *         permutation matrix Pc; perm_c[i] = j means column i of A is
  *         in position j in A*Pc.
  *         If options->Fact == DOFACT, perm_c is both input and output.
  *         On output, it is changed according to a postorder of etree.
  *         Otherwise, perm_c is input.
- *         
+ *        
  * etree   (input/output) int*
  *         Elimination tree of Pc*(A'+A)*Pc', dimension A->ncol.
  *         If options->Fact == DOFACT, etree is an output argument,
@@ -78,7 +78,7 @@ int check_perm_dist(char *, int_t, int_t *);
  * </pre>
  */
 void
-sp_colorder(superlu_dist_options_t *options,  SuperMatrix *A, int_t *perm_c, 
+sp_colorder(superlu_dist_options_t *options,  SuperMatrix *A, int_t *perm_c,
 	    int_t *etree, SuperMatrix *AC)
 {
 
@@ -93,7 +93,7 @@ sp_colorder(superlu_dist_options_t *options,  SuperMatrix *A, int_t *perm_c,
 #endif
 
     n = A->ncol;
-    
+   
     /* Apply column permutation perm_c to A's column pointers so to
        obtain NCP format in AC = A*Pc.  */
     AC->Stype       = SLU_NCP;
@@ -117,14 +117,14 @@ sp_colorder(superlu_dist_options_t *options,  SuperMatrix *A, int_t *perm_c,
 	PrintInt10("pre_order:", n, perm_c);
 	check_perm_dist("Initial perm_c", n, perm_c);
     }
-#endif      
+#endif     
 
     for (i = 0; i < n; i++) {
-	ACstore->colbeg[perm_c[i]] = Astore->colptr[i]; 
+	ACstore->colbeg[perm_c[i]] = Astore->colptr[i];
 	ACstore->colend[perm_c[i]] = Astore->colptr[i+1];
     }
 	
-    if ( options->Fact == DOFACT 
+    if ( options->Fact == DOFACT
 	 || options->Fact == SamePattern ) {
 	/* In this case, perm_r[] may be changed, etree(Pr*A + (Pr*A)')
 	   may be changed, so need to recompute etree.   */
@@ -132,7 +132,7 @@ sp_colorder(superlu_dist_options_t *options,  SuperMatrix *A, int_t *perm_c,
 	 * make perm_c consistent with the postorder of the etree.
 	 */
 
-	iwork = (int_t*) SUPERLU_MALLOC((n+1)*sizeof(int_t)); 
+	iwork = (int_t*) SUPERLU_MALLOC((n+1)*sizeof(int_t));
 	if ( !iwork ) ABORT("SUPERLU_MALLOC fails for iwork[]");
 
 	if ( A->nrow != A->ncol  /* Rectangular matrix */
@@ -155,7 +155,7 @@ sp_colorder(superlu_dist_options_t *options,  SuperMatrix *A, int_t *perm_c,
 	    if (!(c_colbeg) || !(c_colend) )
 		ABORT("SUPERLU_MALLOC fails for c_colbeg/c_colend");
 	    for (i = 0; i < n; i++) {
-		c_colbeg[perm_c[i]] = b_colptr[i]; 
+		c_colbeg[perm_c[i]] = b_colptr[i];
 		c_colend[perm_c[i]] = b_colptr[i+1];
 	    }
 	    for (j = 0; j < n; ++j) {
@@ -229,7 +229,7 @@ check_perm_dist(char *what, int_t n, int_t *perm)
 
     for (i = 0; i < n; ++i) {
 	if ( perm[i] >= n || marker[perm[i]] == 1 ) {
-	    printf("%s: Not a valid PERM[" IFMT "] = " IFMT "\n", 
+	    printf("%s: Not a valid PERM[" IFMT "] = " IFMT "\n",
 		   what, i, perm[i]);
 	    ABORT("check_perm_dist");
 	} else {

@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -18,7 +18,7 @@ at the top-level directory.
  * </pre>
  */
 
-/* 
+/*
  * This header file is to be included in source files z*.c
  */
 #ifndef __SUPERLU_DCOMPLEX /* allow multiple inclusions */
@@ -33,7 +33,7 @@ typedef struct { double r, i; } doublecomplex;
  * These variables will be defined to be MPI datatypes for complex
  * and double complex. I'm too lazy to declare them external in every
  * file that needs them.
- * 
+ *
  * Use WINOWS_EXPORT_ALL_SYMBOLS on windows to export all symbols when
  * building a shared library.
  * Introduce macro SUPERLU_DIST_EXPORT to correctly export the only

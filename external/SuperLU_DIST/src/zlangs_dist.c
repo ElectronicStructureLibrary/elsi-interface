@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -21,41 +21,41 @@ at the top-level directory.
 
 /*! \brief
 
-<pre> 
-    Purpose   
-    =======   
+<pre>
+    Purpose  
+    =======  
 
-    ZLANGS_DIST returns the value of the one norm, or the Frobenius norm, or 
-    the infinity norm, or the element of largest absolute value of a 
-    real matrix A.   
+    ZLANGS_DIST returns the value of the one norm, or the Frobenius norm, or
+    the infinity norm, or the element of largest absolute value of a
+    real matrix A.  
 
-    Description   
-    ===========   
+    Description  
+    ===========  
 
-    ZLANGE returns the value   
+    ZLANGE returns the value  
 
-       ZLANGE = ( max(abs(A(i,j))), NORM = 'M' or 'm'   
-                (   
-                ( norm1(A),         NORM = '1', 'O' or 'o'   
-                (   
-                ( normI(A),         NORM = 'I' or 'i'   
-                (   
-                ( normF(A),         NORM = 'F', 'f', 'E' or 'e'   
+       ZLANGE = ( max(abs(A(i,j))), NORM = 'M' or 'm'  
+                (  
+                ( norm1(A),         NORM = '1', 'O' or 'o'  
+                (  
+                ( normI(A),         NORM = 'I' or 'i'  
+                (  
+                ( normF(A),         NORM = 'F', 'f', 'E' or 'e'  
 
-    where  norm1  denotes the  one norm of a matrix (maximum column sum), 
-    normI  denotes the  infinity norm  of a matrix  (maximum row sum) and 
-    normF  denotes the  Frobenius norm of a matrix (square root of sum of 
-    squares).  Note that  max(abs(A(i,j)))  is not a  matrix norm.   
+    where  norm1  denotes the  one norm of a matrix (maximum column sum),
+    normI  denotes the  infinity norm  of a matrix  (maximum row sum) and
+    normF  denotes the  Frobenius norm of a matrix (square root of sum of
+    squares).  Note that  max(abs(A(i,j)))  is not a  matrix norm.  
 
-    Arguments   
-    =========   
+    Arguments  
+    =========  
 
-    NORM    (input) CHARACTER*1   
-            Specifies the value to be returned in ZLANGE as described above.   
+    NORM    (input) CHARACTER*1  
+            Specifies the value to be returned in ZLANGE as described above.  
     A       (input) SuperMatrix*
-            The M by N sparse matrix A. 
+            The M by N sparse matrix A.
 
-   ===================================================================== 
+   =====================================================================
 </pre>
 */
 double zlangs_dist(char *norm, SuperMatrix *A)
@@ -69,7 +69,7 @@ double zlangs_dist(char *norm, SuperMatrix *A)
 
     Astore = A->Store;
     Aval   = Astore->nzval;
-    
+   
     if ( SUPERLU_MIN(A->nrow, A->ncol) == 0) {
 	value = 0.;
 	
@@ -85,7 +85,7 @@ double zlangs_dist(char *norm, SuperMatrix *A)
 	value = 0.;
 	for (j = 0; j < A->ncol; ++j) {
 	    sum = 0.;
-	    for (i = Astore->colptr[j]; i < Astore->colptr[j+1]; i++) 
+	    for (i = Astore->colptr[j]; i < Astore->colptr[j+1]; i++)
 		sum += slud_z_abs( &Aval[i] );
 	    value = SUPERLU_MAX(value,sum);
 	}

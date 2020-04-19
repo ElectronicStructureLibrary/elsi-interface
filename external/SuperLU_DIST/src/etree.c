@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -13,9 +13,9 @@ at the top-level directory.
  *
  * <pre>
  *  Implementation of disjoint set union routines.
- *  Elements are integers in 0..n-1, and the 
+ *  Elements are integers in 0..n-1, and the
  *  names of the sets themselves are of type int.
- *  
+ * 
  *  Calls are:
  *  initialize_disjoint_sets (n) initial call.
  *  s = make_set (i)             returns a set containing only i.
@@ -36,25 +36,25 @@ at the top-level directory.
 #include "superlu_ddefs.h"
 
 
-static 
+static
 int_t *mxCallocInt(int_t n)
 {
     register int_t i;
     int_t *buf;
 
     buf = (int_t *) SUPERLU_MALLOC( n * sizeof(int_t) );
-    if ( buf ) 
+    if ( buf )
 	for (i = 0; i < n; i++) buf[i] = 0;
     return (buf);
 }
-      
+     
 static
 void initialize_disjoint_sets (
 			       int_t n,
 			       int_t **pp    /* parent array for sets */
 			       )
 {
-	if ( !( (*pp) = mxCallocInt(n)) ) 
+	if ( !( (*pp) = mxCallocInt(n)) )
 	    ABORT("mxCallocInit fails for pp[]");
 }
 
@@ -90,7 +90,7 @@ int_t find (
 	    )
 {
     register int_t p, gp;
-    
+   
     p = pp[i];
     gp = pp[p];
     while (gp != p) {
@@ -109,7 +109,7 @@ int_t find (
 	    int_t i
 	    )
 {
-	if (pp[i] != i) 
+	if (pp[i] != i)
 		pp[i] = find (pp[i]);
 	return pp[i];
 }
@@ -134,12 +134,12 @@ void finalize_disjoint_sets (
  *      Input:
  *        Square sparse matrix A.  No check is made for symmetry;
  *        elements below and on the diagonal are ignored.
- *        Numeric values are ignored, so any explicit zeros are 
+ *        Numeric values are ignored, so any explicit zeros are
  *        treated as nonzero.
  *      Output:
  *        Integer array of parents representing the etree, with n
  *        meaning a root of the elimination forest.
- *      Note:  
+ *      Note: 
  *        This routine uses only the upper triangle, while sparse
  *        Cholesky (as in spchol.c) uses only the lower.  Matlab's
  *        dense Cholesky uses only the upper.  This routine could
@@ -161,7 +161,7 @@ sp_symetree_dist(
 	    )
 {
 	int_t	*root;		    /* root of subtee of etree 	*/
-	int_t	rset, cset;             
+	int_t	rset, cset;            
 	int_t	row, col;
 	int_t	rroot;
 	int_t	p;
@@ -204,7 +204,7 @@ sp_symetree_dist(
  *
  * <pre>
  *      Find the elimination tree for A'*A.
- *      This uses something similar to Liu's algorithm. 
+ *      This uses something similar to Liu's algorithm.
  *      It runs in time O(nz(A)*log n) and does not form A'*A.
  *
  *      Input:
@@ -229,7 +229,7 @@ sp_coletree_dist(
 {
 	int_t	*root;			/* root of subtee of etree 	*/
 	int_t   *firstcol;		/* first nonzero col in each row*/
-	int_t	rset, cset;             
+	int_t	rset, cset;            
 	int_t	row, col;
 	int_t	rroot;
 	int_t	p;
@@ -247,7 +247,7 @@ sp_coletree_dist(
 
 	firstcol = mxCallocInt (nr);
 	for (row = 0; row < nr; firstcol[row++] = nc);
-	for (col = 0; col < nc; col++) 
+	for (col = 0; col < nc; col++)
 		for (p = acolst[col]; p < acolend[col]; p++) {
 			row = arow[p];
 			firstcol[row] = SUPERLU_MIN(firstcol[row], col);
@@ -306,7 +306,7 @@ sp_coletree_dist(
  *	In the child structure, lower-numbered children are represented
  *	first, so that a tree which is already numbered in postorder
  *	will not have its order changed.
- *    
+ *   
  *  Written by John Gilbert, Xerox, 10 Dec 1990.
  *  Based on code written by John Gilbert at CMI in 1987.
  * </pre>
@@ -323,7 +323,7 @@ void etdfs (
 	    int_t	  v,
 	    int_t   first_kid[],
 	    int_t   next_kid[],
-	    int_t   post[], 
+	    int_t   post[],
 	    int_t   *postnum
 	    )
 {
@@ -349,7 +349,7 @@ void nr_etdfs (int_t n, int_t *parent,
     int_t current = n, first, next;
 
     while (postnum != n){
-     
+    
         /* no kid for the current node */
         first = first_kid[current];
 
@@ -373,7 +373,7 @@ void nr_etdfs (int_t n, int_t *parent,
                 /* get the next kid */
                 next = next_kid[current];
 	    }
-            
+           
             /* stopping criterion */
             if (postnum==n+1) return;
 

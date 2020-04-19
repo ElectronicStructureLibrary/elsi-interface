@@ -1,4 +1,4 @@
-### Source file ###
+### Source files ###
 LIST(APPEND fortjson_src
   src/fortjson.f90
   src/fjson_constants.f90

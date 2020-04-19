@@ -1,9 +1,9 @@
 /*! \file
 Copyright (c) 2003, The Regents of the University of California, through
-Lawrence Berkeley National Laboratory (subject to receipt of any required 
-approvals from U.S. Dept. of Energy) 
+Lawrence Berkeley National Laboratory (subject to receipt of any required
+approvals from U.S. Dept. of Energy)
 
-All rights reserved. 
+All rights reserved.
 
 The source code is distributed under BSD license, see the file License.txt
 at the top-level directory.
@@ -61,9 +61,9 @@ at the top-level directory.
 
 /* *************************************************************** */
 
-/* Subroutine */ int genmmd_dist_(int_t *neqns, int_t *xadj, int_t *adjncy, 
-	int_t *invp, int_t *perm, int_t *delta, int_t *dhead, 
-	int_t *qsize, int_t *llist, int_t *marker, int_t *maxint, 
+/* Subroutine */ int genmmd_dist_(int_t *neqns, int_t *xadj, int_t *adjncy,
+	int_t *invp, int_t *perm, int_t *delta, int_t *dhead,
+	int_t *qsize, int_t *llist, int_t *marker, int_t *maxint,
 	int_t *nofsub)
 {
     /* System generated locals */
@@ -71,13 +71,13 @@ at the top-level directory.
 
     /* Local variables */
     static int_t mdeg, ehead, i, mdlmt, mdnode;
-    extern /* Subroutine */ int mmdelm_dist(int_t *, int_t *, int_t *, 
-	    int_t *, int_t *, int_t *, int_t *, int_t *, 
-	    int_t *, int_t *, int_t *), mmdupd_dist(int_t *, int_t *, 
-	    int_t *, int_t *, int_t *, int_t *, int_t *, int_t 
-	    *, int_t *, int_t *, int_t *, int_t *, int_t *, 
-	    int_t *), mmdint_dist(int_t *, int_t *, int_t *, int_t *, 
-	    int_t *, int_t *, int_t *, int_t *, int_t *), 
+    extern /* Subroutine */ int mmdelm_dist(int_t *, int_t *, int_t *,
+	    int_t *, int_t *, int_t *, int_t *, int_t *,
+	    int_t *, int_t *, int_t *), mmdupd_dist(int_t *, int_t *,
+	    int_t *, int_t *, int_t *, int_t *, int_t *, int_t
+	    *, int_t *, int_t *, int_t *, int_t *, int_t *,
+	    int_t *), mmdint_dist(int_t *, int_t *, int_t *, int_t *,
+	    int_t *, int_t *, int_t *, int_t *, int_t *),
 	    mmdnum_dist(int_t *, int_t *, int_t *, int_t *);
     static int_t nextmd, tag, num;
 
@@ -248,8 +248,8 @@ L1000:
 
 /* *************************************************************** */
 
-/* Subroutine */ int mmdint_dist(int_t *neqns, int_t *xadj, int_t *adjncy, 
-	int_t *dhead, int_t *dforw, int_t *dbakw, int_t *qsize, 
+/* Subroutine */ int mmdint_dist(int_t *neqns, int_t *xadj, int_t *adjncy,
+	int_t *dhead, int_t *dforw, int_t *dbakw, int_t *qsize,
 	int_t *llist, int_t *marker)
 {
     /* System generated locals */
@@ -333,14 +333,14 @@ L1000:
 /* *************************************************************** */
 
 /* Subroutine */ int mmdelm_dist(int_t *mdnode, int_t *xadj, int_t *adjncy,
-	 int_t *dhead, int_t *dforw, int_t *dbakw, int_t *qsize, 
+	 int_t *dhead, int_t *dforw, int_t *dbakw, int_t *qsize,
  	 int_t *llist, int_t *marker, int_t *maxint, int_t *tag)
 {
     /* System generated locals */
     int_t i__1, i__2;
 
     /* Local variables */
-    static int_t node, link, rloc, rlmt, i, j, nabor, rnode, elmnt, xqnbr, 
+    static int_t node, link, rloc, rlmt, i, j, nabor, rnode, elmnt, xqnbr,
 	    istop, jstop, istrt, jstrt, nxnode, pvnode, nqnbrs, npv;
 
 
@@ -579,16 +579,16 @@ L1800:
 
 /* *************************************************************** */
 
-/* Subroutine */ int mmdupd_dist(int_t *ehead, int_t *neqns, int_t *xadj, 
-	int_t *adjncy, int_t *delta, int_t *mdeg, int_t *dhead, 
-	int_t *dforw, int_t *dbakw, int_t *qsize, int_t *llist, 
+/* Subroutine */ int mmdupd_dist(int_t *ehead, int_t *neqns, int_t *xadj,
+	int_t *adjncy, int_t *delta, int_t *mdeg, int_t *dhead,
+	int_t *dforw, int_t *dbakw, int_t *qsize, int_t *llist,
 	int_t *marker, int_t *maxint, int_t *tag)
 {
     /* System generated locals */
     int_t i__1, i__2;
 
     /* Local variables */
-    static int_t node, mtag, link, mdeg0, i, j, enode, fnode, nabor, elmnt, 
+    static int_t node, mtag, link, mdeg0, i, j, enode, fnode, nabor, elmnt,
 	    istop, jstop, q2head, istrt, jstrt, qxhead, iq2, deg, deg0;
 
 
@@ -671,11 +671,11 @@ L500:
 	if (dbakw[enode] != 0) {
 	    goto L700;
 	}
-/*                            --------------------------------------- 
+/*                            ---------------------------------------
 */
-/*                            PLACE EITHER IN QXHEAD OR Q2HEAD LISTS. 
+/*                            PLACE EITHER IN QXHEAD OR Q2HEAD LISTS.
 */
-/*                            --------------------------------------- 
+/*                            ---------------------------------------
 */
 	if (dforw[enode] == 2) {
 	    goto L600;
@@ -781,11 +781,11 @@ L1200:
 	dbakw[node] = -(*maxint);
 	goto L1400;
 L1300:
-/*                            -------------------------------------- 
+/*                            --------------------------------------
 */
-/*                            CASE WHEN NODE IS OUTMATCHED BY ENODE. 
+/*                            CASE WHEN NODE IS OUTMATCHED BY ENODE.
 */
-/*                            -------------------------------------- 
+/*                            --------------------------------------
 */
 	if (dbakw[node] == 0) {
 	    dbakw[node] = -(*maxint);
@@ -836,14 +836,14 @@ L1600:
 	deg += qsize[nabor];
 	goto L2000;
 L1700:
-/*                                    ------------------------------- 
+/*                                    -------------------------------
 */
-/*                                    IF ELIMINATED, INCLUDE UNMARKED 
+/*                                    IF ELIMINATED, INCLUDE UNMARKED
 */
-/*                                    NODES IN THIS ELEMENT INTO THE 
+/*                                    NODES IN THIS ELEMENT INTO THE
 */
 /*                                    DEGREE COUNT. */
-/*                                    ------------------------------- 
+/*                                    -------------------------------
 */
 	jstrt = xadj[link];
 	jstop = xadj[link + 1] - 1;

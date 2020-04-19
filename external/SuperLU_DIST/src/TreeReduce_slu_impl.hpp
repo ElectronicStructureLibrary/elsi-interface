@@ -40,7 +40,7 @@ namespace SuperLU_ASYNCOMM {
       this->cleanupBuffers();
     }
 	
-  template< typename T> 
+  template< typename T>
     inline void TreeReduce_slu<T>::forwardMessageSimple(T * locBuffer, Int msgSize){
         MPI_Status status;
 		Int flag;
@@ -50,22 +50,22 @@ namespace SuperLU_ASYNCOMM {
 			  Int iProc = this->myRoot_;
 			  // Use Isend to send to multiple targets
 
-			  Int error_code = MPI_Isend(locBuffer, msgSize, this->type_, 
+			  Int error_code = MPI_Isend(locBuffer, msgSize, this->type_,
 				  iProc, this->tag_,this->comm_, &this->sendRequests_[0] );
-				  
-				  MPI_Test(&this->sendRequests_[0],&flag,&status) ; 
-				  
+				 
+				  MPI_Test(&this->sendRequests_[0],&flag,&status) ;
+				 
 				  // std::cout<<this->myRank_<<" FWD to "<<iProc<<" on tag "<<this->tag_<<std::endl;
-				  
-				 // MPI_Wait(&this->sendRequests_[0],&status) ; 
-				  
+				 
+				 // MPI_Wait(&this->sendRequests_[0],&status) ;
+				 
 			// }
 		}
       }
 	
- 
 
-  template< typename T> 
+
+  template< typename T>
     inline void TreeReduce_slu<T>::allocateRequest(){
         if(this->sendRequests_.size()==0){
           this->sendRequests_.resize(1);
@@ -74,23 +74,23 @@ namespace SuperLU_ASYNCOMM {
     }
 		
 	
-  template< typename T> 
+  template< typename T>
     inline void TreeReduce_slu<T>::waitSendRequest(){
         MPI_Status status;		
         if(this->sendRequests_.size()>0){
-		  MPI_Wait(&this->sendRequests_[0],&status) ; 
+		  MPI_Wait(&this->sendRequests_[0],&status) ;
         }	
 	}	
 
 
 
-  template< typename T> 
-    inline T * TreeReduce_slu<T>::GetLocalBuffer(){ 
+  template< typename T>
+    inline T * TreeReduce_slu<T>::GetLocalBuffer(){
       return this->sendDataPtrs_[0];
     }
 
 
-  template< typename T> 
+  template< typename T>
     inline void TreeReduce_slu<T>::Reset(){
       TreeBcast_slu<T>::Reset();
       this->isAllocated_=false;
@@ -167,7 +167,7 @@ namespace SuperLU_ASYNCOMM {
 	template< typename T>
     inline void BTreeReduce_slu<T>::buildTree(Int * ranks, Int rank_cnt){
       Int myIdx = 0;
-      Int ii=0; 
+      Int ii=0;
 	  Int child,root;
 	  for (ii=0;ii<rank_cnt;ii++)
 		  if(this->myRank_ == ranks[ii]){
@@ -175,24 +175,24 @@ namespace SuperLU_ASYNCOMM {
 			  break;
 		  }
 
-		  
+		 
 	  for (ii=0;ii<DEG_TREE;ii++){
 		  if(myIdx*DEG_TREE+1+ii<rank_cnt){
 			   child = ranks[myIdx*DEG_TREE+1+ii];
 			   this->myDests_.push_back(child);
 		  }		
-	  }		  
-		  
+	  }		 
+		 
 	  if(myIdx!=0){
 		  this->myRoot_ = ranks[(Int)floor((double)(myIdx-1.0)/(double)DEG_TREE)];
 	  }else{
 		  this->myRoot_ = this->myRank_;
-	  } 
-	  
+	  }
+	 
 	  // for(Int i =0;i<this->myDests_.size();++i){std::cout<<this->myRank_<<" "<<this->myDests_[i]<<" "<<std::endl;}
 
-	  // {std::cout<<this->myRank_<<" "<<this->myRoot_<<" "<<std::endl;}	  
-	  
+	  // {std::cout<<this->myRank_<<" "<<this->myRoot_<<" "<<std::endl;}	 
+	 
     }
 
 
@@ -228,7 +228,7 @@ namespace SuperLU_ASYNCOMM {
         //Int new_idx = rseed_%(rank_cnt-1)+1;
 
         //Int new_idx = (Int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
-        //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1; 
+        //Int new_idx = (Int)rseed_ % (rank_cnt - 1) + 1;
         //      Int new_idx = (Int)((rank_cnt - 0) * ( (double)this->rseed_ / (double)RAND_MAX ) + 0);// (this->rseed_)%(rank_cnt-1)+1;
         Int new_idx = (Int)(this->rseed_)%(rank_cnt-1)+1;
 
@@ -237,7 +237,7 @@ namespace SuperLU_ASYNCOMM {
 
         //        Int * new_start = std::lower_bound(&ranks[1],&ranks[0]+rank_cnt,ranks[0]);
         //just swap the two chunks   r[0] | r[1] --- r[new_start-1] | r[new_start] --- r[end]
-        // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1] 
+        // becomes                   r[0] | r[new_start] --- r[end] | r[1] --- r[new_start-1]
         std::rotate(&ranks[1], new_start, &ranks[0]+rank_cnt);
         //        for(Int i =0;i<rank_cnt;++i){statusOFS<<ranks[i]<<" ";} statusOFS<<std::endl;
       }
@@ -276,10 +276,10 @@ namespace SuperLU_ASYNCOMM {
             }
             this->myRoot_ = prevRoot;
             break;
-          } 
+          }
 
           //not true anymore ?
-          //first half to 
+          //first half to
           // TIMER_START(FIND_RANK);
           Int * pos = std::find(&ranks[idxStartL], &ranks[idxStartH], this->myRank_);
           // TIMER_STOP(FIND_RANK);
@@ -295,7 +295,7 @@ namespace SuperLU_ASYNCOMM {
 
       }
 
-#if (defined(REDUCE_VERBOSE)) 
+#if (defined(REDUCE_VERBOSE))
       statusOFS<<"My root is "<<this->myRoot_<<std::endl;
       statusOFS<<"My dests are ";
       for(Int i =0;i<this->myDests_.size();++i){statusOFS<<this->myDests_[i]<<" ";}
