@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2009,2011,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2009,2011,2012,2015,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,7 +40,7 @@
 /**                generic pattern.                        **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 05 oct 2012     **/
-/**                                 to     21 nov 2012     **/
+/**                                 to     05 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -308,6 +308,27 @@ static void              (* graphmatchfuncthrendtab[]) (GraphCoarsenThread *) = 
 
 /* This routine performs the sequential
 ** initialization of the global mating
+** data structures, so as to indicate
+** that no mating will be performed.
+** It returns:
+** - 0  : in all cases.
+*/
+
+void
+graphMatchNone (
+GraphCoarsenData * restrict coarptr)
+{
+#ifdef SCOTCH_PTHREAD
+  coarptr->finelocktax = NULL;
+  coarptr->finequeutab = NULL;
+  coarptr->fendptr     = (void (*) (void *)) NULL;
+  coarptr->fmidptr     = (void (*) (void *)) NULL;
+#endif /* SCOTCH_PTHREAD */
+  coarptr->fbegptr     = (void (*) (void *)) NULL;
+}
+
+/* This routine performs the sequential
+** initialization of the global mating
 ** data structures, before the threads
 ** are launched.
 ** It returns:
@@ -365,7 +386,7 @@ GraphCoarsenData * restrict coarptr)
 }
 
 /* This routine merges the results of two mating
-** threads and re-launches a mating operations
+** threads and re-launches a mating operation
 ** if necessary.
 */
 
@@ -421,7 +442,6 @@ GraphCoarsenThread * restrict thrdptr)            /*+ Pointer to incomplete matc
   const Gnum                        finevertbas = thrdptr->finevertbas; /* Get fine vertex range */
   const Gnum                        finevertnnd = thrdptr->finevertnnd;
   Gnum * restrict const             finematetax = coarptr->finematetax;
-  const Gnum                        baseval     = finegrafptr->baseval;
 
   thrdptr->finequeubas = finevertbas;             /* Assume matching range is fine vertex processing range */
   thrdptr->finequeunnd = finevertnnd;

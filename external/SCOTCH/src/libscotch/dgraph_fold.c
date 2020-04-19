@@ -1,4 +1,4 @@
-/* Copyright 2007-2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2007-2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -42,6 +42,8 @@
 /**                                 to   : 27 jun 2008     **/
 /**                # Version 5.1  : from : 12 nov 2008     **/
 /**                                 to   : 04 jan 2011     **/
+/**                # Version 6.0  : from : 28 sep 2014     **/
+/**                                 to   : 28 sep 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -79,9 +81,9 @@ dgraphFold (
 const Dgraph * restrict const orggrafptr,
 const int                     partval,            /* 0 for first half, 1 for second half */
 Dgraph * restrict const       fldgrafptr,
-const void * restrict const   vertinfoptrin,      /* Based array of informations which must be kept, like coarmulttax */
-void ** restrict const        vertinfoptrout,     /* Based array of informations which must be kept, like coarmulttax */
-MPI_Datatype                  vertinfotype)
+const void * restrict const   orgdataptr,         /* Un-based array of data which must be folded, e.g. coarmulttab */
+void ** restrict const        flddataptr,         /* Un-based array of data which must be folded, e.g. coarmulttab */
+MPI_Datatype                  datatype)
 {
   int               fldprocnbr;
   int               fldprocnum;                   /* Index of local process in folded communicator   */
@@ -102,7 +104,7 @@ MPI_Datatype                  vertinfotype)
     return     (1);
   }
 
-  o = dgraphFold2 (orggrafptr, partval, fldgrafptr, fldproccomm, vertinfoptrin, vertinfoptrout, vertinfotype);
+  o = dgraphFold2 (orggrafptr, partval, fldgrafptr, fldproccomm, orgdataptr, flddataptr, datatype);
   fldgrafptr->prockeyval = fldproccol;            /* Key of folded communicator is always zero if no duplication occurs */
 
   return (o);
@@ -114,9 +116,9 @@ const Dgraph * restrict const orggrafptr,
 const int                     partval,            /* 0 for first half, 1 for second half */
 Dgraph * restrict const       fldgrafptr,
 MPI_Comm                      fldproccomm,
-const void * restrict const   vertinfoptrin,      /* Based array of informations which must be kept, like coarmulttax */
-void ** restrict const        vertinfoptrout,     /* Based array of informations which must be kept, like coarmulttax */
-MPI_Datatype                  vertinfotype)
+const void * restrict const   orgdataptr,         /* Un-based array of data which must be kept, e.g. coarmulttab */
+void ** restrict const        flddataptr,         /* Un-based array of data which must be kept, e.g. coarmulttab */
+MPI_Datatype                  datatype)
 {
   int                           fldcommtypval;    /* Type of communication for this process                 */
   DgraphFoldCommData * restrict fldcommdattab;    /* Array of two communication data                        */
@@ -139,7 +141,7 @@ MPI_Datatype                  vertinfotype)
   int                           commnbr;
   int                           requnbr;
   MPI_Request * restrict        requtab;
-  int                           vertinfosize;     /* Size of one information                                */
+  int                           infosiz;          /* Size of one information                                */
 
 #ifdef SCOTCH_DEBUG_DGRAPH2
   if (orggrafptr->vendloctax != (orggrafptr->vertloctax + 1)) {
@@ -157,8 +159,8 @@ MPI_Datatype                  vertinfotype)
     fldproclocnum = orggrafptr->proclocnum;
 
   fldcommtypval = ((fldproclocnum >= 0) && (fldproclocnum < fldprocglbnbr)) ? DGRAPHFOLDCOMMRECV : DGRAPHFOLDCOMMSEND;
-  if (vertinfoptrin != NULL)
-    MPI_Type_size (vertinfotype, &vertinfosize);
+  if (orgdataptr != NULL)
+    MPI_Type_size (datatype, &infosiz);
 
   cheklocval    = 0;
   fldcommdattab = NULL;
@@ -239,13 +241,11 @@ MPI_Datatype                  vertinfotype)
         cheklocval = 1;
       }
       else {
-        if (vertinfoptrin != NULL) {
-          if ((*vertinfoptrout = (byte *) memAlloc (fldvertlocnbr * vertinfosize)) == NULL) {
+        if (orgdataptr != NULL) {
+          if ((*flddataptr = (byte *) memAlloc (fldvertlocnbr * infosiz)) == NULL) {
             errorPrint ("dgraphFold2: out of memory (4)");
             cheklocval = 1;
           }
-          else
-            *((byte **) vertinfoptrout) -= (vertinfosize * orggrafptr->baseval);
         }
         fldgrafptr->edgeloctax -= orggrafptr->baseval; /* Do not care about the validity of edloloctax at this stage */
       }
@@ -360,8 +360,8 @@ MPI_Datatype                  vertinfotype)
         errorPrint ("dgraphFold2: communication error (7)");
         cheklocval = 1;
       }
-      else if ((vertinfoptrin != NULL)  &&
-               (MPI_Isend ((byte *) vertinfoptrin + (fldvertidxtab[i] * vertinfosize), fldcommdattab[i].vertnbr, vertinfotype, procsndnum,
+      else if ((orgdataptr != NULL)  &&
+               (MPI_Isend ((byte *) orgdataptr + ((fldvertidxtab[i] - orggrafptr->baseval) * infosiz), fldcommdattab[i].vertnbr, datatype, procsndnum,
                            TAGFOLD + TAGDATALOCTAB, orggrafptr->proccomm, &requtab[requnbr ++]) != MPI_SUCCESS)) {
         errorPrint ("dgraphFold2: communication error (8)");
         cheklocval = 1;
@@ -464,8 +464,8 @@ MPI_Datatype                  vertinfotype)
           errorPrint ("dgraphFold2: communication error (14)");
           cheklocval = 1;
         }
-        else if ((vertinfoptrin != NULL) &&
-                 (MPI_Irecv ((byte *) (*vertinfoptrout) + (fldvertidxtab[i] * vertinfosize), vertrcvnbr, vertinfotype, procrcvnum,
+        else if ((orgdataptr != NULL) &&
+                 (MPI_Irecv ((byte *) (*flddataptr) + ((fldvertidxtab[i] - orggrafptr->baseval) * infosiz), vertrcvnbr, datatype, procrcvnum,
                              TAGFOLD + TAGDATALOCTAB, orggrafptr->proccomm, &requtab[requnbr ++]) != MPI_SUCCESS)) {
           errorPrint ("dgraphFold2: communication error (15)");
           cheklocval = 1;
@@ -576,9 +576,8 @@ MPI_Datatype                  vertinfotype)
             orggrafptr->vertloctax + orggrafptr->baseval, orgvertlocnbr * sizeof (Gnum)); /* Last value is not copied */
     fldgrafptr->vertloctax[fldvertlocnbr + orggrafptr->baseval] = fldgrafptr->edgelocnbr + orggrafptr->baseval;
 
-    if (vertinfoptrin != NULL)                    /* If vertinfo exists */
-      memCpy ((byte *) (*vertinfoptrout) + (orggrafptr->baseval * vertinfosize), /* Copy local part */
-              (byte *) vertinfoptrin + (orggrafptr->baseval * vertinfosize), orgvertlocnbr * vertinfosize);
+    if (orgdataptr != NULL)                       /* If additional data present */
+      memCpy ((byte *) (*flddataptr), (byte *) orgdataptr, orgvertlocnbr * infosiz); /* Copy local part */
 
     for (i = 0; i < commnbr; i ++) {
       int               j;
@@ -628,7 +627,7 @@ MPI_Datatype                  vertinfotype)
           return      (1);
         }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
-        
+
         for (procngbnum = 0, procngbmax = fldvertadjnbr; /* Initialize search accelerator */
              procngbmax - procngbnum > 1; ) {
           int               procngbmed;

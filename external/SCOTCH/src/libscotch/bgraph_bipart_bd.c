@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2011,2014,2016,2018,2019 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -45,7 +45,7 @@
 /**                # Version 5.1  : from : 09 nov 2008     **/
 /**                                 to   : 26 mar 2011     **/
 /**                # Version 6.0  : from : 07 nov 2011     **/
-/**                                 to   : 15 nov 2011     **/
+/**                                 to   : 31 aug 2019     **/
 /**                                                        **/
 /************************************************************/
 
@@ -146,11 +146,8 @@ const BgraphBipartBdParam * const paraptr)        /*+ Method parameters +*/
   queutailval  = 0;
   bndvlvlnum   = 0;                               /* Assume first layer is last layer   */
   while (distmax -- > 0) {                        /* For all passes except the last one */
-    Gnum                orgvertnum;
-    Gnum                orgdistval;
-
-    bndvlvlnum = queuheadval;                     /* Record start of last layer */
-    while (queutailval < bndvlvlnum) {            /* For all vertices in queue  */
+    bndvlvlnum = queuheadval;                     /* Record start of last layer         */
+    while (queutailval < bndvlvlnum) {            /* For all vertices in queue          */
       Gnum                orgvertnum;
       Gnum                orgedgenum;
       Gnum                orgpartval;
@@ -269,7 +266,9 @@ const BgraphBipartBdParam * const paraptr)        /*+ Method parameters +*/
   bndedlotax = bndgrafdat.s.edlotax;
   bndvnumtax = bndgrafdat.s.vnumtax;
 
-  for (bndvertnum = bndedgenum = orggrafptr->s.baseval, bnddegrmax = bndedlosum = bndcommgainextn = bndcommgainextn1 = 0;
+  bndvlvlnum += orggrafptr->s.baseval;            /* Now bndvlvlnum is based */
+  for (bndvertnum = bndedgenum = orggrafptr->s.baseval,
+       bnddegrmax = bndedlosum = bndcommgainextn = bndcommgainextn1 = 0;
        bndvertnum < bndvlvlnum; bndvertnum ++) {  /* Fill index array for vertices not belonging to last level */
     Gnum                orgvertnum;
     GraphPart           orgpartval;
@@ -382,11 +381,8 @@ const BgraphBipartBdParam * const paraptr)        /*+ Method parameters +*/
   }
 #endif /* SCOTCH_DEBUG_BGRAPH2 */
   bndgrafdat.s.edgenbr = bndedgetmp - orggrafptr->s.baseval;
-  bndgrafdat.s.verttax[bndvertnnd + 2] = bndedgetmp; /* Mark end of edge array with anchor vertices  */
-  for (bndvertnum = bndvlvlnum; bndvertnum < bndvertnnd; bndvertnum ++) { /* Fill anchor edge arrays */
-    Gnum                orgvertnum;
-
-    orgvertnum = bndvnumtax[bndvertnum];
+  bndgrafdat.s.verttax[bndvertnnd + 2] = bndedgetmp; /* Mark end of edge array with anchor vertices             */
+  for (bndvertnum = bndvlvlnum; bndvertnum < bndvertnnd; bndvertnum ++) { /* Fill anchor edge arrays            */
     if (bndgrafdat.s.verttax[bndvertnum + 1] > bndgrafdat.s.verttax[bndvertnum]) { /* If vertex is not isolated */
       Gnum                bndedgelst;             /* Number of last edge */
       Gnum                bndvertend;
@@ -445,9 +441,7 @@ const BgraphBipartBdParam * const paraptr)        /*+ Method parameters +*/
     Gnum                bndfronnnd;
     Gnum                bndvertnum;
     Gnum                bndedgenum;
-    Gnum                bndedloval;
 
-    bndedloval      = 1;                          /* Assume unity edge weights */
     bndcommloadintn = 0;
     for (bndvertnum = orggrafptr->s.baseval, bndfronnnd = bndvertnum + orggrafptr->fronnbr; /* Compute communication load at frontier */
          bndvertnum < bndfronnnd; bndvertnum ++) {
@@ -461,12 +455,11 @@ const BgraphBipartBdParam * const paraptr)        /*+ Method parameters +*/
         Gnum                bndpartend;
 
         bndpartend = (Gnum) bndgrafdat.parttax[bndedgetax[bndedgenum]];
-        bndedloval = bndedlotax[bndedgenum];
-        bndcommloadintn += bndedloval * bndpartend;
+        bndcommloadintn += bndedlotax[bndedgenum] * bndpartend;
       }
     }
 
-    bndcommloadintn *= orggrafptr->domdist;
+    bndcommloadintn *= orggrafptr->domndist;
     bndveextax[bndvertnnd + 1] = (orggrafptr->commload - orggrafptr->commloadextn0 - bndcommloadintn) - bndcommgainextn1;
     bndveextax[bndvertnnd]     = (orggrafptr->commload - orggrafptr->commloadextn0 - bndcommloadintn) - bndcommgainextn + bndcommgainextn1 + orggrafptr->commgainextn;
   }
@@ -482,11 +475,13 @@ const BgraphBipartBdParam * const paraptr)        /*+ Method parameters +*/
   bndgrafdat.commloadextn0 = orggrafptr->commloadextn0;
   bndgrafdat.commgainextn  = orggrafptr->commgainextn;
   bndgrafdat.commgainextn0 = orggrafptr->commgainextn0;
-  bndgrafdat.domdist       = orggrafptr->domdist;
-  bndgrafdat.domwght[0]    = orggrafptr->domwght[0];
-  bndgrafdat.domwght[1]    = orggrafptr->domwght[1];
-  bndgrafdat.levlnum       = orggrafptr->levlnum;
+  bndgrafdat.domndist      = orggrafptr->domndist;
+  bndgrafdat.domnwght[0]   = orggrafptr->domnwght[0];
+  bndgrafdat.domnwght[1]   = orggrafptr->domnwght[1];
+  bndgrafdat.vfixload[0]   = orggrafptr->vfixload[0];
+  bndgrafdat.vfixload[1]   = orggrafptr->vfixload[1];
   bndgrafdat.bbalval       = orggrafptr->bbalval;
+  bndgrafdat.levlnum       = orggrafptr->levlnum;
 
 #ifdef SCOTCH_DEBUG_BGRAPH2
   if ((graphCheck (&bndgrafdat.s) != 0) ||        /* Check band graph consistency */

@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2007,2008,2011,2013,2014 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -43,7 +43,7 @@
 /**   DATES      : # Version 5.1  : from : 10 sep 2007     **/
 /**                                 to     22 jul 2008     **/
 /**                # Version 6.0  : from : 03 sep 2011     **/
-/**                                 to     03 sep 2011     **/
+/**                                 to     31 aug 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -105,7 +105,7 @@ const Bdgraph * restrict const grafptr)
 
   if (grafptr->partgsttax != NULL) {
     for (vertlocnum = grafptr->s.baseval; vertlocnum < grafptr->s.vertlocnnd; vertlocnum ++) {
-      if (grafptr->partgsttax[vertlocnum] > 1) {
+      if ((grafptr->partgsttax[vertlocnum] | 1) != 1) { /* If part is neither 0 nor 1 */
         errorPrint ("bdgraphCheck: invalid local part array");
         cheklocval |= 8;
         break;
@@ -152,11 +152,11 @@ const Bdgraph * restrict const grafptr)
   reduloctab[2]   =   grafptr->compglbload0;
   reduloctab[3]   = - grafptr->compglbload0;
   reduloctab[4]   =   grafptr->s.veloglbsum - grafptr->compglbload0;
-  reduloctab[5]   = - (grafptr->s.veloglbsum - grafptr->compglbload0);
+  reduloctab[5]   = - grafptr->s.veloglbsum + grafptr->compglbload0;
   reduloctab[6]   =   grafptr->compglbsize0;
   reduloctab[7]   = - grafptr->compglbsize0;
   reduloctab[8]   =   grafptr->s.vertglbnbr - grafptr->compglbsize0;
-  reduloctab[9]   = - (grafptr->s.vertglbnbr - grafptr->compglbsize0);
+  reduloctab[9]   = - grafptr->s.vertglbnbr + grafptr->compglbsize0;
   reduloctab[10]  =   grafptr->commglbgainextn;
   reduloctab[11]  = - grafptr->commglbgainextn;
   reduloctab[12]  =   grafptr->commglbgainextn0;
@@ -177,7 +177,7 @@ const Bdgraph * restrict const grafptr)
   if (reduglbtab[20] != 0) {                      /* Exit and Return information of previous errors */
     if (partgsttax != NULL)
       memFree (partgsttax);                       /* Free yet unbased group leader */
-    return (reduglbtab[20]);
+    return ((int) reduglbtab[20]);
   }
 
   if ((reduglbtab[1]  != - reduglbtab[0])  ||
@@ -205,15 +205,15 @@ const Bdgraph * restrict const grafptr)
   for (fronlocnum = 0; fronlocnum < grafptr->fronlocnbr; fronlocnum ++) {
     Gnum                vertlocnum;
     Gnum                edgelocnum;
-    Gnum                commcut;
-    int                 partval;
+    GraphPart           commcut;
+    GraphPart           partval;
 
     vertlocnum = grafptr->fronloctab[fronlocnum];
     partval    = partgsttax[vertlocnum];
 
     for (edgelocnum = grafptr->s.vertloctax[vertlocnum], commcut = 0;
          edgelocnum < grafptr->s.vendloctax[vertlocnum]; edgelocnum ++) {
-      int                 partdlt;
+      GraphPart           partdlt;
 
       partdlt  = partgsttax[grafdat.edgegsttax[edgelocnum]] ^ partval;
       commcut |= partdlt;
@@ -308,11 +308,11 @@ const Bdgraph * restrict const grafptr)
     cheklocval |= 16;
   }
 
-  if (grafptr->commglbload != ((reduglbtab[2] / 2) * grafptr->domdist + reduglbtab[3] + grafptr->commglbloadextn0)) {
+  if (grafptr->commglbload != ((reduglbtab[2] / 2) * grafptr->domndist + reduglbtab[3] + grafptr->commglbloadextn0)) {
     errorPrint ("bdgraphCheck: invalid global communication loads");
     cheklocval |= 32;
   }
- 
+
   if (grafptr->commglbgainextn != reduglbtab[4]) {
     errorPrint ("bdgraphCheck: invalid global communication gains");
     cheklocval |= 64;

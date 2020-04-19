@@ -1,4 +1,4 @@
-/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -41,6 +41,8 @@
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 23 jan 2004     **/
 /**                                 to   : 28 jan 2004     **/
+/**                # Version 6.0  : from : 30 apr 2018     **/
+/**                                 to   : 25 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -70,26 +72,30 @@
 
 void
 hgraphOrderHxFill (
-const Hgraph * restrict const             grafptr,
-Gnum * restrict const                     petab,
-Gnum * restrict const                     lentab,
-Gnum * restrict const                     iwtab,
-Gnum * restrict const                     elentab,
-Gnum * restrict const                     pfreptr)
+const Hgraph * restrict const grafptr,
+Gnum * restrict const         petab,
+Gnum * restrict const         lentab,
+Gnum * restrict const         iwtab,
+Gnum * restrict const         nvartab,
+Gnum * restrict const         elentab,
+Gnum * restrict const         pfreptr)
 {
-  Gnum * restrict             petax;
-  Gnum * restrict             iwtax;
-  Gnum * restrict             lentax;
-  Gnum * restrict             elentax;
-  Gnum                        vertadj;            /* Index adjustment for vertices */
-  Gnum                        vertnum;
-  Gnum                        vertnew;
-  Gnum                        edgenew;
+  Gnum                vertadj;                    /* Index adjustment for vertices */
+  Gnum                vertnum;
+  Gnum                vertnew;
+  Gnum                edgenew;
 
-  petax   = petab - 1;                            /* Base HAMF arrays at base 1 */
-  iwtax   = iwtab - 1;
-  lentax  = lentab - 1;
-  elentax = elentab - 1;
+  Gnum * restrict const       petax   = petab   - 1; /* Base HAMF arrays at base 1 */
+  Gnum * restrict const       iwtax   = iwtab   - 1;
+  Gnum * restrict const       lentax  = lentab  - 1;
+  Gnum * restrict const       nvartax = nvartab - 1;
+  Gnum * restrict const       elentax = elentab - 1;
+  const Gnum * restrict const verttax = grafptr->s.verttax;
+  const Gnum * restrict const vendtax = grafptr->s.vendtax;
+#if 0 /* TODO when weighted vertices will be managed */
+  const Gnum * restrict const velotax = grafptr->s.velotax;
+#endif
+  const Gnum * restrict const edgetax = grafptr->s.edgetax;
 
   vertadj = 1 - grafptr->s.baseval;
   for (vertnum = grafptr->s.baseval, vertnew = edgenew = 1; /* Process non-halo vertices */
@@ -97,23 +103,32 @@ Gnum * restrict const                     pfreptr)
     Gnum                      degrval;
     Gnum                      edgenum;
 
-    degrval = grafptr->s.vendtax[vertnum] - grafptr->s.verttax[vertnum];
+    degrval = vendtax[vertnum] - verttax[vertnum];
     petax[vertnew]   = edgenew;
     lentax[vertnew]  = degrval;
     elentax[vertnew] = degrval;
+#if 0 /* TODO when weighted vertices will be managed */
+    nvartax[vertnew] = (velotax != NULL) ? velotax[vertnum] : 1;
+#else
+    nvartax[vertnew] = 1;
+#endif
 
-    for (edgenum = grafptr->s.verttax[vertnum];
-         edgenum < grafptr->s.vendtax[vertnum]; edgenum ++, edgenew ++)
-      iwtax[edgenew] = grafptr->s.edgetax[edgenum] + vertadj;
+    for (edgenum = verttax[vertnum]; edgenum < vendtax[vertnum]; edgenum ++, edgenew ++)
+      iwtax[edgenew] = edgetax[edgenum] + vertadj;
   }
   for ( ; vertnum < grafptr->s.vertnnd; vertnum ++, vertnew ++) { /* Process halo vertices */
     Gnum                      degrval;
     Gnum                      edgenum;
 
-    degrval = grafptr->s.verttax[vertnum] - grafptr->s.vendtax[vertnum];
+    degrval = verttax[vertnum] - vendtax[vertnum]; /* Negative degree */
     petax[vertnew]   = edgenew;
     lentax[vertnew]  = (degrval != 0) ? degrval : (-1 - grafptr->s.vertnbr);
     elentax[vertnew] = 0;
+#if 0 /* TODO when weighted vertices will be managed */
+    nvartax[vertnew] = (velotax != NULL) ? velotax[vertnum] : 1;
+#else
+    nvartax[vertnew] = 1;
+#endif
 
     for (edgenum = grafptr->s.verttax[vertnum];
          edgenum < grafptr->s.vendtax[vertnum]; edgenum ++, edgenew ++)

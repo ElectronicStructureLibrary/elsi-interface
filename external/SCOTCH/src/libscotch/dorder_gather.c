@@ -1,4 +1,4 @@
-/* Copyright 2007,2008 ENSEIRB, INRIA & CNRS
+/* Copyright 2007,2008,2013 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -42,6 +42,8 @@
 /**                                 to     10 sep 2007     **/
 /**                # Version 5.1  : from : 28 sep 2008     **/
 /**                                 to     28 sep 2008     **/
+/**                # Version 6.0  : from : 10 oct 2013     **/
+/**                                 to     10 oct 2013     **/
 /**                                                        **/
 /************************************************************/
 
@@ -216,7 +218,7 @@ Order * restrict const        cordptr)
     memSet (cordptr->peritab, ~0, dordptr->vnodglbnbr * sizeof (Gnum));
 #endif /* SCOTCH_DEBUG_DORDER2 */
 
-    for (linklocptr = dordptr->linkdat.nextptr; linklocptr != &dordptr->linkdat; linklocptr = linklocptr->nextptr) {; /* For all nodes */
+    for (linklocptr = dordptr->linkdat.nextptr; linklocptr != &dordptr->linkdat; linklocptr = linklocptr->nextptr) { /* For all nodes */
       const DorderCblk * restrict cblklocptr;
 
       cblklocptr = (DorderCblk *) linklocptr;     /* TRICK: FIRST                              */
@@ -229,7 +231,7 @@ Order * restrict const        cordptr)
     Gnum                  vnodlocnum;
 
     for (linklocptr = dordptr->linkdat.nextptr, leaflocnum = vnodlocnum = 0;
-         linklocptr != &dordptr->linkdat; linklocptr = linklocptr->nextptr) {; /* For all nodes */
+         linklocptr != &dordptr->linkdat; linklocptr = linklocptr->nextptr) { /* For all nodes */
       const DorderCblk * restrict cblklocptr;
 
       cblklocptr = (DorderCblk *) linklocptr;     /* TRICK: FIRST           */

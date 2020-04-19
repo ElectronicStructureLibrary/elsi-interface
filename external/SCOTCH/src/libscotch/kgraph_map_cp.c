@@ -1,4 +1,4 @@
-/* Copyright 2012 IPB
+/* Copyright 2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -35,11 +35,11 @@
 /**                                                        **/
 /**   AUTHOR     : Sebastien FOURESTIER (v6.0)             **/
 /**                                                        **/
-/**   FUNCTION   : This copy a given old mapping has       **/
-/**                a mapping result.                       **/ 
+/**   FUNCTION   : This method copies a given old mapping  **/
+/**                as a mapping result.                    **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 16 jan 2012     **/
-/**                                 to     16 jan 2012     **/
+/**                                 to     31 may 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -71,69 +71,29 @@
 ** - 1 : on error.
 */
 
-/* TODO handle the case when the old and the new architectures are differents. */
+/* TODO handle the case when the old and the new architectures are different. */
 
 int
 kgraphMapCp (
-Kgraph * restrict const           grafptr,        /*+ Graph             +*/
-const KgraphMapCpParam * const    paraptr)        /*+ Method parameters +*/
+Kgraph * restrict const     grafptr)              /*+ Graph +*/
 {
-  Gnum                          baseval;
-  Anum *                        trmdomntab;
-  Anum                          trmdomnnbr;
-  Anum                          domnnbr;
+  const Anum * restrict const pfixtax = grafptr->pfixtax;
 
-  const Gnum * restrict const pfixtax = grafptr->pfixtax;
-
-  if (grafptr->r.m.parttax == NULL) {             /* We do not have an old partitioning */
+  if (grafptr->r.m.parttax == NULL) {             /* If we do not have an old partition */
     errorPrint ("kgraphMapCp: inconsistent old mapping data");
     return     (1);
   }
-  baseval = grafptr->s.baseval;
 
-  if (grafptr->m.parttax == NULL) {                /* If partition array not yet allocated */
-    if ((grafptr->m.parttax = (Anum *) memAlloc (grafptr->s.vertnbr * sizeof (Anum))) == NULL) {
-      errorPrint ("kgraphMapCp: out of memory");
+  if (mapCopy (&grafptr->m, &grafptr->r.m) != 0) {
+    errorPrint ("kgraphMapCp: cannot copy old mapping");
+    return     (1);
+  }
+
+  if (pfixtax != NULL) {                          /* If we have fixed vertices */
+    if (mapMerge (&grafptr->m, pfixtax) != 0) {
+      errorPrint ("kgraphMapCp: cannot merge with fixed vertices");
       return     (1);
     }
-    grafptr->m.parttax -= baseval;
-    grafptr->m.flagval |= MAPPINGFREEPART;
-  }
-  memCpy (grafptr->m.parttax + baseval, grafptr->r.m.parttax + baseval, grafptr->s.vertnbr * sizeof(Anum));
-  memCpy (grafptr->m.domntab, grafptr->r.m.domntab, grafptr->r.m.domnnbr * sizeof(ArchDom));
-  domnnbr =
-  grafptr->m.domnnbr = grafptr->r.m.domnnbr; 
-
-  if (pfixtax != NULL) {                          /* We have fixed vertices. */
-    Arch *                      tgtarchptr;
-    ArchDom                     fstdomdat;
-    Anum                        domnnum;
-    Gnum                        vertnum;
-
-    tgtarchptr = grafptr->m.archptr;
-    archDomFrst (tgtarchptr, &fstdomdat);         /* Get first domain                    */
-    trmdomnnbr = archDomSize (tgtarchptr, &fstdomdat); /* Get number of terminal domains */
-        
-    if ((trmdomntab = memAlloc (trmdomnnbr * sizeof (Anum))) == NULL) {
-      errorPrint   ("kgraphBand: out of memory (1)");
-      return       (1);
-    }
-    memSet (trmdomntab, ~0, trmdomnnbr * sizeof (Anum));
-    for (domnnum = 0; domnnum < domnnbr; domnnum ++) {
-      ArchDom *                 domnptr;
-
-      domnptr = &grafptr->m.domntab[domnnum];
-      if (archDomSize (tgtarchptr, domnptr) == 1)
-        trmdomntab[archDomNum (tgtarchptr, domnptr)] = domnnum;
-    }
-    for (vertnum = grafptr->s.baseval; vertnum < grafptr->s.vertnnd; vertnum ++)
-      if (pfixtax[vertnum] != -1)
-        grafptr->m.parttax[vertnum] = trmdomntab[pfixtax[vertnum]];
-  }
-
-  if (paraptr->typeval == KGRAPHMAPCPTYPEPART) {  /* If the old partition should only be used for cp */
-    mapExit (&grafptr->r.m);                      /* Remove it                                       */
-    grafptr->r.m.parttax = NULL;
   }
 
   kgraphFron (grafptr);

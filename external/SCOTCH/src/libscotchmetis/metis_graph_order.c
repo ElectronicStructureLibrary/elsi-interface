@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2010,2012,2018,2019 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -34,6 +34,7 @@
 /**   NAME       : metis_graph_order.c                     **/
 /**                                                        **/
 /**   AUTHOR     : Francois PELLEGRINI                     **/
+/**                Amaury JACQUES (v6.0)                   **/
 /**                                                        **/
 /**   FUNCTION   : This module is the compatibility        **/
 /**                library for the MeTiS ordering          **/
@@ -44,7 +45,7 @@
 /**                # Version 5.1  : from : 30 jun 2010     **/
 /**                                 to     30 jun 2010     **/
 /**                # Version 6.0  : from : 13 sep 2012     **/
-/**                                 to     13 sep 2012     **/
+/**                                 to     18 may 2019     **/
 /**                                                        **/
 /************************************************************/
 
@@ -66,46 +67,9 @@
 /*                                  */
 /************************************/
 
-/*
-**
-*/
-
-void
-METISNAMEU(METIS_EdgeND) (
-const SCOTCH_Num * const    n,
-const SCOTCH_Num * const    xadj,
-const SCOTCH_Num * const    adjncy,
-const SCOTCH_Num * const    numflag,
-const SCOTCH_Num * const    options,
-SCOTCH_Num * const          perm,
-SCOTCH_Num * const          iperm)
-{
-  METISNAMEU(METIS_NodeWND) (n, xadj, adjncy, NULL, numflag, options, perm, iperm);
-}
-
-/*
-**
-*/
-
-void
-METISNAMEU(METIS_NodeND) (
-const SCOTCH_Num * const    n,
-const SCOTCH_Num * const    xadj,
-const SCOTCH_Num * const    adjncy,
-const SCOTCH_Num * const    numflag,
-const SCOTCH_Num * const    options,
-SCOTCH_Num * const          perm,
-SCOTCH_Num * const          iperm)
-{
-  METISNAMEU(METIS_NodeWND) (n, xadj, adjncy, NULL, numflag, options, perm, iperm);
-}
-
-/*
-**
-*/
-
-void
-METISNAMEU(METIS_NodeWND) (
+static
+int
+_SCOTCH_METIS_Node (
 const SCOTCH_Num * const    n,
 const SCOTCH_Num * const    xadj,
 const SCOTCH_Num * const    adjncy,
@@ -118,6 +82,9 @@ SCOTCH_Num * const          iperm)
   SCOTCH_Graph        grafdat;                    /* Scotch graph object to interface with libScotch    */
   SCOTCH_Ordering     ordedat;                    /* Scotch ordering object to interface with libScotch */
   SCOTCH_Strat        stradat;
+  int                 o;
+
+  o = METIS_ERROR;                                /* Assume an error */
 
   SCOTCH_graphInit (&grafdat);
 
@@ -131,11 +98,166 @@ SCOTCH_Num * const          iperm)
     {
       if (SCOTCH_graphOrderInit (&grafdat, &ordedat, iperm, perm, /* MeTiS and Scotch have opposite definitions for (inverse) permutations */
                                  NULL, NULL, NULL) == 0) {
-        SCOTCH_graphOrderCompute (&grafdat, &ordedat, &stradat);
-        SCOTCH_graphOrderExit    (&grafdat, &ordedat);
+        if (SCOTCH_graphOrderCompute (&grafdat, &ordedat, &stradat) == 0)
+          o = METIS_OK;
+        SCOTCH_graphOrderExit (&grafdat, &ordedat);
       }
     }
     SCOTCH_stratExit (&stradat);
   }
   SCOTCH_graphExit (&grafdat);
+
+  return (o);
 }
+
+/*
+**
+*/
+
+int
+SCOTCH_METIS_V3_EdgeND (
+const SCOTCH_Num * const    n,
+const SCOTCH_Num * const    xadj,
+const SCOTCH_Num * const    adjncy,
+const SCOTCH_Num * const    numflag,
+const SCOTCH_Num * const    options,
+SCOTCH_Num * const          perm,
+SCOTCH_Num * const          iperm)
+{
+  return (_SCOTCH_METIS_Node (n, xadj, adjncy, NULL, numflag, options, perm, iperm));
+}
+
+/*
+**
+*/
+
+int
+SCOTCH_METIS_V3_NodeND (
+const SCOTCH_Num * const    n,
+const SCOTCH_Num * const    xadj,
+const SCOTCH_Num * const    adjncy,
+const SCOTCH_Num * const    numflag,
+const SCOTCH_Num * const    options,
+SCOTCH_Num * const          perm,
+SCOTCH_Num * const          iperm)
+{
+  return (_SCOTCH_METIS_Node (n, xadj, adjncy, NULL, numflag, options, perm, iperm));
+}
+
+/*
+**
+*/
+
+int
+SCOTCH_METIS_V3_NodeWND (
+const SCOTCH_Num * const    n,
+const SCOTCH_Num * const    xadj,
+const SCOTCH_Num * const    adjncy,
+const SCOTCH_Num * const    vwgt,
+const SCOTCH_Num * const    numflag,
+const SCOTCH_Num * const    options,
+SCOTCH_Num * const          perm,
+SCOTCH_Num * const          iperm)
+{
+  return (_SCOTCH_METIS_Node (n, xadj, adjncy, vwgt, numflag, options, perm, iperm));
+}
+
+/*
+**
+*/
+
+int
+SCOTCH_METIS_V5_NodeND (
+const SCOTCH_Num * const    nvtxs,
+const SCOTCH_Num * const    xadj,
+const SCOTCH_Num * const    adjncy,
+const SCOTCH_Num * const    vwgt,
+const SCOTCH_Num * const    options,
+SCOTCH_Num * const          perm,
+SCOTCH_Num * const          iperm)
+{
+  const SCOTCH_Num    numflag = 0;
+
+  return (_SCOTCH_METIS_Node (nvtxs, xadj, adjncy, vwgt, &numflag, options, perm, iperm));
+}
+
+/*******************/
+/*                 */
+/* MeTiS v3 stubs. */
+/*                 */
+/*******************/
+
+#if (SCOTCH_METIS_VERSION == 3)
+
+int
+METISNAMEU (METIS_EdgeND) (
+const SCOTCH_Num * const    n,
+const SCOTCH_Num * const    xadj,
+const SCOTCH_Num * const    adjncy,
+const SCOTCH_Num * const    numflag,
+const SCOTCH_Num * const    options,
+SCOTCH_Num * const          perm,
+SCOTCH_Num * const          iperm)
+{
+  return (SCOTCH_METIS_V3_EdgeND (n, xadj, adjncy, numflag, options, perm, iperm));
+}
+
+/*
+**
+*/
+
+int
+METISNAMEU (METIS_NodeND) (
+const SCOTCH_Num * const    n,
+const SCOTCH_Num * const    xadj,
+const SCOTCH_Num * const    adjncy,
+const SCOTCH_Num * const    numflag,
+const SCOTCH_Num * const    options,
+SCOTCH_Num * const          perm,
+SCOTCH_Num * const          iperm)
+{
+  return (SCOTCH_METIS_V3_NodeND (n, xadj, adjncy, numflag, options, perm, iperm));
+}
+
+/*
+**
+*/
+
+int
+METISNAMEU (METIS_NodeWND) (
+const SCOTCH_Num * const    n,
+const SCOTCH_Num * const    xadj,
+const SCOTCH_Num * const    adjncy,
+const SCOTCH_Num * const    vwgt,
+const SCOTCH_Num * const    numflag,
+const SCOTCH_Num * const    options,
+SCOTCH_Num * const          perm,
+SCOTCH_Num * const          iperm)
+{
+  return (SCOTCH_METIS_V3_NodeWND (n, xadj, adjncy, vwgt, numflag, options, perm, iperm));
+}
+
+#endif /* (SCOTCH_METIS_VERSION == 3) */
+
+/*******************/
+/*                 */
+/* MeTiS v5 stubs. */
+/*                 */
+/*******************/
+
+#if (SCOTCH_METIS_VERSION == 5)
+
+int
+METISNAMEU (METIS_NodeND) (
+const SCOTCH_Num * const    nvtxs,
+const SCOTCH_Num * const    xadj,
+const SCOTCH_Num * const    adjncy,
+const SCOTCH_Num * const    vwgt,
+const SCOTCH_Num * const    options,
+SCOTCH_Num * const          perm,
+SCOTCH_Num * const          iperm)
+{
+  return (SCOTCH_METIS_V5_NodeND (nvtxs, xadj, adjncy, vwgt, options, perm, iperm));
+}
+
+#endif /* (SCOTCH_METIS_VERSION == 5) */

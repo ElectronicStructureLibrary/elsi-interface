@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2009 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2009,2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -42,6 +42,8 @@
 /**                                 to     05 may 2004     **/
 /**                # Version 5.1  : from : 19 nov 2009     **/
 /**                                 to     19 nov 2009     **/
+/**                # Version 6.0  : from : 15 aug 2016     **/
+/**                                 to     13 feb 2018     **/
 /**                                                        **/
 /**   NOTES      : # From a given mesh is created a graph, **/
 /**                  such that all vertices of the graph   **/
@@ -117,8 +119,9 @@ Graph * restrict const        grafptr)            /*+ Graph to build +*/
   grafptr->verttax -= grafptr->baseval;
   grafptr->vendtax  = grafptr->verttax + 1;
 
-  if (meshptr->vnlotax != NULL)                   /* Keep node part of mesh vertex load array as graph vertex load array        */
-    grafptr->velotax = meshptr->vnlotax + meshptr->vnodbas - grafptr->baseval; /* Since GRAPHVERTGROUP, no problem on graphFree */
+  grafptr->velotax = (meshptr->vnlotax != NULL)   /* Keep node part of mesh vertex load array as graph vertex load array       */
+                     ? meshptr->vnlotax + meshptr->vnodbas - grafptr->baseval /* Since GRAPHVERTGROUP, no problem on graphFree */
+                     : NULL;
 
   grafptr->velosum = meshptr->vnlosum;
 
@@ -197,8 +200,11 @@ Graph * restrict const        grafptr)            /*+ Graph to build +*/
   }
   grafptr->verttax[vertnum] = edgenum;            /* Set end of vertex array */
 
+  grafptr->edlosum =
   grafptr->edgenbr = edgenum - grafptr->baseval;
   grafptr->degrmax = degrmax;
+
+  memFree (hashtab);
 
 #ifdef SCOTCH_DEBUG_MESH2
   if (graphCheck (grafptr) != 0) {

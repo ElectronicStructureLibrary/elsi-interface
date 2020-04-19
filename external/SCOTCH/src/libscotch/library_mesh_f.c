@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2010,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -43,6 +43,8 @@
 /**                                 to     13 dec 2005     **/
 /**                # Version 5.1  : from : 27 mar 2010     **/
 /**                                 to     15 apr 2010     **/
+/**                # Version 6.0  : from : 20 apr 2018     **/
+/**                                 to     25 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -67,10 +69,10 @@
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHINIT, scotchfmeshinit, (             \
-SCOTCH_Mesh * const         meshptr,            \
-int * const                 revaptr),           \
+SCOTCH_FORTRAN (                      \
+MESHINIT, meshinit, (                 \
+SCOTCH_Mesh * const         meshptr,  \
+int * const                 revaptr), \
 (meshptr, revaptr))
 {
   *revaptr = SCOTCH_meshInit (meshptr);
@@ -80,9 +82,9 @@ int * const                 revaptr),           \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHEXIT, scotchfmeshexit, (             \
-SCOTCH_Mesh * const         meshptr),           \
+SCOTCH_FORTRAN (                      \
+MESHEXIT, meshexit, (                 \
+SCOTCH_Mesh * const         meshptr), \
 (meshptr))
 {
   SCOTCH_meshExit (meshptr);
@@ -96,12 +98,12 @@ SCOTCH_Mesh * const         meshptr),           \
 ** block read.
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHLOAD, scotchfmeshload, (             \
-SCOTCH_Mesh * const         meshptr,            \
-int * const                 fileptr,            \
-const SCOTCH_Num * const    baseptr,            \
-int * const                 revaptr),           \
+SCOTCH_FORTRAN (                      \
+MESHLOAD, meshload, (                 \
+SCOTCH_Mesh * const         meshptr,  \
+int * const                 fileptr,  \
+const SCOTCH_Num * const    baseptr,  \
+int * const                 revaptr), \
 (meshptr, fileptr, baseptr, revaptr))
 {
   FILE *              stream;                     /* Stream to build from handle */
@@ -109,12 +111,12 @@ int * const                 revaptr),           \
   int                 o;
 
   if ((filenum = dup (*fileptr)) < 0) {           /* If cannot duplicate file descriptor */
-    errorPrint ("SCOTCHFMESHLOAD: cannot duplicate handle");
+    errorPrint (STRINGIFY (SCOTCH_NAME_PUBLICFU (MESHLOAD)) ": cannot duplicate handle");
     *revaptr = 1;                                 /* Indicate error */
     return;
   }
   if ((stream = fdopen (filenum, "r")) == NULL) { /* Build stream from handle */
-    errorPrint ("SCOTCHFMESHLOAD: cannot open input stream");
+    errorPrint (STRINGIFY (SCOTCH_NAME_PUBLICFU (MESHLOAD)) ": cannot open input stream");
     close      (filenum);
     *revaptr = 1;
     return;
@@ -132,11 +134,11 @@ int * const                 revaptr),           \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHSAVE, scotchfmeshsave, (             \
-const SCOTCH_Mesh * const   meshptr,            \
-int * const                 fileptr,            \
-int * const                 revaptr),           \
+SCOTCH_FORTRAN (                      \
+MESHSAVE, meshsave, (                 \
+const SCOTCH_Mesh * const   meshptr,  \
+int * const                 fileptr,  \
+int * const                 revaptr), \
 (meshptr, fileptr, revaptr))
 {
   FILE *              stream;                     /* Stream to build from handle */
@@ -144,13 +146,13 @@ int * const                 revaptr),           \
   int                 o;
 
   if ((filenum = dup (*fileptr)) < 0) {           /* If cannot duplicate file descriptor */
-    errorPrint ("SCOTCHFMESHSAVE: cannot duplicate handle");
+    errorPrint (STRINGIFY (SCOTCH_NAME_PUBLICFU (MESHSAVE)) ": cannot duplicate handle");
 
     *revaptr = 1;                                 /* Indicate error */
     return;
   }
   if ((stream = fdopen (filenum, "w")) == NULL) { /* Build stream from handle */
-    errorPrint ("SCOTCHFMESHSAVE: cannot open output stream");
+    errorPrint (STRINGIFY (SCOTCH_NAME_PUBLICFU (MESHSAVE)) ": cannot open output stream");
     close      (filenum);
     *revaptr = 1;
     return;
@@ -167,23 +169,23 @@ int * const                 revaptr),           \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHBUILD, scotchfmeshbuild, (           \
-SCOTCH_Mesh * const         meshptr,            \
-const SCOTCH_Num * const    velmbas,            \
-const SCOTCH_Num * const    vnodbas,            \
-const SCOTCH_Num * const    velmnbr,            \
-const SCOTCH_Num * const    vnodnbr,            \
-const SCOTCH_Num * const    verttab,            \
-const SCOTCH_Num * const    vendtab,            \
-const SCOTCH_Num * const    velotab,            \
-const SCOTCH_Num * const    vnlotab,            \
-const SCOTCH_Num * const    vlbltab,            \
-const SCOTCH_Num * const    edgenbr,            \
-const SCOTCH_Num * const    edgetab,            \
-int * const                 revaptr),           \
-(meshptr, velmbas, vnodbas, velmnbr, vnodnbr,   \
- verttab, vendtab, velotab, vnlotab, vlbltab,   \
+SCOTCH_FORTRAN (                              \
+MESHBUILD, meshbuild, (                       \
+SCOTCH_Mesh * const         meshptr,          \
+const SCOTCH_Num * const    velmbas,          \
+const SCOTCH_Num * const    vnodbas,          \
+const SCOTCH_Num * const    velmnbr,          \
+const SCOTCH_Num * const    vnodnbr,          \
+const SCOTCH_Num * const    verttab,          \
+const SCOTCH_Num * const    vendtab,          \
+const SCOTCH_Num * const    velotab,          \
+const SCOTCH_Num * const    vnlotab,          \
+const SCOTCH_Num * const    vlbltab,          \
+const SCOTCH_Num * const    edgenbr,          \
+const SCOTCH_Num * const    edgetab,          \
+int * const                 revaptr),         \
+(meshptr, velmbas, vnodbas, velmnbr, vnodnbr, \
+ verttab, vendtab, velotab, vnlotab, vlbltab, \
  edgenbr, edgetab, revaptr))
 {
   *revaptr = SCOTCH_meshBuild (meshptr, *velmnbr, *vnodnbr, *velmbas, *vnodbas,
@@ -195,10 +197,10 @@ int * const                 revaptr),           \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHCHECK, scotchfmeshcheck, (           \
-const SCOTCH_Mesh * const   meshptr,            \
-int * const                 revaptr),           \
+SCOTCH_FORTRAN (                      \
+MESHCHECK, meshcheck, (               \
+const SCOTCH_Mesh * const   meshptr,  \
+int * const                 revaptr), \
 (meshptr, revaptr))
 {
   *revaptr = SCOTCH_meshCheck (meshptr);
@@ -208,12 +210,12 @@ int * const                 revaptr),           \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHSIZE, scotchfmeshsize, (             \
-const SCOTCH_Mesh * const  meshptr,             \
-SCOTCH_Num * const          velmnbr,            \
-SCOTCH_Num * const          vnodnbr,            \
-SCOTCH_Num * const          edgenbr),           \
+SCOTCH_FORTRAN (                      \
+MESHSIZE, meshsize, (                 \
+const SCOTCH_Mesh * const   meshptr,  \
+SCOTCH_Num * const          velmnbr,  \
+SCOTCH_Num * const          vnodnbr,  \
+SCOTCH_Num * const          edgenbr), \
 (meshptr, velmnbr, vnodnbr, edgenbr))
 {
   SCOTCH_meshSize (meshptr, velmnbr, vnodnbr, edgenbr);
@@ -223,22 +225,22 @@ SCOTCH_Num * const          edgenbr),           \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHDATA, scotchfmeshdata, (             \
-const SCOTCH_Mesh * const   meshptr,            \
-const SCOTCH_Num * const    indxptr,            \
-SCOTCH_Num * const          velmbas,            \
-SCOTCH_Num * const          vnodbas,            \
-SCOTCH_Num * const          velmnbr,            \
-SCOTCH_Num * const          vnodnbr,            \
-SCOTCH_Idx * const          vertidx,            \
-SCOTCH_Idx * const          vendidx,            \
-SCOTCH_Idx * const          veloidx,            \
-SCOTCH_Idx * const          vnloidx,            \
-SCOTCH_Idx * const          vlblidx,            \
-SCOTCH_Num * const          edgenbr,            \
-SCOTCH_Idx * const          edgeidx,            \
-SCOTCH_Num * const          degrnbr),           \
+SCOTCH_FORTRAN (                                       \
+MESHDATA, meshdata, (                                  \
+const SCOTCH_Mesh * const   meshptr,                   \
+const SCOTCH_Num * const    indxptr,                   \
+SCOTCH_Num * const          velmbas,                   \
+SCOTCH_Num * const          vnodbas,                   \
+SCOTCH_Num * const          velmnbr,                   \
+SCOTCH_Num * const          vnodnbr,                   \
+SCOTCH_Idx * const          vertidx,                   \
+SCOTCH_Idx * const          vendidx,                   \
+SCOTCH_Idx * const          veloidx,                   \
+SCOTCH_Idx * const          vnloidx,                   \
+SCOTCH_Idx * const          vlblidx,                   \
+SCOTCH_Num * const          edgenbr,                   \
+SCOTCH_Idx * const          edgeidx,                   \
+SCOTCH_Num * const          degrnbr),                  \
 (meshptr, indxptr, velmbas, vnodbas, velmnbr, vnodnbr, \
  vertidx, vendidx, veloidx, vnloidx, vlblidx,          \
  edgenbr, edgeidx, degrnbr))

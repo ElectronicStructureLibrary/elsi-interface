@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2010,2016 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -56,6 +56,8 @@
 /**                                 to     10 sep 2007     **/
 /**                # Version 5.1  : from : 11 aug 2010     **/
 /**                                 to     11 aug 2010     **/
+/**                # Version 6.0  : from : 03 aug 2016     **/
+/**                                 to     03 aug 2016     **/
 /**                                                        **/
 /************************************************************/
 
@@ -92,11 +94,11 @@ const GraphFlag             flagval)              /* Graph loading flags        
 {
   Gnum                edgenum;                    /* Number of edges really allocated */
   Gnum                edgennd;
-  Gnum                vlblnbr;                    /* = vertnbr if vertex labels       */
+  Gnum                vlblsiz;                    /* = vertnbr if vertex labels       */
   Gnum                vlblmax;                    /* Maximum vertex label number      */
-  Gnum                velonbr;                    /* = vertnbr if vertex loads wanted */
+  Gnum                velosiz;                    /* = vertnbr if vertex loads wanted */
   Gnum                velosum;                    /* Sum of vertex loads              */
-  Gnum                edlonbr;                    /* = edgenbr if edge loads wanted   */
+  Gnum                edlosiz;                    /* = edgenbr if edge loads wanted   */
   Gnum                edlosum;                    /* Sum of edge loads                */
   Gnum                edgeval;                    /* Value where to read edge end     */
   Gnum                baseadj;
@@ -136,24 +138,24 @@ const GraphFlag             flagval)              /* Graph loading flags        
     grafptr->baseval = baseadj;                   /* Set graph base as file base */
     baseadj          = 0;                         /* No base adjustment needed   */
   }
-  else {                                          /* If set graph base     */
-    grafptr->baseval = baseval;                   /* Set wanted graph base */
-    baseadj          = baseval - baseadj;         /* Update base adjust    */
+  else {                                          /* If prescribed graph base */
+    grafptr->baseval = baseval;                   /* Set wanted graph base    */
+    baseadj          = baseval - baseadj;         /* Update base adjust       */
   }
   if (proptab[0] != 0)                            /* If vertex labels, no base adjust */
     baseadj = 0;
 
-  velonbr = ((proptab[2] != 0) && ((flagval & GRAPHIONOLOADVERT) == 0)) ? grafptr->vertnbr : 0;
-  vlblnbr = (proptab[0] != 0) ? grafptr->vertnbr : 0;
-  edlonbr = ((proptab[1] != 0) && ((flagval & GRAPHIONOLOADEDGE) == 0)) ? grafptr->edgenbr : 0;
+  velosiz = ((proptab[2] != 0) && ((flagval & GRAPHIONOLOADVERT) == 0)) ? grafptr->vertnbr : 0;
+  vlblsiz = (proptab[0] != 0) ? grafptr->vertnbr : 0;
+  edlosiz = ((proptab[1] != 0) && ((flagval & GRAPHIONOLOADEDGE) == 0)) ? grafptr->edgenbr : 0;
 
   if ((memAllocGroup ((void **) (void *)
                       &grafptr->verttax, (size_t) ((grafptr->vertnbr + 1) * sizeof (Gnum)),
-                      &grafptr->velotax, (size_t) (velonbr                * sizeof (Gnum)),
-                      &grafptr->vlbltax, (size_t) (vlblnbr                * sizeof (Gnum)), NULL) == NULL) ||
+                      &grafptr->velotax, (size_t) (velosiz                * sizeof (Gnum)),
+                      &grafptr->vlbltax, (size_t) (vlblsiz                * sizeof (Gnum)), NULL) == NULL) ||
       (memAllocGroup ((void **) (void *)
                       &grafptr->edgetax, (size_t) (grafptr->edgenbr       * sizeof (Gnum)),
-                      &grafptr->edlotax, (size_t) (edlonbr                * sizeof (Gnum)), NULL) == NULL)) {
+                      &grafptr->edlotax, (size_t) (edlosiz                * sizeof (Gnum)), NULL) == NULL)) {
     if (grafptr->verttax != NULL)
       memFree (grafptr->verttax);
     errorPrint ("graphLoad: out of memory");
@@ -163,10 +165,10 @@ const GraphFlag             flagval)              /* Graph loading flags        
   grafptr->vertnnd  = grafptr->vertnbr + grafptr->baseval;
   grafptr->verttax -= grafptr->baseval;
   grafptr->vendtax  = grafptr->verttax + 1;       /* Use compact vertex array */
-  grafptr->velotax  = (velonbr != 0) ? (grafptr->velotax - grafptr->baseval) : NULL;
-  grafptr->vlbltax  = (vlblnbr != 0) ? (grafptr->vlbltax - grafptr->baseval) : NULL;
+  grafptr->velotax  = (velosiz != 0) ? (grafptr->velotax - grafptr->baseval) : NULL;
+  grafptr->vlbltax  = (vlblsiz != 0) ? (grafptr->vlbltax - grafptr->baseval) : NULL;
   grafptr->edgetax -= grafptr->baseval;
-  grafptr->edlotax  = (edlonbr != 0) ? (grafptr->edlotax - grafptr->baseval) : NULL;
+  grafptr->edlotax  = (edlosiz != 0) ? (grafptr->edlotax - grafptr->baseval) : NULL;
 
   vlblmax = grafptr->vertnnd - 1;                 /* No vertex labels known */
   velosum = (grafptr->velotax == NULL) ? grafptr->vertnbr : 0;
@@ -192,7 +194,7 @@ const GraphFlag             flagval)              /* Graph loading flags        
     if (proptab[2] != 0) {                        /* If must read vertex load        */
       Gnum                veloval;                /* Value where to read vertex load */
 
-      if (intLoad (stream, &veloval) != 1) {      /* Read vertex load data    */
+      if (intLoad (stream, &veloval) != 1) {      /* Read vertex load data */
         errorPrint ("graphLoad: bad input (4)");
         graphFree  (grafptr);
         return     (1);
@@ -221,7 +223,7 @@ const GraphFlag             flagval)              /* Graph loading flags        
       if (proptab[1] != 0) {                      /* If must read edge load        */
         Gnum                edloval;              /* Value where to read edge load */
 
-        if (intLoad (stream, &edloval) != 1) {    /* Read edge load data    */
+        if (intLoad (stream, &edloval) != 1) {    /* Read edge load data */
           errorPrint ("graphLoad: bad input (6)");
           graphFree  (grafptr);
           return     (1);
@@ -238,7 +240,7 @@ const GraphFlag             flagval)              /* Graph loading flags        
       grafptr->edgetax[edgenum] = edgeval + baseadj;
     }
   }
-  grafptr->verttax[vertnum] = edgenum;            /* Set end of edge array */
+  grafptr->verttax[vertnum] = edgenum;            /* Set end of edge array             */
   if (edgenum != edgennd) {                       /* Check if number of edges is valid */
     errorPrint ("graphLoad: invalid arc count (2)");
     graphFree  (grafptr);

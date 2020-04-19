@@ -1,4 +1,4 @@
-/* Copyright 2008-2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2008-2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -37,7 +37,7 @@
 /**                Sebastien FOURESTIER (v6.0)             **/
 /**                                                        **/
 /**   FUNCTION   : This module performs the Dual Recursive **/
-/**                Bipartitioning mapping algorithm        **/ 
+/**                Bipartitioning mapping algorithm        **/
 /**                in parallel. It does so for complete    **/
 /**                graph architectures, hence performing   **/
 /**                plain graph partitioning, which         **/
@@ -47,7 +47,7 @@
 /**   DATES      : # Version 5.1  : from : 21 jun 2008     **/
 /**                                 to     31 aug 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     10 oct 2012     **/
+/**                                 to     03 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -104,7 +104,7 @@ const KdgraphMapRbPartData * restrict const dataptr)
   DmappingFrag * restrict   fragptr;
 
   cgrfptr = &grafptr->data.cgrfdat;
-  if (kgraphInit (&kgrfdat, cgrfptr, &mappptr->archdat, &grafptr->domnorg, NULL, NULL, 1, 1, NULL, NULL) != 0) {
+  if (kgraphInit (&kgrfdat, cgrfptr, &mappptr->archdat, &grafptr->domnorg, 0, NULL, NULL, 1, 1, NULL) != 0) {
     errorPrint ("kdgraphMapRbPartSequ: cannot initialize centralized graph");
     return     (1);
   }
@@ -184,6 +184,7 @@ void * const                    dataptr)          /* Pointer to thread data */
   if (fldthrdptr->fldprocnbr > 1) {               /* If subpart has several processes, fold a distributed graph                     */
     o = (void *) (intptr_t) dgraphFold2 (&indgrafdat, fldthrdptr->fldpartval, /* Fold temporary induced subgraph from all processes */
                                          &fldgrafptr->data.dgrfdat, fldthrdptr->fldproccomm, NULL, NULL, MPI_INT);
+    fldgrafptr->data.dgrfdat.flagval |= DGRAPHFREECOMM; /* Split communicator has to be freed */
   }
   else {                                          /* Create a centralized graph */
     Graph * restrict      fldcgrfptr;
@@ -201,17 +202,16 @@ int
 kdgraphMapRbPartFold (
 Bdgraph * restrict const                actgrafptr,
 Dmapping * restrict const               mappptr,
-const ArchDom * restrict const          domsubtab,
+const ArchDom * restrict const          domnsubtab,
 KdgraphMapRbPartGraph * restrict const  fldgrafptr)
 {
   KdgraphMapRbPartThread  fldthrdtab[2];
-  int                     fldprocnbr;             /* Number of processes in part of this process  */
   int                     fldprocnbr0;            /* Number of processes in first part            */
   int                     fldprocnum;
   int                     fldproccol;
   int                     fldpartval;
   Gnum                    indvertlocmax;          /* Local number of vertices in biggest subgraph */
-  int                     indconttab[2];          /* Array of subjob continuation flags           */
+  Gnum                    indflagtab[2];          /* Array of subjob continuation flags           */
   GraphPart               indpartmax;             /* Induced part having most vertices            */
 #ifdef SCOTCH_PTHREAD
   Dgraph                  orggrafdat;             /* Structure for copying graph fields except communicator */
@@ -219,27 +219,27 @@ KdgraphMapRbPartGraph * restrict const  fldgrafptr)
 #endif /* SCOTCH_PTHREAD */
   int                       o;
 
-  indconttab[0] =                                 /* Assume both jobs will not continue */
-  indconttab[1] = 0;
+  indflagtab[0] =                                 /* Assume both jobs will not continue */
+  indflagtab[1] = 0;
   if ((actgrafptr->compglbsize0 != 0) &&          /* If graph has been bipartitioned */
       (actgrafptr->compglbsize0 != actgrafptr->s.vertglbnbr)) {
     if (archVar (&mappptr->archdat)) {            /* If architecture is variable-sized    */
       if (actgrafptr->compglbsize0 > 1)           /* If graph is not single vertex, go on */
-        indconttab[0] = 1;
+        indflagtab[0] = ~0;                       /* All bits set to 1                    */
       if ((actgrafptr->s.vertglbnbr - actgrafptr->compglbsize0) > 1)
-        indconttab[1] = 1;
+        indflagtab[1] = ~0;
     }
-    else {                                        /* Architecture is not variable-sized         */
-      if (archDomSize (&mappptr->archdat, &domsubtab[0]) > 1) /* Stop when target is one vertex */
-        indconttab[0] = 1;
-      if (archDomSize (&mappptr->archdat, &domsubtab[1]) > 1)
-        indconttab[1] = 1;
+    else {                                        /* Architecture is not variable-sized          */
+      if (archDomSize (&mappptr->archdat, &domnsubtab[0]) > 1) /* Stop when target is one vertex */
+        indflagtab[0] = ~0;
+      if (archDomSize (&mappptr->archdat, &domnsubtab[1]) > 1)
+        indflagtab[1] = ~0;
     }
   }
 
-  if ((indconttab[0] + indconttab[1]) == 0) {     /* If both subjobs stop    */
+  if ((indflagtab[0] | indflagtab[1]) == 0) {     /* If both subjobs stop    */
     fldgrafptr->procnbr = 0;                      /* Nothing to do on return */
-    return (kdgraphMapRbAddBoth (&actgrafptr->s, mappptr, domsubtab, actgrafptr->partgsttax + actgrafptr->s.baseval)); /* Map both subdomains in the same time */
+    return (kdgraphMapRbAddBoth (&actgrafptr->s, mappptr, domnsubtab, actgrafptr->partgsttax + actgrafptr->s.baseval)); /* Map both subdomains in the same time */
   }
 
   if ((2 * actgrafptr->compglbsize0) >= actgrafptr->s.vertglbnbr) { /* Get part of largest subgraph */
@@ -254,32 +254,30 @@ KdgraphMapRbPartGraph * restrict const  fldgrafptr)
 
   fldthrdtab[0].mappptr     = mappptr;            /* Load data to pass to the subgraph building routines */
   fldthrdtab[0].orggrafptr  = &actgrafptr->s;
-  fldthrdtab[0].inddomnptr  = &domsubtab[indpartmax];
+  fldthrdtab[0].inddomnptr  = &domnsubtab[indpartmax];
   fldthrdtab[0].indvertnbr  = indvertlocmax;
   fldthrdtab[0].indpartval  = indpartmax;
   fldthrdtab[0].indparttax  = actgrafptr->partgsttax;
   fldthrdtab[0].fldgrafptr  = fldgrafptr;
   fldthrdtab[0].fldpartval  = 0;
-  fldthrdtab[0].fldprocnbr  = indconttab[indpartmax] * fldprocnbr0; /* Stop if domain limited to one vertex */
+  fldthrdtab[0].fldprocnbr  = indflagtab[indpartmax] & fldprocnbr0; /* Stop if domain limited to one vertex */
   fldthrdtab[1].mappptr     = mappptr;
   fldthrdtab[1].orggrafptr  = &actgrafptr->s;     /* Assume jobs won't be run concurrently */
-  fldthrdtab[1].inddomnptr  = &domsubtab[indpartmax ^ 1];
+  fldthrdtab[1].inddomnptr  = &domnsubtab[indpartmax ^ 1];
   fldthrdtab[1].indvertnbr  = actgrafptr->s.vertlocnbr - indvertlocmax;
   fldthrdtab[1].indpartval  = indpartmax ^ 1;
   fldthrdtab[1].indparttax  = actgrafptr->partgsttax;
   fldthrdtab[1].fldgrafptr  = fldgrafptr;
   fldthrdtab[1].fldpartval  = 1;
-  fldthrdtab[1].fldprocnbr  = indconttab[indpartmax ^ 1] * (actgrafptr->s.procglbnbr - fldprocnbr0); /* Stop if domain limited to one vertex */
+  fldthrdtab[1].fldprocnbr  = indflagtab[indpartmax ^ 1] & (actgrafptr->s.procglbnbr - fldprocnbr0); /* Stop if domain limited to one vertex */
 
   if (actgrafptr->s.proclocnum < fldprocnbr0) {   /* Compute color and rank in our future subpart */
     fldpartval = 0;
     fldprocnum = actgrafptr->s.proclocnum;
-    fldprocnbr = fldprocnbr0;
   }
   else {
     fldpartval = 1;
     fldprocnum = actgrafptr->s.proclocnum - fldprocnbr0;
-    fldprocnbr = actgrafptr->s.procglbnbr - fldprocnbr0;
   }
 
   fldgrafptr->domnorg = *fldthrdtab[fldpartval].inddomnptr; /* Set data of our folded graph */
@@ -297,7 +295,7 @@ KdgraphMapRbPartGraph * restrict const  fldgrafptr)
   fldthrdtab[fldpartval ^ 1].fldproccomm = MPI_COMM_NULL;
 
 #ifdef SCOTCH_PTHREAD
-  if ((indconttab[0] + indconttab[1]) == 2) {     /* If both subjobs have meaningful things to do in parallel     */
+  if ((indflagtab[0] & indflagtab[1]) != 0) {     /* If both subjobs have meaningful things to do in parallel     */
     orggrafdat = actgrafptr->s;                   /* Create a separate graph structure to change its communicator */
     orggrafdat.flagval = (orggrafdat.flagval & ~DGRAPHFREEALL) | DGRAPHFREECOMM;
     fldthrdtab[1].orggrafptr = &orggrafdat;
@@ -324,7 +322,7 @@ KdgraphMapRbPartGraph * restrict const  fldgrafptr)
   return (o);
 }
 
-/* This routine performs the Dual Recursive 
+/* This routine performs the Dual Recursive
 ** Bipartitioning mapping in parallel.
 ** It returns:
 ** - 0   : if the mapping could be computed.
@@ -332,12 +330,12 @@ KdgraphMapRbPartGraph * restrict const  fldgrafptr)
 */
 
 static
-int 
+int
 kdgraphMapRbPart2 (
 KdgraphMapRbPartGraph * restrict const      grafptr,
 const KdgraphMapRbPartData * restrict const dataptr)
 {
-  ArchDom               domsubtab[2];             /* Temporary subdomains        */
+  ArchDom               domnsubtab[2];            /* Temporary subdomains        */
   Bdgraph               actgrafdat;               /* Active bipartitioning graph */
   KdgraphMapRbPartGraph indgrafdat;               /* Induced folded graph area   */
   Gnum                  comploadavg;
@@ -349,7 +347,7 @@ const KdgraphMapRbPartData * restrict const dataptr)
   o = ((archVar (&mappptr->archdat)) &&           /* If architecture is variable-sized      */
        (grafptr->data.dgrfdat.vertglbnbr <= 1))   /* And source subgraph is of minimal size */
       ? 1                                         /* Then do not bipartition target more    */
-      : archDomBipart (&mappptr->archdat, &grafptr->domnorg, &domsubtab[0], &domsubtab[1]);
+      : archDomBipart (&mappptr->archdat, &grafptr->domnorg, &domnsubtab[0], &domnsubtab[1]);
 
   switch (o) {
     case 1 :                                      /* If target domain is terminal */
@@ -363,24 +361,24 @@ const KdgraphMapRbPartData * restrict const dataptr)
     errorPrint ("kdgraphMapRbPart2: cannot compute ghost edge array");
     return     (1);
   }
-  
-  o = bdgraphInit (&actgrafdat, &grafptr->data.dgrfdat, NULL, &mappptr->archdat, domsubtab); /* Create active graph */
-  actgrafdat.levlnum = grafptr->levlnum;          /* Initial level of bipartition graph is DRB recursion level      */
+
+  o = bdgraphInit (&actgrafdat, &grafptr->data.dgrfdat, NULL, &mappptr->archdat, domnsubtab); /* Create active graph */
+  actgrafdat.levlnum = grafptr->levlnum;          /* Initial level of bipartition graph is DRB recursion level       */
 
   comploadavg = (double) actgrafdat.s.veloglbsum / (double) archDomWght (&mappptr->archdat, &grafptr->domnorg);
   actgrafdat.compglbload0min = actgrafdat.compglbload0avg -
-                               (Gnum) MIN ((dataptr->comploadmax - comploadavg) * actgrafdat.domwght[0],
-                                           (comploadavg - dataptr->comploadmin) * actgrafdat.domwght[1]);
+                               (Gnum) MIN ((dataptr->comploadmax - comploadavg) * actgrafdat.domnwght[0],
+                                           (comploadavg - dataptr->comploadmin) * actgrafdat.domnwght[1]);
   actgrafdat.compglbload0max = actgrafdat.compglbload0avg +
-                               (Gnum) MIN ((comploadavg - dataptr->comploadmin) * actgrafdat.domwght[0],
-                                           (dataptr->comploadmax - comploadavg) * actgrafdat.domwght[1]);
+                               (Gnum) MIN ((comploadavg - dataptr->comploadmin) * actgrafdat.domnwght[0],
+                                           (dataptr->comploadmax - comploadavg) * actgrafdat.domnwght[1]);
 
   if ((o != 0) || (bdgraphBipartSt (&actgrafdat, dataptr->paraptr->stratsep) != 0)) { /* Bipartition edge-separation graph   */
     bdgraphExit (&actgrafdat);
     return      (1);
   }
 
-  o = kdgraphMapRbPartFold (&actgrafdat, mappptr, domsubtab, &indgrafdat);
+  o = kdgraphMapRbPartFold (&actgrafdat, mappptr, domnsubtab, &indgrafdat);
 
   bdgraphExit (&actgrafdat);                      /* Free additional bipartitioning data   */
   dgraphExit  (&grafptr->data.dgrfdat);           /* Free graph before going to next level */
@@ -394,7 +392,7 @@ const KdgraphMapRbPartData * restrict const dataptr)
   return (o);
 }
 
-int 
+int
 kdgraphMapRbPart (
 Kdgraph * restrict const                  grafptr,
 Kdmapping * restrict const                mappptr,

@@ -4,7 +4,6 @@ LIST(APPEND pexsi_src
   src/blas.cpp
   src/f_interface.f90
   src/getPole.cpp
-  src/get_perm_c_parmetis.c
   src/global.cpp
   src/interface.cpp
   src/lapack.cpp

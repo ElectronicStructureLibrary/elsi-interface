@@ -1,4 +1,4 @@
-/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -41,6 +41,8 @@
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 19 jan 2004     **/
 /**                                 to     20 jan 2004     **/
+/**                # Version 6.0  : from : 15 may 2018     **/
+/**                                 to     15 may 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -71,23 +73,22 @@ FILE * const                filesrcptr,           /* Topological data */
 FILE * const                filegeoptr,           /* No use           */
 const char * const          dataptr)              /* No use           */
 {
-  long              habmattag;                    /* Matrix tag number in file                  */
-  long              habmatnum;                    /* Current matrix number                      */
-  char              habmatbuf[4][84];             /* Matrix header line buffers                 */
-  char              habmattype[4];                /* Matrix type                                */
-  long              habcrdnbr;                    /* Total number of data lines                 */
-  long              habrhsnbr;                    /* Number of right hand side lines            */
-  int               habcolsiz;                    /* Size of column type                        */
-  int               habnzrsiz;                    /* Size of non-zero type                      */
-  Gnum              habevlnbr;                    /* Number of element matrix values (not uesd) */
-  Gnum              habvixnbr;                    /* Number of element matrix variable indices  */
-  Gnum              habeltnbr;                    /* Number of elements                         */
-  Gnum              habvarnbr;                    /* Number of variables, that is, nodes        */
-  Gnum              velmnum;                      /* Number of current element vertex           */
-  Gnum              vnodnum;                      /* Number of current node vertex              */
-  Gnum              edgenum;                      /* Number of current edge (arc)               */
-  Gnum              edgesum;                      /* Accumulated number of edges in node part   */
-  Gnum              degrmax;                      /* Maximum degree                             */
+  long              habmattag;                    /* Matrix tag number in file                 */
+  long              habmatnum;                    /* Current matrix number                     */
+  char              habmatbuf[4][84];             /* Matrix header line buffers                */
+  char              habmattype[3];                /* Matrix type                               */
+  long              habcrdnbr;                    /* Total number of data lines                */
+  long              habrhsnbr;                    /* Number of right hand side lines           */
+  int               habcolsiz;                    /* Size of column type                       */
+  int               habnzrsiz;                    /* Size of non-zero type                     */
+  Gnum              habvixnbr;                    /* Number of element matrix variable indices */
+  Gnum              habeltnbr;                    /* Number of elements                        */
+  Gnum              habvarnbr;                    /* Number of variables, that is, nodes       */
+  Gnum              velmnum;                      /* Number of current element vertex          */
+  Gnum              vnodnum;                      /* Number of current node vertex             */
+  Gnum              edgenum;                      /* Number of current edge (arc)              */
+  Gnum              edgesum;                      /* Accumulated number of edges in node part  */
+  Gnum              degrmax;                      /* Maximum degree                            */
   int               c;
 
   if (((habmattag = atol (dataptr)) == 0) &&      /* Get tag value */
@@ -109,11 +110,13 @@ const char * const          dataptr)              /* No use           */
     habrhsnbr = atol (&habmatbuf[1][56]);
     habmatbuf[1][14] = '\0';
     habcrdnbr = atol (&habmatbuf[1][00]);
-    habmattype[0] = toupper (habmatbuf[2][0]);
     habmattype[1] = toupper (habmatbuf[2][1]);
     habmattype[2] = toupper (habmatbuf[2][2]);
+#if 0 /* Not used */
+    habmattype[0] = toupper (habmatbuf[2][0]);
     habmatbuf[2][70] = '\0';
-    habevlnbr = (Gnum) atol (&habmatbuf[2][57]);  /* NELTVL */
+    habevlnbr = (Gnum) atol (&habmatbuf[2][57]);  /* NELTVL: number of element matrix values (not used) */
+#endif
     habmatbuf[2][56] = '\0';
     habvixnbr = (Gnum) atol (&habmatbuf[2][43]);  /* VARIX */
     habmatbuf[2][42] = '\0';

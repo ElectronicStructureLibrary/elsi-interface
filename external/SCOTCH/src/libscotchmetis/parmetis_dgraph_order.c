@@ -1,4 +1,4 @@
-/* Copyright 2007-2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2010,2012,2018,2019 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -44,7 +44,7 @@
 /**                # Version 5.1  : from : 18 mar 2009     **/
 /**                                 to     30 jun 2010     **/
 /**                # Version 6.0  : from : 13 sep 2012     **/
-/**                                 to     13 sep 2012     **/
+/**                                 to     18 may 2019     **/
 /**                                                        **/
 /************************************************************/
 
@@ -97,8 +97,8 @@ SCOTCH_Num                  cblkidx)
 **
 */
 
-void
-METISNAMEU(ParMETIS_V3_NodeND) (
+int
+SCOTCH_ParMETIS_V3_NodeND (
 const SCOTCH_Num * const    vtxdist,
 SCOTCH_Num * const          xadj,
 SCOTCH_Num * const          adjncy,
@@ -106,7 +106,7 @@ const SCOTCH_Num * const    numflag,
 const SCOTCH_Num * const    options,              /* Not used */
 SCOTCH_Num * const          order,
 SCOTCH_Num * const          sizes,                /* Of size twice the number of processors ; not used */
-MPI_Comm *                  comm)
+MPI_Comm *                  commptr)
 {
   MPI_Comm            proccomm;
   int                 procglbnbr;
@@ -117,10 +117,13 @@ MPI_Comm *                  comm)
   SCOTCH_Strat        stradat;
   SCOTCH_Num          vertlocnbr;
   SCOTCH_Num          edgelocnbr;
+  int                 o;
 
-  proccomm = *comm;
+  o = METIS_ERROR;                                /* Assume something will go wrong */
+
+  proccomm = *commptr;
   if (SCOTCH_dgraphInit (&grafdat, proccomm) != 0)
-    return;
+    return (o);
 
   MPI_Comm_size (proccomm, &procglbnbr);
   MPI_Comm_rank (proccomm, &proclocnum);
@@ -168,7 +171,7 @@ MPI_Comm *                  comm)
                 SCOTCH_Num          cblknum;
 
                 memSet (sepaglbtab, ~0, cblkglbnbr * sizeof (SCOTCH_Num) * 3);
-                
+               
                 for (rootnum = -1, cblknum = 0; cblknum < cblkglbnbr; cblknum ++) {
                   SCOTCH_Num          fathnum;
 
@@ -203,6 +206,7 @@ MPI_Comm *                  comm)
                 if ((rootnum >= 0) && (sizes != NULL)) { /* If no error above, go on processing separator tree         */
                   memSet (sizes, 0, (2 * procglbnbr - 1) * sizeof (SCOTCH_Num)); /* Set array of sizes to 0 by default */
                   _SCOTCH_ParMETIS_V3_NodeNDTree (sizes + (2 * procglbnbr - 1), sizeglbtab, sepaglbtab, levlmax, 0, rootnum, 1);
+                  o = METIS_OK;
                 }
               }
 
@@ -217,4 +221,32 @@ MPI_Comm *                  comm)
     SCOTCH_stratExit (&stradat);
   }
   SCOTCH_dgraphExit (&grafdat);
+
+  return (o);
 }
+
+/**********************/
+/*                    */
+/* ParMeTiS v3 stubs. */
+/*                    */
+/**********************/
+
+#if (SCOTCH_PARMETIS_VERSION == 3)
+#ifndef SCOTCH_METIS_PREFIX                       /* With "SCOTCH_" prefix, names already defined */
+
+int
+METISNAMEU (ParMETIS_V3_NodeND) (
+const SCOTCH_Num * const    vtxdist,
+SCOTCH_Num * const          xadj,
+SCOTCH_Num * const          adjncy,
+const SCOTCH_Num * const    numflag,
+const SCOTCH_Num * const    options,              /* Not used */
+SCOTCH_Num * const          order,
+SCOTCH_Num * const          sizes,                /* Of size twice the number of processors; not used */
+MPI_Comm *                  commptr)
+{
+  return (SCOTCH_ParMETIS_V3_NodeND (vtxdist, xadj, adjncy, numflag, options, order, sizes, commptr));
+}
+
+#endif /* SCOTCH_METIS_PREFIX */
+#endif /* (SCOTCH_PARMETIS_VERSION == 3) */

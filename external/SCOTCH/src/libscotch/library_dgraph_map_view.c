@@ -1,4 +1,4 @@
-/* Copyright 2008-2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2008-2010,2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -42,7 +42,7 @@
 /**   DATES      : # Version 5.1  : from : 26 jul 2008     **/
 /**                                 to     11 aug 2010     **/
 /**                # Version 6.0  : from : 29 nov 2012     **/
-/**                                 to     29 nov 2012     **/
+/**                                 to     25 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -130,12 +130,12 @@ FILE * const                  stream)
   tgtnbr = archDomSize (&mappptr->m.archdat, &domnfrst); /* Get architecture size */
 
   if (archVar (&mappptr->m.archdat)) {
-    errorPrint ("SCOTCH_dgraphMapView: not implemented");
+    errorPrint (STRINGIFY (SCOTCH_dgraphMapView) ": not implemented");
     return     (1);
   }
 
   if (dgraphGhst (grafptr) != 0) {                /* Compute ghost edge array if not already present */
-    errorPrint ("SCOTCH_dgraphMapView: cannot compute ghost edge array");
+    errorPrint (STRINGIFY (SCOTCH_dgraphMapView) ": cannot compute ghost edge array");
     return     (1);
   }
 
@@ -151,18 +151,18 @@ FILE * const                  stream)
     cheklocval = 1;
   }
   if (MPI_Allreduce (&cheklocval, &chekglbval, 1, MPI_INT, MPI_MAX, grafptr->proccomm) != MPI_SUCCESS) {
-    errorPrint ("SCOTCH_dgraphMapView: communication error (1)");
+    errorPrint (STRINGIFY (SCOTCH_dgraphMapView) ": communication error (1)");
     return     (1);
   }
   if (chekglbval != 0) {
     if (nmskloctab != NULL)
       memFree (nmskloctab);
-    errorPrint ("SCOTCH_dgraphMapView: out of memory");
+    errorPrint (STRINGIFY (SCOTCH_dgraphMapView) ": out of memory");
     return     (1);
   }
 
   if (dmapTerm (&mappptr->m, grafptr, termgsttax) != 0) {
-    errorPrint ("SCOTCH_dgraphMapView: cannot build local terminal array");
+    errorPrint (STRINGIFY (SCOTCH_dgraphMapView) ": cannot build local terminal array");
     memFree    (nmskloctab);
     return     (1);
   }
@@ -176,7 +176,7 @@ FILE * const                  stream)
   for (vertlocnum = grafptr->baseval; vertlocnum < grafptr->vertlocnnd; vertlocnum ++) {
 #ifdef SCOTCH_DEBUG_DMAP2
     if ((termgsttax[vertlocnum] < -1) || (termgsttax[vertlocnum] >= tgtnbr)) {
-      errorPrint ("SCOTCH_dgraphMapView: invalid local terminal array");
+      errorPrint (STRINGIFY (SCOTCH_dgraphMapView) ": invalid local terminal array");
       memFree    (nmskloctab);                      /* Free group leader */
       return     (1);
     }
@@ -187,7 +187,7 @@ FILE * const                  stream)
   }
 
   if (MPI_Allreduce (tgloloctab, tgloglbtab, tgtnbr, GNUM_MPI, MPI_SUM, grafptr->proccomm) != MPI_SUCCESS) {
-    errorPrint ("SCOTCH_dgraphMapView: communication error (2)");
+    errorPrint (STRINGIFY (SCOTCH_dgraphMapView) ": communication error (2)");
     memFree    (nmskloctab);                      /* Free group leader */
     return     (1);
   }
@@ -231,7 +231,7 @@ FILE * const                  stream)
   }
 
   if (dgraphHaloWait (&requdat) != 0) {           /* Wait for ghost terminal data to be exchanged */
-    errorPrint ("SCOTCH_dgraphMapView: cannot complete asynchronous halo exchange");
+    errorPrint (STRINGIFY (SCOTCH_dgraphMapView) ": cannot complete asynchronous halo exchange");
     memFree    (nmskloctab);                      /* Free group leader */
     return     (1);
   }
@@ -272,7 +272,7 @@ FILE * const                  stream)
     nmskloctab[0] &= ~1;                          /* Do not account for unmapped vertices (terminal domain 0 because of "+1") */
 
     if (MPI_Allreduce (nmskloctab, nmskglbtab, nmskidxnbr, MPI_INT, MPI_BOR, grafptr->proccomm) != MPI_SUCCESS) {
-      errorPrint ("SCOTCH_dgraphMapView: communication error (3)");
+      errorPrint (STRINGIFY (SCOTCH_dgraphMapView) ": communication error (3)");
       memFree    (nmskloctab);                    /* Free group leader */
       return     (1);
     }
@@ -344,7 +344,7 @@ FILE * const                  stream)
   commlocdist[256 + 2] = commlocexpan;
 
   if (MPI_Allreduce (commlocdist, commglbdist, 256 + 3, GNUM_MPI, MPI_SUM, grafptr->proccomm) != MPI_SUCCESS) {
-    errorPrint ("SCOTCH_dgraphMapView: communication error (4)");
+    errorPrint (STRINGIFY (SCOTCH_dgraphMapView) ": communication error (4)");
     memFree    (nmskloctab);                      /* Free group leader */
     return     (1);
   }

@@ -1,4 +1,4 @@
-/* Copyright 2007-2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2010,2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -44,7 +44,7 @@
 /**                # Version 5.1  : from : 27 jul 2008     **/
 /**                                 to     15 apr 2010     **/
 /**                # Version 6.0  : from : 29 nov 2012     **/
-/**                                 to     29 nov 2012     **/
+/**                                 to     25 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -69,11 +69,11 @@
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFDGRAPHINIT, scotchfdgraphinit, (         \
-SCOTCH_Dgraph * const       grafptr,            \
-const MPI_Fint * const      commptr,            \
-int * const                 revaptr),           \
+SCOTCH_FORTRAN (                      \
+DGRAPHINIT, dgraphinit, (             \
+SCOTCH_Dgraph * const       grafptr,  \
+const MPI_Fint * const      commptr,  \
+int * const                 revaptr), \
 (grafptr, commptr, revaptr))
 {
   MPI_Comm            commdat;
@@ -86,9 +86,9 @@ int * const                 revaptr),           \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFDGRAPHEXIT, scotchfdgraphexit, (         \
-SCOTCH_Dgraph * const       grafptr),           \
+SCOTCH_FORTRAN (                      \
+DGRAPHEXIT, dgraphexit, (             \
+SCOTCH_Dgraph * const       grafptr), \
 (grafptr))
 {
   SCOTCH_dgraphExit (grafptr);
@@ -98,13 +98,13 @@ SCOTCH_Dgraph * const       grafptr),           \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFDGRAPHSIZE, scotchfdgraphsize, (         \
-const SCOTCH_Dgraph * const grafptr,            \
-SCOTCH_Num * const          vertglbptr,         \
-SCOTCH_Num * const          vertlocptr,         \
-SCOTCH_Num * const          edgeglbptr,         \
-SCOTCH_Num * const          edgelocptr),        \
+SCOTCH_FORTRAN (                         \
+DGRAPHSIZE, dgraphsize, (                \
+const SCOTCH_Dgraph * const grafptr,     \
+SCOTCH_Num * const          vertglbptr,  \
+SCOTCH_Num * const          vertlocptr,  \
+SCOTCH_Num * const          edgeglbptr,  \
+SCOTCH_Num * const          edgelocptr), \
 (grafptr, vertglbptr, vertlocptr, edgeglbptr, edgelocptr))
 {
   SCOTCH_dgraphSize (grafptr, vertglbptr, vertlocptr, edgeglbptr, edgelocptr);
@@ -114,31 +114,31 @@ SCOTCH_Num * const          edgelocptr),        \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFDGRAPHDATA, scotchfdgraphdata, (         \
-const SCOTCH_Dgraph * const grafptr,            \
-const SCOTCH_Num * const    indxptr,            \
-SCOTCH_Num * const          baseptr,            \
-SCOTCH_Num * const          vertglbptr,         \
-SCOTCH_Num * const          vertlocptr,         \
-SCOTCH_Num * const          vertlocptz,         \
-SCOTCH_Num * const          vertgstptr,         \
-SCOTCH_Idx * const          vertlocidx,         \
-SCOTCH_Idx * const          vendlocidx,         \
-SCOTCH_Idx * const          velolocidx,         \
-SCOTCH_Idx * const          vlbllocidx,         \
-SCOTCH_Num * const          edgeglbptr,         \
-SCOTCH_Num * const          edgelocptr,         \
-SCOTCH_Num * const          edgelocptz,         \
-SCOTCH_Idx * const          edgelocidx,         \
-SCOTCH_Idx * const          edgegstidx,         \
-SCOTCH_Idx * const          edlolocidx,         \
-MPI_Fint * const            commptr),           \
-(grafptr, indxptr, baseptr,                     \
- vertglbptr, vertlocptr, vertlocptz,            \
- vertgstptr, vertlocidx, vendlocidx,            \
- velolocidx, vlbllocidx, edgeglbptr,            \
- edgelocptr, edgelocptz, edgelocidx,            \
+SCOTCH_FORTRAN (                        \
+DGRAPHDATA, dgraphdata, (               \
+const SCOTCH_Dgraph * const grafptr,    \
+const SCOTCH_Num * const    indxptr,    \
+SCOTCH_Num * const          baseptr,    \
+SCOTCH_Num * const          vertglbptr, \
+SCOTCH_Num * const          vertlocptr, \
+SCOTCH_Num * const          vertlocptz, \
+SCOTCH_Num * const          vertgstptr, \
+SCOTCH_Idx * const          vertlocidx, \
+SCOTCH_Idx * const          vendlocidx, \
+SCOTCH_Idx * const          velolocidx, \
+SCOTCH_Idx * const          vlbllocidx, \
+SCOTCH_Num * const          edgeglbptr, \
+SCOTCH_Num * const          edgelocptr, \
+SCOTCH_Num * const          edgelocptz, \
+SCOTCH_Idx * const          edgelocidx, \
+SCOTCH_Idx * const          edgegstidx, \
+SCOTCH_Idx * const          edlolocidx, \
+MPI_Fint * const            commptr),   \
+(grafptr, indxptr, baseptr,             \
+ vertglbptr, vertlocptr, vertlocptz,    \
+ vertgstptr, vertlocidx, vendlocidx,    \
+ velolocidx, vlbllocidx, edgeglbptr,    \
+ edgelocptr, edgelocptz, edgelocidx,    \
  edgegstidx, edlolocidx, commptr))
 {
   SCOTCH_Num *        vertloctab;                 /* Pointer to graph arrays */

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2018,2019 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -49,6 +49,8 @@
 /**                                 to     03 apr 2008     **/
 /**                # Version 5.1  : from : 17 nov 2010     **/
 /**                                 to     17 nov 2010     **/
+/**                # Version 6.0  : from : 04 dec 2012     **/
+/**                                 to     24 jul 2019     **/
 /**                                                        **/
 /************************************************************/
 
@@ -98,11 +100,11 @@ SCOTCH_graphInit (
 SCOTCH_Graph * const        grafptr)
 {
   if (sizeof (SCOTCH_Num) != sizeof (Gnum)) {
-    errorPrint ("SCOTCH_graphInit: internal error (1)");
+    errorPrint (STRINGIFY (SCOTCH_graphInit) ": internal error (1)");
     return     (1);
   }
   if (sizeof (SCOTCH_Graph) < sizeof (Graph)) {
-    errorPrint ("SCOTCH_graphInit: internal error (2)");
+    errorPrint (STRINGIFY (SCOTCH_graphInit) ": internal error (2)");
     return     (1);
   }
 
@@ -158,11 +160,11 @@ const SCOTCH_Num            flagval)
   GraphFlag           srcgrafflag;                /* Graph flags */
 
   if ((baseval < -1) || (baseval > 1)) {
-    errorPrint ("SCOTCH_graphLoad: invalid base parameter");
+    errorPrint (STRINGIFY (SCOTCH_graphLoad) ": invalid base parameter");
     return     (1);
   }
   if ((flagval < 0) || (flagval > 3)) {
-    errorPrint ("SCOTCH_graphLoad: invalid flag parameter");
+    errorPrint (STRINGIFY (SCOTCH_graphLoad) ": invalid flag parameter");
     return     (1);
   }
 
@@ -215,12 +217,12 @@ const SCOTCH_Num * const    edlotab)              /* Edge load array            
 
 #ifdef SCOTCH_DEBUG_LIBRARY1
   if (sizeof (SCOTCH_Graph) < sizeof (Graph)) {
-    errorPrint ("SCOTCH_graphBuild: internal error");
+    errorPrint (STRINGIFY (SCOTCH_graphBuild) ": internal error");
     return     (1);
   }
 #endif /* SCOTCH_DEBUG_LIBRARY1 */
   if ((baseval < 0) || (baseval > 1)) {
-    errorPrint ("SCOTCH_graphBuild: invalid base parameter");
+    errorPrint (STRINGIFY (SCOTCH_graphBuild) ": invalid base parameter");
     return     (1);
   }
 
@@ -230,7 +232,7 @@ const SCOTCH_Num * const    edlotab)              /* Edge load array            
   srcgrafptr->vertnbr = vertnbr;
   srcgrafptr->vertnnd = vertnbr + baseval;
   srcgrafptr->verttax = (Gnum *) verttab - baseval;
-  srcgrafptr->vendtax = ((vendtab == NULL) || (vendtab == verttab) || (vendtab == verttab + 1)) ? srcgrafptr->verttax + 1 : (Gnum *) vendtab - baseval;
+  srcgrafptr->vendtax = ((vendtab == NULL) || (vendtab == verttab)) ? srcgrafptr->verttax + 1 : (Gnum *) vendtab - baseval;
   srcgrafptr->velotax = ((velotab == NULL) || (velotab == verttab)) ? NULL : (Gnum *) velotab - baseval;
   srcgrafptr->vnumtax = NULL;
   srcgrafptr->vlbltax = ((vlbltab == NULL) || (vlbltab == verttab)) ? NULL : (Gnum *) vlbltab - baseval;
@@ -277,26 +279,6 @@ const SCOTCH_Num * const    edlotab)              /* Edge load array            
     srcgrafptr->edlosum = edlosum;
   }
   srcgrafptr->degrmax = degrmax;
-
-#ifdef DEAD_CODE                                  /* Vertex labels only for graph output */
-  if (srcgrafptr->vlbltax != NULL) {              /* If vertex labels provided           */
-    Gnum                vlblmax;                  /* Maximum label value                 */
-
-    for (vlblmax = 0, vertnum = srcgrafptr->baseval; vertnum < srcgrafptr->vertnnd; vertnum ++) {
-      if (srcgrafptr->vlbltax[vertnum] < 0) {
-        errorPrint ("SCOTCH_graphBuild: negative labels not allowed");
-        return     (1);
-      }
-      if (srcgrafptr->vlbltax[vertnum] > vlblmax) /* Get maximum label */
-        vlblmax = srcgrafptr->vlbltax[vertnum];
-    }
-    if (graphLoad2 (srcgrafptr->baseval, srcgrafptr->vertnnd, srcgrafptr->verttax, /* Rename edge ends */
-                    srcgrafptr->vendtax, srcgrafptr->edgetax, vlblmax, srcgrafptr->vlbltax) != 0) {
-        errorPrint ("SCOTCH_graphBuild: cannot relabel vertices");
-        return     (1);
-    }
-  }
-#endif
 
   return (0);
 }
@@ -501,7 +483,7 @@ double *                    edlodltptr)
         }
       }
       edloavg = (double) edlosum /
-                (double) (2 * srcgrafptr->edgenbr);
+                (double) srcgrafptr->edgenbr;
 
       for (vertnum = srcgrafptr->baseval; vertnum < srcgrafptr->vertnnd; vertnum ++) {
         for (edgenum = srcgrafptr->verttax[vertnum]; edgenum < srcgrafptr->vendtax[vertnum]; edgenum ++) /* For all edges */

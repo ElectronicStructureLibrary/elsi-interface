@@ -1,4 +1,4 @@
-/* Copyright 2007-2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -47,7 +47,7 @@
 /**                # Version 5.1  : from : 23 jun 2008     **/
 /**                                 to   : 20 feb 2011     **/
 /**                # Version 6.0  : from : 11 sep 2012     **/
-/**                                 to   : 03 oct 2012     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -264,7 +264,7 @@ DgraphCoarsenData * restrict const  coarptr)
 #ifdef SCOTCH_DEBUG_DGRAPH2
       if ((vertlocnum <  grafptr->baseval) ||     /* If matching request is not directed towards our process */
           (vertlocnum >= grafptr->vertlocnnd)) {
-        errorPrint ("dgraphCoarsenBuildColl: internal error (1)");
+        errorPrint ("dgraphCoarsenBuildColl: internal error");
         return     (1);
       }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
@@ -399,7 +399,6 @@ int
 dgraphCoarsenBuild (
 DgraphCoarsenData * restrict const  coarptr)
 {
-  Gnum                          vertlocnum;
   Gnum                          vertlocadj;
   Gnum                          edgelocnbr;
   Gnum                          edlolocval;
@@ -437,6 +436,7 @@ DgraphCoarsenData * restrict const  coarptr)
   int                           cheklocval;
   int                           chekglbval;
 #ifdef SCOTCH_DEBUG_DGRAPH2
+  Gnum                          vertlocnum;
   int * restrict                ercvdbgtab;
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
@@ -861,7 +861,7 @@ DgraphCoarsenData * restrict const  coarptr)
   coargrafptr->edgeloctax -= coargrafptr->baseval;
   coargrafptr->edloloctax  = memRealloc (coaredloloctax + coargrafptr->baseval, coargrafptr->edgelocnbr * sizeof (Gnum));
   coargrafptr->edloloctax -= coargrafptr->baseval;
- 
+
   reduloctab[0] = coargrafptr->vertlocnbr;        /* Get maximum over all processes */
   reduloctab[1] = coargrafptr->edgelocnbr;
   reduloctab[2] = coardegrlocmax;                 /* Get local maximum degree */
@@ -891,6 +891,11 @@ DgraphCoarsenData * restrict const  coarptr)
 ** graph, as long as the coarsening ratio remains
 ** below some threshold value and the coarsened graph
 ** is not too small.
+** If a multinode array is provided (*multlocptr != NULL),
+** it must be of a size sufficient to hold multinode data
+** in any configuration, including in the case of folding
+** with duplication, where folded data is spread across
+** floor(P/2) processes.
 ** It returns:
 ** - 0  : if the graph has been coarsened.
 ** - 1  : if the graph could not be coarsened.
@@ -899,15 +904,13 @@ DgraphCoarsenData * restrict const  coarptr)
 
 int
 dgraphCoarsen (
-Dgraph * restrict const               finegrafptr, /*+ Graph to coarsen                    +*/
-Dgraph * restrict const               coargrafptr, /*+ Coarse graph to build               +*/
-DgraphCoarsenMulti * restrict * const multlocptr, /*+ Pointer to un-based multinode array  +*/
-const Gnum                            passnbr,    /*+ Number of coarsening passes to go    +*/
-const Gnum                            coarnbr,    /*+ Minimum number of coarse vertices    +*/
-const int                             flagval,    /*+ Flag value                           +*/
-const int                             foldval,    /*+ Allow fold/dup or fold or no fold    +*/
-const Gnum                            dupmax,     /*+ Minimum number of vertices to do dup +*/
-const double                          coarrat)    /*+ Maximum contraction ratio            +*/
+Dgraph * restrict const               finegrafptr, /*+ Graph to coarsen                   +*/
+Dgraph * restrict const               coargrafptr, /*+ Coarse graph to build              +*/
+DgraphCoarsenMulti * restrict * const multlocptr, /*+ Pointer to un-based multinode array +*/
+const Gnum                            passnbr,    /*+ Number of coarsening passes to go   +*/
+const Gnum                            coarnbr,    /*+ Minimum number of coarse vertices   +*/
+const double                          coarrat,    /*+ Maximum contraction ratio           +*/
+const int                             flagval)    /*+ Flag value                          +*/
 {
   DgraphMatchData           matedat;              /* Matching state data; includes coarsening handling data   */
   Gnum                      vertrcvnbr;           /* Overall number of vertices to be received from neighbors */
@@ -917,7 +920,6 @@ const double                          coarrat)    /*+ Maximum contraction ratio 
   int                       cheklocval;
   int                       chekglbval;
   Gnum                      coarvertmax;
-  DgraphCoarsenMulti *      multloctax;
   Gnum                      passnum;
   int                       procnum;
   int                       o;
@@ -975,7 +977,7 @@ const double                          coarrat)    /*+ Maximum contraction ratio 
 
   dgraphMatchExit (&matedat);
 
-  vertsndnbr = 
+  vertsndnbr =
   edgesndnbr = 0;
   for (procnum = 0; procnum < finegrafptr->procglbnbr; procnum ++) {
     vertsndnbr += matedat.c.dcntloctab[procnum].vertsndnbr;
@@ -990,7 +992,7 @@ const double                          coarrat)    /*+ Maximum contraction ratio 
     return     (2);
   }
 
-  vertrcvnbr = 
+  vertrcvnbr =
   edgercvnbr = 0;
   coargrafptr->procdsptab[0] = finegrafptr->baseval; /* Build vertex-to-process array */
   for (procnum = 0; procnum < finegrafptr->procglbnbr; procnum ++) {
@@ -1025,44 +1027,43 @@ const double                          coarrat)    /*+ Maximum contraction ratio 
   }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
-  o = 0;                                          /* Assume everything is now all right */
-  multloctax = matedat.c.multloctab - finegrafptr->baseval;
   matedat.c.multloctmp = NULL;                    /* So that it will not be freed    */
   dgraphCoarsenExit (&matedat.c);                 /* Free all other temporary arrays */
 
+  o = 0;                                          /* Assume everything is now all right */
 #ifdef PTSCOTCH_FOLD_DUP
-  if ((coargrafptr->procglbnbr >= 2) &&           /* Never do folding in case of user-provided multinode array! */
-      ((foldval != 0) || (dupmax > (coargrafptr->vertglbnbr / coargrafptr->procglbnbr)))) {
-    Dgraph                coargrafdat;            /* Coarse graph data before folding */
+  if (((flagval & DGRAPHCOARSENFOLDDUP) != 0) &&  /* If some form of folding is requested */
+      (coargrafptr->procglbnbr >= 2)) {           /* And if there is need to it           */
+    Dgraph                coargrafdat;            /* Coarse graph data before folding     */
+    DgraphCoarsenMulti *  coarmultptr;            /* Pointer to folded multinode array    */
     MPI_Datatype          coarmultype;
-    DgraphCoarsenMulti *  coarmultptr;
 
     MPI_Type_contiguous (2, GNUM_MPI, &coarmultype); /* Define type for MPI transfer */
     MPI_Type_commit (&coarmultype);               /* Commit new type                 */
 
-    coargrafdat = *coargrafptr;                   /* Copy unfolded coarse graph data to save array */
-    coarmultptr = multloctax;
-    if ((foldval < 0) || (dupmax < coargrafdat.vertglbnbr)) { /* Do a simple folding            */
-      memSet (coargrafptr, 0, sizeof (Dgraph));   /* Also reset procglbnbr for unused processes */
-      o = dgraphFold (&coargrafdat, 0, coargrafptr, (void *) coarmultptr, (void **) (void *) &multloctax, coarmultype);
+    coargrafdat = *coargrafptr;                   /* Copy unfolded coarse graph data to save area */
+    coarmultptr = NULL;                           /* Assume we will not get a multinode array     */
+    if ((flagval & DGRAPHCOARSENFOLDDUP) == DGRAPHCOARSENFOLD) { /* Do a simple folding           */
+      memSet (coargrafptr, 0, sizeof (Dgraph));   /* Also reset procglbnbr for unused processes   */
+      o = dgraphFold (&coargrafdat, 0, coargrafptr, (void *) matedat.c.multloctab, (void **) (void *) &coarmultptr, coarmultype);
     }
     else {                                        /* Do a duplicant-folding */
       int               loopval;
-      int               dumyval;
 
-      o = dgraphFoldDup (&coargrafdat, coargrafptr, (void *) coarmultptr, (void **) (void *) &multloctax, coarmultype);
+      o = dgraphFoldDup (&coargrafdat, coargrafptr, (void *) matedat.c.multloctab, (void **) (void *) &coarmultptr, coarmultype);
       loopval = intRandVal (finegrafptr->proclocnum + intRandVal (finegrafptr->proclocnum * 2 + 1) + 1);
-      while (loopval --)                          /* Desynchronize pseudo-random generator between processes */
-        dumyval = intRandVal (2);
+      while (loopval --)                          /* Desynchronize pseudo-random generator across processes */
+        intRandVal (2);
     }
     dgraphExit    (&coargrafdat);                 /* Free unfolded graph */
     MPI_Type_free (&coarmultype);
-    memFree (coarmultptr + finegrafptr->baseval); /* TRICK: use preserved baseval */
-    *multlocptr = multloctax + finegrafptr->baseval; /* Return un-based pointer   */
+    if (*multlocptr == NULL)                      /* If unfolded multinode array was not user-provided, free it */
+      memFree (matedat.c.multloctab);
+    *multlocptr = coarmultptr;                    /* Return folded multinode array or NULL */
   }
-  else
+  else                                            /* No folding at all */
 #endif /* PTSCOTCH_FOLD_DUP */
-    *multlocptr = matedat.c.multloctab;           /* Return un-based pointer */
+    *multlocptr = matedat.c.multloctab;           /* Return un-based pointer (maybe the same as initially user-provided) */
 
   return (o);
 }

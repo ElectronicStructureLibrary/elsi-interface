@@ -1,4 +1,4 @@
-/* Copyright 2008,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2008,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -44,7 +44,7 @@
 /**   DATES      : # Version 5.1  : from : 16 sep 2008     **/
 /**                                 to     31 aug 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     25 oct 2011     **/
+/**                                 to     16 sep 2014     **/
 /**                                                        **/
 /**   NOTES      : # This is a rewrite of kgraphMapRb()    **/
 /**                  for complete-graph target topologies. **/
@@ -81,7 +81,90 @@
 /*                                          */
 /********************************************/
 
-/* This routine runs the Dual Recursive
+/* This routine updates partial mappings
+** according to the result of the recursive
+** bipartitioning process.
+** It returns:
+** - 0   : on success.
+** - !0  : on error.
+*/
+
+static
+void
+kgraphMapRbPart3 (
+const Graph * restrict const      srcgrafptr,     /* Graph to induce and bipartition         */
+const GraphPart * restrict const  srcparttax,     /* Part array of original graph            */
+const GraphPart                   indpartval,     /* Part of graph to consider               */
+const int                         domnnum,        /* Index of domain onto which map the part */
+Mapping * restrict const          mappptr)        /* Final mapping                           */
+{
+  Gnum               vertnum;
+
+  const Gnum * restrict const srcvnumtax = srcgrafptr->vnumtax;
+  Anum * restrict const       mapparttax = mappptr->parttax;
+
+  if (srcparttax == NULL) {                       /* If graph is full graph */
+#ifdef SCOTCH_DEBUG_KGRAPH2
+    if (domnnum != 0) {
+      errorPrint ("kgraphMapRbPart3: internal error (1)");
+      return;
+    }
+#endif /* SCOTCH_DEBUG_KGRAPH2 */
+    if (srcvnumtax == NULL)                       /* If full graph doesn't have fixed vertices */
+      memSet (mapparttax + srcgrafptr->baseval, 0, srcgrafptr->vertnbr * sizeof (Anum));
+    else {
+      Gnum                vertnnd;
+
+      for (vertnum = srcgrafptr->baseval, vertnnd = srcgrafptr->vertnnd;
+           vertnum < vertnnd; vertnum ++) {
+#ifdef SCOTCH_DEBUG_KGRAPH2
+        if (mapparttax[srcvnumtax[vertnum]] == ~0) {
+          errorPrint ("kgraphMapRbPart3: internal error (2)");
+          return;
+        }
+#endif /* SCOTCH_DEBUG_KGRAPH2 */
+        mapparttax[srcvnumtax[vertnum]] = domnnum;
+      }
+    }
+  }
+  else {                                          /* Graph to consider is a subgraph of the original graph */
+    if (srcvnumtax == NULL) {                     /* If original graph is not itself a subgraph            */
+      Gnum                vertnnd;
+
+      for (vertnum = srcgrafptr->baseval, vertnnd = srcgrafptr->vertnnd;
+           vertnum < vertnnd; vertnum ++) {
+        if (srcparttax[vertnum] == indpartval) {  /* If vertex belongs to the right part */
+#ifdef SCOTCH_DEBUG_KGRAPH2
+          if (mapparttax[vertnum] == ~0) {
+            errorPrint ("kgraphMapRbPart3: internal error (3)");
+            return;
+          }
+#endif /* SCOTCH_DEBUG_KGRAPH2 */
+          mapparttax[vertnum] = domnnum;
+        }
+      }
+    }
+    else {
+      Gnum                vertnnd;
+
+      for (vertnum = srcgrafptr->baseval, vertnnd = srcgrafptr->vertnnd;
+           vertnum < vertnnd; vertnum ++) {
+        if (srcparttax[vertnum] == indpartval) {  /* If vertex belongs to the right part */
+#ifdef SCOTCH_DEBUG_KGRAPH2
+          if (mapparttax[srcvnumtax[vertnum]] == ~0) {
+            errorPrint ("kgraphMapRbPart3: internal error (4)");
+            return;
+          }
+#endif /* SCOTCH_DEBUG_KGRAPH2 */
+          mapparttax[srcvnumtax[vertnum]] = domnnum;
+        }
+      }
+    }
+  }
+}
+
+/* This routine is the core of the degenerated,
+** graph partitioning version of the Dual Recursive
 ** Bipartitioning algorithm.
 ** It returns:
 ** - 0   : on success.
@@ -90,66 +173,32 @@
 
 static
 int
-kgraphMapRbPart3 (
-const Graph * restrict const      orggrafptr,     /* Graph to induce and bipartition         */
-const GraphPart * restrict const  orgparttax,     /* Part array of original graph            */
-const GraphPart                   indpartval,     /* Part of graph to consider               */
-const int                         domnnum,        /* Index of domain onto which map the part */
-Mapping * restrict const          mappptr)        /* Final mapping                           */
-{
-  Gnum               vertnum;
-
-  if (orgparttax == NULL) {                       /* If graph is full graph */
-#ifdef SCOTCH_DEBUG_KGRAPH2
-    if ((orggrafptr->vnumtax != NULL) || (domnnum != 0)) {
-      errorPrint ("kgraphMapRbPart3: internal error");
-      return     (1);
-    }
-#endif /* SCOTCH_DEBUG_KGRAPH2 */
-    memSet (mappptr->parttax + orggrafptr->baseval, 0, orggrafptr->vertnbr * sizeof (ArchDomNum));
-  }
-  else {                                          /* Graph to consider is a subgraph of the original graph       */
-    if (orggrafptr->vnumtax == NULL) {            /* If original graph is not itself a subgraph                  */
-      for (vertnum = orggrafptr->baseval; vertnum < orggrafptr->vertnnd; vertnum ++) { /* For all graph vertices */
-        if (orgparttax[vertnum] == indpartval)    /* If vertex belongs to the right part                         */
-          mappptr->parttax[vertnum] = domnnum;
-      }
-    }
-    else {
-      for (vertnum = orggrafptr->baseval; vertnum < orggrafptr->vertnnd; vertnum ++) { /* For all graph vertices */
-        if (orgparttax[vertnum] == indpartval)    /* If vertex belongs to the right part                         */
-          mappptr->parttax[orggrafptr->vnumtax[vertnum]] = domnnum;
-      }
-    }
-  }
-
-  return (0);
-}
-
-static
-int
 kgraphMapRbPart2 (
-KgraphMapRbPartData * restrict const  topdataptr, /* Top-level graph and partition data       */
-Graph * restrict const                orggrafptr, /* Graph to induce and bipartition          */
-const GraphPart * restrict const      orgparttax, /* Part array of original graph to consider */
-const GraphPart                       indpartval, /* Part of graph to consider                */
-const Gnum                            indvertnbr, /* Number of vertices in part or in graph   */
-const Anum                            domnnum)    /* Index of domain onto which map the part  */
+const KgraphMapRbData * restrict const  dataptr,  /*+ Global mapping data                        +*/
+const Graph * restrict const            srcgrafptr, /*+ Graph to induce and bipartition          +*/
+const GraphPart * restrict const        srcparttax, /*+ Part array of original graph to consider +*/
+const GraphPart                         indpartval, /*+ Part of graph to consider                +*/
+const Gnum                              indvertnbr, /*+ Number of vertices in part or in graph   +*/
+const Anum                              domnnum,  /*+ Index of domain onto which to map the part +*/
+const Anum                              vflonbr,  /*+ Number of fixed vertex load slots          +*/
+KgraphMapRbVflo * restrict const        vflotab)  /*+ Array of fixed vertex load slots           +*/
 {
   Graph               indgrafdat;
-  Graph *             indgrafptr;
+  const Graph *       indgrafptr;
   Bgraph              actgrafdat;
   Anum                domnsubidx;
   Anum                domnsubdlt;
-  ArchDom             domnsubtab[2];              /* Target subdomains              */
-  Anum                domnsubnum[2];              /* Index of subdomains in mapping */
-  Gnum                grafsubsiz[2];
+  ArchDom             domnsubtab[2];              /* Target subdomains                           */
+  Anum                domnidxtab[2];              /* Index of subdomains in mapping              */
+  Gnum                vertnbrtab[2];              /* Number of vertices in subgraphs             */
+  Anum                vflonbrtab[2];              /* Number of fixed vertex slots in subdomains  */
+  Gnum                vflowgttab[2];              /* Weights of fixed vertex slots in subdomains */
   Mapping * restrict  mappptr;
-  int                 avarval;                    /* Flag set if variable-sized */
+  int                 avarval;                    /* Flag set if variable-sized                  */
   int                 i;
   int                 o;
 
-  mappptr = topdataptr->mappptr;
+  mappptr = dataptr->mappptr;
   avarval = archVar (mappptr->archptr);
   o = (avarval &&                                 /* If architecture is variable-sized   */
        (indvertnbr <= 1))                         /* And source subgraph of minimal size */
@@ -157,27 +206,27 @@ const Anum                            domnnum)    /* Index of domain onto which 
       : archDomBipart (mappptr->archptr, &mappptr->domntab[domnnum], &domnsubtab[0], &domnsubtab[1]);
 
   switch (o) {
-    case 1 :                                      /* If target domain is terminal */
-      return (kgraphMapRbPart3 (orggrafptr, orgparttax, indpartval, domnnum, mappptr)); /* Update mapping and return */
+    case 1 :                                      /* If target domain is terminal                           */
+      kgraphMapRbPart3 (srcgrafptr, srcparttax, indpartval, domnnum, mappptr); /* Update mapping and return */
+      return (0);
     case 2 :                                      /* On error */
       errorPrint ("kgraphMapRbPart2: cannot bipartition domain");
       return     (1);
   }
 
-  indgrafptr = orggrafptr;                        /* Assume we will work on the original graph */
-  if (orgparttax != NULL) {                       /* If not the case, build induced subgraph   */
+  indgrafptr = srcgrafptr;                        /* Assume we will work on the original graph */
+  if ((srcparttax != NULL) &&                     /* If not the case, build induced subgraph   */
+      (indvertnbr < srcgrafptr->vertnbr)) {
     indgrafptr = &indgrafdat;
-    if (topdataptr->rvnutax != NULL)
-      memset (topdataptr->rvnutax + topdataptr->fixgrafptr->baseval, ~0, topdataptr->fixgrafptr->vertnbr * sizeof (Gnum)); /* Set vertices not in the induced graph to -1 */ 
-    if (graphInducePart (orggrafptr, orgparttax, indvertnbr, indpartval, &indgrafdat, topdataptr->rvnutax) != 0) {
+    if (graphInducePart (srcgrafptr, srcparttax, indvertnbr, indpartval, &indgrafdat) != 0) {
       errorPrint ("kgraphMapRbPart2: cannot induce graph");
       return     (1);
     }
   }
 
-  if (bgraphInit (&actgrafdat, indgrafptr, NULL, topdataptr->r.mappptr, topdataptr->fixgrafptr,
-                  topdataptr->rvnutax, NULL, topdataptr->r.cmloval, topdataptr->r.vmlotax,
-                  topdataptr->pfixtax, mappptr, domnsubtab) != 0) { /* Create active graph */
+  kgraphMapRbVfloSplit (mappptr->archptr, domnsubtab, vflonbr, vflotab, vflonbrtab, vflowgttab);
+
+  if (kgraphMapRbBgraph (dataptr, &actgrafdat, indgrafptr, mappptr, domnsubtab, vflowgttab) != 0) { /* Create active graph */
     errorPrint ("kgraphMapRbPart2: cannot create bipartition graph");
     return     (1);
   }
@@ -185,16 +234,17 @@ const Anum                            domnnum)    /* Index of domain onto which 
   if (! avarval) {                                /* If not variable-sized, impose constraints on bipartition */
     double              comploadavg;
 
-    comploadavg = (double) actgrafdat.s.velosum / (double) archDomWght (mappptr->archptr, &mappptr->domntab[domnnum]);
+    comploadavg = (double) (actgrafdat.s.velosum + vflowgttab[0] + vflowgttab[1]) /
+                  (double) archDomWght (mappptr->archptr, &mappptr->domntab[domnnum]);
     actgrafdat.compload0min = actgrafdat.compload0avg -
-                              (Gnum) MIN ((topdataptr->comploadmax - comploadavg) * (double) actgrafdat.domwght[0],
-                                          (comploadavg - topdataptr->comploadmin) * (double) actgrafdat.domwght[1]);
+                              (Gnum) MIN ((dataptr->comploadmax - comploadavg) * (double) actgrafdat.domnwght[0],
+                                          (comploadavg - dataptr->comploadmin) * (double) actgrafdat.domnwght[1]);
     actgrafdat.compload0max = actgrafdat.compload0avg +
-                              (Gnum) MIN ((comploadavg - topdataptr->comploadmin) * (double) actgrafdat.domwght[0],
-                                          (topdataptr->comploadmax - comploadavg) * (double) actgrafdat.domwght[1]);
+                              (Gnum) MIN ((comploadavg - dataptr->comploadmin) * (double) actgrafdat.domnwght[0],
+                                          (dataptr->comploadmax - comploadavg) * (double) actgrafdat.domnwght[1]);
   }
 
-  if (bgraphBipartSt (&actgrafdat, topdataptr->paraptr->strat) != 0) { /* Perform bipartitioning */
+  if (bgraphBipartSt (&actgrafdat, dataptr->paraptr->strat) != 0) { /* Perform bipartitioning */
     errorPrint ("kgraphMapRbPart2: cannot bipartition graph");
     bgraphExit (&actgrafdat);
     return     (1);
@@ -203,83 +253,87 @@ const Anum                            domnnum)    /* Index of domain onto which 
   actgrafdat.s.flagval &= ~BGRAPHFREEFRON;
 
   if (archVar (mappptr->archptr)) {               /* If architecture is variable-sized */
-    if ((actgrafdat.compload0 == 0) ||            /* If bipartition failed             */
-        (actgrafdat.compload0 == actgrafdat.s.velosum))
-      return (kgraphMapRbPart3 (orggrafptr, orgparttax, indpartval, domnnum, mappptr)); /* Update mapping with original domain and return */
+    if ((actgrafdat.compsize0 == 0) ||            /* If bipartition failed             */
+        (actgrafdat.compsize0 == actgrafdat.s.vertnbr)) {
+      bgraphExit (&actgrafdat);                   /* Free bipartition graph (that is, parttax)                        */
+      if (indgrafptr == &indgrafdat)              /* If an induced subgraph had been created                          */
+        graphExit (&indgrafdat);                  /* Free it                                                          */
+      kgraphMapRbPart3 (srcgrafptr, srcparttax, indpartval, domnnum, mappptr); /* Update mapping with original domain */
+      return (0);
+    }
   }
 
   domnsubdlt = mappptr->domnnbr - domnnum;        /* Increment in domain number      */
   domnsubidx = domnnum - domnsubdlt;              /* Place where to insert subdomain */
   mappptr->domnnbr --;                            /* One less subdomain as for now   */
-  grafsubsiz[0] = actgrafdat.compsize0;
-  grafsubsiz[1] = actgrafdat.s.vertnbr - actgrafdat.compsize0;
+  vertnbrtab[0] = actgrafdat.compsize0;
+  vertnbrtab[1] = actgrafdat.s.vertnbr - actgrafdat.compsize0;
 
   o = 0;
   for (i = 1; i >= 0; i --) {                     /* For all subparts             */
-    if (grafsubsiz[i] <= 0)                       /* If subpart is empty, skip it */
+    if (vertnbrtab[i] <= 0)                       /* If subpart is empty, skip it */
       continue;
 
     mappptr->domnnbr ++;                          /* One more subdomain to account for */
     if (mappptr->domnnbr > mappptr->domnmax) {
-      Anum                      domnmax;
-      ArchDom * restrict        domntmp;
-
-      domnmax = mappptr->domnmax + (mappptr->domnmax >> 2) + 8; /* Increase size by 25% */
-      if ((domntmp = memRealloc (mappptr->domntab, domnmax * sizeof (ArchDom))) == NULL) {
+      if ((o = mapResize (mappptr, mappptr->domnmax + (mappptr->domnmax >> 2) + 8)) != 0) { /* Increase size by 25% */
         errorPrint ("kgraphMapRbPart: cannot resize structures");
-        o = 1;
         break;
       }
-      mappptr->domnmax = domnmax;
-      mappptr->domntab = domntmp;
     }
     domnsubidx   += domnsubdlt;                   /* Compute location of subdomain */
-    domnsubnum[i] = domnsubidx;                   /* Record it before recursion    */
-    mappptr->domntab[domnsubidx] = domnsubtab[i]; /* Write it at this place        */
+    domnidxtab[i] = domnsubidx;                   /* Record it before recursion    */
+    mappptr->domntab[domnsubidx] = domnsubtab[i]; /* Write it at this (new) place  */
   }
 
   if (o == 0) {
     for (i = 1; i >= 0; i --) {                   /* For all subparts             */
-      if (grafsubsiz[i] <= 0)                     /* If subpart is empty, skip it */
+      if (vertnbrtab[i] <= 0)                     /* If subpart is empty, skip it */
         continue;
 
-      if ((o = kgraphMapRbPart2 (topdataptr, indgrafptr, actgrafdat.parttax, (GraphPart) i, grafsubsiz[i], domnsubnum[i])) != 0)
+      if ((o = kgraphMapRbPart2 (dataptr, indgrafptr, actgrafdat.parttax, (GraphPart) i, vertnbrtab[i],
+                                 domnidxtab[i], vflonbrtab[i], vflotab + (i * vflonbrtab[0]))) != 0)
         return (1);                               /* If problem in recursion, stop */
     }
   }
 
   bgraphExit (&actgrafdat);                       /* Free bipartition graph (that is, parttax) */
   if (indgrafptr == &indgrafdat)                  /* If an induced subgraph had been created   */
-    graphExit (indgrafptr);                       /* Free it                                   */
+    graphExit (&indgrafdat);                      /* Free it                                   */
 
   return (o);
 }
 
+/* This routine is the entry point for
+** the degenerated, graph partitioning
+** version, of the Dual Recursive
+** Bipartitioning algorithm.
+** It returns:
+** - 0   : on success.
+** - !0  : on error.
+*/
+
 int
 kgraphMapRbPart (
-Kgraph * restrict const                 grafptr,
-const KgraphMapRbParam * restrict const paraptr,
-const Graph * const                     fixgrafptr,
-Gnum * const                            rvnutax) 
+const KgraphMapRbData * restrict const  dataptr,  /*+ Global mapping data                  +*/
+const Graph * restrict const            grafptr,  /*+ Graph to map, without fixed vertices +*/
+const Anum                              vflonbr,  /*+ Number of fixed vertex load slots    +*/
+KgraphMapRbVflo * restrict const        vflotab)  /*+ Array of fixed vertex load slots     +*/
 {
-  KgraphMapRbPartData   topdatadat;
+  Mapping * restrict const  mappptr = dataptr->mappptr;
 
-  topdatadat.topgrafptr  = &grafptr->s;
-  topdatadat.fixgrafptr  = fixgrafptr;
-  topdatadat.rvnutax     = rvnutax;
-  topdatadat.topfrontab  = NULL;
-  topdatadat.topfronnbr  = 0;
-  topdatadat.mappptr     = &grafptr->m;
-  topdatadat.r.mappptr   = &grafptr->r.m;
-  topdatadat.r.cmloval   = grafptr->r.cmloval;
-  topdatadat.r.vmlotax   = grafptr->r.vmlotax;
-  topdatadat.pfixtax     = grafptr->pfixtax;
-  topdatadat.paraptr     = paraptr;
-  topdatadat.comploadmin = (1.0 - paraptr->kbalval) * grafptr->comploadrat; /* Ratio can have been tilted when working on subgraph */
-  topdatadat.comploadmax = (1.0 + paraptr->kbalval) * grafptr->comploadrat;
+#ifdef SCOTCH_DEBUG_KGRAPH2
+  if (dataptr->pfixtax != NULL) {                 /* In debug mode, fixed vertex parts are set to ~0 */
+    Gnum                vertnum;
 
-  grafptr->m.domnnbr    = 1;                      /* Reset mapping to original (sub)domain */
-  grafptr->m.domntab[0] = grafptr->m.domnorg;
+    for (vertnum = dataptr->grafptr->baseval; vertnum < dataptr->grafptr->vertnnd; vertnum ++)
+      mappptr->parttax[vertnum] = (dataptr->pfixtax[vertnum] >= 0) ? ~0 : 0;
+  }
+  else
+    memSet (mappptr->parttax + dataptr->grafptr->baseval, 0, dataptr->grafptr->vertnbr * sizeof (Anum));
+#endif /* SCOTCH_DEBUG_KGRAPH2 */
 
-  return (kgraphMapRbPart2 (&topdatadat, &grafptr->s, NULL, 0, grafptr->s.vertnbr, 0));
+  mappptr->domntab[0] = mappptr->domnorg;         /* Initialize mapping */
+  mappptr->domnnbr    = 1;
+  return (kgraphMapRbPart2 (dataptr, grafptr, NULL, 0, grafptr->vertnbr, 0, vflonbr, vflotab));
 }

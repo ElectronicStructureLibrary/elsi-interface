@@ -1,4 +1,4 @@
-/* Copyright 2004,2010-2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2010-2012,2014,2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -41,8 +41,8 @@
 /**                Fiduccia-Mattheyses-like gradient       **/
 /**                method.                                 **/
 /**                                                        **/
-/**   DATES      : # Version 6.0  : from : 03 mar 2011     **/ 
-/**                                 to     19 sep 2012     **/
+/**   DATES      : # Version 6.0  : from : 03 mar 2011     **/
+/**                                 to     06 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -128,7 +128,7 @@ Gnum * restrict                     flagval)
 #ifdef SCOTCH_DEBUG_KGRAPH2
     if (vexxtab[vexxidx].lockptr != NULL) {       /* If vertex is locked */
       errorPrint ("kgraphMapFmTablGet: internal error (1)");
-      return     (NULL); 
+      return     (NULL);
     }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
     domnnumold = vexxtab[vexxidx].domnnum;
@@ -215,7 +215,7 @@ Gnum * restrict                     flagval)
   edxxptr = NULL;
   remoptr = NULL;
 
-  while ((linkptr = fiboTreeMin (tablptr)) != NULL) { /* Select candidate vertices */
+  while ((linkptr = fiboHeapMin (tablptr)) != NULL) { /* Select candidate vertices */
     Gnum                      vexxidx;
     Gnum                      veloval;
     Anum                      domnnumold;
@@ -229,11 +229,11 @@ Gnum * restrict                     flagval)
 #ifdef SCOTCH_DEBUG_KGRAPH2
     if (vexxtab[vexxidx].lockptr != NULL) {       /* If vertex is locked */
       errorPrint ("kgraphMapFmTablGet: internal error (2)");
-      return     (NULL); 
+      return     (NULL);
     }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
 
-    fiboTreeDel (tablptr, linkptr);               /* Remove vertex link from table         */
+    fiboHeapDel (tablptr, linkptr);               /* Remove vertex link from table         */
     linkptr->linkdat.prevptr = remoptr;           /* Node has been removed but is not kept */
     remoptr = linkptr;                            /* It will be chained back afterwards    */
 
@@ -264,12 +264,12 @@ Gnum * restrict                     flagval)
 
     tempptr = remoptr;                            /* Get pointer to node */
     remoptr = remoptr->linkdat.prevptr;           /* Find next node      */
-    fiboTreeAdd (tablptr, tempptr);               /* Re-link node        */
+    fiboHeapAdd (tablptr, tempptr);               /* Re-link node        */
   }
 
   if (linkptr == NULL)
     return (NULL);
-      
+     
   *comploaddiff += deltnew;
   return (edxxptr);
 }
@@ -283,7 +283,7 @@ Gnum * restrict                     flagval)
 ** - !0  : in case of error.
 */
 
-#ifdef SCOTCH_DEBUG_KGRAPH2
+#ifdef SCOTCH_DEBUG_KGRAPH3
 
 static
 int
@@ -400,25 +400,25 @@ Gnum * const                                chektab)
     for (edxxidx = vexxtab[vexxidx].edxxidx; edxxidx != -1; edxxidx = edxxtab[edxxidx].edxxidx) {
       Gnum                        domncur;
       Gnum                        domnflg;
-  
+ 
       domnflg = 0;
       domncur = edxxtab[edxxidx].domnnum;
-  
+ 
       commgaintab[domncur] = -commloadloctmp;
       for (edgenum = verttax[vertnum]; edgenum < vendtax[vertnum]; edgenum ++) {
         Gnum                      vertend;
         Anum                      domnend;
         Gnum                      edloval;
-  
+ 
         vertend = edgetax[edgenum];
         domnend = parttax[vertend];
         edloval = (edlotax != NULL) ? edlotax[edgenum] : 1;
-  
+ 
         if (domnend == domncur) {
           domnflg = 1;
           continue;
         }
-      
+     
         edloval *= grafptr->r.crloval;
         commgaintab[domncur] += edloval        /* Add edge contribution to target domain */
                               * archDomDist (&grafptr->a, &grafptr->m.domntab[domncur], &grafptr->m.domntab[domnend]);
@@ -429,9 +429,9 @@ Gnum * const                                chektab)
       }
     }
     if ((vexxtab[vexxidx].domoptr != NULL) &&
-        (vexxtab[vexxidx].cmigload != (archDomIncl (grafptr->r.m.archptr, &grafptr->m.domntab[domnorg], vexxtab[vexxidx].domoptr) == 1) ? 0
+        (vexxtab[vexxidx].cmigload != (archDomIncl (grafptr->m.archptr, &grafptr->m.domntab[domnorg], vexxtab[vexxidx].domoptr) == 1) ? 0
                                        : grafptr->r.cmloval * ((vmlotax != NULL) ? vmlotax[vertnum] : 1)
-                                       * archDomDist (grafptr->r.m.archptr, &grafptr->m.domntab[domnorg], vexxtab[vexxidx].domoptr))) {
+                                       * archDomDist (grafptr->m.archptr, &grafptr->m.domntab[domnorg], vexxtab[vexxidx].domoptr))) {
       errorPrint ("kgraphMapFmCheck: invalid migration communication load for extended vertex");
       return     (1);
     }
@@ -482,7 +482,7 @@ Gnum * const                                chektab)
 
           if (domnorg != domnend) {
             Anum                distval;
-  
+ 
             distval = (domnend != domnlst) ? archDomDist (grafptr->m.archptr, &grafptr->m.domntab[domnorg], &grafptr->m.domntab[domnend]) : distlst;
             distlst = distval;
             domnlst = domnend;
@@ -502,7 +502,7 @@ Gnum * const                                chektab)
   return (0);
 }
 
-#endif /* SCOTCH_DEBUG_KGRAPH2 */
+#endif /* SCOTCH_DEBUG_KGRAPH3 */
 
 /*****************************/
 /*                           */
@@ -570,9 +570,6 @@ KgraphMapFmTabl * restrict const    tablptr)
 {
   KgraphMapFmEdge * restrict    edxxtab;
   Gnum                          edxxidx;
-  Gnum                          edgenum;
-  Gnum                          edlosum;
-  Gnum                          edgenbr;
   Gnum                          edxxtmp;
   Gnum                          commgain;
 
@@ -632,7 +629,7 @@ const Gnum                                  vexxidx,  /* Hash value for insertio
 KgraphMapFmVertex * restrict const          vexxtab,
 KgraphMapFmEdge **                          edxxtabptr,
 Gnum * restrict const                       edxxsizptr,
-Gnum * restrict const                       edxxnbrptr, 
+Gnum * restrict const                       edxxnbrptr,
 KgraphMapFmTabl * restrict const            tablptr)
 {
   Gnum                          oldvertnum;       /* Number of current vertex */
@@ -669,9 +666,10 @@ KgraphMapFmTabl * restrict const            tablptr)
   oldvertnum = ((grafptr->s.vnumtax != NULL) &&   /* If there is ancestor graph vertex numbers           */
                 (grafptr->s.flagval & KGRAPHHASANCHORS) == 0) /* That are not the ones of the band graph */
              ? grafptr->s.vnumtax[vertnum] : vertnum; /* Get vertex number in original graph             */
-  if ((grafptr->r.m.parttax != NULL) &&           /* We are doing a repartitioning                                          */
-      (grafptr->r.m.parttax[oldvertnum] != -1))   /* Vertex was mapped to an old domain                                     */
-    vexxtab[vexxidx].domoptr = mapDomain (&grafptr->r.m, oldvertnum); /* Domain in which the vertex was previously mapped   */
+
+  if ((grafptr->r.m.parttax != NULL) &&           /* If we are doing a repartitioning                                     */
+      (grafptr->r.m.parttax[oldvertnum] != -1))   /* And if vertex was mapped to an old domain                            */
+    vexxtab[vexxidx].domoptr = mapDomain (&grafptr->r.m, oldvertnum); /* Domain in which the vertex was previously mapped */
   else
     vexxtab[vexxidx].domoptr = NULL;
 
@@ -806,7 +804,6 @@ KgraphMapFmEdge *                 edxxtab,        /*+ Extended edge array       
 KgraphMapFmVertex ** const        lockptr)        /*+ Pointer to locked list     +*/
 {
   KgraphMapFmVertex * restrict    vexxtab;        /* Extended vertex array                */
-  KgraphMapFmSave * restrict      saveold;        /* Pointer to translated old save array */
   Gnum                            savenum;
   Gnum                            hashold;        /* Size of old hash table (half of new) */
   Gnum                            hashsiz;
@@ -843,7 +840,7 @@ KgraphMapFmVertex ** const        lockptr)        /*+ Pointer to locked list    
   *hashmskptr = hashmsk;
 
   memSet (vexxtab + hashold, ~0, hashold * sizeof (KgraphMapFmVertex)); /* Set new slots to ~0 */
- 
+
   kgraphMapFmTablFree (tablptr);                  /* Reset gain table  */
   *lockptr = (KgraphMapFmVertex *) -1;            /* Rebuild lock list */
 
@@ -904,7 +901,7 @@ KgraphMapFmVertex ** const        lockptr)        /*+ Pointer to locked list    
     if (savetab[savenum].type == KGRAPHMAPPFMSAVEVEXX) {
       Gnum                  vertnum;
       Gnum                  vexxidx;
-  
+ 
       vertnum = savetab[savenum].u.vexxdat.vexxidx; /* Get vertex number */
       for (vexxidx = (vertnum * KGRAPHMAPFMHASHPRIME) & hashmsk; vexxtab[vexxidx].vertnum != vertnum; vexxidx = (vexxidx + 1) & hashmsk) {
 #ifdef SCOTCH_DEBUG_KGRAPH2
@@ -919,7 +916,7 @@ KgraphMapFmVertex ** const        lockptr)        /*+ Pointer to locked list    
     else if ((savetab[savenum].type & KGRAPHMAPPFMSAVELINK) != 0) {
       Gnum                  vertnum;
       Gnum                  vexxidx;
-  
+ 
       vertnum = savetab[savenum].u.linkdat.vexxidx; /* Get vertex number */
       for (vexxidx = (vertnum * KGRAPHMAPFMHASHPRIME) & hashmsk; vexxtab[vexxidx].vertnum != vertnum; vexxidx = (vexxidx + 1) & hashmsk) {
 #ifdef SCOTCH_DEBUG_KGRAPH2
@@ -990,9 +987,9 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
   Gnum                            hashnum;        /* Hash value                                     */
   Gnum                            hashmax;        /* Maximum number of entries in vertex hash table */
   Gnum                            hashnbr;        /* Current number of entries in vertex hash table */
-#ifdef SCOTCH_DEBUG_KGRAPH2
+#ifdef SCOTCH_DEBUG_KGRAPH3
   Gnum *                          chektab;        /* Extra memory needed for the check routine      */
-#endif /* SCOTCH_DEBUG_KGRAPH2 */
+#endif /* SCOTCH_DEBUG_KGRAPH3 */
 
   Anum * restrict const           parttax = grafptr->m.parttax;
   const Gnum * restrict const     verttax = grafptr->s.verttax;
@@ -1001,16 +998,16 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
   const Gnum * restrict const     edlotax = grafptr->s.edlotax;
   const Gnum * restrict const     pfixtax = grafptr->pfixtax;
 
-#ifdef SCOTCH_DEBUG_KGRAPH2                       /* Allocation of extra memory needed for the check routine */
+#ifdef SCOTCH_DEBUG_KGRAPH3                       /* Allocation of extra memory needed for the check routine */
   if ((chektab = memAlloc (grafptr->m.domnnbr * 3 * sizeof(Gnum))) == NULL) {
     errorPrint ("kgraphMapFm: out of memory (1)");
     return     (1);
   }
-#endif /* SCOTCH_DEBUG_KGRAPH2 */
+#endif /* SCOTCH_DEBUG_KGRAPH3 */
   tablptr = &tabldat;
 
   grafptr->kbalval = paraptr->deltval;            /* Store last k-way imbalance ratio */
-  kgraphCost (grafptr);  
+  kgraphCost (grafptr); 
   grafptr->commload *= grafptr->r.crloval;        /* crloval must be 1 if we are not doing a repartitioning of a no-band graph */
   if (memAllocGroup ((void **) (void *)           /* Allocation and initialization of imbalance arrays                         */
                     &comploadmax, (size_t) (grafptr->m.domnnbr * sizeof (Gnum)),
@@ -1025,7 +1022,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
 
   if (grafptr->fronnbr == 0) {                    /* If no current frontier */
     Anum               domnnum;
-    
+   
     for (domnnum = 0; domnnum < grafptr->m.domnnbr; domnnum ++) {
       if (abs (grafptr->comploaddlt[domnnum]) > comploadmax[domnnum])
         break;
@@ -1063,7 +1060,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
   hashnbr = 2 * grafptr->fronnbr + 1;             /* Ensure resizing will be performed, for maximum code coverage     */
   savesiz = 2 * grafptr->fronnbr + 1;             /* Ensure resizing will be performed, for maximum code coverage     */
   edxxsiz = 2 * grafptr->fronnbr + 1;             /* Ensure resizing will be performed, for maximum code coverage     */
-#else /* SCOTCH_DEBUG_KGRAPH2 */ 
+#else /* SCOTCH_DEBUG_KGRAPH2 */
   hashnbr = 4 * (grafptr->fronnbr + paraptr->movenbr + grafptr->s.degrmax);
   savesiz = 4 * (grafptr->fronnbr + paraptr->movenbr + grafptr->s.degrmax) * 2;
   edxxsiz = 4 * (grafptr->fronnbr + paraptr->movenbr + grafptr->s.degrmax) * 4;
@@ -1080,7 +1077,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
   if (kgraphMapFmTablInit (tablptr) != 0) {
     errorPrint ("kgraphMapFm: internal error (1)"); /* Unable to do proper initialization */
     kgraphMapFmTablExit (tablptr);
-    return (1);  
+    return (1); 
   }
   else {
     if (((vexxtab = memAlloc ((size_t) hashsiz * sizeof (KgraphMapFmVertex))) == NULL) ||
@@ -1091,8 +1088,8 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
       return (1);
     }
   }
-  memset (vexxtab, ~0, hashsiz * sizeof (KgraphMapFmVertex)); /* Set all vertex numbers to ~0 */
-  memset (edxxtab, ~0, edxxsiz * sizeof (KgraphMapFmEdge));   /* Set all edge numbers to ~0   */
+  memSet (vexxtab, ~0, hashsiz * sizeof (KgraphMapFmVertex)); /* Set all vertex numbers to ~0 */
+  memSet (edxxtab, ~0, edxxsiz * sizeof (KgraphMapFmEdge));   /* Set all edge numbers to ~0   */
 
   hashnbr = grafptr->fronnbr;
   while (hashnbr >= hashmax) {
@@ -1132,12 +1129,12 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
   commloadbst = grafptr->commload;                /* Start from initial situation                              */
   cmigloadbst = 0;                                /* Do not take initial migration cost situation into account */
 
-#ifdef SCOTCH_DEBUG_KGRAPH2
+#ifdef SCOTCH_DEBUG_KGRAPH3
   if (kgraphMapFmCheck (tablptr, grafptr, vexxtab, edxxtab, hashmsk, commloadbst, chektab) != 0) {
     errorPrint ("kgraphMapFm: internal error (2)");
     return     (1);
   }
-#endif /* SCOTCH_DEBUG_KGRAPH2 */
+#endif /* SCOTCH_DEBUG_KGRAPH3 */
 
   passnbr = paraptr->passnbr;                     /* Set remaining number of passes    */
   savenbr = 0;                                    /* For empty backtrack of first pass */
@@ -1152,11 +1149,11 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
     oldsavenbr = savenbr;
 
     while (savenbr -- > 0) {                      /* Delete exceeding moves */
-      /* Restore last correct state of the graph 
+      /* Restore last correct state of the graph
        * All unlocked vertices have all there valid extended edges in the table
        * Any of the deprecated edges are in the table
        * Any of locked vertices have extended edges in the table */
-      Gnum                vexxidx;  
+      Gnum                vexxidx; 
       Gnum                oldveloval;
       Anum                domnnum;
       Anum                domnorg;
@@ -1249,7 +1246,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
             edxxcdx = edxxnum;
           edcunbr ++;
         }
-        else { 
+        else {
           vexxidx = edxxtab[edxxnum].vexxidx;
 
           edxxtab[edxxnum].edxxidx  = vexxtab[vexxidx].edxxidx; /* Link edge to vertex  */
@@ -1260,7 +1257,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
         memmove (&edxxtab[edxxcdx], &edxxtab[edxxcdx + edcunbr], (edxxnum - edxxcdx - edcunbr) * sizeof (KgraphMapFmEdge));
       edxxnbr -= edcunbr;
       edxunbr = 0;
-    } 
+    }
     else {
       while (oldsavenbr -- > 0) {                 /* Must be sure that all parttax is correct before recompute vertices gains */
         if (savetab[oldsavenbr].type == KGRAPHMAPPFMSAVEVEXX) {
@@ -1270,19 +1267,19 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
           vexxidx = savetab[oldsavenbr].u.vexxdat.vexxidx;
           if (vexxtab[vexxidx].lockptr == NULL) {
             for (edxxtmp = vexxtab[vexxidx].edxxidx; edxxtmp != -1; edxxtmp = edxxtab[edxxtmp].edxxidx) { /* Relink all vertex links */
-              kgraphMapFmTablDel (tablptr, &edxxtab[edxxtmp]); 
-              kgraphMapFmTablAdd (tablptr, &edxxtab[edxxtmp]); 
+              kgraphMapFmTablDel (tablptr, &edxxtab[edxxtmp]);
+              kgraphMapFmTablAdd (tablptr, &edxxtab[edxxtmp]);
             }
           }
         }
       }
     }
-    while (lockptr != (KgraphMapFmVertex *) -1) { /* Unlock locked vertices */ 
+    while (lockptr != (KgraphMapFmVertex *) -1) { /* Unlock locked vertices */
       KgraphMapFmVertex *           vexxptr;
       Gnum                          edxxtmp;
 
       vexxptr = lockptr;                          /* Get vertex associated with lock list */
-      lockptr = kgraphMapFmLockNext (lockptr);    /* Point to next vertex to unlock       */ 
+      lockptr = kgraphMapFmLockNext (lockptr);    /* Point to next vertex to unlock       */
 
 #ifdef SCOTCH_DEBUG_KGRAPH2
       if (vexxptr->lockptr == NULL) {
@@ -1304,12 +1301,12 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
     cmigload = cmigloadbst;
     mswpnum ++;                                   /* Forget all recorded moves */
 
-#ifdef SCOTCH_DEBUG_KGRAPH2
+#ifdef SCOTCH_DEBUG_KGRAPH3
     if (kgraphMapFmCheck (tablptr, grafptr, vexxtab, edxxtab, hashmsk, commload, chektab) != 0) {
       errorPrint ("kgraphMapFm: internal error (6)");
       return     (1);
     }
-#endif /* SCOTCH_DEBUG_KGRAPH2 */
+#endif /* SCOTCH_DEBUG_KGRAPH3 */
 
     moveflag     = 0;                              /* No useful moves made              */
     movenbr      = 0;                              /* No ineffective moves recorded yet */
@@ -1318,7 +1315,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
     flagval      = 0;
 
     while ((movenbr < paraptr->movenbr) &&
-           ((edxxptr = (KgraphMapFmEdge *) kgraphMapFmTablGet (tablptr, vexxtab, comploaddlt, comploadmax, &comploaddiff, &flagval)) != NULL)) { 
+           ((edxxptr = (KgraphMapFmEdge *) kgraphMapFmTablGet (tablptr, vexxtab, comploaddlt, comploadmax, &comploaddiff, &flagval)) != NULL)) {
       /* Move one vertex */
       Gnum                vexxidx;
       Gnum                edxxtmp;
@@ -1331,7 +1328,6 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
       Gnum                edxxidx;
       Gnum *              edxpptr;
       Gnum *              vpexptr;
-      Gnum                vexdflg;
 
       vexxidx = edxxptr->vexxidx;                 /* Get relevant information */
       vertnum = vexxtab[vexxidx].vertnum;
@@ -1342,7 +1338,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
       domnend = edxxptr->domnnum;
 
       /* Save moved vertex information */
-      if (vexxtab[vexxidx].mswpnum != mswpnum) {  /* If extended vertex data not yet recorded */ 
+      if (vexxtab[vexxidx].mswpnum != mswpnum) {  /* If extended vertex data not yet recorded */
         vexxtab[vexxidx].mswpnum            = mswpnum;
         savetab[savenbr].type               = KGRAPHMAPPFMSAVEVEXX; /* Save extended vertex data */
         savetab[savenbr].u.vexxdat.vexxidx  = vexxidx;
@@ -1352,9 +1348,9 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
         savetab[savenbr].u.vexxdat.edlosum  = edlosum;
         savetab[savenbr].u.vexxdat.edgenbr  = edgenbr;
         savenbr ++;                               /* One more data recorded */
-      } 
+      }
       for (edxxidx = vexxtab[vexxidx].edxxidx; edxxidx != -1; edxxidx = edxxtab[edxxidx].edxxidx) { /* Save vertex links */
-        if (edxxtab[edxxidx].mswpnum != mswpnum) { /* If extended edge data not yet recorded */ 
+        if (edxxtab[edxxidx].mswpnum != mswpnum) { /* If extended edge data not yet recorded */
           edxxtab[edxxidx].mswpnum            = mswpnum;
           savetab[savenbr].type               = KGRAPHMAPPFMSAVEEDXX; /* Save extended edge data */
           savetab[savenbr].u.edxxdat.edxxidx  = edxxidx;
@@ -1369,7 +1365,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
       }
       movenbr ++;                                 /* One more move done */
 
-      commload += edxxptr->commgain; 
+      commload += edxxptr->commgain;
       cmigload += edxxptr->cmiggain;
 
 #ifdef SCOTCH_DEBUG_KGRAPH2
@@ -1385,7 +1381,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
       kgraphMapFmLock (lockptr, &vexxtab[vexxidx]); /* Set part as having changed (lock vertex) */
 
       for (edxxtmp = vexxtab[vexxidx].edxxidx; edxxtmp != -1; edxxtmp = edxxtab[edxxtmp].edxxidx) /* Unlink all vertex links from gain arrays */
-        kgraphMapFmTablDel (tablptr, &edxxtab[edxxtmp]); 
+        kgraphMapFmTablDel (tablptr, &edxxtab[edxxtmp]);
       edxxtmp = vexxtab[vexxidx].edxxidx;         /* Lock vertex through its first link */
 
       /* Switch information with corresponding extended edge
@@ -1413,17 +1409,16 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
           vpexptr = edxpptr;
           continue;
         }
-        edxxtab[edxxidx].commgain -= edxxptr->commgain;    
-        edxxtab[edxxidx].cmiggain -= edxxptr->cmiggain; 
+        edxxtab[edxxidx].commgain -= edxxptr->commgain;   
+        edxxtab[edxxidx].cmiggain -= edxxptr->cmiggain;
         edxxtab[edxxidx].distval = archDomDist (&grafptr->a, &grafptr->m.domntab[domnend], &grafptr->m.domntab[domncur]);
       }
       edxxptr->commgain = - edxxptr->commgain;
       edxxptr->cmiggain = - edxxptr->cmiggain;
 
-      vexdflg = 0;
       if (edgenbr == 0) {
-        Gnum              edxxidx;  
- 
+        Gnum              edxxidx; 
+
         edxxidx = *vpexptr;
         savetab[savenbr].type = KGRAPHMAPPFMSAVELINKDEL; /* Save it */
         savetab[savenbr].u.linkdat.edxxidx = edxxidx;
@@ -1441,18 +1436,15 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
          *   linked to this domain.
          * - Update commgain of other edges.
          * - Relink extended edges
-         */  
+         */ 
         Gnum                edxxend;
         Gnum                vexxend;
-        Gnum                edxoidx;              /* Index of extended edge to old domain                    */ 
+        Gnum                edxoidx;              /* Index of extended edge to old domain                    */
         Gnum *              edxcptr;              /* Pointer to index of current extended edge               */
         Gnum *              edxoptr;              /* Pointer to index of extended edge to old domain         */
         Gnum                edxnidx;              /* index of extended edge to new domain                    */
         Gnum                vertend;              /* Number of current end neighbor vertex                   */
-        Gnum                edxfidx;              /* Index of first extended edge to update                  */ 
-        Gnum                edgeend;
-        Gnum                edodnbr;
-        Gnum                edndnbr;
+        Gnum                edxfidx;              /* Index of first extended edge to update                  */
         Anum                divoval;              /* Distance between current neighbor domain and old domain */
         Anum                divnval;              /* Distance between current neighbor domain and new domain */
         Gnum                edloval;
@@ -1460,12 +1452,9 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
         vertend = edgetax[edgenum];
         edloval = (edlotax != NULL) ? edlotax[edgenum] : 1;
 
-        if (parttax[edgetax[edgenum]] == domnnum)
-          vexdflg = 1;
-
         if ((pfixtax != NULL) && (pfixtax[vertend] != -1)) /* Do not link fixed vertices */
           continue;
-         
+        
         if (savenbr >= (savesiz - (grafptr->m.domnnbr + 4) * 4)) {
           KgraphMapFmSave *               saveptr; /* Pointer to move array */
 
@@ -1480,7 +1469,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
           savetab = saveptr;
         }
         if (hashnbr >= hashmax) {                 /* If extended vertex table is already full */
-          if (kgraphMapFmResize (&vexxtab, &hashmax, &hashmsk, savetab, savenbr, tablptr, edxxtab, &lockptr) != 0) { 
+          if (kgraphMapFmResize (&vexxtab, &hashmax, &hashmsk, savetab, savenbr, tablptr, edxxtab, &lockptr) != 0) {
             errorPrint ("kgraphMapFm: out of memory (7)");
             memFree    (vexxtab);                 /* Free group leader */
             kgraphMapFmTablExit (tablptr);
@@ -1532,7 +1521,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
         if (vexxtab[vexxend].mswpnum != mswpnum) { /* If vertex data not yet recorded */
           vexxtab[vexxend].mswpnum            = mswpnum;
           savetab[savenbr].type               = KGRAPHMAPPFMSAVEVEXX; /* Save extended vertex data */
-          savetab[savenbr].u.vexxdat.vexxidx  = vexxend; 
+          savetab[savenbr].u.vexxdat.vexxidx  = vexxend;
           savetab[savenbr].u.vexxdat.veloval  = vexxtab[vexxend].veloval;
           savetab[savenbr].u.vexxdat.domnnum  = vexxtab[vexxend].domnnum;
           savetab[savenbr].u.vexxdat.cmigload = vexxtab[vexxend].cmigload;
@@ -1553,7 +1542,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
           Gnum            domncur;                /* Save vertex links */
 
           domncur = edxxtab[edxxidx].domnnum;
-          if (edxxtab[edxxidx].mswpnum != mswpnum) { /* If extended edge data not yet recorded */ 
+          if (edxxtab[edxxidx].mswpnum != mswpnum) { /* If extended edge data not yet recorded */
             edxxtab[edxxidx].mswpnum            = mswpnum;
             savetab[savenbr].type               = KGRAPHMAPPFMSAVEEDXX; /* Save extended edge data */
             savetab[savenbr].u.edxxdat.edxxidx  = edxxidx;
@@ -1570,7 +1559,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
             return     (1);
           }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
-          } 
+          }
           if (domncur == domnnum) {
             edxoidx = edxxidx;
             edxoptr = edxcptr;
@@ -1585,7 +1574,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
             divnval = edxxtab[edxxidx].distval;
           }
         }
-#ifdef SCOTCH_DEBUG_KGRAPH2 
+#ifdef SCOTCH_DEBUG_KGRAPH2
         if ((edxoidx == -1) && (vexxtab[vexxend].domnnum != domnnum)) {
           errorPrint ("kgraphMapFm: internal error (12)");
           return     (1);
@@ -1624,10 +1613,12 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
         }
 
         if ((edxnidx == -1) && (vexxtab[vexxend].domnnum != domnend)) { /* If was first vertex linked to this domain, add edge to new domain */
+#ifdef SCOTCH_DEBUG_KGRAPH2
           Gnum        edxxidx;
+#endif /* SCOTCH_DEBUG_KGRAPH2 */
 
           kgraphMapFmPartAdd2 (grafptr, vexxtab, vexxend, &edxxtab, &edxxsiz, &edxxnbr, vexxtab[vexxend].domnnum, domnend, edloval, tablptr); /* Add new extended edge */
-#ifdef SCOTCH_DEBUG_KGRAPH2 
+#ifdef SCOTCH_DEBUG_KGRAPH2
           for (edxxidx = vexxtab[vexxend].edxxidx; (edxxidx != -1) && (edxxtab[edxxidx].domnnum != domnend); edxxidx = edxxtab[edxxidx].edxxidx) ;
           if (edxxidx == -1) {
             errorPrint ("kgraphMapFm: internal error (13)");
@@ -1679,7 +1670,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
         comploaddiff = 0;
         mswpnum ++;
       }
-      else if ((commload + cmigload) < (commloadbst + cmigloadbst)) { /* If move improves the cost */ 
+      else if ((commload + cmigload) < (commloadbst + cmigloadbst)) { /* If move improves the cost */
         commloadbst  = commload;                  /* This move was effective                       */
         cmigloadbst  = cmigload;
         moveflag     = 1;
@@ -1688,7 +1679,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
         flagval      = 0;
         comploaddiff = 0;
         mswpnum ++;
-      } 
+      }
       else if (((commload + cmigload) == (commloadbst + cmigloadbst)) && (comploaddiff < 0)) { /* If move improves balance and cut does not decrease */
         commloadbst  = commload;                  /* This move was effective */
         cmigloadbst  = cmigload;
@@ -1707,28 +1698,28 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
         flagval     = 0;
         mswpnum ++;
       }
-#ifdef SCOTCH_DEBUG_KGRAPH2
+#ifdef SCOTCH_DEBUG_KGRAPH3
       if (kgraphMapFmCheck (tablptr, grafptr, vexxtab, edxxtab, hashmsk, commload, chektab) != 0) {
         errorPrint ("kgraphMapFm: internal error (16)");
         return     (1);
       }
-#endif /* SCOTCH_DEBUG_KGRAPH2 */
+#endif /* SCOTCH_DEBUG_KGRAPH3 */
     }
-#ifdef SCOTCH_DEBUG_KGRAPH2
+#ifdef SCOTCH_DEBUG_KGRAPH3
     if (kgraphMapFmCheck (tablptr, grafptr, vexxtab, edxxtab, hashmsk, commload, chektab) != 0) {
       errorPrint ("kgraphMapFm: internal error (17)");
       return     (1);
     }
-#endif /* SCOTCH_DEBUG_KGRAPH2 */
+#endif /* SCOTCH_DEBUG_KGRAPH3 */
   } while ((moveflag != 0) &&                     /* As long as vertices are moved                          */
            (-- passnbr != 0));                    /* And we are allowed to loop (TRICK for negative values) */
 
-#ifdef SCOTCH_DEBUG_KGRAPH2
+#ifdef SCOTCH_DEBUG_KGRAPH3
   if (kgraphMapFmCheck (tablptr, grafptr, vexxtab, edxxtab, hashmsk, commload, chektab) != 0) {
     errorPrint ("kgraphMapFm: internal error (18)");
     return     (1);
   }
-#endif /* SCOTCH_DEBUG_KGRAPH2 */
+#endif /* SCOTCH_DEBUG_KGRAPH3 */
 
   while (savenbr -- > 0) {                        /* Delete exceeding moves */
     Gnum                vexxidx;
@@ -1838,9 +1829,9 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
   for (domnnum = 0; domnnum < grafptr->m.domnnbr; domnnum ++)  /* Update graph information */
     grafptr->comploaddlt[domnnum] = comploaddlt[domnnum];
 
-#ifdef SCOTCH_DEBUG_KGRAPH2
+#ifdef SCOTCH_DEBUG_KGRAPH3
   memFree (chektab);                              /* Free group leader */
-#endif /* SCOTCH_DEBUG_KGRAPH2 */
+#endif /* SCOTCH_DEBUG_KGRAPH3 */
   memFree (comploadmax);                          /* Free group leader */
   memFree (vexxtab);
   memFree (savetab);
@@ -1856,5 +1847,3 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
 
   return (0);
 }
-
-

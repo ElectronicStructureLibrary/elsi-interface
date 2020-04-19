@@ -1,4 +1,4 @@
-/* Copyright 2007,2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2007,2010,2013,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -51,6 +51,8 @@
 /**                                 to   : 10 sep 2007     **/
 /**                # Version 5.1  : from : 30 jul 2010     **/
 /**                                 to   : 03 nov 2010     **/
+/**                # Version 6.0  : from : 23 dec 2013     **/
+/**                                 to   : 03 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -94,15 +96,18 @@ Gnum * const                edgeloctax,           /* Local edge array           
 Gnum * const                edgegsttax,           /* Ghost edge array (if any); not const */
 Gnum * const                edloloctax)           /* Local edge load array (if any)       */
 {
-  Gnum                  vertlocnum;
-  Gnum                  vertlocnnd;
-  Gnum                  velolocsum;
-  Gnum                  degrlocmax;               /* Local maximum degree */
+  Gnum                vertlocnum;
+  Gnum                vertlocnnd;
+  Gnum                velolocsum;
+  Gnum                degrlocmax;                 /* Local maximum degree */
 
   for (vertlocnum = baseval, vertlocnnd = vertlocnbr + baseval, degrlocmax = 0;
-       vertlocnum < vertlocnnd; vertlocnum ++)  {
-    if (degrlocmax < (vendloctax[vertlocnum] - vertloctax[vertlocnum]))
-      degrlocmax = (vendloctax[vertlocnum] - vertloctax[vertlocnum]);
+       vertlocnum < vertlocnnd; vertlocnum ++) {
+    Gnum                degrval;
+
+    degrval = vendloctax[vertlocnum] - vertloctax[vertlocnum];
+    if (degrlocmax < degrval)
+      degrlocmax = degrval;
   }
 
   if (veloloctax == NULL)                         /* Get local vertex load sum */
@@ -158,7 +163,6 @@ const Gnum                  degrlocmax)
 {
   Gnum                  procnum;
   int                   reduloctab[2];
-  int                   cheklocval;               /* Local consistency flag */
 
 #ifdef SCOTCH_DEBUG_DGRAPH2
   if ((vertlocmax < vertlocnbr) ||
@@ -168,7 +172,6 @@ const Gnum                  degrlocmax)
   }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
-  cheklocval = 0;
   if (grafptr->procdsptab == NULL) {              /* If private data not yet allocated */
     int                 procglbnbr;
 
@@ -180,14 +183,18 @@ const Gnum                  degrlocmax)
                        &grafptr->procngbtab, (size_t) (procglbnbr       * sizeof (int)),
                        &grafptr->procrcvtab, (size_t) (procglbnbr       * sizeof (int)),
                        &grafptr->procsndtab, (size_t) (procglbnbr       * sizeof (int)), NULL) == NULL) {
-      int                 dummytab[procglbnbr * 2];
+      int *               dummtab;
 
       errorPrint ("dgraphBuild2: out of memory");
-      reduloctab[0] =
-      reduloctab[1] = -1;
-      if (MPI_Allgather (reduloctab, 2, MPI_INT,  /* Use dummy receive array (if can be allocated too) */
-                         dummytab,   2, MPI_INT, grafptr->proccomm) != MPI_SUCCESS)
-        errorPrint ("dgraphBuild2: communication error (1)");
+      if ((dummtab = memAlloc ((procglbnbr * 2) * sizeof (int))) != NULL) {
+        reduloctab[0] =
+        reduloctab[1] = -1;
+        if (MPI_Allgather (reduloctab, 2, MPI_INT, /* Use dummy receive array (if can be allocated too) */
+                           dummtab,    2, MPI_INT, grafptr->proccomm) != MPI_SUCCESS)
+          errorPrint ("dgraphBuild2: communication error (1)");
+
+        memFree (dummtab);
+      }
       return (1);
     }
   }
@@ -213,8 +220,8 @@ const Gnum                  degrlocmax)
     grafptr->procvrttab[procnum + 1] = grafptr->procvrttab[procnum] + (Gnum) grafptr->procngbtab[2 * procnum + 1];
     grafptr->proccnttab[procnum]     = grafptr->procdsptab[procnum + 1] - grafptr->procdsptab[procnum];
   }
-
   grafptr->flagval |= DGRAPHFREEPRIV;
+
   return (dgraphBuild3 (grafptr, baseval,
                         vertlocnbr, vertloctax, vendloctax, veloloctax, velolocsum, vnumloctax, vlblloctax,
                         edgelocnbr, edgelocsiz, edgeloctax, edgegsttax, edloloctax, degrlocmax));
@@ -403,7 +410,7 @@ const Gnum                  degrlocmax)
          procngbnbr < procglbnbr;
          procngbnbr ++, procngbsel = 1 - procngbsel) {
       procngbnum = (grafptr->proclocnum + procngbnbr) % procglbnbr; /* Get neighbor process */
-      vertngbmin = grafptr->procdsptab[procngbnum]; /* Get neighbor vertex number range     */
+      vertngbmin = grafptr->procvrttab[procngbnum]; /* Get neighbor vertex number range     */
 
       if (procngbnbr < (procglbnbr - 1)) {        /* If not last iteration */
         MPI_Irecv (vesongbtab[1 - procngbsel], 2 * grafptr->vertglbmax, GNUM_MPI, procrcvnum, TAGVLBLLOCTAB, grafptr->proccomm, &requloctab[0]);

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2011,2013 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -61,8 +61,8 @@
 /**                                 to     10 mar 2005     **/
 /**                # Version 5.1  : from : 21 jan 2008     **/
 /**                                 to     11 aug 2010     **/
-/**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     14 fev 2011     **/
+/**                # Version 6.0  : from : 14 feb 2011     **/
+/**                                 to     27 mar 2015     **/
 /**                                                        **/
 /************************************************************/
 
@@ -75,6 +75,7 @@
 #include "module.h"
 #include "common.h"
 #include "arch.h"
+#include "arch_mesh.h"
 #include "arch_torus.h"
 
 /***********************************************/
@@ -83,125 +84,13 @@
 /*                                             */
 /***********************************************/
 
-/* This routine loads the
-** bidimensional torus architecture.
-** It returns:
-** - 0   : if the architecture has been successfully read.
-** - !0  : on error.
-*/
-
-int
-archTorus2ArchLoad (
-ArchTorus2 * restrict const archptr,
-FILE * restrict const       stream)
-{
-#ifdef SCOTCH_DEBUG_ARCH1
-  if ((sizeof (ArchTorus2)    > sizeof (ArchDummy)) ||
-      (sizeof (ArchTorus2Dom) > sizeof (ArchDomDummy))) {
-    errorPrint ("archTorus2ArchLoad: invalid type specification");
-    return     (1);
-  }
-#endif /* SCOTCH_DEBUG_ARCH1 */
-
-  if ((intLoad (stream, &archptr->c[0]) != 1) ||
-      (intLoad (stream, &archptr->c[1]) != 1) ||
-      (archptr->c[0] < 1) || (archptr->c[1] < 1)) {
-    errorPrint ("archTorus2ArchLoad: bad input");
-    return     (1);
-  }
-
-  return (0);
-}
-
-/* This routine saves the
-** bidimensional torus architecture.
-** It returns:
-** - 0   : if the architecture has been successfully written.
-** - !0  : on error.
-*/
-
-int
-archTorus2ArchSave (
-const ArchTorus2 * const    archptr,
-FILE * restrict const       stream)
-{
-#ifdef SCOTCH_DEBUG_ARCH1
-  if ((sizeof (ArchTorus2)    > sizeof (ArchDummy)) ||
-      (sizeof (ArchTorus2Dom) > sizeof (ArchDomDummy))) {
-    errorPrint ("archTorus2ArchSave: invalid type specification");
-    return     (1);
-  }
-#endif /* SCOTCH_DEBUG_ARCH1 */
-
-  if (fprintf (stream, ANUMSTRING " " ANUMSTRING " ",
-               (Anum) archptr->c[0],
-               (Anum) archptr->c[1]) == EOF) {
-    errorPrint ("archTorus2ArchSave: bad output");
-    return     (1);
-  }
-
-  return (0);
-}
-
-/* This function returns the smallest number
-** of terminal domain included in the given
-** domain.
-*/
-
-ArchDomNum
-archTorus2DomNum (
-const ArchTorus2 * const    archptr,
-const ArchTorus2Dom * const domptr)
-{
-  return ((domptr->c[1][0] * archptr->c[0]) + domptr->c[0][0]); /* Return vertex number */
-}
-
-/* This function returns the terminal domain associated
-** with the given terminal number in the architecture.
-** It returns:
-** - 0  : if label is valid and domain has been updated.
-** - 1  : if label is invalid.
-** - 2  : on error.
-*/
-
-int
-archTorus2DomTerm (
-const ArchTorus2 * const    archptr,
-ArchTorus2Dom * const       domptr,
-const ArchDomNum            domnum)
-{
-  if (domnum < (archptr->c[0] * archptr->c[1])) { /* If valid label */
-    domptr->c[0][0] =                             /* Set the domain */
-    domptr->c[0][1] = domnum % archptr->c[0];
-    domptr->c[1][0] =
-    domptr->c[1][1] = domnum / archptr->c[0];
-
-    return (0);
-  }
-
-  return (1);                                     /* Cannot set domain */
-}
-
-/* This function returns the number of
-** elements in the rectangular domain.
-*/
-
-Anum 
-archTorus2DomSize (
-const ArchTorus2 * const    archptr,
-const ArchTorus2Dom * const domptr)
-{
-  return ((domptr->c[0][1] - domptr->c[0][0] + 1) *
-          (domptr->c[1][1] - domptr->c[1][0] + 1));
-}
-
 /* This function returns the average
 ** distance between two rectangular
 ** domains (in fact the distance between
 ** the centers of the domains).
 */
 
-Anum 
+Anum
 archTorus2DomDist (
 const ArchTorus2 * const    archptr,
 const ArchTorus2Dom * const dom0ptr,
@@ -221,293 +110,18 @@ const ArchTorus2Dom * const dom1ptr)
   return ((ds0 + ds1) >> 1);
 }
 
-/* This function sets the biggest
-** domain available for this
-** architecture.
-** It returns:
-** - 0   : on success.
-** - !0  : on error.
-*/
-
-int
-archTorus2DomFrst (
-const ArchTorus2 * const        archptr,
-ArchTorus2Dom * restrict const  domptr)
-{
-  domptr->c[0][0] =
-  domptr->c[1][0] = 0;
-  domptr->c[0][1] = archptr->c[0] - 1;
-  domptr->c[1][1] = archptr->c[1] - 1;
-
-  return (0);
-}
-
-/* This routine reads domain information
-** from the given stream.
-** It returns:
-** - 0   : on success.
-** - !0  : on error.
-*/
-
-int
-archTorus2DomLoad (
-const ArchTorus2 * const        archptr,
-ArchTorus2Dom * restrict const  domptr,
-FILE * restrict const           stream)
-{
-  if ((intLoad (stream, &domptr->c[0][0]) != 1) ||
-      (intLoad (stream, &domptr->c[1][0]) != 1) ||
-      (intLoad (stream, &domptr->c[0][1]) != 1) ||
-      (intLoad (stream, &domptr->c[1][1]) != 1)) {
-    errorPrint ("archTorus2DomLoad: bad input");
-    return     (1);
-  }
-
-  return (0);
-}
-
-/* This routine saves domain information
-** to the given stream.
-** - 0   : on success.
-** - !0  : on error.
-*/
-
-int
-archTorus2DomSave (
-const ArchTorus2 * const    archptr,
-const ArchTorus2Dom * const domptr,
-FILE * restrict const       stream)
-{
-  if (fprintf (stream, ANUMSTRING " " ANUMSTRING " " ANUMSTRING " " ANUMSTRING " ",
-               (Anum) domptr->c[0][0], (Anum) domptr->c[1][0],
-               (Anum) domptr->c[0][1], (Anum) domptr->c[1][1]) == EOF) {
-    errorPrint ("archTorus2DomSave: bad output");
-    return     (1);
-  }
-
-  return (0);
-}
-
-/* This function tries to split a rectangular
-** domain into two subdomains.
-** It returns:
-** - 0  : if bipartitioning succeeded.
-** - 1  : if bipartitioning could not be performed.
-** - 2  : on error.
-*/
-
-int
-archTorus2DomBipart (
-const ArchTorus2 * const        archptr,
-const ArchTorus2Dom * const     domptr,
-ArchTorus2Dom * restrict const  dom0ptr,
-ArchTorus2Dom * restrict const  dom1ptr)
-{
-  Anum                dimsiz[2];
-  int                 dimval;                     /* Dimension along which to split */
-
-  dimsiz[0] = domptr->c[0][1] - domptr->c[0][0];
-  dimsiz[1] = domptr->c[1][1] - domptr->c[1][0];
-
-  if ((dimsiz[0] | dimsiz[1]) == 0)               /* Return if cannot bipartition more */
-    return (1);
-
-  dimval = 1;
-  if ((dimsiz[0] > dimsiz[1]) ||                  /* Split domain in two along largest dimension */
-      ((dimsiz[0] == dimsiz[1]) && (archptr->c[0] > archptr->c[1])))
-    dimval = 0;
-
-  if (dimval == 0) {                              /* Split across the X dimension */
-    dom0ptr->c[0][0] = domptr->c[0][0];
-    dom0ptr->c[0][1] = (domptr->c[0][0] + domptr->c[0][1]) / 2;
-    dom1ptr->c[0][0] = dom0ptr->c[0][1] + 1;
-    dom1ptr->c[0][1] = domptr->c[0][1];
-    dom0ptr->c[1][0] = dom1ptr->c[1][0] = domptr->c[1][0];
-    dom0ptr->c[1][1] = dom1ptr->c[1][1] = domptr->c[1][1];
-  }
-  else {                                          /* Split across the Y dimension */
-    dom0ptr->c[0][0] = dom1ptr->c[0][0] = domptr->c[0][0];
-    dom0ptr->c[0][1] = dom1ptr->c[0][1] = domptr->c[0][1];
-    dom0ptr->c[1][0] = domptr->c[1][0];
-    dom0ptr->c[1][1] = (domptr->c[1][0] + domptr->c[1][1]) / 2;
-    dom1ptr->c[1][0] = dom0ptr->c[1][1] + 1;
-    dom1ptr->c[1][1] = domptr->c[1][1];
-  }
-
-  return (0);
-}
-
-/* This function checks if dom1 is
-** included in dom0.
-** It returns:
-** - 0  : if dom1 is not included in dom0.
-** - 1  : if dom1 is included in dom0.
-** - 2  : on error.
-*/
-
-int
-archTorus2DomIncl (
-const ArchTorus2 * const    archptr,
-const ArchTorus2Dom * const dom0ptr,
-const ArchTorus2Dom * const dom1ptr)
-{
-  if ((dom0ptr->c[0][0] <= dom1ptr->c[0][0]) &&
-      (dom0ptr->c[0][1] >= dom1ptr->c[0][1]) &&
-      (dom0ptr->c[1][0] <= dom1ptr->c[1][0]) &&
-      (dom0ptr->c[1][1] >= dom1ptr->c[1][1]))
-    return (1);
-
-  return (0);
-}
-
-/* This function creates the MPI_Datatype for
-** 2D torus domains.
-** It returns:
-** - 0  : if type could be created.
-** - 1  : on error.
-*/
-
-#ifdef SCOTCH_PTSCOTCH
-int
-archTorus2DomMpiType (
-const ArchTorus2 * const      archptr,
-MPI_Datatype * const          typeptr)
-{
-  MPI_Type_contiguous (4, ANUM_MPI, typeptr);
-
-  return (0);
-}
-#endif /* SCOTCH_PTSCOTCH */
-
 /***********************************************/
 /*                                             */
 /* These are the 3-dimensional torus routines. */
 /*                                             */
 /***********************************************/
 
-/* This routine loads the
-** tridimensional torus architecture.
-** It returns:
-** - 0   : if the architecture has been successfully read.
-** - !0  : on error.
-*/
-
-int
-archTorus3ArchLoad (
-ArchTorus3 * restrict const archptr,
-FILE * restrict const       stream)
-{
-#ifdef SCOTCH_DEBUG_ARCH1
-  if ((sizeof (ArchTorus3)    > sizeof (ArchDummy)) ||
-      (sizeof (ArchTorus3Dom) > sizeof (ArchDomDummy))) {
-    errorPrint ("archTorus3ArchLoad: invalid type specification");
-    return     (1);
-  }
-#endif /* SCOTCH_DEBUG_ARCH1 */
-
-  if ((intLoad (stream, &archptr->c[0]) != 1) ||
-      (intLoad (stream, &archptr->c[1]) != 1) ||
-      (intLoad (stream, &archptr->c[2]) != 1) ||
-      (archptr->c[0] < 1) || (archptr->c[1] < 1) || (archptr->c[2] < 1)) {
-    errorPrint ("archTorus3ArchLoad: bad input");
-    return     (1);
-  }
-
-  return (0);
-}
-
-/* This routine saves the
-** tridimensional torus architecture.
-** It returns:
-** - 0   : if the architecture has been successfully written.
-** - !0  : on error.
-*/
-
-int
-archTorus3ArchSave (
-const ArchTorus3 * const    archptr,
-FILE * restrict const       stream)
-{
-#ifdef SCOTCH_DEBUG_ARCH1
-  if ((sizeof (ArchTorus3)    > sizeof (ArchDummy)) ||
-      (sizeof (ArchTorus3Dom) > sizeof (ArchDomDummy))) {
-    errorPrint ("archTorus3ArchSave: invalid type specification");
-    return     (1);
-  }
-#endif /* SCOTCH_DEBUG_ARCH1 */
-
-  if (fprintf (stream, ANUMSTRING " " ANUMSTRING " " ANUMSTRING " ",
-               (Anum) archptr->c[0], (Anum) archptr->c[1], (Anum) archptr->c[2]) == EOF) {
-    errorPrint ("archTorus3ArchSave: bad output");
-    return     (1);
-  }
-
-  return (0);
-}
-
-/* This function returns the smallest number
-** of terminal domain included in the given
-** domain.
-*/
-
-ArchDomNum
-archTorus3DomNum (
-const ArchTorus3 * const    archptr,
-const ArchTorus3Dom * const domptr)
-{
-  return ((((domptr->c[2][0]  * archptr->c[1]) +  /* Return the vertex number */
-             domptr->c[1][0]) * archptr->c[0]) +
-             domptr->c[0][0]);
-}
-
-/* This function returns the terminal domain associated
-** with the given terminal number in the architecture.
-** It returns:
-** - 0  : if label is valid and domain has been updated.
-** - 1  : if label is invalid.
-** - 2  : on error.
-*/
-
-int
-archTorus3DomTerm (
-const ArchTorus3 * const    archptr,
-ArchTorus3Dom * const       domptr,
-const ArchDomNum            domnum)
-{
-  if (domnum < (archptr->c[0] * archptr->c[1] * archptr->c[2])) { /* If valid label */
-    domptr->c[0][0] =                             /* Set the domain                 */
-    domptr->c[0][1] = domnum % archptr->c[0];
-    domptr->c[1][0] =
-    domptr->c[1][1] = (domnum / archptr->c[0]) % archptr->c[1];
-    domptr->c[2][0] =
-    domptr->c[2][1] = domnum / (archptr->c[0] * archptr->c[1]);
-
-    return (0);
-  }
-
-  return (1);                                     /* Cannot set domain */
-}
-
-/* This function returns the number of
-** elements in the cubic domain.
-*/
-
-Anum 
-archTorus3DomSize (
-const ArchTorus3 * const    archptr,
-const ArchTorus3Dom * const domptr)
-{
-  return ((domptr->c[0][1] - domptr->c[0][0] + 1) *
-          (domptr->c[1][1] - domptr->c[1][0] + 1) *
-          (domptr->c[2][1] - domptr->c[2][0] + 1));
-}
-
 /* This function returns the average distance
 ** between two cubic domains (in fact the
 ** distance between the centers of the domains).
 */
 
-Anum 
+Anum
 archTorus3DomDist (
 const ArchTorus3 * const    archptr,
 const ArchTorus3Dom * const dom0ptr,
@@ -531,181 +145,40 @@ const ArchTorus3Dom * const dom1ptr)
   return ((ds0 + ds1 + ds2) >> 1);
 }
 
-/* This function sets the biggest
-** domain available for this
-** architecture.
-** It returns:
-** - 0   : on success.
-** - !0  : on error.
+/***********************************************/
+/*                                             */
+/* These are the x-dimensional torus routines. */
+/*                                             */
+/***********************************************/
+
+/* This function returns the average distance
+** between two X-dimensional domains (that is,
+** the Manhattan distance between the centers
+** of the domains).
 */
 
-int
-archTorus3DomFrst (
-const ArchTorus3 * const        archptr,
-ArchTorus3Dom * restrict const  domptr)
+Anum
+archTorusXDomDist (
+const ArchTorusX * const    archptr,
+const ArchTorusXDom * const dom0ptr,
+const ArchTorusXDom * const dom1ptr)
 {
-  domptr->c[0][0] =
-  domptr->c[1][0] =
-  domptr->c[2][0] = 0;
-  domptr->c[0][1] = archptr->c[0] - 1;
-  domptr->c[1][1] = archptr->c[1] - 1;
-  domptr->c[2][1] = archptr->c[2] - 1;
+  Anum                dimnnum;
+  Anum                distval;
 
-  return (0);
-}
+  for (dimnnum = 0, distval = 0; dimnnum < archptr->dimnnbr; dimnnum ++) {
+    Anum                disttmp;
 
-/* This routine reads domain information
-** from the given stream.
-** It returns:
-** - 0   : on success.
-** - !0  : on error.
-*/
-
-int
-archTorus3DomLoad (
-const ArchTorus3 * const        archptr,
-ArchTorus3Dom * restrict const  domptr,
-FILE * restrict const           stream)
-{
-  if ((intLoad (stream, &domptr->c[0][0]) != 1) ||
-      (intLoad (stream, &domptr->c[1][0]) != 1) ||
-      (intLoad (stream, &domptr->c[2][0]) != 1) ||
-      (intLoad (stream, &domptr->c[0][1]) != 1) ||
-      (intLoad (stream, &domptr->c[1][1]) != 1) ||
-      (intLoad (stream, &domptr->c[2][1]) != 1)) {
-    errorPrint ("archTorus3DomLoad: bad input");
-    return     (1);
+    disttmp = abs (dom0ptr->c[dimnnum][0] + dom0ptr->c[dimnnum][1] -
+                   dom1ptr->c[dimnnum][0] - dom1ptr->c[dimnnum][1]);
+    distval += (disttmp > archptr->c[dimnnum]) ? (2 * archptr->c[dimnnum] - disttmp) : disttmp;
   }
 
-  return (0);
-}
-
-/* This routine saves domain information
-** to the given stream.
-** It returns:
-** - 0   : on success.
-** - !0  : on error.
-*/
-
-int
-archTorus3DomSave (
-const ArchTorus3 * const    archptr,
-const ArchTorus3Dom * const domptr,
-FILE * restrict const       stream)
-{
-  if (fprintf (stream, ANUMSTRING " " ANUMSTRING " " ANUMSTRING " " ANUMSTRING " " ANUMSTRING " " ANUMSTRING " ",
-               (Anum) domptr->c[0][0], (Anum) domptr->c[1][0], (Anum) domptr->c[2][0],
-               (Anum) domptr->c[0][1], (Anum) domptr->c[1][1], (Anum) domptr->c[2][1]) == EOF) {
-    errorPrint ("archTorus3DomSave: bad output");
-    return     (1);
-  }
-
-  return (0);
-}
-
-/* This function tries to split a cubic
-** domain into two subdomains.
-** It returns:
-** - 0  : if bipartitioning succeeded.
-** - 1  : if bipartitioning could not be performed.
-** - 2  : on error.
-*/
-
-int
-archTorus3DomBipart (
-const ArchTorus3 * const        archptr,
-const ArchTorus3Dom * const     domptr,
-ArchTorus3Dom * restrict const  dom0ptr,
-ArchTorus3Dom * restrict const  dom1ptr)
-{
-  Anum                dimsiz[3];
-  int                 dimtmp;
-  int                 dimval;
-
-  dimsiz[0] = domptr->c[0][1] - domptr->c[0][0];
-  dimsiz[1] = domptr->c[1][1] - domptr->c[1][0];
-  dimsiz[2] = domptr->c[2][1] - domptr->c[2][0];
-
-  if ((dimsiz[0] | dimsiz[1] | dimsiz[2]) == 0)   /* Return if cannot bipartition more */
-    return (1);
-
-  dimval = (archptr->c[1] > archptr->c[0]) ? 1 : 0; /* Assume all subdomain dimensions are equal */
-  if (archptr->c[2] > archptr->c[dimval])         /* Find priviledged dimension                  */
-    dimval = 2;
-
-  dimtmp = dimval;                                /* Find best dimension */
-  if (dimsiz[(dimtmp + 1) % 3] > dimsiz[dimval])
-    dimval = (dimtmp + 1) % 3;
-  if (dimsiz[(dimtmp + 2) % 3] > dimsiz[dimval])
-    dimval = (dimtmp + 2) % 3;
-
-  if (dimval == 0) {                              /* Split domain in two along largest dimension */
-    dom0ptr->c[0][0] = domptr->c[0][0];
-    dom0ptr->c[0][1] = (domptr->c[0][0] + domptr->c[0][1]) / 2;
-    dom1ptr->c[0][0] = dom0ptr->c[0][1] + 1;
-    dom1ptr->c[0][1] = domptr->c[0][1];
-
-    dom0ptr->c[1][0] = dom1ptr->c[1][0] = domptr->c[1][0];
-    dom0ptr->c[1][1] = dom1ptr->c[1][1] = domptr->c[1][1];
-
-    dom0ptr->c[2][0] = dom1ptr->c[2][0] = domptr->c[2][0];
-    dom0ptr->c[2][1] = dom1ptr->c[2][1] = domptr->c[2][1];
-  }
-  else if (dimval == 1) {
-    dom0ptr->c[0][0] = dom1ptr->c[0][0] = domptr->c[0][0];
-    dom0ptr->c[0][1] = dom1ptr->c[0][1] = domptr->c[0][1];
-
-    dom0ptr->c[1][0] = domptr->c[1][0];
-    dom0ptr->c[1][1] = (domptr->c[1][0] + domptr->c[1][1]) / 2;
-    dom1ptr->c[1][0] = dom0ptr->c[1][1] + 1;
-    dom1ptr->c[1][1] = domptr->c[1][1];
-
-    dom0ptr->c[2][0] = dom1ptr->c[2][0] = domptr->c[2][0];
-    dom0ptr->c[2][1] = dom1ptr->c[2][1] = domptr->c[2][1];
-  }
-  else {
-    dom0ptr->c[0][0] = dom1ptr->c[0][0] = domptr->c[0][0];
-    dom0ptr->c[0][1] = dom1ptr->c[0][1] = domptr->c[0][1];
-
-    dom0ptr->c[1][0] = dom1ptr->c[1][0] = domptr->c[1][0];
-    dom0ptr->c[1][1] = dom1ptr->c[1][1] = domptr->c[1][1];
-
-    dom0ptr->c[2][0] = domptr->c[2][0];
-    dom0ptr->c[2][1] = (domptr->c[2][0] + domptr->c[2][1]) / 2;
-    dom1ptr->c[2][0] = dom0ptr->c[2][1] + 1;
-    dom1ptr->c[2][1] = domptr->c[2][1];
-  }
-
-  return (0);
-}
-
-/* This function checks if dom1 is
-** included in dom0.
-** It returns:
-** - 0  : if dom1 is not included in dom0.
-** - 1  : if dom1 is included in dom0.
-** - 2  : on error.
-*/
-
-int
-archTorus3DomIncl (
-const ArchTorus3 * const    archptr,
-const ArchTorus3Dom * const dom0ptr,
-const ArchTorus3Dom * const dom1ptr)
-{
-  if ((dom0ptr->c[0][0] <= dom1ptr->c[0][0]) &&
-      (dom0ptr->c[0][1] >= dom1ptr->c[0][1]) &&
-      (dom0ptr->c[1][0] <= dom1ptr->c[1][0]) &&
-      (dom0ptr->c[1][1] >= dom1ptr->c[1][1]) &&
-      (dom0ptr->c[2][0] <= dom1ptr->c[2][0]) &&
-      (dom0ptr->c[2][1] >= dom1ptr->c[2][1]))
-    return (1);
-
-  return (0);
+  return (distval >> 1);
 }
 
 /* This function creates the MPI_Datatype for
-** 3D torus domains.
+** xD torus domains.
 ** It returns:
 ** - 0  : if type could be created.
 ** - 1  : on error.
@@ -713,11 +186,11 @@ const ArchTorus3Dom * const dom1ptr)
 
 #ifdef SCOTCH_PTSCOTCH
 int
-archTorus3DomMpiType (
-const ArchTorus3 * const      archptr,
+archTorusXDomMpiType (
+const ArchTorusX * const      archptr,
 MPI_Datatype * const          typeptr)
 {
-  MPI_Type_contiguous (6, ANUM_MPI, typeptr);
+  MPI_Type_contiguous (2 * archptr->dimmax, ANUM_MPI, typeptr);
 
   return (0);
 }

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2014 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -51,6 +51,8 @@
 /**                                 to     22 may 2008     **/
 /**                # Version 5.1  : from : 10 nov 2008     **/
 /**                                 to     01 jun 2010     **/
+/**                # Version 6.0  : from : 31 mar 2014     **/
+/**                                 to     01 apr 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -218,7 +220,7 @@ const VgraphSeparateFmParam * const paraptr)      /*+ Method parameters +*/
   memSet (hashtab, ~0, hashsiz * sizeof (VgraphSeparateFmVertex)); /* Set all vertex numbers to ~0 */
 
   for (fronnum = 0, hashnbr = grafptr->fronnbr;   /* Set initial gains */
-       fronnum < hashnbr; fronnum ++) { 
+       fronnum < hashnbr; fronnum ++) {
     Gnum                vertnum;
     Gnum                hashnum;
 
@@ -287,14 +289,12 @@ const VgraphSeparateFmParam * const paraptr)      /*+ Method parameters +*/
   comploaddltbst = grafptr->comploaddlt;
   compload2bst   = grafptr->compload[2];
 
-#ifdef SCOTCH_DEBUG_VGRAPH2
 #ifdef SCOTCH_DEBUG_VGRAPH3
   if (vgraphSeparateFmCheck (grafptr, hashtab, hashmsk, compload2bst, comploaddltbst) != 0) {
     errorPrint ("vgraphSeparateFm: internal error (1)");
     return     (1);
   }
 #endif /* SCOTCH_DEBUG_VGRAPH3 */
-#endif /* SCOTCH_DEBUG_VGRAPH2 */
 
   passnbr = paraptr->passnbr;                     /* Set remaining number of passes    */
   savenbr = 0;                                    /* For empty backtrack of first pass */
@@ -302,7 +302,9 @@ const VgraphSeparateFmParam * const paraptr)      /*+ Method parameters +*/
   lockdat.next =                                  /* List of locked vertices is empty  */
   lockdat.prev = &lockdat;
   do {                                            /* As long as there is improvement */
-    while (savenbr -- > 0) {                      /* Delete exceeding moves          */
+    Gnum                comploadabsdltbst;
+
+    while (savenbr -- > 0) {                      /* Delete exceeding moves */
       Gnum                hashnum;
       int                 partval;
 
@@ -324,16 +326,18 @@ const VgraphSeparateFmParam * const paraptr)      /*+ Method parameters +*/
     }
     compload2   = compload2bst;                   /* Restore best separator parameters */
     comploaddlt = comploaddltbst;
+    comploadabsdltbst = abs (comploaddltbst);
+    if (comploadabsdltbst > comploaddltmax)       /* If the former state had a higher maximum imbalance ratio */
+      comploaddltmax = comploadabsdltbst;         /* Restore this maximum imbalance ratio                     */
+
     mswpnum ++;                                   /* Forget all recorded moves */
 
-#ifdef SCOTCH_DEBUG_VGRAPH2
 #ifdef SCOTCH_DEBUG_VGRAPH3
     if (vgraphSeparateFmCheck (grafptr, hashtab, hashmsk, compload2, comploaddlt) != 0) {
       errorPrint ("vgraphSeparateFm: internal error (2)");
       return     (1);
     }
 #endif /* SCOTCH_DEBUG_VGRAPH3 */
-#endif /* SCOTCH_DEBUG_VGRAPH2 */
 
     while (lockdat.next != &lockdat) {            /* For all vertices in locked list */
       VgraphSeparateFmVertex *  vexxptr;
@@ -361,6 +365,7 @@ const VgraphSeparateFmParam * const paraptr)      /*+ Method parameters +*/
     savenbr  = 0;                                 /* No recorded moves yet                     */
     while ((movenbr < paraptr->movenbr) &&        /* As long as we can find effective vertices */
            ((vexxptr = (VgraphSeparateFmVertex *) vgraphSeparateFmTablGet (tablptr, comploaddlt, comploaddltmax, (passnbr & 1))) != NULL)) {
+      Gnum                comploadabsdlt;
       int                 partval;                /* Part of current vertex */
       Gnum                vertnum;
       Gnum                edgenum;
@@ -565,14 +570,12 @@ const VgraphSeparateFmParam * const paraptr)      /*+ Method parameters +*/
           }
         }
       }
-#ifdef SCOTCH_DEBUG_VGRAPH2
 #ifdef SCOTCH_DEBUG_VGRAPH3
       if (vgraphSeparateFmCheck (grafptr, hashtab, hashmsk, compload2, comploaddlt) != 0) {
         errorPrint ("vgraphSeparateFm: internal error (3)");
         return     (1);
       }
 #endif /* SCOTCH_DEBUG_VGRAPH3 */
-#endif /* SCOTCH_DEBUG_VGRAPH2 */
 
       if (hashnbr >= hashmax) {
         if (vgraphSeparateFmResize (&hashtab, &hashmax, &hashmsk, &savetab, savenbr, tablptr, &lockdat) != 0) {
@@ -581,37 +584,45 @@ const VgraphSeparateFmParam * const paraptr)      /*+ Method parameters +*/
         }
       }
 
-      if (compload2 < compload2bst) {             /* If move improves the cost */
-        compload2bst   = compload2;               /* This move was effective   */
-        comploaddltbst = comploaddlt;
-        movenbr  =
-        savenbr  = 0;
-        moveflag = 1;
-        mswpnum ++;
-      } else if (compload2 == compload2bst) {
-        if (abs (comploaddlt) < abs (comploaddltbst)) {
-          comploaddltbst = comploaddlt;           /* This move was effective */
+      comploadabsdltbst = abs (comploaddltbst);
+      comploadabsdlt    = abs (comploaddlt);
+      if ((comploadabsdlt    < comploaddltmat) || /* Record move only if it is within bounds */
+          (comploadabsdltbst > comploaddltmat)) { /* Or if we have always been out of bounds */
+        if (compload2 < compload2bst) {           /* If move improves the cost               */
+          compload2bst   = compload2;             /* This move was effective                 */
+          comploaddltbst = comploaddlt;
           movenbr  =
           savenbr  = 0;
           moveflag = 1;
           mswpnum ++;
-        }
-        else if (abs (comploaddlt) == abs (comploaddltbst)) {
-          comploaddltbst = comploaddlt;           /* Might be the opposite, so record */
-          savenbr = 0;                            /* Forget backtracking              */
-          mswpnum ++;
+        } else if (compload2 == compload2bst) {
+          if (comploadabsdlt < comploadabsdltbst) {
+            comploaddltbst = comploaddlt;         /* This move was effective */
+            movenbr  =
+            savenbr  = 0;
+            moveflag = 1;
+            mswpnum ++;
+          }
+          else if (comploadabsdlt == comploadabsdltbst) {
+            comploaddltbst = comploaddlt;         /* Might be the opposite, so record */
+            savenbr = 0;                          /* Forget backtracking              */
+            mswpnum ++;
+          }
         }
       }
 
-      if (comploaddltmax > comploaddltmat) {      /* If must restrict distance bounds */
+      if (comploadabsdlt > comploaddltmax)        /* If an isolated vertex unbalanced the partition */
+        comploaddltmax = comploadabsdlt;          /* Record that we degraded maximum load imbalance */
+      else if (comploaddltmax > comploaddltmat) { /* Else if we must restrict distance bounds       */
         Gnum                comploaddlttmp;
 
-        comploaddlttmp = comploaddltmax;          /* Save old working compdeltmax value              */
-        comploaddltmax = MAX (comploaddltmat, abs (comploaddlt)); /* Restrict at most to the maximum */
-        if (comploaddltmax < comploaddlttmp) {    /* If we have done something useful                */
-          compload2bst   = compload2;             /* Then record best move done                      */
+        comploaddlttmp = comploaddltmax;          /* Save old working compdeltmax value           */
+        comploaddltmax = MAX (comploaddltmat, comploadabsdlt); /* Restrict at most to the maximum */
+        if ((comploadabsdltbst > comploaddltmat) &&  /* If we have never achieved balance yet     */
+            (comploaddltmax < comploaddlttmp)) {  /* And if we have done something useful         */
+          compload2bst   = compload2;             /* Then record best move done                   */
           comploaddltbst = comploaddlt;
-          movenbr =
+          movenbr =                               /* Never set moveflag so as not to create an infinite loop */
           savenbr = 0;
           mswpnum ++;
         }
@@ -637,9 +648,9 @@ const VgraphSeparateFmParam * const paraptr)      /*+ Method parameters +*/
     Gnum                vertnum;
 
     vertnum = vexxptr->vertnum;
-    if (vertnum != ~0) {                          /* If vertex slot is used            */
-      int                 partval;                /* New part of current vertex        */
-      int                 partold;                /* Old part of current vertex        */
+    if (vertnum != ~0) {                          /* If vertex slot is used     */
+      int                 partval;                /* New part of current vertex */
+      int                 partold;                /* Old part of current vertex */
 
       partval = vexxptr->partval;
       partold = parttax[vexxptr->vertnum];        /* Get old part value from array */

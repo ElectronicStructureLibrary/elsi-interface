@@ -16,6 +16,7 @@
 * AAA method has become the default pole expansion method in PEXSI.
 * Increased default number of poles from 20 to 30.
 * Improved accuracy of pole expansion based on minimax approximation.
+* Updated redistributed (PT-)SCOTCH source code to version 6.0.9.
 
 ### SLEPc-SIPs
 * Interface compatible with PETSc 3.13 and SLEPc 3.13.

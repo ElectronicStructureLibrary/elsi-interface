@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2012,2015,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -47,7 +47,7 @@
 /**                # Version 5.1  : from : 22 nov 2008     **/
 /**                                 to   : 27 jun 2010     **/
 /**                # Version 6.0  : from : 11 jun 2012     **/
-/**                                 to   : 10 oct 2012     **/
+/**                                 to   : 15 may 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -263,13 +263,13 @@ void *            blokptr)
 #define COMMON_MEMORY_OVHD          COMMON_MEMORY_SKEW
 #endif /* COMMON_MEMORY_SKEW */
 
-static intptr_t         memorysiz = 0;            /*+ Number of allocated bytes        +*/
-static intptr_t         memorymax = 0;            /*+ Maximum amount of allocated data +*/
+static intptr_t             memorysiz = 0;        /*+ Number of allocated bytes        +*/
+static intptr_t             memorymax = 0;        /*+ Maximum amount of allocated data +*/
 
-#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
-static int              muteflag = 1;             /*+ Flag for mutex initialization +*/
-static pthread_mutex_t  mutelocdat;               /*+ Local mutex for updates       +*/
-#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
+#ifdef COMMON_PTHREAD_MEMORY
+static int                  muteflag = 1;         /*+ Flag for mutex initialization +*/
+static pthread_mutex_t      mutelocdat;           /*+ Local mutex for updates       +*/
+#endif /* COMMON_PTHREAD_MEMORY */
 
 /* This routine allocates and records
 ** a memory block.
@@ -284,13 +284,13 @@ size_t                      newsiz)
 {
   byte *              newptr;
 
-#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
-  if (muteflag != 0) {                            /* Unsafe code with respect to race conditions but should work as first allocs are sequential */
+#ifdef COMMON_PTHREAD_MEMORY
+  if (muteflag != 0) {                            /* Unsafe code with respect to race conditions but should work as first allocs are sequential; portable TSL needed */
     muteflag = 0;
     pthread_mutex_init (&mutelocdat, NULL);       /* Initialize local mutex */
   }
   pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
-#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
+#endif /* COMMON_PTHREAD_MEMORY */
 
   if ((newptr = malloc (newsiz + COMMON_MEMORY_OVHD)) != NULL) { /* Non-zero size will guarantee non-NULL pointers */
     memorysiz += (intptr_t) newsiz;
@@ -305,9 +305,9 @@ size_t                      newsiz)
     newptr += COMMON_MEMORY_SKEW;                 /* Skew pointer while enforcing alignment */
   }
 
-#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
+#ifdef COMMON_PTHREAD_MEMORY
   pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
-#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
+#endif /* COMMON_PTHREAD_MEMORY */
 
   return ((void *) newptr);                       /* Return skewed pointer or NULL */
 }
@@ -331,9 +331,9 @@ size_t                      newsiz)
   tmpptr = ((byte *) oldptr) - COMMON_MEMORY_SKEW;
   oldsiz = *((size_t *) tmpptr);
 
-#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
+#ifdef COMMON_PTHREAD_MEMORY
   pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
-#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
+#endif /* COMMON_PTHREAD_MEMORY */
 
 #ifdef COMMON_MEMORY_CHECK
     memCheckDelist (tmpptr);
@@ -353,9 +353,9 @@ size_t                      newsiz)
     newptr += COMMON_MEMORY_SKEW;                 /* Skew pointer while enforcing alignment */
   }
 
-#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
+#ifdef COMMON_PTHREAD_MEMORY
   pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
-#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
+#endif /* COMMON_PTHREAD_MEMORY */
 
   return ((void *) newptr);                       /* Return skewed pointer or NULL */
 }
@@ -376,9 +376,9 @@ void *                      oldptr)
   tmpptr = ((byte *) oldptr) - COMMON_MEMORY_SKEW;
   oldsiz = *((size_t *) tmpptr);
 
-#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
+#ifdef COMMON_PTHREAD_MEMORY
   pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
-#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
+#endif /* COMMON_PTHREAD_MEMORY */
 
 #ifdef COMMON_MEMORY_CHECK
     memCheckDelist (tmpptr);
@@ -387,9 +387,9 @@ void *                      oldptr)
   free (tmpptr);
   memorysiz -= oldsiz;
 
-#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
+#ifdef COMMON_PTHREAD_MEMORY
   pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
-#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
+#endif /* COMMON_PTHREAD_MEMORY */
 }
 
 /* This routine returns the memory
@@ -404,15 +404,15 @@ memCur ()
 {
   intptr_t            memotmp;
 
-#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
+#ifdef COMMON_PTHREAD_MEMORY
   pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
-#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
+#endif /* COMMON_PTHREAD_MEMORY */
 
   memotmp = memorysiz;
 
-#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
+#ifdef COMMON_PTHREAD_MEMORY
   pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
-#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
+#endif /* COMMON_PTHREAD_MEMORY */
 
   return ((IDX) memotmp);
 }
@@ -429,15 +429,15 @@ memMax ()
 {
   intptr_t            memotmp;
 
-#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
+#ifdef COMMON_PTHREAD_MEMORY
   pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
-#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
+#endif /* COMMON_PTHREAD_MEMORY */
 
   memotmp = memorymax;
 
-#if (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD))
+#ifdef COMMON_PTHREAD_MEMORY
   pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
-#endif /* (defined (COMMON_PTHREAD) || defined (SCOTCH_PTHREAD)) */
+#endif /* COMMON_PTHREAD_MEMORY */
 
   return ((IDX) memotmp);
 }
@@ -491,6 +491,7 @@ void **                     memptr,               /*+ Pointer to first argument 
     memoff += va_arg (memlist, size_t);
     memloc  = va_arg (memlist, byte **);
   }
+  va_end (memlist);
 
   if ((blkptr = (byte *) memAlloc (memoff)) == NULL) { /* If cannot allocate   */
     *memptr = NULL;                               /* Set first pointer to NULL */
@@ -506,6 +507,7 @@ void **                     memptr,               /*+ Pointer to first argument 
     memoff += va_arg (memlist, size_t);           /* Accumulate padded sizes        */
     memloc  = va_arg (memlist, void *);           /* Get next argument pointer      */
   }
+  va_end (memlist);
 
   return ((void *) blkptr);
 }
@@ -533,12 +535,12 @@ void *                      oldptr,               /*+ Pointer to block to reallo
   byte *              blkptr;                     /* Pointer to memory chunk                */
 
   memoff = 0;
-  va_start (memlist, oldptr);                     /* Start argument parsing */
-
+  va_start (memlist, oldptr);                     /* Start argument parsing             */
   while ((memloc = va_arg (memlist, byte **)) != NULL) { /* As long as not NULL pointer */
     memoff  = (memoff + (sizeof (double) - 1)) & (~ (sizeof (double) - 1)); /* Pad      */
     memoff += va_arg (memlist, size_t);           /* Accumulate padded sizes            */
   }
+  va_end (memlist);
 
   if ((blkptr = (byte *) memRealloc (oldptr, memoff)) == NULL) /* If cannot allocate block */
     return (NULL);
@@ -550,6 +552,7 @@ void *                      oldptr,               /*+ Pointer to block to reallo
     *memloc = blkptr + memoff;                    /* Set argument address               */
     memoff += va_arg (memlist, size_t);           /* Accumulate padded sizes            */
   }
+  va_end (memlist);
 
   return ((void *) blkptr);
 }
@@ -575,13 +578,13 @@ void *                      memptr,               /*+ Pointer to base address of
   size_t              memoff;                     /* Offset value of argument               */
 
   memoff = 0;
-  va_start (memlist, memptr);                     /* Start argument parsing */
-
+  va_start (memlist, memptr);                     /* Start argument parsing             */
   while ((memloc = va_arg (memlist, byte **)) != NULL) { /* As long as not NULL pointer */
     memoff  = (memoff + (sizeof (double) - 1)) & (~ (sizeof (double) - 1));
     *memloc = (byte *) memptr + memoff;           /* Set argument address    */
     memoff += va_arg (memlist, size_t);           /* Accumulate padded sizes */
   }
+  va_end (memlist);
 
   return ((void *) ((byte *) memptr + memoff));
 }

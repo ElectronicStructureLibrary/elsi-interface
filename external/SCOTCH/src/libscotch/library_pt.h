@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -54,7 +54,7 @@
 /**                # Version 5.1  : from : 30 nov 2007     **/
 /**                                 to   : 07 aug 2011     **/
 /**                # Version 6.0  : from : 12 sep 2008     **/
-/**                                 to     01 dec 2012     **/
+/**                                 to     29 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -78,6 +78,16 @@
 #ifndef SCOTCH_PTSCOTCH
 #define SCOTCH_DUMMYPTFLAG
 #endif /* SCOTCH_PTSCOTCH */
+
+/*+ Version flags. +*/
+
+#ifdef SCOTCH_VERSION
+#if ((SCOTCH_VERSION != DUMMYVERSION) || (SCOTCH_RELEASE != DUMMYRELEASE) || (SCOTCH_PATCHLEVEL != DUMMYPATCHLEVEL))
+#ifndef SCOTCH_WARNING_RENAME_UNSAFE
+#define SCOTCH_WARNING_RENAME_UNSAFE
+#endif /* SCOTCH_WARNING_RENAME_UNSAFE */
+#endif /* ((SCOTCH_VERSION != DUMMYVERSION) || (SCOTCH_RELEASE != DUMMYRELEASE) || (SCOTCH_PATCHLEVEL != DUMMYPATCHLEVEL)) */
+#endif /* SCOTCH_VERSION */
 
 /*+ Opaque objects. The dummy sizes of these
 objects, computed at compile-time by program

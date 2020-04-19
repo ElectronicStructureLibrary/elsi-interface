@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -43,6 +43,8 @@
 /**                                 to     14 oct 2007     **/
 /**                # Version 5.1  : from : 28 nov 2007     **/
 /**                                 to     04 nov 2010     **/
+/**                # Version 6.0  : from : 08 may 2018     **/
+/**                                 to     07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -61,7 +63,7 @@
 
 #define DORDERCBLKNONE              0x0000        /*+ Not yet assigned                 +*/
 #define DORDERCBLKNEDI              0x0001        /*+ Nested dissection separator node +*/
-#define DORDERCBLKLEAF              0x0002        /*+ Distributed leaf                 +*/
+#define DORDERCBLKLEAF              0x0004        /*+ Distributed leaf                 +*/
 
 /*
 **  The type and structure definitions.
@@ -158,10 +160,6 @@ typedef struct Dorder_ {
 **  The function prototypes.
 */
 
-#ifndef DORDER
-#define static
-#endif
-
 int                         dorderInit          (Dorder * const, const Gnum, const Gnum, MPI_Comm);
 void                        dorderExit          (Dorder * const);
 void                        dorderFree          (Dorder * const);
@@ -187,5 +185,3 @@ DorderCblk *                dorderNew           (DorderCblk * const, MPI_Comm);
 DorderCblk *                dorderNewSequ       (DorderCblk * const);
 Gnum                        dorderNewSequIndex  (DorderCblk * const, const Gnum);
 void                        dorderDispose       (DorderCblk * const);
-
-#undef static

@@ -1,4 +1,4 @@
-/* Copyright 2008 ENSEIRB, INRIA & CNRS
+/* Copyright 2008,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,6 +40,8 @@
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 12 mar 2008     **/
 /**                                 to     17 mar 2008     **/
+/**                # Version 6.0  : from : 08 jul 2018     **/
+/**                                 to     14 jul 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -55,7 +57,7 @@
 
 typedef enum FileCompressType_ {
   FILECOMPRESSTYPENOTIMPL = -1,                   /* Error code     */
-  FILECOMPRESSTYPENONE,                           /* No compression */
+  FILECOMPRESSTYPENONE    = 0,                    /* No compression */
   FILECOMPRESSTYPEBZ2,
   FILECOMPRESSTYPEGZ,
   FILECOMPRESSTYPELZMA
@@ -72,12 +74,17 @@ typedef struct FileCompressTab_ {
 **  The type and structure definitions.
 */
 
-typedef struct FileCompressData_ {
-  int                       typeval;              /*+ Type of (un)compression      +*/
-  int                       innerfd;              /*+ Inner file handle (pipe end) +*/
-  FILE *                    outerstream;          /*+ Outer stream                 +*/
-  double                    datatab;              /*+ Start of data buffer         +*/
-} FileCompressData;
+typedef struct FileCompress_ {
+  FileCompressType          typeval;              /*+ Type of (un)compression      +*/
+  int                       infdnum;              /*+ Inner file handle (pipe end) +*/
+  FILE *                    oustptr;              /*+ Outer stream                 +*/
+  byte *                    bufftab;              /*+ Data buffer                  +*/
+#ifdef COMMON_PTHREAD_FILE
+  pthread_t                 thrdval;              /*+ Spawned thread ID            +*/
+#else /* COMMON_PTHREAD_FILE */
+  int                       procval;              /*+ Forked process ID            +*/
+#endif /* COMMON_PTHREAD_FILE */
+} FileCompress;
 
 /*
 **  The function prototypes.
@@ -85,25 +92,25 @@ typedef struct FileCompressData_ {
 
 #ifdef COMMON_FILE_COMPRESS_BZ2
 #ifdef COMMON_FILE_COMPRESS
-static void                 fileCompressBz2     (FileCompressData * const  dataptr);
+static void                 fileCompressBz2     (FileCompress * const  dataptr);
 #endif /* COMMON_FILE_COMPRESS */
-#ifdef COMMON_FILE_UNCOMPRESS
-static void                 fileUncompressBz2   (FileCompressData * const  dataptr);
-#endif /* COMMON_FILE_UNCOMPRESS */
+#ifdef COMMON_FILE_DECOMPRESS
+static void                 fileDecompressBz2   (FileCompress * const  dataptr);
+#endif /* COMMON_FILE_DECOMPRESS */
 #endif /* COMMON_FILE_COMPRESS_Bz2 */
 #ifdef COMMON_FILE_COMPRESS_GZ
 #ifdef COMMON_FILE_COMPRESS
-static void                 fileCompressGz      (FileCompressData * const  dataptr);
+static void                 fileCompressGz      (FileCompress * const  dataptr);
 #endif /* COMMON_FILE_COMPRESS */
-#ifdef COMMON_FILE_UNCOMPRESS
-static void                 fileUncompressGz    (FileCompressData * const  dataptr);
-#endif /* COMMON_FILE_UNCOMPRESS */
+#ifdef COMMON_FILE_DECOMPRESS
+static void                 fileDecompressGz    (FileCompress * const  dataptr);
+#endif /* COMMON_FILE_DECOMPRESS */
 #endif /* COMMON_FILE_COMPRESS_GZ */
 #ifdef COMMON_FILE_COMPRESS_LZMA
-/* #ifdef COMMON_FILE_COMPRESS */
-/* static void                 fileCompressLzma    (FileCompressData * const  dataptr); */
-/* #endif /\* COMMON_FILE_COMPRESS *\/ */
-#ifdef COMMON_FILE_UNCOMPRESS
-static void                 fileUncompressLzma  (FileCompressData * const  dataptr);
-#endif /* COMMON_FILE_UNCOMPRESS */
+#ifdef COMMON_FILE_COMPRESS
+static void                 fileCompressLzma    (FileCompress * const  dataptr);
+#endif /* COMMON_FILE_COMPRESS */
+#ifdef COMMON_FILE_DECOMPRESS
+static void                 fileDecompressLzma  (FileCompress * const  dataptr);
+#endif /* COMMON_FILE_DECOMPRESS */
 #endif /* COMMON_FILE_COMPRESS_LZMA */
