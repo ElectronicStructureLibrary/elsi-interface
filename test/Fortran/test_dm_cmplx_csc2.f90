@@ -56,7 +56,7 @@ subroutine test_dm_cmplx_csc2(comm,solver,h_file,s_file)
 
    ! Reference values
    real(kind=r8), parameter :: e_elpa = -2622.88214509316_r8
-   real(kind=r8), parameter :: e_pexsi = -2622.88194292325_r8
+   real(kind=r8), parameter :: e_pexsi = -2622.88212901203_r8
 
    character(len=*), parameter :: file_name = "elsi.in"
 
