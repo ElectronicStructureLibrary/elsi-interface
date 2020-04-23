@@ -2,6 +2,16 @@
 
 ## Not released
 
+### ELSI interface
+* C compiler and MPI-3 have become mandatory to build ELSI.
+
+### ELPA
+* Updated redistributed ELPA source code to version 2020.05.001, which supports
+  single precision calculations, autotuning of runtime parameters, and (NVIDIA)
+  GPU acceleration.
+* The updated ELPA code can not be compiled with the NAG Fortran compiler, due
+  to the use of GNU extentions in ELPA.
+
 ### PEXSI
 * AAA method has become the default pole expansion method in PEXSI.
 * Increased default number of poles from 20 to 30.
@@ -9,6 +19,12 @@
 
 ### SLEPc-SIPs
 * Interface compatible with PETSc 3.13 and SLEPc 3.13.
+
+### Known issues
+* ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
+  support of AVX intrinsics in PGI.
+* Depending on the choice of k-points, the complex PEXSI solver may randomly
+  fail at the inertia counting stage.
 
 ## v2.5.0 (February 2020)
 
@@ -35,12 +51,6 @@
 ### BSEPACK
 * Redistributed source code of BSEPACK 0.1.
 * Added parallel BSE eigensolvers PDBSEIG and PZBSEIG.
-
-### Known issues
-* ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
-  support of AVX intrinsics in PGI.
-* Depending on the choice of k-points, the complex PEXSI solver may randomly
-  fail at the inertia counting stage.
 
 ## v2.4.1 (November 2019)
 
@@ -120,7 +130,7 @@
 
 ### ELPA
 * Interface for externally linked ELPA compatible with ELPA 2018.11.
-* Fixed single precision calculations with an externally linked ELPA.
+* Fixed single precision calculations with externally linked ELPA.
 * Fixed internal ELPA two-stage real solver with AVX512 kernel.
 
 ### NTPoly

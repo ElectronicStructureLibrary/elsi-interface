@@ -398,6 +398,8 @@ subroutine elsi_reinit(eh)
 
    type(elsi_handle), intent(inout) :: eh !< Handle
 
+   integer(kind=i4) :: ierr
+
    character(len=*), parameter :: caller = "elsi_reinit"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -433,6 +435,13 @@ subroutine elsi_reinit(eh)
 
       call elsi_cleanup_pexsi(eh%ph)
       call elsi_cleanup_sips(eh%ph)
+
+      ! Number of non-ill-conditioned basis functions could change
+      if(eh%ph%ill_check .and. associated(eh%ph%elpa_solve)) then
+         call eh%ph%elpa_solve%destroy(ierr)
+
+         nullify(eh%ph%elpa_solve)
+      end if
 
       ! Dense
       if(allocated(eh%evec_real)) then

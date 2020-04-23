@@ -7,7 +7,7 @@ The installation of ELSI makes use of the CMake software. Minimum requirements:
 * CMake (3.0.2 or newer)
 * Fortran compiler (Fortran 2003 compliant)
 * C compiler (C99 compliant)
-* MPI (MPI-3 recommended)
+* MPI (MPI-3)
 * BLAS, LAPACK, ScaLAPACK (with PBLAS and BLACS)
 
 Enabling the PEXSI solver (highly recommended) requires:

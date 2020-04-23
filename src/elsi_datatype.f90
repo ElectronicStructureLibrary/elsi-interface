@@ -140,17 +140,19 @@ module ELSI_DATATYPE
       logical :: first_sips_to_ntpoly
 
       ! ELPA
-      integer(kind=i4) :: elpa_solver
-      integer(kind=i4) :: elpa_n_single
       integer(kind=i4) :: elpa_comm_row
       integer(kind=i4) :: elpa_comm_col
-      logical :: elpa_gpu
-      logical :: elpa_autotune
+      integer(kind=i4) :: elpa_solver
+      integer(kind=i4) :: elpa_n_single
+      integer(kind=i4) :: elpa_gpu
+      integer(kind=i4) :: elpa_autotune
+      integer(kind=i4) :: elpa_n_lrow ! Non-ill-conditioned basis functions
+      integer(kind=i4) :: elpa_n_lcol ! Non-ill-conditioned basis functions
       logical :: elpa_first
       logical :: elpa_started = .false.
-      class(elpa_t), pointer :: elpa_aux
-      class(elpa_t), pointer :: elpa_solve
-      class(elpa_autotune_t), pointer :: elpa_tune
+      class(elpa_t), pointer :: elpa_aux => null()
+      class(elpa_t), pointer :: elpa_solve => null()
+      class(elpa_autotune_t), pointer :: elpa_tune => null()
 
       ! libOMM
       integer(kind=i4) :: omm_n_lrow

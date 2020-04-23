@@ -49,96 +49,84 @@
 
 module ELPA_utilities
 
-  implicit none
+   use, intrinsic :: iso_fortran_env, only : output_unit, error_unit
+   use, intrinsic :: iso_c_binding
+   implicit none
 
-  private
+   private ! By default, all routines contained are private
 
-  public :: error_unit, use_unit
-  public :: check_alloc
-  public :: map_global_array_index_to_local_index
-  public :: pcol, prow
-  public :: local_index
-  public :: least_common_multiple
+   public :: output_unit, error_unit
+   public :: check_alloc, check_alloc_CUDA_f, check_memcpy_CUDA_f, check_dealloc_CUDA_f
+   public :: check_host_alloc_CUDA_f, check_host_dealloc_CUDA_f, check_host_register_CUDA_f, check_host_unregister_CUDA_f
+   public :: check_memset_cuda_f
+   public :: check_allocate_f, check_deallocate_f
+   public :: map_global_array_index_to_local_index
+   public :: pcol, prow
+   public :: local_index                ! Get local index of a block cyclic distributed matrix
+   public :: least_common_multiple      ! Get least common multiple
 
-  integer, parameter :: error_unit = 0
-  integer, parameter :: use_unit = 6
+   !******
+contains
 
-!******
-  contains
+   !Processor col for global col number
+   pure function pcol(global_col, nblk, np_cols) result(local_col)
+      use, intrinsic :: iso_c_binding, only : c_int
+      implicit none
+      integer(kind=c_int), intent(in) :: global_col, nblk, np_cols
+      integer(kind=c_int)             :: local_col
+      local_col = MOD((global_col-1)/nblk,np_cols)
+   end function
 
-!Processor col for global col number
-  pure function pcol(global_col, nblk, np_cols) result(local_col)
-
-    use precision
-
-    implicit none
-
-    integer(kind=ik), intent(in) :: global_col, nblk, np_cols
-    integer(kind=ik) :: local_col
-
-    local_col = mod((global_col-1)/nblk,np_cols)
-
-  end function
-
-!-------------------------------------------------------------------------------
-
-!Processor row for global row number
-  pure function prow(global_row, nblk, np_rows) result(local_row)
-
-    use precision
-
-    implicit none
-
-    integer(kind=ik), intent(in) :: global_row, nblk, np_rows
-    integer(kind=ik) :: local_row
-
-    local_row = mod((global_row-1)/nblk,np_rows)
-
-  end function
+   !Processor row for global row number
+   pure function prow(global_row, nblk, np_rows) result(local_row)
+      use, intrinsic :: iso_c_binding, only : c_int
+      implicit none
+      integer(kind=c_int), intent(in) :: global_row, nblk, np_rows
+      integer(kind=c_int)             :: local_row
+      local_row = MOD((global_row-1)/nblk,np_rows)
+   end function
 
 !-------------------------------------------------------------------------------
 
-  function map_global_array_index_to_local_index(iGLobal, jGlobal, iLocal, jLocal , nblk, np_rows, np_cols, my_prow, my_pcol) &
-    result(possible)
+   function map_global_array_index_to_local_index(iGLobal, jGlobal, iLocal, jLocal , nblk, np_rows, np_cols, my_prow, my_pcol) &
+      result(possible)
+      use, intrinsic :: iso_c_binding, only : c_int
+      implicit none
 
-    use precision
+      integer(kind=c_int)              :: pi, pj, li, lj, xi, xj
+      integer(kind=c_int), intent(in)  :: iGlobal, jGlobal, nblk, np_rows, np_cols, my_prow, my_pcol
+      integer(kind=c_int), intent(out) :: iLocal, jLocal
+      logical                       :: possible
 
-    implicit none
+      possible = .true.
+      iLocal = 0
+      jLocal = 0
 
-    integer(kind=ik) :: pi, pj, li, lj, xi, xj
-    integer(kind=ik), intent(in) :: iGlobal, jGlobal, nblk, np_rows, np_cols, my_prow, my_pcol
-    integer(kind=ik), intent(out) :: iLocal, jLocal
-    logical :: possible
+      pi = prow(iGlobal, nblk, np_rows)
 
-    possible = .true.
-    iLocal = 0
-    jLocal = 0
+      if (my_prow .ne. pi) then
+         possible = .false.
+         return
+      endif
 
-    pi = prow(iGlobal, nblk, np_rows)
+      pj = pcol(jGlobal, nblk, np_cols)
 
-    if (my_prow .ne. pi) then
-      possible = .false.
-      return
-    endif
+      if (my_pcol .ne. pj) then
+         possible = .false.
+         return
+      endif
+      li = (iGlobal-1)/(np_rows*nblk) ! block number for rows
+      lj = (jGlobal-1)/(np_cols*nblk) ! block number for columns
 
-    pj = pcol(jGlobal, nblk, np_cols)
+      xi = mod( (iGlobal-1),nblk)+1   ! offset in block li
+      xj = mod( (jGlobal-1),nblk)+1   ! offset in block lj
 
-    if (my_pcol .ne. pj) then
-      possible = .false.
-      return
-    endif
-    li = (iGlobal-1)/(np_rows*nblk) ! block number for rows
-    lj = (jGlobal-1)/(np_cols*nblk) ! block number for columns
+      iLocal = li * nblk + xi
+      jLocal = lj * nblk + xj
 
-    xi = mod((iGlobal-1),nblk)+1 ! offset in block li
-    xj = mod((jGlobal-1),nblk)+1 ! offset in block lj
+   end function
 
-    iLocal = li * nblk + xi
-    jLocal = lj * nblk + xj
-
-  end function
-
-  integer function local_index(idx, my_proc, num_procs, nblk, iflag)
+   integer function local_index(idx, my_proc, num_procs, nblk, iflag)
 
 !-------------------------------------------------------------------------------
 !  local_index: returns the local index for a given global index
@@ -160,75 +148,208 @@ module ELPA_utilities
 !              iflag==0 : Return 0
 !              iflag> 0 : Return next local index after that row/col
 !-------------------------------------------------------------------------------
+      implicit none
 
-    use precision
+      integer(kind=c_int) :: idx, my_proc, num_procs, nblk, iflag
 
-    implicit none
+      integer(kind=c_int) :: iblk
 
-    integer(kind=ik) :: idx, my_proc, num_procs, nblk, iflag
+      iblk = (idx-1)/nblk  ! global block number, 0 based
 
-    integer(kind=ik) :: iblk
+      if (mod(iblk,num_procs) == my_proc) then
 
-    iblk = (idx-1)/nblk ! global block number, 0 based
+         ! block is local, always return local row/col number
 
-    if (mod(iblk,num_procs) == my_proc) then
-
-! block is local, always return local row/col number
-
-      local_index = (iblk/num_procs)*nblk + mod(idx-1,nblk) + 1
-
-    else
-
-! non local block
-
-      if (iflag == 0) then
-
-        local_index = 0
+         local_index = (iblk/num_procs)*nblk + mod(idx-1,nblk) + 1
 
       else
 
-        local_index = (iblk/num_procs)*nblk
+         ! non local block
 
-        if (mod(iblk,num_procs) > my_proc) local_index = local_index + nblk
+         if (iflag == 0) then
 
-        if (iflag>0) local_index = local_index + 1
+            local_index = 0
+
+         else
+
+            local_index = (iblk/num_procs)*nblk
+
+            if (mod(iblk,num_procs) > my_proc) local_index = local_index + nblk
+
+            if (iflag>0) local_index = local_index + 1
+         endif
       endif
-    endif
 
-  end function local_index
+   end function local_index
 
-  integer function least_common_multiple(a, b)
+   integer function least_common_multiple(a, b)
 
-! Returns the least common multiple of a and b
-! There may be more efficient ways to do this, we use the most simple approach
+      ! Returns the least common multiple of a and b
+      ! There may be more efficient ways to do this, we use the most simple approach
+      implicit none
+      integer(kind=c_int), intent(in) :: a, b
 
-    use precision
+      do least_common_multiple = a, a*(b-1), a
+         if(mod(least_common_multiple,b)==0) exit
+      enddo
+      ! if the loop is left regularly, least_common_multiple = a*b
 
-    implicit none
+   end function least_common_multiple
 
-    integer(kind=ik), intent(in) :: a, b
+   subroutine check_alloc(function_name, variable_name, istat, errorMessage)
 
-    do least_common_multiple = a, a*(b-1), a
-      if(mod(least_common_multiple,b)==0) exit
-    enddo
-! if the loop is left regularly, least_common_multiple = a*b
+      implicit none
 
-  end function least_common_multiple
+      character(len=*), intent(in)    :: function_name
+      character(len=*), intent(in)    :: variable_name
+      integer(kind=c_int), intent(in)    :: istat
+      character(len=*), intent(in)    :: errorMessage
 
-  subroutine check_alloc(function_name, variable_name, istat, errorMessage)
-    use precision
+      if (istat .ne. 0) then
+         print *, function_name, ": error when allocating ", variable_name, " ", errorMessage
+         stop 1
+      endif
+   end subroutine
 
-    implicit none
+   subroutine check_alloc_CUDA_f(file_name, line, successCUDA)
 
-    character(len=*), intent(in) :: function_name
-    character(len=*), intent(in) :: variable_name
-    integer(kind=ik), intent(in) :: istat
-    character(len=*), intent(in) :: errorMessage
+      implicit none
 
-    if (istat .ne. 0) then
-      write(error_unit,*) function_name, ": error when allocating ", variable_name, " ", errorMessage
-      stop
-    endif
-  end subroutine
+      character(len=*), intent(in)    :: file_name
+      integer(kind=c_int), intent(in)    :: line
+      logical                         :: successCUDA
 
+      if (.not.(successCUDA)) then
+         print *, file_name, ":", line,  " error in cuda_malloc when allocating "
+         stop 1
+      endif
+   end subroutine
+
+   subroutine check_dealloc_CUDA_f(file_name, line, successCUDA)
+
+      implicit none
+
+      character(len=*), intent(in)    :: file_name
+      integer(kind=c_int), intent(in)    :: line
+      logical                         :: successCUDA
+
+      if (.not.(successCUDA)) then
+         print *, file_name, ":", line,  " error in cuda_free when deallocating "
+         stop 1
+      endif
+   end subroutine
+
+   subroutine check_memcpy_CUDA_f(file_name, line, successCUDA)
+
+      implicit none
+
+      character(len=*), intent(in)    :: file_name
+      integer(kind=c_int), intent(in)    :: line
+      logical                         :: successCUDA
+
+      if (.not.(successCUDA)) then
+         print *, file_name, ":", line,  " error in cuda_memcpy when copying "
+         stop 1
+      endif
+   end subroutine
+
+   subroutine check_host_alloc_CUDA_f(file_name, line, successCUDA)
+
+      implicit none
+
+      character(len=*), intent(in)    :: file_name
+      integer(kind=c_int), intent(in)    :: line
+      logical                         :: successCUDA
+
+      if (.not.(successCUDA)) then
+         print *, file_name, ":", line,  " error in cuda_alloc_host when allocating "
+         stop 1
+      endif
+   end subroutine
+
+   subroutine check_host_dealloc_CUDA_f(file_name, line, successCUDA)
+
+      implicit none
+
+      character(len=*), intent(in)    :: file_name
+      integer(kind=c_int), intent(in)    :: line
+      logical                         :: successCUDA
+
+      if (.not.(successCUDA)) then
+         print *, file_name, ":", line,  " error in cuda_free_host when deallocating "
+         stop 1
+      endif
+   end subroutine
+
+   subroutine check_host_register_CUDA_f(file_name, line, successCUDA)
+
+      implicit none
+
+      character(len=*), intent(in)    :: file_name
+      integer(kind=c_int), intent(in)    :: line
+      logical                         :: successCUDA
+
+      if (.not.(successCUDA)) then
+         print *, file_name, ":", line,  " error in cuda_host_register when registering "
+         stop 1
+      endif
+   end subroutine
+
+   subroutine check_host_unregister_CUDA_f(file_name, line, successCUDA)
+
+      implicit none
+
+      character(len=*), intent(in)    :: file_name
+      integer(kind=c_int), intent(in)    :: line
+      logical                         :: successCUDA
+
+      if (.not.(successCUDA)) then
+         print *, file_name, ":", line,  " error in cuda_host_unregister when unregistering "
+         stop 1
+      endif
+   end subroutine
+
+   subroutine check_memset_CUDA_f(file_name, line, successCUDA)
+
+      implicit none
+
+      character(len=*), intent(in)    :: file_name
+      integer(kind=c_int), intent(in)    :: line
+      logical                         :: successCUDA
+
+      if (.not.(successCUDA)) then
+         print *, file_name, ":", line,  " error in cuda_memset "
+         stop 1
+      endif
+   end subroutine
+
+   subroutine check_allocate_f(file_name, line, success, errorMessage)
+
+      implicit none
+
+      character(len=*), intent(in)    :: file_name
+      integer(kind=c_int), intent(in) :: line
+      integer(kind=c_int)             :: success
+      character(len=*)                :: errorMessage
+
+      if ( success .ne. 0) then
+         print *, file_name, ":", line,  " error in allocate: " // errorMessage
+         stop 1
+      endif
+   end subroutine
+
+   subroutine check_deallocate_f(file_name, line, success, errorMessage)
+
+      implicit none
+
+      character(len=*), intent(in)    :: file_name
+      integer(kind=c_int), intent(in) :: line
+      integer(kind=c_int)             :: success
+      character(len=*)                :: errorMessage
+
+      if ( success .ne. 0) then
+         print *, file_name, ":", line,  " error in deallocate: " // errorMessage
+         stop 1
+      endif
+   end subroutine
 end module ELPA_utilities

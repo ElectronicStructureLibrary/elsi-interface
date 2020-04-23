@@ -40,17 +40,19 @@
 !
 ! This file was written by A. Marek, MPCDF
 
+!> \brief Fortran module which defines the datatypes used in ELPA
 module precision
+   use, intrinsic :: iso_c_binding, only : C_FLOAT, C_DOUBLE, C_FLOAT_COMPLEX, C_DOUBLE_COMPLEX, C_INT32_T, C_INT64_T, C_INT
 
-  use, intrinsic :: iso_c_binding, only : C_FLOAT, C_DOUBLE, C_INT32_T, C_INT64_T, C_FLOAT
+   implicit none
+   integer, parameter :: rk8  = C_DOUBLE
+   integer, parameter :: rk4  = C_FLOAT
+   integer, parameter :: ck8  = C_DOUBLE_COMPLEX
+   integer, parameter :: ck4  = C_FLOAT_COMPLEX
+   integer, parameter :: ik  = C_INT32_T
+   integer, parameter :: lik = C_INT64_T
 
-  implicit none
-
-  integer, parameter :: rk8 = C_DOUBLE
-  integer, parameter :: rk4 = C_FLOAT
-  integer, parameter :: ck8 = C_DOUBLE
-  integer, parameter :: ck4 = C_FLOAT
-  integer, parameter :: ik = C_INT32_T
-  integer, parameter :: lik = C_INT64_T
+   integer, parameter :: BLAS_KIND = C_INT32_T
+   integer, parameter :: MPI_KIND  = C_INT32_T
 
 end module precision
