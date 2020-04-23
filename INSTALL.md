@@ -4,7 +4,7 @@
 
 The installation of ELSI makes use of the CMake software. Minimum requirements:
 
-* CMake (3.0.2 or newer)
+* CMake (3.0 or newer)
 * Fortran compiler (Fortran 2003 compliant)
 * C compiler (C99 compliant)
 * MPI (MPI-3)
@@ -25,6 +25,11 @@ Enabling the SLEPc-SIPs solver requires:
 Enabling the MAGMA solver requires:
 
 * MAGMA (2.5 or newer)
+
+Enabling the CUDA-based GPU acceleration in the ELPA solver requires:
+
+* CMake (3.8 or newer)
+* CUDA (10.0 or newer recommended)
 
 ## Quick Start
 
@@ -94,12 +99,20 @@ formats:
 * `elpa;pexsi;blas` (name of library)
 * `libelpa.a;libpexsi.a;libblas.so` (full name of library)
 
-Please note that in the current version of ELSI, the PEXSI and BSEPACK solvers
-are not enabled by default. They may be switched on by `ENABLE_PEXSI` and
-`ENABLE_BSEPACK`, respectively. In addition, `ENABLE_SIPS`, `ELABLE_EIGENEXA`,
-and `ENABLE_MAGMA` may be used to enable support for the SLEPc, EigenExa, and
-MAGMA solvers, respectively. These libraries are not redistributed with ELSI,
-thus must be installed separately by the user.
+On computers with NVIDIA GPUs, GPU acceleration based on CUDA and cuBLAS may be
+enabled for the ELPA solver by `USE_GPU_CUDA`. The CUDA runtime and cuBLAS
+libraries must be available in `LIB_PATHS` and `LIBS`. The nvcc compiler and
+flags to compile the CUDA sources may be specified by setting these keywords:
+
+* `CMAKE_CUDA_COMPILER`
+* `CMAKE_CUDA_FLAGS`
+
+Please note that in the current version of ELSI, the redistributed PEXSI and
+BSEPACK solvers are not enabled by default. They may be switched on by
+`ENABLE_PEXSI` and `ENABLE_BSEPACK`, respectively. In addition, `ENABLE_SIPS`,
+`ELABLE_EIGENEXA`, and `ENABLE_MAGMA` may be used to enable support for the
+SLEPc, EigenExa, and MAGMA solvers, respectively. These libraries are not
+redistributed with ELSI, thus must be installed separately by the user.
 
 ### 3) Tests
 

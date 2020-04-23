@@ -1,4 +1,4 @@
-### Generic GNU ###
+### GCC ###
 
 SET(CMAKE_Fortran_COMPILER "mpifort" CACHE STRING "MPI Fortran compiler")
 SET(CMAKE_C_COMPILER "mpicc" CACHE STRING "MPI C compiler")
