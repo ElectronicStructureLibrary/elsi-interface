@@ -1,4 +1,4 @@
-### Generic Intel (debug) ###
+### Intel (debug) ###
 
 SET(CMAKE_Fortran_COMPILER "mpiifort" CACHE STRING "MPI Fortran compiler")
 SET(CMAKE_C_COMPILER "mpiicc" CACHE STRING "MPI C compiler")

@@ -85,7 +85,7 @@ The ELSI package contains the ELSI interface software as well as redistributed s
 \tcb{CMake}  [minimum version 3.0; newer version recommended]
 \tcb{Fortran compiler}  [Fortran 2003 compliant]
 \tcb{C compiler}  [C99 compliant]
-\tcb{MPI}  [MPI-3 recommended]
+\tcb{MPI}  [MPI-3]
 \end{Verbatim}
 
 The PEXSi, EigenExa, SLEPc-SIPs, BSEPACK, and MAGMA solvers are not enabled by default. Enabling the PEXSI solver requires:
@@ -108,6 +108,11 @@ Enabling the MAGMA solver requires:
 \begin{Verbatim}[commandchars=\\\{\}]
 \tcb{MAGMA}  [version 2.5 or newer]
 \tcb{CUDA}  [version 10.0 or newer]
+\end{Verbatim}
+
+Enabling the CUDA-based GPU acceleration in the ELPA solver requires:
+\begin{Verbatim}[commandchars=\\\{\}]
+\tcb{CUDA}  [version 10.0 or newer recommended]
 \end{Verbatim}
 
 Linear algebra libraries should be provided for ELSI to link against:
@@ -171,7 +176,7 @@ In addition, it is highly recommended to specify the compiler flags in \texttt{C
 \label{subsec:config_solvers}
 The ELPA, libOMM, PEXSI, NTPoly, and BSEPACK solver libraries, as well as the SuperLU\_DIST and PT-SCOTCH libraries (both required by PEXSI), are redistributed with the current ELSI package.
 
-The redistributed version of ELPA comes with a few ``kernels'' specifically written to take advantage of processor architecture (e.g. vectorization instruction set extensions), which may be chosen by the \texttt{ELPA2\_KERNEL} keyword. Available options are \texttt{AVX}, \texttt{AVX2}, and \texttt{AVX512}, for architectures supporting Intel AVX, AVX2, and AVX512 instruction sets, respectively. In ELPA, these kernels are employed to accelerate the calculation of eigenvectors, which is often a bottleneck when calculating a large portion of the eigenspectrum.
+The redistributed version of ELPA comes with a few ``kernels'' written to take advantage of architecture-specific instruction sets, which may be chosen by the \texttt{ELPA2\_KERNEL} keyword. Available options are \texttt{AVX}, \texttt{AVX2}, and \texttt{AVX512}, for architectures supporting Intel AVX, AVX2, and AVX512 instruction sets, respectively. In ELPA, these kernels are employed to accelerate the calculation of eigenvectors, which is often a bottleneck when calculating a large portion of the eigenspectrum. In addition, ELPA supports GPU acceleration on NVIDIA devices via the CUDA programming model and the cuBLAS library. This feature may be enabled by the keyword \texttt{USE\_GPU\_CUDA}, which requires the CUDA runtime and cuBLAS libraries.
 
 The PEXSI, EigenExa, SLEPc-SIPs, BSEPACK, and MAGMA solvers are not enabled by default. They may be activated by the keywords \texttt{ENABLE\_PEXSI}, \texttt{ENABLE\_EIGENEXA}, \texttt{ENABLE\_SIPS}, \texttt{ENABLE\_BSEPACK}, and \texttt{ENABLE\_MAGMA}, respectively. PEXSI 1.2.0, EigenExa 2.3, 2.4, SLEPc 3.9, 3.10, 3.11, 3.12, 3.13, BSEPACK 0.1, and MAGMA 2.5 have been tested with this version of ELSI. Older/newer versions may or may not be compatible. The PETSc library, required by SLEPc, must be compiled with MPI support, and (at least) with MUMPS and ParMETIS enabled.
 
@@ -198,6 +203,10 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 \texttt{CMAKE\_C\_COMPILER}       & string  & none        & MPI C compiler\\
 \hline
 \texttt{CMAKE\_C\_FLAGS}          & string  & none        & C flags\\
+\hline
+\texttt{CMAKE\_CUDA\_COMPILER}    & string  & none        & CUDA compiler (nvcc)\\
+\hline
+\texttt{CMAKE\_CUDA\_FLAGS}       & string  & none        & CUDA flags\\
 \hline
 \texttt{CMAKE\_CXX\_COMPILER}     & string  & none        & MPI C++ compiler\\
 \hline
@@ -247,6 +256,8 @@ The options accepted by the ELSI CMake build system are listed here in alphabeti
 \texttt{USE\_EXTERNAL\_OMM}       & boolean & OFF         & Use external libOMM and MatrixSwitch\\
 \hline
 \texttt{USE\_EXTERNAL\_PEXSI}     & boolean & OFF         & Use external PEXSI (if PEXSI enabled)\\
+\hline
+\texttt{USE\_GPU\_CUDA}           & boolean & OFF         & Use CUDA-based GPU acceleration in ELPA\\
 \hline
 \texttt{USE\_MPI\_MODULE}         & boolean & OFF         & Use MPI module instead of ``\texttt{mpif.h}'' in Fortran code\\
 \hline

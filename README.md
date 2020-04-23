@@ -11,7 +11,7 @@ the Kohn-Sham density-functional theory. For more information, please visit the
 
 The standard installation of ELSI requires:
 
-* CMake (3.0.2 or newer)
+* CMake (3.0 or newer)
 * Fortran compiler (Fortran 2003)
 * C compiler (C99)
 * C++ compiler (C++11)
