@@ -29,17 +29,11 @@ module ELSI_UTIL
    public :: elsi_reset_basic
    public :: elsi_get_gid
    public :: elsi_get_lid
-   public :: elsi_get_nnz
    public :: elsi_reduce_energy
    public :: elsi_set_full_mat
    public :: elsi_build_dm
    public :: elsi_build_edm
    public :: elsi_gram_schmidt
-
-   interface elsi_get_nnz
-      module procedure elsi_get_nnz_real
-      module procedure elsi_get_nnz_cmplx
-   end interface
 
    interface elsi_set_full_mat
       module procedure elsi_set_full_mat_real
@@ -577,66 +571,6 @@ subroutine elsi_get_lid(n_procs,blk,gid,lid)
 end subroutine
 
 !>
-!! Count the number of nonzero elements in a matrix.
-!!
-subroutine elsi_get_nnz_real(def0,n_row,n_col,mat,nnz)
-
-   implicit none
-
-   real(kind=r8), intent(in) :: def0
-   integer(kind=i4), intent(in) :: n_row
-   integer(kind=i4), intent(in) :: n_col
-   real(kind=r8), intent(in) :: mat(n_row,n_col)
-   integer(kind=i4), intent(out) :: nnz
-
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-
-   character(len=*), parameter :: caller = "elsi_get_nnz_real"
-
-   nnz = 0
-
-   do i_col = 1,n_col
-      do i_row = 1,n_row
-         if(abs(mat(i_row,i_col)) > def0) then
-            nnz = nnz+1
-         end if
-      end do
-   end do
-
-end subroutine
-
-!>
-!! Count the number of nonzero elements in a matrix.
-!!
-subroutine elsi_get_nnz_cmplx(def0,n_row,n_col,mat,nnz)
-
-   implicit none
-
-   real(kind=r8), intent(in) :: def0
-   integer(kind=i4), intent(in) :: n_row
-   integer(kind=i4), intent(in) :: n_col
-   complex(kind=r8), intent(in) :: mat(n_row,n_col)
-   integer(kind=i4), intent(out) :: nnz
-
-   integer(kind=i4) :: i_row
-   integer(kind=i4) :: i_col
-
-   character(len=*), parameter :: caller = "elsi_get_nnz_cmplx"
-
-   nnz = 0
-
-   do i_col = 1,n_col
-      do i_row = 1,n_row
-         if(abs(mat(i_row,i_col)) > def0) then
-            nnz = nnz+1
-         end if
-      end do
-   end do
-
-end subroutine
-
-!>
 !! Reduce energy over spin channels and k-points.
 !!
 subroutine elsi_reduce_energy(ph,bh,energy)
@@ -719,6 +653,7 @@ subroutine elsi_set_full_mat_real(ph,bh,uplo,mat)
       end do
    end if
 
+   ! Allocate slightly more to work around crashes in some PBLAS
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp",caller)
 
    call pdtran(ph%n_basis,ph%n_basis,1.0_r8,mat,1,1,bh%desc,0.0_r8,tmp,1,1,&
@@ -781,6 +716,7 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,mat)
       end do
    end if
 
+   ! Allocate slightly more to work around crashes in some PBLAS
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol+2*bh%blk,"tmp",caller)
 
    call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),mat,1,1,bh%desc,&
@@ -823,59 +759,38 @@ subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
    integer(kind=i4) :: i
    integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
-   logical :: use_gemm
    character(len=200) :: msg
 
-   real(kind=r8), allocatable :: factor(:)
    real(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_build_dm_real"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,factor,ph%n_states_solve,"factor",caller)
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   tmp(:,:) = evec
    dm(:,:) = 0.0_r8
-   max_state = 0
-   use_gemm = .false.
-
-   do i = 1,ph%n_states_solve
-      if(occ(i) > 0.0_r8) then
-         factor(i) = sqrt(occ(i))
-         max_state = i
-      else if(occ(i) < 0.0_r8) then
-         use_gemm = .true.
-
-         exit
-      end if
-   end do
 
    ! Compute density matrix
-   if(use_gemm) then
+   if(any(occ(1:ph%n_states_solve) < 0.0_r8)) then
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
          if(gid <= ph%n_states_solve) then
-            tmp(:,i) = tmp(:,i)*occ(gid)
-         else
-            tmp(:,i) = 0.0_r8
+            tmp(:,i) = evec(:,i)*occ(gid)
          end if
       end do
 
       call pdgemm("N","T",ph%n_basis,ph%n_basis,ph%n_states_solve,1.0_r8,tmp,1,&
            1,bh%desc,evec,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
    else
+      max_state = count(occ(1:ph%n_states_solve) > 0.0_r8)
+
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
-         if(gid <= ph%n_states_solve) then
-            if(factor(gid) > 0.0_r8) then
-               tmp(:,i) = tmp(:,i)*factor(gid)
-            else
-               tmp(:,i) = 0.0_r8
-            end if
+         if(gid <= max_state) then
+            tmp(:,i) = evec(:,i)*sqrt(occ(gid))
          end if
       end do
 
@@ -885,7 +800,6 @@ subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
       call elsi_set_full_mat(ph,bh,UT_MAT,dm)
    end if
 
-   call elsi_deallocate(bh,factor,"factor")
    call elsi_deallocate(bh,tmp,"tmp")
 
    call elsi_get_time(t1)
@@ -915,44 +829,25 @@ subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
    integer(kind=i4) :: i
    integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
-   logical :: use_gemm
    character(len=200) :: msg
 
-   real(kind=r8), allocatable :: factor(:)
    complex(kind=r8), allocatable :: tmp(:,:)
 
    character(len=*), parameter :: caller = "elsi_build_dm_cmplx"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,factor,ph%n_states_solve,"factor",caller)
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   tmp(:,:) = evec
    dm(:,:) = (0.0_r8,0.0_r8)
-   max_state = 0
-   use_gemm = .false.
-
-   do i = 1,ph%n_states_solve
-      if(occ(i) > 0.0_r8) then
-         factor(i) = sqrt(occ(i))
-         max_state = i
-      else if(occ(i) < 0.0_r8) then
-         use_gemm = .true.
-
-         exit
-      end if
-   end do
 
    ! Compute density matrix
-   if(use_gemm) then
+   if(any(occ(1:ph%n_states_solve) < 0.0_r8)) then
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
          if(gid <= ph%n_states_solve) then
-            tmp(:,i) = tmp(:,i)*occ(gid)
-         else
-            tmp(:,i) = (0.0_r8,0.0_r8)
+            tmp(:,i) = evec(:,i)*occ(gid)
          end if
       end do
 
@@ -960,15 +855,13 @@ subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
            (1.0_r8,0.0_r8),tmp,1,1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),dm,&
            1,1,bh%desc)
    else
+      max_state = count(occ(1:ph%n_states_solve) > 0.0_r8)
+
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
-         if(gid <= ph%n_states_solve) then
-            if(factor(gid) > 0.0_r8) then
-               tmp(:,i) = tmp(:,i)*factor(gid)
-            else
-               tmp(:,i) = (0.0_r8,0.0_r8)
-            end if
+         if(gid <= max_state) then
+            tmp(:,i) = evec(:,i)*sqrt(occ(gid))
          end if
       end do
 
@@ -978,7 +871,6 @@ subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
       call elsi_set_full_mat(ph,bh,UT_MAT,dm)
    end if
 
-   call elsi_deallocate(bh,factor,"factor")
    call elsi_deallocate(bh,tmp,"tmp")
 
    call elsi_get_time(t1)
@@ -1010,7 +902,6 @@ subroutine elsi_build_edm_real(ph,bh,occ,eval,evec,edm)
    integer(kind=i4) :: i
    integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
-   logical :: use_gemm
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
@@ -1023,47 +914,30 @@ subroutine elsi_build_edm_real(ph,bh,occ,eval,evec,edm)
    call elsi_allocate(bh,factor,ph%n_states_solve,"factor",caller)
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   max_state = 0
-   tmp(:,:) = evec
    edm(:,:) = 0.0_r8
-   use_gemm = .false.
 
-   do i = 1,ph%n_states_solve
-      factor(i) = -occ(i)*eval(i)
-
-      if(factor(i) > 0.0_r8) then
-         max_state = i
-      else if(factor(i) < 0.0_r8) then
-         use_gemm = .true.
-      end if
-   end do
+   factor(:) = -occ(1:ph%n_states_solve)*eval(1:ph%n_states_solve)
 
    ! Compute density matrix
-   if(use_gemm) then
+   if(any(factor < 0.0_r8)) then
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
          if(gid <= ph%n_states_solve) then
-            tmp(:,i) = tmp(:,i)*factor(gid)
-         else
-            tmp(:,i) = 0.0_r8
+            tmp(:,i) = evec(:,i)*factor(gid)
          end if
       end do
 
       call pdgemm("N","T",ph%n_basis,ph%n_basis,ph%n_states_solve,-1.0_r8,tmp,&
            1,1,bh%desc,evec,1,1,bh%desc,0.0_r8,edm,1,1,bh%desc)
    else
-      factor = sqrt(factor)
+      max_state = count(factor > 0.0_r8)
 
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
-         if(gid <= ph%n_states_solve) then
-            if(factor(gid) > 0.0_r8) then
-               tmp(:,i) = tmp(:,i)*factor(gid)
-            else
-               tmp(:,i) = 0.0_r8
-            end if
+         if(gid <= max_state) then
+            tmp(:,i) = evec(:,i)*sqrt(factor(gid))
          end if
       end do
 
@@ -1105,7 +979,6 @@ subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
    integer(kind=i4) :: i
    integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
-   logical :: use_gemm
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: factor(:)
@@ -1118,30 +991,17 @@ subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
    call elsi_allocate(bh,factor,ph%n_states_solve,"factor",caller)
    call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
 
-   max_state = 0
-   tmp(:,:) = evec
    edm(:,:) = (0.0_r8,0.0_r8)
-   use_gemm = .false.
 
-   do i = 1,ph%n_states_solve
-      factor(i) = -occ(i)*eval(i)
-
-      if(factor(i) > 0.0_r8) then
-         max_state = i
-      else if(factor(i) < 0.0_r8) then
-         use_gemm = .true.
-      end if
-   end do
+   factor(:) = -occ(1:ph%n_states_solve)*eval(1:ph%n_states_solve)
 
    ! Compute density matrix
-   if(use_gemm) then
+   if(any(factor < 0.0_r8)) then
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
          if(gid <= ph%n_states_solve) then
-            tmp(:,i) = tmp(:,i)*factor(gid)
-         else
-            tmp(:,i) = (0.0_r8,0.0_r8)
+            tmp(:,i) = evec(:,i)*factor(gid)
          end if
       end do
 
@@ -1149,17 +1009,13 @@ subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
            (-1.0_r8,0.0_r8),tmp,1,1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),&
            edm,1,1,bh%desc)
    else
-      factor = sqrt(factor)
+      max_state = count(factor > 0.0_r8)
 
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
-         if(gid <= ph%n_states_solve) then
-            if(factor(gid) > 0.0_r8) then
-               tmp(:,i) = tmp(:,i)*factor(gid)
-            else
-               tmp(:,i) = (0.0_r8,0.0_r8)
-            end if
+         if(gid <= max_state) then
+            tmp(:,i) = evec(:,i)*sqrt(factor(gid))
          end if
       end do
 

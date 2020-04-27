@@ -16,7 +16,6 @@ module ELSI_DECISION
    use ELSI_MPI, only: elsi_check_mpi,MPI_SUM,MPI_INTEGER4,MPI_REAL8
    use ELSI_OUTPUT, only: elsi_say
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_UTIL, only: elsi_get_nnz
 
    implicit none
 
@@ -76,7 +75,7 @@ subroutine elsi_decide_dm_real(ph,bh,mat)
 
    if(ph%solver == AUTO_SOLVER) then
       if(ph%i_spin == 1 .and. ph%i_kpt == 1) then
-         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,mat,nnz_l)
+         nnz_l = count(abs(mat) > bh%def0)
 
          call MPI_Allreduce(nnz_l,nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
 
@@ -114,7 +113,7 @@ subroutine elsi_decide_dm_cmplx(ph,bh,mat)
 
    if(ph%solver == AUTO_SOLVER) then
       if(ph%i_spin == 1 .and. ph%i_kpt == 1) then
-         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,mat,nnz_l)
+         nnz_l = count(abs(mat) > bh%def0)
 
          call MPI_Allreduce(nnz_l,nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
 

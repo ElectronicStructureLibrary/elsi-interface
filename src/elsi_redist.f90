@@ -21,7 +21,7 @@ module ELSI_REDIST
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_SORT, only: elsi_heapsort,elsi_permute,elsi_unpermute
-   use ELSI_UTIL, only: elsi_get_nnz,elsi_get_gid,elsi_get_lid
+   use ELSI_UTIL, only: elsi_get_gid,elsi_get_lid
 
    implicit none
 
@@ -1682,8 +1682,7 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
    call elsi_get_time(t0)
 
    n_lrow_aux = ph%n_basis/bh%n_procs
-
-   call elsi_get_nnz(bh%def0,bh%n_lcol_sp,ph%n_states,evec_sips,nnz_l_before)
+   nnz_l_before = count(abs(evec_sips) > bh%def0)
 
    call elsi_allocate(bh,dest,nnz_l_before,"dest",caller)
    call elsi_allocate(bh,perm,nnz_l_before,"perm",caller)
@@ -1846,7 +1845,7 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
 
    call elsi_get_time(t0)
 
-   call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,dm_den,bh%nnz_l)
+   bh%nnz_l = count(abs(dm_den) > bh%def0)
 
    call elsi_allocate(bh,val_send,bh%nnz_l,"val_send",caller)
    call elsi_allocate(bh,row_send,bh%nnz_l,"row_send",caller)
@@ -2002,7 +2001,7 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
 
    call elsi_get_time(t0)
 
-   call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,dm_den,bh%nnz_l)
+   bh%nnz_l = count(abs(dm_den) > bh%def0)
 
    call elsi_allocate(bh,val_send,bh%nnz_l,"val_send",caller)
    call elsi_allocate(bh,row_send,bh%nnz_l,"row_send",caller)
@@ -2582,7 +2581,7 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,dm_den,dm_sp,row_ind,col_ptr)
 
    call elsi_get_time(t0)
 
-   call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,dm_den,bh%nnz_l)
+   bh%nnz_l = count(abs(dm_den) > bh%def0)
 
    call elsi_allocate(bh,dest,bh%nnz_l,"dest",caller)
    call elsi_allocate(bh,perm,bh%nnz_l,"perm",caller)
@@ -2748,7 +2747,7 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,dm_den,dm_sp,row_ind,col_ptr)
 
    call elsi_get_time(t0)
 
-   call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,dm_den,bh%nnz_l)
+   bh%nnz_l = count(abs(dm_den) > bh%def0)
 
    call elsi_allocate(bh,dest,bh%nnz_l,"dest",caller)
    call elsi_allocate(bh,perm,bh%nnz_l,"perm",caller)
@@ -7662,7 +7661,7 @@ subroutine elsi_blacs_to_eigenexa_h_real(ph,bh,ham_den,ham_exa)
 
    call elsi_get_time(t0)
 
-   call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham_den,nnz_l_before)
+   nnz_l_before = count(abs(ham_den) > bh%def0)
 
    call elsi_allocate(bh,dest,nnz_l_before,"dest",caller)
    call elsi_allocate(bh,perm,nnz_l_before,"perm",caller)
