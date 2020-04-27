@@ -16,7 +16,7 @@ module ELSI_ELPA
        MPI_INTEGER4
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r4,r8,i4
-   use ELSI_UTIL, only: elsi_get_nnz,elsi_get_gid,elsi_set_full_mat
+   use ELSI_UTIL, only: elsi_get_gid,elsi_set_full_mat
    use ELPA, only: elpa_init,elpa_allocate,elpa_deallocate,&
        elpa_autotune_deallocate,ELPA_2STAGE_REAL_GPU,ELPA_2STAGE_COMPLEX_GPU,&
        ELPA_AUTOTUNE_FAST,ELPA_AUTOTUNE_MEDIUM,ELPA_AUTOTUNE_DOMAIN_REAL,&
@@ -351,7 +351,7 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
-         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham,bh%nnz_l)
+         bh%nnz_l = count(abs(ham) > bh%def0)
       end if
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
@@ -694,7 +694,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
-         call elsi_get_nnz(bh%def0,bh%n_lrow,bh%n_lcol,ham,bh%nnz_l)
+         bh%nnz_l = count(abs(ham) > bh%def0)
       end if
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)

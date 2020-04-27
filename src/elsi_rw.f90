@@ -20,7 +20,7 @@ module ELSI_RW
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_REDIST, only: elsi_blacs_to_mask,elsi_blacs_to_sips_hs_dim,&
        elsi_blacs_to_sips_hs,elsi_sips_to_blacs_dm
-   use ELSI_UTIL, only: elsi_get_nnz,elsi_reset_basic,elsi_check_init
+   use ELSI_UTIL, only: elsi_reset_basic,elsi_check_init
 
    implicit none
 
@@ -1667,7 +1667,7 @@ subroutine elsi_write_mat_sp_real(rwh,f_name,mat)
    character(len=*), parameter :: caller = "elsi_write_mat_sp_real"
 
    ! Compute nnz
-   call elsi_get_nnz(rwh%bh%def0,rwh%bh%n_lrow,rwh%bh%n_lcol,mat,nnz_g)
+   nnz_g = count(abs(mat) > rwh%bh%def0)
 
    ! Convert to CSC
    call elsi_allocate(rwh%bh,col_ptr,rwh%n_basis+1,"col_ptr",caller)
@@ -1765,7 +1765,7 @@ subroutine elsi_write_mat_sp_cmplx(rwh,f_name,mat)
    character(len=*), parameter :: caller = "elsi_write_mat_sp_cmplx"
 
    ! Compute nnz
-   call elsi_get_nnz(rwh%bh%def0,rwh%bh%n_lrow,rwh%bh%n_lcol,mat,nnz_g)
+   nnz_g = count(abs(mat) > rwh%bh%def0)
 
    ! Convert to CSC
    call elsi_allocate(rwh%bh,col_ptr,rwh%n_basis+1,"col_ptr",caller)

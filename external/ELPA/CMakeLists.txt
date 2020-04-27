@@ -1,7 +1,6 @@
 ### Source files ###
 LIST(APPEND elpa_src
   src/aligned_mem.f90
-  src/cannon.c
   src/check_for_gpu.f90
   src/elpa1_auxiliary.f90
   src/elpa1_compute_private.f90
@@ -34,11 +33,6 @@ LIST(APPEND elpa_src
   src/resident_set_size.c
   src/time.c
   src/virtual_memory.c)
-
-IF(ADD_UNDERSCORE)
-  SET_SOURCE_FILES_PROPERTIES(src/cannon.c
-    PROPERTIES COMPILE_DEFINITIONS "Add_")
-ENDIF()
 
 IF(USE_MPI_MODULE)
   LIST(APPEND elpa_src src/mod_mpi.f90)

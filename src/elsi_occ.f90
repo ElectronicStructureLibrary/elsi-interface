@@ -49,41 +49,20 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
    real(kind=r8), intent(out) :: occ(n_state,n_spin,n_kpt)
    real(kind=r8), intent(out) :: mu
 
-   real(kind=r8) :: e_min
-   real(kind=r8) :: e_max
    real(kind=r8) :: mu_min
    real(kind=r8) :: mu_max
+   real(kind=r8) :: buf
    real(kind=r8) :: diff_min ! Error on lower bound
    real(kind=r8) :: diff_max ! Error on upper bound
-   integer(kind=i4) :: i_state
-   integer(kind=i4) :: i_kpt
-   integer(kind=i4) :: i_spin
    integer(kind=i4) :: i_step
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_mu_and_occ"
 
-   ! Determine smallest and largest eivenvalues
-   e_min = eval(1,1,1)
-   e_max = eval(n_state,1,1)
-
-   do i_kpt = 1,n_kpt
-      do i_spin = 1,n_spin
-         do i_state = 1,n_state
-            if(eval(i_state,i_spin,i_kpt) < e_min) then
-               e_min = eval(i_state,i_spin,i_kpt)
-            end if
-
-            if(eval(i_state,i_spin,i_kpt) > e_max) then
-               e_max = eval(i_state,i_spin,i_kpt)
-            end if
-         end do
-      end do
-   end do
-
    ! Determine upper and lower bounds of mu
-   mu_min = e_min
-   mu_max = e_max
+   mu_min = minval(eval)
+   mu_max = maxval(eval)
+   buf = 0.5_r8*abs(mu_max-mu_min)
 
    if(mu_max - mu_min < ph%mu_tol) then
       mu_min = mu_min-1.0_r8
@@ -109,8 +88,8 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
          call elsi_stop(bh,msg,caller)
       end if
 
-      mu_min = mu_min-0.5_r8*abs(e_max-e_min)
-      mu_max = mu_max+0.5_r8*abs(e_max-e_min)
+      mu_min = mu_min-buf
+      mu_max = mu_max+buf
 
       call elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_wt,eval,&
            occ,mu_min,diff_min)
