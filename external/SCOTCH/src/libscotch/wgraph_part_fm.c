@@ -1,4 +1,4 @@
-/* Copyright 2007-2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2013,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -44,7 +44,7 @@
 /**   DATES      : # Version 5.1  : from : 01 dec 2007     **/
 /**                                 to   : 01 jul 2008     **/
 /**                # Version 6.0  : from : 05 nov 2009     **/
-/**                                 to     30 nov 2012     **/
+/**                                 to     31 may 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -138,9 +138,9 @@ wgraphPartFm (
 Wgraph * restrict const         grafptr,    /*+ Active graph      +*/
 const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
 {
-  int                             passnbr;    /* Maximum number of passes to go          */
-  int                             moveflag;   /* Flag set if useful moves made           */
-  Gnum                            fronnum;    /* Current index of frontier vertex        */
+  int                             passnbr;    /* Maximum number of passes to go       */
+  int                             moveflag;   /* Flag set if useful moves made        */
+  Gnum                            fronnum;    /* Current index of frontier vertex     */
   Gnum                            partval;
   Gnum                            partnbr;
   Gnum                            vertnum;
@@ -151,23 +151,20 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
   Gnum                            frlobst;
   Gnum                            linknbr;
   Gnum                            savenum;
-  Gnum                            hashmax;    /* Maximum number of elements in table     */
-  Gnum                            hashsiz;    /* Size of hash and save tables            */
-  Gnum                            hashmsk;    /* Mask for access to hash table           */
-  Gnum                            hashnbr;    /* Number of elements in hash table        */
+  Gnum                            hashmax;    /* Maximum number of elements in table  */
+  Gnum                            hashsiz;    /* Size of hash and save tables         */
+  Gnum                            hashmsk;    /* Mask for access to hash table        */
+  Gnum                            hashnbr;    /* Number of elements in hash table     */
   Gnum                            velomsk;
   Gnum * restrict                 movetab;
-  GainTabl * restrict             tablptr;    /* Pointer to gain tables                  */
+  GainTabl * restrict             tablptr;    /* Pointer to gain tables               */
   const Gnum * restrict           velobax;    /* Data for handling of optional arrays */
-  WgraphPartFmVertex *            hashtab;    /* Hash vertex table                       */
+  WgraphPartFmVertex *            hashtab;    /* Hash vertex table                    */
   WgraphPartFmVertex *            vexxptr;
   WgraphPartFmVertex *            vertlist;
   WgraphPartFmVertex *            locklist;
   WgraphPartFmSave * restrict     savetab;
   WgraphPartFmLink * restrict     linktab;
-  WgraphPartFmLink * restrict     linkptr;
-  WgraphPartFmLink * restrict     linkptr2;
-  WgraphPartFmLink * restrict     linklist;
   WgraphPartFmPartList * restrict partlist;
   WgraphPartFmPartList * restrict partlistptr;
   WgraphPartFmPartList * restrict partlistloadptr;
@@ -240,11 +237,13 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
   passnbr  = paraptr->passnbr;
   frlobst  = grafptr->fronload;
   for (fronnum = 0; fronnum < grafptr->fronnbr; fronnum ++) {       /* Set initial gains */
-    Gnum                                edgenum;
-    Gnum                                compgain;
-    Gnum                                minloadpartval;
-    Gnum                                minloadpartload;
-    Gnum                                secondloadpartval;
+    Gnum                        edgenum;
+    Gnum                        compgain;
+    Gnum                        minloadpartval;
+    Gnum                        minloadpartload;
+    Gnum                        secondloadpartval;
+    WgraphPartFmLink * restrict linklist;
+    WgraphPartFmLink * restrict linkptr;
 
     minloadpartval    =
     secondloadpartval = -1;
@@ -299,8 +298,8 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
     for (hashnum = (vertnum * WGRAPHSEPAFMHASHPRIME) & hashmsk;
          hashtab[hashnum].vertnum != vertnum && hashtab[hashnum].vertnum != ~0;
          hashnum = (hashnum + 1) & hashmsk);
-    if (hashtab[hashnum].vertnum == ~0) {         /* if vertex not found      */
-      hashtab[hashnum].vertnum = vertnum;         /* add it in the hash table */
+    if (hashtab[hashnum].vertnum == ~0) {         /* If vertex not found      */
+      hashtab[hashnum].vertnum = vertnum;         /* Add it in the hash table */
       hashtab[hashnum].partval = -1;
       hashtab[hashnum].linklist = NULL;
       hashnbr ++;
@@ -313,18 +312,15 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
       }
     }
 
-    if (partlistptr != NULL)                         /* if the selected vertex is not isolated                   */
-      hashtab[hashnum].linklist = linktab + linknbr; /* then the first link will the next element of the linktab */
-    else
-      hashtab[hashnum].linklist = NULL;           /* else, no link */
-
+    hashtab[hashnum].linklist = (partlistptr != NULL) /* If selected vertex is not isolated         */
+                                ? linktab + linknbr /* Then first link will next element in linktab */
+                                : NULL;           /* Else, no link                                  */
     linklist =
-    linkptr  = NULL;                              /* no link in the list */
-
-    while (partlistptr != NULL) {                 /* for each linked parts */
+    linkptr  = NULL;                              /* Assume list is empty */
+    while (partlistptr != NULL) {                 /* For each linked part */
       partval          = partlistptr - partlist;
       partlistptr      = partlistptr->prev;
-      linkptr          = linktab + linknbr;                /* create link at the end of the linktab*/
+      linkptr          = linktab + linknbr;       /* Create link at the end of linktab */
       linkptr->partval = partval;
       linkptr->hashnum = hashnum;
       linkptr->gain    = compgain + partlist[partval].gain;
@@ -335,7 +331,7 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
         linkptr->minloadpartval = secondloadpartval;
       linkptr->minloadpartload = minloadpartload;
 
-      if (linklist != NULL)                       /* add the link in the list */
+      if (linklist != NULL)                       /* Add link to the list */
         linklist->next = linkptr;
       linklist = linkptr;
 
@@ -352,10 +348,11 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
   movetab[0] = -1;
 
   do {                                            /* As long as there is improvement */
-    Gnum                                partval2;
-    Gnum                                movenbr;  /* Number of uneffective moves done */
-    Gnum                                savenbr;  /* Position of current move         */
-    Gnum                                diffload;
+    Gnum                        partval2;
+    Gnum                        movenbr;          /* Number of uneffective moves done */
+    Gnum                        savenbr;          /* Position of current move         */
+    Gnum                        diffload;
+    WgraphPartFmLink * restrict linkptr;
 
     movenbr  = 0;                                 /* No uneffective moves yet */
     savenbr  = 0;                                 /* No recorded moves yet    */
@@ -530,11 +527,11 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
 
         vertnum2 = vertlist2->vertnum;
 
-        if (vertlist2->partval2 == -1) {          /* if vertex was in separator */
+        if (vertlist2->partval2 == -1) {          /* If vertex was in separator */
+          WgraphPartFmLink * restrict linkptr2;
 
-          linkptr2 = vertlist2->linklist;
-
-          while (linkptr2 != NULL) {               /* for each link for the vertex */
+          for (linkptr2 = vertlist2->linklist;    /* For each link of the vertex */
+               linkptr2 != NULL; linkptr2 = linkptr2->next) {
             if (linkptr2->gainlink.next != NULL) {
               grafptr->compload[linkptr2->partval] -= velobax[vertnum2 & velomsk]; /* decrease the load of this part */
               grafptr->compsize[linkptr2->partval]--; /* decrease the size of this part                              */
@@ -549,51 +546,34 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
             }
 
             if (linkptr2->gainlink.next != NULL) {
-              if (linkptr2->gainlink.next != (GainLink *) 1) { /* if the link is in the gain table */
-                if (savenbr >= hashsiz) {
-                  if (wgraphPartFmResize () != 0) {
-                    errorPrint ("wgraphPartFm: out of memory (2)");
-                    return     (1);
-                  }
+              if (linkptr2->gainlink.next != (GainLink *) 1) /* If link is in gain table */
+                gainTablDel (tablptr, (GainLink *) linkptr2); /* Remove link from table  */
+
+              if (savenbr >= hashsiz) {
+                if (wgraphPartFmResize () != 0) { /* TODO: Check if table resizing changes linkptr2 ? */
+                  errorPrint ("wgraphPartFm: out of memory (2)");
+                  return     (1);
                 }
-
-                savetab[savenbr].type = WGRAPHSEPAFMSAVELINKDEL;        /* save the link removing from the table */
-                savetab[savenbr].u.linkdata.linknum = linkptr2 - linktab;
-                savetab[savenbr].u.linkdata.gain = linkptr2->gain;
-                movetab[movenbr] = savenbr;
-                savenbr ++;
-
-                gainTablDel (tablptr, (GainLink *) linkptr2); /* Remove the link from table */
-
-              } else {
-                if (savenbr >= hashsiz) {
-                  if (wgraphPartFmResize () != 0) {
-                    errorPrint ("wgraphPartFm: out of memory (2)");
-                    return     (1);
-                  }
-                }
-
-                savetab[savenbr].type = WGRAPHSEPAFMSAVELINKDEL; /* save the link removing from the table */
-                savetab[savenbr].u.linkdata.linknum = linkptr2 - linktab;
-                savetab[savenbr].u.linkdata.gain = linkptr2->gain;
-                movetab[movenbr] = savenbr;
-                savenbr ++;
-
               }
+
+              savetab[savenbr].type = WGRAPHSEPAFMSAVELINKDEL; /* Save link removal from table */
+              savetab[savenbr].u.linkdata.linknum = linkptr2 - linktab;
+              savetab[savenbr].u.linkdata.gain = linkptr2->gain;
+              movetab[movenbr] = savenbr;
+              savenbr ++;
             }
 
             linkptr2->gainlink.next = NULL;
-
-            linkptr2 = linkptr2->next;
           }
         }
 
         if (vertlist2->partval == -1) {           /* if vertex move (or stay) in the separator */
-
-          Gnum                                gain;
-          Gnum                                minloadpartval;
-          Gnum                                minloadpartload;
-          Gnum                                secondloadpartval;
+          Gnum                        gain;
+          Gnum                        minloadpartval;
+          Gnum                        minloadpartload;
+          Gnum                        secondloadpartval;
+          WgraphPartFmLink * restrict linklist;
+          WgraphPartFmLink * restrict linkptr2;
 
           vertnum2 = vertlist2->vertnum;
           partlistptr = NULL;
@@ -606,7 +586,6 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
                hashnum = (hashnum + 1) & hashmsk);
 
           vexxptr = hashtab + hashnum;
-          linkptr2 = vexxptr->linklist;
 
           for (edgenum = grafptr->s.verttax[vertnum2]; /* recompute the gain */
                edgenum < grafptr->s.vendtax[vertnum2]; edgenum ++) {
@@ -652,14 +631,12 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
             }
           }
 
-          linklist = NULL;
-          linkptr2 = vexxptr->linklist;
-          while(linkptr2 != NULL) {                /* for each vertex link in the list */
+          for (linkptr2 = vexxptr->linklist, linklist = NULL; /* For each vertex link in list */
+               linkptr2 != NULL; linkptr2 = linkptr2->next) {
             linklist = linkptr2;
             partval2 = linkptr2->partval;
 
-            if (partlist[partval2].gain != 0) {    /* if the part is linked */
-
+            if (partlist[partval2].gain != 0) {   /* If part is linked */
               hashtab[linkptr2->hashnum].vertnum = vertnum2;
               linkptr2->partval = partval2;
               linkptr2->gain = gain + partlist[partval2].gain;
@@ -670,7 +647,7 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
                 linkptr2->minloadpartval = secondloadpartval;
               linkptr2->minloadpartload = minloadpartload;
 
-              if (hashtab[linkptr2->hashnum].lockprev == (WgraphPartFmVertex *) ~0) { /* if the vertex is not locked */
+              if (hashtab[linkptr2->hashnum].lockprev == (WgraphPartFmVertex *) ~0) { /* If vertex is not locked */
                 if (savenbr >= hashsiz) {
                   if (wgraphPartFmResize () != 0) {
                     errorPrint ("wgraphPartFm: out of memory (2)");
@@ -713,69 +690,51 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
                 partlist[linkptr2->partval].loadprev     = partlistloadptr;
                 partlistloadptr                          = partlist + linkptr2->partval;
               }
-
             }
-            linkptr2 = linkptr2->next;
           }
 
           while (partlistptr != NULL) {           /* for each part in the linked list */
             partval2 = partlistptr - partlist;
             if (partlist[partval2].gain != 0) {
+              WgraphPartFmLink * restrict linkptr3;
 
-              linkptr2 = linktab + linknbr;
-              if (linklist != NULL)               /* if the vertex has a list of link */
-                linklist->next = linkptr2;        /* add the link in the list         */
+              linkptr3 = linktab + linknbr;
+              if (linklist != NULL)               /* If vertex has a list of link */
+                linklist->next = linkptr3;        /* Add link to the list         */
               else
-                vexxptr->linklist = linkptr2;     /* else create the list */
+                vexxptr->linklist = linkptr3;     /* Else create the list */
 
               linknbr ++;
 
-              linkptr2->hashnum                  = vexxptr - hashtab;
-              hashtab[linkptr2->hashnum].vertnum = vertnum2;
-              linkptr2->partval                  = partval2;
-              linkptr2->gain                     = gain + partlist[partval2].gain;
+              linkptr3->hashnum                  = vexxptr - hashtab;
+              hashtab[linkptr3->hashnum].vertnum = vertnum2;
+              linkptr3->partval                  = partval2;
+              linkptr3->gain                     = gain + partlist[partval2].gain;
 
               if (partval2 != minloadpartval)
-                linkptr2->minloadpartval = minloadpartval;
+                linkptr3->minloadpartval = minloadpartval;
               else
-                linkptr2->minloadpartval = secondloadpartval;
-              linkptr2->minloadpartload = minloadpartload;
+                linkptr3->minloadpartval = secondloadpartval;
+              linkptr3->minloadpartload = minloadpartload;
 
-              if (vexxptr->lockprev == (WgraphPartFmVertex *) ~0/*  || linkptr2->gain == -1 */) {
+              if (vexxptr->lockprev == (WgraphPartFmVertex *) ~0/*  || linkptr3->gain == -1 */)
+                gainTablAdd(tablptr, (GainLink *) linkptr3, linkptr3->gain); /* add the link in the gain table of the part */
+              else
+                linkptr3->gainlink.next = (GainLink *) 1;
 
-                gainTablAdd(tablptr, (GainLink *) linkptr2, linkptr2->gain); /* add the link in the gain table of the part */
-
-                if (savenbr >= hashsiz) {
-                  if (wgraphPartFmResize () != 0) {
-                    errorPrint ("wgraphPartFm: out of memory (2)");
-                    return     (1);
-                  }
+              if (savenbr >= hashsiz) {
+                if (wgraphPartFmResize () != 0) {
+                  errorPrint ("wgraphPartFm: out of memory (2)");
+                  return     (1);
                 }
-                savetab[savenbr].type               = WGRAPHSEPAFMSAVELINKADD;
-                savetab[savenbr].u.linkdata.linknum = linkptr2 - linktab;
-                savetab[savenbr].u.linkdata.gain    = linkptr2->gain;
-                movetab[movenbr]                    = savenbr;
-                savenbr ++;
-
               }
-              else {
-                linkptr2->gainlink.next = (GainLink *) 1;
+              savetab[savenbr].type               = WGRAPHSEPAFMSAVELINKADD;
+              savetab[savenbr].u.linkdata.linknum = linkptr3 - linktab;
+              savetab[savenbr].u.linkdata.gain    = linkptr3->gain;
+              movetab[movenbr]                    = savenbr;
+              savenbr ++;
 
-                if (savenbr >= hashsiz) {
-                  if (wgraphPartFmResize () != 0) {
-                    errorPrint ("wgraphPartFm: out of memory (2)");
-                    return     (1);
-                  }
-                }
-                savetab[savenbr].type               = WGRAPHSEPAFMSAVELINKADD;
-                savetab[savenbr].u.linkdata.linknum = linkptr2 - linktab;
-                savetab[savenbr].u.linkdata.gain    = linkptr2->gain;
-                movetab[movenbr]                    = savenbr;
-                savenbr ++;
-
-              }
-
-              linklist = linkptr2;
+              linklist = linkptr3;
 
               grafptr->compload[partval2] += velobax[vertnum2 & velomsk];
               partlist[partval2].loadgain += velobax[vertnum2 & velomsk];
@@ -799,7 +758,6 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
         }
         vertlist2->linked = ~0;
         vertlist2 = vertlist2->prev;
-
       }
 
       while (partlistloadptr != NULL) {           /* For each part in the load list */
@@ -839,41 +797,39 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
         diffload = 0;
         moveflag = 1;
       }
-      else if (linkptr->minloadpartval == -1) { 
+      else if (linkptr->minloadpartval == -1) {
 	movenbr  =
 	savenbr  =
 	diffload = 0;
       }
       else if ((grafptr->compload[linkptr->partval] < minload) ||
-	       (grafptr->compload[linkptr->partval] < grafptr->compload[linkptr->minloadpartval])) { 
-	  movenbr  =
-	  savenbr  =
-	  diffload = 0;
+	       (grafptr->compload[linkptr->partval] < grafptr->compload[linkptr->minloadpartval])) {
+	movenbr  =
+	savenbr  =
+	diffload = 0;
       }
     }
 
-    while (locklist != NULL) {                    /* for each locked vertex */
+    while (locklist != NULL) {                    /* For each locked vertex */
+      WgraphPartFmLink * restrict linkptr2;
+
       vexxptr           = locklist;
-      locklist          = locklist->lockprev;     /* unlock it */
+      locklist          = locklist->lockprev;     /* Unlock it */
       vexxptr->lockprev = (WgraphPartFmVertex *) ~0;
-      linkptr           = vexxptr->linklist;
 
-      while (linkptr != NULL) {
-        if (linkptr->gainlink.next == (GainLink *) 1) {
-
-          gainTablAdd(tablptr, (GainLink *) linkptr, linkptr->gain); /* add the link in the gain table of the part */
-        }
-        linkptr = linkptr->next;
+      for (linkptr2 = vexxptr->linklist; linkptr2 != NULL; linkptr2 = linkptr2->next) {
+        if (linkptr2->gainlink.next == (GainLink *) 1)
+          gainTablAdd(tablptr, (GainLink *) linkptr2, linkptr2->gain); /* Add link to part gain table */
       }
     }
     locklist = NULL;
 
-    for (; movenbr > 0; movenbr --) {              /* for each move to undo */
-      for (savenum = movetab[movenbr]; savenum > movetab[movenbr - 1]; savenum--) {
+    for ( ; movenbr > 0; movenbr --) {             /* For each move to undo */
+      for (savenum = movetab[movenbr]; savenum > movetab[movenbr - 1]; savenum --) {
+        WgraphPartFmLink * restrict linkptr2;
 
-        switch (savetab[savenum].type)
-        {
-          case WGRAPHSEPAFMSAVEMOVE:
+        switch (savetab[savenum].type) {
+          case WGRAPHSEPAFMSAVEMOVE :
             if (savetab[savenum].u.movedata.partval == -1)
               grafptr->fronload += velobax[hashtab[savetab[savenum].u.movedata.hashnum].vertnum & velomsk];
             if (hashtab[savetab[savenum].u.movedata.hashnum].partval == -1)
@@ -882,17 +838,17 @@ const WgraphPartFmParam * const paraptr)    /*+ Method parameters +*/
             hashtab[savetab[savenum].u.movedata.hashnum].partval = savetab[savenum].u.movedata.partval;
             break;
 
-          case WGRAPHSEPAFMSAVELINKDEL:
-            linkptr = linktab + savetab[savenum].u.linkdata.linknum;
-            linkptr->gain = savetab[savenum].u.linkdata.gain;
-            gainTablAdd (tablptr, (GainLink *) linkptr, linkptr->gain); /* Add link into gain table of the part */
+          case WGRAPHSEPAFMSAVELINKDEL :
+            linkptr2 = linktab + savetab[savenum].u.linkdata.linknum;
+            linkptr2->gain = savetab[savenum].u.linkdata.gain;
+            gainTablAdd (tablptr, (GainLink *) linkptr2, linkptr2->gain); /* Add link into part gain table */
             break;
 
-          case WGRAPHSEPAFMSAVELINKADD:
-            linkptr = linktab + savetab[savenum].u.linkdata.linknum;
-            if (linkptr->gainlink.next != (GainLink *) 1) {
-              gainTablDel (tablptr, (GainLink *) linkptr); /* Remove link from table */
-              linkptr->gainlink.next = NULL;
+          case WGRAPHSEPAFMSAVELINKADD :
+            linkptr2 = linktab + savetab[savenum].u.linkdata.linknum;
+            if (linkptr2->gainlink.next != (GainLink *) 1) {
+              gainTablDel (tablptr, (GainLink *) linkptr2); /* Remove link from table */
+              linkptr2->gainlink.next = NULL;
             }
             break;
 
@@ -955,5 +911,5 @@ wgraphPartFmResize ()
 {
   errorPrint ("wgraphPartFmResize: not implemented");
 
-  return (0);
+  return (1);
 }

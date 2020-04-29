@@ -1,4 +1,4 @@
-/* Copyright 2010-2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2010-2012,2014 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -42,7 +42,7 @@
 /**                to be a band graph.                     **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 05 jan 2010     **/
-/**                                 to   : 02 nov 2012     **/
+/**                                 to   : 23 aug 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -143,7 +143,7 @@ KgraphMapDfThread * restrict  thrdptr)            /* Thread-dependent data */
     return (1);
 #endif /* KGRAPHMAPDFLOOPTHREAD */
   }
-    
+   
   if (velotax == NULL) {
     for (domnnum = domnbas; domnnum < domnnnd; domnnum ++)
       valotab[domnnum] = 1.0F;
@@ -201,10 +201,10 @@ KgraphMapDfThread * restrict  thrdptr)            /* Thread-dependent data */
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
       difotax[vertnum].partval = parttax[vertnum]; /* Set initial part by default */
       difotax[vertnum].diffval =
-      difotax[vertnum].fdifval = 
+      difotax[vertnum].fdifval =
       difotax[vertnum].mdisval =
       difotax[vertnum].mdidval =
-      difntax[vertnum].fdifval = 
+      difntax[vertnum].fdifval =
       difntax[vertnum].mdisval =
       difntax[vertnum].mdidval = 0.0F;
       velstax[vertnum] = vendtax[vertnum] - verttax[vertnum];
@@ -217,7 +217,7 @@ KgraphMapDfThread * restrict  thrdptr)            /* Thread-dependent data */
 
     if (velstax[vancnnd + domnnum] <= 0) {
       vancval          =
-      vanctab[domnnum] = 0.0F; 
+      vanctab[domnnum] = 0.0F;
       velstax[vertnum] = -1;
     }
     else {
@@ -231,7 +231,7 @@ KgraphMapDfThread * restrict  thrdptr)            /* Thread-dependent data */
     difntax[vertnum].diffval =                    /* In case of isolated anchors, do not risk overflow because of NaN */
     difotax[vertnum].fdifval =
     difotax[vertnum].mdisval =
-    difotax[vertnum].mdidval = 
+    difotax[vertnum].mdidval =
     difntax[vertnum].fdifval =
     difntax[vertnum].mdisval =
     difntax[vertnum].mdidval = 0.0F;              /* Do not consider migration costs for anchors */
@@ -247,7 +247,7 @@ KgraphMapDfThread * restrict  thrdptr)            /* Thread-dependent data */
 #endif /* KGRAPHMAPDFLOOPTHREAD */
 
 #ifndef KGRAPHDIFFMAPPNONE
-  if (archPart (grafptr->m.archptr))   
+  if (archPart (grafptr->m.archptr))  
     mappflag = 0;
   else
     mappflag = 1;
@@ -396,14 +396,14 @@ endloop1 : ;
 
       if (parotax != NULL) {
         if (migrval == 0) {
-          difntax[vertnum].mdisval = 
+          difntax[vertnum].mdisval =
           difntax[vertnum].mdidval = 0;
         }
         else {
           if (parotax[vertnum] == sorttab[0].partval) {
             difntax[vertnum].mdisval = migrval / soplval;
             difntax[vertnum].mdidval = 0;
-          }  
+          } 
           else {
             difntax[vertnum].mdisval = 0;
             difntax[vertnum].mdidval = migrval / (velstax[vertnum] - soplval);

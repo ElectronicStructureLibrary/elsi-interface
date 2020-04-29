@@ -1,4 +1,4 @@
-/* Copyright 2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2010,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,7 +40,7 @@
 /**                the libSCOTCH library.                  **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 28 may 2010     **/
-/**                                 to     17 oct 2010     **/
+/**                                 to     25 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -89,15 +89,17 @@ SCOTCH_Num * const          parttab)              /*+ Partition array       +*/
 
   partstraptr = *((Strat **) straptr);
   if (partstraptr->tabl != &wgraphpartststratab) {
-    errorPrint ("SCOTCH_graphPartOvl: not a graph partitioning with overlap strategy");
+    errorPrint (STRINGIFY (SCOTCH_graphPartOvl) ": not a graph partitioning with overlap strategy");
     return     (1);
   }
+
+  intRandInit ();                                 /* Check that random number generator is initialized */
 
   wgraphInit (&grafdat, (Graph *) grafptr, partnbr); /* Initialize graph from given graph    */
   grafdat.parttax = ((Gnum *) parttab) - grafdat.s.baseval; /* Directly use given part array */
   grafdat.levlnum = 0;
   if (wgraphAlloc (&grafdat) != 0) {              /* Always allocate graph data when calling */
-    errorPrint ("SCOTCH_graphPartOvl: out of memory");
+    errorPrint (STRINGIFY (SCOTCH_graphPartOvl) ": out of memory");
     return     (1);
   }
 
@@ -124,7 +126,7 @@ const char * const          string)
     stratExit (*((Strat **) straptr));
 
   if ((*((Strat **) straptr) = stratInit (&wgraphpartststratab, string)) == NULL) {
-    errorPrint ("SCOTCH_stratGraphPartOvl: error in sequential overlap partitioning strategy");
+    errorPrint (STRINGIFY (SCOTCH_stratGraphPartOvl) ": error in sequential overlap partitioning strategy");
     return     (1);
   }
 
@@ -155,7 +157,7 @@ const double                balrat)               /*+ Desired imbalance ratio   
   stringSubst (bufftab, "<KBAL>", kbaltab);
 
   if (SCOTCH_stratGraphPartOvl (straptr, bufftab) != 0) {
-    errorPrint ("SCOTCH_stratGraphPartOvlBuild: error in sequential overlap partitioning strategy");
+    errorPrint (STRINGIFY (SCOTCH_stratGraphPartOvlBuild) ": error in sequential overlap partitioning strategy");
     return     (1);
   }
 

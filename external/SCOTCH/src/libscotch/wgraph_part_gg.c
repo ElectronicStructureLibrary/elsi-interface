@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -96,7 +96,7 @@ const WgraphPartGgParam * const paraptr)    /*+ Method parameters +*/
   Gnum                              vertnum3;
   Gnum                              edgenum;
   Gnum                              edgenum2;
-  Gnum                              palooth;     /* Load of vertices in the remained unassigned part            */ 
+  Gnum                              palooth;     /* Load of vertices in the remained unassigned part            */
   Gnum                              paloexc;     /* Load of vertices in the current part excepting the frontier */
   Gnum                              frloprt;     /* Load of vertices in the frontier of the current part        */
   Gnum                              passnum;
@@ -111,7 +111,7 @@ const WgraphPartGgParam * const paraptr)    /*+ Method parameters +*/
   GainLink * restrict               gainlinkptr;
   WgraphPartGgVertex * restrict     vertlist;    /* List of vertices                                               */
 
-  printf("GG (%d)\n", wgrafptr->s.vertnbr);
+  printf ("GG (" GNUMSTRING ")\n", wgrafptr->s.vertnbr);
 
   if (((tabl = gainTablInit (GAIN_LINMAX, WGRAPHSEPAGGSUBBITS)) == NULL) || /* Use logarithmic array only */
       memAllocGroup((void **) (void *)
@@ -175,7 +175,7 @@ const WgraphPartGgParam * const paraptr)    /*+ Method parameters +*/
           if (parttax[vertnum2] == 0) {
             gainTablAdd(tabl, &(vexxtax[vertnum2].gainlink), 0); /* Add it in the table in order to be selected */
                                                                  /* (the table will contain only this vertex)   */
-	    
+	   
             fronnbr  ++;
             parttax[vertnum2]  = -1;                  /* Move it in the seperator */
             fronload          += velobax[vertnum2 & velomsk];
@@ -279,7 +279,7 @@ const WgraphPartGgParam * const paraptr)    /*+ Method parameters +*/
           vertlist = vertlist->prev;
         }
       } while ((paloexc + frloprt / 2) * (wgrafptr->partnbr - partval + 1) <= palooth); /* While the part is not big enought */
-      
+     
       palooth -= (paloexc + frloprt / 2);
     }
 
@@ -289,7 +289,7 @@ const WgraphPartGgParam * const paraptr)    /*+ Method parameters +*/
       if (parttax[vertnum] == 0) {
         compload[0] += velobax[vertnum & velomsk];
         compsize[0] ++;
-      } 
+      }
       else if (parttax[vertnum] == -1) {
         for (edgenum = wgrafptr->s.verttax[vertnum];
              edgenum < wgrafptr->s.vendtax[vertnum]; edgenum ++) {
@@ -304,14 +304,14 @@ const WgraphPartGgParam * const paraptr)    /*+ Method parameters +*/
     }
 
     if (frlobst > fronload) {                    /* If the pass frontier load is better than the better one */
-      
+     
       wgrafptr->fronnbr  = fronnbr;
       wgrafptr->fronload = fronload;
       memCpy (wgrafptr->compload, compload, sizeof (Gnum) * wgrafptr->partnbr);
       memCpy (wgrafptr->compsize, compsize, sizeof (Gnum) * wgrafptr->partnbr);
       memCpy (wgrafptr->parttax + wgrafptr->s.baseval, parttax + wgrafptr->s.baseval, sizeof (Gnum) * wgrafptr->s.vertnbr);
-      
-      
+     
+     
       for (vertnum = wgrafptr->s.baseval, fronnum = 0; vertnum < wgrafptr->s.vertnnd; vertnum ++) { /* Recompute frontab */
         if (parttax[vertnum] == -1)
           wgrafptr->frontab[fronnum ++] = vertnum;
@@ -322,7 +322,7 @@ const WgraphPartGgParam * const paraptr)    /*+ Method parameters +*/
   }
 
   for (partval = 0; partval < wgrafptr->partnbr; partval ++)
-    printf("\033[0;33mcompload[%d] %d %d\033[0m\n", partval, wgrafptr->compload[partval], wgrafptr->compsize[partval]);
+    printf("\033[0;33mcompload[" GNUMSTRING "] " GNUMSTRING " " GNUMSTRING "\033[0m\n", partval, wgrafptr->compload[partval], wgrafptr->compsize[partval]);
   memFree(vexxtax + wgrafptr->s.baseval);       /* Free work arrays */
   gainTablExit (tabl);
 

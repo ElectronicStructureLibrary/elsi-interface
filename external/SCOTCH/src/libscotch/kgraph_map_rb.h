@@ -1,4 +1,4 @@
-/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -61,8 +61,29 @@
 /**                                 to     05 may 2006     **/
 /**                # Version 5.1  : from : 07 oct 2008     **/
 /**                                 to     28 mar 2011     **/
+/**                # Version 6.0  : from : 07 aug 2014     **/
+/**                                 to     03 aug 2018     **/
 /**                                                        **/
 /************************************************************/
+
+/*
+**  The defines.
+*/
+
+/*+ Prime number for hashing terminal domain numbers. +*/
+
+#define KGRAPHMAPRBVFLOHASHPRIME    17            /*+ Prime number for hashing +*/
+
+/*+ Kinds of external edge processing. +*/
+
+#define KGRAPHMAPRBVEEXNONE         0x0000        /* No options set */
+
+#define KGRAPHMAPRBVEEXMAPP         0x0001        /* Graph mapping  */
+#define KGRAPHMAPRBVEEXVFIX         0x0002        /* Fixed vertices */
+#define KGRAPHMAPRBVEEXREMA         0x0004        /* Remapping      */
+
+#define KGRAPHMAPRBVEEXEDGE         (KGRAPHMAPRBVEEXMAPP | KGRAPHMAPRBVEEXVFIX)
+#define KGRAPHMAPRBVEEXVERT         (KGRAPHMAPRBVEEXREMA)
 
 /*
 **  The type and structure definitions.
@@ -71,14 +92,14 @@
 /*+ Job selection policy types. +*/
 
 typedef enum KgraphMapRbPolicy_ {
-  KGRAPHMAPRBPOLIRANDOM = 0,                      /*+ Random job selection policy                       +*/
-  KGRAPHMAPRBPOLILEVEL,                           /*+ Select job with highest level                     +*/
-  KGRAPHMAPRBPOLISIZE,                            /*+ Select job with largest size                      +*/
-  KGRAPHMAPRBPOLINEIGHBOR,                        /*+ Priority level computed with respect to neighbors +*/
-  KGRAPHMAPRBPOLINGLEVEL,                         /*+ Select job with most neighbors of higher level    +*/
-  KGRAPHMAPRBPOLINGSIZE,                          /*+ Select job with most neighbors of smaller size    +*/
-  KGRAPHMAPRBPOLIOLD                              /*+ Select job in old style (version 2.x)             +*/
+  KGRAPHMAPRBPOLIRANDOM = 0,                      /*+ Random job selection policy                    +*/
+  KGRAPHMAPRBPOLILEVEL,                           /*+ Select job with highest level                  +*/
+  KGRAPHMAPRBPOLISIZE,                            /*+ Select job with largest size                   +*/
+  KGRAPHMAPRBPOLINGLEVEL,                         /*+ Select job with most neighbors of higher level +*/
+  KGRAPHMAPRBPOLINGSIZE                           /*+ Select job with most neighbors of smaller size +*/
 } KgraphMapRbPolicy;
+
+#define KGRAPHMAPRBPOLINEIGHBOR     KGRAPHMAPRBPOLINGLEVEL /*+ Priority level computed with respect to neighbors +*/
 
 /*+ Method parameters. +*/
 
@@ -90,14 +111,51 @@ typedef struct KgraphMapRbParam_ {
   double                    kbalval;              /*+ K-way imbalance ratio          +*/
 } KgraphMapRbParam;
 
+/*+ This structure holds the data passed to each bipartitioning job. +*/
+
+typedef struct KgraphMapRbData_ {
+  const Graph *             grafptr;              /*+ Pointer to top-level graph, possibly with fixed vertices +*/
+  Mapping *                 mappptr;              /*+ Mapping to compute                                       +*/
+  struct {                                        /*+ Remapping structure                                      +*/
+    const Mapping *         mappptr;              /*+ Old mapping (for remapping only)                         +*/ 
+    const Gnum *            vmlotax;              /*+ Array of vertex migration costs                          +*/
+    Gnum                    cmloval;              /*+ Migration edge load for remapping                        +*/
+    Gnum                    crloval;              /*+ Regular edge load for mapping                            +*/
+  } r;
+  const Anum *              pfixtax;              /*+ Fixed vertex partition array                             +*/
+  const KgraphMapRbParam *  paraptr;              /*+ Pointer to mapping parameter structure                   +*/
+  double                    comploadrat;          /*+ Ideal load balance per weight unit                       +*/
+  double                    comploadmin;          /*+ Minimum vertex load per target load                      +*/
+  double                    comploadmax;          /*+ Maximum vertex load per target load                      +*/
+} KgraphMapRbData;
+
+/*+ Fixed vertex load type. An array of such
+    cells stores the loads of strictly positive
+    fixed vertices (zero ones are discarded) that
+    must be assigned to some subdomain of the
+    current domain to be bipartitioned.           +*/
+
+typedef struct KgraphMapRbVflo_ {
+  Anum                      termnum;              /*+ Terminal domain number +*/
+  Gnum                      veloval;              /*+ Vertex load            +*/
+} KgraphMapRbVflo;
+
+/*+ Hash structure for merging fixed vertex
+    domains with non-fixed vertex domains.  +*/
+
+typedef struct KgraphMapRbVfloHash_ {
+  Anum                      termnum;              /*+ Terminal domain number        +*/
+  Anum                      domnnum;              /*+ Domain number in domain array +*/
+} KgraphMapRbVfloHash;
+
 /*
 **  The function prototypes.
 */
 
-#ifndef KGRAPH_MAP_RB
-#define static
-#endif
-
 int                         kgraphMapRb         (Kgraph * const, const KgraphMapRbParam * const);
 
-#undef static
+int                         kgraphMapRbVfloBuild (const Arch * restrict const, const Graph * restrict const, const Gnum, const Anum * restrict const, Graph * restrict const, Anum * restrict const, KgraphMapRbVflo * restrict * restrict const);
+void                        kgraphMapRbVfloSplit (const Arch * restrict const, const ArchDom * restrict const, const Anum, KgraphMapRbVflo * restrict const, Anum * restrict const, Gnum * restrict const);
+int                         kgraphMapRbVfloMerge (Mapping * restrict const, const Gnum, const Anum * restrict const, const Anum);
+
+int                         kgraphMapRbBgraph   (const KgraphMapRbData * restrict const, Bgraph * restrict const, const Graph * restrict const, const Mapping * restrict const, const ArchDom * restrict const, const Gnum * restrict const);

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2010,2011,2015 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -61,8 +61,8 @@
 /**                                 to     10 mar 2005     **/
 /**                # Version 5.1  : from : 19 jan 2008     **/
 /**                                 to     11 aug 2010     **/
-/**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     14 fev 2011     **/
+/**                # Version 6.0  : from : 14 feb 2011     **/
+/**                                 to     02 may 2015     **/
 /**                                                        **/
 /************************************************************/
 
@@ -95,8 +95,6 @@ archCmpltArchLoad (
 ArchCmplt * restrict const  archptr,
 FILE * restrict const       stream)
 {
-  long                numnbr;
-
 #ifdef SCOTCH_DEBUG_ARCH1
   if ((sizeof (ArchCmplt)    > sizeof (ArchDummy)) ||
       (sizeof (ArchCmpltDom) > sizeof (ArchDomDummy))) {
@@ -105,12 +103,11 @@ FILE * restrict const       stream)
   }
 #endif /* SCOTCH_DEBUG_ARCH1 */
 
-  if ((fscanf (stream, "%ld", &numnbr) != 1) ||
-      (numnbr < 1)) {
+  if ((intLoad (stream, &archptr->termnbr) != 1) ||
+      (archptr->termnbr < 1)) {
     errorPrint ("archCmpltArchLoad: bad input");
     return     (1);
   }
-  archptr->numnbr = (Anum) numnbr;
 
   return (0);
 }
@@ -135,12 +132,113 @@ FILE * restrict const       stream)
   }
 #endif /* SCOTCH_DEBUG_ARCH1 */
 
-  if (fprintf (stream, ANUMSTRING " ", (Anum) archptr->numnbr) == EOF) {
+  if (fprintf (stream, ANUMSTRING "\n", (Anum) archptr->termnbr) == EOF) {
     errorPrint ("archCmpltArchSave: bad output");
     return     (1);
   }
 
   return (0);
+}
+
+/* This routine initializes the matching
+** data structure according to the number
+** of vertices to be managed.
+** It returns:
+** - 0   : if the data structure has been
+**         successfully initialized.
+** - !0  : on error.
+*/
+
+int
+archCmpltMatchInit (
+ArchCmpltMatch * restrict const   matcptr,
+const ArchCmplt * restrict const  archptr)
+{
+  Anum                vertnbr;
+
+  vertnbr = archptr->termnbr;
+
+  if ((matcptr->multtab = memAlloc (((vertnbr + 1) >> 1) * sizeof (ArchCoarsenMulti))) == NULL) { /* In case vertnbr is odd */
+    errorPrint ("archCmpltMatchInit: out of memory");
+    return     (1);
+  }
+
+  matcptr->vertnbr = vertnbr;
+  matcptr->passnum = 0;
+
+  return (0);
+}
+
+/* This routine frees the matching data
+** structure.
+** It returns:
+** - void  : in all cases.
+*/
+
+void
+archCmpltMatchExit (
+ArchCmpltMatch * restrict const matcptr)
+{
+  memFree (matcptr->multtab);
+}
+
+/* This routine computes a matching from
+** the current state of the matching structure.
+** It returns:
+** - >=0  : size of matching.
+** - <0   : on error.
+*/
+
+Anum
+archCmpltMatchMate (
+ArchCmpltMatch * restrict const     matcptr,
+ArchCoarsenMulti ** restrict const  multptr)
+{
+  ArchCoarsenMulti * restrict coarmulttab;
+  Anum                        coarvertmax;        /* Maximum coarse vertex index to be processed for matching */
+  Anum                        coarvertnum;
+  Anum                        finevertnbr;
+  Anum                        finevertnum;
+  Anum                        passnum;
+
+  finevertnbr = matcptr->vertnbr;
+  if (finevertnbr <= 1)
+    return (-1);
+
+  coarvertmax = finevertnbr >> 1;                 /* One less slot when finevertnbr is odd */
+  coarmulttab = matcptr->multtab;
+  coarvertnum =
+  finevertnum = 0;
+  passnum     = matcptr->passnum;
+
+  if ((finevertnbr & passnum) != 0) {             /* If finevertnbr is odd and old passnum == 1 */
+    coarmulttab[coarvertnum].vertnum[0] =         /* First coarse vertex is single multinode    */
+    coarmulttab[coarvertnum].vertnum[1] = finevertnum ++;
+    coarvertnum ++;
+  }
+  for ( ; coarvertnum < coarvertmax; coarvertnum ++) { /* For all even slots       */
+    coarmulttab[coarvertnum].vertnum[0] = finevertnum ++; /* Dimensional splatting */
+    coarmulttab[coarvertnum].vertnum[1] = finevertnum ++;
+  }
+  if ((finevertnbr & (passnum ^ 1)) != 0) {       /* If finevertnbr is odd and old passnum == 0 */
+    coarmulttab[coarvertnum].vertnum[0] =         /* Last coarse vertex is single multinode     */
+    coarmulttab[coarvertnum].vertnum[1] = finevertnum ++;
+    coarvertnum ++;
+  }
+#ifdef SCOTCH_DEBUG_ARCH2
+  if (coarvertnum != ((finevertnbr + 1) >> 1)) {  /* Number of coarse vertices in all cases */
+    errorPrint ("archCmpltMatchMate: internal error");
+    return     (-1);
+  }
+#endif /* SCOTCH_DEBUG_ARCH2 */
+
+  matcptr->vertnbr = coarvertnum;                 /* Prepare for next mating               */
+  if (finevertnbr & 1)                            /* Invert pass value if dimension is odd */
+    matcptr->passnum = passnum;
+
+  *multptr = coarmulttab;                         /* Always provide same mating array */
+
+  return (coarvertnum);
 }
 
 /* This function returns the smallest number
@@ -151,9 +249,9 @@ FILE * restrict const       stream)
 ArchDomNum
 archCmpltDomNum (
 const ArchCmplt * const     archptr,
-const ArchCmpltDom * const  domptr)
+const ArchCmpltDom * const  domnptr)
 {
-  return (domptr->nummin);                        /* Return vertex number */
+  return (domnptr->termmin);                      /* Return vertex number */
 }
 
 /* This function returns the terminal domain associated
@@ -167,12 +265,12 @@ const ArchCmpltDom * const  domptr)
 int
 archCmpltDomTerm (
 const ArchCmplt * const     archptr,
-ArchCmpltDom * const        domptr,
-const ArchDomNum            domnum)
+ArchCmpltDom * const        domnptr,
+const ArchDomNum            domnnum)
 {
-  if (domnum < archptr->numnbr) {                 /* If valid label */
-    domptr->nummin = domnum;                      /* Set the domain */
-    domptr->numnbr = 1;
+  if (domnnum < archptr->termnbr) {               /* If valid label */
+    domnptr->termmin = domnnum;                   /* Set the domain */
+    domnptr->termnbr = 1;
 
     return (0);
   }
@@ -184,12 +282,12 @@ const ArchDomNum            domnum)
 ** elements in the complete domain.
 */
 
-Anum 
+Anum
 archCmpltDomSize (
 const ArchCmplt * const     archptr,
-const ArchCmpltDom * const  domptr)
+const ArchCmpltDom * const  domnptr)
 {
-  return (domptr->numnbr);
+  return (domnptr->termnbr);
 }
 
 /* This function returns the average
@@ -197,14 +295,14 @@ const ArchCmpltDom * const  domptr)
 ** subdomains.
 */
 
-Anum 
+Anum
 archCmpltDomDist (
 const ArchCmplt * const     archptr,
 const ArchCmpltDom * const  dom0ptr,
 const ArchCmpltDom * const  dom1ptr)
 {
-  return (((dom0ptr->nummin == dom1ptr->nummin) && /* All domains are at distance 1 */
-           (dom0ptr->numnbr == dom1ptr->numnbr)) ? 0 : 1); /* If they are different */
+  return (((dom0ptr->termmin == dom1ptr->termmin) && /* All domains are at distance 1 */
+           (dom0ptr->termnbr == dom1ptr->termnbr)) ? 0 : 1); /* If they are different */
 }
 
 /* This function sets the biggest
@@ -218,10 +316,10 @@ const ArchCmpltDom * const  dom1ptr)
 int
 archCmpltDomFrst (
 const ArchCmplt * const         archptr,
-ArchCmpltDom * restrict const   domptr)
+ArchCmpltDom * restrict const   domnptr)
 {
-  domptr->nummin = 0;
-  domptr->numnbr = archptr->numnbr;
+  domnptr->termmin = 0;
+  domnptr->termnbr = archptr->termnbr;
 
   return (0);
 }
@@ -236,22 +334,21 @@ ArchCmpltDom * restrict const   domptr)
 int
 archCmpltDomLoad (
 const ArchCmplt * const       archptr,
-ArchCmpltDom * restrict const domptr,
+ArchCmpltDom * restrict const domnptr,
 FILE * const                  stream)
 {
-  long                nummin;
-  long                numnbr;
+  Anum                termmin;
+  Anum                termnbr;
 
-  if ((fscanf (stream, "%ld%ld",
-               &nummin,
-               &numnbr) != 2) ||
-      (numnbr < 1)            ||
-      (numnbr + nummin > (long) archptr->numnbr)) {
+  if ((intLoad (stream, &termmin) != 1) ||
+      (intLoad (stream, &termnbr) != 1) ||
+      (termnbr < 1)                     ||
+      ((termnbr + termmin) > archptr->termnbr)) {
     errorPrint ("archCmpltDomLoad: bad input");
     return     (1);
   }
-  domptr->nummin = (Anum) nummin;
-  domptr->numnbr = (Anum) numnbr;
+  domnptr->termmin = termmin;
+  domnptr->termnbr = termnbr;
 
   return (0);
 }
@@ -266,12 +363,12 @@ FILE * const                  stream)
 int
 archCmpltDomSave (
 const ArchCmplt * const     archptr,
-const ArchCmpltDom * const  domptr,
+const ArchCmpltDom * const  domnptr,
 FILE * const                stream)
 {
   if (fprintf (stream, ANUMSTRING " " ANUMSTRING " ",
-               (Anum) domptr->nummin,
-               (Anum) domptr->numnbr) == EOF) {
+               (Anum) domnptr->termmin,
+               (Anum) domnptr->termnbr) == EOF) {
     errorPrint ("archCmpltDomSave: bad output");
     return     (1);
   }
@@ -290,17 +387,17 @@ FILE * const                stream)
 int
 archCmpltDomBipart (
 const ArchCmplt * const       archptr,
-const ArchCmpltDom * const    domptr,
+const ArchCmpltDom * const    domnptr,
 ArchCmpltDom * restrict const dom0ptr,
 ArchCmpltDom * restrict const dom1ptr)
 {
-  if (domptr->numnbr <= 1)                        /* Return if cannot bipartition more */
+  if (domnptr->termnbr <= 1)                      /* Return if cannot bipartition more */
     return (1);
 
-  dom0ptr->nummin = domptr->nummin;               /* Bipartition vertices */
-  dom0ptr->numnbr = domptr->numnbr / 2;
-  dom1ptr->nummin = domptr->nummin + dom0ptr->numnbr;
-  dom1ptr->numnbr = domptr->numnbr - dom0ptr->numnbr;
+  dom0ptr->termmin = domnptr->termmin;            /* Bipartition vertices */
+  dom0ptr->termnbr = domnptr->termnbr / 2;
+  dom1ptr->termmin = domnptr->termmin + dom0ptr->termnbr;
+  dom1ptr->termnbr = domnptr->termnbr - dom0ptr->termnbr;
 
   return (0);
 }
@@ -319,8 +416,8 @@ const ArchCmplt * const     archptr,
 const ArchCmpltDom * const  dom0ptr,
 const ArchCmpltDom * const  dom1ptr)
 {
-  if ((dom1ptr->nummin >= dom0ptr->nummin) &&
-      ((dom1ptr->nummin + dom1ptr->numnbr) <= (dom0ptr->nummin + dom0ptr->numnbr)))
+  if ((dom1ptr->termmin >= dom0ptr->termmin) &&
+      ((dom1ptr->termmin + dom1ptr->termnbr) <= (dom0ptr->termmin + dom0ptr->termnbr)))
     return (1);
 
   return (0);

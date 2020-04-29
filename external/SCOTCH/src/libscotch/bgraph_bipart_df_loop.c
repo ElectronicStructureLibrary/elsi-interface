@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2011,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2011-2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -51,7 +51,7 @@
 /**                # Version 5.1  : from : 29 oct 2007     **/
 /**                                 to     27 mar 2011     **/
 /**                # Version 6.0  : from : 07 nov 2011     **/
-/**                                 to     20 nov 2012     **/
+/**                                 to   : 03 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -79,18 +79,17 @@ BgraphBipartDfThread * restrict thrdptr)          /* Thread-dependent data */
   float * restrict      difntax;                  /* New diffusion value array        */
   Gnum                  vertnum;
   Gnum                  fronnum;
-  Gnum                  compload0;
   Gnum                  compload1;
   Gnum                  compsize1;
   Gnum                  commloadintn;
   Gnum                  commloadextn;
   Gnum                  commgainextn;
-  Gnum                  veexnbr;
   Gnum                  veexval;
   Gnum                  veexval1;                 /* Negative external gain to part 1 */
   Gnum                  veexsum;
   Gnum                  veexsum1;                 /* Sum of negative external gains   */
-  float                 veloval;
+  Gnum                  veloval;
+  float                 velfval;
   INT                   passnum;
   Anum                  distval;
 
@@ -125,7 +124,7 @@ BgraphBipartDfThread * restrict thrdptr)          /* Thread-dependent data */
   else {
     ielstax -= vertbas;                           /* Base access to local part of edge load sum array */
 
-    distval  = grafptr->domdist;
+    distval  = grafptr->domndist;
     veexval  =                                    /* Assume no external gains */
     veexval1 = 0;
     veexsum  =
@@ -201,7 +200,7 @@ BgraphBipartDfThread * restrict thrdptr)          /* Thread-dependent data */
   }
 #endif /* BGRAPHBIPARTDFLOOPTHREAD */
 
-  veloval = 1.0F;                                 /* Assume no vertex loads     */
+  velfval = 1.0F;                                 /* Assume no vertex loads     */
   for (passnum = loopptr->passnbr; passnum > 0; passnum --) { /* For all passes */
     Gnum                vertnum;
     Gnum                vancnnt;
@@ -260,18 +259,18 @@ BgraphBipartDfThread * restrict thrdptr)          /* Thread-dependent data */
         diffval += vancval;                       /* Add anchor contribution if anchor vertex */
 
         if (velotax != NULL)
-          veloval = (float) velotax[vertnum];
+          velfval = (float) velotax[vertnum];
         if (diffval >= 0.0F) {
-          diffval -= veloval;
+          diffval -= velfval;
           if (diffval <= 0.0F)
             diffval = +BGRAPHBIPARTDFEPSILON;
         }
         else {
-          diffval += veloval;
+          diffval += velfval;
           if (diffval >= 0.0F)
             diffval = -BGRAPHBIPARTDFEPSILON;
         }
-        if (isnan (diffval)) {                    /* If overflow occured (because of avalanche process)                        */
+        if (isnan (diffval)) {                    /* If overflow occured (because of avalanche process) */
 #ifdef SCOTCH_DEBUG_BGRAPH2
           errorPrintW (STRINGIFY (BGRAPHBIPARTDFLOOPNAME) ": overflow");
 #endif /* SCOTCH_DEBUG_BGRAPH2 */
@@ -313,13 +312,15 @@ BgraphBipartDfThread * restrict thrdptr)          /* Thread-dependent data */
     }
 #endif /* BGRAPHBIPARTDFLOOPTHREAD */
   }
+#ifndef BGRAPHBIPARTDFLOOPTHREAD
 abort : ;
+#endif /* BGRAPHBIPARTDFLOOPTHREAD */
 
   for (vertnum = vertbas; vertnum < vertnnd; vertnum ++) /* Update part according to diffusion state */
     parttax[vertnum] = (difotax[vertnum] <= 0.0F) ? 0 : 1;
 
 #ifdef BGRAPHBIPARTDFLOOPTHREAD
-    threadBarrier (thrdptr);
+  threadBarrier (thrdptr);
 #endif /* BGRAPHBIPARTDFLOOPTHREAD */
 
   veloval = 1;

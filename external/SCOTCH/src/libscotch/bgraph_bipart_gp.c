@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2011,2014,2016 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -53,6 +53,8 @@
 /**                                 to     27 nov 2006     **/
 /**                # Version 5.0  : from : 10 sep 2007     **/
 /**                                 to     22 feb 2011     **/
+/**                # Version 6.0  : from : 08 aug 2014     **/
+/**                                 to     14 aug 2016     **/
 /**                                                        **/
 /************************************************************/
 
@@ -88,20 +90,20 @@ const BgraphBipartGpParam * const paraptr)        /*+ Method parameters +*/
 {
   BgraphBipartGpQueue             queudat;        /* Neighbor queue               */
   BgraphBipartGpVertex * restrict vexxtax;        /* Complementary vertex array   */
-  const Gnum * restrict           verttax;        /* Based access to graph arrays */
-  const Gnum * restrict           vendtax;
-  const Gnum * restrict           velotax;
-  const Gnum * restrict           edgetax;
-  const Gnum * restrict           edlotax;
-  const Gnum * restrict           veextax;
   Gnum                            compload0dlt;
   Gnum                            compsize0;
   Gnum                            commloadintn;
   Gnum                            commloadextn;
-  Gnum                            commgainextn;
   Gnum                            rootnum;        /* Index of potential next root */
 
-  if (grafptr->compload0 != grafptr->s.velosum)   /* If not all vertices already in part 0 */
+  const Gnum * restrict const verttax = grafptr->s.verttax; /* Fast accesses */
+  const Gnum * restrict const vendtax = grafptr->s.vendtax;
+  const Gnum * restrict const velotax = grafptr->s.velotax;
+  const Gnum * restrict const edgetax = grafptr->s.edgetax;
+  const Gnum * restrict const edlotax = grafptr->s.edlotax;
+  const Gnum * restrict const veextax = grafptr->veextax;
+
+  if (grafptr->compsize0 != grafptr->s.vertnbr)   /* If not all vertices already in part 0 */
     bgraphZero (grafptr);                         /* Move all graph vertices to part 0     */
 
   if (memAllocGroup ((void **) (void *)
@@ -113,18 +115,11 @@ const BgraphBipartGpParam * const paraptr)        /*+ Method parameters +*/
 
   memSet (vexxtax, 0, grafptr->s.vertnbr * sizeof (BgraphBipartGpVertex)); /* Initialize pass numbers */
   vexxtax -= grafptr->s.baseval;
-  verttax  = grafptr->s.verttax;
-  vendtax  = grafptr->s.vendtax;
-  velotax  = grafptr->s.velotax;
-  edgetax  = grafptr->s.edgetax;
-  edlotax  = grafptr->s.edlotax;
-  veextax  = grafptr->veextax;
 
   compsize0    = grafptr->s.vertnbr;              /* All vertices in part zero */
   compload0dlt = grafptr->s.velosum - grafptr->compload0avg;
   commloadintn = 0;
-  commloadextn = grafptr->commloadextn0;
-  commgainextn = grafptr->commgainextn0;
+  commloadextn = 0;
   for (rootnum = grafptr->s.baseval;              /* Loop on connected components */
        (rootnum < grafptr->s.vertnnd) && (compload0dlt > 0); rootnum ++) {
     Gnum                passnum;                  /* Pass number                                        */
@@ -181,19 +176,15 @@ const BgraphBipartGpParam * const paraptr)        /*+ Method parameters +*/
 
     do {                                          /* Loop on vertices in queue */
       Gnum                vertnum;
-      Gnum                veloval;
-      Gnum                veexval;
       Gnum                distval;
       Gnum                edgenum;
 
-      vertnum = bgraphBipartGpQueueGet (&queudat); /* Get vertex from queue */
-      veloval = (velotax != NULL) ? velotax[vertnum] : 1;
-      veexval = (veextax != NULL) ? veextax[vertnum] : 0;
+      vertnum = bgraphBipartGpQueueGet (&queudat); /* Get vertex from queue         */
       grafptr->parttax[vertnum] = 1;              /* Move selected vertex to part 1 */
       compsize0    --;
-      compload0dlt -= veloval;
-      commloadextn += veexval;
-      commgainextn -= veexval * 2;
+      compload0dlt -= (velotax != NULL) ? velotax[vertnum] : 1;
+      if (veextax != NULL)
+        commloadextn += veextax[vertnum];
 
       distval = vexxtax[vertnum].distval + 1;
       for (edgenum = verttax[vertnum]; edgenum < vendtax[vertnum]; edgenum ++) {
@@ -250,8 +241,8 @@ const BgraphBipartGpParam * const paraptr)        /*+ Method parameters +*/
   grafptr->compload0    = grafptr->compload0avg + compload0dlt;
   grafptr->compload0dlt = compload0dlt;
   grafptr->compsize0    = compsize0;
-  grafptr->commload     = commloadintn * grafptr->domdist + commloadextn;
-  grafptr->commgainextn = commgainextn;
+  grafptr->commload     = grafptr->commloadextn0 + commloadextn + commloadintn * grafptr->domndist;
+  grafptr->commgainextn = grafptr->commgainextn0 - commloadextn * 2;
   grafptr->bbalval      = (double) ((grafptr->compload0dlt < 0) ? (- grafptr->compload0dlt) : grafptr->compload0dlt) / (double) grafptr->compload0avg;
 
   memFree (queudat.queutab);                      /* Free group leader */

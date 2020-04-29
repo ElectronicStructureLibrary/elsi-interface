@@ -1,4 +1,4 @@
-/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,6 +40,8 @@
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 21 mar 2003     **/
 /**                                 to     11 may 2004     **/
+/**                # Version 6.0  : from : 02 jun 2014     **/
+/**                                 to     21 may 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -80,6 +82,7 @@ const Vmesh * const         meshptr)
   Gnum                ecmpsize[2];                /* Elements never in separator       */
   Gnum                ncmpsize[3];
   Gnum                ncmpload[3];
+  int                 o;
 
   if ((meshptr->ecmpsize[0] + meshptr->ecmpsize[1]) > meshptr->m.velmnbr) {
     errorPrint ("vmeshCheck: invalid element balance");
@@ -117,17 +120,9 @@ const Vmesh * const         meshptr)
          eelmnum < meshptr->m.vendtax[velmnum]; eelmnum ++)
       edgecut[meshptr->parttax[meshptr->m.edgetax[eelmnum]]] ++;
 
-    if (partnum == 2) {
-      if ((edgecut[0] != 0) || (edgecut[1] != 0)) {
-        errorPrint ("vmeshCheck: separator element not surrounded by separator nodes");
-        return     (1);
-      }
-    }
-    else {
-      if (edgecut[1 - partnum] != 0) {
-        errorPrint ("vmeshCheck: element should be in separator (%ld)", (long) velmnum);
-        return     (1);
-      }
+    if (edgecut[1 - partnum] != 0) {
+      errorPrint ("vmeshCheck: element connected to nodes in other part (%ld)", (long) velmnum);
+      return     (1);
     }
   }
   if ((meshptr->ecmpsize[0] != ecmpsize[0]) ||
@@ -203,6 +198,7 @@ const Vmesh * const         meshptr)
   memSet (frontax, 0, meshptr->m.vnodnbr * sizeof (int));
   frontax -= meshptr->m.vnodbas;
 
+  o = 1;                                          /* Assume failure when checking */
   for (fronnum = 0; fronnum < meshptr->fronnbr; fronnum ++) {
     Gnum                vnodnum;
 
@@ -211,22 +207,23 @@ const Vmesh * const         meshptr)
     if ((vnodnum <  meshptr->m.vnodbas) ||
         (vnodnum >= meshptr->m.vnodnnd)) {
       errorPrint ("vmeshCheck: invalid vertex in frontier array");
-      memFree    (frontax + meshptr->m.vnodbas);
-      return     (1);
+      goto fail;
     }
     if (meshptr->parttax[vnodnum] != 2) {
       errorPrint ("vmeshCheck: invalid frontier array");
-      memFree    (frontax + meshptr->m.vnodbas);
-      return     (1);
+      goto fail;
     }
     if (frontax[vnodnum] != 0) {
       errorPrint ("vmeshCheck: duplicate node in frontier array");
-      memFree    (frontax + meshptr->m.vnodbas);
-      return     (1);
+      goto fail;
     }
     frontax[vnodnum] = 1;
   }
+
+  o = 0;                                          /* Everything turned well */
+
+fail :
   memFree (frontax + meshptr->m.vnodbas);
 
-  return (0);
+  return (o);
 }

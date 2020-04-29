@@ -1,4 +1,4 @@
-/* Copyright 2007-2009,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2009,2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -44,7 +44,7 @@
 /**                # Version 5.1  : from : 11 nov 2008     **/
 /**                                 to   : 26 may 2009     **/
 /**                # Version 6.0  : from : 18 sep 2012     **/
-/**                                 to   : 14 nov 2012     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -52,10 +52,12 @@
 ** The defines.
 */
 
-/*+ Graph option flags. +*/
+/*+ Graph option flags. Their values must be equal
+    to those defined in library.h and library_f.h  +*/
 
-#define DGRAPHCOARSENNONE           0x0000        /* No options set */
-
+#define DGRAPHCOARSENNONE           0x0000        /* No options set                 */
+#define DGRAPHCOARSENFOLD           0x0100        /* Do folding without duplication */
+#define DGRAPHCOARSENFOLDDUP        0x0300        /* Do folding with duplication    */
 #define DGRAPHCOARSENNOMERGE        0x4000        /* Do not merge isolated vertices */
 
 /*
@@ -137,14 +139,10 @@ typedef struct DgraphCoarsenData_ {
 ** The function prototypes.
 */
 
-#ifndef DGRAPH_COARSEN
-#define static
-#endif
-
+#ifdef DGRAPH_COARSEN
 static int                  dgraphCoarsenInit   (DgraphCoarsenData * restrict const, Dgraph * restrict const, Dgraph * restrict const);
 static void                 dgraphCoarsenExit   (DgraphCoarsenData * restrict const);
 static int                  dgraphCoarsenBuild  (DgraphCoarsenData * restrict const);
+#endif /* DGRAPH_COARSEN */
 
-int                         dgraphCoarsen       (Dgraph * restrict const, Dgraph * restrict const, DgraphCoarsenMulti * restrict * const, const Gnum, const Gnum, const int, const int, const Gnum, const double);
-
-#undef static
+int                         dgraphCoarsen       (Dgraph * restrict const, Dgraph * restrict const, DgraphCoarsenMulti * restrict * const, const Gnum, const Gnum, const double, const int);

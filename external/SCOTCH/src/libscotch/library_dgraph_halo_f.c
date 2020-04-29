@@ -1,4 +1,4 @@
-/* Copyright 2007,2009,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2009,2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -44,7 +44,7 @@
 /**                # Version 5.1  : from : 09 may 2009     **/
 /**                                 to     10 may 2009     **/
 /**                # Version 6.0  : from : 29 nov 2012     **/
-/**                                 to     29 nov 2012     **/
+/**                                 to     25 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -70,10 +70,10 @@
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFDGRAPHGHST, scotchfdgraphghst, (         \
-SCOTCH_Dgraph * const       grafptr,            \
-int * const                 revaptr),           \
+SCOTCH_FORTRAN (                      \
+DGRAPHGHST, dgraphghst, (             \
+SCOTCH_Dgraph * const       grafptr,  \
+int * const                 revaptr), \
 (grafptr, revaptr))
 {
   *revaptr = SCOTCH_dgraphGhst (grafptr);
@@ -83,12 +83,12 @@ int * const                 revaptr),           \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFDGRAPHHALO, scotchfdgraphhalo, (         \
-SCOTCH_Dgraph * const       grafptr,            \
-void * const                datatab,            \
-MPI_Fint * const            typeptr,            \
-int * const                 revaptr),           \
+SCOTCH_FORTRAN (                      \
+DGRAPHHALO, dgraphhalo, (             \
+SCOTCH_Dgraph * const       grafptr,  \
+void * const                datatab,  \
+MPI_Fint * const            typeptr,  \
+int * const                 revaptr), \
 (grafptr, datatab, typeptr, revaptr))
 {
   MPI_Datatype        typeval;
@@ -101,13 +101,13 @@ int * const                 revaptr),           \
 **
 */
 
-FORTRAN (                                         \
-SCOTCHFDGRAPHHALOASYNC, scotchfdgraphhaloasync, ( \
-SCOTCH_Dgraph * const         grafptr,            \
-void * const                  datatab,            \
-MPI_Fint * const              typeptr,            \
-SCOTCH_DgraphHaloReq * const  requptr,            \
-int * const                   revaptr),           \
+SCOTCH_FORTRAN (                        \
+DGRAPHHALOASYNC, dgraphhaloasync, (     \
+SCOTCH_Dgraph * const         grafptr,  \
+void * const                  datatab,  \
+MPI_Fint * const              typeptr,  \
+SCOTCH_DgraphHaloReq * const  requptr,  \
+int * const                   revaptr), \
 (grafptr, datatab, typeptr, requptr, revaptr))
 {
   MPI_Datatype        typeval;
@@ -120,10 +120,10 @@ int * const                   revaptr),           \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFDGRAPHHALOWAIT, scotchfdgraphhalowait, ( \
-SCOTCH_DgraphHaloReq * const  requptr,          \
-int * const                   revaptr),         \
+SCOTCH_FORTRAN (                        \
+DGRAPHHALOWAIT, dgraphhalowait, (       \
+SCOTCH_DgraphHaloReq * const  requptr,  \
+int * const                   revaptr), \
 (requptr, revaptr))
 {
   *revaptr = SCOTCH_dgraphHaloWait (requptr);

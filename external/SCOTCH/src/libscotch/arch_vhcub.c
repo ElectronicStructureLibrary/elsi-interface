@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -45,8 +45,8 @@
 /**                                 to     04 nov 2003     **/
 /**                # Version 5.1  : from : 21 jan 2008     **/
 /**                                 to     27 feb 2008     **/
-/**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     14 fev 2011     **/
+/**                # Version 6.0  : from : 14 feb 2011     **/
+/**                                 to     26 aug 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -98,11 +98,13 @@ const ArchDomNum            domnum)
   Anum                termnum;
   Anum                termlvl;
 
-  if (domnum != ARCHDOMNOTTERM) {                 /* If valid label   */
-    domptr->termnum = domnum;                     /* Set the domain   */
-    for (termnum = domnum, termlvl = 0; termnum > 1; /* Compute level */
-         termnum >>= 1, termlvl ++) ;
-    domptr->termlvl = termnum;                    /* Set level */
+  if (domnum != ARCHDOMNOTTERM) {                 /* If valid label     */
+    if (domnum == 0)                              /* Not a legal domain */
+      return (2);
+
+    domptr->termnum = domnum;                     /* Set the domain */
+    for (termnum = domnum, termlvl = 0; termnum > 1; termnum >>= 1, termlvl ++) ; /* Compute level */
+    domptr->termlvl = termlvl;                    /* Set level */
 
     return (0);
   }
@@ -114,7 +116,7 @@ const ArchDomNum            domnum)
 ** elements in the domain.
 */
 
-Anum 
+Anum
 archVhcubDomSize (
 const ArchVhcub * const     archptr,
 const ArchVhcubDom * const  domptr)
@@ -126,7 +128,7 @@ const ArchVhcubDom * const  domptr)
 ** distance between two subdomains.
 */
 
-Anum 
+Anum
 archVhcubDomDist (
 const ArchVhcub * const     archptr,
 const ArchVhcubDom * const  dom0ptr,
@@ -147,7 +149,7 @@ const ArchVhcubDom * const  dom1ptr)
     distval = (dom1ptr->termlvl - dom0ptr->termlvl) >> 1; /* One half of unknown bits */
   }
 
-  for (dom0num ^= dom1num; dom0num != 0;          /* Compute number of bit differences */
+  for (dom0num ^= dom1num; dom0num != 0;          /* Compute Hamming distance */
        distval += (dom0num & 1), dom0num >>= 1) ;
 
   return (distval);
@@ -186,14 +188,16 @@ const ArchVhcub * const       archptr,
 ArchVhcubDom * restrict const domptr,
 FILE * const                  stream)
 {
-  if ((intLoad (stream, &domptr->termlvl) != 1)    ||
-      (intLoad (stream, &domptr->termnum) != 1)    ||
-      (domptr->termlvl < 0)                        ||
-      (domptr->termnum <  (1 <<  domptr->termlvl)) ||
-      (domptr->termnum >= (1 << (domptr->termlvl + 1)))) {
+  Anum                termnum;
+  Anum                termlvl;
+
+  if (intLoad (stream, &domptr->termnum) != 1) {
     errorPrint ("archVhcubDomLoad: bad input");
     return     (1);
   }
+
+  for (termnum = domptr->termnum, termlvl = 0; termnum > 1; termnum >>= 1, termlvl ++) ; /* Compute level */
+  domptr->termlvl = termlvl;
 
   return (0);
 }
@@ -211,8 +215,7 @@ const ArchVhcub * const     archptr,
 const ArchVhcubDom * const  domptr,
 FILE * const                stream)
 {
-  if (fprintf (stream, ANUMSTRING " " ANUMSTRING " ",
-               (Anum) domptr->termlvl,
+  if (fprintf (stream, ANUMSTRING " ",
                (Anum) domptr->termnum) == EOF) {
     errorPrint ("archVhcubDomSave: bad output");
     return     (1);
@@ -257,7 +260,7 @@ const ArchVhcub * const     archptr,
 const ArchVhcubDom * const  dom0ptr,
 const ArchVhcubDom * const  dom1ptr)
 {
-  if ((dom1ptr->termlvl <= dom0ptr->termlvl) &&
+  if ((dom1ptr->termlvl >= dom0ptr->termlvl) &&
       ((dom1ptr->termnum >> (dom1ptr->termlvl - dom0ptr->termlvl)) == dom0ptr->termnum))
     return (1);
 

@@ -1,5 +1,5 @@
 %{
-/* Copyright 2004,2007,2008,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2008,2011,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -9,13 +9,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -26,7 +26,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -49,6 +49,8 @@
 /**                                 to     11 jun 2004     **/
 /**                # Version 5.1  : from : 30 oct 2007     **/
 /**                                 to     24 jul 2011     **/
+/**                # Version 6.0  : from : 30 sep 2014     **/
+/**                                 to     27 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -346,7 +348,7 @@ PARAMPARAM    : PARAMNAME
 
                 ($<SAVE>$).tabl = parserstrattab; /* Save current strategy tables */
                 parserparamcurr = &paratab[para]; /* Save current parameter value */
-                stratParserSelect (parsermethtokentab[parserparamcurr->type]);
+                stratParserSelect (parsermethtokentab[parserparamcurr->type & ~STRATPARAMDEPRECATED]); /* Get non-deprecated type */
                 if (parserparamcurr->type == STRATPARAMSTRAT) /* If parameter is a strategy           */
                   parserstrattab = (StratTab *) parserparamcurr->datasltr; /* Use new strategy tables */
               }
@@ -363,72 +365,80 @@ PARAMVAL      : VALCASE
                 char *            p;              /* Pointer to selector string */
                 int               i;              /* Index in selector string   */
 
-                c = ($1);                         /* First, use char as is */
-                for (p = (char *) parserparamcurr->datasltr, i = 0;
-                     (*p != '\0') && (*p != c);
-                     p ++, i ++) ;
-                if (*p == '\0') {                 /* Char was not found         */
-                  c = tolower (c);                /* Convert char to lower case */
+                if ((parserparamcurr->type & STRATPARAMDEPRECATED) == 0) { /* If parameter is not deprecated */
+                  c = ($1);                       /* First, use char as is                                   */
                   for (p = (char *) parserparamcurr->datasltr, i = 0;
                        (*p != '\0') && (*p != c);
                        p ++, i ++) ;
-                  if (*p == '\0') {
-                    errorPrint ("stratParserParse: invalid method parameter switch \"%s=%c\", before \"%s\"",
-                                parserparamcurr->name, ($1), stratParserRemain ());
-                    YYABORT;
+                  if (*p == '\0') {               /* Char was not found         */
+                    c = tolower (c);              /* Convert char to lower case */
+                    for (p = (char *) parserparamcurr->datasltr, i = 0;
+                         (*p != '\0') && (*p != c);
+                         p ++, i ++) ;
+                    if (*p == '\0') {
+                      errorPrint ("stratParserParse: invalid method parameter switch \"%s=%c\", before \"%s\"",
+                                  parserparamcurr->name, ($1), stratParserRemain ());
+                      YYABORT;
+                    }
                   }
-                }
 
 #ifdef SCOTCH_DEBUG_PARSER2
-                if ((parserparamcurr->dataofft - parserparamcurr->database + sizeof (int)) > sizeof (StratNodeMethodData)) {
-                  errorPrint ("stratParserParse: internal error (1)");
-                  YYABORT;
-                }
+                  if ((parserparamcurr->dataofft - parserparamcurr->database + sizeof (int)) > sizeof (StratNodeMethodData)) {
+                    errorPrint ("stratParserParse: internal error (1)");
+                    YYABORT;
+                  }
 #endif /* SCOTCH_DEBUG_PARSER2 */
 
-                *((int *) ((byte *) &parserstratcurr->data.method.data +
-                           (parserparamcurr->dataofft -
-                            parserparamcurr->database))) = i;
+                  *((int *) ((byte *) &parserstratcurr->data.method.data +
+                             (parserparamcurr->dataofft -
+                              parserparamcurr->database))) = i;
+                }
               }
               | VALSDOUBLE
               {
+                if ((parserparamcurr->type & STRATPARAMDEPRECATED) == 0) { /* If parameter is not deprecated */
 #ifdef SCOTCH_DEBUG_PARSER2
-                if ((parserparamcurr->dataofft - parserparamcurr->database + sizeof (double)) > sizeof (StratNodeMethodData)) {
-                  errorPrint ("stratParserParse: internal error (2)");
-                  YYABORT;
-                }
+                  if ((parserparamcurr->dataofft - parserparamcurr->database + sizeof (double)) > sizeof (StratNodeMethodData)) {
+                    errorPrint ("stratParserParse: internal error (2)");
+                    YYABORT;
+                  }
 #endif /* SCOTCH_DEBUG_PARSER2 */
 
-                *((double *) ((byte *) &parserstratcurr->data.method.data +
-                              (parserparamcurr->dataofft -
-                               parserparamcurr->database))) = ($1);
+                  *((double *) ((byte *) &parserstratcurr->data.method.data +
+                                (parserparamcurr->dataofft -
+                                 parserparamcurr->database))) = ($1);
+                }
               }
               | VALSINT
               {
+                if ((parserparamcurr->type & STRATPARAMDEPRECATED) == 0) { /* If parameter is not deprecated */
 #ifdef SCOTCH_DEBUG_PARSER2
-                if ((parserparamcurr->dataofft - parserparamcurr->database + sizeof (INT)) > sizeof (StratNodeMethodData)) {
-                  errorPrint ("stratParserParse: internal error (3)");
-                  YYABORT;
-                }
+                  if ((parserparamcurr->dataofft - parserparamcurr->database + sizeof (INT)) > sizeof (StratNodeMethodData)) {
+                    errorPrint ("stratParserParse: internal error (3)");
+                    YYABORT;
+                  }
 #endif /* SCOTCH_DEBUG_PARSER2 */
 
-                *((INT *) ((byte *) &parserstratcurr->data.method.data +
-                           (parserparamcurr->dataofft -
-                            parserparamcurr->database))) = (INT) ($1);
+                  *((INT *) ((byte *) &parserstratcurr->data.method.data +
+                             (parserparamcurr->dataofft -
+                              parserparamcurr->database))) = (INT) ($1);
+                }
               }
               | VALSTRING
               {
+                if ((parserparamcurr->type & STRATPARAMDEPRECATED) == 0) { /* If parameter is not deprecated */
 #ifdef SCOTCH_DEBUG_PARSER2
-                if ((parserparamcurr->dataofft - parserparamcurr->database + strlen ($1) + 1) > sizeof (StratNodeMethodData)) {
-                  errorPrint ("stratParserParse: internal error (4)");
-                  YYABORT;
-                }
+                  if ((parserparamcurr->dataofft - parserparamcurr->database + strlen ($1) + 1) > sizeof (StratNodeMethodData)) {
+                    errorPrint ("stratParserParse: internal error (4)");
+                    YYABORT;
+                  }
 #endif /* SCOTCH_DEBUG_PARSER2 */
 
-                strcpy ((char *) ((byte *) &parserstratcurr->data.method.data +
-                                  (parserparamcurr->dataofft -
-                                   parserparamcurr->database)),
-                        ($1));
+                  strcpy ((char *) ((byte *) &parserstratcurr->data.method.data +
+                                    (parserparamcurr->dataofft -
+                                     parserparamcurr->database)),
+                          ($1));
+                }
               }
               |
               {
@@ -442,16 +452,18 @@ PARAMVAL      : VALCASE
                 parserstratcurr = ($<SAVE>1).strat; /* Restore current method    */
                 parserparamcurr = ($<SAVE>1).param; /* Restore current parameter */
 
+                if ((parserparamcurr->type & STRATPARAMDEPRECATED) == 0) { /* If parameter is not deprecated */
 #ifdef SCOTCH_DEBUG_PARSER2
-                if ((parserparamcurr->dataofft - parserparamcurr->database + sizeof (Strat *)) > sizeof (StratNodeMethodData)) {
-                  errorPrint ("stratParserParse: internal error (5)");
-                  YYABORT;
-                }
+                  if ((parserparamcurr->dataofft - parserparamcurr->database + sizeof (Strat *)) > sizeof (StratNodeMethodData)) {
+                    errorPrint ("stratParserParse: internal error (5)");
+                    YYABORT;
+                  }
 #endif /* SCOTCH_DEBUG_PARSER2 */
 
-                *((Strat **) ((byte *) &parserstratcurr->data.method.data +
-                              (parserparamcurr->dataofft -
-                               parserparamcurr->database))) = ($2);
+                  *((Strat **) ((byte *) &parserstratcurr->data.method.data +
+                                (parserparamcurr->dataofft -
+                                 parserparamcurr->database))) = ($2);
+                }
               }
               | error
               {
@@ -783,7 +795,7 @@ const char * const          string)               /*+ Strategy string to parse  
   parserstrattab  = strattab;                     /* Point to the parsing tables             */
   parserstratcurr = NULL;                         /* Clear up the temporary strategy pointer */
 
-  if (stratParserParse2 () != 0) {                /* Parse the strategy string */
+  if (yyparse () != 0) {                          /* Parse the strategy string */
     if (parserstratcurr != NULL)
       stratExit (parserstratcurr);
     return (NULL);
@@ -799,7 +811,7 @@ const char * const          string)               /*+ Strategy string to parse  
 
 static
 int
-stratParserError (
+yyerror (
 const char * const          errstr)
 {
   errorPrint ("stratParserParse: invalid strategy string, before \"%s\"", stratParserRemain ());

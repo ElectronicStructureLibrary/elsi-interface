@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2007,2008,2010,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -42,6 +42,8 @@
 /**                                 to   : 16 mar 2008     **/
 /**                # Version 5.1  : from : 27 jun 2010     **/
 /**                                 to     27 jun 2010     **/
+/**                # Version 6.0  : from : 10 nov 2014     **/
+/**                                 to     14 jul 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -64,19 +66,18 @@
 /*********************************/
 
 /* This routine expands distributed filenames
-** according to process numbers and the root
-** process number.
+** according to process numbers.
 ** It returns:
-** - 0  : on success.
-** - !0 : on error.
+** - NULL     : on error.
+** - nameptr  : no expansion took place.
+** - !NULL    : expanded string.
 */
 
-int
+char *
 fileNameDistExpand (
-char ** const               nameptr,              /*+ Pointer to name string pointer +*/
+char * const                nameptr,              /*+ Pointer to name string pointer +*/
 const int                   procnbr,              /*+ Number of processes            +*/
-const int                   procnum,              /*+ Number of current process      +*/
-const int                   protnum)              /*+ Root process number            +*/
+const int                   procnum)              /*+ Number of current process      +*/
 {
   int                 namemax;
   int                 namenum;
@@ -85,17 +86,18 @@ const int                   protnum)              /*+ Root process number       
   int                 naexnum;
   int                 flagval;                    /* Flag set if expansion took place */
 
-  namemax = strlen (*nameptr);
+  namemax = strlen (nameptr);
   naexmax = namemax + FILENAMEDISTEXPANDNBR * 2;
 
   if ((naexptr = memAlloc ((naexmax + 1) * sizeof (char))) == NULL) /* "+ 1" for terminating character */
-    return (1);
+    return (NULL);
 
 #ifdef COMMON_DEBUG
   sprintf (naexptr, FILENAMEDISTEXPANDSTR, procnbr); /* TRICK: Test if FILENAMEDISTEXPANDNBR is a size large enough */
   if (atoi (naexptr) != procnbr) {
     errorPrint ("fileNameDistExpand: undersized integer string size");
-    return     (1);
+    memFree    (naexptr);
+    return     (NULL);
   }
 #endif /* COMMON_DEBUG */
 
@@ -104,12 +106,12 @@ const int                   protnum)              /*+ Root process number       
     int                 dataval = 0;
     int                 datasiz;
 
-    charval = (*nameptr)[namenum ++];             /* Get current characted                */
+    charval = nameptr[namenum ++];                /* Get current character                */
     datasiz = 1;                                  /* Assume individual expanded character */
     if (charval == '%') {
       char                chnxval;                /* Value of next char */
 
-      switch (chnxval = (*nameptr)[namenum ++]) {
+      switch (chnxval = nameptr[namenum ++]) {
         case 'p' :                                /* "%p" translates into number of processes */
           flagval = 1;
           datasiz = FILENAMEDISTEXPANDNBR;
@@ -137,7 +139,7 @@ const int                   protnum)              /*+ Root process number       
         naexmax += datasiz + FILENAMEDISTEXPANDNBR;
         if ((nanwptr = memRealloc (naexptr, (naexmax + 1) * sizeof (char))) == NULL) { /* "+ 1" for terminating character */
           memFree (naexptr);
-          return  (1);
+          return  (NULL);
         }
         naexptr = nanwptr;
       }
@@ -152,21 +154,39 @@ const int                   protnum)              /*+ Root process number       
   }
   naexptr[naexnum] = '\0';                        /* Set terminating character as there is always room for it */
 
-  if ((flagval != 0) || (procnum == protnum))     /* If file name is a distributed one or we are the root process */
-    *nameptr = naexptr;                           /* Replace new string by old one                                */
-  else {
+  if (flagval == 0) {                             /* If no expansion took place      */
     memFree (naexptr);                            /* No need for the expanded string */
-    *nameptr = NULL;
+    naexptr = nameptr;
   }
+  return (naexptr);
+}
 
-  return (0);
+/* This routine initializes a block of
+** file descriptor structures.
+** It returns:
+** - void  : in all cases.
+*/
+
+void
+fileBlockInit (
+File * const                filetab,
+const int                   filenbr)
+{
+  int                 i;
+
+  for (i = 0; i < filenbr; i ++) {                /* For all file names     */
+    filetab[i].nameptr = "-";                     /* Assume standard stream */
+    filetab[i].fileptr = ((filetab[i].flagval & FILEMODE) == FILEMODER) ? stdin : stdout;
+    filetab[i].compptr = NULL;                    /* No (de)compression yet */
+  }
 }
 
 /* This routine opens a block of file
 ** descriptor structures.
 ** It returns:
 ** - 0  : on success.
-** - !0 : on error.
+** - 1  : if could not open a stream.
+** - 2  : if (de)compression method not implemented.
 */
 
 int
@@ -174,42 +194,39 @@ fileBlockOpen (
 File * const                filetab,
 const int                   filenbr)
 {
-  int                i, j;
+  int                 i, j;
 
   for (i = 0; i < filenbr; i ++) {                /* For all file names             */
-    if (filetab[i].pntr == NULL)                  /* If unwanted stream, do nothing */
+    if (filetab[i].fileptr == NULL)               /* If unwanted stream, do nothing */
       continue;
 
     for (j = 0; j < i; j ++) {
-      if ((filetab[i].mode[0] == filetab[j].mode[0]) && /* If very same name with same opening mode */
-          (filetab[j].name != NULL)                  &&
-          (strcmp (filetab[i].name, filetab[j].name) == 0)) {
-        filetab[i].pntr = filetab[j].pntr;        /* Share pointer to already processed stream */
-        filetab[i].name = NULL;                   /* Do not close this stream multiple times   */
+      if ((((filetab[i].flagval ^ filetab[j].flagval) & FILEMODE) == 0) && /* If very same name with same opening mode */
+          (filetab[j].nameptr != NULL)                                  &&
+          (strcmp (filetab[i].nameptr, filetab[j].nameptr) == 0)) {
+        filetab[i].fileptr = filetab[j].fileptr;  /* Share pointer to already processed stream */
+        filetab[i].nameptr = NULL;                /* Do not close this stream multiple times   */
         break;
       }
     }
-    if (j == i) {                                 /* If original stream                */
-      int                 compval;                /* Compression type                  */
-      FILE *              compptr;                /* Processed ((un)compressed) stream */
+    if (j == i) {                                 /* If original stream */
+      int                 compval;                /* Compression type   */
 
-      if (filetab[i].name[0] != '-') {            /* If not standard stream, open it                 */
-        if ((filetab[i].pntr = fopen (filetab[i].name, filetab[i].mode)) == NULL) { /* Open the file */
+      if (filetab[i].nameptr[0] != '-') {         /* If not standard stream, open it */
+        if ((filetab[i].fileptr = fopen (filetab[i].nameptr, ((filetab[i].flagval & FILEMODE) == FILEMODER) ? "r" : "w")) == NULL) { /* Open the file */
           errorPrint ("fileBlockOpen: cannot open file (%d)", i);
           return     (1);
         }
       }
-      compval = (filetab[i].mode[0] == 'r') ? fileUncompressType (filetab[i].name) : fileCompressType (filetab[i].name);
+      compval = (((filetab[i].flagval & FILEMODE) == FILEMODER) ? fileDecompressType : fileCompressType) (filetab[i].nameptr);
       if (compval < 0) {
-        errorPrint ("fileBlockOpen: (un)compression type not implemented");
+        errorPrint ("fileBlockOpen: (de)compression method not implemented");
+        return     (2);
+      }
+      if ((((filetab[i].flagval & FILEMODE) == FILEMODER) ? fileDecompress : fileCompress) (&filetab[i], compval) != 0) {
+        errorPrint ("fileBlockOpen: cannot create (de)compression subprocess");
         return     (1);
       }
-      compptr = (filetab[i].mode[0] == 'r') ? fileUncompress (filetab[i].pntr, compval) : fileCompress (filetab[i].pntr, compval);
-      if (compptr == NULL) {
-        errorPrint ("fileBlockOpen: cannot create (un)compression subprocess");
-        return     (1);
-      }
-      filetab[i].pntr = compptr;                  /* Use processed stream instead of original stream */
     }
   }
 
@@ -231,52 +248,32 @@ const int                   procglbnbr,
 const int                   proclocnum,
 const int                   protglbnum)
 {
-  int                i, j;
+  int                 i;
 
   for (i = 0; i < filenbr; i ++) {                /* For all file names */
-    if (fileNameDistExpand (&filetab[i].name, procglbnbr, proclocnum, protglbnum) != 0) { /* If cannot allocate new name */
+    char *              naexptr;
+
+    if (filetab[i].fileptr == NULL)               /* If unwanted stream, do nothing */
+      continue;
+
+    if ((naexptr = fileNameDistExpand (filetab[i].nameptr, procglbnbr, proclocnum)) == NULL) {
       errorPrint ("fileBlockOpenDist: cannot create file name (%d)", i);
       return     (1);
     }
-    if (filetab[i].name == NULL)                  /* If inexisting stream because not root process and centralized stream */
-      filetab[i].pntr = NULL;
-    if (filetab[i].pntr == NULL)                  /* If unwanted stream, do nothing */
-      continue;
-
-    for (j = 0; j < i; j ++) {
-      if ((filetab[i].mode[0] == filetab[j].mode[0]) && /* If very same name with same opening mode */
-          (filetab[j].name != NULL)                  &&
-          (strcmp (filetab[i].name, filetab[j].name) == 0)) {
-        filetab[i].pntr = filetab[j].pntr;        /* Share pointer to already processed stream */
-        filetab[i].name = NULL;                   /* Do not close this stream multiple times   */
-        break;
+    if (naexptr == filetab[i].nameptr) {          /* If centralized stream */
+      if (proclocnum != protglbnum) {             /* If not root process   */
+        filetab[i].nameptr = NULL;                /* Remove stream         */
+        filetab[i].fileptr = NULL;
+        continue;
       }
     }
-    if (j == i) {                                 /* If original stream                */
-      int                 compval;                /* Compression type                  */
-      FILE *              compptr;                /* Processed ((un)compressed) stream */
-
-      if (filetab[i].name[0] != '-') {            /* If not standard stream, open it                 */
-        if ((filetab[i].pntr = fopen (filetab[i].name, filetab[i].mode)) == NULL) { /* Open the file */
-          errorPrint ("fileBlockOpenDist: cannot open file (%d)", i);
-          return     (1);
-        }
-      }
-      compval = (filetab[i].mode[0] == 'r') ? fileUncompressType (filetab[i].name) : fileCompressType (filetab[i].name);
-      if (compval < 0) {
-        errorPrint ("fileBlockOpenDist: (un)compression type not implemented");
-        return     (1);
-      }
-      compptr = (filetab[i].mode[0] == 'r') ? fileUncompress (filetab[i].pntr, compval) : fileCompress (filetab[i].pntr, compval);
-      if (compptr == NULL) {
-        errorPrint ("fileBlockOpenDist: cannot create (un)compression subprocess");
-        return     (1);
-      }
-      filetab[i].pntr = compptr;                  /* Use processed stream instead of original stream */
+    else {                                        /* Else keep expanded distributed file name */
+      filetab[i].flagval |= FILEFREENAME;
+      filetab[i].nameptr  = naexptr;
     }
   }
 
-  return (0);
+  return (fileBlockOpen (filetab, filenbr));      /* Open remaining files */
 }
 
 /* This routine opens a block of file
@@ -293,13 +290,15 @@ const int                   filenbr)
 {
   int                i;
 
-  for (i = 0; i < filenbr; i ++) {                /* For all file names             */
-    if (filetab[i].pntr == NULL)                  /* If unwanted stream, do nothing */
-      continue;
-
-    if ((filetab[i].name != NULL) &&              /* If existing stream */
-        (filetab[i].name[0] != '-')) {
-      fclose (filetab[i].pntr);                   /* Close the stream */
+  for (i = 0; i < filenbr; i ++) {                /* For all file names   */
+    if ((filetab[i].fileptr != NULL) &&           /* If stream exists     */
+        (filetab[i].nameptr != NULL) &&           /* And it has a name    */
+        (filetab[i].nameptr[0] != '-')) {         /* Which is not default */
+      fclose (filetab[i].fileptr);                /* Close the stream     */
+      if (filetab[i].flagval & FILEFREENAME)
+        memFree (filetab[i].nameptr);
     }
+
+    fileCompressExit (&filetab[i]);               /* After stream closed, if there is (de)compression data to free */
   }
 }

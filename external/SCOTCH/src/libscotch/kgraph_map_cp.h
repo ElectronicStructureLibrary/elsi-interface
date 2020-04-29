@@ -1,4 +1,4 @@
-/* Copyright 2012 IPB
+/* Copyright 2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -33,43 +33,20 @@
 /**                                                        **/
 /**   NAME       : kgraph_map_cp.h                         **/
 /**                                                        **/
-/**   AUTHOR     : Sebastien FOURESTIER (v6.0)             **/
+/**   AUTHOR     : Francois PELLEGRINI                     **/
+/**                Sebastien FOURESTIER (v6.0)             **/
 /**                                                        **/
 /**   FUNCTION   : These lines are the data declaration    **/
 /**                for the mapping method that copy the    **/
 /**                old mapping has a mapping result.       **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 16 jan 2012     **/
-/**                                 to     16 jan 2012     **/
+/**                                 to     07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
-
-/*
-**  The type and structure definitions.
-*/
-
-/*+ Job selection policy types. +*/
-
-typedef enum KgraphMapCpType_ {
-  KGRAPHMAPCPTYPEPART = 0,                        /*+ Do not keep old partition data +*/
-  KGRAPHMAPCPTYPEREPART                           /*+ Do a repartitioning            +*/
-} KgraphMapCpType;
-
-/*+ This structure holds the method parameters. +*/
-
-typedef struct KgraphMapCpParam_ {
-  KgraphMapCpType           typeval;              /*+ Type of copy to do +*/
-} KgraphMapCpParam;
 
 /*
 **  The function prototypes.
 */
 
-#ifndef KGRAPH_MAP_CP
-#define static
-#endif
-
-int                         kgraphMapCp         (Kgraph * restrict const, const KgraphMapCpParam * const);
-
-#undef static
-
+int                         kgraphMapCp         (Kgraph * restrict const);

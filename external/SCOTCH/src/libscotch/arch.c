@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2013,2015,2016,2018,2019 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -63,8 +63,8 @@
 /**                                 to     09 jan 2004     **/
 /**                # Version 5.1  : from : 11 dec 2007     **/
 /**                                 to     25 jun 2010     **/
-/**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     01 jul 2012     **/
+/**                # Version 6.0  : from : 14 feb 2011     **/
+/**                                 to     28 apr 2019     **/
 /**                                                        **/
 /************************************************************/
 
@@ -76,13 +76,16 @@
 
 #include "module.h"
 #include "common.h"
+#include "graph.h"
 #include "arch.h"
 #include "arch_cmplt.h"
 #include "arch_cmpltw.h"
 #include "arch_deco.h"
+#include "arch_deco2.h"
 #include "arch_dist.h"
 #include "arch_hcub.h"
 #include "arch_mesh.h"
+#include "arch_sub.h"
 #include "arch_tleaf.h"
 #include "arch_torus.h"
 #include "arch_vcmplt.h"
@@ -95,6 +98,7 @@
 static const ArchClass      archClassTab[] = { ARCHCLASSBLOCK ("cmplt",    Cmplt,  ARCHPART),
                                                ARCHCLASSBLOCK ("cmpltw",   Cmpltw, ARCHPART),
                                                ARCHCLASSBLOCK ("deco",     Deco,   ARCHNONE),
+                                               ARCHCLASSBLOCK ("deco",     Deco2,  ARCHNONE), /* Hidden, type-2 decomposition-defined architecture */
                                                ARCHCLASSBLOCK ("dist",     Dist,   ARCHNONE),
                                                ARCHCLASSBLOCK ("hcub",     Hcub,   ARCHNONE),
                                                ARCHCLASSBLOCK ("tleaf",    Tleaf,  ARCHNONE),
@@ -105,8 +109,11 @@ static const ArchClass      archClassTab[] = { ARCHCLASSBLOCK ("cmplt",    Cmplt
                                                ARCHCLASSBLOCK ("mesh2U",   Mesh2u, ARCHNONE),
 #endif /* SCOTCH_DEBUG_ARCH3 */
                                                ARCHCLASSBLOCK ("mesh3D",   Mesh3,  ARCHNONE),
+                                               ARCHCLASSBLOCK ("meshXD",   MeshX,  ARCHNONE),
+                                               ARCHCLASSBLOCK ("sub",      Sub,    ARCHNONE),
                                                ARCHCLASSBLOCK ("torus2D",  Torus2, ARCHNONE),
                                                ARCHCLASSBLOCK ("torus3D",  Torus3, ARCHNONE),
+                                               ARCHCLASSBLOCK ("torusXD",  TorusX, ARCHNONE),
                                                ARCHCLASSBLOCK ("varcmplt", Vcmplt, ARCHPART | ARCHVAR),
                                                ARCHCLASSBLOCK ("varhcub",  Vhcub,  ARCHVAR),
                                                ARCHCLASSBLOCKNULL };
@@ -131,7 +138,7 @@ int
 archInit (
 Arch * restrict const       archptr)
 {
-  memset (archptr, 0, sizeof (Arch));             /* Initialize architecture body (arch->class = NULL) */
+  memSet (archptr, 0, sizeof (Arch));             /* Initialize architecture body (arch->class = NULL) */
 
   return (0);
 }
@@ -163,9 +170,12 @@ Arch * restrict const       archptr)
 
   o = 0;                                          /* Assume everything will be all right */
   if ((archptr->class           != NULL) &&
-      (archptr->class->archFree != NULL))         /* If there is a specific freeing routing                */
+      (archptr->class->archFree != NULL))         /* If there is a specific freeing routine                */
     o = archptr->class->archFree (&archptr->data); /* Call it                                              */
-  memset (archptr, 0, sizeof (Arch));             /* Initialize the architecture body (arch->class = NULL) */
+
+#ifdef SCOTCH_DEBUG_GRAPH2
+  memSet (archptr, ~0, sizeof (Arch));            /* Purge graph fields */
+#endif /* SCOTCH_DEBUG_GRAPH2 */
 
   return (o);
 }
@@ -195,16 +205,17 @@ FILE * const                stream)
     return     (1);
   }
 
+  archptr->class   = class;                       /* Set architecture class                                                       */
+  archptr->flagval = archptr->class->flagval | ARCHFREE; /* Copy architecture flag before it can be modified and set freeing flag */
+
   if (class->archLoad != NULL) {                  /* If class has loading function */
     if (class->archLoad (&archptr->data, stream) != 0) { /* Load class data        */
       errorPrint ("archLoad: cannot load architecture data");
       class->archFree (&archptr->data);           /* Perform clean-up             */
-      memset (archptr, 0, sizeof (Arch));         /* Initialize architecture body */
+      memSet (archptr, 0, sizeof (Arch));         /* Initialize architecture body */
       return (1);
     }
   }
-  archptr->class   = class;                       /* Set architecture class */
-  archptr->flagval = archptr->class->flagval;     /* Copy architecture flag */
 
   return (0);
 }
@@ -229,7 +240,6 @@ FILE * restrict const       stream)
                 archptr->class->archname) == EOF);
   if (archptr->class->archSave != NULL)           /* If class has saving function      */
     o |= archptr->class->archSave (&archptr->data, stream); /* Write architecture data */
-  o |= (fprintf (stream, "\n") == EOF);
   if (o != 0)
     errorPrint ("archSave: bad output");
 
@@ -248,14 +258,22 @@ const ArchClass *
 archClass (
 const char * const          name)
 {
+  return (archClass2 (name, 0));                  /* Get first instance of class name */
+}
+
+const ArchClass *
+archClass2 (
+const char * const          name,
+const int                   num)
+{
   const ArchClass * restrict  class;              /* Pointer to architecture class */
 
-  for (class = archClassTab;                      /* For all classes             */
-       (class->archname != NULL) &&               /* Search if class names match */
-       (strcasecmp (name, class->archname) != 0);
-       class ++) ;
+  for (class = archClassTab; class->archname != NULL; class ++) { /* For all classes */
+    if (strcasecmp (name, class->archname) == 0)  /* If class names matches          */
+      return (class + num);                       /* Return proper class             */
+  }
 
-  return ((class->archname != NULL) ? class : NULL);
+  return (NULL);                                  /* Class not found */
 }
 
 /**************************************/
@@ -279,9 +297,9 @@ const char * const          name)
 ArchDomNum
 archDomNum (
 const Arch * const          archptr,
-const ArchDom * const       domptr)
+const ArchDom * const       domnptr)
 {
-  return (archDomNum2 (archptr, domptr));         /* Call proper routine */
+  return (archDomNum2 (archptr, domnptr));        /* Call proper routine */
 }
 
 #endif /* SCOTCH_DEBUG_ARCH2 */
@@ -299,10 +317,10 @@ const ArchDom * const       domptr)
 int
 archDomTerm (
 const Arch * const          archptr,
-ArchDom * restrict const    domptr,
-const ArchDomNum            domnum)
+ArchDom * restrict const    domnptr,
+const ArchDomNum            domnnum)
 {
-  return (archDomTerm2 (archptr, domptr, domnum)); /* Call proper routine */
+  return (archDomTerm2 (archptr, domnptr, domnnum)); /* Call proper routine */
 }
 
 #endif /* SCOTCH_DEBUG_ARCH2 */
@@ -319,9 +337,9 @@ const ArchDomNum            domnum)
 Anum
 archDomSize (
 const Arch * const          archptr,
-const ArchDom * const       domptr)
+const ArchDom * const       domnptr)
 {
-  return (archDomSize2 (archptr, domptr));        /* Call proper routine */
+  return (archDomSize2 (archptr, domnptr));       /* Call proper routine */
 }
 
 #endif /* SCOTCH_DEBUG_ARCH2 */
@@ -338,9 +356,9 @@ const ArchDom * const       domptr)
 Anum
 archDomWght (
 const Arch * const          archptr,
-const ArchDom * const       domptr)
+const ArchDom * const       domnptr)
 {
-  return (archDomWght2 (archptr, domptr));        /* Call proper routine */
+  return (archDomWght2 (archptr, domnptr));       /* Call proper routine */
 }
 
 #endif /* SCOTCH_DEBUG_ARCH2 */
@@ -378,9 +396,9 @@ const ArchDom * const       dom1ptr)
 int
 archDomFrst (
 const Arch * const          archptr,
-ArchDom * const             domptr)
+ArchDom * const             domnptr)
 {
-  return (archDomFrst2 (archptr, domptr));        /* Call proper routine */
+  return (archDomFrst2 (archptr, domnptr));       /* Call proper routine */
 }
 
 #endif /* SCOTCH_DEBUG_ARCH2 */
@@ -395,11 +413,11 @@ ArchDom * const             domptr)
 int
 archDomLoad (
 const Arch * const          archptr,
-ArchDom * const             domptr,
+ArchDom * const             domnptr,
 FILE * const                stream)
 {
   return (archptr->class->domLoad (&archptr->data, /* Call proper routine */
-                                   &domptr->data,
+                                   &domnptr->data,
                                    stream));
 }
 
@@ -413,11 +431,11 @@ FILE * const                stream)
 int
 archDomSave (
 const Arch * const          archptr,
-const ArchDom * const       domptr,
+const ArchDom * const       domnptr,
 FILE * const                stream)
 {
   return (archptr->class->domSave (&archptr->data, /* Call proper routine */
-                                   &domptr->data,
+                                   &domnptr->data,
                                    stream));
 }
 
@@ -436,22 +454,11 @@ FILE * const                stream)
 int
 archDomBipart (
 const Arch * const          archptr,
-const ArchDom * const       domptr,
+const ArchDom * const       domnptr,
 ArchDom * const             dom0ptr,
 ArchDom * const             dom1ptr)
 {
-  int                 o;
-
-  o = archDomBipart2 (archptr, domptr, dom0ptr, dom1ptr); /* Call proper routine */
-
-  if ((o == 0) &&                                 /* Check domain number consistency for fixed-sized architectures */
-      (strncmp (archName (archptr), "var", 3) != 0) &&
-      (archDomNum (archptr, dom0ptr) != archDomNum (archptr, domptr))) {
-    errorPrint ("archDomBipart: domain number mismatch");
-    return     (2);
-  }
-
-  return (o);
+  return (archDomBipart2 (archptr, domnptr, dom0ptr, dom1ptr)); /* Call proper routine */
 }
 
 #endif /* SCOTCH_DEBUG_ARCH2 */

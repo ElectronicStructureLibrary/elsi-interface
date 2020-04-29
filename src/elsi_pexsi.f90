@@ -154,10 +154,18 @@ subroutine elsi_init_pexsi(ph,bh)
          bh%n_lcol_sp = bh%n_lcol_sp1
       end if
 
+      ! PEXSI verbosity 0 not working
       if(bh%print_info > 1) then
          ph%pexsi_options%verbosity = 2
       else
          ph%pexsi_options%verbosity = 1
+      end if
+
+      ! Choose METIS/SCOTCH vs ParMETIS/PT-SCOTCH
+      if(ph%pexsi_options%npSymbFact == 1) then
+         ph%pexsi_options%ordering = 1
+      else
+         ph%pexsi_options%ordering = 0
       end if
 
       ph%pexsi_started = .true.

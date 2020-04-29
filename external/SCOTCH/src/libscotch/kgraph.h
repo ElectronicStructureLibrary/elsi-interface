@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010-2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2010-2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -52,7 +52,7 @@
 /**                # Version 5.1  : from : 13 jul 2010     **/
 /**                                 to     31 aug 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     03 oct 2012     **/
+/**                                 to     07 jun 2018     **/
 /**                                                        **/
 /**   NOTES      : # The comploadavg and comploaddlt       **/
 /**                  should always be allocated together,  **/
@@ -75,8 +75,8 @@
 /**                  be more interesting to move           **/
 /**                  kgraphCost() to kgraphMapRb().        **/
 /**                                                        **/
-/**                # When (pfixmsk != 0), we are handling  **/
-/**                  fixed vertices.                       **/
+/**                # When (pfixtax != NULL), we are        **/
+/**                  handling fixed vertices.              **/
 /**                                                        **/
 /**                # When (r.m.parttax != NULL), we are    **/
 /**                  doing repartitioning.                 **/
@@ -91,12 +91,11 @@
 
 /*+ Graph option flags. +*/
 
-#define KGRAPHFREEFRON              (GRAPHBITSNOTUSED)      /*+ Free frontier array                        +*/
-#define KGRAPHFREECOMP              (GRAPHBITSNOTUSED << 1) /*+ Free computational loads array             +*/
-#define KGRAPHFREERMAP              (GRAPHBITSNOTUSED << 2) /*+ Free repartitioning mapping                +*/
-#define KGRAPHFREEVMLO              (GRAPHBITSNOTUSED << 3) /*+ Free vertex migration cost array           +*/
-#define KGRAPHFRCOGROUP             (GRAPHBITSNOTUSED << 4) /*+ Frontab and comploadavg arrays are grouped +*/
-#define KGRAPHHASANCHORS            (GRAPHBITSNOTUSED << 5) /*+ The graph is a band graph                  +*/
+#define KGRAPHFREEFRON              (GRAPHBITSNOTUSED)      /*+ Free frontier array              +*/
+#define KGRAPHFREECOMP              (GRAPHBITSNOTUSED << 1) /*+ Free computational loads array   +*/
+#define KGRAPHFREEPFIX              (GRAPHBITSNOTUSED << 2) /*+ Free fixed vertex array          +*/
+#define KGRAPHFREEVMLO              (GRAPHBITSNOTUSED << 3) /*+ Free vertex migration cost array +*/
+#define KGRAPHHASANCHORS            (GRAPHBITSNOTUSED << 4) /*+ The graph is a band graph        +*/
 
 /*
 **  The type and structure definitions.
@@ -105,25 +104,25 @@
 /*+ The graph structure. +*/
 
 typedef struct Kgraph_ {
-  Graph                     s;                    /*+ Current graph                        +*/
-  Arch                      a;                    /*+ Current architecture                 +*/
-  Mapping                   m;                    /*+ Current mapping of graph vertices    +*/
-  struct {                                        /*+ Remapping structure                  +*/
-    Mapping                 m;                    /*+ Old mapping                          +*/
-    Gnum                    crloval;              /*+ Coefficient load for regular edges   +*/
-    Gnum                    cmloval;              /*+ Coefficient load for migration edges +*/
-    const Gnum *            vmlotax;              /*+ Vertex migration cost array          +*/
+  Graph                     s;                    /*+ Current graph                                     +*/
+  Arch                      a;                    /*+ Current architecture                              +*/
+  Mapping                   m;                    /*+ Current mapping of graph vertices                 +*/
+  struct {                                        /*+ Remapping structure                               +*/
+    Mapping                 m;                    /*+ Old mapping                                       +*/
+    Gnum                    crloval;              /*+ Coefficient load for regular edges                +*/
+    Gnum                    cmloval;              /*+ Coefficient load for migration edges; may be zero +*/
+    const Gnum *            vmlotax;              /*+ Vertex migration cost array                       +*/
   }                         r;
-  const Anum *              pfixtax;              /*+ Fixed partition array                +*/
-  Gnum                      vfixnbr;              /*+ Number of fixed vertices             +*/
-  Gnum                      fronnbr;              /*+ Number of frontier vertices          +*/
-  Gnum *                    frontab;              /*+ Array of frontier vertex numbers     +*/
-  Gnum *                    comploadavg;          /*+ Array of target average loads        +*/
-  Gnum *                    comploaddlt;          /*+ Array of target imbalances           +*/
-  double                    comploadrat;          /*+ Ideal load balance per weight unit   +*/
-  double                    kbalval;              /*+ Last k-way imbalance ratio           +*/
-  Gnum                      commload;             /*+ Communication load                   +*/
-  Gnum                      levlnum;              /*+ Graph coarsening level               +*/
+  Gnum                      vfixnbr;              /*+ Number of fixed vertices                          +*/
+  const Anum *              pfixtax;              /*+ Fixed terminal part array                         +*/
+  Gnum                      fronnbr;              /*+ Number of frontier vertices                       +*/
+  Gnum *                    frontab;              /*+ Array of frontier vertex numbers                  +*/
+  Gnum *                    comploadavg;          /*+ Array of target average loads                     +*/
+  Gnum *                    comploaddlt;          /*+ Array of target imbalances                        +*/
+  double                    comploadrat;          /*+ Ideal load balance per weight unit                +*/
+  double                    kbalval;              /*+ Last k-way imbalance ratio                        +*/
+  Gnum                      commload;             /*+ Communication load                                +*/
+  INT                       levlnum;              /*+ Graph coarsening level                            +*/
 } Kgraph;
 
 /*+ The save graph structure. +*/
@@ -146,13 +145,8 @@ typedef struct KgraphStore_ {
 **  The function prototypes.
 */
 
-#ifndef KGRAPH
-#define static
-#endif
-
-int                         kgraphInit          (Kgraph * const, const Graph * const, const Arch * const, const ArchDom * const, Anum * const, Anum * const, const Gnum, const Gnum, const Gnum *, Anum *);
+int                         kgraphInit          (Kgraph * restrict const, const Graph * restrict const, const Arch * restrict const, const ArchDom * restrict const, const Gnum, const Anum * restrict const, const Anum * restrict const, const Gnum, const Gnum, const Gnum * restrict const);
 void                        kgraphExit          (Kgraph * const);
-void                        kgraphFree          (Kgraph * const);
 void                        kgraphFrst          (Kgraph * const);
 int                         kgraphCheck         (const Kgraph * const);
 void                        kgraphCost          (Kgraph * const);
@@ -163,5 +157,3 @@ int                         kgraphStoreInit     (const Kgraph * const, KgraphSto
 void                        kgraphStoreExit     (KgraphStore * const);
 void                        kgraphStoreSave     (const Kgraph * const, KgraphStore * const);
 void                        kgraphStoreUpdt     (Kgraph * const, const KgraphStore * const);
-
-#undef static

@@ -1,11 +1,12 @@
 MACRO(cpp_scotch arg1)
-  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_VERSION=6)
-  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_RELEASE=0)
-  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_PATCHLEVEL=0)
+  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_VERSION_NUM=6)
+  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_RELEASE_NUM=0)
+  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_PATCHLEVEL_NUM=9)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE COMMON_RANDOM_FIXED_SEED)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_RENAME)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE IDXSIZE32)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE INTSIZE32)
+  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE HAVE_NOT_SYS_WAIT_H)
 ENDMACRO()
 
 MACRO(inc_scotch arg1)
@@ -16,7 +17,8 @@ MACRO(inc_scotch arg1)
     ${INC_PATHS})
 ENDMACRO()
 
-SET(SCOTCH_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotch")
+SET(SCOTCH_DIR "${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotch")
+SET(SCOTCHMETIS_DIR "${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotchmetis")
 
 ### Generate headers ###
 ADD_EXECUTABLE(dummysizes src/libscotch/dummysizes.c)
@@ -38,24 +40,26 @@ ELSE()
 ENDIF()
 
 ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/scotch.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
-  COMMAND ${dummy_command} ${SCOTCH_SOURCE_DIR}/library.h ${PROJECT_BINARY_DIR}/generated/scotch.h
-  COMMAND ${dummy_command} ${SCOTCH_SOURCE_DIR}/library_f.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
-  DEPENDS dummysizes ${SCOTCH_SOURCE_DIR}/library.h ${SCOTCH_SOURCE_DIR}/library_f.h
+  COMMAND ${dummy_command} ${SCOTCH_DIR}/library.h ${PROJECT_BINARY_DIR}/generated/scotch.h
+  COMMAND ${dummy_command} ${SCOTCH_DIR}/library_f.h ${PROJECT_BINARY_DIR}/generated/scotchf.h
+  COMMAND ${dummy_command} ${SCOTCHMETIS_DIR}/library_metis.h ${PROJECT_BINARY_DIR}/generated/metis.h
+  DEPENDS dummysizes ${SCOTCH_DIR}/library.h ${SCOTCH_DIR}/library_f.h ${SCOTCHMETIS_DIR}/library_metis.h
   VERBATIM)
 
 ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/ptscotch.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
-  COMMAND ${ptdummy_command} ${SCOTCH_SOURCE_DIR}/library_pt.h ${PROJECT_BINARY_DIR}/generated/ptscotch.h
-  COMMAND ${ptdummy_command} ${SCOTCH_SOURCE_DIR}/library_pt_f.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
-  DEPENDS ptdummysizes ${SCOTCH_SOURCE_DIR}/library_pt.h ${SCOTCH_SOURCE_DIR}/library_pt_f.h
+  COMMAND ${ptdummy_command} ${SCOTCH_DIR}/library_pt.h ${PROJECT_BINARY_DIR}/generated/ptscotch.h
+  COMMAND ${ptdummy_command} ${SCOTCH_DIR}/library_pt_f.h ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
+  COMMAND ${ptdummy_command} ${SCOTCHMETIS_DIR}/library_parmetis.h ${PROJECT_BINARY_DIR}/generated/parmetis.h
+  DEPENDS ptdummysizes ${SCOTCH_DIR}/library_pt.h ${SCOTCH_DIR}/library_pt_f.h ${SCOTCHMETIS_DIR}/library_parmetis.h
   VERBATIM)
 
 ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/generated/parser_ll.c ${PROJECT_BINARY_DIR}/generated/parser_yy.c
-  COMMAND bison -pscotchyy -y -b y -d -v -o${PROJECT_BINARY_DIR}/generated/tmp2.c ${SCOTCH_SOURCE_DIR}/parser_yy.y
+  COMMAND bison -pscotchyy -y -b y -d -v -o${PROJECT_BINARY_DIR}/generated/tmp2.c ${SCOTCH_DIR}/parser_yy.y
   COMMAND mv ${PROJECT_BINARY_DIR}/generated/tmp2.c ${PROJECT_BINARY_DIR}/generated/parser_yy.c
   COMMAND mv ${PROJECT_BINARY_DIR}/generated/tmp2.h ${PROJECT_BINARY_DIR}/generated/parser_ly.h
-  COMMAND flex -Pscotchyy -o${PROJECT_BINARY_DIR}/generated/tmp1.c ${SCOTCH_SOURCE_DIR}/parser_ll.l
+  COMMAND flex -Pscotchyy -o${PROJECT_BINARY_DIR}/generated/tmp1.c ${SCOTCH_DIR}/parser_ll.l
   COMMAND mv ${PROJECT_BINARY_DIR}/generated/tmp1.c ${PROJECT_BINARY_DIR}/generated/parser_ll.c
-  DEPENDS ${SCOTCH_SOURCE_DIR}/parser_yy.y ${SCOTCH_SOURCE_DIR}/parser_ll.l ${SCOTCH_SOURCE_DIR}/parser_yy.h ${SCOTCH_SOURCE_DIR}/parser_ll.h
+  DEPENDS ${SCOTCH_DIR}/parser_yy.y ${SCOTCH_DIR}/parser_ll.l ${SCOTCH_DIR}/parser_yy.h ${SCOTCH_DIR}/parser_ll.h
   VERBATIM)
 
 ### Source files ###
@@ -66,12 +70,15 @@ LIST(APPEND scotch_src
   ${PROJECT_BINARY_DIR}/generated/parser_yy.c
   src/libscotch/arch.c
   src/libscotch/arch_build.c
+  src/libscotch/arch_build2.c
   src/libscotch/arch_cmplt.c
   src/libscotch/arch_cmpltw.c
   src/libscotch/arch_deco.c
+  src/libscotch/arch_deco2.c
   src/libscotch/arch_dist.c
   src/libscotch/arch_hcub.c
   src/libscotch/arch_mesh.c
+  src/libscotch/arch_sub.c
   src/libscotch/arch_tleaf.c
   src/libscotch/arch_torus.c
   src/libscotch/arch_vcmplt.c
@@ -91,7 +98,7 @@ LIST(APPEND scotch_src
   src/libscotch/common.c
   src/libscotch/common_file.c
   src/libscotch/common_file_compress.c
-  src/libscotch/common_file_uncompress.c
+  src/libscotch/common_file_decompress.c
   src/libscotch/common_integer.c
   src/libscotch/common_memory.c
   src/libscotch/common_string.c
@@ -104,7 +111,10 @@ LIST(APPEND scotch_src
   src/libscotch/graph_base.c
   src/libscotch/graph_band.c
   src/libscotch/graph_check.c
+  src/libscotch/graph_clone.c
   src/libscotch/graph_coarsen.c
+  src/libscotch/graph_diam.c
+  src/libscotch/graph_ielo.c
   src/libscotch/graph_induce.c
   src/libscotch/graph_io.c
   src/libscotch/graph_io_chac.c
@@ -120,6 +130,7 @@ LIST(APPEND scotch_src
   src/libscotch/hgraph_check.c
   src/libscotch/hgraph_induce.c
   src/libscotch/hgraph_order_bl.c
+  src/libscotch/hgraph_order_cc.c
   src/libscotch/hgraph_order_cp.c
   src/libscotch/hgraph_order_gp.c
   src/libscotch/hgraph_order_hd.c
@@ -162,6 +173,8 @@ LIST(APPEND scotch_src
   src/libscotch/library_arch_f.c
   src/libscotch/library_arch_build.c
   src/libscotch/library_arch_build_f.c
+  src/libscotch/library_arch_dom.c
+  src/libscotch/library_arch_dom_f.c
   src/libscotch/library_common_f.c
   src/libscotch/library_geom.c
   src/libscotch/library_geom_f.c
@@ -175,6 +188,10 @@ LIST(APPEND scotch_src
   src/libscotch/library_graph_coarsen_f.c
   src/libscotch/library_graph_color.c
   src/libscotch/library_graph_color_f.c
+  src/libscotch/library_graph_diam.c
+  src/libscotch/library_graph_diam_f.c
+  src/libscotch/library_graph_induce.c
+  src/libscotch/library_graph_induce_f.c
   src/libscotch/library_graph_io_chac.c
   src/libscotch/library_graph_io_chac_f.c
   src/libscotch/library_graph_io_habo.c
@@ -194,6 +211,8 @@ LIST(APPEND scotch_src
   src/libscotch/library_graph_part_ovl.c
   src/libscotch/library_graph_part_ovl_f.c
   src/libscotch/library_mapping.c
+  src/libscotch/library_memory.c
+  src/libscotch/library_memory_f.c
   src/libscotch/library_mesh.c
   src/libscotch/library_mesh_f.c
   src/libscotch/library_mesh_graph.c
@@ -383,12 +402,14 @@ LIST(APPEND ptscotch_src
   src/libscotch/vdgraph_store.c)
 
 LIST(APPEND scotchmetis_src
+  ${PROJECT_BINARY_DIR}/generated/metis.h
   src/libscotchmetis/metis_graph_order.c
   src/libscotchmetis/metis_graph_order_f.c
   src/libscotchmetis/metis_graph_part.c
   src/libscotchmetis/metis_graph_part_f.c)
 
 LIST(APPEND ptscotchparmetis_src
+  ${PROJECT_BINARY_DIR}/generated/parmetis.h
   src/libscotchmetis/parmetis_dgraph_order.c
   src/libscotchmetis/parmetis_dgraph_order_f.c
   src/libscotchmetis/parmetis_dgraph_part.c
@@ -399,6 +420,8 @@ LIST(APPEND generated_src
   ${PROJECT_BINARY_DIR}/generated/scotchf.h
   ${PROJECT_BINARY_DIR}/generated/ptscotch.h
   ${PROJECT_BINARY_DIR}/generated/ptscotchf.h
+  ${PROJECT_BINARY_DIR}/generated/metis.h
+  ${PROJECT_BINARY_DIR}/generated/parmetis.h
   ${PROJECT_BINARY_DIR}/generated/parser_ll.c
   ${PROJECT_BINARY_DIR}/generated/parser_yy.c)
 
@@ -441,6 +464,8 @@ cpp_scotch(ptscotcherr)
 TARGET_COMPILE_DEFINITIONS(ptscotch PRIVATE SCOTCH_PTSCOTCH)
 TARGET_COMPILE_DEFINITIONS(ptscotcherr PRIVATE SCOTCH_PTSCOTCH)
 TARGET_COMPILE_DEFINITIONS(ptscotchparmetis PRIVATE SCOTCH_PTSCOTCH)
+TARGET_COMPILE_DEFINITIONS(scotchmetis PRIVATE SCOTCH_METIS_VERSION=5)
+TARGET_COMPILE_DEFINITIONS(ptscotchparmetis PRIVATE SCOTCH_METIS_VERSION=5)
 
 LIST(APPEND scotch_target
   scotch

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2010,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -45,6 +45,8 @@
 /**                                 to     04 aug 2007     **/
 /**                # Version 5.1  : from : 27 mar 2010     **/
 /**                                 to     25 jul 2010     **/
+/**                # Version 6.0  : from : 20 apr 2018     **/
+/**                                 to     25 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -69,17 +71,17 @@
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHORDERINIT, scotchfmeshorderinit, (   \
-const SCOTCH_Mesh * const   meshptr,            \
-SCOTCH_Ordering * const     ordeptr,            \
-SCOTCH_Num * const          permtab,            \
-SCOTCH_Num * const          peritab,            \
-SCOTCH_Num * const          cblkptr,            \
-SCOTCH_Num * const          rangtab,            \
-SCOTCH_Num * const          treetab,            \
-int * const                 revaptr),           \
-(meshptr, ordeptr, permtab, peritab,            \
+SCOTCH_FORTRAN (                      \
+MESHORDERINIT, meshorderinit, (       \
+const SCOTCH_Mesh * const   meshptr,  \
+SCOTCH_Ordering * const     ordeptr,  \
+SCOTCH_Num * const          permtab,  \
+SCOTCH_Num * const          peritab,  \
+SCOTCH_Num * const          cblkptr,  \
+SCOTCH_Num * const          rangtab,  \
+SCOTCH_Num * const          treetab,  \
+int * const                 revaptr), \
+(meshptr, ordeptr, permtab, peritab,  \
  cblkptr, rangtab, treetab, revaptr))
 {
   *revaptr = SCOTCH_meshOrderInit (meshptr, ordeptr, permtab, peritab, cblkptr, rangtab, treetab);
@@ -89,10 +91,10 @@ int * const                 revaptr),           \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHORDEREXIT, scotchfmeshorderexit, (   \
-const SCOTCH_Mesh * const   meshptr,            \
-SCOTCH_Ordering * const     ordeptr),           \
+SCOTCH_FORTRAN (                      \
+MESHORDEREXIT, meshorderexit, (       \
+const SCOTCH_Mesh * const   meshptr,  \
+SCOTCH_Ordering * const     ordeptr), \
 (meshptr, ordeptr))
 {
   SCOTCH_meshOrderExit (meshptr, ordeptr);
@@ -102,12 +104,12 @@ SCOTCH_Ordering * const     ordeptr),           \
 **
 */
 
-FORTRAN (                                     \
-SCOTCHFMESHORDERSAVE, scotchfmeshordersave, ( \
-const SCOTCH_Mesh * const     meshptr,        \
-const SCOTCH_Ordering * const ordeptr,        \
-int * const                   fileptr,        \
-int * const                   revaptr),       \
+SCOTCH_FORTRAN (                      \
+MESHORDERSAVE, meshordersave, (       \
+const SCOTCH_Mesh * const   meshptr,  \
+SCOTCH_Ordering * const     ordeptr,  \
+int * const                 fileptr,  \
+int * const                 revaptr), \
 (meshptr, ordeptr, fileptr, revaptr))
 {
   FILE *              stream;                     /* Stream to build from handle */
@@ -115,13 +117,13 @@ int * const                   revaptr),       \
   int                 o;
 
   if ((filenum = dup (*fileptr)) < 0) {           /* If cannot duplicate file descriptor */
-    errorPrint ("SCOTCHFMESHORDERSAVE: cannot duplicate handle");
+    errorPrint (STRINGIFY (SCOTCH_NAME_PUBLICFU (MESHORDERSAVE)) ": cannot duplicate handle");
 
     *revaptr = 1;                                 /* Indicate error */
     return;
   }
   if ((stream = fdopen (filenum, "w")) == NULL) { /* Build stream from handle */
-    errorPrint ("SCOTCHFMESHORDERSAVE: cannot open output stream");
+    errorPrint (STRINGIFY (SCOTCH_NAME_PUBLICFU (MESHORDERSAVE)) ": cannot open output stream");
     close      (filenum);
     *revaptr = 1;
     return;
@@ -138,12 +140,12 @@ int * const                   revaptr),       \
 **
 */
 
-FORTRAN (                                           \
-SCOTCHFMESHORDERSAVEMAP, scotchfmeshordersavemap, ( \
-const SCOTCH_Mesh * const     meshptr,              \
-const SCOTCH_Ordering * const ordeptr,              \
-int * const                   fileptr,              \
-int * const                   revaptr),             \
+SCOTCH_FORTRAN (                      \
+MESHORDERSAVEMAP, meshordersavemap, ( \
+const SCOTCH_Mesh * const   meshptr,  \
+SCOTCH_Ordering * const     ordeptr,  \
+int * const                 fileptr,  \
+int * const                 revaptr), \
 (meshptr, ordeptr, fileptr, revaptr))
 {
   FILE *              stream;                     /* Stream to build from handle */
@@ -151,13 +153,13 @@ int * const                   revaptr),             \
   int                 o;
 
   if ((filenum = dup (*fileptr)) < 0) {           /* If cannot duplicate file descriptor */
-    errorPrint ("SCOTCHFMESHORDERSAVEMAP: cannot duplicate handle");
+    errorPrint (STRINGIFY (SCOTCH_NAME_PUBLICFU (MESHORDERSAVEMAP)) ": cannot duplicate handle");
 
     *revaptr = 1;                                 /* Indicate error */
     return;
   }
   if ((stream = fdopen (filenum, "w")) == NULL) { /* Build stream from handle */
-    errorPrint ("SCOTCHFMESHORDERSAVEMAP: cannot open output stream");
+    errorPrint (STRINGIFY (SCOTCH_NAME_PUBLICFU (MESHORDERSAVEMAP)) ": cannot open output stream");
     close      (filenum);
     *revaptr = 1;
     return;
@@ -174,12 +176,12 @@ int * const                   revaptr),             \
 **
 */
 
-FORTRAN (                                             \
-SCOTCHFMESHORDERSAVETREE, scotchfmeshordersavetree, ( \
-const SCOTCH_Mesh * const     meshptr,                \
-const SCOTCH_Ordering * const ordeptr,                \
-int * const                   fileptr,                \
-int * const                   revaptr),               \
+SCOTCH_FORTRAN (                        \
+MESHORDERSAVETREE, meshordersavetree, ( \
+const SCOTCH_Mesh * const   meshptr,    \
+SCOTCH_Ordering * const     ordeptr,    \
+int * const                 fileptr,    \
+int * const                 revaptr),   \
 (meshptr, ordeptr, fileptr, revaptr))
 {
   FILE *              stream;                     /* Stream to build from handle */
@@ -187,13 +189,13 @@ int * const                   revaptr),               \
   int                 o;
 
   if ((filenum = dup (*fileptr)) < 0) {           /* If cannot duplicate file descriptor */
-    errorPrint ("SCOTCHFMESHORDERSAVETREE: cannot duplicate handle");
+    errorPrint (STRINGIFY (SCOTCH_NAME_PUBLICFU (MESHORDERSAVETREE)) ": cannot duplicate handle");
 
     *revaptr = 1;                                 /* Indicate error */
     return;
   }
   if ((stream = fdopen (filenum, "w")) == NULL) { /* Build stream from handle */
-    errorPrint ("SCOTCHFMESHORDERSAVETREE: cannot open output stream");
+    errorPrint (STRINGIFY (SCOTCH_NAME_PUBLICFU (MESHORDERSAVETREE)) ": cannot open output stream");
     close      (filenum);
     *revaptr = 1;
     return;
@@ -210,85 +212,85 @@ int * const                   revaptr),               \
 **
 */
 
-FORTRAN (                                           \
-SCOTCHFMESHORDERCOMPUTE, scotchfmeshordercompute, ( \
-SCOTCH_Mesh * const         meshptr,                \
-SCOTCH_Ordering * const     ordeptr,                \
-SCOTCH_Strat * const        stratptr,               \
-int * const                 revaptr),               \
-(meshptr, ordeptr, stratptr, revaptr))
+SCOTCH_FORTRAN (                      \
+MESHORDERCOMPUTE, meshordercompute, ( \
+SCOTCH_Mesh * const         meshptr,  \
+SCOTCH_Ordering * const     ordeptr,  \
+SCOTCH_Strat * const        straptr,  \
+int * const                 revaptr), \
+(meshptr, ordeptr, straptr, revaptr))
 {
-  *revaptr = SCOTCH_meshOrderCompute (meshptr, ordeptr, stratptr);
+  *revaptr = SCOTCH_meshOrderCompute (meshptr, ordeptr, straptr);
 }
 
 /*
 **
 */
 
-FORTRAN (                                                   \
-SCOTCHFMESHORDERCOMPUTELIST, scotchfmeshordercomputelist, ( \
-SCOTCH_Mesh * const         meshptr,                        \
-SCOTCH_Ordering * const     ordeptr,                        \
-const SCOTCH_Num *          listptr,                        \
-const SCOTCH_Num * const    listtab,                        \
-SCOTCH_Strat * const        stratptr,                       \
-int * const                 revaptr),                       \
-(meshptr, ordeptr, listptr, listtab, stratptr, revaptr))
+SCOTCH_FORTRAN (                              \
+MESHORDERCOMPUTELIST, meshordercomputelist, ( \
+SCOTCH_Mesh * const         meshptr,          \
+SCOTCH_Ordering * const     ordeptr,          \
+const SCOTCH_Num *          listptr,          \
+const SCOTCH_Num * const    listtab,          \
+SCOTCH_Strat * const        straptr,          \
+int * const                 revaptr),         \
+(meshptr, ordeptr, listptr, listtab, straptr, revaptr))
 {
-  *revaptr = SCOTCH_meshOrderComputeList (meshptr, ordeptr, *listptr, listtab, stratptr);
+  *revaptr = SCOTCH_meshOrderComputeList (meshptr, ordeptr, *listptr, listtab, straptr);
 }
 
 /*
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHORDER, scotchfmeshorder, (           \
-SCOTCH_Mesh * const         meshptr,            \
-SCOTCH_Strat * const        stratptr,           \
-SCOTCH_Num * const          permtab,            \
-SCOTCH_Num * const          peritab,            \
-SCOTCH_Num * const          cblkptr,            \
-SCOTCH_Num * const          rangtab,            \
-SCOTCH_Num * const          treetab,            \
-int * const                 revaptr),           \
-(meshptr, stratptr, permtab, peritab,           \
+SCOTCH_FORTRAN (                      \
+MESHORDER, meshorder, (               \
+SCOTCH_Mesh * const         meshptr,  \
+SCOTCH_Strat * const        straptr,  \
+SCOTCH_Num * const          permtab,  \
+SCOTCH_Num * const          peritab,  \
+SCOTCH_Num * const          cblkptr,  \
+SCOTCH_Num * const          rangtab,  \
+SCOTCH_Num * const          treetab,  \
+int * const                 revaptr), \
+(meshptr, straptr, permtab, peritab,  \
  cblkptr, rangtab, treetab, revaptr))
 {
-  *revaptr = SCOTCH_meshOrder (meshptr, stratptr, permtab, peritab, cblkptr, rangtab, treetab);
+  *revaptr = SCOTCH_meshOrder (meshptr, straptr, permtab, peritab, cblkptr, rangtab, treetab);
 }
 
 /*
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHORDERLIST, scotchfmeshorderlist, (   \
-SCOTCH_Mesh * const         meshptr,            \
-const SCOTCH_Num * const    listptr,            \
-const SCOTCH_Num * const    listtab,            \
-SCOTCH_Strat * const        stratptr,           \
-SCOTCH_Num * const          permtab,            \
-SCOTCH_Num * const          peritab,            \
-SCOTCH_Num * const          cblkptr,            \
-SCOTCH_Num * const          rangtab,            \
-SCOTCH_Num * const          treetab,            \
-int * const                 revaptr),           \
-(meshptr, listptr, listtab, stratptr,           \
+SCOTCH_FORTRAN (                      \
+MESHORDERLIST, meshorderlist, (       \
+SCOTCH_Mesh * const         meshptr,  \
+const SCOTCH_Num *          listptr,  \
+const SCOTCH_Num * const    listtab,  \
+SCOTCH_Strat * const        straptr,  \
+SCOTCH_Num * const          permtab,  \
+SCOTCH_Num * const          peritab,  \
+SCOTCH_Num * const          cblkptr,  \
+SCOTCH_Num * const          rangtab,  \
+SCOTCH_Num * const          treetab,  \
+int * const                 revaptr), \
+(meshptr, listptr, listtab, straptr,  \
  permtab, peritab, cblkptr, rangtab, treetab, revaptr))
 {
-  *revaptr = SCOTCH_meshOrderList (meshptr, *listptr, listtab, stratptr, permtab, peritab, cblkptr, rangtab, treetab);
+  *revaptr = SCOTCH_meshOrderList (meshptr, *listptr, listtab, straptr, permtab, peritab, cblkptr, rangtab, treetab);
 }
 
 /*
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFMESHORDERCHECK, scotchfmeshordercheck, ( \
-const SCOTCH_Mesh * const   meshptr,            \
-SCOTCH_Ordering * const     ordeptr,            \
-int * const                 revaptr),           \
+SCOTCH_FORTRAN (                      \
+MESHORDERCHECK, meshordercheck, (     \
+const SCOTCH_Mesh * const   meshptr,  \
+SCOTCH_Ordering * const     ordeptr,  \
+int * const                 revaptr), \
 (meshptr, ordeptr, revaptr))
 {
   *revaptr = SCOTCH_meshOrderCheck (meshptr, ordeptr);
@@ -298,24 +300,25 @@ int * const                 revaptr),           \
 **
 */
 
-FORTRAN (                                       \
-SCOTCHFSTRATMESHORDER, scotchfstratmeshorder, ( \
-SCOTCH_Strat * const        stratptr,           \
-const char * const          string,             \
-int * const                 revaptr,            \
-const int                   strnbr),            \
-(stratptr, string, revaptr, strnbr))
+SCOTCH_FORTRAN (                     \
+STRATMESHORDER, stratmeshorder, (    \
+SCOTCH_Strat * const        straptr, \
+const char * const          string,  \
+int * const                 revaptr, \
+const int                   strnbr), \
+(straptr, string, revaptr, strnbr))
 {
   char * restrict     strtab;                     /* Pointer to null-terminated string */
 
   if ((strtab = (char *) memAlloc (strnbr + 1)) == NULL) { /* Allocate temporary space */
-    errorPrint ("SCOTCHFSTRATMESHORDER: out of memory (1)");
+    errorPrint (STRINGIFY (SCOTCH_NAME_PUBLICFU (STRATMESHORDER)) ": out of memory");
     *revaptr = 1;
+    return;
   }
   memCpy (strtab, string, strnbr);                /* Copy string contents */
   strtab[strnbr] = '\0';                          /* Terminate string     */
 
-  *revaptr = SCOTCH_stratMeshOrder (stratptr, strtab); /* Call original routine */
+  *revaptr = SCOTCH_stratMeshOrder (straptr, strtab); /* Call original routine */
 
   memFree (strtab);                               /* Prevent compiler warnings */
 }
@@ -324,13 +327,13 @@ const int                   strnbr),            \
 **
 */
 
-FORTRAN (                                                 \
-SCOTCHFSTRATMESHORDERBUILD, scotchfstratmeshorderbuild, ( \
-SCOTCH_Strat * const        stratptr,                     \
-const SCOTCH_Num * const    flagval,                      \
-const double * const        balrat,                       \
-int * const                 revaptr),                     \
-(stratptr, flagval, balrat, revaptr))
+SCOTCH_FORTRAN (                            \
+STRATMESHORDERBUILD, stratmeshorderbuild, ( \
+SCOTCH_Strat * const        straptr,        \
+const SCOTCH_Num * const    flagval,        \
+const double * const        balrat,         \
+int * const                 revaptr),       \
+(straptr, flagval, balrat, revaptr))
 {
-  *revaptr = SCOTCH_stratMeshOrderBuild (stratptr, *flagval, *balrat);
+  *revaptr = SCOTCH_stratMeshOrderBuild (straptr, *flagval, *balrat);
 }

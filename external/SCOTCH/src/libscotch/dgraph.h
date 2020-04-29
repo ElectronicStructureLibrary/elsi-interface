@@ -1,4 +1,4 @@
-/* Copyright 2007-2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2010,2012,2015 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -57,7 +57,7 @@
 /**                # Version 5.1  : from : 11 nov 2007     **/
 /**                                 to   : 20 feb 2011     **/
 /**                # Version 6.0  : from : 30 aug 2012     **/
-/**                                 to   : 26 sep 2012     **/
+/**                                 to   : 28 dec 2015     **/
 /**                                                        **/
 /************************************************************/
 
@@ -85,7 +85,7 @@
 #define DGRAPHHASEDGEGST            0x0020        /* Edge ghost array computed           */
 #define DGRAPHVERTGROUP             0x0040        /* All vertex arrays grouped           */
 #define DGRAPHEDGEGROUP             0x0080        /* All edge arrays grouped             */
-#define DGRAPHFREEALL               (DGRAPHFREEPRIV | DGRAPHFREECOMM | DGRAPHFREETABS | DGRAPHFREEPSID  | DGRAPHFREEEDGEGST)
+#define DGRAPHFREEALL               (DGRAPHFREEPRIV | DGRAPHFREECOMM | DGRAPHFREETABS | DGRAPHFREEPSID | DGRAPHFREEEDGEGST)
 #define DGRAPHCOMMPTOP              0x0100        /* Use point-to-point collective communication */
 
 #define DGRAPHBITSUSED              0x01FF        /* Significant bits for plain distributed graph routines               */
@@ -102,10 +102,11 @@
 
 /* The graph basic types, which must be signed. */
 
-#ifndef GNUMMAX                                   /* If graph.h not included */
-typedef INT                 Gnum;                 /* Vertex or edge number   */
-#define GNUMMAX                     (INTVALMAX)   /* Maximum Gnum value      */
-#define GNUMSTRING                  INTSTRING     /* String to printf a Gnum */
+#ifndef GNUMMAX                                   /* If graph.h not included    */
+typedef INT                 Gnum;                 /* Vertex or edge number      */
+#define GNUMMAX                     (INTVALMAX)   /* Maximum Gnum value         */
+#define GNUMMIN                     (-GNUMMAX - 1) /* Minimum signed Gnum value */
+#define GNUMSTRING                  INTSTRING     /* String to printf a Gnum    */
 #endif /* GNUMMAX */
 
 #define GNUM_MPI                    COMM_INT      /* MPI type for Gnum is MPI type for INT */

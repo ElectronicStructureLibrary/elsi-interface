@@ -1,4 +1,4 @@
-/* Copyright 2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2012-2015 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -39,7 +39,7 @@
 /**                the use of Posix threads.               **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 04 jul 2012     **/
-/**                                 to     24 nov 2012     **/
+/**                                 to     27 apr 2015     **/
 /**                                                        **/
 /************************************************************/
 
@@ -47,10 +47,10 @@
 **  The defines and includes.
 */
 
-#ifdef SCOTCH_PTHREAD_AFFINITY_LINUX
+#ifdef COMMON_PTHREAD_AFFINITY_LINUX
 #define _GNU_SOURCE
 #include <sched.h>
-#endif /* SCOTCH_PTHREAD_AFFINITY_LINUX */
+#endif /* COMMON_PTHREAD_AFFINITY_LINUX */
 
 #define COMMON_THREAD
 
@@ -65,7 +65,7 @@
 /*                           */
 /*****************************/
 
-#ifdef SCOTCH_PTHREAD
+#ifdef COMMON_PTHREAD
 
 /* These routines implement the classical barrier
 ** operations for systems that do not provide them.
@@ -165,24 +165,28 @@ int                         rootnum)              /* Root of reduction          
   const size_t                        datasiz = grouptr->datasiz;
   const int                           thrdnbr = grouptr->thrdnbr;
   const int                           thrdnum = thrdptr->thrdnum;
-  const int                           thrdnsk = (thrdnum + thrdnbr - rootnum) % thrdnbr; /* Rank of thread in skewed reduction tree */
-
+  int                                 thrdnsk;    /* Rank of thread in skewed reduction tree */
   int                                 thrdmsk;
 
+  thrdnsk = (thrdnum + thrdnbr - rootnum) % thrdnbr;
   for (thrdmsk = 1; thrdmsk < thrdnbr; thrdmsk <<= 1) {
     int                 thrdesk;                  /* Skewed rank of end thread */
 
     threadBarrierWait (&grouptr->barrdat);
 
-    thrdesk = thrdnsk ^ thrdmsk;                  /* Get skewed rank of end thread   */
-    if ((thrdesk > thrdnsk) &&                    /* If we are on the receiving side */
-        (thrdesk < thrdnbr)) {                    /* And if end thread exists        */
-      int                 thrdend;
-      int                 thrddlt;
+    thrdesk = thrdnsk ^ thrdmsk;                  /* Get skewed rank of end thread */
 
-      thrdend = (thrdesk + rootnum) % thrdnbr;
-      thrddlt = thrdend - thrdnum;
-      redfptr (dataptr, contptr, contptr + thrddlt * datasiz); /* Call reduction routine */
+    if (thrdesk < thrdnbr) {                      /* If end thread exists            */
+      if (thrdesk > thrdnsk) {                    /* If we are on the receiving side */
+        int                 thrdend;
+        int                 thrddlt;
+
+        thrdend = (thrdesk + rootnum) % thrdnbr;
+        thrddlt = thrdend - thrdnum;
+        redfptr (dataptr, contptr, (void *) ((byte *) contptr + thrddlt * datasiz)); /* Call reduction routine */
+      }
+      else                                        /* We are on the sending side       */
+        thrdnsk += thrdnbr;                       /* Make sure we will no longer work */
     }
   }
 }
@@ -221,7 +225,7 @@ ThreadScanFunc const        scafptr)              /* Scan function              
     threadBarrierWait (&grouptr->barrdat);        /* Barrier on all threads, even those which do not participate */
 
     thrdend = thrdnum - thrdmsk;                  /* Get rank of end thread */
-    scafptr (dataptr, contptr, (thrdend >= 0) ? (contptr - thrdmsk * datasiz) : NULL, i); /* If end thread exists, perform scan, else just copy */
+    scafptr (dataptr, contptr, (thrdend >= 0) ? (void *) ((byte *) contptr - thrdmsk * datasiz) : NULL, i); /* If end thread exists, perform scan, else just copy */
   }
 }
 
@@ -245,15 +249,15 @@ void *                      dataptr)              /* Per-thread data block */
   const int                           thrdnum = thrdptr->thrdnum;
   int                                 thrdmsk;
   int                                 o;
-#ifdef SCOTCH_PTHREAD_AFFINITY_LINUX
+#ifdef COMMON_PTHREAD_AFFINITY_LINUX
   cpu_set_t                           cpuset;
-#endif /* SCOTCH_PTHREAD_AFFINITY_LINUX */
+#endif /* COMMON_PTHREAD_AFFINITY_LINUX */
 
-#ifdef SCOTCH_PTHREAD_AFFINITY_LINUX
+#ifdef COMMON_PTHREAD_AFFINITY_LINUX
   CPU_ZERO (&cpuset);
   CPU_SET  (thrdnum, &cpuset);                    /* Thread sets its own affinity */
   pthread_setaffinity_np (thrdptr->thidval, sizeof (cpu_set_t), &cpuset);
-#endif /* SCOTCH_PTHREAD_AFFINITY_LINUX */
+#endif /* COMMON_PTHREAD_AFFINITY_LINUX */
 
   o = grouptr->stafptr (dataptr);                 /* Call start routine */
 
@@ -265,7 +269,7 @@ void *                      dataptr)              /* Per-thread data block */
     if (thrdend >= thrdnbr)                       /* If end thread does not exist */
       continue;
 
-    thrdtmp = (ThreadHeader *) (dataptr + grouptr->datasiz * (thrdend - thrdnum));
+    thrdtmp = (ThreadHeader *) ((byte *) dataptr + grouptr->datasiz * (thrdend - thrdnum));
     while (thrdtmp->thrdnum == -1) ;              /* Spin-lock until end thread created */
 
     if (thrdnum > thrdend) {                      /* If we are on the sending side        */
@@ -285,9 +289,9 @@ void *                      dataptr)              /* Per-thread data block */
         pthread_join (thrdtmp->thidval, &o2);     /* Get return value from end thread */
         o |= (int) (intptr_t) o2;                 /* Amalgamate return status         */
 
-        if ((grouptr->joifptr != NULL) &&         /* If we have something to do              */
-            (o == 0))                             /* And if no error in both threads         */
-          o |= grouptr->joifptr (dataptr, dataptr + thrdmsk * datasiz); /* Call join routine */
+        if ((grouptr->joifptr != NULL) &&         /* If we have something to do      */
+            (o == 0))                             /* And if no error in both threads */
+          o |= grouptr->joifptr (dataptr, (void *) ((byte *) dataptr + thrdmsk * datasiz)); /* Call join routine */
       }
     }
   }
@@ -318,7 +322,7 @@ const int                   flagval)              /* Flag for thread operation d
   ThreadGroupHeader * const grouptr = (ThreadGroupHeader *) gdatptr;
   ThreadHeader *            thrdptr;
   int                       thrdnum;
-  void *                    dataptr;
+  byte *                    dataptr;
   void *                    o;
 
   grouptr->flagval = flagval;
@@ -334,7 +338,7 @@ const int                   flagval)              /* Flag for thread operation d
     }
   }
 
-  for (thrdnum = 0, dataptr = tdattab;            /* Prepare threads for launching */
+  for (thrdnum = 0, dataptr = (byte *) tdattab;   /* Prepare threads for launching */
        thrdnum < thrdnbr; thrdnum ++, dataptr += datasiz) {
     ThreadHeader *      thrdptr;
 
@@ -344,7 +348,7 @@ const int                   flagval)              /* Flag for thread operation d
 
   __sync_synchronize ();                          /* Full memory barrier */
 
-  for (thrdnum = 1, dataptr = tdattab + datasiz;  /* Launch threads from 1 to (thrdnbr - 1) */
+  for (thrdnum = 1, dataptr = (byte *) tdattab + datasiz; /* Launch threads from 1 to (thrdnbr - 1) */
        thrdnum < thrdnbr; thrdnum ++, dataptr += datasiz) {
     ThreadHeader *      thrdptr;
 
@@ -352,7 +356,7 @@ const int                   flagval)              /* Flag for thread operation d
     thrdptr->grouptr = gdatptr;
     thrdptr->thrdnum = thrdnum;
 
-    if (pthread_create (&thrdptr->thidval, NULL, threadLaunch2, dataptr) != 0) {
+    if (pthread_create (&thrdptr->thidval, NULL, threadLaunch2, (void *) dataptr) != 0) {
       errorPrint ("threadLaunch: cannot launch thread (%d)", thrdnum);
       return     (1);
     }
@@ -371,19 +375,45 @@ const int                   flagval)              /* Flag for thread operation d
   return ((int) (intptr_t) o);
 }
 
-#else /* SCOTCH_PTHREAD */
+#else /* COMMON_PTHREAD */
+
+/**********************************/
+/*                                */
+/* Thread handling routine stubs. */
+/*                                */
+/**********************************/
+
+void
+threadReduce (
+void * const                dataptr,              /* Per-thread data block        */
+void * const                contptr,              /* Pointer to thread contents   */
+ThreadReduceFunc const      redfptr,              /* Pointer to reduction routine */
+int                         rootnum)              /* Root of reduction            */
+{
+  errorPrint ("threadReduce: Not compiled with COMMON_PTHREAD");
+}
+
+void
+threadScan (
+void * const                dataptr,              /* Per-thread data block      */
+void * const                contptr,              /* Pointer to thread contents */
+ThreadScanFunc const        scafptr)              /* Scan function              */
+{
+  errorPrint ("threadScan: Not compiled with COMMON_PTHREAD");
+}
 
 int
 threadLaunch (
 void * const                gdatptr,              /* Pointer to thread group data block           */
 void * const                tdattab,              /* Array of thread data                         */
 const size_t                datasiz,              /* Size of individual data array cell           */
-int                      (* stafptr) (void *),    /* Pointer to start routine                     */
-int                      (* joifptr) (void *, void *), /* Pointer to join routine                 */
+ThreadLaunchStartFunc       stafptr,              /* Pointer to start routine                     */
+ThreadLaunchJoinFunc        joifptr,              /* Pointer to join routine                      */
 const int                   thrdnbr,              /* Number of threads to run (including current) */
 const int                   flagval)              /* Flag for thread operation data structures    */
 {
-  errorPrint ("threadLaunch: Scotch not compiled with SCOTCH_PTHREAD");
+  errorPrint ("threadLaunch: Not compiled with COMMON_PTHREAD");
+  return     (1);
 }
 
-#endif /* SCOTCH_PTHREAD */
+#endif /* COMMON_PTHREAD */

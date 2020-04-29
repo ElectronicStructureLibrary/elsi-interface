@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -49,7 +49,7 @@
 /**                # Version 4.0  : from : 14 jan 2003     **/
 /**                                 to   : 29 aug 2007     **/
 /**                # Version 6.0  : from : 08 mar 2012     **/
-/**                                 to   : 08 mar 2012     **/
+/**                                 to   : 30 apr 2018     **/
 /**                                                        **/
 /**   NOTES      : # This module contains pieces of code   **/
 /**                  that belong to other people; see      **/
@@ -88,7 +88,7 @@
 /**       All 3 sets are disjoint, Ve and V1 can be empty                **/
 /**                                                                      **/
 /**  Modifications w.r.t. previous version :                             **/
-/**                                                                      **/  
+/**                                                                      **/
 /**  New Input:                                                          **/
 /**  ---------                                                           **/
 /**         nbelts : integer holding size of Ve                          **/
@@ -386,12 +386,11 @@ Gnum * restrict     w)                            /* Flag array                 
 
   memSet (last + 1, 0, n * sizeof (Gnum));
   memSet (head + 1, 0, n * sizeof (Gnum));
-  
+
   if (nbelts == 0) {                              /* Patch 8/12/03 <PA> */
-    memSet (elen + 1, 0, n * sizeof (Gnum));      
+    memSet (elen + 1, 0, n * sizeof (Gnum));
     for (i = 1; i <= n; i ++) {
-      nv[i] = 1;
-      w[i]  = 1;
+      w[i] = 1;
       if (len[i] < 0) {
         degree[i] = n + 1;
         nbflag ++;
@@ -408,8 +407,7 @@ Gnum * restrict     w)                            /* Flag array                 
   }
   else  {                                         /* Patch 08/12/03 <PA>: Duplicate part of previous loop to avoid sytematic testing for elements */
     for (i = 1; i <= n; i ++) {
-      nv[i] = 1;
-      w[i]  = 1;
+      w[i] = 1;
       if (len[i] < 0) {                           /* i \in V1 */
         degree[i] = n + 1;
         nbflag ++;

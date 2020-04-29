@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2007,2008,2010,2011,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -43,6 +43,8 @@
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 21 dec 2007     **/
 /**                                 to     14 apr 2011     **/
+/**                # Version 6.0  : from : 29 aug 2014     **/
+/**                                 to     07 jun 2018     **/
 /**                                                        **/
 /**   NOTES      : # The definitions of MPI_Gather and     **/
 /**                  MPI_Gatherv indicate that elements in **/
@@ -85,14 +87,14 @@ Bgraph * restrict              cgrfptr)            /* Centralized graph */
   int * restrict     froncnttab;                   /* Count array for gather operations        */
   int * restrict     fronvrttab;                   /* Displacement array for gather operations */
   int                fronlocnbr;                   /* Also int to enforce MPI standard         */
-  int                cheklocval;
 #ifdef SCOTCH_DEBUG_BDGRAPH1
+  int                cheklocval;
   int                chekglbval;
 #endif /* SCOTCH_DEBUG_BDGRAPH1 */
   int                procnum;
 
-  cheklocval = 0;
 #ifdef SCOTCH_DEBUG_BDGRAPH1
+  cheklocval = 0;
   if (cgrfptr == NULL)                            /* Centralized graphs should be provided by all */
     cheklocval = 1;
   if (MPI_Allreduce (&cheklocval, &chekglbval, 1, MPI_INT, MPI_MAX, dgrfptr->s.proccomm) != MPI_SUCCESS) {
@@ -134,7 +136,7 @@ Bgraph * restrict              cgrfptr)            /* Centralized graph */
   }
   else {
     cgrfptr->parttax -= cgrfptr->s.baseval;
-  
+
     if (dgrfptr->veexloctax != NULL) {
       if ((cgrfptr->veextax = (Gnum *) memAlloc (cgrfptr->s.vertnbr * sizeof (Gnum))) == NULL) {
         errorPrint ("bdgraphGatherAll: out of memory (3)");
@@ -180,12 +182,14 @@ Bgraph * restrict              cgrfptr)            /* Centralized graph */
   cgrfptr->compload0min  = dgrfptr->compglbload0min; /* Set constant fields of the centralized graph as those of the distibuted graph */
   cgrfptr->compload0max  = dgrfptr->compglbload0max;
   cgrfptr->compload0avg  = dgrfptr->compglbload0avg;
-  cgrfptr->commloadextn0 = dgrfptr->commglbloadextn0; 
+  cgrfptr->commloadextn0 = dgrfptr->commglbloadextn0;
   cgrfptr->commgainextn0 = dgrfptr->commglbgainextn0;
-  cgrfptr->domdist       = dgrfptr->domdist; 
-  cgrfptr->domwght[0]    = dgrfptr->domwght[0]; 
-  cgrfptr->domwght[1]    = dgrfptr->domwght[1]; 
-  cgrfptr->levlnum       = dgrfptr->levlnum;           
+  cgrfptr->domndist      = dgrfptr->domndist;
+  cgrfptr->domnwght[0]   = dgrfptr->domnwght[0];
+  cgrfptr->domnwght[1]   = dgrfptr->domnwght[1];
+  cgrfptr->vfixload[0]   =                        /* Fixed vertices will soon be available in PT-Scotch */
+  cgrfptr->vfixload[1]   = 0;
+  cgrfptr->levlnum       = dgrfptr->levlnum;
 
   if (dgrfptr->partgsttax == NULL) {              /* If distributed graph does not have a part array yet */
     bgraphZero (cgrfptr);
@@ -198,7 +202,7 @@ Bgraph * restrict              cgrfptr)            /* Centralized graph */
     errorPrint ("bdgraphGatherAll: communication error (4)");
     return     (1);
   }
-  
+
   if (dgrfptr->veexloctax != NULL) {
     if (commAllgatherv (dgrfptr->veexloctax + dgrfptr->s.baseval, dgrfptr->s.vertlocnbr, GNUM_MPI, /* Get veextax of distributed graph */
                         cgrfptr->veextax, dgrfptr->s.proccnttab, dgrfptr->s.procdsptab, GNUM_MPI, dgrfptr->s.proccomm) != MPI_SUCCESS) {
@@ -235,7 +239,7 @@ Bgraph * restrict              cgrfptr)            /* Centralized graph */
   memFree (froncnttab);                           /* Free group leader */
 
   for (procnum = 0; procnum < dgrfptr->s.proclocnum; procnum ++) /* Desynchronize random generators across processes */
-    cheklocval = intRandVal (2);
+    intRandVal (2);
   intPerm (cgrfptr->frontab, dgrfptr->fronglbnbr); /* Compute permutation of frontier array to have different solutions on every process */
 
   cgrfptr->compload0     = dgrfptr->compglbload0; /* Update other fields */
@@ -243,7 +247,7 @@ Bgraph * restrict              cgrfptr)            /* Centralized graph */
   cgrfptr->compsize0     = dgrfptr->compglbsize0;
   cgrfptr->commload      = dgrfptr->commglbload;
   cgrfptr->commgainextn  = dgrfptr->commglbgainextn;
-  cgrfptr->commgainextn0 = dgrfptr->commglbgainextn0; 
+  cgrfptr->commgainextn0 = dgrfptr->commglbgainextn0;
   cgrfptr->fronnbr       = dgrfptr->fronglbnbr;
 
 #ifdef SCOTCH_DEBUG_BDGRAPH2

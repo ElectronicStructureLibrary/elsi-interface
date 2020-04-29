@@ -1,4 +1,4 @@
-/* Copyright 2007-2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2010,2012,2014,2019 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -38,7 +38,7 @@
 /**                Sebastien FOUCAULT (P0.0)               **/
 /**                Nicolas GICQUEL (P0.1)                  **/
 /**                Jerome LACOSTE (P0.1)                   **/
-/**                Cedric CHEVALIER                        **/
+/**                Cedric CHEVALIER (v5.0)                 **/
 /**                                                        **/
 /**   FUNCTION   : Part of a parallel static mapper.       **/
 /**                This module contains the distributed    **/
@@ -55,7 +55,7 @@
 /**                # Version 5.1  : from : 20 nov 2008     **/
 /**                                 to   : 30 jul 2010     **/
 /**                # Version 6.0  : from : 29 sep 2012     **/
-/**                                 to   : 17 nov 2012     **/
+/**                                 to   : 31 aug 2019     **/
 /**                                                        **/
 /************************************************************/
 
@@ -121,6 +121,7 @@ const Dgraph * restrict const grafptr)
   Gnum * restrict const vendloctax = grafptr->vendloctax;
   Gnum * restrict const veloloctax = grafptr->veloloctax;
   Gnum * restrict const edgeloctax = grafptr->edgeloctax;
+  Gnum * restrict const edgegsttax = grafptr->edgegsttax;
   Gnum * restrict const edloloctax = grafptr->edloloctax;
 
   proccomm = grafptr->proccomm;                   /* Simplify */
@@ -213,8 +214,7 @@ const Dgraph * restrict const grafptr)
   }
   memFree (procngbtab);
 
-  if ((grafptr->baseval < 0) ||                   /* Elementary constraints on graph fields */
-      (grafptr->baseval > 1) ||                   /* Strong limitation on base value        */
+  if ((grafptr->baseval    < 0) ||                /* Elementary constraints on graph fields */
       (grafptr->vertlocnbr < 0) ||
       (grafptr->vertlocnnd != (grafptr->vertlocnbr + grafptr->baseval)) ||
       (((grafptr->flagval & DGRAPHHASEDGEGST) != 0) &&
@@ -266,9 +266,9 @@ const Dgraph * restrict const grafptr)
     errorPrint ("dgraphCheck: inconsistent global graph data (1)");
     cheklocval = 1;
   }
-  reduloctab[0] = (grafptr->veloloctax != NULL) ? 1 : 0; /* Check consistency */
-  reduloctab[1] = (grafptr->edgegsttax != NULL) ? 1 : 0;
-  reduloctab[2] = (grafptr->edloloctax != NULL) ? 1 : 0;
+  reduloctab[0] = (veloloctax          != NULL) ? 1 : 0; /* Check consistency */
+  reduloctab[1] = (edgegsttax          != NULL) ? 1 : 0;
+  reduloctab[2] = (edloloctax          != NULL) ? 1 : 0;
   reduloctab[3] = (grafptr->vnumloctax != NULL) ? 1 : 0;
   reduloctab[4] = grafptr->vertlocnbr;            /* Recompute local sizes */
   reduloctab[5] = grafptr->edgelocnbr;
@@ -303,10 +303,20 @@ const Dgraph * restrict const grafptr)
 
     if ((grafptr->flagval & DGRAPHHASEDGEGST) != 0) { /* If ghost edge array is valid */
       for (edgelocnum = vertloctax[vertlocnum]; edgelocnum < vendloctax[vertlocnum]; edgelocnum ++) {
-        if ((grafptr->edgegsttax[edgelocnum] < grafptr->baseval) ||
-            (grafptr->edgegsttax[edgelocnum] >= grafptr->vertgstnnd)) {
+        if ((edgegsttax[edgelocnum] < grafptr->baseval) ||
+            (edgegsttax[edgelocnum] >= grafptr->vertgstnnd)) {
           errorPrint ("dgraphCheck: inconsistent ghost edge array");
           edgelocnbr = grafptr->edgelocnbr;       /* Avoid unwanted cascaded error messages */
+          vertlocnum = grafptr->vertlocnnd;       /* Exit outer loop                        */
+          cheklocval = 1;
+          break;
+        }
+
+        if ((edloloctax != NULL) &&
+            (edloloctax[edgelocnum] <= 0)) {
+          errorPrint ("dgraphCheck: invalid edge load");
+          edgelocnbr = grafptr->edgelocnbr;       /* Avoid unwanted cascaded error messages */
+          vertlocnum = grafptr->vertlocnnd;       /* Exit outer loop                        */
           cheklocval = 1;
           break;
         }
@@ -317,6 +327,7 @@ const Dgraph * restrict const grafptr)
     errorPrint ("dgraphCheck: invalid local number of edges");
     cheklocval = 1;
   }
+
   if (MPI_Allreduce (&cheklocval, &chekglbval, 1, MPI_INT, MPI_MAX, proccomm) != MPI_SUCCESS) {
     errorPrint ("dgraphCheck: communication error (7)");
     return     (1);
@@ -328,12 +339,20 @@ const Dgraph * restrict const grafptr)
     Gnum                velolocsum;
     Gnum                veloglbsum;
 
-    for (vertlocnum = grafptr->baseval, velolocsum = 0; vertlocnum < grafptr->vertlocnnd; vertlocnum ++)
-      velolocsum += veloloctax[vertlocnum];
+    for (vertlocnum = grafptr->baseval, velolocsum = 0; vertlocnum < grafptr->vertlocnnd; vertlocnum ++) {
+      Gnum                veloval;
+
+      veloval = veloloctax[vertlocnum];
+      if ((veloval < 0) && (cheklocval == 0)) {
+        errorPrint ("dgraphCheck: invalid vertex load");
+        cheklocval = 1;
+      }
+
+      velolocsum += veloval;
+    }
 
     MPI_Allreduce (&velolocsum, &veloglbsum, 1, GNUM_MPI, MPI_SUM, proccomm);
 
-    cheklocval = 0;
     if (velolocsum != grafptr->velolocsum) {
       errorPrint ("dgraphCheck: invalid local vertex load sum");
       cheklocval = 1;

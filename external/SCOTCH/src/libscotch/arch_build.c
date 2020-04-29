@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2011,2014,2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -52,7 +52,7 @@
 /**                # Version 5.1  : from : 28 sep 2008     **/
 /**                                 to     28 jun 2011     **/
 /**                # Version 6.0  : from : 28 jun 2011     **/
-/**                                 to     28 jun 2011     **/
+/**                                 to     15 may 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -88,10 +88,10 @@
 
 static
 void
-archBuildJobExit (
-ArchBuildJob * const        jobtab)
+archDecoBuildJobExit (
+ArchDecoBuildJob * const    jobtab)
 {
-  ArchBuildJob *          jobptr;
+  ArchDecoBuildJob *      jobptr;
 
   jobptr = jobtab;
   do {
@@ -117,36 +117,35 @@ ArchBuildJob * const        jobtab)
 */
 
 int
-archBuild (
+archDecoArchBuild (
 Arch * restrict const       tgtarchptr,           /*+ Decomposition architecture to build    +*/
 const Graph * const         tgtgrafptr,           /*+ Source graph modeling the architecture +*/
 const VertList * const      tgtlistptr,           /*+ Subset of source graph vertices        +*/
 const Strat * const         mapstrat)             /*+ Bipartitioning strategy                +*/
 {
-  Gnum * restrict               mapparttax;       /* Based access to mapping part array             */
-  Arch                          archdat;          /* Variable-sized architecture for bipartitioning */
-  ArchDom                       domsub0;          /* Temporary space for subdomain 0                */
-  Gnum                          termdomnbr;       /* Number of terminal domains                     */
-  Gnum                          termdommax;       /* Maximum terminal number                        */
-  ArchDecoTermVert * restrict   termverttab;      /* Terminal vertex table                          */
-  Anum * restrict               termdisttab;      /* Vertex distance table                          */
-  ArchBuildDistElem * restrict  disttax;          /* Distance table                                 */
-  ArchBuildQueuElem * restrict  queutab;          /* Distance queue table                           */
-  Gnum                          queuhead;         /* Head-of-queue index                            */
-  Gnum                          queutail;         /* Tail-of-queue index                            */
-  Mapping                       mappdat;          /* Partial and final mapping data                 */
-  ArchBuildJob * restrict       jobtab;           /* Job array                                      */
-  ArchBuildJob *                joblink;          /* Linked list of jobs to process                 */
-  ArchBuildJob *                joborgptr;        /* Pointer to original job and first subjob       */
-  ArchBuildJob *                jobsubptr;        /* Pointer to second subjob                       */
-  Bgraph                        actgrafdat;       /* Active graph for bipartitioning                */
-  Gnum                          invedlosiz;       /* Size of inversed edge load array               */
-  Gnum * restrict               invedlotax;       /* Inversed edge load array for cutting           */
-  Gnum * restrict               actfrontab;       /* Frontier array for all bipartitionings         */
-  GraphPart * restrict          actparttax;       /* Part array for all bipartitionings             */
-  GraphPart                     actpartval;       /* Part value to put to subjob                    */
-  Gnum                          actpartnbr;       /* Size of part value to put to subjob            */
-  Gnum                          termdomnum;
+  Arch                              archdat;      /* Variable-sized architecture for bipartitioning */
+  ArchDom                           domsub0;      /* Temporary space for subdomain 0                */
+  Gnum                              termdomnbr;   /* Number of terminal domains                     */
+  Gnum                              termdommax;   /* Maximum terminal number                        */
+  ArchDecoTermVert * restrict       termverttab;  /* Terminal vertex table                          */
+  Anum * restrict                   termdisttab;  /* Vertex distance table                          */
+  ArchDecoBuildDistElem * restrict  disttax;      /* Distance table                                 */
+  ArchDecoBuildQueuElem * restrict  queutab;      /* Distance queue table                           */
+  Gnum                              queuhead;     /* Head-of-queue index                            */
+  Gnum                              queutail;     /* Tail-of-queue index                            */
+  Mapping                           mappdat;      /* Partial and final mapping data                 */
+  ArchDecoBuildJob * restrict       jobtab;       /* Job array                                      */
+  ArchDecoBuildJob *                joblink;      /* Linked list of jobs to process                 */
+  ArchDecoBuildJob *                joborgptr;    /* Pointer to original job and first subjob       */
+  ArchDecoBuildJob *                jobsubptr;    /* Pointer to second subjob                       */
+  Bgraph                            actgrafdat;   /* Active graph for bipartitioning                */
+  Gnum                              invedlosiz;   /* Size of inversed edge load array               */
+  Gnum * restrict                   invedlotax;   /* Inversed edge load array for cutting           */
+  Gnum * restrict                   actfrontab;   /* Frontier array for all bipartitionings         */
+  GraphPart * restrict              actparttax;   /* Part array for all bipartitionings             */
+  GraphPart                         actpartval;   /* Part value to put to subjob                    */
+  Gnum                              actpartnbr;   /* Size of part value to put to subjob            */
+  Gnum                              termdomnum;
 
   const Gnum * restrict const tgtverttax = tgtgrafptr->verttax;
   const Gnum * restrict const tgtvendtax = tgtgrafptr->vendtax;
@@ -164,13 +163,13 @@ const Strat * const         mapstrat)             /*+ Bipartitioning strategy   
 
   invedlosiz = (tgtedlotax != NULL) ? tgtgrafptr->edgenbr : 0;
   if ((memAllocGroup ((void **) (void *)
-                      &jobtab,     (size_t) (termdomnbr * sizeof (ArchBuildJob)),
+                      &jobtab,     (size_t) (termdomnbr * sizeof (ArchDecoBuildJob)),
                       &actfrontab, (size_t) (termdomnbr * sizeof (Gnum)),
                       &actparttax, (size_t) (termdomnbr * sizeof (GraphPart)),
                       &invedlotax, (size_t) (invedlosiz * sizeof (Gnum)), NULL) == NULL) ||
       ((mappdat.parttax = memAlloc (tgtgrafptr->vertnbr * sizeof (ArchDomNum))) == NULL) || /* Final mapping array is for all graph vertices */
       ((mappdat.domntab = memAlloc (termdomnbr * sizeof (ArchDom)))             == NULL)) {
-    errorPrint ("archBuild: out of memory (1)");
+    errorPrint ("archDecoBuild: out of memory (1)");
     if (jobtab != NULL) {
       memFree (jobtab);
       if (mappdat.parttax != NULL)
@@ -178,7 +177,7 @@ const Strat * const         mapstrat)             /*+ Bipartitioning strategy   
     }
     return (1);
   }
-  memSet (mappdat.parttax, 0, termdomnbr * sizeof (ArchDomNum));
+  memSet (mappdat.parttax, 0, tgtgrafptr->vertnbr * sizeof (ArchDomNum));
   actparttax      -= tgtgrafptr->baseval;
   mappdat.flagval  = MAPPINGFREEPART | MAPPINGFREEDOMN;
   mappdat.grafptr  = tgtgrafptr;
@@ -191,79 +190,20 @@ const Strat * const         mapstrat)             /*+ Bipartitioning strategy   
   archDomFrst (&archdat, &mappdat.domntab[0]);    /* Get initial domain               */
   mappdat.domnnbr = 1;
 
-  jobtab[0].domnum = 0;                           /* All vertices mapped to first domain        */
-  if ((tgtlistptr != NULL) && (tgtlistptr->vnumtab != NULL)) /* If vertex list given            */
-    graphInduceList (tgtgrafptr, tgtlistptr, &jobtab[0].grafdat, NULL); /* Restrict initial job */
-  else {                                          /* If no vertex list given                    */
-    memCpy (&jobtab[0].grafdat, tgtgrafptr, sizeof (Graph)); /* Job takes whole graph           */
-    jobtab[0].grafdat.flagval &= ~GRAPHFREETABS;  /* Graph is a clone                           */
-    jobtab[0].grafdat.vnumtax  = NULL;            /* Assume we have no vertex index array       */
+  jobtab[0].domnum = 0;                           /* All vertices mapped to first domain  */
+  if ((tgtlistptr != NULL) && (tgtlistptr->vnumtab != NULL)) /* If vertex list given      */
+    graphInduceList (tgtgrafptr, tgtlistptr->vnumnbr, tgtlistptr->vnumtab, &jobtab[0].grafdat); /* Restrict initial job */
+  else {                                          /* If no vertex list given              */
+    memCpy (&jobtab[0].grafdat, tgtgrafptr, sizeof (Graph)); /* Job takes whole graph     */
+    jobtab[0].grafdat.flagval &= ~GRAPHFREETABS;  /* Graph is a clone                     */
+    jobtab[0].grafdat.vnumtax  = NULL;            /* Assume we have no vertex index array */
   }
 
-  if (tgtedlotax != NULL) {                       /* If architecture graph has edge loads */
-    Gnum                  vertnum;
-    Gnum                  vertnnd;
-    Gnum                  edlomin;
-    Gnum                  edlomax;
-    float                 prodval;
-
-    const Gnum * restrict const indverttax = jobtab[0].grafdat.verttax;
-    const Gnum * restrict const indvendtax = jobtab[0].grafdat.vendtax;
-    const Gnum * restrict const indedlotax = jobtab[0].grafdat.edlotax; /* Point to possibly induced original edge array */
-
-    invedlotax -= tgtgrafptr->baseval;            /* Base inversed edge load array */
-
-    edlomin = GNUMMAX;
-    edlomax = 1;
-    for (vertnum = jobtab[0].grafdat.baseval, vertnnd = jobtab[0].grafdat.vertnnd; /* Handle non-compact graphs as well as compact graphs */
-         vertnum < vertnnd; vertnum ++) {
-      Gnum                  edgenum;
-      Gnum                  edgennd;
-
-      for (edgenum = indverttax[vertnum], edgennd = indvendtax[vertnum];
-           edgenum < edgennd; edgenum ++) {
-        Gnum                edloval;
-
-        edloval = indedlotax[edgenum];
-        if (edloval < edlomin)
-          edlomin = edloval;
-        if (edloval > edlomax)
-          edlomax = edloval;
-      }
-    }
-
-    prodval = (float) edlomin * (float) edlomax;
-
-    for (vertnum = jobtab[0].grafdat.baseval;
-         vertnum < vertnnd; vertnum ++) {
-      Gnum                  edgenum;
-      Gnum                  edgennd;
-
-      for (edgenum = indverttax[vertnum], edgennd = indvendtax[vertnum];
-           edgenum < edgennd; edgenum ++) {
-        Gnum                edloval;
-
-        edloval = indedlotax[edgenum];
-        if (edloval == edlomin)
-          edloval = edlomax;
-        else if (edloval == edlomax)
-          edloval = edlomin;
-        else
-          edloval = (Gnum) (prodval / (float) edloval + 0.49F);
-#ifdef SCOTCH_DEBUG_ARCH2
-        if ((edloval < edlomin) || (edloval > edlomax)) {
-          errorPrint ("archBuild: internal error (1)");
-          return     (1);
-        }
-#endif /* SCOTCH_DEBUG_ARCH2 */
-        invedlotax[edgenum] = edloval;            /* Write inversed cost in working array */
-      }
-    }
-
+  if (tgtedlotax != NULL) {                       /* If architecture graph has edge loads                     */
+    invedlotax -= tgtgrafptr->baseval;            /* Base inversed edge load array                            */
+    graphIelo (&jobtab[0].grafdat, jobtab[0].grafdat.edlotax, invedlotax); /* Compute inverse of edge loads   */
     jobtab[0].grafdat.edlotax = invedlotax;       /* Replace potentially induced edge array with inversed one */
   }                                               /* Edge array will be freed along with jobtab group leader  */
-
-  mapparttax = mappdat.parttax;
 
   actgrafdat.veextax = NULL;                      /* No external gain array      */
   actgrafdat.parttax = actparttax;                /* Set global auxiliary arrays */
@@ -282,24 +222,24 @@ const Strat * const         mapstrat)             /*+ Bipartitioning strategy   
     actgrafdat.s.flagval = joborgptr->grafdat.flagval & ~GRAPHFREETABS;
     bgraphInit2 (&actgrafdat, 1, 1, 1, 0, 0);     /* Create active graph         */
     if (bgraphBipartSt (&actgrafdat, mapstrat) != 0) { /* Perform bipartitioning */
-      errorPrint       ("archBuild: internal error (2)");
-      archBuildJobExit (joborgptr);
-      archBuildJobExit (joblink);
-      archExit         (&archdat);
-      mapExit          (&mappdat);
-      memFree          (jobtab);
-      return           (1);
+      errorPrint ("archDecoBuild: internal error");
+      archDecoBuildJobExit (joborgptr);
+      archDecoBuildJobExit (joblink);
+      archExit (&archdat);
+      mapExit  (&mappdat);
+      memFree  (jobtab);
+      return   (1);
     }
     if ((actgrafdat.compsize0 == 0) ||            /* If one of the jobs is empty */
         (actgrafdat.compsize0 == actgrafdat.s.vertnbr)) {
-      errorPrint       ("archBuild: strategy leads to empty domains");
-      graphExit        (&actgrafdat.s);           /* Only free graph part, global arrays kept */
-      archBuildJobExit (joborgptr);
-      archBuildJobExit (joblink);
-      archExit         (&archdat);
-      mapExit          (&mappdat);
-      memFree          (jobtab);
-      return           (1);
+      errorPrint ("archDecoBuild: strategy leads to empty domains");
+      graphExit  (&actgrafdat.s);                 /* Only free graph part, global arrays kept */
+      archDecoBuildJobExit (joborgptr);
+      archDecoBuildJobExit (joblink);
+      archExit (&archdat);
+      mapExit  (&mappdat);
+      memFree  (jobtab);
+      return   (1);
     }
 
     archVcmpltDomBipart ((const ArchVcmplt * const) (void *) &archdat, /* Update mapping domains */
@@ -332,13 +272,13 @@ const Strat * const         mapstrat)             /*+ Bipartitioning strategy   
 
     if (actpartnbr < (actgrafdat.s.vertnbr - 1)) { /* If part 1 splittable */
       graphInducePart (&actgrafdat.s, actgrafdat.parttax, actgrafdat.s.vertnbr - actpartnbr,
-                       1 - actpartval, &jobsubptr->grafdat, NULL);
+                       1 - actpartval, &jobsubptr->grafdat);
       jobsubptr->joblink = joblink;               /* Link subjobs in list */
       joblink            = jobsubptr;
     }
     if (actpartnbr > 1) {                         /* If part 0 splittable */
       graphInducePart (&actgrafdat.s, actgrafdat.parttax, actpartnbr,
-                       actpartval, &joborgptr->grafdat, NULL);
+                       actpartval, &joborgptr->grafdat);
       joborgptr->joblink = joblink;               /* Link subjobs in list */
       joblink            = joborgptr;
     }
@@ -350,9 +290,9 @@ const Strat * const         mapstrat)             /*+ Bipartitioning strategy   
   if (memAllocGroup ((void **) (void *)
                      &termverttab, (size_t) (termdomnbr                            * sizeof (ArchDecoTermVert)),
                      &termdisttab, (size_t) (((termdomnbr * (termdomnbr - 1)) / 2) * sizeof (Anum)),
-                     &disttax,     (size_t) (tgtgrafptr->vertnbr                   * sizeof (ArchBuildDistElem)), 
-                     &queutab,     (size_t) (tgtgrafptr->vertnbr                   * sizeof (ArchBuildQueuElem)), NULL) == NULL) {
-    errorPrint ("archBuild: out of memory (2)");
+                     &disttax,     (size_t) (tgtgrafptr->vertnbr                   * sizeof (ArchDecoBuildDistElem)),
+                     &queutab,     (size_t) (tgtgrafptr->vertnbr                   * sizeof (ArchDecoBuildQueuElem)), NULL) == NULL) {
+    errorPrint ("archDecoBuild: out of memory (2)");
     mapExit    (&mappdat);
     archExit   (&archdat);
     return     (1);
@@ -414,7 +354,7 @@ const Strat * const         mapstrat)             /*+ Bipartitioning strategy   
         disttax[termverttab[termdomend].labl].distval;
   }
 
-  archDecoArchBuild ((ArchDeco *) (void *) &tgtarchptr->data, termdomnbr, termdommax, termverttab, termdisttab);
+  archDecoArchBuild2 ((ArchDeco *) (void *) &tgtarchptr->data, termdomnbr, termdommax, termverttab, termdisttab);
 
   memFree  (termverttab);                         /* Free group leader */
   mapExit  (&mappdat);

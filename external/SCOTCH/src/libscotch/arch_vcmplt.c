@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -63,8 +63,8 @@
 /**                                 to     05 nov 2003     **/
 /**                # Version 5.1  : from : 21 jan 2008     **/
 /**                                 to     11 aug 2010     **/
-/**                # Version 6.0  : from : 14 fev 2011     **/
-/**                                 to     14 fev 2011     **/
+/**                # Version 6.0  : from : 14 feb 2011     **/
+/**                                 to     26 aug 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -113,8 +113,17 @@ const ArchVcmplt * const    archptr,
 ArchVcmpltDom * const       domptr,
 const ArchDomNum            domnum)
 {
-  if (domnum != ARCHDOMNOTTERM) {                 /* If valid label */
+  Anum                termnum;
+  Anum                termlvl;
+
+  if (domnum != ARCHDOMNOTTERM) {                 /* If valid label     */
+    if (domnum == 0)                              /* Not a legal domain */
+      return (2);
+
     domptr->termnum = domnum;                     /* Set the domain */
+    for (termnum = domnum, termlvl = 0; termnum > 1; termnum >>= 1, termlvl ++) ; /* Compute level */
+    domptr->termlvl = termlvl;                    /* Set level */
+
     return (0);
   }
 
@@ -125,7 +134,7 @@ const ArchDomNum            domnum)
 ** elements in the domain.
 */
 
-Anum 
+Anum
 archVcmpltDomSize (
 const ArchVcmplt * const    archptr,
 const ArchVcmpltDom * const domptr)
@@ -137,7 +146,7 @@ const ArchVcmpltDom * const domptr)
 ** distance between two subdomains.
 */
 
-Anum 
+Anum
 archVcmpltDomDist (
 const ArchVcmplt * const    archptr,
 const ArchVcmpltDom * const dom0ptr,
@@ -159,7 +168,8 @@ archVcmpltDomFrst (
 const ArchVcmplt * const        archptr,
 ArchVcmpltDom * restrict const  domptr)
 {
-  domptr->termnum = 1;                            /* First terminal number */
+  domptr->termlvl = 0;                            /* First terminal number */
+  domptr->termnum = 1;
 
   return (0);
 }
@@ -178,10 +188,16 @@ const ArchVcmplt * const        archptr,
 ArchVcmpltDom * restrict const  domptr,
 FILE * const                    stream)
 {
+  Anum                termnum;
+  Anum                termlvl;
+
   if (intLoad (stream, &domptr->termnum) != 1) {
     errorPrint ("archVcmpltDomLoad: bad input");
     return     (1);
   }
+
+  for (termnum = domptr->termnum, termlvl = 0; termnum > 1; termnum >>= 1, termlvl ++) ; /* Compute level */
+  domptr->termlvl = termlvl;
 
   return (0);
 }
@@ -222,6 +238,8 @@ const ArchVcmpltDom * const     domptr,
 ArchVcmpltDom * restrict const  dom0ptr,
 ArchVcmpltDom * restrict const  dom1ptr)
 {
+  dom0ptr->termlvl =                              /* Bipartition the domain */
+  dom1ptr->termlvl = domptr->termlvl + 1;
   dom0ptr->termnum = domptr->termnum << 1;
   dom1ptr->termnum = dom0ptr->termnum + 1;
 
@@ -242,11 +260,8 @@ const ArchVcmplt * const    archptr,
 const ArchVcmpltDom * const dom0ptr,
 const ArchVcmpltDom * const dom1ptr)
 {
-  Anum          dom0termnum;
-  Anum          dom1termnum;
-
-  for (dom1termnum = dom1ptr->termnum, dom0termnum = dom0ptr->termnum; dom1termnum != 0; dom1termnum >>= 1)
-    if (dom1termnum == dom0termnum)
+  if ((dom1ptr->termlvl >= dom0ptr->termlvl) &&
+      ((dom1ptr->termnum >> (dom1ptr->termlvl - dom0ptr->termlvl)) == dom0ptr->termnum))
       return (1);
 
   return (0);
@@ -265,7 +280,7 @@ archVcmpltDomMpiType (
 const ArchVcmplt * const      archptr,
 MPI_Datatype * const          typeptr)
 {
-  *typeptr = ANUM_MPI;
+  MPI_Type_contiguous (2, ANUM_MPI, typeptr);
 
   return (0);
 }

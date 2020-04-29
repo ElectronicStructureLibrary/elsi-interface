@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2012,2014,2016 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -52,7 +52,7 @@
 /**                # Version 5.1  : from : 22 oct 2008     **/
 /**                                 to     11 aug 2010     **/
 /**                # Version 6.0  : from : 01 jun 2012     **/
-/**                                 to     01 jun 2012     **/
+/**                                 to     30 dec 2016     **/
 /**                                                        **/
 /************************************************************/
 
@@ -78,6 +78,11 @@
 static StratTab             stratdummytab = { NULL, NULL, NULL }; /* Dummy strategy table for the dummy empty object       */
 Strat                       stratdummy = { &stratdummytab, STRATNODEEMPTY }; /* Dummy empty object for offset computations */
 
+#ifdef COMMON_PTHREAD_MEMORY
+static int                  muteflag = 1;         /*+ Flag for mutex initialization +*/
+static pthread_mutex_t      mutelocdat;           /*+ Local mutex for parsing       +*/
+#endif /* COMMON_PTHREAD_MEMORY */
+
 /**************************/
 /*                        */
 /* The strategy routines. */
@@ -97,6 +102,8 @@ stratInit (
 const StratTab * const      strattab,             /*+ Pointer to strategy parsing table +*/
 const char * const          string)               /*+ Strategy string to parse          +*/
 {
+  Strat *             o;
+
 #ifdef SCOTCH_DEBUG_PARSER1
   if ((strattab == NULL) || (string == NULL)) {
     errorPrint ("stratInit: invalid parameter");
@@ -104,7 +111,21 @@ const char * const          string)               /*+ Strategy string to parse  
   }
 #endif /* SCOTCH_DEBUG_PARSER1 */
 
-  return (stratParserParse (strattab, string));   /* Parse strategy string */
+#ifdef COMMON_PTHREAD_MEMORY
+  if (muteflag != 0) {                            /* Unsafe code with respect to race conditions but should work; portable TSL needed */
+    muteflag = 0;
+    pthread_mutex_init (&mutelocdat, NULL);       /* Initialize local mutex */
+  }
+  pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
+#endif /* COMMON_PTHREAD_MEMORY */
+
+  o = stratParserParse (strattab, string);        /* Parse strategy string */
+
+#ifdef COMMON_PTHREAD_MEMORY
+  pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
+#endif /* COMMON_PTHREAD_MEMORY */
+
+  return (o);
 }
 
 /* This routine frees a strategy structure.
@@ -148,9 +169,9 @@ Strat * const               strat)
     case STRATNODEMETHOD :                        /* Method strategy node       */
       paratab = strat->tabl->paratab;             /* Free the method parameters */
       for (i = 0; paratab[i].name != NULL; i ++) {
-        if ((paratab[i].meth == strat->data.method.meth) && /* For all parameters of that method   */
-            (paratab[i].type == STRATPARAMSTRAT)) { /* Which are strategy parameters               */
-          paraofft = (byte *) &strat->data.method.data + /* Compute parameter offset within method */
+        if ((paratab[i].meth == strat->data.method.meth) && /* For all parameters of that method    */
+            (paratab[i].type == STRATPARAMSTRAT)) { /* Which are non-deprecated strategy parameters */
+          paraofft = (byte *) &strat->data.method.data + /* Compute parameter offset within method  */
                       (paratab[i].dataofft -
                        paratab[i].database);
           o |= stratExit (*((Strat **) paraofft)); /* Perform recursion */
@@ -225,7 +246,8 @@ FILE * const                stream)
       paraflag = 0;                               /* No method parameters seen yet */
       paratab  = strat->tabl->paratab;
       for (i = 0; paratab[i].name != NULL; i ++) {
-        if (paratab[i].meth == strat->data.method.meth) { /* For all parameters of that method    */
+        if ((paratab[i].meth == strat->data.method.meth) && /* For all parameters of that method  */
+            ((paratab[i].type & STRATPARAMDEPRECATED) == 0)) { /* Which are not deprecated        */
           paraofft = (byte*) &strat->data.method.data + /* Compute parameter offset within method */
                      (paratab[i].dataofft -
                       paratab[i].database);

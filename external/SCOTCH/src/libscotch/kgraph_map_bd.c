@@ -1,4 +1,4 @@
-/* Copyright 2010,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2010,2011,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -34,6 +34,7 @@
 /**   NAME       : kgraph_map_bd.c                         **/
 /**                                                        **/
 /**   AUTHOR     : Sebastien FOURESTIER (v6.0)             **/
+/**                Francois PELLEGRINI                     **/
 /**                                                        **/
 /**   FUNCTION   : This module computes a partition of     **/
 /**                the given k-way mapping graph by        **/
@@ -45,7 +46,7 @@
 /**                graph.                                  **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 05 jan 2010     **/
-/**                                 to   : 03 mar 2011     **/
+/**                                 to   : 21 may 2018     **/
 /**                                                        **/
 /**   NOTES      : # Since only edges from local vertices  **/
 /**                  to local anchors are created in       **/
@@ -122,14 +123,6 @@ const KgraphMapBdParam * const      paraptr)      /*+ Method parameters +*/
   Gnum * restrict const       orgfrontab = orggrafptr->frontab;
   Gnum * restrict const       orgparttax = orggrafptr->m.parttax;
 
-  if ((vertnbrtab = memAlloc (domnnbr * sizeof(Gnum))) == NULL) {
-    errorPrint ("kgraphMapBd: out of memory (1)");
-    return     (1);
-  }
-  memSet (vertnbrtab, 0, domnnbr * sizeof(Gnum));
-  for (vertnum = orggrafptr->s.baseval; vertnum < orggrafptr->s.vertnnd; vertnum ++)
-    vertnbrtab[orgparttax[vertnum]] ++;           /* TODO check optimize? */
-
   if (orggrafptr->fronnbr == 0)                   /* If no separator vertices, apply strategy to full (original) graph */
     return (kgraphMapSt (orggrafptr, paraptr->stratorg));
 
@@ -137,6 +130,14 @@ const KgraphMapBdParam * const      paraptr)      /*+ Method parameters +*/
     errorPrint ("kgraphMapBd: cannot create band graph");
     return     (1);
   }
+
+  if ((vertnbrtab = memAlloc (domnnbr * sizeof(Gnum))) == NULL) {
+    errorPrint ("kgraphMapBd: out of memory (1)");
+    return     (1);
+  }
+  memSet (vertnbrtab, 0, domnnbr * sizeof(Gnum));
+  for (vertnum = orggrafptr->s.baseval; vertnum < orggrafptr->s.vertnnd; vertnum ++)
+    vertnbrtab[orgparttax[vertnum]] ++;           /* TODO check optimize? */
 
   bndvertancnnd = bndgrafdat.s.vertnnd - domnnbr;
   for (domnnum = 0; domnnum < domnnbr; domnnum ++) { /* For all anchor domains */
@@ -146,7 +147,7 @@ const KgraphMapBdParam * const      paraptr)      /*+ Method parameters +*/
     if (((bndgrafdat.s.verttax[vertnum + 1] - bndgrafdat.s.verttax[vertnum]) == 0) &&
         (vertnbrtab[domnnum] != 0))
      break;
-  } 
+  }
 
   memFree (vertnbrtab);
 
@@ -159,7 +160,12 @@ const KgraphMapBdParam * const      paraptr)      /*+ Method parameters +*/
 
   if (kgraphMapSt (&bndgrafdat, paraptr->stratbnd) != 0) { /* Partition band graph */
     errorPrint  ("kgraphMapBd: cannot partition band graph");
-    kgraphExit (&bndgrafdat);
+    kgraphExit  (&bndgrafdat);
+    return      (1);
+  }
+  if (bndgrafdat.m.domnnbr != orggrafptr->m.domnnbr) {
+    errorPrint  ("kgraphMapBd: change in band graph number of parts not supported");
+    kgraphExit  (&bndgrafdat);
     return      (1);
   }
 
@@ -290,12 +296,12 @@ const KgraphMapBdParam * const      paraptr)      /*+ Method parameters +*/
       if ((orggrafptr->pfixtax[vertnum] == -1) || /* If it is not a fixed vertex            */
           (kgraphMapBdFlagVal (orgflagtab, vertnum) != 0)) /* Or has already been processed */
         continue;                                 /* Skip it                                */
-  
+ 
       partval = orggrafptr->m.parttax[vertnum];
-  
+ 
       for (edgenum = orggrafptr->s.verttax[vertnum]; edgenum < orggrafptr->s.vendtax[vertnum]; edgenum ++) {
         if (orggrafptr->m.parttax[orggrafptr->s.edgetax[edgenum]] != partval) { /* If first vertex belongs to frontier */
-          orggrafptr->frontab[orgfronnum] = vertnum; 
+          orggrafptr->frontab[orgfronnum] = vertnum;
           orgfronnum ++;
           break;
         }

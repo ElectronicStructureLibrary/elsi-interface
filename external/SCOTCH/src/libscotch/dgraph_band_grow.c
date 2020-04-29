@@ -1,4 +1,4 @@
-/* Copyright 2007-2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -38,12 +38,13 @@
 /**   FUNCTION   : This module flags vertices according    **/
 /**                to a breadth-first search traversal of  **/
 /**                the distributed graph. It is used both  **/
-/**                by dgraphBand() and dgraphGrow().       **/
+/**                by dgraphBand() and                     **/
+/**                SCOTCH_dgraphGrow().                    **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 11 nov 2007     **/
 /**                                 to   : 20 feb 2011     **/
 /**                # Version 6.0  : from : 03 apr 2012     **/
-/**                                 to   : 26 sep 2012     **/
+/**                                 to   : 21 may 2018     **/
 /**                                                        **/
 /**   NOTES      : # This code derives from the code of    **/
 /**                  vdgraph_separate_bd.c in version      **/
@@ -85,9 +86,7 @@ Gnum * restrict const             bandvertlvlptr, /*+ Pointer to based start ind
 Gnum * restrict const             bandvertlocptr, /*+ Pointer to bandvertlocnnd                                +*/
 Gnum * restrict const             bandedgelocptr) /*+ Pointer to bandedgelocnbr                                +*/
 {
-  Gnum                    queulocnum;
   Gnum                    vertlocnnd;
-  Gnum                    vnumgstsiz;             /* Size of vnumgsttax; TRICK: re-use     */
   Gnum                    vrcvdatsiz;             /* Sizes of data send and receive arrays */
   Gnum                    vsnddatsiz;
   Gnum *                  vrcvdattab;             /* Data arrays [norestrict:async]        */
@@ -122,19 +121,21 @@ Gnum * restrict const             bandedgelocptr) /*+ Pointer to bandedgelocnbr 
 
   procngbnbr = grafptr->procngbnbr;
 
-  reduglbtab[0] = 0;                             /* Assume everything is all right */
+  reduglbtab[0] = 0;                              /* Assume everything is all right */
 
   vrcvdatsiz = DGRAPHBANDGROWSMUL (grafptr->procsndnbr); /* Senders and receivers inverted because we send local, not halo vertices */
   vsnddatsiz = DGRAPHBANDGROWSMUL (grafptr->vertgstnbr - grafptr->vertlocnbr);
-  if (memAllocGroup ((void **) (void *)
-                     &procvgbtab, (size_t) ((procngbnbr + 1)    * sizeof (Gnum)),
-                     &nsndidxtab, (size_t) (procngbnbr          * sizeof (int)),
-                     &vrcvcnttab, (size_t) (grafptr->procglbnbr * sizeof (int)),
-                     &vsndcnttab, (size_t) (grafptr->procglbnbr * sizeof (int)), /* TRICK: vsndcnttab, vrcvdsptab, vrcvdattab, vrcvdattab joined */
-                     &vrcvdsptab, (size_t) (grafptr->procglbnbr * sizeof (int)),
-                     &vsnddsptab, (size_t) (grafptr->procglbnbr * sizeof (int)),
-                     &vrcvdattab, (size_t) (vrcvdatsiz          * sizeof (Gnum)),
-                     &vsnddattab, (size_t) (vsnddatsiz          * sizeof (Gnum)), NULL) == NULL) {
+  procvgbtab = NULL;                              /* In case of error */
+  if ((vnumgsttax == NULL) ||
+      (memAllocGroup ((void **) (void *)
+                      &procvgbtab, (size_t) ((procngbnbr + 1)    * sizeof (Gnum)),
+                      &nsndidxtab, (size_t) (procngbnbr          * sizeof (int)),
+                      &vrcvcnttab, (size_t) (grafptr->procglbnbr * sizeof (int)),
+                      &vsndcnttab, (size_t) (grafptr->procglbnbr * sizeof (int)), /* TRICK: vsndcnttab, vrcvdsptab, vrcvdattab, vrcvdattab joined */
+                      &vrcvdsptab, (size_t) (grafptr->procglbnbr * sizeof (int)),
+                      &vsnddsptab, (size_t) (grafptr->procglbnbr * sizeof (int)),
+                      &vrcvdattab, (size_t) (vrcvdatsiz          * sizeof (Gnum)),
+                      &vsnddattab, (size_t) (vsnddatsiz          * sizeof (Gnum)), NULL) == NULL)) {
     errorPrint (DGRAPHBANDGROWNSTR "Coll: out of memory (1)");
     reduglbtab[0] = 1;
   }
@@ -152,11 +153,8 @@ Gnum * restrict const             bandedgelocptr) /*+ Pointer to bandedgelocnbr 
   }
 #endif /* SCOTCH_DEBUG_DGRAPH1 */
   if (reduglbtab[0] != 0) {
-    if (vnumgsttax != NULL) {
-      if (procvgbtab != NULL)
-        memFree (procvgbtab);                     /* Free group leader */
-      memFree (vnumgsttax);
-    }
+    if (procvgbtab != NULL)
+      memFree (procvgbtab);                       /* Free group leader */
     return (1);
   }
 
@@ -323,9 +321,7 @@ Gnum * restrict const             bandvertlvlptr, /*+ Pointer to based start ind
 Gnum * restrict const             bandvertlocptr, /*+ Pointer to bandvertlocnnd                                +*/
 Gnum * restrict const             bandedgelocptr) /*+ Pointer to bandedgelocnbr                                +*/
 {
-  Gnum                    queulocnum;
   Gnum                    vertlocnnd;
-  Gnum                    vnumgstsiz;             /* Size of vnumgsttax; TRICK: re-use     */
   Gnum                    vrcvdatsiz;             /* Sizes of data send and receive arrays */
   Gnum                    vsnddatsiz;
   Gnum *                  vrcvdattab;             /* Data arrays [norestrict:async]        */
@@ -509,10 +505,6 @@ Gnum * restrict const             bandedgelocptr) /*+ Pointer to bandedgelocnbr 
     procngbnum = procngbnxt;                      /* Send all buffers to neighbors */
     if (procngbnbr != 0) {
       do {
-        int               procglbnum;
-
-        procglbnum = grafptr->procngbtab[procngbnum];
-
         if (MPI_Isend (vsnddattab + nsnddsptab[procngbnum], nsndidxtab[procngbnum] - nsnddsptab[procngbnum],
                        GNUM_MPI, grafptr->procngbtab[procngbnum], TAGBAND, grafptr->proccomm,
                        nsndreqtab + procngbnum) != MPI_SUCCESS) {

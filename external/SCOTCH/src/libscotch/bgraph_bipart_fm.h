@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2011,2016 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -58,8 +58,8 @@
 /**                                 to     12 mar 1999     **/
 /**                # Version 4.0  : from : 27 aug 2004     **/
 /**                                 to     27 aug 2004     **/
-/**                # Version 6.0  : from : 23 fev 2011     **/
-/**                                 to     05 sep 2011     **/
+/**                # Version 6.0  : from : 23 feb 2011     **/
+/**                                 to     27 aug 2016     **/
 /**                                                        **/
 /************************************************************/
 
@@ -104,7 +104,7 @@ typedef GainLink BgraphBipartFmLink;
 
 #else /* SCOTCH_TABLE_GAIN */
 
-typedef FiboTree BgraphBipartFmTabl;
+typedef FiboHeap BgraphBipartFmTabl;
 typedef FiboNode BgraphBipartFmLink;
 
 #endif /* SCOTCH_TABLE_GAIN */
@@ -195,11 +195,11 @@ int                         bgraphBipartFm      (Bgraph * restrict const, const 
 
 /*+ Service routines. +*/
 
-#define bgraphBipartFmTablInit(t)   (fiboTreeInit ((t), bgraphBipartFmCmpFunc))
-#define bgraphBipartFmTablFree(t)   fiboTreeFree (t)
-#define bgraphBipartFmTablExit(t)   fiboTreeExit (t)
-#define bgraphBipartFmTablAdd(t,v)  fiboTreeAdd ((t), &(v)->gainlink)
-#define bgraphBipartFmTablDel(t,v)  fiboTreeDel ((t), &(v)->gainlink)
+#define bgraphBipartFmTablInit(t)   (fiboHeapInit ((t), bgraphBipartFmCmpFunc))
+#define bgraphBipartFmTablFree(t)   fiboHeapFree (t)
+#define bgraphBipartFmTablExit(t)   fiboHeapExit (t)
+#define bgraphBipartFmTablAdd(t,v)  fiboHeapAdd ((t), &(v)->gainlink)
+#define bgraphBipartFmTablDel(t,v)  fiboHeapDel ((t), &(v)->gainlink)
 #define bgraphBipartFmIsFree(v)     ((v)->gainlink.linkdat.nextptr == BGRAPHBIPARTFMSTATEFREE)
 #define bgraphBipartFmIsTabl(v)     ((v)->gainlink.linkdat.nextptr >= BGRAPHBIPARTFMSTATELINK)
 #define bgraphBipartFmIsUsed(v)     ((v)->gainlink.linkdat.nextptr == BGRAPHBIPARTFMSTATEUSED)

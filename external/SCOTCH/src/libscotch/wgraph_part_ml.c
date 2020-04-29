@@ -1,4 +1,4 @@
-/* Copyright 2007-2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2007-2011,2014,2015 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -45,7 +45,7 @@
 /**   DATES      : # Version 5.1  : from : 01 dec 2007     **/
 /**                                 to   : 01 jul 2008     **/
 /**                # Version 6.0  : from : 05 nov 2009     **/
-/**                                 to     16 apr 2011     **/
+/**                                 to     16 aug 2015     **/
 /**                                                        **/
 /************************************************************/
 
@@ -64,7 +64,7 @@
 #include "graph_coarsen.h"
 #include "wgraph.h"
 #include "wgraph_part_ml.h"
-#include "wgraph_part_st.h" 
+#include "wgraph_part_st.h"
 
 /*
 **  The static variables.
@@ -91,14 +91,15 @@ static const Gnum           wgraphpartmlloadone = 1;
 static
 int
 wgraphPartMlCoarsen (
-const Wgraph * restrict const         finegrafptr, /*+ Finer graph                         +*/
-Wgraph * restrict const               coargrafptr, /*+ Coarser graph to build              +*/
-GraphCoarsenMulti * restrict * const  coarmultptr, /*+ Pointer to multinode table to build +*/
-const WgraphPartMlParam * const       paraptr)     /*+ Method parameters                   +*/
+const Wgraph * restrict const         finegrafptr, /*+ Finer graph                                  +*/
+Wgraph * restrict const               coargrafptr, /*+ Coarser graph to build                       +*/
+GraphCoarsenMulti * restrict * const  coarmultptr, /*+ Pointer to un-based multinode table to build +*/
+const WgraphPartMlParam * const       paraptr)     /*+ Method parameters                            +*/
 {
-  if (graphCoarsen (&finegrafptr->s, &coargrafptr->s, coarmultptr,
-                    (paraptr->coarnbr * finegrafptr->partnbr),
-                    paraptr->coarval, NULL, NULL, 0, NULL) != 0)
+  *coarmultptr = NULL;                            /* Allocate coarmulttab along with coarse graph */
+  if (graphCoarsen (&finegrafptr->s, &coargrafptr->s, NULL, coarmultptr,
+                    (paraptr->coarnbr * finegrafptr->partnbr), paraptr->coarval, GRAPHCOARSENNONE,
+                    NULL, NULL, 0, NULL) != 0)
     return (1);                                   /* Return if coarsening failed */
 
   coargrafptr->parttax  = NULL;                   /* Do not allocate partition data yet */
@@ -123,12 +124,13 @@ const WgraphPartMlParam * const       paraptr)     /*+ Method parameters        
 static
 int
 wgraphPartMlUncoarsen (
-Wgraph * restrict const                   finegrafptr, /*+ Finer graph     +*/
-const Wgraph * restrict const             coargrafptr, /*+ Coarser graph   +*/
-const GraphCoarsenMulti * restrict const  coarmulttax) /*+ Multinode array +*/
+Wgraph * restrict const                   finegrafptr, /*+ Finer graph              +*/
+const Wgraph * restrict const             coargrafptr, /*+ Coarser graph            +*/
+const GraphCoarsenMulti * restrict const  coarmulttab) /*+ Un-based multinode array +*/
 {
+  Gnum                          coarvertnbr;
   Gnum                          coarvertnum;      /* Number of current coarse vertex           */
-  const Anum * restrict         coarparttax;
+  const Anum * restrict         coarparttab;
   Anum * restrict               fineparttax;
   Gnum * restrict               finefrontab;
   Gnum                          finefronnbr;      /* Number of frontier vertices in fine graph */
@@ -161,7 +163,7 @@ const GraphCoarsenMulti * restrict const  coarmulttax) /*+ Multinode array +*/
     errorPrint ("wgraphPartMlUncoarsen: out of memory (2)");
     return     (1);
   }
-  finelisttab ++;                                 /* TRICK: Trim array so that finelisttab[-1] is valid */
+  finelisttab ++;                                 /* TRICK: trim array so that finelisttab[-1] is valid */
   memSet (finelisttab, ~0, finegrafptr->partnbr * sizeof (WgraphPartList)); /* Set vertex indices to ~0 */
 
   memSet (finecompload, 0, finegrafptr->partnbr * sizeof (Gnum)); /* Reset load arrays to 0 */
@@ -179,17 +181,18 @@ const GraphCoarsenMulti * restrict const  coarmulttax) /*+ Multinode array +*/
   finefronnbr = 0;
   finefrontab = finegrafptr->frontab;
   fineparttax = finegrafptr->parttax;
-  coarparttax = coargrafptr->parttax;
-  for (coarvertnum = coargrafptr->s.baseval; coarvertnum < coargrafptr->s.vertnnd; coarvertnum ++) {
+  coarparttab = coargrafptr->parttax + coargrafptr->s.baseval;
+  for (coarvertnum = 0, coarvertnbr = coargrafptr->s.vertnbr;
+       coarvertnum < coarvertnbr; coarvertnum ++) {
     Anum           coarpartval;                   /* Value of current multinode part */
     Gnum           finevertnum0;
     Gnum           finevertnum1;
 
-    coarpartval  = coarparttax[coarvertnum];
-    finevertnum0 = coarmulttax[coarvertnum].vertnum[0];
-    finevertnum1 = coarmulttax[coarvertnum].vertnum[1];
-    fineparttax[finevertnum0] = coarpartval;
+    coarpartval  = coarparttab[coarvertnum];
+    finevertnum0 = coarmulttab[coarvertnum].vertnum[0];
+    finevertnum1 = coarmulttab[coarvertnum].vertnum[1];
 
+    fineparttax[finevertnum0] = coarpartval;
     if (coarpartval >= 0) {                       /* If vertex is not in separator */
       if (finevertnum0 != finevertnum1)
         fineparttax[finevertnum1] = coarpartval;
@@ -269,12 +272,12 @@ Wgraph * restrict const         grafptr,
 const WgraphPartMlParam * const paraptr)
 {
   Wgraph                        coargrafdat;
-  GraphCoarsenMulti * restrict  coarmulttax;
+  GraphCoarsenMulti * restrict  coarmulttab;
   int                           o;
 
-  if (wgraphPartMlCoarsen (grafptr, &coargrafdat, &coarmulttax, paraptr) == 0) {
+  if (wgraphPartMlCoarsen (grafptr, &coargrafdat, &coarmulttab, paraptr) == 0) {
     if (((o = wgraphPartMl2         (&coargrafdat, paraptr)) == 0)              &&
-        ((o = wgraphPartMlUncoarsen (grafptr, &coargrafdat, coarmulttax)) == 0) &&
+        ((o = wgraphPartMlUncoarsen (grafptr, &coargrafdat, coarmulttab)) == 0) &&
 	((o = wgraphPartSt          (grafptr, paraptr->stratasc)) != 0)) /* Apply ascending strategy */
       errorPrint ("wgraphPartMl2: cannot apply ascending strategy");
     wgraphExit (&coargrafdat);

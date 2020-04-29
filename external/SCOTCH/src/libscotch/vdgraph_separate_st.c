@@ -1,4 +1,4 @@
-/* Copyright 2007-2009 ENSEIRB, INRIA & CNRS
+/* Copyright 2007-2009,2014 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -44,6 +44,8 @@
 /**                                 to     01 aug 2007     **/
 /**                # Version 5.1  : from : 05 nov 2007     **/
 /**                                 to     26 may 2009     **/
+/**                # Version 6.0  : from : 01 may 2014     **/
+/**                                 to     30 sep 2014     **/
 /**                                                        **/
 /************************************************************/
 
@@ -88,7 +90,7 @@ static union {
 static union {
   VdgraphSeparateMlParam    param;
   StratNodeMethodData       padding;
-} vdgraphseparatedefaultml = { { 5, 1000, 100, 0, 0.8L, &stratdummy, &stratdummy, &stratdummy, 1 } };
+} vdgraphseparatedefaultml = { { 5, 1000, 2, 10000, 0.8L, &stratdummy, &stratdummy, &stratdummy } };
 
 static union {
   VdgraphSeparateSqParam    param;
@@ -150,26 +152,24 @@ static StratParamTab        vdgraphseparatestparatab[] = { /* Distributed graph 
                                 (byte *) &vdgraphseparatedefaultml.param,
                                 (byte *) &vdgraphseparatedefaultml.param.passnbr,
                                 NULL },
-                              { VDGRAPHSEPASTMETHML,  STRATPARAMINT,    "proc",
-                                (byte *) &vdgraphseparatedefaultml.param,
-                                (byte *) &vdgraphseparatedefaultml.param.seqnbr,
-                                NULL },
                               { VDGRAPHSEPASTMETHML,  STRATPARAMINT,    "vert",
                                 (byte *) &vdgraphseparatedefaultml.param,
                                 (byte *) &vdgraphseparatedefaultml.param.coarnbr,
                                 NULL },
                               { VDGRAPHSEPASTMETHML,  STRATPARAMINT,    "dvert",
                                 (byte *) &vdgraphseparatedefaultml.param,
-                                (byte *) &vdgraphseparatedefaultml.param.dupmax,
+                                (byte *) &vdgraphseparatedefaultml.param.foldmax,
                                 NULL },
-                              { VDGRAPHSEPASTMETHML,  STRATPARAMINT,    "dlevl",
+                              { VDGRAPHSEPASTMETHML,  STRATPARAMCASE,   "fold",
                                 (byte *) &vdgraphseparatedefaultml.param,
-                                (byte *) &vdgraphseparatedefaultml.param.duplvlmax,
-                                NULL },
+                                (byte *) &vdgraphseparatedefaultml.param.foldval,
+                                (void *) "nfd" },
                               { VDGRAPHSEPASTMETHML,  STRATPARAMDOUBLE, "rat",
                                 (byte *) &vdgraphseparatedefaultml.param,
                                 (byte *) &vdgraphseparatedefaultml.param.coarrat,
                                 NULL },
+                              { VDGRAPHSEPASTMETHML,  STRATPARAMDEPRECATED | STRATPARAMINT, "dlevl", NULL, NULL, NULL }, /* Wait until MUMPS 5.0 */
+                              { VDGRAPHSEPASTMETHML,  STRATPARAMDEPRECATED | STRATPARAMINT, "proc",  NULL, NULL, NULL },
                               { VDGRAPHSEPASTMETHSQ,  STRATPARAMSTRAT,  "strat",
                                 (byte *) &vdgraphseparatedefaultsq.param,
                                 (byte *) &vdgraphseparatedefaultsq.param.strat,
@@ -236,6 +236,7 @@ const Strat * restrict const  strat)              /*+ Separation strategy       
 {
   StratTest           val;
   VdgraphStore        savetab[2];                 /* Results of the two strategies */
+  Gnum                compglbload2;               /* Saved global separator load   */
   int                 o;
 #ifdef SCOTCH_DEBUG_VDGRAPH2
   MPI_Comm            proccommold;                /* Save area for old communicator */
@@ -307,8 +308,9 @@ const Strat * restrict const  strat)              /*+ Separation strategy       
       if (vdgraphSeparateSt (grafptr, strat->data.select.strat[1]) != 0) /* If second strategy didn't work */
         vdgraphStoreUpdt (grafptr, &savetab[1]);  /* Restore initial bipartition as its result             */
 
-      if ( (savetab[0].fronglbnbr <  grafptr->compglbsize[2]) || /* If first strategy is better */
-          ((savetab[0].fronglbnbr == grafptr->compglbsize[2]) &&
+      compglbload2 = grafptr->s.veloglbsum - savetab[0].compglbload[0] - savetab[0].compglbload[1]; /* Compute saved separator load */
+      if ( (compglbload2 <  grafptr->compglbload[2]) || /* If first strategy is better */
+          ((compglbload2 == grafptr->compglbload[2]) &&
            (abs (savetab[0].compglbloaddlt) < abs (grafptr->compglbloaddlt))))
         vdgraphStoreUpdt (grafptr, &savetab[0]);  /* Restore its result */
 
@@ -322,7 +324,7 @@ const Strat * restrict const  strat)              /*+ Separation strategy       
 #endif /* SCOTCH_DEBUG_VDGRAPH1 */
 #ifdef SCOTCH_DEBUG_VDGRAPH2
       proccommold = grafptr->s.proccomm;          /* Create new communicator to isolate method communications */
-      MPI_Comm_dup (proccommold, &grafptr->s.proccomm); 
+      MPI_Comm_dup (proccommold, &grafptr->s.proccomm);
 #endif /* SCOTCH_DEBUG_VDGRAPH2 */
       o = strat->tabl->methtab[strat->data.method.meth].func (grafptr, (void *) &strat->data.method.data);
 #ifdef SCOTCH_DEBUG_VDGRAPH2

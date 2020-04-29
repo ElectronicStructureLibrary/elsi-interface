@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010,2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2010,2011,2018 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -51,7 +51,7 @@
 /**                # Version 5.1  : from : 13 jul 2010     **/
 /**                                 to     13 jul 2010     **/
 /**                # Version 6.0  : from : 16 apr 2011     **/
-/**                                 to     03 sep 2011     **/
+/**                                 to     05 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -72,14 +72,12 @@ typedef struct BgraphBipartMlParam_ {
 **  The function prototypes.
 */
 
-#ifndef BGRAPH_BIPART_ML
-#define static
-#endif
+#ifdef BGRAPH_BIPART_ML
 
 static int                  bgraphBipartMlCoarsen (const Bgraph * const, Bgraph * restrict const, GraphCoarsenMulti * restrict * const, const BgraphBipartMlParam * const);
 static int                  bgraphBipartMlUncoarsen (Bgraph * restrict const, const Bgraph * restrict const, const GraphCoarsenMulti * const);
-
-int                         bgraphBipartMl      (Bgraph * restrict const, const BgraphBipartMlParam * const);
 static int                  bgraphBipartMl2     (Bgraph * restrict const, const BgraphBipartMlParam * const);
 
-#undef static
+#endif /* BGRAPH_BIPART_ML */
+
+int                         bgraphBipartMl      (Bgraph * restrict const, const BgraphBipartMlParam * const);
