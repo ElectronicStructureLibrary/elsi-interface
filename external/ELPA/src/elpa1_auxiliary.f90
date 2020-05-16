@@ -2510,7 +2510,7 @@ contains
       call mpi_comm_size(int(mpi_comm_rows,kind=MPI_KIND) ,np_rowsMPI ,mpierr)
       call mpi_comm_rank(int(mpi_comm_cols,kind=MPI_KIND) ,my_pcolMPI ,mpierr)
       call mpi_comm_size(int(mpi_comm_cols,kind=MPI_KIND) ,np_colsMPI ,mpierr)
-      call mpi_comm_size(int(mpi_comm_all, kind=MPI_KIND) ,myidMPI ,mpierr)
+      call mpi_comm_rank(int(mpi_comm_all, kind=MPI_KIND) ,myidMPI ,mpierr)
 
       my_prow = int(my_prowMPI,kind=c_int)
       np_rows = int(np_rowsMPI,kind=c_int)
@@ -2957,7 +2957,7 @@ contains
       call mpi_comm_size(int(mpi_comm_rows,kind=MPI_KIND) ,np_rowsMPI ,mpierr)
       call mpi_comm_rank(int(mpi_comm_cols,kind=MPI_KIND) ,my_pcolMPI ,mpierr)
       call mpi_comm_size(int(mpi_comm_cols,kind=MPI_KIND) ,np_colsMPI ,mpierr)
-      call mpi_comm_size(int(mpi_comm_all, kind=MPI_KIND) ,myidMPI ,mpierr)
+      call mpi_comm_rank(int(mpi_comm_all, kind=MPI_KIND) ,myidMPI ,mpierr)
 
       my_prow = int(my_prowMPI,kind=c_int)
       np_rows = int(np_rowsMPI,kind=c_int)
@@ -3406,7 +3406,7 @@ contains
       call mpi_comm_size(int(mpi_comm_rows,kind=MPI_KIND) ,np_rowsMPI ,mpierr)
       call mpi_comm_rank(int(mpi_comm_cols,kind=MPI_KIND) ,my_pcolMPI ,mpierr)
       call mpi_comm_size(int(mpi_comm_cols,kind=MPI_KIND) ,np_colsMPI ,mpierr)
-      call mpi_comm_size(int(mpi_comm_all, kind=MPI_KIND) ,myidMPI ,mpierr)
+      call mpi_comm_rank(int(mpi_comm_all, kind=MPI_KIND) ,myidMPI ,mpierr)
 
       my_prow = int(my_prowMPI,kind=c_int)
       np_rows = int(np_rowsMPI,kind=c_int)
@@ -3856,7 +3856,7 @@ contains
       call mpi_comm_size(int(mpi_comm_rows,kind=MPI_KIND) ,np_rowsMPI ,mpierr)
       call mpi_comm_rank(int(mpi_comm_cols,kind=MPI_KIND) ,my_pcolMPI ,mpierr)
       call mpi_comm_size(int(mpi_comm_cols,kind=MPI_KIND) ,np_colsMPI ,mpierr)
-      call mpi_comm_size(int(mpi_comm_all, kind=MPI_KIND) ,myidMPI ,mpierr)
+      call mpi_comm_rank(int(mpi_comm_all, kind=MPI_KIND) ,myidMPI ,mpierr)
 
       my_prow = int(my_prowMPI,kind=c_int)
       np_rows = int(np_rowsMPI,kind=c_int)
