@@ -11,9 +11,9 @@ module ELSI_BSEPACK
 
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
+   use ELSI_UTIL, only: elsi_check_err
 
    implicit none
 
@@ -79,13 +79,10 @@ subroutine elsi_solve_bsepack_real(ph,bh,mat_a,mat_b,eval,evec)
    call pdbseig(0,ph%n_basis,mat_a,1,1,bh%desc,mat_b,1,1,bh%desc,eval,evec,1,1,&
         ph%bse_desc,work,lwork,iwork,liwork,ierr)
 
+   call elsi_check_err(bh,"BSEPACK eigensolver",ierr,caller)
+
    call elsi_deallocate(bh,work,"work")
    call elsi_deallocate(bh,iwork,"iwork")
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "BSEPACK eigensolver failed"
-      call elsi_stop(bh,msg,caller)
-   end if
 
    call elsi_get_time(t1)
 
@@ -154,14 +151,11 @@ subroutine elsi_solve_bsepack_cmplx(ph,bh,mat_a,mat_b,eval,evec)
    call pzbseig(0,ph%n_basis,mat_a,1,1,bh%desc,mat_b,1,1,bh%desc,eval,evec,1,1,&
         ph%bse_desc,work,lwork,rwork,lrwork,iwork,liwork,ierr)
 
+   call elsi_check_err(bh,"BSEPACK eigensolver",ierr,caller)
+
    call elsi_deallocate(bh,work,"work")
    call elsi_deallocate(bh,rwork,"rwork")
    call elsi_deallocate(bh,iwork,"iwork")
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "BSEPACK eigensolver failed"
-      call elsi_stop(bh,msg,caller)
-   end if
 
    call elsi_get_time(t1)
 

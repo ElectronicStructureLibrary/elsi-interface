@@ -12,11 +12,10 @@ module ELSI_ELPA
    use ELSI_CONSTANT, only: LT_MAT,UT_MAT,UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,MPI_COMM_SELF,MPI_SUM,&
-       MPI_INTEGER4
+   use ELSI_MPI, only: MPI_COMM_SELF,MPI_SUM,MPI_INTEGER4
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r4,r8,i4
-   use ELSI_UTIL, only: elsi_get_gid,elsi_set_full_mat
+   use ELSI_UTIL, only: elsi_check_err,elsi_get_gid,elsi_set_full_mat
    use ELPA, only: elpa_init,elpa_allocate,elpa_deallocate,&
        elpa_autotune_deallocate,ELPA_2STAGE_REAL_GPU,ELPA_2STAGE_COMPLEX_GPU,&
        ELPA_AUTOTUNE_FAST,ELPA_AUTOTUNE_MEDIUM,ELPA_AUTOTUNE_DOMAIN_REAL,&
@@ -33,8 +32,6 @@ module ELSI_ELPA
    public :: elsi_factor_ovlp_elpa
    public :: elsi_reduce_evp_elpa
    public :: elsi_back_ev_elpa
-   public :: elsi_elpa_cholesky
-   public :: elsi_elpa_invert
    public :: elsi_elpa_tridiag
 
    interface elsi_solve_elpa
@@ -72,21 +69,6 @@ module ELSI_ELPA
       module procedure elsi_elpa_evec_cmplx
    end interface
 
-   interface elsi_elpa_cholesky
-      module procedure elsi_elpa_cholesky_real
-      module procedure elsi_elpa_cholesky_cmplx
-   end interface
-
-   interface elsi_elpa_invert
-      module procedure elsi_elpa_invert_real
-      module procedure elsi_elpa_invert_cmplx
-   end interface
-
-   interface elsi_elpa_multiply
-      module procedure elsi_elpa_multiply_real
-      module procedure elsi_elpa_multiply_cmplx
-   end interface
-
 contains
 
 !>
@@ -100,25 +82,21 @@ subroutine elsi_init_elpa(ph,bh)
    type(elsi_basic_t), intent(in) :: bh
 
    integer(kind=i4) :: ierr
-   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_init_elpa"
 
    if(.not. ph%elpa_started) then
       ierr = elpa_init(20180525)
 
-      if(ierr /= 0) then
-         write(msg,"(A)") "Initialization failed"
-         call elsi_stop(bh,msg,caller)
-      end if
+      call elsi_check_err(bh,"ELPA initialization failed",ierr,caller)
 
       call MPI_Comm_split(bh%comm,bh%my_pcol,bh%my_prow,ph%elpa_comm_row,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
+      call elsi_check_err(bh,"MPI_Comm_split",ierr,caller)
 
       call MPI_Comm_split(bh%comm,bh%my_prow,bh%my_pcol,ph%elpa_comm_col,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
+      call elsi_check_err(bh,"MPI_Comm_split",ierr,caller)
 
       call elsi_elpa_setup(ph,bh,.true.)
 
@@ -140,6 +118,7 @@ subroutine elsi_factor_ovlp_elpa_real(ph,bh,ovlp)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_factor_ovlp_elpa_real"
@@ -147,10 +126,14 @@ subroutine elsi_factor_ovlp_elpa_real(ph,bh,ovlp)
    call elsi_get_time(t0)
 
    ! S = U
-   call elsi_elpa_cholesky(ph,bh,ovlp)
+   call ph%elpa_aux%cholesky(ovlp,ierr)
+
+   call elsi_check_err(bh,"ELPA Cholesky factorization",ierr,caller)
 
    ! S = U^(-1)
-   call elsi_elpa_invert(ph,bh,ovlp)
+   call ph%elpa_aux%invert_triangular(ovlp,ierr)
+
+   call elsi_check_err(bh,"ELPA matrix inversion",ierr,caller)
 
    call elsi_get_time(t1)
 
@@ -177,6 +160,7 @@ subroutine elsi_reduce_evp_elpa_real(ph,bh,ham,ovlp,evec)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_reduce_evp_elpa_real"
@@ -193,14 +177,20 @@ subroutine elsi_reduce_evp_elpa_real(ph,bh,ham,ovlp,evec)
            ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
            bh%desc)
    else
-      call elsi_elpa_multiply(ph,bh,"U","L",ph%n_basis,ovlp,ham,evec)
+      call ph%elpa_aux%hermitian_multiply("U","L",ph%n_basis,ovlp,ham,&
+           bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+
+      call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
 
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
            bh%desc)
 
       evec(:,:) = ham
 
-      call elsi_elpa_multiply(ph,bh,"U","U",ph%n_basis,ovlp,evec,ham)
+      call ph%elpa_aux%hermitian_multiply("U","U",ph%n_basis,ovlp,evec,&
+           bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,ierr)
+
+      call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
 
       call elsi_set_full_mat(ph,bh,UT_MAT,ham)
    end if
@@ -293,6 +283,7 @@ subroutine elsi_back_ev_elpa_real(ph,bh,ham,ovlp,evec)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: tmp(:,:)
@@ -313,7 +304,10 @@ subroutine elsi_back_ev_elpa_real(ph,bh,ham,ovlp,evec)
       call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp,1,1,bh%desc,0.0_r8,ham,1,1,&
            bh%desc)
 
-      call elsi_elpa_multiply(ph,bh,"L","N",ph%n_states,ham,tmp,evec)
+      call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham,tmp,&
+           bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+
+      call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
    end if
 
    call elsi_deallocate(bh,tmp,"tmp")
@@ -356,7 +350,7 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+      call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
    end if
 
    ! Ill-conditioning check
@@ -423,6 +417,7 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm0,dm1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_update_dm_elpa_real"
@@ -430,7 +425,9 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm0,dm1)
    call elsi_get_time(t0)
 
    ! ovlp0 = U_0
-   call elsi_elpa_cholesky(ph,bh,ovlp0)
+   call ph%elpa_aux%cholesky(ovlp0,ierr)
+
+   call elsi_check_err(bh,"ELPA Cholesky factorization",ierr,caller)
 
    ! ovlp1 = (U_1)^(-1)
    call elsi_factor_ovlp_elpa(ph,bh,ovlp1)
@@ -440,21 +437,30 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm0,dm1)
         bh%desc)
 
    ! ovlp1 = U_1^(-1) U_0
-   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,dm1,ovlp0,ovlp1)
+   call ph%elpa_aux%hermitian_multiply("L","U",ph%n_basis,dm1,ovlp0,bh%n_lrow,&
+        bh%n_lcol,ovlp1,bh%n_lrow,bh%n_lcol,ierr)
+
+   call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
 
    ! ovlp0 = U_0^T U_1^(-T)
    call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,ovlp0,1,1,&
         bh%desc)
 
    ! ovlp1 = U_1^(-1) U_0 P_0
-   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,ovlp0,dm0,ovlp1)
+   call ph%elpa_aux%hermitian_multiply("L","U",ph%n_basis,ovlp0,dm0,bh%n_lrow,&
+        bh%n_lcol,ovlp1,bh%n_lrow,bh%n_lcol,ierr)
+
+   call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
 
    ! dm0 = P_0 U_0^T U_1^(-T)
    call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp1,1,1,bh%desc,0.0_r8,dm0,1,1,&
         bh%desc)
 
    ! ovlp1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
-   call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm0,ovlp1)
+   call ph%elpa_aux%hermitian_multiply("L","L",ph%n_basis,ovlp0,dm0,bh%n_lrow,&
+        bh%n_lcol,ovlp1,bh%n_lrow,bh%n_lcol,ierr)
+
+   call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
 
    call elsi_set_full_mat(ph,bh,LT_MAT,ovlp1)
 
@@ -483,6 +489,7 @@ subroutine elsi_factor_ovlp_elpa_cmplx(ph,bh,ovlp)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_factor_ovlp_elpa_cmplx"
@@ -490,10 +497,14 @@ subroutine elsi_factor_ovlp_elpa_cmplx(ph,bh,ovlp)
    call elsi_get_time(t0)
 
    ! S = U
-   call elsi_elpa_cholesky(ph,bh,ovlp)
+   call ph%elpa_aux%cholesky(ovlp,ierr)
+
+   call elsi_check_err(bh,"ELPA Cholesky factorization",ierr,caller)
 
    ! S = U^(-1)
-   call elsi_elpa_invert(ph,bh,ovlp)
+   call ph%elpa_aux%invert_triangular(ovlp,ierr)
+
+   call elsi_check_err(bh,"ELPA matrix inversion",ierr,caller)
 
    call elsi_get_time(t1)
 
@@ -520,6 +531,7 @@ subroutine elsi_reduce_evp_elpa_cmplx(ph,bh,ham,ovlp,evec)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_reduce_evp_elpa_cmplx"
@@ -536,14 +548,20 @@ subroutine elsi_reduce_evp_elpa_cmplx(ph,bh,ham,ovlp,evec)
            1,ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),&
            ham,1,1,bh%desc)
    else
-      call elsi_elpa_multiply(ph,bh,"U","L",ph%n_basis,ovlp,ham,evec)
+      call ph%elpa_aux%hermitian_multiply("U","L",ph%n_basis,ovlp,ham,&
+           bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+
+      call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
 
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),evec,1,1,bh%desc,&
            (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
       evec(:,:) = ham
 
-      call elsi_elpa_multiply(ph,bh,"U","U",ph%n_basis,ovlp,evec,ham)
+      call ph%elpa_aux%hermitian_multiply("U","U",ph%n_basis,ovlp,evec,&
+           bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,ierr)
+
+      call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
 
       call elsi_set_full_mat(ph,bh,UT_MAT,ham)
    end if
@@ -636,6 +654,7 @@ subroutine elsi_back_ev_elpa_cmplx(ph,bh,ham,ovlp,evec)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    complex(kind=r8), allocatable :: tmp(:,:)
@@ -656,7 +675,10 @@ subroutine elsi_back_ev_elpa_cmplx(ph,bh,ham,ovlp,evec)
       call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
            (0.0_r8,0.0_r8),ham,1,1,bh%desc)
 
-      call elsi_elpa_multiply(ph,bh,"L","N",ph%n_states,ham,tmp,evec)
+      call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham,tmp,&
+           bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+
+      call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
    end if
 
    call elsi_deallocate(bh,tmp,"tmp")
@@ -699,7 +721,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+      call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
    end if
 
    ! Ill-conditioning check
@@ -766,6 +788,7 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm0,dm1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_update_dm_elpa_cmplx"
@@ -773,7 +796,9 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm0,dm1)
    call elsi_get_time(t0)
 
    ! ovlp0 = U_0
-   call elsi_elpa_cholesky(ph,bh,ovlp0)
+   call ph%elpa_aux%cholesky(ovlp0,ierr)
+
+   call elsi_check_err(bh,"ELPA Cholesky factorization",ierr,caller)
 
    ! ovlp1 = (U_1)^(-1)
    call elsi_factor_ovlp_elpa(ph,bh,ovlp1)
@@ -783,21 +808,30 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm0,dm1)
         (0.0_r8,0.0_r8),dm1,1,1,bh%desc)
 
    ! ovlp1 = U_1^(-1) U_0
-   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,dm1,ovlp0,ovlp1)
+   call ph%elpa_aux%hermitian_multiply("L","U",ph%n_basis,dm1,ovlp0,bh%n_lrow,&
+        bh%n_lcol,ovlp1,bh%n_lrow,bh%n_lcol,ierr)
+
+   call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
 
    ! ovlp0 = U_0^T U_1^(-T)
    call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
         (0.0_r8,0.0_r8),ovlp0,1,1,bh%desc)
 
    ! ovlp1 = U_1^(-1) U_0 P_0
-   call elsi_elpa_multiply(ph,bh,"L","U",ph%n_basis,ovlp0,dm0,ovlp1)
+   call ph%elpa_aux%hermitian_multiply("L","U",ph%n_basis,ovlp0,dm0,bh%n_lrow,&
+        bh%n_lcol,ovlp1,bh%n_lrow,bh%n_lcol,ierr)
+
+   call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
 
    ! dm0 = P_0 U_0^T U_1^(-T)
    call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp1,1,1,bh%desc,&
         (0.0_r8,0.0_r8),dm0,1,1,bh%desc)
 
    ! ovlp1 = U_1^(-1) U_0 P_0 U_0^T U_1^(-T)
-   call elsi_elpa_multiply(ph,bh,"L","L",ph%n_basis,ovlp0,dm0,ovlp1)
+   call ph%elpa_aux%hermitian_multiply("L","L",ph%n_basis,ovlp0,dm0,bh%n_lrow,&
+        bh%n_lcol,ovlp1,bh%n_lrow,bh%n_lcol,ierr)
+
+   call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
 
    call elsi_set_full_mat(ph,bh,LT_MAT,ovlp1)
 
@@ -825,7 +859,6 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
    logical, intent(in) :: is_aux
 
    integer(kind=i4) :: ierr
-   character(len=200) :: msg
 
    integer(kind=i4), external :: numroc
 
@@ -845,10 +878,7 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
 
       ierr = ph%elpa_aux%setup()
 
-      if(ierr /= 0) then
-         write(msg,"(A)") "ELPA setup failed"
-         call elsi_stop(bh,msg,caller)
-      end if
+      call elsi_check_err(bh,"ELPA setup",ierr,caller)
 
       if(ph%elpa_solver == UNSET .or. ph%elpa_solver == 2) then
          call ph%elpa_aux%set("solver",2,ierr)
@@ -887,10 +917,7 @@ subroutine elsi_elpa_setup(ph,bh,is_aux)
 
       ierr = ph%elpa_solve%setup()
 
-      if(ierr /= 0) then
-         write(msg,"(A)") "ELPA setup failed"
-         call elsi_stop(bh,msg,caller)
-      end if
+      call elsi_check_err(bh,"ELPA setup",ierr,caller)
 
       if(ph%elpa_autotune > 0) then
          if(ph%elpa_gpu == UNSET) then
@@ -951,7 +978,6 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
 
    integer(kind=i4) :: i
    integer(kind=i4) :: ierr
-   character(len=200) :: msg
 
    real(kind=r8), allocatable :: copy(:,:)
    real(kind=r4), allocatable :: copy_r4(:,:)
@@ -967,10 +993,7 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
 
       call ph%elpa_aux%eigenvectors(copy,eval,evec,ierr)
 
-      if(ierr /= 0) then
-         write(msg,"(A)") "Singularity check failed"
-         call elsi_stop(bh,msg,caller)
-      end if
+      call elsi_check_err(bh,"ELPA eigensolver",ierr,caller)
 
       call elsi_deallocate(bh,copy,"copy")
 
@@ -994,6 +1017,8 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
          call ph%elpa_solve%eigenvectors(&
               copy_r4(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),eval_r4,&
               evec_r4(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),ierr)
+
+         call elsi_check_err(bh,"ELPA eigensolver",ierr,caller)
 
          eval(:) = real(eval_r4,kind=r8)
          evec(:,:) = real(evec_r4,kind=r8)
@@ -1021,11 +1046,8 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
          call ph%elpa_solve%eigenvectors(&
               mat(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),eval,&
               evec(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),ierr)
-      end if
 
-      if(ierr /= 0) then
-         write(msg,"(A)") "ELPA eigensolver failed"
-         call elsi_stop(bh,msg,caller)
+         call elsi_check_err(bh,"ELPA eigensolver",ierr,caller)
       end if
    end if
 
@@ -1047,7 +1069,6 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
 
    integer(kind=i4) :: i
    integer(kind=i4) :: ierr
-   character(len=200) :: msg
 
    complex(kind=r8), allocatable :: copy(:,:)
    complex(kind=r4), allocatable :: copy_r4(:,:)
@@ -1063,10 +1084,7 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
 
       call ph%elpa_aux%eigenvectors(copy,eval,evec,ierr)
 
-      if(ierr /= 0) then
-         write(msg,"(A)") "Singularity check failed"
-         call elsi_stop(bh,msg,caller)
-      end if
+      call elsi_check_err(bh,"ELPA eigensolver",ierr,caller)
 
       call elsi_deallocate(bh,copy,"copy")
 
@@ -1090,6 +1108,8 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
          call ph%elpa_solve%eigenvectors(&
               copy_r4(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),eval_r4,&
               evec_r4(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),ierr)
+
+         call elsi_check_err(bh,"ELPA eigensolver",ierr,caller)
 
          eval(:) = real(eval_r4,kind=r8)
          evec(:,:) = cmplx(evec_r4,kind=r8)
@@ -1117,174 +1137,9 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
          call ph%elpa_solve%eigenvectors(&
               mat(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),eval,&
               evec(1:ph%elpa_n_lrow,1:ph%elpa_n_lcol),ierr)
+
+         call elsi_check_err(bh,"ELPA eigensolver",ierr,caller)
       end if
-
-      if(ierr /= 0) then
-         write(msg,"(A)") "ELPA eigensolver failed"
-         call elsi_stop(bh,msg,caller)
-      end if
-   end if
-
-end subroutine
-
-!>
-!! Interface to ELPA Cholesky decomposition.
-!!
-subroutine elsi_elpa_cholesky_real(ph,bh,mat)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
-
-   integer(kind=i4) :: ierr
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_elpa_cholesky_real"
-
-   call ph%elpa_aux%cholesky(mat,ierr)
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "Cholesky factorization failed"
-      call elsi_stop(bh,msg,caller)
-   end if
-
-end subroutine
-
-!>
-!! Interface to ELPA Cholesky decomposition.
-!!
-subroutine elsi_elpa_cholesky_cmplx(ph,bh,mat)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   complex(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
-
-   integer(kind=i4) :: ierr
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_elpa_cholesky_cmplx"
-
-   call ph%elpa_aux%cholesky(mat,ierr)
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "Cholesky factorization failed"
-      call elsi_stop(bh,msg,caller)
-   end if
-
-end subroutine
-
-!>
-!! Interface to ELPA matrix inversion.
-!!
-subroutine elsi_elpa_invert_real(ph,bh,mat)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
-
-   integer(kind=i4) :: ierr
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_elpa_invert_real"
-
-   call ph%elpa_aux%invert_triangular(mat,ierr)
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "Matrix inversion failed"
-      call elsi_stop(bh,msg,caller)
-   end if
-
-end subroutine
-
-!>
-!! Interface to ELPA matrix inversion.
-!!
-subroutine elsi_elpa_invert_cmplx(ph,bh,mat)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   complex(kind=r8), intent(inout) :: mat(bh%n_lrow,bh%n_lcol)
-
-   integer(kind=i4) :: ierr
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_elpa_invert_cmplx"
-
-   call ph%elpa_aux%invert_triangular(mat,ierr)
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "Matrix inversion failed"
-      call elsi_stop(bh,msg,caller)
-   end if
-
-end subroutine
-
-!>
-!! Interface to ELPA matrix multiplication.
-!!
-subroutine elsi_elpa_multiply_real(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   character, intent(in) :: uplo_a
-   character, intent(in) :: uplo_c
-   integer(kind=i4), intent(in) :: n
-   real(kind=r8), intent(in) :: mat_a(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(in) :: mat_b(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: mat_c(bh%n_lrow,bh%n_lcol)
-
-   integer(kind=i4) :: ierr
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_elpa_multiply_real"
-
-   call ph%elpa_aux%hermitian_multiply(uplo_a,uplo_c,n,mat_a,mat_b,bh%n_lrow,&
-        bh%n_lcol,mat_c,bh%n_lrow,bh%n_lcol,ierr)
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "Matrix multiplication failed"
-      call elsi_stop(bh,msg,caller)
-   end if
-
-end subroutine
-
-!>
-!! Interface to ELPA matrix multiplication.
-!!
-subroutine elsi_elpa_multiply_cmplx(ph,bh,uplo_a,uplo_c,n,mat_a,mat_b,mat_c)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   character, intent(in) :: uplo_a
-   character, intent(in) :: uplo_c
-   integer(kind=i4), intent(in) :: n
-   complex(kind=r8), intent(in) :: mat_a(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(in) :: mat_b(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: mat_c(bh%n_lrow,bh%n_lcol)
-
-   integer(kind=i4) :: ierr
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_elpa_multiply_cmplx"
-
-   call ph%elpa_aux%hermitian_multiply(uplo_a,uplo_c,n,mat_a,mat_b,bh%n_lrow,&
-        bh%n_lcol,mat_c,bh%n_lrow,bh%n_lcol,ierr)
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "Matrix multiplication failed"
-      call elsi_stop(bh,msg,caller)
    end if
 
 end subroutine
@@ -1304,16 +1159,12 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
    logical, intent(in) :: sing_check
 
    integer(kind=i4) :: ierr
-   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_elpa_tridiag"
 
    ierr = elpa_init(20180525)
 
-   if(ierr /= 0) then
-      write(msg,"(A)") "Initialization failed"
-      call elsi_stop(bh,msg,caller)
-   end if
+   call elsi_check_err(bh,"ELPA initialization failed",ierr,caller)
 
    if(sing_check) then
       ph%elpa_aux => elpa_allocate(ierr)
@@ -1329,12 +1180,12 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
 
       ierr = ph%elpa_aux%setup()
 
-      if(ierr /= 0) then
-         write(msg,"(A)") "ELPA setup failed"
-         call elsi_stop(bh,msg,caller)
-      end if
+      call elsi_check_err(bh,"ELPA setup",ierr,caller)
 
       call ph%elpa_aux%solve_tridiagonal(d,e,q,ierr)
+
+      call elsi_check_err(bh,"ELPA tridiagonal eigensolver",ierr,caller)
+
       call elpa_deallocate(ph%elpa_aux,ierr)
 
       nullify(ph%elpa_aux)
@@ -1352,20 +1203,15 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
 
       ierr = ph%elpa_solve%setup()
 
-      if(ierr /= 0) then
-         write(msg,"(A)") "ELPA setup failed"
-         call elsi_stop(bh,msg,caller)
-      end if
+      call elsi_check_err(bh,"ELPA setup",ierr,caller)
 
       call ph%elpa_solve%solve_tridiagonal(d,e,q,ierr)
+
+      call elsi_check_err(bh,"ELPA tridiagonal eigensolver",ierr,caller)
+
       call elpa_deallocate(ph%elpa_solve,ierr)
 
       nullify(ph%elpa_solve)
-   end if
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "ELPA tridiagonal solver failed"
-      call elsi_stop(bh,msg,caller)
    end if
 
 end subroutine

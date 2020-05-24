@@ -15,7 +15,7 @@ module ELSI_UTIL
        SIPS_SOLVER,NTPOLY_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,UT_MAT
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,MPI_COMM_SELF,MPI_REAL8,MPI_SUM
+   use ELSI_MPI, only: elsi_stop,MPI_COMM_SELF,MPI_REAL8,MPI_SUM
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: i4,r8
 
@@ -25,6 +25,7 @@ module ELSI_UTIL
 
    public :: elsi_check
    public :: elsi_check_init
+   public :: elsi_check_err
    public :: elsi_reset_param
    public :: elsi_reset_basic
    public :: elsi_get_gid
@@ -534,6 +535,28 @@ subroutine elsi_check_init(bh,init,caller)
 end subroutine
 
 !>
+!! Check if error code is 0.
+!!
+subroutine elsi_check_err(bh,routine,ierr,caller)
+
+   implicit none
+
+   type(elsi_basic_t), intent(in) :: bh
+   character(len=*), intent(in) :: routine
+   integer(kind=i4), intent(in) :: ierr
+   character(len=*), intent(in) :: caller
+
+   character(len=200) :: msg
+
+   if(ierr /= 0) then
+      write(msg,"(2A)") trim(routine)," failed"
+
+      call elsi_stop(bh,msg,caller)
+   end if
+
+end subroutine
+
+!>
 !! Get the global index from the local index of a block-cyclic distribution.
 !!
 subroutine elsi_get_gid(myid,n_procs,blk,lid,gid)
@@ -595,7 +618,7 @@ subroutine elsi_reduce_energy(ph,bh,energy)
 
       call MPI_Allreduce(energy,tmp,1,MPI_REAL8,MPI_SUM,bh%comm_all,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+      call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
       energy = tmp
    end if

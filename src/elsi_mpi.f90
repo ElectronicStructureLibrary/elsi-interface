@@ -5,7 +5,7 @@
 ! which may be found in the LICENSE file in the ELSI root directory.
 
 !>
-!! Provide a collection of MPI utilities.
+!! MPI interface.
 !!
 module ELSI_MPI
 
@@ -16,7 +16,6 @@ module ELSI_MPI
    implicit none
 
    public :: elsi_stop
-   public :: elsi_check_mpi
 
 contains
 
@@ -52,28 +51,6 @@ subroutine elsi_stop(bh,info,caller)
    end if
 
    stop
-
-end subroutine
-
-!>
-!! Checks if an MPI call is successful.
-!!
-subroutine elsi_check_mpi(bh,routine,ierr,caller)
-
-   implicit none
-
-   type(elsi_basic_t), intent(in) :: bh
-   character(len=*), intent(in) :: routine
-   integer(kind=i4), intent(in) :: ierr
-   character(len=*), intent(in) :: caller
-
-   character(len=200) :: msg
-
-   if(ierr /= MPI_SUCCESS) then
-      write(msg,"(2A)") trim(routine)," failed"
-
-      call elsi_stop(bh,msg,caller)
-   end if
 
 end subroutine
 
