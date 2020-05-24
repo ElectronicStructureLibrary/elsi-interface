@@ -147,7 +147,7 @@ subroutine elsi_solve_magma_real(ph,bh,ham,ovlp,eval,evec)
       end select
    end if
 
-   if(ierr /= 0) then
+   if(ierr /= 0 .or. n_solved(1) < ph%n_states) then
       write(msg,"(A)") "MAGMA eigensolver failed"
       call elsi_stop(bh,msg,caller)
    end if

@@ -11,10 +11,10 @@ module ELSI_OMM
 
    use ELSI_CONSTANT, only: UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_ELPA, only: elsi_elpa_cholesky,elsi_elpa_invert
-   use ELSI_MPI, only: elsi_check_mpi,MPI_SUM,MPI_INTEGER4
+   use ELSI_MPI, only: MPI_SUM,MPI_INTEGER4
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
+   use ELSI_UTIL, only: elsi_check_err
    use MATRIXSWITCH, only: matrix,m_register_pdbc,ms_scalapack_setup,&
        m_deallocate
 
@@ -115,7 +115,7 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+      call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
    end if
 
    write(msg,"(A)") "Starting libOMM density matrix solver"
@@ -131,7 +131,9 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
          if(ph%omm_first .and. ph%elpa_first) then
             call elsi_get_time(t0)
 
-            call elsi_elpa_cholesky(ph,bh,ovlp)
+            call ph%elpa_aux%cholesky(ovlp,ierr)
+
+            call elsi_check_err(bh,"ELPA Cholesky factorization",ierr,caller)
 
             call elsi_get_time(t1)
 
@@ -142,7 +144,9 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
          end if
 
          if(ph%omm_first) then
-            call elsi_elpa_invert(ph,bh,ovlp)
+            call ph%elpa_aux%invert_triangular(ovlp,ierr)
+
+            call elsi_check_err(bh,"ELPA matrix inversion",ierr,caller)
          end if
       end if
    end if
@@ -273,7 +277,7 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+      call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
    end if
 
    write(msg,"(A)") "Starting libOMM density matrix solver"
@@ -289,7 +293,9 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
          if(ph%omm_first .and. ph%elpa_first) then
             call elsi_get_time(t0)
 
-            call elsi_elpa_cholesky(ph,bh,ovlp)
+            call ph%elpa_aux%cholesky(ovlp,ierr)
+
+            call elsi_check_err(bh,"ELPA Cholesky factorization",ierr,caller)
 
             call elsi_get_time(t1)
 
@@ -300,7 +306,9 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
          end if
 
          if(ph%omm_first) then
-            call elsi_elpa_invert(ph,bh,ovlp)
+            call ph%elpa_aux%invert_triangular(ovlp,ierr)
+
+            call elsi_check_err(bh,"ELPA matrix inversion",ierr,caller)
          end if
       end if
    end if

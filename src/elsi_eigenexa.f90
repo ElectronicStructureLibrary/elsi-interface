@@ -14,10 +14,11 @@ module ELSI_EIGENEXA
    use ELSI_ELPA, only: elsi_factor_ovlp_elpa,elsi_reduce_evp_elpa,&
        elsi_back_ev_elpa
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_check_mpi,MPI_SUM,MPI_INTEGER4
+   use ELSI_MPI, only: MPI_SUM,MPI_INTEGER4
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use ELSI_REDIST, only: elsi_blacs_to_eigenexa_h,elsi_eigenexa_to_blacs_ev
+   use ELSI_UTIL, only: elsi_check_err
    use EIGEN_LIBS_MOD, only: eigen_init,eigen_get_procs,eigen_get_id,&
        eigen_get_matdims,eigen_s,eigen_sx,eigen_free
 
@@ -94,7 +95,7 @@ subroutine elsi_solve_eigenexa_real(ph,bh,ham,ovlp,eval,evec)
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+      call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
    end if
 
    ! Transform to standard form

@@ -12,9 +12,10 @@ module ELSI_PEXSI
    use ELSI_CONSTANT, only: UNSET,PEXSI_CSC,PEXSI_DM,PEXSI_EDM,PEXSI_FDM
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,elsi_check_mpi,MPI_SUM,MPI_REAL8,MPI_COMPLEX16
+   use ELSI_MPI, only: MPI_SUM,MPI_REAL8,MPI_COMPLEX16
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
+   use ELSI_UTIL, only: elsi_check_err
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_initialize,&
        f_ppexsi_plan_finalize,f_ppexsi_set_default_options,&
        f_ppexsi_load_real_hs_matrix,f_ppexsi_load_complex_hs_matrix,&
@@ -70,7 +71,6 @@ subroutine elsi_init_pexsi(ph,bh)
    integer(kind=i4) :: j
    integer(kind=i4) :: log_id
    integer(kind=i4) :: ierr
-   character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_init_pexsi"
 
@@ -113,17 +113,17 @@ subroutine elsi_init_pexsi(ph,bh)
       call MPI_Comm_split(bh%comm,ph%pexsi_my_prow,ph%pexsi_my_pcol,&
            ph%pexsi_comm_intra_pole,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
+      call elsi_check_err(bh,"MPI_Comm_split",ierr,caller)
 
       call MPI_Comm_split(bh%comm,ph%pexsi_my_pcol,ph%pexsi_my_prow,&
            ph%pexsi_comm_inter_pole,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
+      call elsi_check_err(bh,"MPI_Comm_split",ierr,caller)
 
       call MPI_Comm_split(bh%comm,ph%pexsi_myid_point,ph%pexsi_my_point,&
            ph%pexsi_comm_inter_point,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Comm_split",ierr,caller)
+      call elsi_check_err(bh,"MPI_Comm_split",ierr,caller)
 
       if(.not. bh%pexsi_csc_ready) then
          ! Set up 1D block distribution
@@ -145,10 +145,7 @@ subroutine elsi_init_pexsi(ph,bh)
       ph%pexsi_plan = f_ppexsi_plan_initialize(bh%comm,ph%pexsi_n_prow,&
          ph%pexsi_n_pcol,log_id,ierr)
 
-      if(ierr /= 0) then
-         write(msg,"(A)") "Initialization failed"
-         call elsi_stop(bh,msg,caller)
-      end if
+      call elsi_check_err(bh,"PEXSI initialization",ierr,caller)
 
       if(bh%n_lcol_sp == UNSET) then
          bh%n_lcol_sp = bh%n_lcol_sp1
@@ -230,10 +227,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
            0,ovlp,ierr)
    end if
 
-   if(ierr /= 0) then
-      write(msg,"(A)") "Failed to load matrices"
-      call elsi_stop(bh,msg,caller)
-   end if
+   call elsi_check_err(bh,"PEXSI load matrices",ierr,caller)
 
    call elsi_get_time(t1)
 
@@ -249,8 +243,12 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call f_ppexsi_symbolic_factorize_real_symmetric_matrix(ph%pexsi_plan,&
            ph%pexsi_options,ierr)
 
+      call elsi_check_err(bh,"PEXSI symbolic factorization",ierr,caller)
+
       call f_ppexsi_symbolic_factorize_complex_symmetric_matrix(ph%pexsi_plan,&
            ph%pexsi_options,ierr)
+
+      call elsi_check_err(bh,"PEXSI symbolic factorization",ierr,caller)
 
       call elsi_get_time(t1)
 
@@ -258,11 +256,6 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_say(bh,msg)
       write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,msg)
-   end if
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "Symbolic factorization failed"
-      call elsi_stop(bh,msg,caller)
    end if
 
    ! Inertia counting
@@ -292,6 +285,8 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          call f_ppexsi_inertia_count_real_matrix(ph%pexsi_plan,&
               ph%pexsi_options,n_shift,shifts,inertias,ierr)
 
+         call elsi_check_err(bh,"PEXSI inertia counting",ierr,caller)
+
          inertias(:) = inertias*ph%spin_degen*ph%i_wt
 
          ! Get global inertias
@@ -307,7 +302,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
             call MPI_Allreduce(send_buf,inertias,n_shift,MPI_REAL8,MPI_SUM,&
                  bh%comm_all,ierr)
 
-            call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+            call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
             call elsi_deallocate(bh,send_buf,"send_buf")
          end if
@@ -355,11 +350,6 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_say(bh,msg)
       write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,msg)
-
-      if(ierr /= 0) then
-         write(msg,"(A)") "Inertia counting failed"
-         call elsi_stop(bh,msg,caller)
-      end if
    end if
 
    ! Save chemical potential bounds
@@ -377,6 +367,8 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       if(ph%pexsi_my_point == i-1) then
          call f_ppexsi_calculate_fermi_operator_real3(ph%pexsi_plan,&
               ph%pexsi_options,ph%n_electrons,ph%mu,ph%pexsi_ne,ierr)
+
+         call elsi_check_err(bh,"PEXSI Fermi operator expansion",ierr,caller)
       end if
    end do
 
@@ -387,7 +379,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,MPI_REAL8,&
         MPI_SUM,ph%pexsi_comm_inter_point,ierr)
 
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+   call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
    ! Get global number of electrons
    if(ph%n_spins*ph%n_kpts > 1) then
@@ -400,7 +392,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,MPI_REAL8,&
            MPI_SUM,bh%comm_all,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+      call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
    end if
 
    call elsi_deallocate(bh,send_buf,"send_buf")
@@ -411,11 +403,6 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "Fermi operator calculation failed"
-      call elsi_stop(bh,msg,caller)
-   end if
 
    if(ph%pexsi_options%method /= 2) then
       ! Get free energy density matrix
@@ -430,12 +417,12 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          call MPI_Reduce(local_energy,free_energy,1,MPI_REAL8,MPI_SUM,0,&
               ph%pexsi_comm_intra_pole,ierr)
 
-         call elsi_check_mpi(bh,"MPI_Reduce",ierr,caller)
+         call elsi_check_err(bh,"MPI_Reduce",ierr,caller)
       end if
 
       call MPI_Bcast(free_energy,1,MPI_REAL8,0,bh%comm,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
+      call elsi_check_err(bh,"MPI_Bcast",ierr,caller)
    end if
 
    ! Get density matrix
@@ -450,12 +437,12 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call MPI_Reduce(local_energy,ph%ebs,1,MPI_REAL8,MPI_SUM,0,&
            ph%pexsi_comm_intra_pole,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Reduce",ierr,caller)
+      call elsi_check_err(bh,"MPI_Reduce",ierr,caller)
    end if
 
    call MPI_Bcast(ph%ebs,1,MPI_REAL8,0,bh%comm,ierr)
 
-   call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
+   call elsi_check_err(bh,"MPI_Bcast",ierr,caller)
 
    ! Compute entropy
    if(ph%pexsi_options%method /= 2) then
@@ -529,7 +516,6 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
    integer(kind=i4) :: i
    integer(kind=i4) :: ierr
    logical :: converged
-   character(len=200) :: msg
 
    real(kind=r8), allocatable :: tmp(:)
    real(kind=r8), allocatable :: send_buf(:)
@@ -543,28 +529,15 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
    select case(which)
    case(PEXSI_DM)
       call f_ppexsi_retrieve_real_dm(ph%pexsi_plan,tmp,local_energy,ierr)
-
-      if(ierr /= 0) then
-         write(msg,"(A)") "Failed to get density matirx"
-         call elsi_stop(bh,msg,caller)
-      end if
    case(PEXSI_EDM)
       call f_ppexsi_retrieve_real_edm(ph%pexsi_plan,ph%pexsi_options,tmp,&
            local_energy,ierr)
-
-      if(ierr /= 0) then
-         write(msg,"(A)") "Failed to get energy density matirx"
-         call elsi_stop(bh,msg,caller)
-      end if
    case(PEXSI_FDM)
       call f_ppexsi_retrieve_real_fdm(ph%pexsi_plan,ph%pexsi_options,tmp,&
            local_energy,ierr)
-
-      if(ierr /= 0) then
-         write(msg,"(A)") "Failed to get free energy density matirx"
-         call elsi_stop(bh,msg,caller)
-      end if
    end select
+
+   call elsi_check_err(bh,"PEXSI get density matrix",ierr,caller)
 
    ! Check convergence
    mu_range = ph%pexsi_mu_max-ph%pexsi_mu_min
@@ -627,7 +600,7 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
             call MPI_Bcast(tmp,bh%nnz_l_sp1,MPI_REAL8,i-1,&
                  ph%pexsi_comm_inter_point,ierr)
 
-            call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
+            call elsi_check_err(bh,"MPI_Bcast",ierr,caller)
 
             exit
          end if
@@ -657,7 +630,7 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
       call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,MPI_REAL8,MPI_SUM,&
            ph%pexsi_comm_inter_point,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+      call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
       call elsi_deallocate(bh,send_buf,"send_buf")
    end if
@@ -730,10 +703,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
            0,ovlp,ierr)
    end if
 
-   if(ierr /= 0) then
-      write(msg,"(A)") "Failed to load matirces"
-      call elsi_stop(bh,msg,caller)
-   end if
+   call elsi_check_err(bh,"PEXSI load matrices",ierr,caller)
 
    call elsi_get_time(t1)
 
@@ -749,8 +719,12 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call f_ppexsi_symbolic_factorize_complex_symmetric_matrix(ph%pexsi_plan,&
            ph%pexsi_options,ierr)
 
+      call elsi_check_err(bh,"PEXSI symbolic factorization",ierr,caller)
+
       call f_ppexsi_symbolic_factorize_complex_unsymmetric_matrix(&
            ph%pexsi_plan,ph%pexsi_options,ovlp,ierr)
+
+      call elsi_check_err(bh,"PEXSI symbolic factorization",ierr,caller)
 
       call elsi_get_time(t1)
 
@@ -758,11 +732,6 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_say(bh,msg)
       write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,msg)
-   end if
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "Symbolic factorization failed"
-      call elsi_stop(bh,msg,caller)
    end if
 
    ! Inertia counting
@@ -792,6 +761,8 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          call f_ppexsi_inertia_count_complex_matrix(ph%pexsi_plan,&
               ph%pexsi_options,n_shift,shifts,inertias,ierr)
 
+         call elsi_check_err(bh,"PEXSI inertia counting",ierr,caller)
+
          inertias(:) = inertias*ph%spin_degen*ph%i_wt
 
          ! Get global inertias
@@ -807,7 +778,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
             call MPI_Allreduce(send_buf,inertias,n_shift,MPI_REAL8,MPI_SUM,&
                  bh%comm_all,ierr)
 
-            call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+            call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
             call elsi_deallocate(bh,send_buf,"send_buf")
          end if
@@ -855,11 +826,6 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call elsi_say(bh,msg)
       write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
       call elsi_say(bh,msg)
-
-      if(ierr /= 0) then
-         write(msg,"(A)") "Inertia counting failed"
-         call elsi_stop(bh,msg,caller)
-      end if
    end if
 
    ! Save chemical potential bounds
@@ -877,6 +843,8 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       if(ph%pexsi_my_point == i-1) then
          call f_ppexsi_calculate_fermi_operator_complex(ph%pexsi_plan,&
               ph%pexsi_options,ph%mu,ph%n_electrons,ph%pexsi_ne,ne_drv,ierr)
+
+         call elsi_check_err(bh,"PEXSI Fermi operator expansion",ierr,caller)
       end if
    end do
 
@@ -887,7 +855,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,MPI_REAL8,&
         MPI_SUM,ph%pexsi_comm_inter_point,ierr)
 
-   call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+   call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
    ! Get global number of electrons
    if(ph%n_spins*ph%n_kpts > 1) then
@@ -900,7 +868,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call MPI_Allreduce(send_buf,ne_vec,ph%pexsi_options%nPoints,MPI_REAL8,&
            MPI_SUM,bh%comm_all,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+      call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
    end if
 
    call elsi_deallocate(bh,send_buf,"send_buf")
@@ -911,11 +879,6 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
-
-   if(ierr /= 0) then
-      write(msg,"(A)") "Fermi operator calculation failed"
-      call elsi_stop(bh,msg,caller)
-   end if
 
    if(ph%pexsi_options%method /= 2) then
       ! Get free energy density matrix
@@ -931,12 +894,12 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          call MPI_Reduce(local_energy,free_energy,1,MPI_REAL8,MPI_SUM,0,&
               ph%pexsi_comm_intra_pole,ierr)
 
-         call elsi_check_mpi(bh,"MPI_Reduce",ierr,caller)
+         call elsi_check_err(bh,"MPI_Reduce",ierr,caller)
       end if
 
       call MPI_Bcast(free_energy,1,MPI_REAL8,0,bh%comm,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
+      call elsi_check_err(bh,"MPI_Bcast",ierr,caller)
    end if
 
    ! Get density matrix
@@ -952,12 +915,12 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       call MPI_Reduce(local_energy,ph%ebs,1,MPI_REAL8,MPI_SUM,0,&
            ph%pexsi_comm_intra_pole,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Reduce",ierr,caller)
+      call elsi_check_err(bh,"MPI_Reduce",ierr,caller)
    end if
 
    call MPI_Bcast(ph%ebs,1,MPI_REAL8,0,bh%comm,ierr)
 
-   call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
+   call elsi_check_err(bh,"MPI_Bcast",ierr,caller)
 
    ! Compute entropy
    if(ph%pexsi_options%method /= 2) then
@@ -1031,7 +994,6 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
    integer(kind=i4) :: i
    integer(kind=i4) :: ierr
    logical :: converged
-   character(len=200) :: msg
 
    complex(kind=r8), allocatable :: tmp(:)
    complex(kind=r8), allocatable :: send_buf(:)
@@ -1045,28 +1007,15 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
    select case(which)
    case(PEXSI_DM)
       call f_ppexsi_retrieve_complex_dm(ph%pexsi_plan,tmp,local_energy,ierr)
-
-      if(ierr /= 0) then
-         write(msg,"(A)") "Failed to get density matirx"
-         call elsi_stop(bh,msg,caller)
-      end if
    case(PEXSI_EDM)
       call f_ppexsi_retrieve_complex_edm(ph%pexsi_plan,ph%pexsi_options,tmp,&
            local_energy,ierr)
-
-      if(ierr /= 0) then
-         write(msg,"(A)") "Failed to get energy density matirx"
-         call elsi_stop(bh,msg,caller)
-      end if
    case(PEXSI_FDM)
       call f_ppexsi_retrieve_complex_fdm(ph%pexsi_plan,ph%pexsi_options,tmp,&
            local_energy,ierr)
-
-      if(ierr /= 0) then
-         write(msg,"(A)") "Failed to get free energy density matirx"
-         call elsi_stop(bh,msg,caller)
-      end if
    end select
+
+   call elsi_check_err(bh,"PEXSI get density matrix",ierr,caller)
 
    ! Check convergence
    mu_range = ph%pexsi_mu_max-ph%pexsi_mu_min
@@ -1129,7 +1078,7 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
             call MPI_Bcast(tmp,bh%nnz_l_sp1,MPI_COMPLEX16,i-1,&
                  ph%pexsi_comm_inter_point,ierr)
 
-            call elsi_check_mpi(bh,"MPI_Bcast",ierr,caller)
+            call elsi_check_err(bh,"MPI_Bcast",ierr,caller)
 
             exit
          end if
@@ -1159,7 +1108,7 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
       call MPI_Allreduce(send_buf,tmp,bh%nnz_l_sp1,MPI_COMPLEX16,MPI_SUM,&
            ph%pexsi_comm_inter_point,ierr)
 
-      call elsi_check_mpi(bh,"MPI_Allreduce",ierr,caller)
+      call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
       call elsi_deallocate(bh,send_buf,"send_buf")
    end if
