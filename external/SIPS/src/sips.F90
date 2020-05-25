@@ -731,7 +731,7 @@ CONTAINS
 
     END SUBROUTINE
 
-    SUBROUTINE sips_get_dm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,dm_val)
+    SUBROUTINE sips_get_dm_edm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,dm_val,i_dm)
 
         IMPLICIT NONE
 
@@ -742,86 +742,7 @@ CONTAINS
         PetscInt,  INTENT(IN)    :: nev               ! Number of eigenvalues
         PetscReal, INTENT(IN)    :: occ(nev)          ! Occupation numbers
         PetscReal, INTENT(OUT)   :: dm_val(nnz_l)     ! Non-zero values
-
-        Vec                :: xr
-        Vec                :: xrseq
-        VecScatter         :: ctx
-        PetscInt           :: i
-        PetscInt           :: j
-        PetscInt           :: k
-        PetscInt           :: i_val
-        PetscInt           :: nnz_this_row
-        PetscReal          :: tmp
-        PetscReal, POINTER :: vec_tmp(:)
-
-        ! Index conversion
-        col_idx = col_idx-1
-        row_ptr = row_ptr-1
-
-        CALL MatCreateVecs(math,xr,PETSC_NULL_VEC,ierr)
-        CHKERRQ(ierr)
-
-        CALL VecScatterCreateToAll(xr,ctx,xrseq,ierr)
-        CHKERRQ(ierr)
-
-        dm_val = 0.0_dp
-
-        DO i = 1,nev
-            CALL EPSGetEigenvector(eps,i-1,xr,PETSC_NULL_VEC,ierr)
-            CHKERRQ(ierr)
-
-            CALL VecScatterBegin(ctx,xr,xrseq,INSERT_VALUES,SCATTER_FORWARD,&
-                     ierr)
-            CHKERRQ(ierr)
-
-            CALL VecScatterEnd(ctx,xr,xrseq,INSERT_VALUES,SCATTER_FORWARD,ierr)
-            CHKERRQ(ierr)
-
-            CALL VecGetArrayReadF90(xrseq,vec_tmp,ierr)
-            CHKERRQ(ierr)
-
-            i_val = 0
-
-            DO j = istart+1,iend
-                nnz_this_row = row_ptr(j-istart+1)-row_ptr(j-istart)
-
-                DO k = 1,nnz_this_row
-                    i_val         = i_val+1
-                    tmp           = occ(i)*vec_tmp(j)*vec_tmp(col_idx(i_val)+1)
-                    dm_val(i_val) = dm_val(i_val)+tmp
-                END DO
-            END DO
-
-            CALL VecRestoreArrayReadF90(xrseq,vec_tmp,ierr)
-            CHKERRQ(ierr)
-        END DO
-
-        CALL VecDestroy(xr,ierr)
-        CHKERRQ(ierr)
-
-        CALL VecDestroy(xrseq,ierr)
-        CHKERRQ(ierr)
-
-        CALL VecScatterDestroy(ctx,ierr)
-        CHKERRQ(ierr)
-
-        ! Index conversion
-        col_idx = col_idx+1
-        row_ptr = row_ptr+1
-
-    END SUBROUTINE
-
-    SUBROUTINE sips_get_edm(ncol_l,nnz_l,col_idx,row_ptr,nev,occ,edm_val)
-
-        IMPLICIT NONE
-
-        PetscInt,  INTENT(IN)    :: ncol_l            ! Local size
-        PetscInt,  INTENT(IN)    :: nnz_l             ! Local non-zeros
-        PetscInt,  INTENT(INOUT) :: col_idx(nnz_l)    ! Column index
-        PetscInt,  INTENT(INOUT) :: row_ptr(ncol_l+1) ! Row pointer
-        PetscInt,  INTENT(IN)    :: nev               ! Number of eigenvalues
-        PetscReal, INTENT(IN)    :: occ(nev)          ! Occupation numbers
-        PetscReal, INTENT(OUT)   :: edm_val(nnz_l)    ! Non-zero values
+        PetscInt,  INTENT(IN)    :: i_dm              ! 0: dm, 1: edm
 
         Vec                :: xr
         Vec                :: xrseq
@@ -845,12 +766,19 @@ CONTAINS
         CALL VecScatterCreateToAll(xr,ctx,xrseq,ierr)
         CHKERRQ(ierr)
 
-        edm_val = 0.0_dp
+        dm_val = 0.0_dp
 
         DO i = 1,nev
-            CALL EPSGetEigenpair(eps,i-1,eval,PETSC_NULL_SCALAR,xr,&
-                     PETSC_NULL_VEC,ierr)
-            CHKERRQ(ierr)
+            IF (i_dm == 0) THEN
+                CALL EPSGetEigenvector(eps,i-1,xr,PETSC_NULL_VEC,ierr)
+                CHKERRQ(ierr)
+
+                eval = 1.0_dp
+            ELSE
+                CALL EPSGetEigenpair(eps,i-1,eval,PETSC_NULL_SCALAR,xr,&
+                         PETSC_NULL_VEC,ierr)
+                CHKERRQ(ierr)
+            END IF
 
             CALL VecScatterBegin(ctx,xr,xrseq,INSERT_VALUES,SCATTER_FORWARD,&
                      ierr)
@@ -868,20 +796,16 @@ CONTAINS
                 nnz_this_row = row_ptr(j-istart+1)-row_ptr(j-istart)
 
                 DO k = 1,nnz_this_row
-                    i_val          = i_val+1
-                    tmp            = eval*occ(i)*vec_tmp(j)*&
-                                         vec_tmp(col_idx(i_val)+1)
-                    edm_val(i_val) = edm_val(i_val)+tmp
+                    i_val         = i_val+1
+                    tmp           = vec_tmp(j)*vec_tmp(col_idx(i_val)+1)
+                    tmp           = eval*occ(i)*tmp
+                    dm_val(i_val) = dm_val(i_val)+tmp
                 END DO
             END DO
 
             CALL VecRestoreArrayReadF90(xrseq,vec_tmp,ierr)
             CHKERRQ(ierr)
         END DO
-
-        ! Index conversion
-        col_idx = col_idx+1
-        row_ptr = row_ptr+1
 
         CALL VecDestroy(xr,ierr)
         CHKERRQ(ierr)
@@ -891,6 +815,10 @@ CONTAINS
 
         CALL VecScatterDestroy(ctx,ierr)
         CHKERRQ(ierr)
+
+        ! Index conversion
+        col_idx = col_idx+1
+        row_ptr = row_ptr+1
 
     END SUBROUTINE
 

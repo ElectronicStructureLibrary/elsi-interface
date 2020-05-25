@@ -10,8 +10,9 @@
 module ELSI_GET
 
    use ELSI_CONSTANT, only: PEXSI_CSC,SIESTA_CSC,GENERIC_COO,ELPA_SOLVER,&
-       OMM_SOLVER,PEXSI_SOLVER,EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER
+       OMM_SOLVER,PEXSI_SOLVER,EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER,GET_EDM
    use ELSI_DATATYPE, only: elsi_handle
+   use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop
    use ELSI_NTPOLY, only: elsi_compute_edm_ntpoly
    use ELSI_OMM, only: elsi_compute_edm_omm
@@ -22,8 +23,8 @@ module ELSI_GET
        elsi_ntpoly_to_siesta_dm,elsi_ntpoly_to_sips_dm,elsi_pexsi_to_blacs_dm,&
        elsi_pexsi_to_generic_dm,elsi_pexsi_to_siesta_dm,elsi_sips_to_blacs_dm,&
        elsi_sips_to_generic_dm,elsi_sips_to_siesta_dm
-   use ELSI_SIPS, only: elsi_build_edm_sips
-   use ELSI_UTIL, only: elsi_check_init,elsi_reduce_energy,elsi_build_edm
+   use ELSI_SIPS, only: elsi_build_dm_edm_sips
+   use ELSI_UTIL, only: elsi_check_init,elsi_reduce_energy,elsi_build_dm_edm
 
    implicit none
 
@@ -277,6 +278,8 @@ subroutine elsi_get_edm_real(eh,edm)
    integer(kind=i4) :: solver_save
    character(len=200) :: msg
 
+   real(kind=r8), allocatable :: factor(:)
+
    character(len=*), parameter :: caller = "elsi_get_edm_real"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -301,8 +304,13 @@ subroutine elsi_get_edm_real(eh,edm)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER,EIGENEXA_SOLVER)
-      call elsi_build_edm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
-           eh%eval(1:eh%ph%n_states),eh%evec_real,edm)
+      call elsi_allocate(eh%bh,factor,eh%ph%n_states,"factor",caller)
+
+      factor(:) = -eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt)*eh%eval(1:eh%ph%n_states)
+
+      call elsi_build_dm_edm(eh%ph,eh%bh,factor,eh%evec_real,edm,GET_EDM)
+
+      call elsi_deallocate(eh%bh,factor,"factor")
    case(OMM_SOLVER)
       call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_real,edm)
    case(PEXSI_SOLVER)
@@ -310,8 +318,8 @@ subroutine elsi_get_edm_real(eh,edm)
       call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%dm_real_sp,eh%row_ind_sp1,&
            eh%col_ptr_sp1,edm)
    case(SIPS_SOLVER)
-      call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-           eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_sp)
+      call elsi_build_dm_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+           eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_sp,GET_EDM)
       call elsi_sips_to_blacs_dm(eh%ph,eh%bh,eh%dm_real_sp,eh%row_ind_sp1,&
            eh%col_ptr_sp1,edm)
    case(NTPOLY_SOLVER)
@@ -340,6 +348,8 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
    integer(kind=i4) :: solver_save
    character(len=200) :: msg
 
+   real(kind=r8), allocatable :: factor(:)
+
    character(len=*), parameter :: caller = "elsi_get_edm_real_sparse"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -364,8 +374,14 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER,EIGENEXA_SOLVER)
-      call elsi_build_edm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
-           eh%eval(1:eh%ph%n_states),eh%evec_real,eh%dm_real_den)
+      call elsi_allocate(eh%bh,factor,eh%ph%n_states,"factor",caller)
+
+      factor(:) = -eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt)*eh%eval(1:eh%ph%n_states)
+
+      call elsi_build_dm_edm(eh%ph,eh%bh,factor,eh%evec_real,eh%dm_real_den,&
+           GET_EDM)
+
+      call elsi_deallocate(eh%bh,factor,"factor")
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
@@ -417,16 +433,16 @@ subroutine elsi_get_edm_real_sparse(eh,edm)
    case(SIPS_SOLVER)
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)
-         call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),edm)
+         call elsi_build_dm_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),edm,GET_EDM)
       case(SIESTA_CSC)
-         call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_sp)
+         call elsi_build_dm_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_sp,GET_EDM)
          call elsi_sips_to_siesta_dm(eh%ph,eh%bh,eh%dm_real_sp,eh%row_ind_sp1,&
               eh%col_ptr_sp1,edm,eh%row_ind_sp2,eh%col_ptr_sp2)
       case(GENERIC_COO)
-         call elsi_build_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
-              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_sp)
+         call elsi_build_dm_edm_sips(eh%ph,eh%bh,eh%row_ind_sp1,eh%col_ptr_sp1,&
+              eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),eh%dm_real_sp,GET_EDM)
          call elsi_sips_to_generic_dm(eh%ph,eh%bh,eh%dm_real_sp,eh%row_ind_sp1,&
               eh%col_ptr_sp1,eh%map_sp1,edm,eh%perm_sp3)
       case default
@@ -470,6 +486,8 @@ subroutine elsi_get_edm_complex(eh,edm)
    integer(kind=i4) :: solver_save
    character(len=200) :: msg
 
+   real(kind=r8), allocatable :: factor(:)
+
    character(len=*), parameter :: caller = "elsi_get_edm_complex"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -489,8 +507,13 @@ subroutine elsi_get_edm_complex(eh,edm)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      call elsi_build_edm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
-           eh%eval(1:eh%ph%n_states),eh%evec_cmplx,edm)
+      call elsi_allocate(eh%bh,factor,eh%ph%n_states,"factor",caller)
+
+      factor(:) = -eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt)*eh%eval(1:eh%ph%n_states)
+
+      call elsi_build_dm_edm(eh%ph,eh%bh,factor,eh%evec_cmplx,edm,GET_EDM)
+
+      call elsi_deallocate(eh%bh,factor,"factor")
    case(OMM_SOLVER)
       call elsi_compute_edm_omm(eh%ph,eh%bh,eh%omm_c_cmplx,edm)
    case(PEXSI_SOLVER)
@@ -523,6 +546,8 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
    integer(kind=i4) :: solver_save
    character(len=200) :: msg
 
+   real(kind=r8), allocatable :: factor(:)
+
    character(len=*), parameter :: caller = "elsi_get_edm_complex_sparse"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
@@ -542,8 +567,14 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
 
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
-      call elsi_build_edm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
-           eh%eval(1:eh%ph%n_states),eh%evec_cmplx,eh%dm_cmplx_den)
+      call elsi_allocate(eh%bh,factor,eh%ph%n_states,"factor",caller)
+
+      factor(:) = -eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt)*eh%eval(1:eh%ph%n_states)
+
+      call elsi_build_dm_edm(eh%ph,eh%bh,factor,eh%evec_cmplx,eh%dm_cmplx_den,&
+           GET_EDM)
+
+      call elsi_deallocate(eh%bh,factor,"factor")
 
       select case(eh%ph%matrix_format)
       case(PEXSI_CSC)

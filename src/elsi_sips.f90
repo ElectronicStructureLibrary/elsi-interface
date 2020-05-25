@@ -9,7 +9,7 @@
 !!
 module ELSI_SIPS
 
-   use ELSI_CONSTANT, only: UNSET
+   use ELSI_CONSTANT, only: UNSET,GET_DM
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop
@@ -18,8 +18,8 @@ module ELSI_SIPS
    use M_SIPS, only: sips_initialize,sips_load_ham_ovlp,sips_load_ham,&
        sips_update_ham,sips_set_eps,sips_update_eps,sips_set_slices,&
        sips_get_slices,sips_get_inertias,sips_get_slices_from_inertias,&
-       sips_solve_eps,sips_get_eigenvalues,sips_get_eigenvectors,sips_get_dm,&
-       sips_get_edm,sips_finalize
+       sips_solve_eps,sips_get_eigenvalues,sips_get_eigenvectors,&
+       sips_get_dm_edm,sips_finalize
 
    implicit none
 
@@ -28,19 +28,14 @@ module ELSI_SIPS
    public :: elsi_init_sips
    public :: elsi_cleanup_sips
    public :: elsi_solve_sips
-   public :: elsi_build_dm_sips
-   public :: elsi_build_edm_sips
+   public :: elsi_build_dm_edm_sips
 
    interface elsi_solve_sips
       module procedure elsi_solve_sips_real
    end interface
 
-   interface elsi_build_dm_sips
-      module procedure elsi_build_dm_sips_real
-   end interface
-
-   interface elsi_build_edm_sips
-      module procedure elsi_build_edm_sips_real
+   interface elsi_build_dm_edm_sips
+      module procedure elsi_build_dm_edm_sips_real
    end interface
 
 contains
@@ -262,9 +257,9 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 end subroutine
 
 !>
-!! Construct the density matrix.
+!! Construct density matrix or energy-weighted density matrix from eigenvectors.
 !!
-subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
+subroutine elsi_build_dm_edm_sips_real(ph,bh,row_ind,col_ptr,occ,dm,which)
 
    implicit none
 
@@ -274,55 +269,27 @@ subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
    integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
    real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(out) :: dm(bh%nnz_l_sp1)
+   integer(kind=i4), intent(in) :: which
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    character(len=200) :: msg
 
-   character(len=*), parameter :: caller = "elsi_build_dm_sips_real"
+   character(len=*), parameter :: caller = "elsi_build_dm_edm_sips_real"
 
    call elsi_get_time(t0)
 
-   call sips_get_dm(bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,col_ptr,ph%n_states,occ,&
-        dm)
+   call sips_get_dm_edm(bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,col_ptr,ph%n_states,&
+        occ,dm,which)
 
    call elsi_get_time(t1)
 
-   write(msg,"(A)") "Finished density matrix calculation"
-   call elsi_say(bh,msg)
-   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,msg)
+   if(which == GET_DM) then
+      write(msg,"(A)") "Finished density matrix calculation"
+   else
+      write(msg,"(A)") "Finished energy density matrix calculation"
+   end if
 
-end subroutine
-
-!>
-!! Construct the energy-weighted density matrix.
-!!
-subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
-   real(kind=r8), intent(in) :: occ(ph%n_states)
-   real(kind=r8), intent(out) :: edm(bh%nnz_l_sp1)
-
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
-   character(len=200) :: msg
-
-   character(len=*), parameter :: caller = "elsi_build_edm_sips_real"
-
-   call elsi_get_time(t0)
-
-   call sips_get_edm(bh%n_lcol_sp1,bh%nnz_l_sp1,row_ind,col_ptr,ph%n_states,&
-        occ,edm)
-
-   call elsi_get_time(t1)
-
-   write(msg,"(A)") "Finished energy density matrix calculation"
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
