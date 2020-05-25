@@ -20,19 +20,14 @@ module ELSI_SIPS
    public :: elsi_init_sips
    public :: elsi_cleanup_sips
    public :: elsi_solve_sips
-   public :: elsi_build_dm_sips
-   public :: elsi_build_edm_sips
+   public :: elsi_build_dm_edm_sips
 
    interface elsi_solve_sips
       module procedure elsi_solve_sips_real
    end interface
 
-   interface elsi_build_dm_sips
-      module procedure elsi_build_dm_sips_real
-   end interface
-
-   interface elsi_build_edm_sips
-      module procedure elsi_build_edm_sips_real
+   interface elsi_build_dm_edm_sips
+      module procedure elsi_build_dm_edm_sips_real
    end interface
 
 contains
@@ -64,7 +59,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
 
 end subroutine
 
-subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
+subroutine elsi_build_dm_edm_sips_real(ph,bh,row_ind,col_ptr,occ,dm,which)
 
    implicit none
 
@@ -74,22 +69,7 @@ subroutine elsi_build_dm_sips_real(ph,bh,row_ind,col_ptr,occ,dm)
    integer(kind=i4) :: col_ptr(bh%n_lcol_sp1+1)
    real(kind=r8) :: occ(ph%n_states)
    real(kind=r8) :: dm(bh%nnz_l_sp1)
-
-   write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
-   stop
-
-end subroutine
-
-subroutine elsi_build_edm_sips_real(ph,bh,row_ind,col_ptr,occ,edm)
-
-   implicit none
-
-   type(elsi_param_t) :: ph
-   type(elsi_basic_t) :: bh
-   integer(kind=i4) :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4) :: col_ptr(bh%n_lcol_sp1+1)
-   real(kind=r8) :: occ(ph%n_states)
-   real(kind=r8) :: edm(bh%nnz_l_sp1)
+   integer(kind=i4) :: which
 
    write(*,"(A)") "**Error! A SLEPc-SIPs stub routine was called"
    stop

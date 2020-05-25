@@ -12,7 +12,7 @@ module ELSI_UTIL
    use ELSI_CONSTANT, only: UNSET,N_SOLVERS,N_PARALLEL_MODES,N_MATRIX_FORMATS,&
        MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,&
        AUTO_SOLVER,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,EIGENEXA_SOLVER,&
-       SIPS_SOLVER,NTPOLY_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,UT_MAT
+       SIPS_SOLVER,NTPOLY_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,UT_MAT,GET_DM
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop,MPI_COMM_SELF,MPI_REAL8,MPI_SUM
@@ -32,8 +32,7 @@ module ELSI_UTIL
    public :: elsi_get_lid
    public :: elsi_reduce_energy
    public :: elsi_set_full_mat
-   public :: elsi_build_dm
-   public :: elsi_build_edm
+   public :: elsi_build_dm_edm
    public :: elsi_gram_schmidt
 
    interface elsi_set_full_mat
@@ -41,14 +40,9 @@ module ELSI_UTIL
       module procedure elsi_set_full_mat_cmplx
    end interface
 
-   interface elsi_build_dm
-      module procedure elsi_build_dm_real
-      module procedure elsi_build_dm_cmplx
-   end interface
-
-   interface elsi_build_edm
-      module procedure elsi_build_edm_real
-      module procedure elsi_build_edm_cmplx
+   interface elsi_build_dm_edm
+      module procedure elsi_build_dm_edm_real
+      module procedure elsi_build_dm_edm_cmplx
    end interface
 
    interface elsi_gram_schmidt
@@ -765,18 +759,20 @@ subroutine elsi_set_full_mat_cmplx(ph,bh,uplo,mat)
 end subroutine
 
 !>
-!! Construct the density matrix from occupation numbers and eigenvectors.
+!! Construct density matrix or energy-weighted density matrix from eigenvectors.
 !!
-subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
+subroutine elsi_build_dm_edm_real(ph,bh,factor,evec,dm,which)
 
    implicit none
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(in) :: occ(ph%n_states)
+   real(kind=r8), intent(in) :: factor(ph%n_states)
    real(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: dm(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: which
 
+   real(kind=r8) :: alpha
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: i
@@ -786,7 +782,7 @@ subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
 
    real(kind=r8), allocatable :: tmp(:,:)
 
-   character(len=*), parameter :: caller = "elsi_build_dm_real"
+   character(len=*), parameter :: caller = "elsi_build_dm_edm_real"
 
    call elsi_get_time(t0)
 
@@ -794,31 +790,37 @@ subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
 
    dm(:,:) = 0.0_r8
 
+   if(which == GET_DM) then
+      alpha = 1.0_r8
+   else
+      alpha = -1.0_r8
+   end if
+
    ! Compute density matrix
-   if(any(occ(1:ph%n_states_solve) < 0.0_r8)) then
+   if(any(factor < 0.0_r8)) then
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
          if(gid <= ph%n_states_solve) then
-            tmp(:,i) = evec(:,i)*occ(gid)
+            tmp(:,i) = evec(:,i)*factor(gid)
          end if
       end do
 
-      call pdgemm("N","T",ph%n_basis,ph%n_basis,ph%n_states_solve,1.0_r8,tmp,1,&
+      call pdgemm("N","T",ph%n_basis,ph%n_basis,ph%n_states_solve,alpha,tmp,1,&
            1,bh%desc,evec,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
    else
-      max_state = count(occ(1:ph%n_states_solve) > 0.0_r8)
+      max_state = count(factor > 0.0_r8)
 
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
          if(gid <= max_state) then
-            tmp(:,i) = evec(:,i)*sqrt(occ(gid))
+            tmp(:,i) = evec(:,i)*sqrt(factor(gid))
          end if
       end do
 
-      call pdsyrk("U","N",ph%n_basis,max_state,1.0_r8,tmp,1,1,bh%desc,0.0_r8,&
-           dm,1,1,bh%desc)
+      call pdsyrk("U","N",ph%n_basis,max_state,alpha,tmp,1,1,bh%desc,0.0_r8,dm,&
+           1,1,bh%desc)
 
       call elsi_set_full_mat(ph,bh,UT_MAT,dm)
    end if
@@ -827,7 +829,12 @@ subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
 
    call elsi_get_time(t1)
 
-   write(msg,"(A)") "Finished density matrix calculation"
+   if(which == GET_DM) then
+      write(msg,"(A)") "Finished density matrix calculation"
+   else
+      write(msg,"(A)") "Finished energy density matrix calculation"
+   end if
+
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
@@ -835,18 +842,20 @@ subroutine elsi_build_dm_real(ph,bh,occ,evec,dm)
 end subroutine
 
 !>
-!! Construct the density matrix from occupation numbers and eigenvectors.
+!! Construct density matrix or energy-weighted density matrix from eigenvectors.
 !!
-subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
+subroutine elsi_build_dm_edm_cmplx(ph,bh,factor,evec,dm,which)
 
    implicit none
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(in) :: occ(ph%n_states)
+   real(kind=r8), intent(in) :: factor(ph%n_states)
    complex(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: dm(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: which
 
+   complex(kind=r8) :: alpha
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: i
@@ -856,7 +865,7 @@ subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
 
    complex(kind=r8), allocatable :: tmp(:,:)
 
-   character(len=*), parameter :: caller = "elsi_build_dm_cmplx"
+   character(len=*), parameter :: caller = "elsi_build_dm_edm_cmplx"
 
    call elsi_get_time(t0)
 
@@ -864,31 +873,36 @@ subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
 
    dm(:,:) = (0.0_r8,0.0_r8)
 
+   if(which == GET_DM) then
+      alpha = (1.0_r8,0.0_r8)
+   else
+      alpha = (-1.0_r8,0.0_r8)
+   end if
+
    ! Compute density matrix
-   if(any(occ(1:ph%n_states_solve) < 0.0_r8)) then
+   if(any(factor < 0.0_r8)) then
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
          if(gid <= ph%n_states_solve) then
-            tmp(:,i) = evec(:,i)*occ(gid)
+            tmp(:,i) = evec(:,i)*factor(gid)
          end if
       end do
 
-      call pzgemm("N","C",ph%n_basis,ph%n_basis,ph%n_states_solve,&
-           (1.0_r8,0.0_r8),tmp,1,1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),dm,&
-           1,1,bh%desc)
+      call pzgemm("N","C",ph%n_basis,ph%n_basis,ph%n_states_solve,alpha,tmp,1,&
+           1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),dm,1,1,bh%desc)
    else
-      max_state = count(occ(1:ph%n_states_solve) > 0.0_r8)
+      max_state = count(factor > 0.0_r8)
 
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
          if(gid <= max_state) then
-            tmp(:,i) = evec(:,i)*sqrt(occ(gid))
+            tmp(:,i) = evec(:,i)*sqrt(factor(gid))
          end if
       end do
 
-      call pzherk("U","N",ph%n_basis,max_state,(1.0_r8,0.0_r8),tmp,1,1,bh%desc,&
+      call pzherk("U","N",ph%n_basis,max_state,alpha,tmp,1,1,bh%desc,&
            (0.0_r8,0.0_r8),dm,1,1,bh%desc)
 
       call elsi_set_full_mat(ph,bh,UT_MAT,dm)
@@ -898,162 +912,12 @@ subroutine elsi_build_dm_cmplx(ph,bh,occ,evec,dm)
 
    call elsi_get_time(t1)
 
-   write(msg,"(A)") "Finished density matrix calculation"
-   call elsi_say(bh,msg)
-   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,msg)
-
-end subroutine
-
-!>
-!! Construct the energy-weighted density matrix from occupation numbers,
-!! eigenvalues, and eigenvectors.
-!!
-subroutine elsi_build_edm_real(ph,bh,occ,eval,evec,edm)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(in) :: occ(ph%n_states)
-   real(kind=r8), intent(in) :: eval(ph%n_states)
-   real(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: edm(bh%n_lrow,bh%n_lcol)
-
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
-   integer(kind=i4) :: i
-   integer(kind=i4) :: gid
-   integer(kind=i4) :: max_state
-   character(len=200) :: msg
-
-   real(kind=r8), allocatable :: factor(:)
-   real(kind=r8), allocatable :: tmp(:,:)
-
-   character(len=*), parameter :: caller = "elsi_build_edm_real"
-
-   call elsi_get_time(t0)
-
-   call elsi_allocate(bh,factor,ph%n_states_solve,"factor",caller)
-   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
-
-   edm(:,:) = 0.0_r8
-
-   factor(:) = -occ(1:ph%n_states_solve)*eval(1:ph%n_states_solve)
-
-   ! Compute density matrix
-   if(any(factor < 0.0_r8)) then
-      do i = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
-
-         if(gid <= ph%n_states_solve) then
-            tmp(:,i) = evec(:,i)*factor(gid)
-         end if
-      end do
-
-      call pdgemm("N","T",ph%n_basis,ph%n_basis,ph%n_states_solve,-1.0_r8,tmp,&
-           1,1,bh%desc,evec,1,1,bh%desc,0.0_r8,edm,1,1,bh%desc)
+   if(which == GET_DM) then
+      write(msg,"(A)") "Finished density matrix calculation"
    else
-      max_state = count(factor > 0.0_r8)
-
-      do i = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
-
-         if(gid <= max_state) then
-            tmp(:,i) = evec(:,i)*sqrt(factor(gid))
-         end if
-      end do
-
-      call pdsyrk("U","N",ph%n_basis,max_state,-1.0_r8,tmp,1,1,bh%desc,0.0_r8,&
-           edm,1,1,bh%desc)
-
-      call elsi_set_full_mat(ph,bh,UT_MAT,edm)
+      write(msg,"(A)") "Finished energy density matrix calculation"
    end if
 
-   call elsi_deallocate(bh,factor,"factor")
-   call elsi_deallocate(bh,tmp,"tmp")
-
-   call elsi_get_time(t1)
-
-   write(msg,"(A)") "Finished energy density matrix calculation"
-   call elsi_say(bh,msg)
-   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
-   call elsi_say(bh,msg)
-
-end subroutine
-
-!>
-!! Construct the energy-weighted density matrix from occupation numbers,
-!! eigenvalues, and eigenvectors.
-!!
-subroutine elsi_build_edm_cmplx(ph,bh,occ,eval,evec,edm)
-
-   implicit none
-
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(in) :: occ(ph%n_states)
-   real(kind=r8), intent(in) :: eval(ph%n_states)
-   complex(kind=r8), intent(in) :: evec(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: edm(bh%n_lrow,bh%n_lcol)
-
-   real(kind=r8) :: t0
-   real(kind=r8) :: t1
-   integer(kind=i4) :: i
-   integer(kind=i4) :: gid
-   integer(kind=i4) :: max_state
-   character(len=200) :: msg
-
-   real(kind=r8), allocatable :: factor(:)
-   complex(kind=r8), allocatable :: tmp(:,:)
-
-   character(len=*), parameter :: caller = "elsi_build_edm_cmplx"
-
-   call elsi_get_time(t0)
-
-   call elsi_allocate(bh,factor,ph%n_states_solve,"factor",caller)
-   call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
-
-   edm(:,:) = (0.0_r8,0.0_r8)
-
-   factor(:) = -occ(1:ph%n_states_solve)*eval(1:ph%n_states_solve)
-
-   ! Compute density matrix
-   if(any(factor < 0.0_r8)) then
-      do i = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
-
-         if(gid <= ph%n_states_solve) then
-            tmp(:,i) = evec(:,i)*factor(gid)
-         end if
-      end do
-
-      call pzgemm("N","C",ph%n_basis,ph%n_basis,ph%n_states_solve,&
-           (-1.0_r8,0.0_r8),tmp,1,1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),&
-           edm,1,1,bh%desc)
-   else
-      max_state = count(factor > 0.0_r8)
-
-      do i = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
-
-         if(gid <= max_state) then
-            tmp(:,i) = evec(:,i)*sqrt(factor(gid))
-         end if
-      end do
-
-      call pzherk("U","N",ph%n_basis,max_state,(-1.0_r8,0.0_r8),tmp,1,1,&
-           bh%desc,(0.0_r8,0.0_r8),edm,1,1,bh%desc)
-
-      call elsi_set_full_mat(ph,bh,UT_MAT,edm)
-   end if
-
-   call elsi_deallocate(bh,factor,"factor")
-   call elsi_deallocate(bh,tmp,"tmp")
-
-   call elsi_get_time(t1)
-
-   write(msg,"(A)") "Finished energy density matrix calculation"
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)

@@ -9,7 +9,7 @@
 !!
 module ELSI_PEXSI
 
-   use ELSI_CONSTANT, only: UNSET,PEXSI_CSC,PEXSI_DM,PEXSI_EDM,PEXSI_FDM
+   use ELSI_CONSTANT, only: UNSET,PEXSI_CSC,GET_DM,GET_EDM,GET_FDM
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: MPI_SUM,MPI_REAL8,MPI_COMPLEX16
@@ -408,7 +408,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       ! Get free energy density matrix
       call elsi_get_time(t0)
 
-      call elsi_retrieve_dm_pexsi(ph,bh,PEXSI_FDM,ne_vec,dm)
+      call elsi_retrieve_dm_pexsi(ph,bh,GET_FDM,ne_vec,dm)
 
       ! Compute energy = Tr(S*FDM)
       if(ph%pexsi_my_prow == 0) then
@@ -428,7 +428,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    ! Get density matrix
    call elsi_get_time(t0)
 
-   call elsi_retrieve_dm_pexsi(ph,bh,PEXSI_DM,ne_vec,dm)
+   call elsi_retrieve_dm_pexsi(ph,bh,GET_DM,ne_vec,dm)
 
    ! Compute energy = Tr(H*DM)
    if(ph%pexsi_my_prow == 0) then
@@ -481,7 +481,7 @@ subroutine elsi_compute_edm_pexsi_real(ph,bh,ne_vec,edm)
    call elsi_get_time(t0)
 
    ! Get energy density matrix
-   call elsi_retrieve_dm_pexsi(ph,bh,PEXSI_EDM,ne_vec,edm)
+   call elsi_retrieve_dm_pexsi(ph,bh,GET_EDM,ne_vec,edm)
 
    call elsi_get_time(t1)
 
@@ -527,12 +527,12 @@ subroutine elsi_retrieve_dm_pexsi_real(ph,bh,which,ne_vec,dm)
    call elsi_allocate(bh,tmp,bh%nnz_l_sp1,"tmp",caller)
 
    select case(which)
-   case(PEXSI_DM)
+   case(GET_DM)
       call f_ppexsi_retrieve_real_dm(ph%pexsi_plan,tmp,local_energy,ierr)
-   case(PEXSI_EDM)
+   case(GET_EDM)
       call f_ppexsi_retrieve_real_edm(ph%pexsi_plan,ph%pexsi_options,tmp,&
            local_energy,ierr)
-   case(PEXSI_FDM)
+   case(GET_FDM)
       call f_ppexsi_retrieve_real_fdm(ph%pexsi_plan,ph%pexsi_options,tmp,&
            local_energy,ierr)
    end select
@@ -884,7 +884,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
       ! Get free energy density matrix
       call elsi_get_time(t0)
 
-      call elsi_retrieve_dm_pexsi(ph,bh,PEXSI_FDM,ne_vec,dm)
+      call elsi_retrieve_dm_pexsi(ph,bh,GET_FDM,ne_vec,dm)
 
       ! Compute energy = Tr(S*FDM)
       if(ph%pexsi_my_prow == 0) then
@@ -905,7 +905,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    ! Get density matrix
    call elsi_get_time(t0)
 
-   call elsi_retrieve_dm_pexsi(ph,bh,PEXSI_DM,ne_vec,dm)
+   call elsi_retrieve_dm_pexsi(ph,bh,GET_DM,ne_vec,dm)
 
    ! Compute energy = Tr(H*DM)
    if(ph%pexsi_my_prow == 0) then
@@ -959,7 +959,7 @@ subroutine elsi_compute_edm_pexsi_cmplx(ph,bh,ne_vec,edm)
    call elsi_get_time(t0)
 
    ! Get energy density matrix
-   call elsi_retrieve_dm_pexsi(ph,bh,PEXSI_EDM,ne_vec,edm)
+   call elsi_retrieve_dm_pexsi(ph,bh,GET_EDM,ne_vec,edm)
 
    call elsi_get_time(t1)
 
@@ -1005,12 +1005,12 @@ subroutine elsi_retrieve_dm_pexsi_cmplx(ph,bh,which,ne_vec,dm)
    call elsi_allocate(bh,tmp,bh%nnz_l_sp1,"tmp",caller)
 
    select case(which)
-   case(PEXSI_DM)
+   case(GET_DM)
       call f_ppexsi_retrieve_complex_dm(ph%pexsi_plan,tmp,local_energy,ierr)
-   case(PEXSI_EDM)
+   case(GET_EDM)
       call f_ppexsi_retrieve_complex_edm(ph%pexsi_plan,ph%pexsi_options,tmp,&
            local_energy,ierr)
-   case(PEXSI_FDM)
+   case(GET_FDM)
       call f_ppexsi_retrieve_complex_fdm(ph%pexsi_plan,ph%pexsi_options,tmp,&
            local_energy,ierr)
    end select
