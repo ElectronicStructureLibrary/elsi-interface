@@ -17,6 +17,7 @@ module ELSI_RW
    use ELSI_MPI, only: elsi_stop,MPI_SUM,MPI_REAL8,MPI_COMPLEX16,MPI_INTEGER4,&
        MPI_MODE_RDONLY,MPI_MODE_WRONLY,MPI_MODE_CREATE,MPI_INFO_NULL,&
        MPI_STATUS_IGNORE
+   use ELSI_OUTPUT, only: elsi_get_unit
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_REDIST, only: elsi_blacs_to_mask,elsi_blacs_to_sips_hs_dim,&
        elsi_blacs_to_sips_hs,elsi_sips_to_blacs_dm
@@ -1425,6 +1426,7 @@ subroutine elsi_read_mat_dim_sp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    integer(kind=i4), intent(out) :: n_lcol !< Local number of columns
 
    integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i4) :: f_unit
    integer(kind=i8) :: offset
    integer(kind=i8) :: ierr
    character(len=200) :: msg
@@ -1432,7 +1434,9 @@ subroutine elsi_read_mat_dim_sp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    character(len=*), parameter :: caller = "elsi_read_mat_dim_sp"
 
    ! Open file
-   open(99,file=f_name,access="stream",form="unformatted",status="old",&
+   call elsi_get_unit(f_unit)
+
+   open(f_unit,file=f_name,access="stream",form="unformatted",status="old",&
       iostat=ierr)
 
    if(ierr /= 0) then
@@ -1443,9 +1447,9 @@ subroutine elsi_read_mat_dim_sp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    ! Read header
    offset = 1
 
-   read(unit=99,pos=offset) header
+   read(f_unit,pos=offset) header
 
-   close(unit=99)
+   close(f_unit)
 
    n_basis = header(4)
    n_electron = real(header(5),kind=r8)
@@ -1475,6 +1479,7 @@ subroutine elsi_read_mat_sp_real(rwh,f_name,mat)
    integer(kind=i4) :: i
    integer(kind=i4) :: j
    integer(kind=i4) :: this_nnz
+   integer(kind=i4) :: f_unit
    integer(kind=i8) :: offset
    integer(kind=i8) :: ierr
    character(len=200) :: msg
@@ -1486,7 +1491,9 @@ subroutine elsi_read_mat_sp_real(rwh,f_name,mat)
    character(len=*), parameter :: caller = "elsi_read_mat_sp_real"
 
    ! Open file
-   open(99,file=f_name,access="stream",form="unformatted",status="old",&
+   call elsi_get_unit(f_unit)
+
+   open(f_unit,file=f_name,access="stream",form="unformatted",status="old",&
       iostat=ierr)
 
    if(ierr /= 0) then
@@ -1497,7 +1504,7 @@ subroutine elsi_read_mat_sp_real(rwh,f_name,mat)
    ! Read header
    offset = 1
 
-   read(unit=99,pos=offset) header
+   read(f_unit,pos=offset) header
 
    rwh%bh%nnz_g = header(6)
    rwh%bh%nnz_l_sp = header(6)
@@ -1508,7 +1515,7 @@ subroutine elsi_read_mat_sp_real(rwh,f_name,mat)
    ! Read column pointer
    offset = int(1,kind=i8)+HEADER_SIZE*4
 
-   read(unit=99,pos=offset) col_ptr(1:rwh%bh%n_lcol_sp)
+   read(f_unit,pos=offset) col_ptr(1:rwh%bh%n_lcol_sp)
 
    col_ptr(rwh%bh%n_lcol_sp+1) = rwh%bh%nnz_g+1
 
@@ -1517,17 +1524,17 @@ subroutine elsi_read_mat_sp_real(rwh,f_name,mat)
    ! Read row index
    offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4
 
-   read(unit=99,pos=offset) row_ind
+   read(f_unit,pos=offset) row_ind
 
    ! Read nonzero value
    offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4+rwh%bh%nnz_g*4
 
    call elsi_allocate(rwh%bh,nnz_val,rwh%bh%nnz_l_sp,"nnz_val",caller)
 
-   read(unit=99,pos=offset) nnz_val
+   read(f_unit,pos=offset) nnz_val
 
    ! Close file
-   close(unit=99)
+   close(f_unit)
 
    ! Convert to dense
    mat(:,:) = 0.0_r8
@@ -1565,6 +1572,7 @@ subroutine elsi_read_mat_sp_cmplx(rwh,f_name,mat)
    integer(kind=i4) :: i
    integer(kind=i4) :: j
    integer(kind=i4) :: this_nnz
+   integer(kind=i4) :: f_unit
    integer(kind=i8) :: offset
    integer(kind=i8) :: ierr
    character(len=200) :: msg
@@ -1576,7 +1584,9 @@ subroutine elsi_read_mat_sp_cmplx(rwh,f_name,mat)
    character(len=*), parameter :: caller = "elsi_read_mat_sp_cmplx"
 
    ! Open file
-   open(99,file=f_name,access="stream",form="unformatted",status="old",&
+   call elsi_get_unit(f_unit)
+
+   open(f_unit,file=f_name,access="stream",form="unformatted",status="old",&
       iostat=ierr)
 
    if(ierr /= 0) then
@@ -1587,7 +1597,7 @@ subroutine elsi_read_mat_sp_cmplx(rwh,f_name,mat)
    ! Read header
    offset = 1
 
-   read(unit=99,pos=offset) header
+   read(f_unit,pos=offset) header
 
    rwh%bh%nnz_g = header(6)
    rwh%bh%nnz_l_sp = header(6)
@@ -1598,7 +1608,7 @@ subroutine elsi_read_mat_sp_cmplx(rwh,f_name,mat)
    ! Read column pointer
    offset = int(1,kind=i8)+HEADER_SIZE*4
 
-   read(unit=99,pos=offset) col_ptr(1:rwh%bh%n_lcol_sp)
+   read(f_unit,pos=offset) col_ptr(1:rwh%bh%n_lcol_sp)
 
    col_ptr(rwh%bh%n_lcol_sp+1) = rwh%bh%nnz_g+1
 
@@ -1607,17 +1617,17 @@ subroutine elsi_read_mat_sp_cmplx(rwh,f_name,mat)
    ! Read row index
    offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4
 
-   read(unit=99,pos=offset) row_ind
+   read(f_unit,pos=offset) row_ind
 
    ! Read nonzero value
    offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4+rwh%bh%nnz_g*4
 
    call elsi_allocate(rwh%bh,nnz_val,rwh%bh%nnz_l_sp,"nnz_val",caller)
 
-   read(unit=99,pos=offset) nnz_val
+   read(f_unit,pos=offset) nnz_val
 
    ! Close file
-   close(unit=99)
+   close(f_unit)
 
    ! Convert to dense
    mat(:,:) = (0.0_r8,0.0_r8)
@@ -1656,6 +1666,7 @@ subroutine elsi_write_mat_sp_real(rwh,f_name,mat)
    integer(kind=i4) :: j
    integer(kind=i4) :: this_nnz
    integer(kind=i4) :: nnz_g
+   integer(kind=i4) :: f_unit
    integer(kind=i8) :: offset
    integer(kind=i8) :: ierr
    character(len=200) :: msg
@@ -1693,7 +1704,9 @@ subroutine elsi_write_mat_sp_real(rwh,f_name,mat)
    end do
 
    ! Open file
-   open(99,file=f_name,access="stream",form="unformatted",iostat=ierr)
+   call elsi_get_unit(f_unit)
+
+   open(f_unit,file=f_name,access="stream",form="unformatted",iostat=ierr)
 
    if(ierr /= 0) then
       write(msg,"(2A)") "Failed to open file ",trim(f_name)
@@ -1711,25 +1724,25 @@ subroutine elsi_write_mat_sp_real(rwh,f_name,mat)
    header(9:16) = rwh%header_user
 
    offset = 1
-   write(unit=99,pos=offset) header
+   write(f_unit,pos=offset) header
 
    ! Write column pointer
    offset = int(1,kind=i8)+HEADER_SIZE*4
 
-   write(unit=99,pos=offset) col_ptr(1:rwh%n_basis)
+   write(f_unit,pos=offset) col_ptr(1:rwh%n_basis)
 
    ! Write row index
    offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4
 
-   write(unit=99,pos=offset) row_ind
+   write(f_unit,pos=offset) row_ind
 
    ! Write nonzero value
    offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4+nnz_g*4
 
-   write(unit=99,pos=offset) nnz_val
+   write(f_unit,pos=offset) nnz_val
 
    ! Close file
-   close(unit=99)
+   close(f_unit)
 
    call elsi_deallocate(rwh%bh,col_ptr,"col_ptr")
    call elsi_deallocate(rwh%bh,row_ind,"row_ind")
@@ -1754,6 +1767,7 @@ subroutine elsi_write_mat_sp_cmplx(rwh,f_name,mat)
    integer(kind=i4) :: j
    integer(kind=i4) :: this_nnz
    integer(kind=i4) :: nnz_g
+   integer(kind=i4) :: f_unit
    integer(kind=i8) :: offset
    integer(kind=i8) :: ierr
    character(len=200) :: msg
@@ -1791,7 +1805,9 @@ subroutine elsi_write_mat_sp_cmplx(rwh,f_name,mat)
    end do
 
    ! Open file
-   open(99,file=f_name,access="stream",form="unformatted",iostat=ierr)
+   call elsi_get_unit(f_unit)
+
+   open(f_unit,file=f_name,access="stream",form="unformatted",iostat=ierr)
 
    if(ierr /= 0) then
       write(msg,"(2A)") "Failed to open file ",trim(f_name)
@@ -1809,25 +1825,25 @@ subroutine elsi_write_mat_sp_cmplx(rwh,f_name,mat)
    header(9:16) = rwh%header_user
 
    offset = 1
-   write(unit=99,pos=offset) header
+   write(f_unit,pos=offset) header
 
    ! Write column pointer
    offset = int(1,kind=i8)+HEADER_SIZE*4
 
-   write(unit=99,pos=offset) col_ptr(1:rwh%n_basis)
+   write(f_unit,pos=offset) col_ptr(1:rwh%n_basis)
 
    ! Write row index
    offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4
 
-   write(unit=99,pos=offset) row_ind
+   write(f_unit,pos=offset) row_ind
 
    ! Write nonzero value
    offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4+nnz_g*4
 
-   write(unit=99,pos=offset) nnz_val
+   write(f_unit,pos=offset) nnz_val
 
    ! Close file
-   close(unit=99)
+   close(f_unit)
 
    call elsi_deallocate(rwh%bh,col_ptr,"col_ptr")
    call elsi_deallocate(rwh%bh,row_ind,"row_ind")
