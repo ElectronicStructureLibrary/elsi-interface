@@ -11,6 +11,7 @@ module ELSI_INPUT
 
    use ELSI_DATATYPE, only: elsi_handle,elsi_basic_t
    use ELSI_MPI, only: elsi_stop
+   use ELSI_OUTPUT, only: elsi_get_unit
    use ELSI_PRECISION, only: r8,i4
    use ELSI_SET, only: elsi_set_output,elsi_set_output_log,elsi_set_zero_def,&
        elsi_set_sparsity_mask,elsi_set_illcond_check,elsi_set_illcond_tol,&
@@ -48,6 +49,7 @@ subroutine elsi_set_input_file(eh,f_name)
    integer(kind=i4) :: i
    integer(kind=i4) :: ierr
    integer(kind=i4) :: val_i4
+   integer(kind=i4) :: f_unit
    logical :: kwd_found
    character(len=200) :: msg
    character(len=20) :: kwd
@@ -57,7 +59,9 @@ subroutine elsi_set_input_file(eh,f_name)
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
-   open(313,file=f_name,status="old",iostat=ierr)
+   call elsi_get_unit(f_unit)
+
+   open(f_unit,file=f_name,status="old",iostat=ierr)
 
    if(ierr /= 0) then
       write(msg,"(2A)") "Failed to open input file ",trim(f_name)
@@ -66,7 +70,7 @@ subroutine elsi_set_input_file(eh,f_name)
 
    do
       ! Read in a line
-      read(313,"(A)",iostat=ierr) msg
+      read(f_unit,"(A)",iostat=ierr) msg
 
       if(ierr < 0) then
          ! EOF
@@ -290,7 +294,7 @@ subroutine elsi_set_input_file(eh,f_name)
       end select
    end do
 
-   close(313)
+   close(f_unit)
 
 end subroutine
 

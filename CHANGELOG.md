@@ -9,19 +9,19 @@
 * Updated redistributed ELPA source code to version 2020.05.001, which supports
   single precision calculations, autotuning of runtime parameters, and (NVIDIA)
   GPU acceleration.
-* The updated ELPA code can not be compiled with the NAG Fortran compiler, due
-  to the use of GNU extentions in ELPA.
 
 ### PEXSI
 * AAA method has become the default pole expansion method in PEXSI.
 * Increased default number of poles from 20 to 30.
-* Improved accuracy of pole expansion based on minimax approximation.
+* Improved accuracy of pole expansion based on minimax rational approximation.
 * Updated redistributed (PT-)SCOTCH source code to version 6.0.9.
 
 ### SLEPc-SIPs
 * Interface compatible with PETSc 3.13 and SLEPc 3.13.
 
 ### Known issues
+* The ELPA code can not be compiled with the NAG Fortran compiler, due to the
+  use of GNU extentions in ELPA.
 * ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
   support of AVX intrinsics in PGI.
 * Depending on the choice of k-points, the complex PEXSI solver may randomly

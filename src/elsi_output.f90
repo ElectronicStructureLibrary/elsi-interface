@@ -27,6 +27,7 @@ module ELSI_OUTPUT
    public :: elsi_say
    public :: elsi_add_log
    public :: elsi_get_time
+   public :: elsi_get_unit
    public :: fjson_close_file
    public :: fjson_finish_array
    public :: fjson_get_datetime_rfc3339
@@ -68,12 +69,15 @@ subroutine elsi_add_log(ph,bh,jh,dt0,t0,caller)
 
    real(kind=r8) :: t1
    integer(kind=i4) :: solver_use
+   integer(kind=i4) :: f_unit
    character(len=20) :: solver_tag
    character(len=29) :: dt_record
 
    if(bh%print_json > 0) then
       if(.not. bh%json_init) then
-         call fjson_open_file(jh,66,"elsi_log.json")
+         call elsi_get_unit(f_unit)
+
+         call fjson_open_file(jh,f_unit,"elsi_log.json")
          call fjson_start_array(jh)
 
          bh%json_init = .true.
@@ -593,6 +597,30 @@ subroutine elsi_get_time(wtime)
 
    wtime = day*86400.0_r8+hour*3600.0_r8+minute*60.0_r8+second&
       +millisecond*0.001_r8
+
+end subroutine
+
+!>
+!! Find an unused unit.
+!!
+subroutine elsi_get_unit(new_unit)
+
+   implicit none
+
+   integer(kind=i4), intent(out) :: new_unit
+
+   integer(kind=i4) :: iu
+   logical :: is_open
+
+   do iu = 100,9999
+      inquire(iu,opened=is_open)
+
+      if(.not. is_open) then
+         exit
+      end if
+   end do
+
+   new_unit = iu
 
 end subroutine
 

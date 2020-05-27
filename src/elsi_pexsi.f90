@@ -334,7 +334,6 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          else
             ph%pexsi_options%muMin0 = shifts(aux_min)
             ph%pexsi_options%muMax0 = shifts(aux_max)
-
             mu_range = ph%pexsi_options%muMax0-ph%pexsi_options%muMin0
          end if
       end do
@@ -810,7 +809,6 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
          else
             ph%pexsi_options%muMin0 = shifts(aux_min)
             ph%pexsi_options%muMax0 = shifts(aux_max)
-
             mu_range = ph%pexsi_options%muMax0-ph%pexsi_options%muMin0
          end if
       end do
