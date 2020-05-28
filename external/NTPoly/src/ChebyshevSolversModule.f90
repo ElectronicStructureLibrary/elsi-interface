@@ -34,19 +34,19 @@ MODULE ChebyshevSolversModule
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTERFACE ConstructPolynomial
      MODULE PROCEDURE ConstructPolynomial_cheby
-  END INTERFACE
+  END INTERFACE ConstructPolynomial
   INTERFACE DestructPolynomial
      MODULE PROCEDURE DestructPolynomial_cheby
-  END INTERFACE
+  END INTERFACE DestructPolynomial
   INTERFACE SetCoefficient
      MODULE PROCEDURE SetCoefficient_cheby
-  END INTERFACE
+  END INTERFACE SetCoefficient
   INTERFACE Compute
      MODULE PROCEDURE Compute_cheby
-  END INTERFACE
+  END INTERFACE Compute
   INTERFACE FactorizedCompute
      MODULE PROCEDURE FactorizedCompute_cheby
-  END INTERFACE
+  END INTERFACE FactorizedCompute
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Construct a Chebyshev polynomial object.
   PURE SUBROUTINE ConstructPolynomial_cheby(this, degree)
@@ -56,7 +56,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(IN) :: degree
 
     ALLOCATE(this%coefficients(degree))
-    this%coefficients = 0
+    this%coefficients = 0_NTREAL
   END SUBROUTINE ConstructPolynomial_cheby
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Destruct a polynomial object.
@@ -116,8 +116,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL WriteHeader("Chebyshev Solver")
        CALL EnterSubLog
-       CALL WriteElement(key="Method", value="Standard")
-       CALL WriteElement(key="Degree", value=degree-1)
+       CALL WriteElement(key="Method", VALUE="Standard")
+       CALL WriteElement(key="Degree", VALUE=degree-1)
        CALL PrintParameters(solver_parameters)
     END IF
 
@@ -227,8 +227,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL WriteHeader("Chebyshev Solver")
        CALL EnterSubLog
-       CALL WriteElement(key="Method", value="Recursive")
-       CALL WriteElement(key="Degree", value=degree-1)
+       CALL WriteElement(key="Method", VALUE="Recursive")
+       CALL WriteElement(key="Degree", VALUE=degree-1)
        CALL PrintParameters(solver_parameters)
     END IF
 

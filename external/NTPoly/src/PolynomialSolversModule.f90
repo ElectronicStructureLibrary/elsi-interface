@@ -34,19 +34,19 @@ MODULE PolynomialSolversModule
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTERFACE ConstructPolynomial
      MODULE PROCEDURE ConstructPolynomial_stand
-  END INTERFACE
+  END INTERFACE ConstructPolynomial
   INTERFACE DestructPolynomial
      MODULE PROCEDURE DestructPolynomial_stand
-  END INTERFACE
+  END INTERFACE DestructPolynomial
   INTERFACE SetCoefficient
      MODULE PROCEDURE SetCoefficient_stand
-  END INTERFACE
+  END INTERFACE SetCoefficient
   INTERFACE Compute
      MODULE PROCEDURE Compute_stand
-  END INTERFACE
+  END INTERFACE Compute
   INTERFACE FactorizedCompute
      MODULE PROCEDURE FactorizedCompute_stand
-  END INTERFACE
+  END INTERFACE FactorizedCompute
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Construct a polynomial.
   PURE SUBROUTINE ConstructPolynomial_stand(this, degree)
@@ -56,7 +56,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(IN) :: degree
 
     ALLOCATE(this%coefficients(degree))
-    this%coefficients = 0
+    this%coefficients = 0_NTREAL
   END SUBROUTINE ConstructPolynomial_stand
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Destruct a polynomial object.
@@ -112,9 +112,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL WriteHeader("Polynomial Solver")
        CALL EnterSubLog
-       CALL WriteElement(key="Method", value="Horner")
+       CALL WriteElement(key="Method", VALUE="Horner")
        CALL PrintParameters(solver_parameters)
-       CALL WriteElement(key="Degree", value=degree-1)
+       CALL WriteElement(key="Degree", VALUE=degree-1)
     END IF
 
     !! Initial values for matrices
@@ -207,10 +207,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL WriteHeader("Polynomial Solver")
        CALL EnterSubLog
-       CALL WriteElement(key="Method", value="Paterson Stockmeyer")
+       CALL WriteElement(key="Method", VALUE="Paterson Stockmeyer")
        CALL WriteCitation("paterson1973number")
        CALL PrintParameters(solver_parameters)
-       CALL WriteElement(key="Degree", value=degree-1)
+       CALL WriteElement(key="Degree", VALUE=degree-1)
     END IF
 
     ALLOCATE(x_powers(s_value+1))

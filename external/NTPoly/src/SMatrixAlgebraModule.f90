@@ -32,51 +32,51 @@ MODULE SMatrixAlgebraModule
      MODULE PROCEDURE ScaleMatrix_lsr
      MODULE PROCEDURE ScaleMatrix_lsc
      MODULE PROCEDURE ScaleMatrix_lsc_c
-  END INTERFACE
+  END INTERFACE ScaleMatrix
   INTERFACE IncrementMatrix
      MODULE PROCEDURE IncrementMatrix_lsr
      MODULE PROCEDURE IncrementMatrix_lsc
-  END INTERFACE
+  END INTERFACE IncrementMatrix
   INTERFACE DotMatrix
      MODULE PROCEDURE DotMatrix_lsr
      MODULE PROCEDURE DotMatrix_lsc
-  END INTERFACE
+  END INTERFACE DotMatrix
   INTERFACE PairwiseMultiplyMatrix
      MODULE PROCEDURE PairwiseMultiplyMatrix_lsr
      MODULE PROCEDURE PairwiseMultiplyMatrix_lsc
-  END INTERFACE
+  END INTERFACE PairwiseMultiplyMatrix
   INTERFACE MatrixMultiply
      MODULE PROCEDURE GemmMatrix_lsr
      MODULE PROCEDURE GemmMatrix_lsc
-  END INTERFACE
+  END INTERFACE MatrixMultiply
   INTERFACE MatrixColumnNorm
      MODULE PROCEDURE MatrixColumnNorm_lsr
      MODULE PROCEDURE MatrixColumnNorm_lsc
-  END INTERFACE
+  END INTERFACE MatrixColumnNorm
   INTERFACE MatrixNorm
      MODULE PROCEDURE MatrixNorm_lsr
      MODULE PROCEDURE MatrixNorm_lsc
-  END INTERFACE
+  END INTERFACE MatrixNorm
   INTERFACE MatrixGrandSum
      MODULE PROCEDURE MatrixGrandSum_lsr
      MODULE PROCEDURE MatrixGrandSum_lsc
-  END INTERFACE
+  END INTERFACE MatrixGrandSum
   INTERFACE MultiplyBlock
      MODULE PROCEDURE MultiplyBlock_lsr
      MODULE PROCEDURE MultiplyBlock_lsc
-  END INTERFACE
+  END INTERFACE MultiplyBlock
   INTERFACE PruneList
      MODULE PROCEDURE PruneList_lsr
      MODULE PROCEDURE PruneList_lsc
-  END INTERFACE
+  END INTERFACE PruneList
   INTERFACE SparseBranch
      MODULE PROCEDURE SparseBranch_lsr
      MODULE PROCEDURE SparseBranch_lsc
-  END INTERFACE
+  END INTERFACE SparseBranch
   INTERFACE DenseBranch
      MODULE PROCEDURE DenseBranch_lsr
      MODULE PROCEDURE DenseBranch_lsc
-  END INTERFACE
+  END INTERFACE DenseBranch
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Will scale a sparse matrix by a constant.
   PURE SUBROUTINE ScaleMatrix_lsr(matA,constant)
@@ -124,7 +124,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Counter Variables
   INTEGER :: outer_counter
-  INTEGER :: elements_per_inner_a, elements_per_inner_b
+  INTEGER :: inner_a, inner_b
   INTEGER :: total_counter_a, total_counter_b, total_counter_c
   !! Temporary Variables
   INTEGER :: indices_added_into_c
@@ -134,12 +134,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Process Optional Parameters
   IF (.NOT. PRESENT(alpha_in)) THEN
-     alpha = 1.0d+0
+     alpha = 1.0_NTREAL
   ELSE
      alpha = alpha_in
   END IF
   IF (.NOT. PRESENT(threshold_in)) THEN
-     threshold = 0.0d+0
+     threshold = 0.0_NTREAL
   ELSE
      threshold = threshold_in
   END IF
@@ -154,7 +154,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      ALLOCATE(matC%values(size_of_a+size_of_b))
   ELSE
      CALL CopyMatrix(matA, matB)
-     matB%values = 0.0d+0
+     matB%values = 0.0_NTREAL
      ALLOCATE(matC%inner_index(size_of_a))
      ALLOCATE(matC%values(size_of_a))
   END IF
@@ -165,21 +165,21 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   total_counter_c = 1
   DO outer_counter = 1, matA%columns
      !! Inner counters
-     elements_per_inner_a = matA%outer_index(outer_counter+1) - &
+     inner_a = matA%outer_index(outer_counter+1) - &
           & matA%outer_index(outer_counter)
-     elements_per_inner_b = matB%outer_index(outer_counter+1) - &
+     inner_b = matB%outer_index(outer_counter+1) - &
           & matB%outer_index(outer_counter)
      CALL AddSparseVectors(&
-          matA%inner_index(total_counter_a:total_counter_a+elements_per_inner_a-1),&
-          matA%values(total_counter_a:total_counter_a+elements_per_inner_a-1),&
-          matB%inner_index(total_counter_b:total_counter_b+elements_per_inner_b-1),&
-          matB%values(total_counter_b:total_counter_b+elements_per_inner_b-1),&
+          matA%inner_index(total_counter_a:total_counter_a+inner_a-1),&
+          matA%values(total_counter_a:total_counter_a+inner_a-1),&
+          matB%inner_index(total_counter_b:total_counter_b+inner_b-1),&
+          matB%values(total_counter_b:total_counter_b+inner_b-1),&
           matC%inner_index(total_counter_c:),matC%values(total_counter_c:),&
           indices_added_into_c, alpha, threshold)
      matC%outer_index(outer_counter+1) = matC%outer_index(outer_counter)+&
           & indices_added_into_c
-     total_counter_a = total_counter_a + elements_per_inner_a
-     total_counter_b = total_counter_b + elements_per_inner_b
+     total_counter_a = total_counter_a + inner_a
+     total_counter_b = total_counter_b + inner_b
      total_counter_c = total_counter_c + indices_added_into_c
   END DO
 
@@ -210,7 +210,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Counter Variables
   INTEGER :: outer_counter
-  INTEGER :: elements_per_inner_a, elements_per_inner_b
+  INTEGER :: inner_a, inner_b
   INTEGER :: total_counter_a, total_counter_b, total_counter_c
   !! Temporary Variables
   INTEGER :: indices_added_into_c
@@ -220,12 +220,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Process Optional Parameters
   IF (.NOT. PRESENT(alpha_in)) THEN
-     alpha = 1.0d+0
+     alpha = 1.0_NTREAL
   ELSE
      alpha = alpha_in
   END IF
   IF (.NOT. PRESENT(threshold_in)) THEN
-     threshold = 0.0d+0
+     threshold = 0.0_NTREAL
   ELSE
      threshold = threshold_in
   END IF
@@ -240,7 +240,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      ALLOCATE(matC%values(size_of_a+size_of_b))
   ELSE
      CALL CopyMatrix(matA, matB)
-     matB%values = 0.0d+0
+     matB%values = 0.0_NTREAL
      ALLOCATE(matC%inner_index(size_of_a))
      ALLOCATE(matC%values(size_of_a))
   END IF
@@ -251,21 +251,21 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   total_counter_c = 1
   DO outer_counter = 1, matA%columns
      !! Inner counters
-     elements_per_inner_a = matA%outer_index(outer_counter+1) - &
+     inner_a = matA%outer_index(outer_counter+1) - &
           & matA%outer_index(outer_counter)
-     elements_per_inner_b = matB%outer_index(outer_counter+1) - &
+     inner_b = matB%outer_index(outer_counter+1) - &
           & matB%outer_index(outer_counter)
      CALL AddSparseVectors(&
-          matA%inner_index(total_counter_a:total_counter_a+elements_per_inner_a-1),&
-          matA%values(total_counter_a:total_counter_a+elements_per_inner_a-1),&
-          matB%inner_index(total_counter_b:total_counter_b+elements_per_inner_b-1),&
-          matB%values(total_counter_b:total_counter_b+elements_per_inner_b-1),&
+          matA%inner_index(total_counter_a:total_counter_a+inner_a-1),&
+          matA%values(total_counter_a:total_counter_a+inner_a-1),&
+          matB%inner_index(total_counter_b:total_counter_b+inner_b-1),&
+          matB%values(total_counter_b:total_counter_b+inner_b-1),&
           matC%inner_index(total_counter_c:),matC%values(total_counter_c:),&
           indices_added_into_c, alpha, threshold)
      matC%outer_index(outer_counter+1) = matC%outer_index(outer_counter)+&
           & indices_added_into_c
-     total_counter_a = total_counter_a + elements_per_inner_a
-     total_counter_b = total_counter_b + elements_per_inner_b
+     total_counter_a = total_counter_a + inner_a
+     total_counter_b = total_counter_b + inner_b
      total_counter_c = total_counter_c + indices_added_into_c
   END DO
 
@@ -294,7 +294,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Counter Variables
   INTEGER :: outer_counter
-  INTEGER :: elements_per_inner_a, elements_per_inner_b
+  INTEGER :: inner_a, inner_b
   INTEGER :: total_counter_a, total_counter_b, total_counter_c
   !! Temporary Variables
   INTEGER :: indices_added_into_c
@@ -312,21 +312,22 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   total_counter_c = 1
   DO outer_counter = 1, matA%columns
      !! Inner counters
-     elements_per_inner_a = matA%outer_index(outer_counter+1) - &
+     inner_a = matA%outer_index(outer_counter+1) - &
           & matA%outer_index(outer_counter)
-     elements_per_inner_b = matB%outer_index(outer_counter+1) - &
+     inner_b = matB%outer_index(outer_counter+1) - &
           & matB%outer_index(outer_counter)
      CALL PairwiseMultiplyVectors(&
-          matA%inner_index(total_counter_a:total_counter_a+elements_per_inner_a-1),&
-          matA%values(total_counter_a:total_counter_a+elements_per_inner_a-1),&
-          matB%inner_index(total_counter_b:total_counter_b+elements_per_inner_b-1),&
-          matB%values(total_counter_b:total_counter_b+elements_per_inner_b-1),&
-          TempMat%inner_index(total_counter_c:),TempMat%values(total_counter_c:),&
+          matA%inner_index(total_counter_a:total_counter_a+inner_a-1),&
+          matA%values(total_counter_a:total_counter_a+inner_a-1),&
+          matB%inner_index(total_counter_b:total_counter_b+inner_b-1),&
+          matB%values(total_counter_b:total_counter_b+inner_b-1),&
+          TempMat%inner_index(total_counter_c:),&
+          TempMat%values(total_counter_c:),&
           indices_added_into_c)
      TempMat%outer_index(outer_counter+1) = TempMat%outer_index(outer_counter)+&
           & indices_added_into_c
-     total_counter_a = total_counter_a + elements_per_inner_a
-     total_counter_b = total_counter_b + elements_per_inner_b
+     total_counter_a = total_counter_a + inner_a
+     total_counter_b = total_counter_b + inner_b
      total_counter_c = total_counter_c + indices_added_into_c
   END DO
 
@@ -336,7 +337,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   matC%outer_index = TempMat%outer_index
   ALLOCATE(matC%inner_index(TempMat%outer_index(TempMat%columns+1)))
   ALLOCATE(matC%values(TempMat%outer_index(TempMat%columns+1)))
-  matC%inner_index = TempMat%inner_index(:TempMat%outer_index(TempMat%columns+1))
+  matC%inner_index = TempMat%inner_index(&
+       & :TempMat%outer_index(TempMat%columns+1))
   matC%values = TempMat%values(:TempMat%outer_index(TempMat%columns+1))
   CALL DestructMatrix(TempMat)
   END SUBROUTINE PairwiseMultiplyMatrix_lsr
@@ -355,7 +357,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Counter Variables
   INTEGER :: outer_counter
-  INTEGER :: elements_per_inner_a, elements_per_inner_b
+  INTEGER :: inner_a, inner_b
   INTEGER :: total_counter_a, total_counter_b, total_counter_c
   !! Temporary Variables
   INTEGER :: indices_added_into_c
@@ -373,21 +375,22 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   total_counter_c = 1
   DO outer_counter = 1, matA%columns
      !! Inner counters
-     elements_per_inner_a = matA%outer_index(outer_counter+1) - &
+     inner_a = matA%outer_index(outer_counter+1) - &
           & matA%outer_index(outer_counter)
-     elements_per_inner_b = matB%outer_index(outer_counter+1) - &
+     inner_b = matB%outer_index(outer_counter+1) - &
           & matB%outer_index(outer_counter)
      CALL PairwiseMultiplyVectors(&
-          matA%inner_index(total_counter_a:total_counter_a+elements_per_inner_a-1),&
-          matA%values(total_counter_a:total_counter_a+elements_per_inner_a-1),&
-          matB%inner_index(total_counter_b:total_counter_b+elements_per_inner_b-1),&
-          matB%values(total_counter_b:total_counter_b+elements_per_inner_b-1),&
-          TempMat%inner_index(total_counter_c:),TempMat%values(total_counter_c:),&
+          matA%inner_index(total_counter_a:total_counter_a+inner_a-1),&
+          matA%values(total_counter_a:total_counter_a+inner_a-1),&
+          matB%inner_index(total_counter_b:total_counter_b+inner_b-1),&
+          matB%values(total_counter_b:total_counter_b+inner_b-1),&
+          TempMat%inner_index(total_counter_c:),&
+          TempMat%values(total_counter_c:),&
           indices_added_into_c)
      TempMat%outer_index(outer_counter+1) = TempMat%outer_index(outer_counter)+&
           & indices_added_into_c
-     total_counter_a = total_counter_a + elements_per_inner_a
-     total_counter_b = total_counter_b + elements_per_inner_b
+     total_counter_a = total_counter_a + inner_a
+     total_counter_b = total_counter_b + inner_b
      total_counter_c = total_counter_c + indices_added_into_c
   END DO
 
@@ -397,7 +400,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   matC%outer_index = TempMat%outer_index
   ALLOCATE(matC%inner_index(TempMat%outer_index(TempMat%columns+1)))
   ALLOCATE(matC%values(TempMat%outer_index(TempMat%columns+1)))
-  matC%inner_index = TempMat%inner_index(:TempMat%outer_index(TempMat%columns+1))
+  matC%inner_index = TempMat%inner_index(&
+       & :TempMat%outer_index(TempMat%columns+1))
   matC%values = TempMat%values(:TempMat%outer_index(TempMat%columns+1))
   CALL DestructMatrix(TempMat)
   END SUBROUTINE PairwiseMultiplyMatrix_lsc
@@ -475,6 +479,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL) :: threshold
     TYPE(MatrixMemoryPool_lr) :: blocked_memory_pool
 
+  REAL(NTREAL), PARAMETER :: sparsity_threshold = 0.1_NTREAL
   !! Counters and temporary data
   INTEGER :: mat_c_columns, mat_c_rows
   !! For Efficiency Purposes
@@ -484,12 +489,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Process Optional Parameters
   IF (.NOT. PRESENT(alpha_in)) THEN
-     alpha = 1.0d+0
+     alpha = 1.0_NTREAL
   ELSE
      alpha = alpha_in
   END IF
   IF (.NOT. PRESENT(beta_in)) THEN
-     beta = 0.0
+     beta = 0.0_NTREAL
   ELSE
      beta = beta_in
   END IF
@@ -532,7 +537,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END IF
 
   !! Decide whether to do dense or sparse version.
-  IF (MIN(sparsity_a, sparsity_b) .GT. 0.3) THEN
+  IF (MIN(sparsity_a, sparsity_b) .GT. sparsity_threshold) THEN
      CALL DenseBranch(matA, matB, matAB, IsATransposed, IsBTransposed, &
           & alpha, threshold)
   ELSE
@@ -609,6 +614,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL) :: threshold
     TYPE(MatrixMemoryPool_lc) :: blocked_memory_pool
 
+  REAL(NTREAL), PARAMETER :: sparsity_threshold = 0.1_NTREAL
   !! Counters and temporary data
   INTEGER :: mat_c_columns, mat_c_rows
   !! For Efficiency Purposes
@@ -618,12 +624,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Process Optional Parameters
   IF (.NOT. PRESENT(alpha_in)) THEN
-     alpha = 1.0d+0
+     alpha = 1.0_NTREAL
   ELSE
      alpha = alpha_in
   END IF
   IF (.NOT. PRESENT(beta_in)) THEN
-     beta = 0.0
+     beta = 0.0_NTREAL
   ELSE
      beta = beta_in
   END IF
@@ -666,7 +672,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END IF
 
   !! Decide whether to do dense or sparse version.
-  IF (MIN(sparsity_a, sparsity_b) .GT. 0.3) THEN
+  IF (MIN(sparsity_a, sparsity_b) .GT. sparsity_threshold) THEN
      CALL DenseBranch(matA, matB, matAB, IsATransposed, IsBTransposed, &
           & alpha, threshold)
   ELSE
@@ -1154,7 +1160,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      END DO
   END DO
   CALL ConstructTripletList(unsorted_pruned_list, pruned_counter-1)
-  unsorted_pruned_list%data = memorypool%pruned_list(1:pruned_counter-1)
+  unsorted_pruned_list%DATA = memorypool%pruned_list(1:pruned_counter-1)
   CALL SortTripletList(unsorted_pruned_list, mat_c_columns, mat_c_rows, &
        & sorted_pruned_list, bubble_in=.TRUE.)
   CALL ConstructMatrixFromTripletList(matAB, sorted_pruned_list, mat_c_rows, &
@@ -1216,7 +1222,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      END DO
   END DO
   CALL ConstructTripletList(unsorted_pruned_list, pruned_counter-1)
-  unsorted_pruned_list%data = memorypool%pruned_list(1:pruned_counter-1)
+  unsorted_pruned_list%DATA = memorypool%pruned_list(1:pruned_counter-1)
   CALL SortTripletList(unsorted_pruned_list, mat_c_columns, mat_c_rows, &
        & sorted_pruned_list, bubble_in=.TRUE.)
   CALL ConstructMatrixFromTripletList(matAB, sorted_pruned_list, mat_c_rows, &

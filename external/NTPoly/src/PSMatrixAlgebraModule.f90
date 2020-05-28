@@ -39,34 +39,34 @@ MODULE PSMatrixAlgebraModule
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTERFACE MatrixSigma
      MODULE PROCEDURE MatrixSigma_ps
-  END INTERFACE
+  END INTERFACE MatrixSigma
   INTERFACE MatrixMultiply
      MODULE PROCEDURE MatrixMultiply_ps
-  END INTERFACE
+  END INTERFACE MatrixMultiply
   INTERFACE MatrixGrandSum
      MODULE PROCEDURE MatrixGrandSum_psr
      MODULE PROCEDURE MatrixGrandSum_psc
-  END INTERFACE
+  END INTERFACE MatrixGrandSum
   INTERFACE PairwiseMultiplyMatrix
      MODULE PROCEDURE PairwiseMultiplyMatrix_ps
-  END INTERFACE
+  END INTERFACE PairwiseMultiplyMatrix
   INTERFACE MatrixNorm
      MODULE PROCEDURE MatrixNorm_ps
-  END INTERFACE
+  END INTERFACE MatrixNorm
   INTERFACE DotMatrix
      MODULE PROCEDURE DotMatrix_psr
      MODULE PROCEDURE DotMatrix_psc
-  END INTERFACE
+  END INTERFACE DotMatrix
   INTERFACE IncrementMatrix
      MODULE PROCEDURE IncrementMatrix_ps
-  END INTERFACE
+  END INTERFACE IncrementMatrix
   INTERFACE ScaleMatrix
      MODULE PROCEDURE ScaleMatrix_psr
      MODULE PROCEDURE ScaleMatrix_psc
-  END INTERFACE
+  END INTERFACE ScaleMatrix
   INTERFACE MatrixTrace
      MODULE PROCEDURE MatrixTrace_psr
-  END INTERFACE
+  END INTERFACE MatrixTrace
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute sigma for the inversion method.
   !> See \cite ozaki2001efficient for details.
@@ -102,7 +102,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & this%process_grid%column_comm, ierr)
   CALL MPI_Allreduce(MAXVAL(column_sigma_contribution),sigma_value,1, &
        & MPINTREAL,MPI_MAX, this%process_grid%row_comm, ierr)
-  sigma_value = 1.0d+0/(sigma_value**2)
+  sigma_value = 1.0_NTREAL/(sigma_value**2)
 
   DEALLOCATE(column_sigma_contribution)
   CALL DestructMatrix(merged_local_data_c)
@@ -125,7 +125,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & this%process_grid%column_comm, ierr)
   CALL MPI_Allreduce(MAXVAL(column_sigma_contribution),sigma_value,1, &
        & MPINTREAL,MPI_MAX, this%process_grid%row_comm, ierr)
-  sigma_value = 1.0d+0/(sigma_value**2)
+  sigma_value = 1.0_NTREAL/(sigma_value**2)
 
   DEALLOCATE(column_sigma_contribution)
   CALL DestructMatrix(merged_local_data_r)
@@ -160,17 +160,17 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Handle the optional parameters
     IF (.NOT. PRESENT(alpha_in)) THEN
-       alpha = 1.0d+0
+       alpha = 1.0_NTREAL
     ELSE
        alpha = alpha_in
     END IF
     IF (.NOT. PRESENT(beta_in)) THEN
-       beta = 0.0
+       beta = 0.0_NTREAL
     ELSE
        beta = beta_in
     END IF
     IF (.NOT. PRESENT(threshold_in)) THEN
-       threshold = 0.0
+       threshold = 0.0_NTREAL
     ELSE
        threshold = threshold_in
     END IF
@@ -1131,12 +1131,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! Optional Parameters
     IF (.NOT. PRESENT(alpha_in)) THEN
-       alpha = 1.0d+0
+       alpha = 1.0_NTREAL
     ELSE
        alpha = alpha_in
     END IF
     IF (.NOT. PRESENT(threshold_in)) THEN
-       threshold = 0
+       threshold = 0.0_NTREAL
     ELSE
        threshold = threshold_in
     END IF
@@ -1261,10 +1261,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   trace_value = 0
   CALL MatrixToTripletList(merged_local_data_c, triplet_list_c)
   DO counter = 1, triplet_list_c%CurrentSize
-     IF (this%start_row + triplet_list_c%data(counter)%index_row .EQ. &
-          & this%start_column + triplet_list_c%data(counter)%index_column) THEN
+     IF (this%start_row + triplet_list_c%DATA(counter)%index_row .EQ. &
+          & this%start_column + triplet_list_c%DATA(counter)%index_column) THEN
         trace_value = trace_value + &
-             & REAL(triplet_list_c%data(counter)%point_value, NTREAL)
+             & REAL(triplet_list_c%DATA(counter)%point_value, NTREAL)
      END IF
   END DO
 
@@ -1281,10 +1281,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   trace_value = 0
   CALL MatrixToTripletList(merged_local_data_r, triplet_list_r)
   DO counter = 1, triplet_list_r%CurrentSize
-     IF (this%start_row + triplet_list_r%data(counter)%index_row .EQ. &
-          & this%start_column + triplet_list_r%data(counter)%index_column) THEN
+     IF (this%start_row + triplet_list_r%DATA(counter)%index_row .EQ. &
+          & this%start_column + triplet_list_r%DATA(counter)%index_column) THEN
         trace_value = trace_value + &
-             & REAL(triplet_list_r%data(counter)%point_value, NTREAL)
+             & REAL(triplet_list_r%DATA(counter)%point_value, NTREAL)
      END IF
   END DO
 
