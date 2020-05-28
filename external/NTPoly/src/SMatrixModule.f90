@@ -58,83 +58,83 @@ MODULE SMatrixModule
      MODULE PROCEDURE ConstructEmptyMatrix_lsr
      MODULE PROCEDURE ConstructMatrixFromFile_lsr
      MODULE PROCEDURE ConstructMatrixFromTripletList_lsr
-  END INTERFACE
+  END INTERFACE Matrix_lsr
   INTERFACE Matrix_lsc
      MODULE PROCEDURE ConstructEmptyMatrix_lsc
      MODULE PROCEDURE ConstructMatrixFromFile_lsc
      MODULE PROCEDURE ConstructMatrixFromTripletList_lsc
-  END INTERFACE
+  END INTERFACE Matrix_lsc
   INTERFACE ConstructEmptyMatrix
      MODULE PROCEDURE ConstructEmptyMatrixSub_lsr
      MODULE PROCEDURE ConstructEmptyMatrixSub_lsc
-  END INTERFACE
+  END INTERFACE ConstructEmptyMatrix
   INTERFACE ConstructMatrixFromFile
      MODULE PROCEDURE ConstructMatrixFromFileSub_lsr
      MODULE PROCEDURE ConstructMatrixFromFileSub_lsc
-  END INTERFACE
+  END INTERFACE ConstructMatrixFromFile
   INTERFACE ConstructMatrixFromTripletList
      MODULE PROCEDURE ConstructMatrixFromTripletListSub_lsr
      MODULE PROCEDURE ConstructMatrixFromTripletListSub_lsc
-  END INTERFACE
+  END INTERFACE ConstructMatrixFromTripletList
   INTERFACE DestructMatrix
      MODULE PROCEDURE DestructMatrix_lsr
      MODULE PROCEDURE DestructMatrix_lsc
-  END INTERFACE
+  END INTERFACE DestructMatrix
   INTERFACE CopyMatrix
      MODULE PROCEDURE CopyMatrix_lsr
      MODULE PROCEDURE CopyMatrix_lsc
-  END INTERFACE
+  END INTERFACE CopyMatrix
   INTERFACE GetMatrixRows
      MODULE PROCEDURE GetMatrixRows_lsr
      MODULE PROCEDURE GetMatrixRows_lsc
-  END INTERFACE
+  END INTERFACE GetMatrixRows
   INTERFACE GetMatrixColumns
      MODULE PROCEDURE GetMatrixColumns_lsr
      MODULE PROCEDURE GetMatrixColumns_lsc
-  END INTERFACE
+  END INTERFACE GetMatrixColumns
   INTERFACE ExtractMatrixRow
      MODULE PROCEDURE ExtractMatrixRow_lsr
      MODULE PROCEDURE ExtractMatrixRow_lsc
-  END INTERFACE
+  END INTERFACE ExtractMatrixRow
   INTERFACE ExtractMatrixColumn
      MODULE PROCEDURE ExtractMatrixColumn_lsr
      MODULE PROCEDURE ExtractMatrixColumn_lsc
-  END INTERFACE
+  END INTERFACE ExtractMatrixColumn
   INTERFACE SplitMatrix
      MODULE PROCEDURE SplitMatrix_lsr
      MODULE PROCEDURE SplitMatrix_lsc
-  END INTERFACE
+  END INTERFACE SplitMatrix
   INTERFACE SplitMatrixColumns
      MODULE PROCEDURE SplitMatrixColumns_lsr
      MODULE PROCEDURE SplitMatrixColumns_lsc
-  END INTERFACE
+  END INTERFACE SplitMatrixColumns
   INTERFACE ComposeMatrix
      MODULE PROCEDURE ComposeMatrix_lsr
      MODULE PROCEDURE ComposeMatrix_lsc
-  END INTERFACE
+  END INTERFACE ComposeMatrix
   INTERFACE ComposeMatrixColumns
      MODULE PROCEDURE ComposeMatrixColumns_lsr
      MODULE PROCEDURE ComposeMatrixColumns_lsc
-  END INTERFACE
+  END INTERFACE ComposeMatrixColumns
   INTERFACE TransposeMatrix
      MODULE PROCEDURE TransposeMatrix_lsr
      MODULE PROCEDURE TransposeMatrix_lsc
-  END INTERFACE
+  END INTERFACE TransposeMatrix
   INTERFACE ConjugateMatrix
      MODULE PROCEDURE ConjugateMatrix_lsc
-  END INTERFACE
+  END INTERFACE ConjugateMatrix
   INTERFACE PrintMatrix
      MODULE PROCEDURE PrintMatrix_lsr
      MODULE PROCEDURE PrintMatrix_lsc
-  END INTERFACE
+  END INTERFACE PrintMatrix
   INTERFACE MatrixToTripletList
      MODULE PROCEDURE MatrixToTripletList_lsr
      MODULE PROCEDURE MatrixToTripletList_lsc
-  END INTERFACE
+  END INTERFACE MatrixToTripletList
   INTERFACE ConvertMatrixType
      MODULE PROCEDURE ConvertMatrixType_lsrtolsc
      MODULE PROCEDURE ConvertMatrixType_lsctolsr
-  END INTERFACE
+  END INTERFACE ConvertMatrixType
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> A subroutine type wrapper for the constructor.
   PURE SUBROUTINE ConstructEmptyMatrixSub_lsr(this, rows, columns, zero_in)
@@ -433,7 +433,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   outer_array_ptr = 1
   DO values_counter = 1, triplet_list%CurrentSize
      !! Moving on to the next column?
-     DO WHILE(.NOT. triplet_list%data(values_counter)%index_column .EQ. &
+     DO WHILE(.NOT. triplet_list%DATA(values_counter)%index_column .EQ. &
           & outer_array_ptr)
         outer_array_ptr = outer_array_ptr + 1
         this%outer_index(outer_array_ptr+1) = this%outer_index(outer_array_ptr)
@@ -441,9 +441,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      this%outer_index(outer_array_ptr+1)=this%outer_index(outer_array_ptr+1)+1
      !! Insert inner index and value
      this%inner_index(values_counter) = &
-          & triplet_list%data(values_counter)%index_row
+          & triplet_list%DATA(values_counter)%index_row
      this%values(values_counter) = &
-          & triplet_list%data(values_counter)%point_value
+          & triplet_list%DATA(values_counter)%point_value
   END DO
 
   !! Fill In The Rest Of The Outer Values
@@ -484,7 +484,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   outer_array_ptr = 1
   DO values_counter = 1, triplet_list%CurrentSize
      !! Moving on to the next column?
-     DO WHILE(.NOT. triplet_list%data(values_counter)%index_column .EQ. &
+     DO WHILE(.NOT. triplet_list%DATA(values_counter)%index_column .EQ. &
           & outer_array_ptr)
         outer_array_ptr = outer_array_ptr + 1
         this%outer_index(outer_array_ptr+1) = this%outer_index(outer_array_ptr)
@@ -492,9 +492,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      this%outer_index(outer_array_ptr+1)=this%outer_index(outer_array_ptr+1)+1
      !! Insert inner index and value
      this%inner_index(values_counter) = &
-          & triplet_list%data(values_counter)%index_row
+          & triplet_list%DATA(values_counter)%index_row
      this%values(values_counter) = &
-          & triplet_list%data(values_counter)%point_value
+          & triplet_list%DATA(values_counter)%point_value
   END DO
 
   !! Fill In The Rest Of The Outer Values
@@ -1351,7 +1351,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         temporary%index_column = outer_counter
         temporary%index_row = this%inner_index(total_counter)
         temporary%point_value = this%values(total_counter)
-        triplet_list%data(total_counter) = temporary
+        triplet_list%DATA(total_counter) = temporary
         total_counter = total_counter + 1
      END DO
   END DO
@@ -1383,7 +1383,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         temporary%index_column = outer_counter
         temporary%index_row = this%inner_index(total_counter)
         temporary%point_value = this%values(total_counter)
-        triplet_list%data(total_counter) = temporary
+        triplet_list%DATA(total_counter) = temporary
         total_counter = total_counter + 1
      END DO
   END DO
@@ -1424,9 +1424,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & INT(size_of_this, KIND=NTLONG))
   WRITE(file_handler,'(A)') ADJUSTL(TRIM(tempstr))
   DO counter = 1,size_of_this
-     CALL WriteMMLine(tempstr, triplet_list%data(counter)%index_row, &
-          & triplet_list%data(counter)%index_column, &
-          & triplet_list%data(counter)%point_value)
+     CALL WriteMMLine(tempstr, triplet_list%DATA(counter)%index_row, &
+          & triplet_list%DATA(counter)%index_column, &
+          & triplet_list%DATA(counter)%point_value)
      WRITE(file_handler,'(A)') ADJUSTL(TRIM(tempstr))
   END DO
 
@@ -1472,10 +1472,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & INT(size_of_this, KIND=NTLONG))
   WRITE(file_handler,'(A)') ADJUSTL(TRIM(tempstr))
   DO counter = 1,size_of_this
-     CALL WriteMMLine(tempstr, triplet_list%data(counter)%index_row, &
-          & triplet_list%data(counter)%index_column, &
-          & REAL(triplet_list%data(counter)%point_value), &
-          & AIMAG(triplet_list%data(counter)%point_value))
+     CALL WriteMMLine(tempstr, triplet_list%DATA(counter)%index_row, &
+          & triplet_list%DATA(counter)%index_column, &
+          & REAL(triplet_list%DATA(counter)%point_value), &
+          & AIMAG(triplet_list%DATA(counter)%point_value))
      WRITE(file_handler,'(A)') ADJUSTL(TRIM(tempstr))
   END DO
 

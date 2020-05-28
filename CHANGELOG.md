@@ -16,6 +16,9 @@
 * Improved accuracy of pole expansion based on minimax rational approximation.
 * Updated redistributed (PT-)SCOTCH source code to version 6.0.9.
 
+### NTPoly
+* Updated redistributed NTPoly source code to version 2.5.0.
+
 ### SLEPc-SIPs
 * Interface compatible with PETSc 3.13 and SLEPc 3.13.
 

@@ -16,15 +16,15 @@ MODULE SVectorModule
   INTERFACE AddSparseVectors
      MODULE PROCEDURE AddSparseVectors_r
      MODULE PROCEDURE AddSparseVectors_c
-  END INTERFACE
+  END INTERFACE AddSparseVectors
   INTERFACE DotSparseVectors
      MODULE PROCEDURE DotSparseVectors_r
      MODULE PROCEDURE DotSparseVectors_c
-  END INTERFACE
+  END INTERFACE DotSparseVectors
   INTERFACE PairwiseMultiplyVectors
      MODULE PROCEDURE PairwiseMultiplyVectors_r
      MODULE PROCEDURE PairwiseMultiplyVectors_c
-  END INTERFACE
+  END INTERFACE PairwiseMultiplyVectors
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Add together two sparse vectors. C = A + alpha*B
   !> The values that are returned for C are only valid in the range
@@ -63,12 +63,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Process Optional Parameters
   IF (.NOT. PRESENT(alpha_in)) THEN
-     alpha = 1.0d+0
+     alpha = 1.0_NTREAL
   ELSE
      alpha = alpha_in
   END IF
   IF (.NOT. PRESENT(threshold_in)) THEN
-     threshold = 0.0d+0
+     threshold = 0.0_NTREAL
   ELSE
      threshold = threshold_in
   END IF
@@ -164,12 +164,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Process Optional Parameters
   IF (.NOT. PRESENT(alpha_in)) THEN
-     alpha = 1.0d+0
+     alpha = 1.0_NTREAL
   ELSE
      alpha = alpha_in
   END IF
   IF (.NOT. PRESENT(threshold_in)) THEN
-     threshold = 0.0d+0
+     threshold = 0.0_NTREAL
   ELSE
      threshold = threshold_in
   END IF

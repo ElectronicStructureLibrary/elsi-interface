@@ -28,7 +28,7 @@ MODULE SolverParametersModule
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTERFACE SolverParameters_t
      MODULE PROCEDURE SolverParameters_init
-  END INTERFACE
+  END INTERFACE SolverParameters_t
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: SetParametersConvergeDiff
   PUBLIC :: SetParametersMaxIterations
@@ -39,7 +39,7 @@ MODULE SolverParametersModule
   PUBLIC :: DestructSolverParameters
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> The default convergence difference.
-  REAL(NTREAL), PARAMETER, PUBLIC :: CONVERGENCE_DIFF_CONST = 1e-6
+  REAL(NTREAL), PARAMETER, PUBLIC :: CONVERGENCE_DIFF_CONST = 1e-6_NTREAL
   !> The default maximum number of iterations.
   INTEGER, PARAMETER, PUBLIC :: MAX_ITERATIONS_CONST = 1000
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -66,7 +66,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        this%converge_diff = converge_diff_in
     END IF
     IF (.NOT. PRESENT(threshold_in)) THEN
-       this%threshold = 0.0
+       this%threshold = 0.0_NTREAL
     ELSE
        this%threshold = threshold_in
     END IF
@@ -146,11 +146,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     CALL WriteHeader("Solver Parameters")
     CALL EnterSubLog
-    CALL WriteElement(key="be_verbose", value=this%be_verbose)
-    CALL WriteElement(key="do_load_balancing", value=this%do_load_balancing)
-    CALL WriteElement(key="converge_diff", value=this%converge_diff)
-    CALL WriteElement(key="threshold", value=this%threshold)
-    CALL WriteElement(key="max_iterations", value=this%max_iterations)
+    CALL WriteElement(key="be_verbose", VALUE=this%be_verbose)
+    CALL WriteElement(key="do_load_balancing", VALUE=this%do_load_balancing)
+    CALL WriteElement(key="converge_diff", VALUE=this%converge_diff)
+    CALL WriteElement(key="threshold", VALUE=this%threshold)
+    CALL WriteElement(key="max_iterations", VALUE=this%max_iterations)
     CALL ExitSubLog
   END SUBROUTINE PrintParameters
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

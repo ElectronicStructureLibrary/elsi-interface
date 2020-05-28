@@ -46,54 +46,54 @@ MODULE DMatrixModule
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTERFACE Matrix_ldr
      MODULE PROCEDURE ConstructEmptyMatrix_ldr
-  END INTERFACE
+  END INTERFACE Matrix_ldr
   INTERFACE Matrix_ldc
      MODULE PROCEDURE ConstructEmptyMatrix_ldc
-  END INTERFACE
+  END INTERFACE Matrix_ldc
   INTERFACE ConstructEmptyMatrix
      MODULE PROCEDURE ConstructEmptyMatrixSup_ldr
      MODULE PROCEDURE ConstructEmptyMatrixSup_ldc
-  END INTERFACE
+  END INTERFACE ConstructEmptyMatrix
   INTERFACE ConstructMatrixDFromS
      MODULE PROCEDURE ConstructMatrixDFromS_ldr
      MODULE PROCEDURE ConstructMatrixDFromS_ldc
-  END INTERFACE
+  END INTERFACE ConstructMatrixDFromS
   INTERFACE ConstructMatrixSFromD
      MODULE PROCEDURE ConstructMatrixSFromD_ldr
      MODULE PROCEDURE ConstructMatrixSFromD_ldc
-  END INTERFACE
+  END INTERFACE ConstructMatrixSFromD
   INTERFACE CopyMatrix
      MODULE PROCEDURE CopyMatrix_ldr
      MODULE PROCEDURE CopyMatrix_ldc
-  END INTERFACE
+  END INTERFACE CopyMatrix
   INTERFACE DestructMatrix
      MODULE PROCEDURE DestructMatrix_ldr
      MODULE PROCEDURE DestructMatrix_ldc
-  END INTERFACE
+  END INTERFACE DestructMatrix
   INTERFACE SplitMatrix
      MODULE PROCEDURE SplitMatrix_ldr
      MODULE PROCEDURE SplitMatrix_ldc
-  END INTERFACE
+  END INTERFACE SplitMatrix
   INTERFACE ComposeMatrix
      MODULE PROCEDURE ComposeMatrix_ldr
      MODULE PROCEDURE ComposeMatrix_ldc
-  END INTERFACE
+  END INTERFACE ComposeMatrix
   INTERFACE MatrixNorm
      MODULE PROCEDURE MatrixNorm_ldr
      MODULE PROCEDURE MatrixNorm_ldc
-  END INTERFACE
+  END INTERFACE MatrixNorm
   INTERFACE IncrementMatrix
      MODULE PROCEDURE IncrementMatrix_ldr
      MODULE PROCEDURE IncrementMatrix_ldc
-  END INTERFACE
+  END INTERFACE IncrementMatrix
   INTERFACE MultiplyMatrix
      MODULE PROCEDURE MultiplyMatrix_ldr
      MODULE PROCEDURE MultiplyMatrix_ldc
-  END INTERFACE
+  END INTERFACE MultiplyMatrix
   INTERFACE TransposeMatrix
      MODULE PROCEDURE TransposeMatrix_ldr
      MODULE PROCEDURE TransposeMatrix_ldc
-  END INTERFACE
+  END INTERFACE TransposeMatrix
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> A subroutine wrapper for the empty constructor.
   PURE SUBROUTINE ConstructEmptyMatrixSup_ldr(this, rows, columns)
@@ -120,7 +120,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   this%rows = rows
   this%columns = columns
 
-  ALLOCATE(this%data(rows,columns))
+  ALLOCATE(this%DATA(rows,columns))
 
   END FUNCTION ConstructEmptyMatrix_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -142,7 +142,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & sparse_matrix%columns)
 
   !! Loop over elements.
-  dense_matrix%data = 0
+  dense_matrix%DATA = 0
   total_counter = 1
   DO outer_counter = 1, sparse_matrix%columns
      elements_per_inner = sparse_matrix%outer_index(outer_counter+1) - &
@@ -151,7 +151,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      DO inner_counter = 1, elements_per_inner
         temporary%index_row = sparse_matrix%inner_index(total_counter)
         temporary%point_value = sparse_matrix%values(total_counter)
-        dense_matrix%data(temporary%index_row, temporary%index_column) = &
+        dense_matrix%DATA(temporary%index_row, temporary%index_column) = &
              & temporary%point_value
         total_counter = total_counter + 1
      END DO
@@ -185,7 +185,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         temporary%index_column = outer_counter
         DO inner_counter = 1, rows
            temporary%point_value = &
-                & dense_matrix%data(inner_counter,outer_counter)
+                & dense_matrix%DATA(inner_counter,outer_counter)
            IF (ABS(temporary%point_value) .GT. threshold_in) THEN
               temporary%index_row = inner_counter
               CALL AppendToTripletList(temporary_list,temporary)
@@ -198,9 +198,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         temporary%index_column = outer_counter
         DO inner_counter = 1, rows
            temporary%point_value = &
-                & dense_matrix%data(inner_counter,outer_counter)
+                & dense_matrix%DATA(inner_counter,outer_counter)
            temporary%index_row = inner_counter
-           temporary_list%data(inner_counter+rows*(outer_counter-1)) = &
+           temporary_list%DATA(inner_counter+rows*(outer_counter-1)) = &
                 & temporary
         END DO
      END DO
@@ -220,7 +220,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_ldr), INTENT(INOUT) :: matB
 
   CALL ConstructEmptyMatrix(matB, matA%rows, matA%columns)
-  matB%data = matA%data
+  matB%DATA = matA%DATA
 
   END SUBROUTINE CopyMatrix_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -229,8 +229,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The matrix to delete.
     TYPE(Matrix_ldr), INTENT(INOUT) :: this
 
-  IF (ALLOCATED(this%data)) THEN
-     DEALLOCATE(this%data)
+  IF (ALLOCATED(this%DATA)) THEN
+     DEALLOCATE(this%DATA)
   END IF
 
   END SUBROUTINE DestructMatrix_ldr
@@ -248,12 +248,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Process Optional Parameters
   IF (.NOT. PRESENT(alpha_in)) THEN
-     alpha = 1.0d+0
+     alpha = 1.0_NTREAL
   ELSE
      alpha = alpha_in
   END IF
 
-  MatB%data = MatB%data + alpha*MatA%data
+  MatB%DATA = MatB%DATA + alpha*MatA%DATA
 
   END SUBROUTINE IncrementMatrix_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -270,7 +270,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     norm = 0
     DO II =1, this%rows
        DO JJ = 1,  this%columns
-          norm = norm + this%data(II,JJ)**2
+          norm = norm + this%DATA(II,JJ)**2
        END DO
     END DO
   END FUNCTION MatrixNorm_ldr
@@ -283,7 +283,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_ldr), INTENT(INOUT) :: matAT
 
   CALL ConstructEmptyMatrix(matAT, matA%columns, matA%rows)
-  matAT%data = TRANSPOSE(matA%data)
+  matAT%DATA = TRANSPOSE(matA%DATA)
 
   END SUBROUTINE TransposeMatrix_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -328,9 +328,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Copy
   DO JJ = 1, block_columns
      DO II = 1, block_rows
-        out_matrix%data(row_offsets(II):row_offsets(II+1)-1, &
+        out_matrix%DATA(row_offsets(II):row_offsets(II+1)-1, &
              & column_offsets(JJ):column_offsets(JJ+1)-1) = &
-             & mat_array(II,JJ)%data
+             & mat_array(II,JJ)%DATA
      END DO
   END DO
 
@@ -393,8 +393,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      DO II = 1, block_rows
         CALL ConstructEmptyMatrix(split_array(II,JJ), block_size_column(JJ), &
              & block_size_row(II))
-        split_array(II,JJ)%data = &
-             & this%data(row_offsets(II):row_offsets(II+1)-1, &
+        split_array(II,JJ)%DATA = &
+             & this%DATA(row_offsets(II):row_offsets(II+1)-1, &
              & column_offsets(JJ):column_offsets(JJ+1)-1)
      END DO
   END DO
@@ -403,7 +403,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> A wrapper for multiplying two dense matrices.
   SUBROUTINE MultiplyMatrix_ldr(MatA, MatB, MatC, IsATransposed_in, &
-      & IsBTransposed_in)
+       & IsBTransposed_in)
     !> The first matrix.
     TYPE(Matrix_ldr), INTENT(IN) :: MatA
     !> The second matrix.
@@ -430,53 +430,53 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TRANSA = 'N'
     IF (PRESENT(IsATransposed_in)) THEN
        IF (IsATransposed_in) THEN
-        TRANSA = 'T'
+          TRANSA = 'T'
        END IF
     END IF
     TRANSB = 'N'
     IF (PRESENT(IsBTransposed_in)) THEN
        IF (IsBTransposed_in) THEN
-        TRANSB = 'T'
+          TRANSB = 'T'
        END IF
     END IF
 
     !! Setup Lapack
     IF (TRANSA .EQ. 'T') THEN
-      M = MatA%columns
+       M = MatA%columns
     ELSE
-      M = MatA%rows
+       M = MatA%rows
     END IF
 
     IF (TRANSB .EQ. 'T') THEN
-      N = MatB%rows
+       N = MatB%rows
     ELSE
-      N = MatB%columns
+       N = MatB%columns
     END IF
 
     IF (TRANSA .EQ. 'T') THEN
-      K = MatA%rows
+       K = MatA%rows
     ELSE
-      K = MatA%columns
+       K = MatA%columns
     END IF
 
     IF (TRANSA .EQ. 'T') THEN
-      LDA = K
+       LDA = K
     ELSE
-      LDA = M
+       LDA = M
     END IF
 
     IF (TRANSB .EQ. 'T') THEN
-      LDB = N
+       LDB = N
     ELSE
-      LDB = K
+       LDB = K
     END IF
 
     LDC = M
 
     !! Multiply
     CALL ConstructEmptyMatrix(MatC, M, N)
-    CALL DGEMM(TRANSA, TRANSB, M, N, K, ALPHA, MatA%data, LDA, MatB%data, &
-         & LDB, BETA, MatC%data, LDC)
+    CALL DGEMM(TRANSA, TRANSB, M, N, K, ALPHA, MatA%DATA, LDA, MatB%DATA, &
+         & LDB, BETA, MatC%DATA, LDC)
 
   END SUBROUTINE MultiplyMatrix_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -505,7 +505,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   this%rows = rows
   this%columns = columns
 
-  ALLOCATE(this%data(rows,columns))
+  ALLOCATE(this%DATA(rows,columns))
 
   END FUNCTION ConstructEmptyMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -527,7 +527,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & sparse_matrix%columns)
 
   !! Loop over elements.
-  dense_matrix%data = 0
+  dense_matrix%DATA = 0
   total_counter = 1
   DO outer_counter = 1, sparse_matrix%columns
      elements_per_inner = sparse_matrix%outer_index(outer_counter+1) - &
@@ -536,7 +536,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      DO inner_counter = 1, elements_per_inner
         temporary%index_row = sparse_matrix%inner_index(total_counter)
         temporary%point_value = sparse_matrix%values(total_counter)
-        dense_matrix%data(temporary%index_row, temporary%index_column) = &
+        dense_matrix%DATA(temporary%index_row, temporary%index_column) = &
              & temporary%point_value
         total_counter = total_counter + 1
      END DO
@@ -570,7 +570,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         temporary%index_column = outer_counter
         DO inner_counter = 1, rows
            temporary%point_value = &
-                & dense_matrix%data(inner_counter,outer_counter)
+                & dense_matrix%DATA(inner_counter,outer_counter)
            IF (ABS(temporary%point_value) .GT. threshold_in) THEN
               temporary%index_row = inner_counter
               CALL AppendToTripletList(temporary_list,temporary)
@@ -583,9 +583,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         temporary%index_column = outer_counter
         DO inner_counter = 1, rows
            temporary%point_value = &
-                & dense_matrix%data(inner_counter,outer_counter)
+                & dense_matrix%DATA(inner_counter,outer_counter)
            temporary%index_row = inner_counter
-           temporary_list%data(inner_counter+rows*(outer_counter-1)) = &
+           temporary_list%DATA(inner_counter+rows*(outer_counter-1)) = &
                 & temporary
         END DO
      END DO
@@ -605,7 +605,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_ldc), INTENT(INOUT) :: matB
 
   CALL ConstructEmptyMatrix(matB, matA%rows, matA%columns)
-  matB%data = matA%data
+  matB%DATA = matA%DATA
 
   END SUBROUTINE CopyMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -614,8 +614,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> This the matrix to delete.
     TYPE(Matrix_ldc), INTENT(INOUT) :: this
 
-  IF (ALLOCATED(this%data)) THEN
-     DEALLOCATE(this%data)
+  IF (ALLOCATED(this%DATA)) THEN
+     DEALLOCATE(this%DATA)
   END IF
 
   END SUBROUTINE DestructMatrix_ldc
@@ -633,12 +633,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Process Optional Parameters
   IF (.NOT. PRESENT(alpha_in)) THEN
-     alpha = 1.0d+0
+     alpha = 1.0_NTREAL
   ELSE
      alpha = alpha_in
   END IF
 
-  MatB%data = MatB%data + alpha*MatA%data
+  MatB%DATA = MatB%DATA + alpha*MatA%DATA
 
   END SUBROUTINE IncrementMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -656,7 +656,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     norm = 0
     DO II =1, this%rows
        DO JJ = 1,  this%columns
-          val = this%data(II,JJ)
+          val = this%DATA(II,JJ)
           conjval = CONJG(val)
           norm = norm + REAL(val*conjval,KIND=NTREAL)
        END DO
@@ -671,7 +671,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_ldc), INTENT(INOUT) :: matAT
 
   CALL ConstructEmptyMatrix(matAT, matA%columns, matA%rows)
-  matAT%data = TRANSPOSE(matA%data)
+  matAT%DATA = TRANSPOSE(matA%DATA)
 
   END SUBROUTINE TransposeMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -716,9 +716,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Copy
   DO JJ = 1, block_columns
      DO II = 1, block_rows
-        out_matrix%data(row_offsets(II):row_offsets(II+1)-1, &
+        out_matrix%DATA(row_offsets(II):row_offsets(II+1)-1, &
              & column_offsets(JJ):column_offsets(JJ+1)-1) = &
-             & mat_array(II,JJ)%data
+             & mat_array(II,JJ)%DATA
      END DO
   END DO
 
@@ -781,8 +781,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      DO II = 1, block_rows
         CALL ConstructEmptyMatrix(split_array(II,JJ), block_size_column(JJ), &
              & block_size_row(II))
-        split_array(II,JJ)%data = &
-             & this%data(row_offsets(II):row_offsets(II+1)-1, &
+        split_array(II,JJ)%DATA = &
+             & this%DATA(row_offsets(II):row_offsets(II+1)-1, &
              & column_offsets(JJ):column_offsets(JJ+1)-1)
      END DO
   END DO
@@ -791,7 +791,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> A wrapper for multiplying two dense matrices.
   SUBROUTINE MultiplyMatrix_ldc(MatA, MatB, MatC, IsATransposed_in, &
-      & IsBTransposed_in)
+       & IsBTransposed_in)
     !> The first matrix.
     TYPE(Matrix_ldc), INTENT(IN) :: MatA
     !> The second matrix.
@@ -818,53 +818,53 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TRANSA = 'N'
     IF (PRESENT(IsATransposed_in)) THEN
        IF (IsATransposed_in) THEN
-        TRANSA = 'T'
+          TRANSA = 'T'
        END IF
     END IF
     TRANSB = 'N'
     IF (PRESENT(IsBTransposed_in)) THEN
        IF (IsBTransposed_in) THEN
-        TRANSB = 'T'
+          TRANSB = 'T'
        END IF
     END IF
 
     !! Setup Lapack
     IF (TRANSA .EQ. 'T') THEN
-      M = MatA%columns
+       M = MatA%columns
     ELSE
-      M = MatA%rows
+       M = MatA%rows
     END IF
 
     IF (TRANSB .EQ. 'T') THEN
-      N = MatB%rows
+       N = MatB%rows
     ELSE
-      N = MatB%columns
+       N = MatB%columns
     END IF
 
     IF (TRANSA .EQ. 'T') THEN
-      K = MatA%rows
+       K = MatA%rows
     ELSE
-      K = MatA%columns
+       K = MatA%columns
     END IF
 
     IF (TRANSA .EQ. 'T') THEN
-      LDA = K
+       LDA = K
     ELSE
-      LDA = M
+       LDA = M
     END IF
 
     IF (TRANSB .EQ. 'T') THEN
-      LDB = N
+       LDB = N
     ELSE
-      LDB = K
+       LDB = K
     END IF
 
     LDC = M
 
     !! Multiply
     CALL ConstructEmptyMatrix(MatC, M, N)
-    CALL ZGEMM(TRANSA, TRANSB, M, N, K, ALPHA, MatA%data, LDA, MatB%data, &
-         & LDB, BETA, MatC%data, LDC)
+    CALL ZGEMM(TRANSA, TRANSB, M, N, K, ALPHA, MatA%DATA, LDA, MatB%DATA, &
+         & LDB, BETA, MatC%DATA, LDC)
 
   END SUBROUTINE MultiplyMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

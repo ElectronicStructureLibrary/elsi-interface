@@ -53,19 +53,19 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   per_column_max = 0
   CALL GetMatrixTripletList(this, triplet_list_c)
   DO counter = 1, triplet_list_c%CurrentSize
-     local_column = triplet_list_c%data(counter)%index_column - &
+     local_column = triplet_list_c%DATA(counter)%index_column - &
           & this%start_column + 1
-     IF (triplet_list_c%data(counter)%index_row .EQ. &
-          & triplet_list_c%data(counter)%index_column) THEN
+     IF (triplet_list_c%DATA(counter)%index_row .EQ. &
+          & triplet_list_c%DATA(counter)%index_column) THEN
         per_column_min(local_column) = per_column_min(local_column) + &
-             & REAL(triplet_list_c%data(counter)%point_value,KIND=NTREAL)
+             & REAL(triplet_list_c%DATA(counter)%point_value,KIND=NTREAL)
         per_column_max(local_column) = per_column_max(local_column) + &
-             & REAL(triplet_list_c%data(counter)%point_value,KIND=NTREAL)
+             & REAL(triplet_list_c%DATA(counter)%point_value,KIND=NTREAL)
      ELSE
         per_column_min(local_column) = per_column_min(local_column) - &
-             & ABS(triplet_list_c%data(counter)%point_value)
+             & ABS(triplet_list_c%DATA(counter)%point_value)
         per_column_max(local_column) = per_column_max(local_column) + &
-             & ABS(triplet_list_c%data(counter)%point_value)
+             & ABS(triplet_list_c%DATA(counter)%point_value)
      END IF
   END DO
 
@@ -96,19 +96,19 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   per_column_max = 0
   CALL GetMatrixTripletList(this, triplet_list_r)
   DO counter = 1, triplet_list_r%CurrentSize
-     local_column = triplet_list_r%data(counter)%index_column - &
+     local_column = triplet_list_r%DATA(counter)%index_column - &
           & this%start_column + 1
-     IF (triplet_list_r%data(counter)%index_row .EQ. &
-          & triplet_list_r%data(counter)%index_column) THEN
+     IF (triplet_list_r%DATA(counter)%index_row .EQ. &
+          & triplet_list_r%DATA(counter)%index_column) THEN
         per_column_min(local_column) = per_column_min(local_column) + &
-             & REAL(triplet_list_r%data(counter)%point_value,KIND=NTREAL)
+             & REAL(triplet_list_r%DATA(counter)%point_value,KIND=NTREAL)
         per_column_max(local_column) = per_column_max(local_column) + &
-             & REAL(triplet_list_r%data(counter)%point_value,KIND=NTREAL)
+             & REAL(triplet_list_r%DATA(counter)%point_value,KIND=NTREAL)
      ELSE
         per_column_min(local_column) = per_column_min(local_column) - &
-             & ABS(triplet_list_r%data(counter)%point_value)
+             & ABS(triplet_list_r%DATA(counter)%point_value)
         per_column_max(local_column) = per_column_max(local_column) + &
-             & ABS(triplet_list_r%data(counter)%point_value)
+             & ABS(triplet_list_r%DATA(counter)%point_value)
      END IF
   END DO
 
@@ -189,9 +189,9 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     norm_value = solver_parameters%converge_diff + 1.0_NTREAL
     DO outer_counter = 1,solver_parameters%max_iterations
        IF (solver_parameters%be_verbose .AND. outer_counter .GT. 1) THEN
-          CALL WriteListElement(key="Round", value=outer_counter-1)
+          CALL WriteListElement(key="Round", VALUE=outer_counter-1)
           CALL EnterSubLog
-          CALL WriteElement(key="Convergence", value=norm_value)
+          CALL WriteElement(key="Convergence", VALUE=norm_value)
           CALL ExitSubLog
        END IF
 
@@ -214,7 +214,7 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END DO
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
-       CALL WriteElement(key="Total_Iterations",value=outer_counter-1)
+       CALL WriteElement(key="Total_Iterations",VALUE=outer_counter-1)
     END IF
 
     !! Compute The Largest Eigenvalue
@@ -225,7 +225,7 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     max_value = max_value / scale_value
 
     IF (solver_parameters%be_verbose) THEN
-       CALL WriteElement(key="Max_Eigen_Value",value=max_value)
+       CALL WriteElement(key="Max_Eigen_Value",VALUE=max_value)
        CALL ExitSubLog
     END IF
 

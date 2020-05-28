@@ -45,62 +45,62 @@ MODULE TripletListModule
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTERFACE TripletList_r
      MODULE PROCEDURE ConstructTripletList_r
-  END INTERFACE
+  END INTERFACE TripletList_r
   INTERFACE TripletList_c
      MODULE PROCEDURE ConstructTripletList_c
-  END INTERFACE
+  END INTERFACE TripletList_c
   INTERFACE ConstructTripletList
      MODULE PROCEDURE ConstructTripletListSup_r
      MODULE PROCEDURE ConstructTripletListSup_c
-  END INTERFACE
+  END INTERFACE ConstructTripletList
   INTERFACE DestructTripletList
      MODULE PROCEDURE DestructTripletList_r
      MODULE PROCEDURE DestructTripletList_c
-  END INTERFACE
+  END INTERFACE DestructTripletList
   INTERFACE ResizeTripletList
      MODULE PROCEDURE ResizeTripletList_r
      MODULE PROCEDURE ResizeTripletList_c
-  END INTERFACE
+  END INTERFACE ResizeTripletList
   INTERFACE AppendToTripletList
      MODULE PROCEDURE AppendToTripletList_r
      MODULE PROCEDURE AppendToTripletList_c
-  END INTERFACE
+  END INTERFACE AppendToTripletList
   INTERFACE SetTripletAt
      MODULE PROCEDURE SetTripletAt_r
      MODULE PROCEDURE SetTripletAt_c
-  END INTERFACE
+  END INTERFACE SetTripletAt
   INTERFACE GetTripletAt
      MODULE PROCEDURE GetTripletAt_r
      MODULE PROCEDURE GetTripletAt_c
-  END INTERFACE
+  END INTERFACE GetTripletAt
   INTERFACE SortTripletList
      MODULE PROCEDURE SortTripletList_r
      MODULE PROCEDURE SortTripletList_c
-  END INTERFACE
+  END INTERFACE SortTripletList
   INTERFACE SortDenseTripletList
      MODULE PROCEDURE SortDenseTripletList_r
      MODULE PROCEDURE SortDenseTripletList_c
-  END INTERFACE
+  END INTERFACE SortDenseTripletList
   INTERFACE SymmetrizeTripletList
      MODULE PROCEDURE SymmetrizeTripletList_r
      MODULE PROCEDURE SymmetrizeTripletList_c
-  END INTERFACE
+  END INTERFACE SymmetrizeTripletList
   INTERFACE GetTripletListSize
      MODULE PROCEDURE GetTripletListSize_r
      MODULE PROCEDURE GetTripletListSize_c
-  END INTERFACE
+  END INTERFACE GetTripletListSize
   INTERFACE RedistributeTripletLists
      MODULE PROCEDURE RedistributeTripletLists_r
      MODULE PROCEDURE RedistributeTripletLists_c
-  END INTERFACE
+  END INTERFACE RedistributeTripletLists
   INTERFACE ShiftTripletList
      MODULE PROCEDURE ShiftTripletList_r
      MODULE PROCEDURE ShiftTripletList_c
-  END INTERFACE
+  END INTERFACE ShiftTripletList
   INTERFACE ConvertTripletListType
      MODULE PROCEDURE ConvertTripletListToReal
      MODULE PROCEDURE ConvertTripletListToComplex
-  END INTERFACE
+  END INTERFACE ConvertTripletListType
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Subroutine wrapper for constructing a triplet list.
   PURE SUBROUTINE ConstructTripletListSup_r(this, size_in)
@@ -146,10 +146,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      size = 0
   END IF
 
-  IF (ALLOCATED(this%data)) DEALLOCATE(this%data)
+  IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
   this%CurrentSize = size
 
-  ALLOCATE(this%data(size))
+  ALLOCATE(this%DATA(size))
 
   END FUNCTION ConstructTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -169,10 +169,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      size = 0
   END IF
 
-  IF (ALLOCATED(this%data)) DEALLOCATE(this%data)
+  IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
   this%CurrentSize = size
 
-  ALLOCATE(this%data(size))
+  ALLOCATE(this%DATA(size))
 
   END FUNCTION ConstructTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -181,7 +181,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to destruct.
     TYPE(TripletList_r), INTENT(INOUT) :: this
 
-  IF (ALLOCATED(this%data)) DEALLOCATE(this%data)
+  IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
   this%CurrentSize = 0
 
   END SUBROUTINE DestructTripletList_r
@@ -191,7 +191,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to destruct.
     TYPE(TripletList_c), INTENT(INOUT) :: this
 
-  IF (ALLOCATED(this%data)) DEALLOCATE(this%data)
+  IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
   this%CurrentSize = 0
 
   END SUBROUTINE DestructTripletList_c
@@ -258,12 +258,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! First, check if we need to allocate more memory
   IF (this%CurrentSize+1 .GT. SIZE(this%DATA)) THEN
-     IF (SIZE(this%data) .EQ. 0) THEN
+     IF (SIZE(this%DATA) .EQ. 0) THEN
         new_size = 1
-     ELSE IF (SIZE(this%data) .EQ. 1) THEN
+     ELSE IF (SIZE(this%DATA) .EQ. 1) THEN
         new_size = 2
      ELSE
-        new_size = INT(SIZE(this%data)*1.5)
+        new_size = INT(SIZE(this%DATA)*1.5)
      END IF
      CALL ResizeTripletList(this,new_size)
   END IF
@@ -286,12 +286,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! First, check if we need to allocate more memory
   IF (this%CurrentSize+1 .GT. SIZE(this%DATA)) THEN
-     IF (SIZE(this%data) .EQ. 0) THEN
+     IF (SIZE(this%DATA) .EQ. 0) THEN
         new_size = 1
-     ELSE IF (SIZE(this%data) .EQ. 1) THEN
+     ELSE IF (SIZE(this%DATA) .EQ. 1) THEN
         new_size = 2
      ELSE
-        new_size = INT(SIZE(this%data)*1.5)
+        new_size = INT(SIZE(this%DATA)*1.5)
      END IF
      CALL ResizeTripletList(this,new_size)
   END IF
@@ -311,7 +311,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The value of the triplet to set.
     TYPE(Triplet_r), INTENT(IN)        :: triplet_value
 
-  this%data(index) = triplet_value
+  this%DATA(index) = triplet_value
   END SUBROUTINE SetTripletAt_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Set the value of a triplet at a particular index.
@@ -323,7 +323,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The value of the triplet to set.
     TYPE(Triplet_c), INTENT(IN)        :: triplet_value
 
-  this%data(index) = triplet_value
+  this%DATA(index) = triplet_value
   END SUBROUTINE SetTripletAt_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Get the value of a triplet at a particular index.
@@ -335,7 +335,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The extracted triplet value.
     TYPE(Triplet_r), INTENT(OUT)    :: triplet_value
 
-  triplet_value = this%data(index)
+  triplet_value = this%DATA(index)
   END SUBROUTINE GetTripletAt_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Get the value of a triplet at a particular index.
@@ -347,7 +347,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The extracted triplet value.
     TYPE(Triplet_c), INTENT(OUT)    :: triplet_value
 
-  triplet_value = this%data(index)
+  triplet_value = this%DATA(index)
   END SUBROUTINE GetTripletAt_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Sorts a triplet list by index values.
@@ -376,7 +376,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER, DIMENSION(:), ALLOCATABLE :: inserted_per_row
   !! Counters and temporary variables
   INTEGER :: counter
-  INTEGER :: temp_index
+  INTEGER :: idx
   INTEGER :: alloc_stat
   INTEGER :: list_length
 
@@ -404,8 +404,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
      !! Do a first pass bucket sort
      DO counter = 1, input_list%CurrentSize
-        values_per_row(input_list%data(counter)%index_column) = &
-             & values_per_row(input_list%data(counter)%index_column) + 1
+        values_per_row(input_list%DATA(counter)%index_column) = &
+             & values_per_row(input_list%DATA(counter)%index_column) + 1
      END DO
      offset_array(1) = 1
      DO counter = 2, UBOUND(offset_array,dim=1)
@@ -413,10 +413,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & values_per_row(counter-1)
      END DO
      DO counter = 1, input_list%CurrentSize
-        temp_index = input_list%data(counter)%index_column
-        sorted_list%data(offset_array(temp_index)+inserted_per_row(temp_index))=&
-             & input_list%data(counter)
-        inserted_per_row(temp_index) = inserted_per_row(temp_index) + 1
+        idx = input_list%DATA(counter)%index_column
+        sorted_list%DATA(offset_array(idx)+inserted_per_row(idx))=&
+             & input_list%DATA(counter)
+        inserted_per_row(idx) = inserted_per_row(idx) + 1
      END DO
 
      !! Finish with bubble sort
@@ -426,11 +426,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         DO WHILE (swap_occured .EQV. .TRUE.)
            swap_occured = .FALSE.
            DO counter = 2, sorted_list%CurrentSize
-              IF (CompareTriplets(sorted_list%data(counter-1), &
-                   & sorted_list%data(counter))) THEN
-                 temporary = sorted_list%data(counter)
-                 sorted_list%data(counter) = sorted_list%data(counter-1)
-                 sorted_list%data(counter-1) = temporary
+              IF (CompareTriplets(sorted_list%DATA(counter-1), &
+                   & sorted_list%DATA(counter))) THEN
+                 temporary = sorted_list%DATA(counter)
+                 sorted_list%DATA(counter) = sorted_list%DATA(counter-1)
+                 sorted_list%DATA(counter-1) = temporary
                  swap_occured = .TRUE.
               END IF
            END DO
@@ -471,7 +471,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER, DIMENSION(:), ALLOCATABLE :: inserted_per_row
   !! Counters and temporary variables
   INTEGER :: counter
-  INTEGER :: temp_index
+  INTEGER :: idx
   INTEGER :: alloc_stat
   INTEGER :: list_length
 
@@ -499,8 +499,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
      !! Do a first pass bucket sort
      DO counter = 1, input_list%CurrentSize
-        values_per_row(input_list%data(counter)%index_column) = &
-             & values_per_row(input_list%data(counter)%index_column) + 1
+        values_per_row(input_list%DATA(counter)%index_column) = &
+             & values_per_row(input_list%DATA(counter)%index_column) + 1
      END DO
      offset_array(1) = 1
      DO counter = 2, UBOUND(offset_array,dim=1)
@@ -508,10 +508,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & values_per_row(counter-1)
      END DO
      DO counter = 1, input_list%CurrentSize
-        temp_index = input_list%data(counter)%index_column
-        sorted_list%data(offset_array(temp_index)+inserted_per_row(temp_index))=&
-             & input_list%data(counter)
-        inserted_per_row(temp_index) = inserted_per_row(temp_index) + 1
+        idx = input_list%DATA(counter)%index_column
+        sorted_list%DATA(offset_array(idx)+inserted_per_row(idx))=&
+             & input_list%DATA(counter)
+        inserted_per_row(idx) = inserted_per_row(idx) + 1
      END DO
 
      !! Finish with bubble sort
@@ -521,11 +521,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         DO WHILE (swap_occured .EQV. .TRUE.)
            swap_occured = .FALSE.
            DO counter = 2, sorted_list%CurrentSize
-              IF (CompareTriplets(sorted_list%data(counter-1), &
-                   & sorted_list%data(counter))) THEN
-                 temporary = sorted_list%data(counter)
-                 sorted_list%data(counter) = sorted_list%data(counter-1)
-                 sorted_list%data(counter-1) = temporary
+              IF (CompareTriplets(sorted_list%DATA(counter-1), &
+                   & sorted_list%DATA(counter))) THEN
+                 temporary = sorted_list%DATA(counter)
+                 sorted_list%DATA(counter) = sorted_list%DATA(counter-1)
+                 sorted_list%DATA(counter-1) = temporary
                  swap_occured = .TRUE.
               END IF
            END DO
@@ -652,9 +652,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Unpack Into The Output Triplet List
   CALL ConstructTripletList(local_data_out, size_in=SUM(recv_per_process))
   DO counter = 1, SUM(recv_per_process)
-     local_data_out%data(counter)%index_column = recv_buffer_col(counter)
-     local_data_out%data(counter)%index_row = recv_buffer_row(counter)
-     local_data_out%data(counter)%point_value = recv_buffer_val(counter)
+     local_data_out%DATA(counter)%index_column = recv_buffer_col(counter)
+     local_data_out%DATA(counter)%index_row = recv_buffer_row(counter)
+     local_data_out%DATA(counter)%point_value = recv_buffer_val(counter)
   END DO
 
   !! Cleanup
@@ -761,9 +761,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Unpack Into The Output Triplet List
   CALL ConstructTripletList(local_data_out, size_in=SUM(recv_per_process))
   DO counter = 1, SUM(recv_per_process)
-     local_data_out%data(counter)%index_column = recv_buffer_col(counter)
-     local_data_out%data(counter)%index_row = recv_buffer_row(counter)
-     local_data_out%data(counter)%point_value = recv_buffer_val(counter)
+     local_data_out%DATA(counter)%index_column = recv_buffer_col(counter)
+     local_data_out%DATA(counter)%index_row = recv_buffer_row(counter)
+     local_data_out%DATA(counter)%point_value = recv_buffer_val(counter)
   END DO
 
   !! Cleanup
@@ -796,10 +796,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Loop
   DO counter = 1, triplet_list%CurrentSize
-     triplet_list%data(counter)%index_row = &
-          triplet_list%data(counter)%index_row + row_shift
-     triplet_list%data(counter)%index_column = &
-          triplet_list%data(counter)%index_column + column_shift
+     triplet_list%DATA(counter)%index_row = &
+          triplet_list%DATA(counter)%index_row + row_shift
+     triplet_list%DATA(counter)%index_column = &
+          triplet_list%DATA(counter)%index_column + column_shift
   END DO
 
   END SUBROUTINE ShiftTripletList_r
@@ -820,10 +820,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Loop
   DO counter = 1, triplet_list%CurrentSize
-     triplet_list%data(counter)%index_row = &
-          triplet_list%data(counter)%index_row + row_shift
-     triplet_list%data(counter)%index_column = &
-          triplet_list%data(counter)%index_column + column_shift
+     triplet_list%DATA(counter)%index_row = &
+          triplet_list%DATA(counter)%index_row + row_shift
+     triplet_list%DATA(counter)%index_column = &
+          triplet_list%DATA(counter)%index_column + column_shift
   END DO
 
   END SUBROUTINE ShiftTripletList_c
@@ -859,9 +859,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Unpack
   DO II = 1, list_length
-     row = input_list%data(II)%index_row
-     col = input_list%data(II)%index_column
-     value_buffer(row,col) = input_list%data(II)%point_value
+     row = input_list%DATA(II)%index_row
+     col = input_list%DATA(II)%index_column
+     value_buffer(row,col) = input_list%DATA(II)%point_value
      dirty_buffer(row,col) = 1
   END DO
 
@@ -870,9 +870,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DO JJ = 1, matrix_columns
      DO II = 1, matrix_rows
         IF (dirty_buffer(II,JJ) .EQ. 1) THEN
-           sorted_list%data(ind)%index_row = II
-           sorted_list%data(ind)%index_column = JJ
-           sorted_list%data(ind)%point_value = value_buffer(II,JJ)
+           sorted_list%DATA(ind)%index_row = II
+           sorted_list%DATA(ind)%index_column = JJ
+           sorted_list%DATA(ind)%point_value = value_buffer(II,JJ)
            ind = ind + 1
         END IF
      END DO
@@ -915,9 +915,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Unpack
   DO II = 1, list_length
-     row = input_list%data(II)%index_row
-     col = input_list%data(II)%index_column
-     value_buffer(row,col) = input_list%data(II)%point_value
+     row = input_list%DATA(II)%index_row
+     col = input_list%DATA(II)%index_column
+     value_buffer(row,col) = input_list%DATA(II)%point_value
      dirty_buffer(row,col) = 1
   END DO
 
@@ -926,9 +926,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DO JJ = 1, matrix_columns
      DO II = 1, matrix_rows
         IF (dirty_buffer(II,JJ) .EQ. 1) THEN
-           sorted_list%data(ind)%index_row = II
-           sorted_list%data(ind)%index_column = JJ
-           sorted_list%data(ind)%point_value = value_buffer(II,JJ)
+           sorted_list%DATA(ind)%index_row = II
+           sorted_list%DATA(ind)%index_column = JJ
+           sorted_list%DATA(ind)%point_value = value_buffer(II,JJ)
            ind = ind + 1
         END IF
      END DO
@@ -1035,7 +1035,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     CALL ConstructTripletList(rout_triplet, cin_triplet%CurrentSize)
     DO II = 1, cin_triplet%CurrentSize
-       CALL ConvertTripletType(cin_triplet%data(II), rout_triplet%data(II))
+       CALL ConvertTripletType(cin_triplet%DATA(II), rout_triplet%DATA(II))
     END DO
 
   END SUBROUTINE ConvertTripletListToReal
@@ -1051,7 +1051,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     CALL ConstructTripletList(cout_triplet, rin_triplet%CurrentSize)
     DO II = 1, rin_triplet%CurrentSize
-       CALL ConvertTripletType(rin_triplet%data(II), cout_triplet%data(II))
+       CALL ConvertTripletType(rin_triplet%DATA(II), cout_triplet%DATA(II))
     END DO
 
   END SUBROUTINE ConvertTripletListToComplex

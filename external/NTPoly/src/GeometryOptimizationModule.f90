@@ -60,7 +60,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL WriteHeader("Density Matrix Extrapolator")
        CALL EnterSubLog
-       CALL WriteElement(key="Method", value="Purification")
+       CALL WriteElement(key="Method", VALUE="Purification")
        CALL WriteCitation("niklasson2010trace")
        CALL PrintParameters(solver_parameters)
     END IF
@@ -109,10 +109,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        norm_value = MatrixNorm(WorkingDensity)
 
        IF (solver_parameters%be_verbose) THEN
-          CALL WriteListElement(key="Round", value=outer_counter)
+          CALL WriteListElement(key="Round", VALUE=outer_counter)
           CALL EnterSubLog
-          CALL WriteElement(key="Convergence", value=norm_value)
-          CALL WriteElement(key="Trace", value=trace_value)
+          CALL WriteElement(key="Convergence", VALUE=norm_value)
+          CALL WriteElement(key="Trace", VALUE=trace_value)
           CALL ExitSubLog
        END IF
 
@@ -125,7 +125,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END DO
     IF (solver_parameters%be_verbose) THEN
        CALL ExitSubLog
-       CALL WriteElement(key="Total_Iterations", value=outer_counter)
+       CALL WriteElement(key="Total_Iterations", VALUE=outer_counter)
        CALL PrintMatrixInformation(NewDensity)
     END IF
 
@@ -181,7 +181,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     IF (solver_parameters%be_verbose) THEN
        CALL WriteHeader("Density Matrix Extrapolator")
        CALL EnterSubLog
-       CALL WriteElement(key="Method", value="Lowdin")
+       CALL WriteElement(key="Method", VALUE="Lowdin")
        CALL WriteCitation("exner2002comparison")
        CALL PrintParameters(solver_parameters)
     END IF

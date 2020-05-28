@@ -32,10 +32,12 @@ MODULE MatrixReduceModule
   PUBLIC :: ReduceAndComposeMatrixSizes
   PUBLIC :: ReduceAndComposeMatrixData
   PUBLIC :: ReduceAndComposeMatrixCleanup
+  PUBLIC :: ReduceAndComposeMatrix
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: ReduceAndSumMatrixSizes
   PUBLIC :: ReduceAndSumMatrixData
   PUBLIC :: ReduceAndSumMatrixCleanup
+  PUBLIC :: ReduceAndSumMatrix
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: TestReduceSizeRequest
   PUBLIC :: TestReduceInnerRequest
@@ -44,27 +46,35 @@ MODULE MatrixReduceModule
   INTERFACE ReduceAndComposeMatrixSizes
      MODULE PROCEDURE ReduceAndComposeMatrixSizes_lsr
      MODULE PROCEDURE ReduceAndComposeMatrixSizes_lsc
-  END INTERFACE
+  END INTERFACE ReduceAndComposeMatrixSizes
   INTERFACE ReduceAndComposeMatrixData
      MODULE PROCEDURE ReduceAndComposeMatrixData_lsr
      MODULE PROCEDURE ReduceAndComposeMatrixData_lsc
-  END INTERFACE
+  END INTERFACE ReduceAndComposeMatrixData
   INTERFACE ReduceAndComposeMatrixCleanup
      MODULE PROCEDURE ReduceAndComposeMatrixCleanup_lsr
      MODULE PROCEDURE ReduceAndComposeMatrixCleanup_lsc
-  END INTERFACE
+  END INTERFACE ReduceAndComposeMatrixCleanup
+  INTERFACE ReduceAndComposeMatrix
+     MODULE PROCEDURE ReduceAndComposeMatrix_lsr
+     MODULE PROCEDURE ReduceAndComposeMatrix_lsc
+  END INTERFACE ReduceAndComposeMatrix
   INTERFACE ReduceAndSumMatrixSizes
      MODULE PROCEDURE ReduceAndSumMatrixSizes_lsr
      MODULE PROCEDURE ReduceAndSumMatrixSizes_lsc
-  END INTERFACE
+  END INTERFACE ReduceAndSumMatrixSizes
   INTERFACE ReduceAndSumMatrixData
      MODULE PROCEDURE ReduceAndSumMatrixData_lsr
      MODULE PROCEDURE ReduceAndSumMatrixData_lsc
-  END INTERFACE
+  END INTERFACE ReduceAndSumMatrixData
   INTERFACE ReduceAndSumMatrixCleanup
      MODULE PROCEDURE ReduceAndSumMatrixCleanup_lsr
      MODULE PROCEDURE ReduceAndSumMatrixCleanup_lsc
-  END INTERFACE
+  END INTERFACE ReduceAndSumMatrixCleanup
+  INTERFACE ReduceAndSumMatrix
+     MODULE PROCEDURE ReduceAndSumMatrix_lsr
+     MODULE PROCEDURE ReduceAndSumMatrix_lsc
+  END INTERFACE ReduceAndSumMatrix
 CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> The first routine to call, gathers the sizes of the data to be sent.
   SUBROUTINE ReduceAndComposeMatrixSizes_lsr(matrix, communicator, &
@@ -98,13 +108,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> The first routine to call, gathers the sizes of the data to be sent.
   SUBROUTINE ReduceAndComposeMatrixSizes_lsc(matrix, communicator, &
        & gathered_matrix, helper)
-    !> The matrix to send.
+    !! The matrix to send.
     TYPE(Matrix_lsc), INTENT(IN)        :: matrix
     !> The matrix we are gathering.
     TYPE(Matrix_lsc), INTENT(INOUT)     :: gathered_matrix
-    !> The communicator to send along.
+    !! The communicator to send along.
     INTEGER, INTENT(INOUT)              :: communicator
-    !> The helper associated with this gather.
+    !! The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
   !! Local Data
   INTEGER :: grid_error
@@ -279,6 +289,58 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(helper%displacement)
 
   END SUBROUTINE ReduceAndComposeMatrixCleanup_lsc
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> Reduce and sum the matrices in one step. If you use this method, you
+  !> lose the opportunity for overlapping communication.
+  SUBROUTINE ReduceAndComposeMatrix_lsr(matrix, gathered_matrix, comm)
+    !> The matrix to send.
+    TYPE(Matrix_lsr), INTENT(IN)    :: matrix
+    !> The matrix we are gathering.
+    TYPE(Matrix_lsr), INTENT(INOUT) :: gathered_matrix
+    !> The communicator to send along.
+    INTEGER, INTENT(INOUT)              :: comm
+    !! Local Variables
+    TYPE(ReduceHelper_t) :: helper
+
+  CALL ReduceAndComposeMatrixSizes(matrix, comm, gathered_matrix, helper)
+  DO WHILE(.NOT. TestReduceSizeRequest(helper))
+  END DO
+
+  CALL ReduceAndComposeMatrixData(matrix, comm, gathered_matrix, helper)
+  DO WHILE(.NOT. TestReduceInnerRequest(helper))
+  END DO
+  DO WHILE(.NOT. TestReduceDataRequest(helper))
+  END DO
+
+  CALL ReduceAndComposeMatrixCleanup(matrix, gathered_matrix, helper)
+
+  END SUBROUTINE ReduceAndComposeMatrix_lsr
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> Reduce and sum the matrices in one step. If you use this method, you
+  !> lose the opportunity for overlapping communication.
+  SUBROUTINE ReduceAndComposeMatrix_lsc(matrix, gathered_matrix, comm)
+    !> The matrix to send.
+    TYPE(Matrix_lsc), INTENT(IN)    :: matrix
+    !> The matrix we are gathering.
+    TYPE(Matrix_lsc), INTENT(INOUT) :: gathered_matrix
+    !> The communicator to send along.
+    INTEGER, INTENT(INOUT)              :: comm
+    !! Local Variables
+    TYPE(ReduceHelper_t) :: helper
+
+  CALL ReduceAndComposeMatrixSizes(matrix, comm, gathered_matrix, helper)
+  DO WHILE(.NOT. TestReduceSizeRequest(helper))
+  END DO
+
+  CALL ReduceAndComposeMatrixData(matrix, comm, gathered_matrix, helper)
+  DO WHILE(.NOT. TestReduceInnerRequest(helper))
+  END DO
+  DO WHILE(.NOT. TestReduceDataRequest(helper))
+  END DO
+
+  CALL ReduceAndComposeMatrixCleanup(matrix, gathered_matrix, helper)
+
+  END SUBROUTINE ReduceAndComposeMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> The first routine to call, gathers the sizes of the data to be sent.
   SUBROUTINE ReduceAndSumMatrixSizes_lsr(matrix, communicator,  &
@@ -537,6 +599,60 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
   END SUBROUTINE ReduceAndSumMatrixCleanup_lsc
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> Reduce and sum the matrices in one step. If you use this method, you
+  !> lose the opportunity for overlapping communication.
+  SUBROUTINE ReduceAndSumMatrix_lsr(matrix, gathered_matrix, threshold, comm)
+    !> The matrix to send.
+    TYPE(Matrix_lsr), INTENT(IN)        :: matrix
+    !> The gathered_matrix the matrix being gathered.
+    TYPE(Matrix_lsr), INTENT(INOUT)     :: gathered_matrix
+    !> The threshold the threshold for flushing values.
+    REAL(NTREAL), INTENT(IN)            :: threshold
+    !> The communicator to send along.
+    INTEGER, INTENT(INOUT)              :: comm
+    !! Local Data
+    TYPE(ReduceHelper_t) :: helper
+
+  CALL ReduceAndSumMatrixSizes(matrix, comm, gathered_matrix, helper)
+  DO WHILE(.NOT. TestReduceSizeRequest(helper))
+  END DO
+
+  CALL ReduceAndSumMatrixData(matrix, gathered_matrix, comm, helper)
+  DO WHILE(.NOT. TestReduceInnerRequest(helper))
+  END DO
+  DO WHILE(.NOT. TestReduceDataRequest(helper))
+  END DO
+
+  CALL ReduceAndSumMatrixCleanup(matrix, gathered_matrix, threshold, helper)
+  END SUBROUTINE ReduceAndSumMatrix_lsr
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> Reduce and sum the matrices in one step. If you use this method, you
+  !> lose the opportunity for overlapping communication.
+  SUBROUTINE ReduceAndSumMatrix_lsc(matrix, gathered_matrix, threshold, comm)
+    !> The matrix to send.
+    TYPE(Matrix_lsc), INTENT(IN)        :: matrix
+    !> The threshold the threshold for flushing values.
+    TYPE(Matrix_lsc), INTENT(INOUT)     :: gathered_matrix
+    !> The threshold the threshold for flushing values.
+    REAL(NTREAL), INTENT(IN)            :: threshold
+    !> The communicator to send along.
+    INTEGER, INTENT(INOUT)              :: comm
+    !! Local Data
+    TYPE(ReduceHelper_t) :: helper
+
+  CALL ReduceAndSumMatrixSizes(matrix, comm, gathered_matrix, helper)
+  DO WHILE(.NOT. TestReduceSizeRequest(helper))
+  END DO
+
+  CALL ReduceAndSumMatrixData(matrix, gathered_matrix, comm, helper)
+  DO WHILE(.NOT. TestReduceInnerRequest(helper))
+  END DO
+  DO WHILE(.NOT. TestReduceDataRequest(helper))
+  END DO
+
+  CALL ReduceAndSumMatrixCleanup(matrix, gathered_matrix, threshold, helper)
+  END SUBROUTINE ReduceAndSumMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Test if a request for the size of the matrices is complete.
   FUNCTION TestReduceSizeRequest(helper) RESULT(request_completed)
