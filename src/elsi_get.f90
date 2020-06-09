@@ -259,10 +259,6 @@ subroutine elsi_get_entropy(eh,entropy)
 
    entropy = eh%ph%ts
 
-   if(eh%ph%solver == PEXSI_SOLVER .and. eh%ph%pexsi_options%method /= 2) then
-      call elsi_reduce_energy(eh%ph,eh%bh,entropy)
-   end if
-
 end subroutine
 
 !>
