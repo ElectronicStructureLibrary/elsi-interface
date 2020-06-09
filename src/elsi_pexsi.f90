@@ -15,7 +15,7 @@ module ELSI_PEXSI
    use ELSI_MPI, only: MPI_SUM,MPI_REAL8,MPI_COMPLEX16
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
-   use ELSI_UTIL, only: elsi_check_err
+   use ELSI_UTIL, only: elsi_check_err,elsi_reduce_energy
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_initialize,&
        f_ppexsi_plan_finalize,f_ppexsi_set_default_options,&
        f_ppexsi_load_real_hs_matrix,f_ppexsi_load_complex_hs_matrix,&
@@ -445,7 +445,11 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    ! Compute entropy
    if(ph%pexsi_options%method /= 2) then
-      ph%ts = ph%ebs-free_energy-ph%mu*ph%n_electrons
+      local_energy = ph%ebs-free_energy-ph%mu*ph%n_electrons
+
+      call elsi_reduce_energy(ph,bh,local_energy)
+
+      ph%ts = local_energy
    end if
 
    call elsi_get_time(t1)
@@ -922,7 +926,11 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    ! Compute entropy
    if(ph%pexsi_options%method /= 2) then
-      ph%ts = ph%ebs-free_energy-ph%mu*ph%n_electrons
+      local_energy = ph%ebs-free_energy-ph%mu*ph%n_electrons
+
+      call elsi_reduce_energy(ph,bh,local_energy)
+
+      ph%ts = local_energy
    end if
 
    call elsi_get_time(t1)
