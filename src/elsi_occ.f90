@@ -26,8 +26,6 @@ module ELSI_OCC
    public :: elsi_mu_and_occ
    public :: elsi_entropy
    public :: elsi_get_occ_for_dm
-   public :: elsi_compute_mu_and_occ
-   public :: elsi_compute_entropy
 
 contains
 
@@ -668,56 +666,6 @@ subroutine elsi_get_occ_for_dm(ph,bh,eval,occ)
 
    call elsi_deallocate(bh,eval_all,"eval_all")
    call elsi_deallocate(bh,k_wt,"k_wt")
-
-end subroutine
-
-!>
-!! Compute the chemical potential and occupation numbers.
-!! (Public version of elsi_mu_and_occ)
-!!
-subroutine elsi_compute_mu_and_occ(eh,n_electron,n_state,n_spin,n_kpt,k_wt,&
-   eval,occ,mu)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   real(kind=r8), intent(in) :: n_electron !< Number of electrons
-   integer(kind=i4), intent(in) :: n_state !< Number of states
-   integer(kind=i4), intent(in) :: n_spin !< Number of spins
-   integer(kind=i4), intent(in) :: n_kpt !< Number of k-points
-   real(kind=r8), intent(in) :: k_wt(n_kpt) !< K-points weights
-   real(kind=r8), intent(in) :: eval(n_state,n_spin,n_kpt) !< Eigenvalues
-   real(kind=r8), intent(out) :: occ(n_state,n_spin,n_kpt) !< Occupation members
-   real(kind=r8), intent(out) :: mu !< Chemical potential
-
-   character(len=*), parameter :: caller = "elsi_compute_mu_and_occ"
-
-   call elsi_mu_and_occ(eh%ph,eh%bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,&
-        occ,mu)
-
-end subroutine
-
-!>
-!! Compute the electronic entropy.
-!! (Public version of elsi_entropy)
-!!
-subroutine elsi_compute_entropy(eh,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
-
-   implicit none
-
-   type(elsi_handle), intent(in) :: eh !< Handle
-   integer(kind=i4), intent(in) :: n_state !< Number of states
-   integer(kind=i4), intent(in) :: n_spin !< Number of spins
-   integer(kind=i4), intent(in) :: n_kpt !< Number of k-points
-   real(kind=r8), intent(in) :: k_wt(n_kpt) !< K-points weights
-   real(kind=r8), intent(in) :: eval(n_state,n_spin,n_kpt) !< Eigenvalues
-   real(kind=r8), intent(in) :: occ(n_state,n_spin,n_kpt) !< Occupation numbers
-   real(kind=r8), intent(in) :: mu !< Input chemical potential
-   real(kind=r8), intent(out) :: ts !< Entropy
-
-   character(len=*), parameter :: caller = "elsi_compute_entropy"
-
-   call elsi_entropy(eh%ph,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
 
 end subroutine
 
