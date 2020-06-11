@@ -145,8 +145,8 @@ void c_elsi_set_unit_ovlp(elsi_handle handle_c,
 void c_elsi_set_zero_def(elsi_handle handle_c,
      double zero_def);
 
-void c_elsi_set_sparsity_option(elsi_handle handle_c,
-     int sparsity_option);
+void c_elsi_set_sparsity_mask(elsi_handle handle_c,
+     int sparsity_mask);
 
 void c_elsi_set_illcond_check(elsi_handle handle_c,
      int illcond_check);
@@ -210,9 +210,6 @@ void c_elsi_set_pexsi_np_per_pole(elsi_handle handle_c,
 
 void c_elsi_set_pexsi_np_symbo(elsi_handle handle_c,
      int np_symbo);
-
-void c_elsi_set_pexsi_ordering(elsi_handle handle_c,
-     int ordering);
 
 void c_elsi_set_pexsi_temp(elsi_handle handle_c,
      double temp);

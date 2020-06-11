@@ -12,7 +12,7 @@ module ELSI_SOLVER
    use ELSI_BSEPACK, only: elsi_solve_bsepack
    use ELSI_CONSTANT, only: ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,SIPS_SOLVER,&
        NTPOLY_SOLVER,EIGENEXA_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,MULTI_PROC,&
-       SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,GET_DM
+       SINGLE_PROC,PEXSI_CSC,SIESTA_CSC,GENERIC_COO,GET_DM,GET_EDM
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_DECISION, only: elsi_decide_ev,elsi_decide_dm
    use ELSI_EIGENEXA, only: elsi_init_eigenexa,elsi_solve_eigenexa
@@ -22,7 +22,7 @@ module ELSI_SOLVER
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI, only: elsi_stop
    use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_solve_ntpoly
-   use ELSI_OCC, only: elsi_get_occ_for_dm
+   use ELSI_OCC, only: elsi_mu_and_occ,elsi_entropy,elsi_get_occ_for_dm
    use ELSI_OMM, only: elsi_init_omm,elsi_solve_omm
    use ELSI_OUTPUT, only: elsi_add_log,elsi_get_time,fjson_get_datetime_rfc3339
    use ELSI_PEXSI, only: elsi_init_pexsi,elsi_solve_pexsi
@@ -61,6 +61,12 @@ module ELSI_SOLVER
    public :: elsi_dm_complex_sparse
    public :: elsi_bse_real
    public :: elsi_bse_complex
+   public :: elsi_compute_dm_real
+   public :: elsi_compute_dm_complex
+   public :: elsi_compute_edm_real
+   public :: elsi_compute_edm_complex
+   public :: elsi_compute_mu_and_occ
+   public :: elsi_compute_entropy
 
 contains
 
@@ -2118,6 +2124,152 @@ subroutine elsi_bse_complex(eh,mat_a,mat_b,eval,evec)
    end select
 
    call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
+
+end subroutine
+
+!>
+!! Construct density matrix from eigenvectors.
+!!
+subroutine elsi_compute_dm_real(eh,occ,evec,dm)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: eh
+   real(kind=r8), intent(in) :: occ(eh%ph%n_states)
+   real(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol)
+   real(kind=r8), intent(out) :: dm(eh%bh%n_lrow,eh%bh%n_lcol)
+
+   character(len=*), parameter :: caller = "elsi_compute_dm_real"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   call elsi_build_dm_edm(eh%ph,eh%bh,occ,evec,dm,GET_DM)
+
+end subroutine
+
+!>
+!! Construct density matrix from eigenvectors.
+!!
+subroutine elsi_compute_dm_complex(eh,occ,evec,dm)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: eh
+   real(kind=r8), intent(in) :: occ(eh%ph%n_states)
+   complex(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol)
+   complex(kind=r8), intent(out) :: dm(eh%bh%n_lrow,eh%bh%n_lcol)
+
+   character(len=*), parameter :: caller = "elsi_compute_dm_complex"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   call elsi_build_dm_edm(eh%ph,eh%bh,occ,evec,dm,GET_DM)
+
+end subroutine
+
+!>
+!! Construct energy-weighted density matrix from eigenvectors.
+!!
+subroutine elsi_compute_edm_real(eh,eval,occ,evec,edm)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: eh
+   real(kind=r8), intent(in) :: eval(eh%ph%n_states)
+   real(kind=r8), intent(in) :: occ(eh%ph%n_states)
+   real(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol)
+   real(kind=r8), intent(out) :: edm(eh%bh%n_lrow,eh%bh%n_lcol)
+
+   real(kind=r8), allocatable :: factor(:)
+
+   character(len=*), parameter :: caller = "elsi_compute_edm_real"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   call elsi_allocate(eh%bh,factor,eh%ph%n_states,"factor",caller)
+
+   factor(:) = -occ*eval
+
+   call elsi_build_dm_edm(eh%ph,eh%bh,factor,evec,edm,GET_EDM)
+
+   call elsi_deallocate(eh%bh,factor,"factor")
+
+end subroutine
+
+!>
+!! Construct energy-weighted density matrix from eigenvectors.
+!!
+subroutine elsi_compute_edm_complex(eh,eval,occ,evec,edm)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: eh
+   real(kind=r8), intent(in) :: eval(eh%ph%n_states)
+   real(kind=r8), intent(in) :: occ(eh%ph%n_states)
+   complex(kind=r8), intent(in) :: evec(eh%bh%n_lrow,eh%bh%n_lcol)
+   complex(kind=r8), intent(out) :: edm(eh%bh%n_lrow,eh%bh%n_lcol)
+
+   real(kind=r8), allocatable :: factor(:)
+
+   character(len=*), parameter :: caller = "elsi_compute_edm_complex"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   call elsi_allocate(eh%bh,factor,eh%ph%n_states,"factor",caller)
+
+   factor(:) = -occ*eval
+
+   call elsi_build_dm_edm(eh%ph,eh%bh,factor,evec,edm,GET_EDM)
+
+   call elsi_deallocate(eh%bh,factor,"factor")
+
+end subroutine
+
+!>
+!! Compute the chemical potential and occupation numbers.
+!!
+subroutine elsi_compute_mu_and_occ(eh,n_electron,n_state,n_spin,n_kpt,k_wt,&
+   eval,occ,mu)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: eh !< Handle
+   real(kind=r8), intent(in) :: n_electron !< Number of electrons
+   integer(kind=i4), intent(in) :: n_state !< Number of states
+   integer(kind=i4), intent(in) :: n_spin !< Number of spins
+   integer(kind=i4), intent(in) :: n_kpt !< Number of k-points
+   real(kind=r8), intent(in) :: k_wt(n_kpt) !< K-points weights
+   real(kind=r8), intent(in) :: eval(n_state,n_spin,n_kpt) !< Eigenvalues
+   real(kind=r8), intent(out) :: occ(n_state,n_spin,n_kpt) !< Occupation members
+   real(kind=r8), intent(out) :: mu !< Chemical potential
+
+   character(len=*), parameter :: caller = "elsi_compute_mu_and_occ"
+
+   call elsi_mu_and_occ(eh%ph,eh%bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,&
+        occ,mu)
+
+end subroutine
+
+!>
+!! Compute the electronic entropy.
+!!
+subroutine elsi_compute_entropy(eh,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
+
+   implicit none
+
+   type(elsi_handle), intent(in) :: eh !< Handle
+   integer(kind=i4), intent(in) :: n_state !< Number of states
+   integer(kind=i4), intent(in) :: n_spin !< Number of spins
+   integer(kind=i4), intent(in) :: n_kpt !< Number of k-points
+   real(kind=r8), intent(in) :: k_wt(n_kpt) !< K-points weights
+   real(kind=r8), intent(in) :: eval(n_state,n_spin,n_kpt) !< Eigenvalues
+   real(kind=r8), intent(in) :: occ(n_state,n_spin,n_kpt) !< Occupation numbers
+   real(kind=r8), intent(in) :: mu !< Input chemical potential
+   real(kind=r8), intent(out) :: ts !< Entropy
+
+   character(len=*), parameter :: caller = "elsi_compute_entropy"
+
+   call elsi_entropy(eh%ph,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
 
 end subroutine
 
