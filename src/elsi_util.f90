@@ -773,11 +773,14 @@ subroutine elsi_build_dm_edm_real(ph,bh,factor,evec,dm,which)
    integer(kind=i4), intent(in) :: which
 
    real(kind=r8) :: alpha
+   real(kind=r8) :: dummy(1,1)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: i
    integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
+   integer(kind=i4) :: ierr
+   logical :: use_elpa_mult
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: tmp(:,:)
@@ -819,8 +822,37 @@ subroutine elsi_build_dm_edm_real(ph,bh,factor,evec,dm,which)
          end if
       end do
 
-      call pdsyrk("U","N",ph%n_basis,max_state,alpha,tmp,1,1,bh%desc,0.0_r8,dm,&
-           1,1,bh%desc)
+      if(associated(ph%elpa_aux)) then
+         call ph%elpa_aux%set("multiply_at_a",1,ierr)
+
+         if(ierr /= 0 .or. ph%elpa_gpu == 0 .or. ph%solver /= ELPA_SOLVER&
+            .or. bh%blk*(max(bh%n_prow,bh%n_pcol)-1) >= max_state) then
+            use_elpa_mult = .false.
+         else
+            use_elpa_mult = .true.
+         end if
+      else
+         use_elpa_mult = .false.
+      end if
+
+      if(use_elpa_mult) then
+         call pdtran(ph%n_basis,ph%n_basis,1.0_r8,tmp,1,1,bh%desc,0.0_r8,dm,1,&
+              1,bh%desc)
+
+         call ph%elpa_aux%hermitian_multiply("N","U",max_state,dm,dummy,&
+              bh%n_lrow,bh%n_lcol,tmp,bh%n_lrow,bh%n_lcol,ierr)
+
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+
+         dm(:,:) = alpha*tmp
+      else
+         call pdsyrk("U","N",ph%n_basis,max_state,alpha,tmp,1,1,bh%desc,0.0_r8,&
+              dm,1,1,bh%desc)
+      end if
+
+      if(associated(ph%elpa_aux)) then
+         call ph%elpa_aux%set("multiply_at_a",0,ierr)
+      end if
 
       call elsi_set_full_mat(ph,bh,UT_MAT,dm)
    end if
@@ -856,11 +888,14 @@ subroutine elsi_build_dm_edm_cmplx(ph,bh,factor,evec,dm,which)
    integer(kind=i4), intent(in) :: which
 
    complex(kind=r8) :: alpha
+   complex(kind=r8) :: dummy(1,1)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: i
    integer(kind=i4) :: gid
    integer(kind=i4) :: max_state
+   integer(kind=i4) :: ierr
+   logical :: use_elpa_mult
    character(len=200) :: msg
 
    complex(kind=r8), allocatable :: tmp(:,:)
@@ -902,8 +937,37 @@ subroutine elsi_build_dm_edm_cmplx(ph,bh,factor,evec,dm,which)
          end if
       end do
 
-      call pzherk("U","N",ph%n_basis,max_state,alpha,tmp,1,1,bh%desc,&
-           (0.0_r8,0.0_r8),dm,1,1,bh%desc)
+      if(associated(ph%elpa_aux)) then
+         call ph%elpa_aux%set("multiply_at_a",1,ierr)
+
+         if(ierr /= 0 .or. ph%elpa_gpu == 0 .or. ph%solver /= ELPA_SOLVER&
+            .or. bh%blk*(max(bh%n_prow,bh%n_pcol)-1) >= max_state) then
+            use_elpa_mult = .false.
+         else
+            use_elpa_mult = .true.
+         end if
+      else
+         use_elpa_mult = .false.
+      end if
+
+      if(use_elpa_mult) then
+         call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),tmp,1,1,bh%desc,&
+              (0.0_r8,0.0_r8),dm,1,1,bh%desc)
+
+         call ph%elpa_aux%hermitian_multiply("N","U",max_state,dm,dummy,&
+              bh%n_lrow,bh%n_lcol,tmp,bh%n_lrow,bh%n_lcol,ierr)
+
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+
+         dm(:,:) = alpha*tmp
+      else
+         call pzherk("U","N",ph%n_basis,max_state,alpha,tmp,1,1,bh%desc,&
+              (0.0_r8,0.0_r8),dm,1,1,bh%desc)
+      end if
+
+      if(associated(ph%elpa_aux)) then
+         call ph%elpa_aux%set("multiply_at_a",0,ierr)
+      end if
 
       call elsi_set_full_mat(ph,bh,UT_MAT,dm)
    end if
