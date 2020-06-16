@@ -358,7 +358,19 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
       call elsi_check_ovlp_elpa(ph,bh,ovlp,eval,evec)
    end if
 
-   write(msg,"(A)") "Starting ELPA eigensolver"
+   if(ph%elpa_gpu == 1) then
+      if(ph%n_calls <= ph%elpa_n_single) then
+         write(msg,"(A)") "Starting ELPA eigensolver (GPU single precision)"
+      else
+         write(msg,"(A)") "Starting ELPA eigensolver (GPU)"
+      end if
+   else
+      if(ph%n_calls <= ph%elpa_n_single) then
+         write(msg,"(A)") "Starting ELPA eigensolver (single precision)"
+      else
+         write(msg,"(A)") "Starting ELPA eigensolver"
+      end if
+   end if
    call elsi_say(bh,msg)
 
    ! Transform to standard form
@@ -729,7 +741,19 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
       call elsi_check_ovlp_elpa(ph,bh,ovlp,eval,evec)
    end if
 
-   write(msg,"(A)") "Starting ELPA eigensolver"
+   if(ph%elpa_gpu == 1) then
+      if(ph%n_calls <= ph%elpa_n_single) then
+         write(msg,"(A)") "Starting ELPA eigensolver (GPU single precision)"
+      else
+         write(msg,"(A)") "Starting ELPA eigensolver (GPU)"
+      end if
+   else
+      if(ph%n_calls <= ph%elpa_n_single) then
+         write(msg,"(A)") "Starting ELPA eigensolver (single precision)"
+      else
+         write(msg,"(A)") "Starting ELPA eigensolver"
+      end if
+   end if
    call elsi_say(bh,msg)
 
    ! Transform to standard form
