@@ -192,8 +192,8 @@ static __forceinline void hh_trafo_complex_kernel_24_AVX512_1hv_double(double co
         h1_real = _AVX512_SET1(hh_dbl[0]);
         h1_imag = _AVX512_SET1(hh_dbl[1]);
 
-        h1_real = _AVX512_XOR(h1_real, sign);
-        h1_imag = _AVX512_XOR(h1_imag, sign);
+        h1_real = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) h1_real, (__m512i) sign);
+        h1_imag = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) h1_imag, (__m512i) sign);
 
         tmp1 = _AVX512_MUL(h1_imag, x1);
 
@@ -342,8 +342,8 @@ static __forceinline void hh_trafo_complex_kernel_20_AVX512_1hv_double(double co
         h1_real = _AVX512_SET1(hh_dbl[0]);
         h1_imag = _AVX512_SET1(hh_dbl[1]);
 
-        h1_real = _AVX512_XOR(h1_real, sign);
-        h1_imag = _AVX512_XOR(h1_imag, sign);
+        h1_real = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) h1_real, (__m512i) sign);
+        h1_imag = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) h1_imag, (__m512i) sign);
 
         tmp1 = _AVX512_MUL(h1_imag, x1);
 
@@ -471,8 +471,8 @@ static __forceinline void hh_trafo_complex_kernel_16_AVX512_1hv_double(double co
 	h1_real = _AVX512_SET1(hh_dbl[0]);
 	h1_imag = _AVX512_SET1(hh_dbl[1]);
 
-        h1_real = _AVX512_XOR(h1_real, sign);
-        h1_imag = _AVX512_XOR(h1_imag, sign);
+        h1_real = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) h1_real, (__m512i) sign);
+        h1_imag = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) h1_imag, (__m512i) sign);
 
         tmp1 = _AVX512_MUL(h1_imag, x1);
 
@@ -582,8 +582,8 @@ static __forceinline void hh_trafo_complex_kernel_12_AVX512_1hv_double(double co
         h1_real = _AVX512_SET1(hh_dbl[0]);
         h1_imag = _AVX512_SET1(hh_dbl[1]);
 
-        h1_real = _AVX512_XOR(h1_real, sign);
-        h1_imag = _AVX512_XOR(h1_imag, sign);
+        h1_real = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) h1_real, (__m512i) sign);
+        h1_imag = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) h1_imag, (__m512i) sign);
 
         tmp1 = _AVX512_MUL(h1_imag, x1);
 
@@ -669,8 +669,8 @@ static __forceinline void hh_trafo_complex_kernel_8_AVX512_1hv_double(double com
         h1_real = _AVX512_SET1(hh_dbl[0]);
         h1_imag = _AVX512_SET1(hh_dbl[1]);
 
-        h1_real = _AVX512_XOR(h1_real, sign);
-        h1_imag = _AVX512_XOR(h1_imag, sign);
+        h1_real = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) h1_real, (__m512i) sign);
+        h1_imag = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) h1_imag, (__m512i) sign);
 
         tmp1 = _AVX512_MUL(h1_imag, x1);
         x1 = _AVX512_FMADDSUB(h1_real, x1, _AVX512_SHUFFLE(tmp1, tmp1, _SHUFFLE));
@@ -737,8 +737,8 @@ static __forceinline void hh_trafo_complex_kernel_4_AVX512_1hv_double(double com
 	h1_real = _AVX512_SET1(hh_dbl[0]);
 	h1_imag = _AVX512_SET1(hh_dbl[1]);
 
-        h1_real = _AVX512_XOR(h1_real, sign);
-        h1_imag = _AVX512_XOR(h1_imag, sign);
+        h1_real = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) h1_real, (__m512i) sign);
+        h1_imag = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) h1_imag, (__m512i) sign);
 
         tmp1 = _AVX512_MUL(h1_imag, x1);
         x1 = _AVX512_FMADDSUB(h1_real, x1, _AVX512_SHUFFLE(tmp1, tmp1, _SHUFFLE));
