@@ -61,6 +61,7 @@
 #define _AVX512_ADD _mm512_add_ps
 #define _AVX512_MUL _mm512_mul_ps
 #define _AVX512_XOR _mm512_xor_ps
+#define _AVX512_XOR_EPI _mm512_xor_epi64
 
 #define _mm512_FMA_ps(a,b,c) _mm512_fmadd_ps(a,b,c)
 
@@ -194,13 +195,13 @@ void double_hh_trafo_real_avx512_2hv_single(float* q, float* hh, int* pnb, int* 
         __AVX512_DATATYPE tau2 = _AVX512_SET1(hh[ldh]);
         __AVX512_DATATYPE vs = _AVX512_SET1(s);
 
-	h1 = _AVX512_XOR(tau1, sign);
+        h1 = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) tau1, (__m512i) sign);
 	x1 = _AVX512_MUL(x1, h1);
 	x2 = _AVX512_MUL(x2, h1);
 	x3 = _AVX512_MUL(x3, h1);
 	x4 = _AVX512_MUL(x4, h1);
 
-	h1 = _AVX512_XOR(tau2, sign);
+        h1 = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) tau2, (__m512i) sign);
 	h2 = _AVX512_MUL(h1, vs);
 	y1 = _AVX512_FMA(y1, h1, _AVX512_MUL(x1,h2));
 	y2 = _AVX512_FMA(y2, h1, _AVX512_MUL(x2,h2));
@@ -339,13 +340,13 @@ void double_hh_trafo_real_avx512_2hv_single(float* q, float* hh, int* pnb, int* 
         __AVX512_DATATYPE tau2 = _AVX512_SET1(hh[ldh]);
         __AVX512_DATATYPE vs = _AVX512_SET1(s);
 
-	h1 = _AVX512_XOR(tau1, sign);
+        h1 = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) tau1, (__m512i) sign);
 
 	x1 = _AVX512_MUL(x1, h1);
 	x2 = _AVX512_MUL(x2, h1);
 	x3 = _AVX512_MUL(x3, h1);
 
-	h1 = _AVX512_XOR(tau2, sign);
+        h1 = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) tau2, (__m512i) sign);
 
 	h2 = _AVX512_MUL(h1, vs);
 	y1 = _AVX512_FMA(y1, h1, _AVX512_MUL(x1,h2));
@@ -461,10 +462,10 @@ void double_hh_trafo_real_avx512_2hv_single(float* q, float* hh, int* pnb, int* 
 	__AVX512_DATATYPE tau1 = _AVX512_SET1(hh[0]);
 	__AVX512_DATATYPE tau2 = _AVX512_SET1(hh[ldh]);
 	__AVX512_DATATYPE vs = _AVX512_SET1(s);
-	h1 = _AVX512_XOR(tau1, sign);
+        h1 = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) tau1, (__m512i) sign);
 	x1 = _AVX512_MUL(x1, h1);
 	x2 = _AVX512_MUL(x2, h1);
-	h1 = _AVX512_XOR(tau2, sign);
+        h1 = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) tau2, (__m512i) sign);
 
 	h2 = _AVX512_MUL(h1, vs);
 
@@ -557,11 +558,11 @@ void double_hh_trafo_real_avx512_2hv_single(float* q, float* hh, int* pnb, int* 
 	__AVX512_DATATYPE tau1 = _AVX512_SET1(hh[0]);
 	__AVX512_DATATYPE tau2 = _AVX512_SET1(hh[ldh]);
 	__AVX512_DATATYPE vs = _AVX512_SET1(s);
-	h1 = _AVX512_XOR(tau1, sign);
+        h1 = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) tau1, (__m512i) sign);
 
 	x1 = _AVX512_MUL(x1, h1);
 
-	h1 = _AVX512_XOR(tau2, sign);
+        h1 = (__AVX512_DATATYPE) _AVX512_XOR_EPI((__m512i) tau2, (__m512i) sign);
 
         h2 = _AVX512_MUL(h1, vs);
 
