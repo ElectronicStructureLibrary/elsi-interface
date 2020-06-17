@@ -24,7 +24,7 @@ module ELSI_GET
        elsi_pexsi_to_generic_dm,elsi_pexsi_to_siesta_dm,elsi_sips_to_blacs_dm,&
        elsi_sips_to_generic_dm,elsi_sips_to_siesta_dm
    use ELSI_SIPS, only: elsi_build_dm_edm_sips
-   use ELSI_UTIL, only: elsi_check_init,elsi_reduce_energy,elsi_build_dm_edm
+   use ELSI_UTIL, only: elsi_check_init,elsi_build_dm_edm
 
    implicit none
 
