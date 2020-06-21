@@ -4,6 +4,8 @@
 
 ### ELSI interface
 * C compiler and MPI-3 have become mandatory to build ELSI.
+* Added an option to choose which sparsity pattern to use when converting input
+  dense matrices to the sparse format used by the solver.
 
 ### ELPA
 * Updated redistributed ELPA source code to version 2020.05.001, which supports
