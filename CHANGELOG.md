@@ -1,6 +1,6 @@
 # ELSI changelog
 
-## Not released
+## v2.6.0 (June 2020)
 
 ### ELSI interface
 * C compiler and MPI-3 have become mandatory to build ELSI.
