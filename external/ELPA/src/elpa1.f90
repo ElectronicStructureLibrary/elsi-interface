@@ -205,6 +205,7 @@ contains
       integer(kind=ik)                                :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, i, error, matrixRows
+      real(kind=c_double)                                               :: thres_pd
 
       logical                                         :: do_tridiag, do_solve, do_trans_ev
       integer(kind=ik)                                :: nrThreads
@@ -427,9 +428,15 @@ contains
             stop
          endif
          if (check_pd .eq. 1) then
+            call obj%get("thres_pd",thres_pd,error)
+            if (error .ne. ELPA_OK) then
+               print *,"Problem getting option for thres_pd. Aborting..."
+               stop
+            endif
+
             check_pd = 0
             do i = 1, na
-               if (ev(i) .gt. 1e-11_rk8) then
+               if (ev(i) .gt. thres_pd) then
                   check_pd = check_pd + 1
                endif
             enddo
@@ -589,6 +596,7 @@ contains
       integer(kind=ik)                                :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, i, error, matrixRows
+      real(kind=c_double)                                               :: thres_pd
 
       logical                                         :: do_tridiag, do_solve, do_trans_ev
       integer(kind=ik)                                :: nrThreads
@@ -811,9 +819,15 @@ contains
             stop
          endif
          if (check_pd .eq. 1) then
+            call obj%get("thres_pd",thres_pd,error)
+            if (error .ne. ELPA_OK) then
+               print *,"Problem getting option for thres_pd. Aborting..."
+               stop
+            endif
+
             check_pd = 0
             do i = 1, na
-               if (ev(i) .gt. 1e-4_rk4) then
+               if (ev(i) .gt. thres_pd) then
                   check_pd = check_pd + 1
                endif
             enddo
@@ -975,6 +989,7 @@ contains
       integer(kind=ik)                                :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, i, error, matrixRows
+      real(kind=c_double)                                               :: thres_pd
 
       logical                                         :: do_tridiag, do_solve, do_trans_ev
       integer(kind=ik)                                :: nrThreads
@@ -1204,9 +1219,15 @@ contains
             stop
          endif
          if (check_pd .eq. 1) then
+            call obj%get("thres_pd",thres_pd,error)
+            if (error .ne. ELPA_OK) then
+               print *,"Problem getting option for thres_pd. Aborting..."
+               stop
+            endif
+
             check_pd = 0
             do i = 1, na
-               if (ev(i) .gt. 1e-11_rk8) then
+               if (ev(i) .gt. thres_pd) then
                   check_pd = check_pd + 1
                endif
             enddo
@@ -1372,6 +1393,7 @@ contains
       integer(kind=ik)                                :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, i, error, matrixRows
+      real(kind=c_double)                                               :: thres_pd
 
       logical                                         :: do_tridiag, do_solve, do_trans_ev
       integer(kind=ik)                                :: nrThreads
@@ -1601,9 +1623,15 @@ contains
             stop
          endif
          if (check_pd .eq. 1) then
+            call obj%get("thres_pd",thres_pd,error)
+            if (error .ne. ELPA_OK) then
+               print *,"Problem getting option for thres_pd. Aborting..."
+               stop
+            endif
+
             check_pd = 0
             do i = 1, na
-               if (ev(i) .gt. 1e-4_rk4) then
+               if (ev(i) .gt. thres_pd) then
                   check_pd = check_pd + 1
                endif
             enddo

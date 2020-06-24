@@ -172,6 +172,7 @@ contains
       integer(kind=ik)                                                  :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, error, matrixRows
+      real(kind=c_double)                                               :: thres_pd
 
       logical                                                           :: do_bandred, do_tridiag, do_solve_tridi,  &
          do_trans_to_band, do_trans_to_full
@@ -618,9 +619,15 @@ contains
             stop
          endif
          if (check_pd .eq. 1) then
+            call obj%get("thres_pd",thres_pd,error)
+            if (error .ne. ELPA_OK) then
+               print *,"Problem getting option for thres_pd. Aborting..."
+               stop
+            endif
+
             check_pd = 0
             do i = 1, na
-               if (ev(i) .gt. 1e-11_rk8) then
+               if (ev(i) .gt. thres_pd) then
                   check_pd = check_pd + 1
                endif
             enddo
@@ -734,10 +741,13 @@ contains
                )
          endif
 
-         deallocate(tmat, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: tmat", 980,  istat,  errorMessage)
          call obj%timer%stop("trans_ev_to_full")
       endif ! do_trans_to_full
+
+      if (allocated(tmat)) then
+         deallocate(tmat, stat=istat, errmsg=errorMessage)
+         call check_deallocate_f("elpa2_template: tmat", 980,  istat,  errorMessage)
+      endif
 
       if (obj%eigenvalues_only) then
          deallocate(q_dummy, stat=istat, errmsg=errorMessage)
@@ -865,6 +875,7 @@ contains
       integer(kind=ik)                                                  :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, error, matrixRows
+      real(kind=c_double)                                               :: thres_pd
 
       logical                                                           :: do_bandred, do_tridiag, do_solve_tridi,  &
          do_trans_to_band, do_trans_to_full
@@ -1328,9 +1339,15 @@ contains
             stop
          endif
          if (check_pd .eq. 1) then
+            call obj%get("thres_pd",thres_pd,error)
+            if (error .ne. ELPA_OK) then
+               print *,"Problem getting option for thres_pd. Aborting..."
+               stop
+            endif
+
             check_pd = 0
             do i = 1, na
-               if (ev(i) .gt. 1e-4_rk4) then
+               if (ev(i) .gt. thres_pd) then
                   check_pd = check_pd + 1
                endif
             enddo
@@ -1444,10 +1461,13 @@ contains
                )
          endif
 
-         deallocate(tmat, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: tmat", 980,  istat,  errorMessage)
          call obj%timer%stop("trans_ev_to_full")
       endif ! do_trans_to_full
+
+      if (allocated(tmat)) then
+         deallocate(tmat, stat=istat, errmsg=errorMessage)
+         call check_deallocate_f("elpa2_template: tmat", 980,  istat,  errorMessage)
+      endif
 
       if (obj%eigenvalues_only) then
          deallocate(q_dummy, stat=istat, errmsg=errorMessage)
@@ -1573,6 +1593,7 @@ contains
       integer(kind=ik)                                                  :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, error, matrixRows
+      real(kind=c_double)                                               :: thres_pd
 
       logical                                                           :: do_bandred, do_tridiag, do_solve_tridi,  &
          do_trans_to_band, do_trans_to_full
@@ -1998,9 +2019,15 @@ contains
             stop
          endif
          if (check_pd .eq. 1) then
+            call obj%get("thres_pd",thres_pd,error)
+            if (error .ne. ELPA_OK) then
+               print *,"Problem getting option for thres_pd. Aborting..."
+               stop
+            endif
+
             check_pd = 0
             do i = 1, na
-               if (ev(i) .gt. 1e-11_rk8) then
+               if (ev(i) .gt. thres_pd) then
                   check_pd = check_pd + 1
                endif
             enddo
@@ -2019,7 +2046,9 @@ contains
          ! q must be given thats why from here on we can use q and not q_actual
 
          q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
+      endif
 
+      if (allocated(q_real)) then
          deallocate(q_real, stat=istat, errmsg=errorMessage)
          call check_deallocate_f("elpa2_template: q_real", 863,  istat,  errorMessage)
       endif
@@ -2118,10 +2147,13 @@ contains
                )
          endif
 
-         deallocate(tmat, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: tmat", 980,  istat,  errorMessage)
          call obj%timer%stop("trans_ev_to_full")
       endif ! do_trans_to_full
+
+      if (allocated(tmat)) then
+         deallocate(tmat, stat=istat, errmsg=errorMessage)
+         call check_deallocate_f("elpa2_template: tmat", 980,  istat,  errorMessage)
+      endif
 
       if (obj%eigenvalues_only) then
          deallocate(q_dummy, stat=istat, errmsg=errorMessage)
@@ -2247,6 +2279,7 @@ contains
       integer(kind=ik)                                                  :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, error, matrixRows
+      real(kind=c_double)                                               :: thres_pd
 
       logical                                                           :: do_bandred, do_tridiag, do_solve_tridi,  &
          do_trans_to_band, do_trans_to_full
@@ -2672,9 +2705,15 @@ contains
             stop
          endif
          if (check_pd .eq. 1) then
+            call obj%get("thres_pd",thres_pd,error)
+            if (error .ne. ELPA_OK) then
+               print *,"Problem getting option for thres_pd. Aborting..."
+               stop
+            endif
+
             check_pd = 0
             do i = 1, na
-               if (ev(i) .gt. 1e-4_rk4) then
+               if (ev(i) .gt. thres_pd) then
                   check_pd = check_pd + 1
                endif
             enddo
@@ -2693,7 +2732,9 @@ contains
          ! q must be given thats why from here on we can use q and not q_actual
 
          q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
+      endif
 
+      if (allocated(q_real)) then
          deallocate(q_real, stat=istat, errmsg=errorMessage)
          call check_deallocate_f("elpa2_template: q_real", 863,  istat,  errorMessage)
       endif
@@ -2792,10 +2833,13 @@ contains
                )
          endif
 
-         deallocate(tmat, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: tmat", 980,  istat,  errorMessage)
          call obj%timer%stop("trans_ev_to_full")
       endif ! do_trans_to_full
+
+      if (allocated(tmat)) then
+         deallocate(tmat, stat=istat, errmsg=errorMessage)
+         call check_deallocate_f("elpa2_template: tmat", 980,  istat,  errorMessage)
+      endif
 
       if (obj%eigenvalues_only) then
          deallocate(q_dummy, stat=istat, errmsg=errorMessage)
