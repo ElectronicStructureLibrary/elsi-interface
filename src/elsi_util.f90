@@ -418,6 +418,22 @@ subroutine elsi_check(ph,bh,caller)
             call elsi_stop(bh,msg,caller)
          end if
       end if
+
+      if(ph%pexsi_options%method == 1) then
+         if(ph%pexsi_options%numPole < 10 .or. ph%pexsi_options%numPole > 120&
+            .or. mod(ph%pexsi_options%numPole,10) /= 0) then
+            write(msg,"(A)") "Number of poles with this PEXSI method must be"//&
+               " chosen from 10, 20, 30, ..., 120"
+            call elsi_stop(bh,msg,caller)
+         end if
+      else
+         if(ph%pexsi_options%numPole < 5 .or. ph%pexsi_options%numPole > 40&
+            .or. mod(ph%pexsi_options%numPole,5) /= 0) then
+            write(msg,"(A)") "Number of poles with this PEXSI method must be"//&
+               " chosen from 5, 10, 15, ..., 40"
+            call elsi_stop(bh,msg,caller)
+         end if
+      end if
    case(EIGENEXA_SOLVER)
       call elsi_get_eigenexa_enabled(solver_enabled)
 
