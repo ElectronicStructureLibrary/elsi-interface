@@ -72,7 +72,6 @@ std::deque<int > comm_stat;
 // *********************************************************************
 void ErrorHandling( const char * msg ){
   std::cout<< msg <<std::endl;
-  abort();
 #ifdef _COREDUMPER_
   int mpirank, mpisize;
   MPI_Comm_rank( MPI_COMM_WORLD, &mpirank );
