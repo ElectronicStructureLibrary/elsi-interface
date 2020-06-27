@@ -1,5 +1,18 @@
 # ELSI changelog
 
+## v2.6.1 (June 2020)
+
+### PEXSI
+* Removed an improper abort from the error handling code of PEXSI.
+
+### Known issues
+* The ELPA code can not be compiled with the NAG Fortran compiler, due to the
+  use of GNU extensions in ELPA.
+* ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
+  support of AVX intrinsics in PGI.
+* Depending on the choice of k-points, the complex PEXSI solver may randomly
+  fail at the inertia counting stage.
+
 ## v2.6.0 (June 2020)
 
 ### ELSI interface
@@ -23,14 +36,6 @@
 
 ### SLEPc-SIPs
 * Interface compatible with PETSc 3.13 and SLEPc 3.13.
-
-### Known issues
-* The ELPA code can not be compiled with the NAG Fortran compiler, due to the
-  use of GNU extensions in ELPA.
-* ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
-  support of AVX intrinsics in PGI.
-* Depending on the choice of k-points, the complex PEXSI solver may randomly
-  fail at the inertia counting stage.
 
 ## v2.5.0 (February 2020)
 
