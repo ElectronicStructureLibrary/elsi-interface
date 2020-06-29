@@ -1015,9 +1015,17 @@ subroutine elsi_elpa_evec_real(ph,bh,mat,eval,evec,sing_check)
 
       copy(:,:) = mat
 
+      call ph%elpa_aux%set("thres_pd",ph%ill_tol,ierr)
+
+      if(ierr == 0) then
+         call ph%elpa_aux%set("check_pd",1,ierr)
+      end if
+
       call ph%elpa_aux%eigenvectors(copy,eval,evec,ierr)
 
       call elsi_check_err(bh,"ELPA eigensolver",ierr,caller)
+
+      call ph%elpa_aux%set("check_pd",0,ierr)
 
       call elsi_deallocate(bh,copy,"copy")
 
@@ -1106,9 +1114,17 @@ subroutine elsi_elpa_evec_cmplx(ph,bh,mat,eval,evec,sing_check)
 
       copy(:,:) = mat
 
+      call ph%elpa_aux%set("thres_pd",ph%ill_tol,ierr)
+
+      if(ierr == 0) then
+         call ph%elpa_aux%set("check_pd",1,ierr)
+      end if
+
       call ph%elpa_aux%eigenvectors(copy,eval,evec,ierr)
 
       call elsi_check_err(bh,"ELPA eigensolver",ierr,caller)
+
+      call ph%elpa_aux%set("check_pd",0,ierr)
 
       call elsi_deallocate(bh,copy,"copy")
 
