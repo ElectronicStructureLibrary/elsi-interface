@@ -3,7 +3,7 @@
 ## v2.6.2 (July 2020)
 
 ### ELPA
-* Fix a performance regression of the ELPA2 generic kernel.
+* Fixed a performance regression of the ELPA2 generic kernel.
 
 ### Known issues
 * The ELPA code can not be compiled with the NAG Fortran compiler, due to the
@@ -27,7 +27,7 @@
 
 ### ELPA
 * Updated redistributed ELPA source code to version 2020.05.001, which supports
-  single precision calculations, autotuning of runtime parameters, and (NVIDIA)
+  single-precision calculations, autotuning of runtime parameters, and (NVIDIA)
   GPU acceleration.
 
 ### PEXSI
@@ -99,7 +99,7 @@
 
 ### MAGMA
 * Interface compatible with MAGMA 2.5.
-* Added oen-stage and two-stage eigensolvers.
+* Added one-stage and two-stage eigensolvers.
 
 ## v2.3.1 (July 2019)
 
@@ -146,7 +146,7 @@
 
 ### ELPA
 * Interface for externally linked ELPA compatible with ELPA 2018.11.
-* Fixed single precision calculations with externally linked ELPA.
+* Fixed single-precision calculations with externally linked ELPA.
 * Fixed internal ELPA two-stage real solver with AVX512 kernel.
 
 ### NTPoly
@@ -171,7 +171,7 @@
   has been removed.
 
 ### ELPA
-* For externally linked ELPA, added options to perform single precision
+* For externally linked ELPA, added options to perform single-precision
   calculations and to automatically tune the internal runtime parameters of the
   solver.
 * Interface for externally linked ELPA compatible with ELPA 2018.05.
