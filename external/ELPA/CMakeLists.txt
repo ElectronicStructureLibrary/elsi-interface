@@ -29,8 +29,9 @@ LIST(APPEND elpa_src
   src/mod_precision.f90
   src/mod_redist_band.f90
   src/mod_scalapack_interfaces.f90
-  src/mod_single_hh_trafo_real.f90
   src/resident_set_size.c
+  src/single_hh_trafo_real_dp.f90
+  src/single_hh_trafo_real_sp.f90
   src/time.c
   src/virtual_memory.c)
 

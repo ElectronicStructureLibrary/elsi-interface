@@ -3683,7 +3683,7 @@ contains
 
       integer(kind=ik)              :: i, j, lwork, liwork, info
       integer(kind=BLAS_KIND)       :: infoBLAS
-      integer(kind=ik), allocatable :: iwork(:)
+      integer(kind=BLAS_KIND), allocatable :: iwork(:)
 
       logical, intent(in)           :: wantDebug
       logical, intent(out)          :: success
@@ -3709,7 +3709,7 @@ contains
       call check_allocate_f("solve_tridi_single: work, iwork", 603,  istat,  errorMessage)
       call obj%timer%start("blas")
       call DSTEDC('I', int(nlen,kind=BLAS_KIND), d, e, q, int(ldq,kind=BLAS_KIND),    &
-         work, int(lwork,kind=BLAS_KIND), int(iwork,kind=BLAS_KIND), int(liwork,kind=BLAS_KIND), &
+         work, int(lwork,kind=BLAS_KIND), iwork, int(liwork,kind=BLAS_KIND), &
          infoBLAS)
       info = int(infoBLAS,kind=ik)
       call obj%timer%stop("blas")
@@ -4275,7 +4275,7 @@ contains
 
       integer(kind=ik)              :: i, j, lwork, liwork, info
       integer(kind=BLAS_KIND)       :: infoBLAS
-      integer(kind=ik), allocatable :: iwork(:)
+      integer(kind=BLAS_KIND), allocatable :: iwork(:)
 
       logical, intent(in)           :: wantDebug
       logical, intent(out)          :: success
@@ -4301,7 +4301,7 @@ contains
       call check_allocate_f("solve_tridi_single: work, iwork", 603,  istat,  errorMessage)
       call obj%timer%start("blas")
       call DSTEDC('I', int(nlen,kind=BLAS_KIND), d, e, q, int(ldq,kind=BLAS_KIND),    &
-         work, int(lwork,kind=BLAS_KIND), int(iwork,kind=BLAS_KIND), int(liwork,kind=BLAS_KIND), &
+         work, int(lwork,kind=BLAS_KIND), iwork, int(liwork,kind=BLAS_KIND), &
          infoBLAS)
       info = int(infoBLAS,kind=ik)
       call obj%timer%stop("blas")
@@ -7546,7 +7546,7 @@ contains
 
       integer(kind=ik)              :: i, j, lwork, liwork, info
       integer(kind=BLAS_KIND)       :: infoBLAS
-      integer(kind=ik), allocatable :: iwork(:)
+      integer(kind=BLAS_KIND), allocatable :: iwork(:)
 
       logical, intent(in)           :: wantDebug
       logical, intent(out)          :: success
@@ -7572,7 +7572,7 @@ contains
       call check_allocate_f("solve_tridi_single: work, iwork", 603,  istat,  errorMessage)
       call obj%timer%start("blas")
       call SSTEDC('I', int(nlen,kind=BLAS_KIND), d, e, q, int(ldq,kind=BLAS_KIND),    &
-         work, int(lwork,kind=BLAS_KIND), int(iwork,kind=BLAS_KIND), int(liwork,kind=BLAS_KIND), &
+         work, int(lwork,kind=BLAS_KIND), iwork, int(liwork,kind=BLAS_KIND), &
          infoBLAS)
       info = int(infoBLAS,kind=ik)
       call obj%timer%stop("blas")
@@ -8138,7 +8138,7 @@ contains
 
       integer(kind=ik)              :: i, j, lwork, liwork, info
       integer(kind=BLAS_KIND)       :: infoBLAS
-      integer(kind=ik), allocatable :: iwork(:)
+      integer(kind=BLAS_KIND), allocatable :: iwork(:)
 
       logical, intent(in)           :: wantDebug
       logical, intent(out)          :: success
@@ -8164,7 +8164,7 @@ contains
       call check_allocate_f("solve_tridi_single: work, iwork", 603,  istat,  errorMessage)
       call obj%timer%start("blas")
       call SSTEDC('I', int(nlen,kind=BLAS_KIND), d, e, q, int(ldq,kind=BLAS_KIND),    &
-         work, int(lwork,kind=BLAS_KIND), int(iwork,kind=BLAS_KIND), int(liwork,kind=BLAS_KIND), &
+         work, int(lwork,kind=BLAS_KIND), iwork, int(liwork,kind=BLAS_KIND), &
          infoBLAS)
       info = int(infoBLAS,kind=ik)
       call obj%timer%stop("blas")

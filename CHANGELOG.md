@@ -1,9 +1,9 @@
 # ELSI changelog
 
-## v2.6.1 (June 2020)
+## Not released
 
-### PEXSI
-* Removed an improper abort from the error handling code of PEXSI.
+### ELPA
+* Fix a performance regression of the ELPA2 generic kernel.
 
 ### Known issues
 * The ELPA code can not be compiled with the NAG Fortran compiler, due to the
@@ -12,6 +12,11 @@
   support of AVX intrinsics in PGI.
 * Depending on the choice of k-points, the complex PEXSI solver may randomly
   fail at the inertia counting stage.
+
+## v2.6.1 (June 2020)
+
+### PEXSI
+* Removed an improper abort from the error handling code of PEXSI.
 
 ## v2.6.0 (June 2020)
 

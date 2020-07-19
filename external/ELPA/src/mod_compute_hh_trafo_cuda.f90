@@ -70,8 +70,6 @@ contains
       use elpa_abstract_impl
       use, intrinsic :: iso_c_binding
 
-      use single_hh_trafo_real
-
       use cuda_c_kernel
       use cuda_functions
 
@@ -155,7 +153,7 @@ contains
             &real&
             &_generic_&
             &double&
-            & (a(1:stripe_width,j+off+a_off-1:a_dim2,istripe),w, nbw, nl, stripe_width, nbw)
+            & (a(1,j+off+a_off-1,istripe),w, nbw, nl, stripe_width, nbw)
 
          enddo
 
@@ -163,8 +161,7 @@ contains
          &real&
          &_cpu_&
          &double&
-         & (a(1:stripe_width,1+off+a_off:1+off+a_off+nbw-1,istripe), bcast_buffer(1:nbw,off+1), nbw, nl,&
-            stripe_width)
+         & (a(1,j+off+a_off,istripe), bcast_buffer(1,j+off),nbw,nl,stripe_width)
       endif
 
       kernel_flops = kernel_flops + 4*int(nl,lik)*int(ncols,lik)*int(nbw,lik)
@@ -194,8 +191,6 @@ contains
       use precision
       use elpa_abstract_impl
       use, intrinsic :: iso_c_binding
-
-      use single_hh_trafo_real
 
       use cuda_c_kernel
       use cuda_functions
@@ -280,7 +275,7 @@ contains
             &real&
             &_generic_&
             &single&
-            & (a(1:stripe_width,j+off+a_off-1:a_dim2,istripe),w, nbw, nl, stripe_width, nbw)
+            & (a(1,j+off+a_off-1,istripe),w, nbw, nl, stripe_width, nbw)
 
          enddo
 
@@ -288,8 +283,7 @@ contains
          &real&
          &_cpu_&
          &single&
-         & (a(1:stripe_width,1+off+a_off:1+off+a_off+nbw-1,istripe), bcast_buffer(1:nbw,off+1), nbw, nl,&
-            stripe_width)
+         & (a(1,j+off+a_off,istripe), bcast_buffer(1,j+off),nbw,nl,stripe_width)
       endif
 
       kernel_flops = kernel_flops + 4*int(nl,lik)*int(ncols,lik)*int(nbw,lik)
@@ -401,7 +395,7 @@ contains
             &complex&
             &_generic_&
             &double&
-            & (a(1:stripe_width,j+off+a_off:a_dim2,istripe), bcast_buffer(1,j+off),nbw,nl,stripe_width)
+            & (a(1,j+off+a_off,istripe), bcast_buffer(1,j+off),nbw,nl,stripe_width)
 
          enddo
       endif
@@ -514,7 +508,7 @@ contains
             &complex&
             &_generic_&
             &single&
-            & (a(1:stripe_width,j+off+a_off:a_dim2,istripe), bcast_buffer(1,j+off),nbw,nl,stripe_width)
+            & (a(1,j+off+a_off,istripe), bcast_buffer(1,j+off),nbw,nl,stripe_width)
 
          enddo
       endif
