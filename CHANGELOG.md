@@ -1,6 +1,6 @@
 # ELSI changelog
 
-## Not released
+## v2.6.2 (July 2020)
 
 ### ELPA
 * Fix a performance regression of the ELPA2 generic kernel.
