@@ -208,7 +208,7 @@ contains
       logical                                     :: useGPU_reduction_lower_block_to_tridiagonal
       integer(kind=ik), intent(in)                :: max_threads
       logical                                     :: do_memcpy
-      integer(kind=ik)                            :: i_blk,blk_off
+      integer(kind=ik)                            :: i_blk,blk_off, blk_end
 
       call obj%get("is_skewsymmetric",skewsymmetric,error)
       if (error .ne. ELPA_OK) then
@@ -307,23 +307,25 @@ contains
       l_rows_tile = tile_size/np_rows ! local rows of a tile
       l_cols_tile = tile_size/np_cols ! local cols of a tile
 
+      blk_end = (na-1)/nbw
       if (useGPU) then
 
          successCUDA = cuda_host_register(int(loc(a_mat),kind=c_intptr_t), &
             lda*na_cols*size_of_datatype, cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("bandred: a_mat", 373,  successCUDA)
+         call check_host_register_CUDA_f("bandred: a_mat", 374,  successCUDA)
 
          cur_l_rows = 0
          cur_l_cols = 0
 
          successCUDA = cuda_memcpy(a_dev, int(loc(a_mat),kind=c_intptr_t), &
             lda*na_cols*size_of_datatype, cudaMemcpyHostToDevice)
-         call check_memcpy_CUDA_f("bandred: a_dev", 380,  successCUDA)
+         call check_memcpy_CUDA_f("bandred: a_dev", 381,  successCUDA)
 
          successCUDA = cuda_malloc(tmat_dev, nbw*nbw*size_of_datatype)
-         call check_alloc_CUDA_f("bandred: tmat_dev", 383,  successCUDA)
+         call check_alloc_CUDA_f("bandred: tmat_dev", 384,  successCUDA)
 
          istep = (na-1)/nbw
+         blk_end = (na-1)/nbw
          n_cols = min(na,(istep+1)*nbw)-istep*nbw
          l_cols = local_index(istep*nbw, my_pcol, np_cols, nblk, -1)
          l_rows = local_index(istep*nbw, my_prow, np_rows, nblk, -1)
@@ -354,22 +356,22 @@ contains
          endif
 
          successCUDA = cuda_malloc_host(vmr_host,vmr_size*size_of_datatype)
-         call check_host_alloc_CUDA_f("bandred: vmr_host", 416,  successCUDA)
+         call check_host_alloc_CUDA_f("bandred: vmr_host", 418,  successCUDA)
          call c_f_pointer(vmr_host, vmrCUDA, (/vmr_size/))
 
          successCUDA = cuda_malloc(vmr_dev, vmr_size*size_of_datatype)
-         call check_alloc_CUDA_f("bandred: vmr_dev", 420,  successCUDA)
+         call check_alloc_CUDA_f("bandred: vmr_dev", 422,  successCUDA)
 
          successCUDA = cuda_malloc_host(umc_host,umc_size*size_of_datatype)
-         call check_host_alloc_CUDA_f("bandred: umc_host", 423,  successCUDA)
+         call check_host_alloc_CUDA_f("bandred: umc_host", 425,  successCUDA)
          call c_f_pointer(umc_host, umcCUDA, (/umc_size/))
 
          successCUDA = cuda_malloc(umc_dev, umc_size*size_of_datatype)
-         call check_alloc_CUDA_f("bandred: umc_dev", 427,  successCUDA)
+         call check_alloc_CUDA_f("bandred: umc_dev", 429,  successCUDA)
 
       endif ! useGPU
 
-      do istep = (na-1)/nbw, 1, -1
+      do istep = blk_end, 1, -1
 
          n_cols = MIN(na,(istep+1)*nbw) - istep*nbw ! Number of columns in current step
 
@@ -392,13 +394,13 @@ contains
             ! Allocate vmr and umcCPU to their exact sizes so that they can be used in bcasts and reduces
 
             allocate(vmrCPU(max(l_rows,1),2*n_cols), stat=istat, errmsg=errorMessage)
-            call check_allocate_f("bandred: vmrCPU", 454,  istat,  errorMessage)
+            call check_allocate_f("bandred: vmrCPU", 456,  istat,  errorMessage)
 
             allocate(umcCPU(max(l_cols,1),2*n_cols), stat=istat, errmsg=errorMessage)
-            call check_allocate_f("bandred: umcCPU", 457,  istat,  errorMessage)
+            call check_allocate_f("bandred: umcCPU", 459,  istat,  errorMessage)
 
             allocate(vr(l_rows+1), stat=istat, errmsg=errorMessage)
-            call check_allocate_f("bandred: vr", 460,  istat,  errorMessage)
+            call check_allocate_f("bandred: vr", 462,  istat,  errorMessage)
 
          endif ! use GPU
 
@@ -438,7 +440,7 @@ contains
                   int(lr_end*size_of_datatype,kind=c_intptr_t), &
                   int((lc_end - lc_start+1),kind=c_intptr_t),int(cudaMemcpyDeviceToHost,kind=c_int))
 
-               call check_memcpy_CUDA_f("bandred: a_dev -> a_mat", 500,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: a_dev -> a_mat", 502,  successCUDA)
             endif
          endif ! useGPU
 
@@ -556,7 +558,7 @@ contains
                   int(lr_end*size_of_datatype,kind=c_intptr_t), &
                   int((lc_end - lc_start+1),kind=c_intptr_t), &
                   int(cudaMemcpyHostToDevice,kind=c_int))
-               call check_memcpy_CUDA_f("bandred: a_mat -> a_dev", 799,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: a_mat -> a_dev", 801,  successCUDA)
             endif
          endif
 
@@ -635,20 +637,20 @@ contains
             if (useGPU) then
                successCUDA = cuda_memset(vmr_dev+cur_l_rows*n_cols*size_of_datatype, &
                   0, cur_l_rows*n_cols*size_of_datatype)
-               call check_memset_CUDA_f("bandred: vmr_dev", 1035,  successCUDA)
+               call check_memset_CUDA_f("bandred: vmr_dev", 1037,  successCUDA)
 
                successCUDA = cuda_memcpy(vmr_dev, int(loc(vmrCUDA(1)),kind=c_intptr_t), &
                   cur_l_rows*n_cols*size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("bandred: vmrCUDA -> vmr_dev", 1039,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: vmrCUDA -> vmr_dev", 1041,  successCUDA)
 
                successCUDA = cuda_memset(umc_dev, 0, l_cols*n_cols*size_of_datatype)
-               call check_memset_CUDA_f("bandred: umc_dev", 1042,  successCUDA)
+               call check_memset_CUDA_f("bandred: umc_dev", 1044,  successCUDA)
 
                successCUDA = cuda_memcpy(umc_dev+l_cols*n_cols*size_of_datatype, &
                   int(loc(umcCUDA(1+l_cols*n_cols)),kind=c_intptr_t), &
                   (umc_size-l_cols*n_cols)*size_of_datatype, &
                   cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev", 1048,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev", 1050,  successCUDA)
             endif ! useGPU
 
             do i=0,(istep*nbw-1)/tile_size
@@ -729,12 +731,12 @@ contains
                   successCUDA = cuda_memcpy(int(loc(vmrCUDA(1+cur_l_rows*n_cols)),kind=c_intptr_t), &
                      vmr_dev+cur_l_rows*n_cols*size_of_datatype, &
                      (vmr_size-cur_l_rows*n_cols)*size_of_datatype, cudaMemcpyDeviceToHost)
-                  call check_memcpy_CUDA_f("bandred: vmr_dev -> vmrCUDA", 1129,  successCUDA)
+                  call check_memcpy_CUDA_f("bandred: vmr_dev -> vmrCUDA", 1131,  successCUDA)
                endif
 
                successCUDA = cuda_memcpy(int(loc(umcCUDA(1)),kind=c_intptr_t), &
                   umc_dev, l_cols*n_cols*size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA", 1134,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA", 1136,  successCUDA)
             endif ! useGPU
          endif ! l_cols>0 .and. l_rows>0
 
@@ -771,7 +773,7 @@ contains
 
             if (useGPU) then
                allocate(tmpCUDA(l_cols * n_cols), stat=istat, errmsg=errorMessage)
-               call check_allocate_f("bandred: tmpCUDA", 1178,  istat,  errorMessage)
+               call check_allocate_f("bandred: tmpCUDA", 1180,  istat,  errorMessage)
 
                if (wantDebug) call obj%timer%start("mpi_communication")
 
@@ -783,13 +785,13 @@ contains
 
                if (allocated(tmpCUDA)) then
                   deallocate(tmpCUDA, stat=istat, errmsg=errorMessage)
-                  call check_deallocate_f("bandred: tmpCUDA", 1191,  istat,  errorMessage)
+                  call check_deallocate_f("bandred: tmpCUDA", 1193,  istat,  errorMessage)
                endif
 
             else ! useGPU
 
                allocate(tmpCPU(l_cols,n_cols), stat=istat, errmsg=errorMessage)
-               call check_allocate_f("bandred: tmpCPU", 1197,  istat,  errorMessage)
+               call check_allocate_f("bandred: tmpCPU", 1199,  istat,  errorMessage)
 
                if (wantDebug) call obj%timer%start("mpi_communication")
                call mpi_allreduce(umcCPU, tmpCPU, int(l_cols*n_cols,kind=MPI_KIND), MPI_REAL8,    &
@@ -798,7 +800,7 @@ contains
                if (wantDebug) call obj%timer%stop("mpi_communication")
 
                deallocate(tmpCPU, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: tmpCPU", 1208,  istat,  errorMessage)
+               call check_deallocate_f("bandred: tmpCPU", 1210,  istat,  errorMessage)
             endif ! useGPU
          endif ! l_cols > 0
 
@@ -807,11 +809,11 @@ contains
          if (useGPU) then
             successCUDA = cuda_memcpy(umc_dev, int(loc(umcCUDA(1)),kind=c_intptr_t), &
                l_cols*n_cols*size_of_datatype, cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev ", 1217,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev ", 1219,  successCUDA)
 
             successCUDA = cuda_memcpy(tmat_dev,int(loc(tmat(1,1,istep)),kind=c_intptr_t), &
                nbw*nbw*size_of_datatype,cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: tmat -> tmat_dev ", 1221,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: tmat -> tmat_dev ", 1223,  successCUDA)
 
             call obj%timer%start("cublas")
             call cublas_DTRMM('Right', 'Upper', 'T', 'Nonunit',  &
@@ -831,7 +833,7 @@ contains
 
             successCUDA = cuda_memcpy(int(loc(vav),kind=c_intptr_t), &
                vav_dev, nbw*nbw*size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("bandred: vav_dev -> vav ", 1241,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: vav_dev -> vav ", 1243,  successCUDA)
          else ! useGPU
 
             call obj%timer%start("blas")
@@ -862,7 +864,7 @@ contains
          if (useGPU) then
             successCUDA = cuda_memcpy(vav_dev, int(loc(vav),kind=c_intptr_t), &
                nbw*nbw*size_of_datatype,cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: vav -> vav_dev ", 1289,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: vav -> vav_dev ", 1291,  successCUDA)
          endif
 
          ! U = U - 0.5 * V * VAV
@@ -888,7 +890,7 @@ contains
 
             successCUDA = cuda_memcpy(int(loc(umcCUDA(1)),kind=c_intptr_t), &
                umc_dev, umc_size*size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA ", 1325,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA ", 1327,  successCUDA)
 
             ! Transpose umc -> umr (stored in vmr, second half)
             if (isSkewsymmetric) then
@@ -912,7 +914,7 @@ contains
             successCUDA = cuda_memcpy(vmr_dev+cur_l_rows*n_cols*size_of_datatype, &
                int(loc(vmrCUDA(1+cur_l_rows*n_cols)),kind=c_intptr_t), &
                (vmr_size-cur_l_rows*n_cols)*size_of_datatype, cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: vmr -> vmrCUDA ", 1349,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: vmr -> vmrCUDA ", 1351,  successCUDA)
 
          else ! useGPU
             call obj%timer%start("blas")
@@ -983,17 +985,17 @@ contains
          if (.not.(useGPU)) then
             if (allocated(vr)) then
                deallocate(vr, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: vr", 1470,  istat,  errorMessage)
+               call check_deallocate_f("bandred: vr", 1472,  istat,  errorMessage)
             endif
 
             if (allocated(umcCPU)) then
                deallocate(umcCPU, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: umcCPU", 1475,  istat,  errorMessage)
+               call check_deallocate_f("bandred: umcCPU", 1477,  istat,  errorMessage)
             endif
 
             if (allocated(vmrCPU)) then
                deallocate(vmrCPU, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: vmrCPU", 1480,  istat,  errorMessage)
+               call check_deallocate_f("bandred: vmrCPU", 1482,  istat,  errorMessage)
             endif
          endif !useGPU
 
@@ -1009,57 +1011,57 @@ contains
             int(a_dev,kind=c_intptr_t), &
             int(lda*matrixCols* size_of_datatype, kind=c_intptr_t), &
             cudaMemcpyDeviceToHost)
-         call check_memcpy_CUDA_f("bandred: a_dev -> a_mat ", 1496,  successCUDA)
+         call check_memcpy_CUDA_f("bandred: a_dev -> a_mat ", 1498,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(a_mat),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("bandred: a_mat ", 1499,  successCUDA)
+         call check_host_unregister_CUDA_f("bandred: a_mat ", 1501,  successCUDA)
 
          successCUDA = cuda_free(a_dev)
-         call check_dealloc_CUDA_f("bandred: a_dev ", 1502,  successCUDA)
+         call check_dealloc_CUDA_f("bandred: a_dev ", 1504,  successCUDA)
 
          successCUDA = cuda_free(vav_dev)
-         call check_dealloc_CUDA_f("bandred: vav_dev ", 1505,  successCUDA)
+         call check_dealloc_CUDA_f("bandred: vav_dev ", 1507,  successCUDA)
 
          successCUDA = cuda_free(tmat_dev)
-         call check_dealloc_CUDA_f("bandred: tmat_dev ", 1508,  successCUDA)
+         call check_dealloc_CUDA_f("bandred: tmat_dev ", 1510,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(vav),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("bandred: vav", 1511,  successCUDA)
+         call check_host_unregister_CUDA_f("bandred: vav", 1513,  successCUDA)
 
          if (associated(umcCUDA)) then
             nullify(umcCUDA)
 
             successCUDA = cuda_free_host(umc_host)
-            call check_host_dealloc_CUDA_f("bandred: umc_host ", 1517,  successCUDA)
+            call check_host_dealloc_CUDA_f("bandred: umc_host ", 1519,  successCUDA)
 
             successCUDA = cuda_free(umc_dev)
-            call check_dealloc_CUDA_f("bandred: umc_dev ", 1520,  successCUDA)
+            call check_dealloc_CUDA_f("bandred: umc_dev ", 1522,  successCUDA)
          endif
 
          if (associated(vmrCUDA)) then
             nullify(vmrCUDA)
 
             successCUDA = cuda_free_host(vmr_host)
-            call check_host_dealloc_CUDA_f("bandred: vmr_host ", 1527,  successCUDA)
+            call check_host_dealloc_CUDA_f("bandred: vmr_host ", 1529,  successCUDA)
 
             successCUDA = cuda_free(vmr_dev)
-            call check_dealloc_CUDA_f("bandred: vmr_dev ", 1530,  successCUDA)
+            call check_dealloc_CUDA_f("bandred: vmr_dev ", 1532,  successCUDA)
          endif
       endif ! useGPU
 
       if (allocated(vr)) then
          deallocate(vr, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("bandred: vr", 1536,  istat,  errorMessage)
+         call check_deallocate_f("bandred: vr", 1538,  istat,  errorMessage)
       endif
 
       if (allocated(umcCPU)) then
          deallocate(umcCPU, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("bandred: umcCPU", 1541,  istat,  errorMessage)
+         call check_deallocate_f("bandred: umcCPU", 1543,  istat,  errorMessage)
       endif
 
       if (allocated(vmrCPU)) then
          deallocate(vmrCPU, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("bandred: vmrCPU", 1546,  istat,  errorMessage)
+         call check_deallocate_f("bandred: vmrCPU", 1548,  istat,  errorMessage)
       endif
 
       call obj%timer%stop("bandred_&
@@ -1690,6 +1692,7 @@ contains
       integer(kind=ik), allocatable                :: block_limits(:)
       real(kind=rck), allocatable         :: ab(:,:), hh_gath(:,:,:), hh_send(:,:,:)
       integer                                      :: istat
+      integer(kind=ik)                             :: nblockEnd
       character(200)                               :: errorMessage
       character(20)                                :: gpuString
 
@@ -1732,7 +1735,7 @@ contains
       ! Get global_id mapping 2D procssor coordinates to global id
 
       allocate(global_id(0:np_rows-1,0:np_cols-1), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: global_id", 184,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: global_id", 185,  istat,  errorMessage)
 
       global_id(:,:) = 0
       global_id(my_prow, my_pcol) = my_pe
@@ -1749,7 +1752,7 @@ contains
       ! Set work distribution
 
       allocate(block_limits(0:n_pes), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: block_limits", 216,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: block_limits", 217,  istat,  errorMessage)
 
       call divide_band(obj,nblocks_total, n_pes, block_limits)
 
@@ -1759,7 +1762,7 @@ contains
       ! allocate the part of the band matrix which is needed by this PE
       ! The size is 1 block larger than needed to avoid extensive shifts
       allocate(ab(2*nb,(nblocks+1)*nb), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: ab", 226,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: ab", 227,  istat,  errorMessage)
 
       ab = 0.0_rck ! needed for lower half, the extra block should also be set to 0 for safety
 
@@ -1777,7 +1780,7 @@ contains
       ! and the space requirements to hold the HH vectors
 
       allocate(limits(0:np_rows), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: limits", 244,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: limits", 245,  istat,  errorMessage)
 
       call determine_workload(obj,na, nb, np_rows, limits)
       max_blk_size = maxval(limits(1:np_rows) - limits(0:np_rows-1))
@@ -1800,19 +1803,20 @@ contains
       ! Allocate space for HH vectors
 
       allocate(hh_trans(nb,num_hh_vecs), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: hh_trans", 267,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_trans", 268,  istat,  errorMessage)
 
       ! Allocate and init MPI requests
 
       allocate(ireq_hhr(num_chunks), stat=istat, errmsg=errorMessage) ! Recv requests
-      call check_allocate_f("tridiag_band: ireq_hhr", 272,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: ireq_hhr", 273,  istat,  errorMessage)
       allocate(ireq_hhs(nblocks), stat=istat, errmsg=errorMessage)    ! Send requests
-      call check_allocate_f("tridiag_band: ireq_hhs", 274,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: ireq_hhs", 275,  istat,  errorMessage)
 
       num_hh_vecs = 0
       num_chunks  = 0
       nx = na
       nt = 0
+      nBlockEnd=1
       do n = 1, nblocks_total
          call determine_workload(obj,nx, nb, np_rows, limits)
          local_size = limits(my_prow+1) - limits(my_prow)
@@ -1835,10 +1839,10 @@ contains
       ! Buffers for gathering/sending the HH vectors
 
       allocate(hh_gath(nb,max_blk_size,nblocks), stat=istat, errmsg=errorMessage) ! gathers HH vectors
-      call check_allocate_f("tridiag_band: hh_gath", 310,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_gath", 312,  istat,  errorMessage)
 
       allocate(hh_send(nb,max_blk_size,nblocks), stat=istat, errmsg=errorMessage) ! send buffer for HH vectors
-      call check_allocate_f("tridiag_band: hh_send", 313,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_send", 315,  istat,  errorMessage)
 
       hh_gath(:,:,:) = 0.0_rck
       hh_send(:,:,:) = 0.0_rck
@@ -1846,10 +1850,10 @@ contains
       ! Some counters
 
       allocate(hh_cnt(nblocks), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: hh_cnt", 321,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_cnt", 323,  istat,  errorMessage)
 
       allocate(hh_dst(nblocks), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: hh_dst", 324,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_dst", 326,  istat,  errorMessage)
 
       hh_cnt(:) = 1 ! The first transfomation Vector is always 0 and not calculated at all
       hh_dst(:) = 0 ! PE number for receive
@@ -1858,7 +1862,7 @@ contains
       ! Limits for sending
 
       allocate(snd_limits(0:np_rows,nblocks), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: snd_limits", 335,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: snd_limits", 337,  istat,  errorMessage)
 
       do iblk=1,nblocks
          call determine_workload(obj, na-(iblk+block_limits(my_pe)-1)*nb, nb, np_rows, snd_limits(:,iblk))
@@ -1879,7 +1883,7 @@ contains
          if (wantDebug) call obj%timer%stop("mpi_communication")
       endif
 
-      do istep=1,na-1
+      do istep=1,na-nblockEnd
 
          if (my_pe==0) then
             n = MIN(na-na_s,nb) ! number of rows to be reduced
@@ -2182,25 +2186,25 @@ contains
       call mpi_barrier(int(communicator,kind=MPI_KIND),mpierr)
       if (wantDebug) call obj%timer%stop("mpi_communication")
       deallocate(ab, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: ab", 1172,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: ab", 1174,  istat,  errorMessage)
 
       deallocate(ireq_hhr, ireq_hhs, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: ireq_hhr", 1175,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: ireq_hhr", 1177,  istat,  errorMessage)
 
       deallocate(hh_cnt, hh_dst, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: hh_dst", 1178,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: hh_dst", 1180,  istat,  errorMessage)
 
       deallocate(hh_gath, hh_send, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: hh_gath", 1181,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: hh_gath", 1183,  istat,  errorMessage)
 
       deallocate(limits, snd_limits, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: limits", 1184,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: limits", 1186,  istat,  errorMessage)
 
       deallocate(block_limits, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: block_limits", 1187,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: block_limits", 1189,  istat,  errorMessage)
 
       deallocate(global_id, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: global_id", 1190,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: global_id", 1192,  istat,  errorMessage)
 
       call obj%timer%stop("tridiag_band_&
       &real&
@@ -4079,7 +4083,7 @@ contains
       logical                                     :: useGPU_reduction_lower_block_to_tridiagonal
       integer(kind=ik), intent(in)                :: max_threads
       logical                                     :: do_memcpy
-      integer(kind=ik)                            :: i_blk,blk_off
+      integer(kind=ik)                            :: i_blk,blk_off, blk_end
 
       call obj%get("is_skewsymmetric",skewsymmetric,error)
       if (error .ne. ELPA_OK) then
@@ -4178,23 +4182,25 @@ contains
       l_rows_tile = tile_size/np_rows ! local rows of a tile
       l_cols_tile = tile_size/np_cols ! local cols of a tile
 
+      blk_end = (na-1)/nbw
       if (useGPU) then
 
          successCUDA = cuda_host_register(int(loc(a_mat),kind=c_intptr_t), &
             lda*na_cols*size_of_datatype, cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("bandred: a_mat", 373,  successCUDA)
+         call check_host_register_CUDA_f("bandred: a_mat", 374,  successCUDA)
 
          cur_l_rows = 0
          cur_l_cols = 0
 
          successCUDA = cuda_memcpy(a_dev, int(loc(a_mat),kind=c_intptr_t), &
             lda*na_cols*size_of_datatype, cudaMemcpyHostToDevice)
-         call check_memcpy_CUDA_f("bandred: a_dev", 380,  successCUDA)
+         call check_memcpy_CUDA_f("bandred: a_dev", 381,  successCUDA)
 
          successCUDA = cuda_malloc(tmat_dev, nbw*nbw*size_of_datatype)
-         call check_alloc_CUDA_f("bandred: tmat_dev", 383,  successCUDA)
+         call check_alloc_CUDA_f("bandred: tmat_dev", 384,  successCUDA)
 
          istep = (na-1)/nbw
+         blk_end = (na-1)/nbw
          n_cols = min(na,(istep+1)*nbw)-istep*nbw
          l_cols = local_index(istep*nbw, my_pcol, np_cols, nblk, -1)
          l_rows = local_index(istep*nbw, my_prow, np_rows, nblk, -1)
@@ -4225,22 +4231,22 @@ contains
          endif
 
          successCUDA = cuda_malloc_host(vmr_host,vmr_size*size_of_datatype)
-         call check_host_alloc_CUDA_f("bandred: vmr_host", 416,  successCUDA)
+         call check_host_alloc_CUDA_f("bandred: vmr_host", 418,  successCUDA)
          call c_f_pointer(vmr_host, vmrCUDA, (/vmr_size/))
 
          successCUDA = cuda_malloc(vmr_dev, vmr_size*size_of_datatype)
-         call check_alloc_CUDA_f("bandred: vmr_dev", 420,  successCUDA)
+         call check_alloc_CUDA_f("bandred: vmr_dev", 422,  successCUDA)
 
          successCUDA = cuda_malloc_host(umc_host,umc_size*size_of_datatype)
-         call check_host_alloc_CUDA_f("bandred: umc_host", 423,  successCUDA)
+         call check_host_alloc_CUDA_f("bandred: umc_host", 425,  successCUDA)
          call c_f_pointer(umc_host, umcCUDA, (/umc_size/))
 
          successCUDA = cuda_malloc(umc_dev, umc_size*size_of_datatype)
-         call check_alloc_CUDA_f("bandred: umc_dev", 427,  successCUDA)
+         call check_alloc_CUDA_f("bandred: umc_dev", 429,  successCUDA)
 
       endif ! useGPU
 
-      do istep = (na-1)/nbw, 1, -1
+      do istep = blk_end, 1, -1
 
          n_cols = MIN(na,(istep+1)*nbw) - istep*nbw ! Number of columns in current step
 
@@ -4263,13 +4269,13 @@ contains
             ! Allocate vmr and umcCPU to their exact sizes so that they can be used in bcasts and reduces
 
             allocate(vmrCPU(max(l_rows,1),2*n_cols), stat=istat, errmsg=errorMessage)
-            call check_allocate_f("bandred: vmrCPU", 454,  istat,  errorMessage)
+            call check_allocate_f("bandred: vmrCPU", 456,  istat,  errorMessage)
 
             allocate(umcCPU(max(l_cols,1),2*n_cols), stat=istat, errmsg=errorMessage)
-            call check_allocate_f("bandred: umcCPU", 457,  istat,  errorMessage)
+            call check_allocate_f("bandred: umcCPU", 459,  istat,  errorMessage)
 
             allocate(vr(l_rows+1), stat=istat, errmsg=errorMessage)
-            call check_allocate_f("bandred: vr", 460,  istat,  errorMessage)
+            call check_allocate_f("bandred: vr", 462,  istat,  errorMessage)
 
          endif ! use GPU
 
@@ -4309,7 +4315,7 @@ contains
                   int(lr_end*size_of_datatype,kind=c_intptr_t), &
                   int((lc_end - lc_start+1),kind=c_intptr_t),int(cudaMemcpyDeviceToHost,kind=c_int))
 
-               call check_memcpy_CUDA_f("bandred: a_dev -> a_mat", 500,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: a_dev -> a_mat", 502,  successCUDA)
             endif
          endif ! useGPU
 
@@ -4427,7 +4433,7 @@ contains
                   int(lr_end*size_of_datatype,kind=c_intptr_t), &
                   int((lc_end - lc_start+1),kind=c_intptr_t), &
                   int(cudaMemcpyHostToDevice,kind=c_int))
-               call check_memcpy_CUDA_f("bandred: a_mat -> a_dev", 799,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: a_mat -> a_dev", 801,  successCUDA)
             endif
          endif
 
@@ -4506,20 +4512,20 @@ contains
             if (useGPU) then
                successCUDA = cuda_memset(vmr_dev+cur_l_rows*n_cols*size_of_datatype, &
                   0, cur_l_rows*n_cols*size_of_datatype)
-               call check_memset_CUDA_f("bandred: vmr_dev", 1035,  successCUDA)
+               call check_memset_CUDA_f("bandred: vmr_dev", 1037,  successCUDA)
 
                successCUDA = cuda_memcpy(vmr_dev, int(loc(vmrCUDA(1)),kind=c_intptr_t), &
                   cur_l_rows*n_cols*size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("bandred: vmrCUDA -> vmr_dev", 1039,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: vmrCUDA -> vmr_dev", 1041,  successCUDA)
 
                successCUDA = cuda_memset(umc_dev, 0, l_cols*n_cols*size_of_datatype)
-               call check_memset_CUDA_f("bandred: umc_dev", 1042,  successCUDA)
+               call check_memset_CUDA_f("bandred: umc_dev", 1044,  successCUDA)
 
                successCUDA = cuda_memcpy(umc_dev+l_cols*n_cols*size_of_datatype, &
                   int(loc(umcCUDA(1+l_cols*n_cols)),kind=c_intptr_t), &
                   (umc_size-l_cols*n_cols)*size_of_datatype, &
                   cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev", 1048,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev", 1050,  successCUDA)
             endif ! useGPU
 
             do i=0,(istep*nbw-1)/tile_size
@@ -4600,12 +4606,12 @@ contains
                   successCUDA = cuda_memcpy(int(loc(vmrCUDA(1+cur_l_rows*n_cols)),kind=c_intptr_t), &
                      vmr_dev+cur_l_rows*n_cols*size_of_datatype, &
                      (vmr_size-cur_l_rows*n_cols)*size_of_datatype, cudaMemcpyDeviceToHost)
-                  call check_memcpy_CUDA_f("bandred: vmr_dev -> vmrCUDA", 1129,  successCUDA)
+                  call check_memcpy_CUDA_f("bandred: vmr_dev -> vmrCUDA", 1131,  successCUDA)
                endif
 
                successCUDA = cuda_memcpy(int(loc(umcCUDA(1)),kind=c_intptr_t), &
                   umc_dev, l_cols*n_cols*size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA", 1134,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA", 1136,  successCUDA)
             endif ! useGPU
          endif ! l_cols>0 .and. l_rows>0
 
@@ -4642,7 +4648,7 @@ contains
 
             if (useGPU) then
                allocate(tmpCUDA(l_cols * n_cols), stat=istat, errmsg=errorMessage)
-               call check_allocate_f("bandred: tmpCUDA", 1178,  istat,  errorMessage)
+               call check_allocate_f("bandred: tmpCUDA", 1180,  istat,  errorMessage)
 
                if (wantDebug) call obj%timer%start("mpi_communication")
 
@@ -4654,13 +4660,13 @@ contains
 
                if (allocated(tmpCUDA)) then
                   deallocate(tmpCUDA, stat=istat, errmsg=errorMessage)
-                  call check_deallocate_f("bandred: tmpCUDA", 1191,  istat,  errorMessage)
+                  call check_deallocate_f("bandred: tmpCUDA", 1193,  istat,  errorMessage)
                endif
 
             else ! useGPU
 
                allocate(tmpCPU(l_cols,n_cols), stat=istat, errmsg=errorMessage)
-               call check_allocate_f("bandred: tmpCPU", 1197,  istat,  errorMessage)
+               call check_allocate_f("bandred: tmpCPU", 1199,  istat,  errorMessage)
 
                if (wantDebug) call obj%timer%start("mpi_communication")
                call mpi_allreduce(umcCPU, tmpCPU, int(l_cols*n_cols,kind=MPI_KIND), MPI_REAL4,    &
@@ -4669,7 +4675,7 @@ contains
                if (wantDebug) call obj%timer%stop("mpi_communication")
 
                deallocate(tmpCPU, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: tmpCPU", 1208,  istat,  errorMessage)
+               call check_deallocate_f("bandred: tmpCPU", 1210,  istat,  errorMessage)
             endif ! useGPU
          endif ! l_cols > 0
 
@@ -4678,11 +4684,11 @@ contains
          if (useGPU) then
             successCUDA = cuda_memcpy(umc_dev, int(loc(umcCUDA(1)),kind=c_intptr_t), &
                l_cols*n_cols*size_of_datatype, cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev ", 1217,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev ", 1219,  successCUDA)
 
             successCUDA = cuda_memcpy(tmat_dev,int(loc(tmat(1,1,istep)),kind=c_intptr_t), &
                nbw*nbw*size_of_datatype,cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: tmat -> tmat_dev ", 1221,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: tmat -> tmat_dev ", 1223,  successCUDA)
 
             call obj%timer%start("cublas")
             call cublas_STRMM('Right', 'Upper', 'T', 'Nonunit',  &
@@ -4702,7 +4708,7 @@ contains
 
             successCUDA = cuda_memcpy(int(loc(vav),kind=c_intptr_t), &
                vav_dev, nbw*nbw*size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("bandred: vav_dev -> vav ", 1241,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: vav_dev -> vav ", 1243,  successCUDA)
          else ! useGPU
 
             call obj%timer%start("blas")
@@ -4733,7 +4739,7 @@ contains
          if (useGPU) then
             successCUDA = cuda_memcpy(vav_dev, int(loc(vav),kind=c_intptr_t), &
                nbw*nbw*size_of_datatype,cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: vav -> vav_dev ", 1289,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: vav -> vav_dev ", 1291,  successCUDA)
          endif
 
          ! U = U - 0.5 * V * VAV
@@ -4759,7 +4765,7 @@ contains
 
             successCUDA = cuda_memcpy(int(loc(umcCUDA(1)),kind=c_intptr_t), &
                umc_dev, umc_size*size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA ", 1325,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA ", 1327,  successCUDA)
 
             ! Transpose umc -> umr (stored in vmr, second half)
             if (isSkewsymmetric) then
@@ -4783,7 +4789,7 @@ contains
             successCUDA = cuda_memcpy(vmr_dev+cur_l_rows*n_cols*size_of_datatype, &
                int(loc(vmrCUDA(1+cur_l_rows*n_cols)),kind=c_intptr_t), &
                (vmr_size-cur_l_rows*n_cols)*size_of_datatype, cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: vmr -> vmrCUDA ", 1349,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: vmr -> vmrCUDA ", 1351,  successCUDA)
 
          else ! useGPU
             call obj%timer%start("blas")
@@ -4854,17 +4860,17 @@ contains
          if (.not.(useGPU)) then
             if (allocated(vr)) then
                deallocate(vr, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: vr", 1470,  istat,  errorMessage)
+               call check_deallocate_f("bandred: vr", 1472,  istat,  errorMessage)
             endif
 
             if (allocated(umcCPU)) then
                deallocate(umcCPU, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: umcCPU", 1475,  istat,  errorMessage)
+               call check_deallocate_f("bandred: umcCPU", 1477,  istat,  errorMessage)
             endif
 
             if (allocated(vmrCPU)) then
                deallocate(vmrCPU, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: vmrCPU", 1480,  istat,  errorMessage)
+               call check_deallocate_f("bandred: vmrCPU", 1482,  istat,  errorMessage)
             endif
          endif !useGPU
 
@@ -4880,57 +4886,57 @@ contains
             int(a_dev,kind=c_intptr_t), &
             int(lda*matrixCols* size_of_datatype, kind=c_intptr_t), &
             cudaMemcpyDeviceToHost)
-         call check_memcpy_CUDA_f("bandred: a_dev -> a_mat ", 1496,  successCUDA)
+         call check_memcpy_CUDA_f("bandred: a_dev -> a_mat ", 1498,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(a_mat),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("bandred: a_mat ", 1499,  successCUDA)
+         call check_host_unregister_CUDA_f("bandred: a_mat ", 1501,  successCUDA)
 
          successCUDA = cuda_free(a_dev)
-         call check_dealloc_CUDA_f("bandred: a_dev ", 1502,  successCUDA)
+         call check_dealloc_CUDA_f("bandred: a_dev ", 1504,  successCUDA)
 
          successCUDA = cuda_free(vav_dev)
-         call check_dealloc_CUDA_f("bandred: vav_dev ", 1505,  successCUDA)
+         call check_dealloc_CUDA_f("bandred: vav_dev ", 1507,  successCUDA)
 
          successCUDA = cuda_free(tmat_dev)
-         call check_dealloc_CUDA_f("bandred: tmat_dev ", 1508,  successCUDA)
+         call check_dealloc_CUDA_f("bandred: tmat_dev ", 1510,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(vav),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("bandred: vav", 1511,  successCUDA)
+         call check_host_unregister_CUDA_f("bandred: vav", 1513,  successCUDA)
 
          if (associated(umcCUDA)) then
             nullify(umcCUDA)
 
             successCUDA = cuda_free_host(umc_host)
-            call check_host_dealloc_CUDA_f("bandred: umc_host ", 1517,  successCUDA)
+            call check_host_dealloc_CUDA_f("bandred: umc_host ", 1519,  successCUDA)
 
             successCUDA = cuda_free(umc_dev)
-            call check_dealloc_CUDA_f("bandred: umc_dev ", 1520,  successCUDA)
+            call check_dealloc_CUDA_f("bandred: umc_dev ", 1522,  successCUDA)
          endif
 
          if (associated(vmrCUDA)) then
             nullify(vmrCUDA)
 
             successCUDA = cuda_free_host(vmr_host)
-            call check_host_dealloc_CUDA_f("bandred: vmr_host ", 1527,  successCUDA)
+            call check_host_dealloc_CUDA_f("bandred: vmr_host ", 1529,  successCUDA)
 
             successCUDA = cuda_free(vmr_dev)
-            call check_dealloc_CUDA_f("bandred: vmr_dev ", 1530,  successCUDA)
+            call check_dealloc_CUDA_f("bandred: vmr_dev ", 1532,  successCUDA)
          endif
       endif ! useGPU
 
       if (allocated(vr)) then
          deallocate(vr, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("bandred: vr", 1536,  istat,  errorMessage)
+         call check_deallocate_f("bandred: vr", 1538,  istat,  errorMessage)
       endif
 
       if (allocated(umcCPU)) then
          deallocate(umcCPU, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("bandred: umcCPU", 1541,  istat,  errorMessage)
+         call check_deallocate_f("bandred: umcCPU", 1543,  istat,  errorMessage)
       endif
 
       if (allocated(vmrCPU)) then
          deallocate(vmrCPU, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("bandred: vmrCPU", 1546,  istat,  errorMessage)
+         call check_deallocate_f("bandred: vmrCPU", 1548,  istat,  errorMessage)
       endif
 
       call obj%timer%stop("bandred_&
@@ -5561,6 +5567,7 @@ contains
       integer(kind=ik), allocatable                :: block_limits(:)
       real(kind=rck), allocatable         :: ab(:,:), hh_gath(:,:,:), hh_send(:,:,:)
       integer                                      :: istat
+      integer(kind=ik)                             :: nblockEnd
       character(200)                               :: errorMessage
       character(20)                                :: gpuString
 
@@ -5603,7 +5610,7 @@ contains
       ! Get global_id mapping 2D procssor coordinates to global id
 
       allocate(global_id(0:np_rows-1,0:np_cols-1), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: global_id", 184,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: global_id", 185,  istat,  errorMessage)
 
       global_id(:,:) = 0
       global_id(my_prow, my_pcol) = my_pe
@@ -5620,7 +5627,7 @@ contains
       ! Set work distribution
 
       allocate(block_limits(0:n_pes), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: block_limits", 216,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: block_limits", 217,  istat,  errorMessage)
 
       call divide_band(obj,nblocks_total, n_pes, block_limits)
 
@@ -5630,7 +5637,7 @@ contains
       ! allocate the part of the band matrix which is needed by this PE
       ! The size is 1 block larger than needed to avoid extensive shifts
       allocate(ab(2*nb,(nblocks+1)*nb), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: ab", 226,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: ab", 227,  istat,  errorMessage)
 
       ab = 0.0_rck ! needed for lower half, the extra block should also be set to 0 for safety
 
@@ -5648,7 +5655,7 @@ contains
       ! and the space requirements to hold the HH vectors
 
       allocate(limits(0:np_rows), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: limits", 244,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: limits", 245,  istat,  errorMessage)
 
       call determine_workload(obj,na, nb, np_rows, limits)
       max_blk_size = maxval(limits(1:np_rows) - limits(0:np_rows-1))
@@ -5671,19 +5678,20 @@ contains
       ! Allocate space for HH vectors
 
       allocate(hh_trans(nb,num_hh_vecs), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: hh_trans", 267,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_trans", 268,  istat,  errorMessage)
 
       ! Allocate and init MPI requests
 
       allocate(ireq_hhr(num_chunks), stat=istat, errmsg=errorMessage) ! Recv requests
-      call check_allocate_f("tridiag_band: ireq_hhr", 272,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: ireq_hhr", 273,  istat,  errorMessage)
       allocate(ireq_hhs(nblocks), stat=istat, errmsg=errorMessage)    ! Send requests
-      call check_allocate_f("tridiag_band: ireq_hhs", 274,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: ireq_hhs", 275,  istat,  errorMessage)
 
       num_hh_vecs = 0
       num_chunks  = 0
       nx = na
       nt = 0
+      nBlockEnd=1
       do n = 1, nblocks_total
          call determine_workload(obj,nx, nb, np_rows, limits)
          local_size = limits(my_prow+1) - limits(my_prow)
@@ -5706,10 +5714,10 @@ contains
       ! Buffers for gathering/sending the HH vectors
 
       allocate(hh_gath(nb,max_blk_size,nblocks), stat=istat, errmsg=errorMessage) ! gathers HH vectors
-      call check_allocate_f("tridiag_band: hh_gath", 310,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_gath", 312,  istat,  errorMessage)
 
       allocate(hh_send(nb,max_blk_size,nblocks), stat=istat, errmsg=errorMessage) ! send buffer for HH vectors
-      call check_allocate_f("tridiag_band: hh_send", 313,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_send", 315,  istat,  errorMessage)
 
       hh_gath(:,:,:) = 0.0_rck
       hh_send(:,:,:) = 0.0_rck
@@ -5717,10 +5725,10 @@ contains
       ! Some counters
 
       allocate(hh_cnt(nblocks), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: hh_cnt", 321,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_cnt", 323,  istat,  errorMessage)
 
       allocate(hh_dst(nblocks), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: hh_dst", 324,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_dst", 326,  istat,  errorMessage)
 
       hh_cnt(:) = 1 ! The first transfomation Vector is always 0 and not calculated at all
       hh_dst(:) = 0 ! PE number for receive
@@ -5729,7 +5737,7 @@ contains
       ! Limits for sending
 
       allocate(snd_limits(0:np_rows,nblocks), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: snd_limits", 335,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: snd_limits", 337,  istat,  errorMessage)
 
       do iblk=1,nblocks
          call determine_workload(obj, na-(iblk+block_limits(my_pe)-1)*nb, nb, np_rows, snd_limits(:,iblk))
@@ -5750,7 +5758,7 @@ contains
          if (wantDebug) call obj%timer%stop("mpi_communication")
       endif
 
-      do istep=1,na-1
+      do istep=1,na-nblockEnd
 
          if (my_pe==0) then
             n = MIN(na-na_s,nb) ! number of rows to be reduced
@@ -6053,25 +6061,25 @@ contains
       call mpi_barrier(int(communicator,kind=MPI_KIND),mpierr)
       if (wantDebug) call obj%timer%stop("mpi_communication")
       deallocate(ab, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: ab", 1172,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: ab", 1174,  istat,  errorMessage)
 
       deallocate(ireq_hhr, ireq_hhs, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: ireq_hhr", 1175,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: ireq_hhr", 1177,  istat,  errorMessage)
 
       deallocate(hh_cnt, hh_dst, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: hh_dst", 1178,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: hh_dst", 1180,  istat,  errorMessage)
 
       deallocate(hh_gath, hh_send, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: hh_gath", 1181,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: hh_gath", 1183,  istat,  errorMessage)
 
       deallocate(limits, snd_limits, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: limits", 1184,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: limits", 1186,  istat,  errorMessage)
 
       deallocate(block_limits, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: block_limits", 1187,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: block_limits", 1189,  istat,  errorMessage)
 
       deallocate(global_id, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: global_id", 1190,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: global_id", 1192,  istat,  errorMessage)
 
       call obj%timer%stop("tridiag_band_&
       &real&
@@ -7947,7 +7955,7 @@ contains
       logical                                     :: useGPU_reduction_lower_block_to_tridiagonal
       integer(kind=ik), intent(in)                :: max_threads
       logical                                     :: do_memcpy
-      integer(kind=ik)                            :: i_blk,blk_off
+      integer(kind=ik)                            :: i_blk,blk_off, blk_end
 
       call obj%get("is_skewsymmetric",skewsymmetric,error)
       if (error .ne. ELPA_OK) then
@@ -8049,23 +8057,25 @@ contains
       l_rows_tile = tile_size/np_rows ! local rows of a tile
       l_cols_tile = tile_size/np_cols ! local cols of a tile
 
+      blk_end = (na-1)/nbw
       if (useGPU) then
 
          successCUDA = cuda_host_register(int(loc(a_mat),kind=c_intptr_t), &
             lda*na_cols*size_of_datatype, cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("bandred: a_mat", 373,  successCUDA)
+         call check_host_register_CUDA_f("bandred: a_mat", 374,  successCUDA)
 
          cur_l_rows = 0
          cur_l_cols = 0
 
          successCUDA = cuda_memcpy(a_dev, int(loc(a_mat),kind=c_intptr_t), &
             lda*na_cols*size_of_datatype, cudaMemcpyHostToDevice)
-         call check_memcpy_CUDA_f("bandred: a_dev", 380,  successCUDA)
+         call check_memcpy_CUDA_f("bandred: a_dev", 381,  successCUDA)
 
          successCUDA = cuda_malloc(tmat_dev, nbw*nbw*size_of_datatype)
-         call check_alloc_CUDA_f("bandred: tmat_dev", 383,  successCUDA)
+         call check_alloc_CUDA_f("bandred: tmat_dev", 384,  successCUDA)
 
          istep = (na-1)/nbw
+         blk_end = (na-1)/nbw
          n_cols = min(na,(istep+1)*nbw)-istep*nbw
          l_cols = local_index(istep*nbw, my_pcol, np_cols, nblk, -1)
          l_rows = local_index(istep*nbw, my_prow, np_rows, nblk, -1)
@@ -8096,22 +8106,22 @@ contains
          endif
 
          successCUDA = cuda_malloc_host(vmr_host,vmr_size*size_of_datatype)
-         call check_host_alloc_CUDA_f("bandred: vmr_host", 416,  successCUDA)
+         call check_host_alloc_CUDA_f("bandred: vmr_host", 418,  successCUDA)
          call c_f_pointer(vmr_host, vmrCUDA, (/vmr_size/))
 
          successCUDA = cuda_malloc(vmr_dev, vmr_size*size_of_datatype)
-         call check_alloc_CUDA_f("bandred: vmr_dev", 420,  successCUDA)
+         call check_alloc_CUDA_f("bandred: vmr_dev", 422,  successCUDA)
 
          successCUDA = cuda_malloc_host(umc_host,umc_size*size_of_datatype)
-         call check_host_alloc_CUDA_f("bandred: umc_host", 423,  successCUDA)
+         call check_host_alloc_CUDA_f("bandred: umc_host", 425,  successCUDA)
          call c_f_pointer(umc_host, umcCUDA, (/umc_size/))
 
          successCUDA = cuda_malloc(umc_dev, umc_size*size_of_datatype)
-         call check_alloc_CUDA_f("bandred: umc_dev", 427,  successCUDA)
+         call check_alloc_CUDA_f("bandred: umc_dev", 429,  successCUDA)
 
       endif ! useGPU
 
-      do istep = (na-1)/nbw, 1, -1
+      do istep = blk_end, 1, -1
 
          n_cols = MIN(na,(istep+1)*nbw) - istep*nbw ! Number of columns in current step
 
@@ -8134,13 +8144,13 @@ contains
             ! Allocate vmr and umcCPU to their exact sizes so that they can be used in bcasts and reduces
 
             allocate(vmrCPU(max(l_rows,1),2*n_cols), stat=istat, errmsg=errorMessage)
-            call check_allocate_f("bandred: vmrCPU", 454,  istat,  errorMessage)
+            call check_allocate_f("bandred: vmrCPU", 456,  istat,  errorMessage)
 
             allocate(umcCPU(max(l_cols,1),2*n_cols), stat=istat, errmsg=errorMessage)
-            call check_allocate_f("bandred: umcCPU", 457,  istat,  errorMessage)
+            call check_allocate_f("bandred: umcCPU", 459,  istat,  errorMessage)
 
             allocate(vr(l_rows+1), stat=istat, errmsg=errorMessage)
-            call check_allocate_f("bandred: vr", 460,  istat,  errorMessage)
+            call check_allocate_f("bandred: vr", 462,  istat,  errorMessage)
 
          endif ! use GPU
 
@@ -8180,7 +8190,7 @@ contains
                   int(lr_end*size_of_datatype,kind=c_intptr_t), &
                   int((lc_end - lc_start+1),kind=c_intptr_t),int(cudaMemcpyDeviceToHost,kind=c_int))
 
-               call check_memcpy_CUDA_f("bandred: a_dev -> a_mat", 500,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: a_dev -> a_mat", 502,  successCUDA)
             endif
          endif ! useGPU
 
@@ -8298,7 +8308,7 @@ contains
                   int(lr_end*size_of_datatype,kind=c_intptr_t), &
                   int((lc_end - lc_start+1),kind=c_intptr_t), &
                   int(cudaMemcpyHostToDevice,kind=c_int))
-               call check_memcpy_CUDA_f("bandred: a_mat -> a_dev", 799,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: a_mat -> a_dev", 801,  successCUDA)
             endif
          endif
 
@@ -8377,20 +8387,20 @@ contains
             if (useGPU) then
                successCUDA = cuda_memset(vmr_dev+cur_l_rows*n_cols*size_of_datatype, &
                   0, cur_l_rows*n_cols*size_of_datatype)
-               call check_memset_CUDA_f("bandred: vmr_dev", 1035,  successCUDA)
+               call check_memset_CUDA_f("bandred: vmr_dev", 1037,  successCUDA)
 
                successCUDA = cuda_memcpy(vmr_dev, int(loc(vmrCUDA(1)),kind=c_intptr_t), &
                   cur_l_rows*n_cols*size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("bandred: vmrCUDA -> vmr_dev", 1039,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: vmrCUDA -> vmr_dev", 1041,  successCUDA)
 
                successCUDA = cuda_memset(umc_dev, 0, l_cols*n_cols*size_of_datatype)
-               call check_memset_CUDA_f("bandred: umc_dev", 1042,  successCUDA)
+               call check_memset_CUDA_f("bandred: umc_dev", 1044,  successCUDA)
 
                successCUDA = cuda_memcpy(umc_dev+l_cols*n_cols*size_of_datatype, &
                   int(loc(umcCUDA(1+l_cols*n_cols)),kind=c_intptr_t), &
                   (umc_size-l_cols*n_cols)*size_of_datatype, &
                   cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev", 1048,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev", 1050,  successCUDA)
             endif ! useGPU
 
             do i=0,(istep*nbw-1)/tile_size
@@ -8471,12 +8481,12 @@ contains
                   successCUDA = cuda_memcpy(int(loc(vmrCUDA(1+cur_l_rows*n_cols)),kind=c_intptr_t), &
                      vmr_dev+cur_l_rows*n_cols*size_of_datatype, &
                      (vmr_size-cur_l_rows*n_cols)*size_of_datatype, cudaMemcpyDeviceToHost)
-                  call check_memcpy_CUDA_f("bandred: vmr_dev -> vmrCUDA", 1129,  successCUDA)
+                  call check_memcpy_CUDA_f("bandred: vmr_dev -> vmrCUDA", 1131,  successCUDA)
                endif
 
                successCUDA = cuda_memcpy(int(loc(umcCUDA(1)),kind=c_intptr_t), &
                   umc_dev, l_cols*n_cols*size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA", 1134,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA", 1136,  successCUDA)
             endif ! useGPU
          endif ! l_cols>0 .and. l_rows>0
 
@@ -8513,7 +8523,7 @@ contains
 
             if (useGPU) then
                allocate(tmpCUDA(l_cols * n_cols), stat=istat, errmsg=errorMessage)
-               call check_allocate_f("bandred: tmpCUDA", 1178,  istat,  errorMessage)
+               call check_allocate_f("bandred: tmpCUDA", 1180,  istat,  errorMessage)
 
                if (wantDebug) call obj%timer%start("mpi_communication")
 
@@ -8525,13 +8535,13 @@ contains
 
                if (allocated(tmpCUDA)) then
                   deallocate(tmpCUDA, stat=istat, errmsg=errorMessage)
-                  call check_deallocate_f("bandred: tmpCUDA", 1191,  istat,  errorMessage)
+                  call check_deallocate_f("bandred: tmpCUDA", 1193,  istat,  errorMessage)
                endif
 
             else ! useGPU
 
                allocate(tmpCPU(l_cols,n_cols), stat=istat, errmsg=errorMessage)
-               call check_allocate_f("bandred: tmpCPU", 1197,  istat,  errorMessage)
+               call check_allocate_f("bandred: tmpCPU", 1199,  istat,  errorMessage)
 
                if (wantDebug) call obj%timer%start("mpi_communication")
                call mpi_allreduce(umcCPU, tmpCPU, int(l_cols*n_cols,kind=MPI_KIND), MPI_DOUBLE_COMPLEX,    &
@@ -8540,7 +8550,7 @@ contains
                if (wantDebug) call obj%timer%stop("mpi_communication")
 
                deallocate(tmpCPU, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: tmpCPU", 1208,  istat,  errorMessage)
+               call check_deallocate_f("bandred: tmpCPU", 1210,  istat,  errorMessage)
             endif ! useGPU
          endif ! l_cols > 0
 
@@ -8549,11 +8559,11 @@ contains
          if (useGPU) then
             successCUDA = cuda_memcpy(umc_dev, int(loc(umcCUDA(1)),kind=c_intptr_t), &
                l_cols*n_cols*size_of_datatype, cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev ", 1217,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev ", 1219,  successCUDA)
 
             successCUDA = cuda_memcpy(tmat_dev,int(loc(tmat(1,1,istep)),kind=c_intptr_t), &
                nbw*nbw*size_of_datatype,cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: tmat -> tmat_dev ", 1221,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: tmat -> tmat_dev ", 1223,  successCUDA)
 
             call obj%timer%start("cublas")
             call cublas_ZTRMM('Right', 'Upper', 'C', 'Nonunit',  &
@@ -8573,7 +8583,7 @@ contains
 
             successCUDA = cuda_memcpy(int(loc(vav),kind=c_intptr_t), &
                vav_dev, nbw*nbw*size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("bandred: vav_dev -> vav ", 1241,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: vav_dev -> vav ", 1243,  successCUDA)
          else ! useGPU
 
             call obj%timer%start("blas")
@@ -8604,7 +8614,7 @@ contains
          if (useGPU) then
             successCUDA = cuda_memcpy(vav_dev, int(loc(vav),kind=c_intptr_t), &
                nbw*nbw*size_of_datatype,cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: vav -> vav_dev ", 1289,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: vav -> vav_dev ", 1291,  successCUDA)
          endif
 
          ! U = U - 0.5 * V * VAV
@@ -8630,7 +8640,7 @@ contains
 
             successCUDA = cuda_memcpy(int(loc(umcCUDA(1)),kind=c_intptr_t), &
                umc_dev, umc_size*size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA ", 1325,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA ", 1327,  successCUDA)
 
             ! Transpose umc -> umr (stored in vmr, second half)
             if (isSkewsymmetric) then
@@ -8654,7 +8664,7 @@ contains
             successCUDA = cuda_memcpy(vmr_dev+cur_l_rows*n_cols*size_of_datatype, &
                int(loc(vmrCUDA(1+cur_l_rows*n_cols)),kind=c_intptr_t), &
                (vmr_size-cur_l_rows*n_cols)*size_of_datatype, cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: vmr -> vmrCUDA ", 1349,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: vmr -> vmrCUDA ", 1351,  successCUDA)
 
          else ! useGPU
             call obj%timer%start("blas")
@@ -8720,17 +8730,17 @@ contains
          if (.not.(useGPU)) then
             if (allocated(vr)) then
                deallocate(vr, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: vr", 1470,  istat,  errorMessage)
+               call check_deallocate_f("bandred: vr", 1472,  istat,  errorMessage)
             endif
 
             if (allocated(umcCPU)) then
                deallocate(umcCPU, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: umcCPU", 1475,  istat,  errorMessage)
+               call check_deallocate_f("bandred: umcCPU", 1477,  istat,  errorMessage)
             endif
 
             if (allocated(vmrCPU)) then
                deallocate(vmrCPU, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: vmrCPU", 1480,  istat,  errorMessage)
+               call check_deallocate_f("bandred: vmrCPU", 1482,  istat,  errorMessage)
             endif
          endif !useGPU
 
@@ -8746,57 +8756,57 @@ contains
             int(a_dev,kind=c_intptr_t), &
             int(lda*matrixCols* size_of_datatype, kind=c_intptr_t), &
             cudaMemcpyDeviceToHost)
-         call check_memcpy_CUDA_f("bandred: a_dev -> a_mat ", 1496,  successCUDA)
+         call check_memcpy_CUDA_f("bandred: a_dev -> a_mat ", 1498,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(a_mat),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("bandred: a_mat ", 1499,  successCUDA)
+         call check_host_unregister_CUDA_f("bandred: a_mat ", 1501,  successCUDA)
 
          successCUDA = cuda_free(a_dev)
-         call check_dealloc_CUDA_f("bandred: a_dev ", 1502,  successCUDA)
+         call check_dealloc_CUDA_f("bandred: a_dev ", 1504,  successCUDA)
 
          successCUDA = cuda_free(vav_dev)
-         call check_dealloc_CUDA_f("bandred: vav_dev ", 1505,  successCUDA)
+         call check_dealloc_CUDA_f("bandred: vav_dev ", 1507,  successCUDA)
 
          successCUDA = cuda_free(tmat_dev)
-         call check_dealloc_CUDA_f("bandred: tmat_dev ", 1508,  successCUDA)
+         call check_dealloc_CUDA_f("bandred: tmat_dev ", 1510,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(vav),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("bandred: vav", 1511,  successCUDA)
+         call check_host_unregister_CUDA_f("bandred: vav", 1513,  successCUDA)
 
          if (associated(umcCUDA)) then
             nullify(umcCUDA)
 
             successCUDA = cuda_free_host(umc_host)
-            call check_host_dealloc_CUDA_f("bandred: umc_host ", 1517,  successCUDA)
+            call check_host_dealloc_CUDA_f("bandred: umc_host ", 1519,  successCUDA)
 
             successCUDA = cuda_free(umc_dev)
-            call check_dealloc_CUDA_f("bandred: umc_dev ", 1520,  successCUDA)
+            call check_dealloc_CUDA_f("bandred: umc_dev ", 1522,  successCUDA)
          endif
 
          if (associated(vmrCUDA)) then
             nullify(vmrCUDA)
 
             successCUDA = cuda_free_host(vmr_host)
-            call check_host_dealloc_CUDA_f("bandred: vmr_host ", 1527,  successCUDA)
+            call check_host_dealloc_CUDA_f("bandred: vmr_host ", 1529,  successCUDA)
 
             successCUDA = cuda_free(vmr_dev)
-            call check_dealloc_CUDA_f("bandred: vmr_dev ", 1530,  successCUDA)
+            call check_dealloc_CUDA_f("bandred: vmr_dev ", 1532,  successCUDA)
          endif
       endif ! useGPU
 
       if (allocated(vr)) then
          deallocate(vr, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("bandred: vr", 1536,  istat,  errorMessage)
+         call check_deallocate_f("bandred: vr", 1538,  istat,  errorMessage)
       endif
 
       if (allocated(umcCPU)) then
          deallocate(umcCPU, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("bandred: umcCPU", 1541,  istat,  errorMessage)
+         call check_deallocate_f("bandred: umcCPU", 1543,  istat,  errorMessage)
       endif
 
       if (allocated(vmrCPU)) then
          deallocate(vmrCPU, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("bandred: vmrCPU", 1546,  istat,  errorMessage)
+         call check_deallocate_f("bandred: vmrCPU", 1548,  istat,  errorMessage)
       endif
 
       call obj%timer%stop("bandred_&
@@ -9420,6 +9430,7 @@ contains
       integer(kind=ik), allocatable                :: block_limits(:)
       complex(kind=rck), allocatable         :: ab(:,:), hh_gath(:,:,:), hh_send(:,:,:)
       integer                                      :: istat
+      integer(kind=ik)                             :: nblockEnd
       character(200)                               :: errorMessage
       character(20)                                :: gpuString
 
@@ -9462,7 +9473,7 @@ contains
       ! Get global_id mapping 2D procssor coordinates to global id
 
       allocate(global_id(0:np_rows-1,0:np_cols-1), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: global_id", 184,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: global_id", 185,  istat,  errorMessage)
 
       global_id(:,:) = 0
       global_id(my_prow, my_pcol) = my_pe
@@ -9479,7 +9490,7 @@ contains
       ! Set work distribution
 
       allocate(block_limits(0:n_pes), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: block_limits", 216,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: block_limits", 217,  istat,  errorMessage)
 
       call divide_band(obj,nblocks_total, n_pes, block_limits)
 
@@ -9489,7 +9500,7 @@ contains
       ! allocate the part of the band matrix which is needed by this PE
       ! The size is 1 block larger than needed to avoid extensive shifts
       allocate(ab(2*nb,(nblocks+1)*nb), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: ab", 226,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: ab", 227,  istat,  errorMessage)
 
       ab = 0.0_rck ! needed for lower half, the extra block should also be set to 0 for safety
 
@@ -9507,7 +9518,7 @@ contains
       ! and the space requirements to hold the HH vectors
 
       allocate(limits(0:np_rows), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: limits", 244,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: limits", 245,  istat,  errorMessage)
 
       call determine_workload(obj,na, nb, np_rows, limits)
       max_blk_size = maxval(limits(1:np_rows) - limits(0:np_rows-1))
@@ -9530,19 +9541,20 @@ contains
       ! Allocate space for HH vectors
 
       allocate(hh_trans(nb,num_hh_vecs), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: hh_trans", 267,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_trans", 268,  istat,  errorMessage)
 
       ! Allocate and init MPI requests
 
       allocate(ireq_hhr(num_chunks), stat=istat, errmsg=errorMessage) ! Recv requests
-      call check_allocate_f("tridiag_band: ireq_hhr", 272,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: ireq_hhr", 273,  istat,  errorMessage)
       allocate(ireq_hhs(nblocks), stat=istat, errmsg=errorMessage)    ! Send requests
-      call check_allocate_f("tridiag_band: ireq_hhs", 274,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: ireq_hhs", 275,  istat,  errorMessage)
 
       num_hh_vecs = 0
       num_chunks  = 0
       nx = na
       nt = 0
+      nBlockEnd=1
       do n = 1, nblocks_total
          call determine_workload(obj,nx, nb, np_rows, limits)
          local_size = limits(my_prow+1) - limits(my_prow)
@@ -9565,10 +9577,10 @@ contains
       ! Buffers for gathering/sending the HH vectors
 
       allocate(hh_gath(nb,max_blk_size,nblocks), stat=istat, errmsg=errorMessage) ! gathers HH vectors
-      call check_allocate_f("tridiag_band: hh_gath", 310,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_gath", 312,  istat,  errorMessage)
 
       allocate(hh_send(nb,max_blk_size,nblocks), stat=istat, errmsg=errorMessage) ! send buffer for HH vectors
-      call check_allocate_f("tridiag_band: hh_send", 313,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_send", 315,  istat,  errorMessage)
 
       hh_gath(:,:,:) = 0.0_rck
       hh_send(:,:,:) = 0.0_rck
@@ -9576,10 +9588,10 @@ contains
       ! Some counters
 
       allocate(hh_cnt(nblocks), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: hh_cnt", 321,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_cnt", 323,  istat,  errorMessage)
 
       allocate(hh_dst(nblocks), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: hh_dst", 324,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_dst", 326,  istat,  errorMessage)
 
       hh_cnt(:) = 1 ! The first transfomation Vector is always 0 and not calculated at all
       hh_dst(:) = 0 ! PE number for receive
@@ -9588,7 +9600,7 @@ contains
       ! Limits for sending
 
       allocate(snd_limits(0:np_rows,nblocks), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: snd_limits", 335,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: snd_limits", 337,  istat,  errorMessage)
 
       do iblk=1,nblocks
          call determine_workload(obj, na-(iblk+block_limits(my_pe)-1)*nb, nb, np_rows, snd_limits(:,iblk))
@@ -9609,7 +9621,7 @@ contains
          if (wantDebug) call obj%timer%stop("mpi_communication")
       endif
 
-      do istep=1,na-1
+      do istep=1,na-nblockEnd
 
          if (my_pe==0) then
             n = MIN(na-na_s,nb) ! number of rows to be reduced
@@ -9876,25 +9888,25 @@ contains
       call mpi_barrier(int(communicator,kind=MPI_KIND),mpierr)
       if (wantDebug) call obj%timer%stop("mpi_communication")
       deallocate(ab, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: ab", 1172,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: ab", 1174,  istat,  errorMessage)
 
       deallocate(ireq_hhr, ireq_hhs, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: ireq_hhr", 1175,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: ireq_hhr", 1177,  istat,  errorMessage)
 
       deallocate(hh_cnt, hh_dst, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: hh_dst", 1178,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: hh_dst", 1180,  istat,  errorMessage)
 
       deallocate(hh_gath, hh_send, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: hh_gath", 1181,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: hh_gath", 1183,  istat,  errorMessage)
 
       deallocate(limits, snd_limits, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: limits", 1184,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: limits", 1186,  istat,  errorMessage)
 
       deallocate(block_limits, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: block_limits", 1187,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: block_limits", 1189,  istat,  errorMessage)
 
       deallocate(global_id, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: global_id", 1190,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: global_id", 1192,  istat,  errorMessage)
 
       call obj%timer%stop("tridiag_band_&
       &complex&
@@ -11265,7 +11277,7 @@ contains
       logical                                     :: useGPU_reduction_lower_block_to_tridiagonal
       integer(kind=ik), intent(in)                :: max_threads
       logical                                     :: do_memcpy
-      integer(kind=ik)                            :: i_blk,blk_off
+      integer(kind=ik)                            :: i_blk,blk_off, blk_end
 
       call obj%get("is_skewsymmetric",skewsymmetric,error)
       if (error .ne. ELPA_OK) then
@@ -11367,23 +11379,25 @@ contains
       l_rows_tile = tile_size/np_rows ! local rows of a tile
       l_cols_tile = tile_size/np_cols ! local cols of a tile
 
+      blk_end = (na-1)/nbw
       if (useGPU) then
 
          successCUDA = cuda_host_register(int(loc(a_mat),kind=c_intptr_t), &
             lda*na_cols*size_of_datatype, cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("bandred: a_mat", 373,  successCUDA)
+         call check_host_register_CUDA_f("bandred: a_mat", 374,  successCUDA)
 
          cur_l_rows = 0
          cur_l_cols = 0
 
          successCUDA = cuda_memcpy(a_dev, int(loc(a_mat),kind=c_intptr_t), &
             lda*na_cols*size_of_datatype, cudaMemcpyHostToDevice)
-         call check_memcpy_CUDA_f("bandred: a_dev", 380,  successCUDA)
+         call check_memcpy_CUDA_f("bandred: a_dev", 381,  successCUDA)
 
          successCUDA = cuda_malloc(tmat_dev, nbw*nbw*size_of_datatype)
-         call check_alloc_CUDA_f("bandred: tmat_dev", 383,  successCUDA)
+         call check_alloc_CUDA_f("bandred: tmat_dev", 384,  successCUDA)
 
          istep = (na-1)/nbw
+         blk_end = (na-1)/nbw
          n_cols = min(na,(istep+1)*nbw)-istep*nbw
          l_cols = local_index(istep*nbw, my_pcol, np_cols, nblk, -1)
          l_rows = local_index(istep*nbw, my_prow, np_rows, nblk, -1)
@@ -11414,22 +11428,22 @@ contains
          endif
 
          successCUDA = cuda_malloc_host(vmr_host,vmr_size*size_of_datatype)
-         call check_host_alloc_CUDA_f("bandred: vmr_host", 416,  successCUDA)
+         call check_host_alloc_CUDA_f("bandred: vmr_host", 418,  successCUDA)
          call c_f_pointer(vmr_host, vmrCUDA, (/vmr_size/))
 
          successCUDA = cuda_malloc(vmr_dev, vmr_size*size_of_datatype)
-         call check_alloc_CUDA_f("bandred: vmr_dev", 420,  successCUDA)
+         call check_alloc_CUDA_f("bandred: vmr_dev", 422,  successCUDA)
 
          successCUDA = cuda_malloc_host(umc_host,umc_size*size_of_datatype)
-         call check_host_alloc_CUDA_f("bandred: umc_host", 423,  successCUDA)
+         call check_host_alloc_CUDA_f("bandred: umc_host", 425,  successCUDA)
          call c_f_pointer(umc_host, umcCUDA, (/umc_size/))
 
          successCUDA = cuda_malloc(umc_dev, umc_size*size_of_datatype)
-         call check_alloc_CUDA_f("bandred: umc_dev", 427,  successCUDA)
+         call check_alloc_CUDA_f("bandred: umc_dev", 429,  successCUDA)
 
       endif ! useGPU
 
-      do istep = (na-1)/nbw, 1, -1
+      do istep = blk_end, 1, -1
 
          n_cols = MIN(na,(istep+1)*nbw) - istep*nbw ! Number of columns in current step
 
@@ -11452,13 +11466,13 @@ contains
             ! Allocate vmr and umcCPU to their exact sizes so that they can be used in bcasts and reduces
 
             allocate(vmrCPU(max(l_rows,1),2*n_cols), stat=istat, errmsg=errorMessage)
-            call check_allocate_f("bandred: vmrCPU", 454,  istat,  errorMessage)
+            call check_allocate_f("bandred: vmrCPU", 456,  istat,  errorMessage)
 
             allocate(umcCPU(max(l_cols,1),2*n_cols), stat=istat, errmsg=errorMessage)
-            call check_allocate_f("bandred: umcCPU", 457,  istat,  errorMessage)
+            call check_allocate_f("bandred: umcCPU", 459,  istat,  errorMessage)
 
             allocate(vr(l_rows+1), stat=istat, errmsg=errorMessage)
-            call check_allocate_f("bandred: vr", 460,  istat,  errorMessage)
+            call check_allocate_f("bandred: vr", 462,  istat,  errorMessage)
 
          endif ! use GPU
 
@@ -11498,7 +11512,7 @@ contains
                   int(lr_end*size_of_datatype,kind=c_intptr_t), &
                   int((lc_end - lc_start+1),kind=c_intptr_t),int(cudaMemcpyDeviceToHost,kind=c_int))
 
-               call check_memcpy_CUDA_f("bandred: a_dev -> a_mat", 500,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: a_dev -> a_mat", 502,  successCUDA)
             endif
          endif ! useGPU
 
@@ -11616,7 +11630,7 @@ contains
                   int(lr_end*size_of_datatype,kind=c_intptr_t), &
                   int((lc_end - lc_start+1),kind=c_intptr_t), &
                   int(cudaMemcpyHostToDevice,kind=c_int))
-               call check_memcpy_CUDA_f("bandred: a_mat -> a_dev", 799,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: a_mat -> a_dev", 801,  successCUDA)
             endif
          endif
 
@@ -11695,20 +11709,20 @@ contains
             if (useGPU) then
                successCUDA = cuda_memset(vmr_dev+cur_l_rows*n_cols*size_of_datatype, &
                   0, cur_l_rows*n_cols*size_of_datatype)
-               call check_memset_CUDA_f("bandred: vmr_dev", 1035,  successCUDA)
+               call check_memset_CUDA_f("bandred: vmr_dev", 1037,  successCUDA)
 
                successCUDA = cuda_memcpy(vmr_dev, int(loc(vmrCUDA(1)),kind=c_intptr_t), &
                   cur_l_rows*n_cols*size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("bandred: vmrCUDA -> vmr_dev", 1039,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: vmrCUDA -> vmr_dev", 1041,  successCUDA)
 
                successCUDA = cuda_memset(umc_dev, 0, l_cols*n_cols*size_of_datatype)
-               call check_memset_CUDA_f("bandred: umc_dev", 1042,  successCUDA)
+               call check_memset_CUDA_f("bandred: umc_dev", 1044,  successCUDA)
 
                successCUDA = cuda_memcpy(umc_dev+l_cols*n_cols*size_of_datatype, &
                   int(loc(umcCUDA(1+l_cols*n_cols)),kind=c_intptr_t), &
                   (umc_size-l_cols*n_cols)*size_of_datatype, &
                   cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev", 1048,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev", 1050,  successCUDA)
             endif ! useGPU
 
             do i=0,(istep*nbw-1)/tile_size
@@ -11789,12 +11803,12 @@ contains
                   successCUDA = cuda_memcpy(int(loc(vmrCUDA(1+cur_l_rows*n_cols)),kind=c_intptr_t), &
                      vmr_dev+cur_l_rows*n_cols*size_of_datatype, &
                      (vmr_size-cur_l_rows*n_cols)*size_of_datatype, cudaMemcpyDeviceToHost)
-                  call check_memcpy_CUDA_f("bandred: vmr_dev -> vmrCUDA", 1129,  successCUDA)
+                  call check_memcpy_CUDA_f("bandred: vmr_dev -> vmrCUDA", 1131,  successCUDA)
                endif
 
                successCUDA = cuda_memcpy(int(loc(umcCUDA(1)),kind=c_intptr_t), &
                   umc_dev, l_cols*n_cols*size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA", 1134,  successCUDA)
+               call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA", 1136,  successCUDA)
             endif ! useGPU
          endif ! l_cols>0 .and. l_rows>0
 
@@ -11831,7 +11845,7 @@ contains
 
             if (useGPU) then
                allocate(tmpCUDA(l_cols * n_cols), stat=istat, errmsg=errorMessage)
-               call check_allocate_f("bandred: tmpCUDA", 1178,  istat,  errorMessage)
+               call check_allocate_f("bandred: tmpCUDA", 1180,  istat,  errorMessage)
 
                if (wantDebug) call obj%timer%start("mpi_communication")
 
@@ -11843,13 +11857,13 @@ contains
 
                if (allocated(tmpCUDA)) then
                   deallocate(tmpCUDA, stat=istat, errmsg=errorMessage)
-                  call check_deallocate_f("bandred: tmpCUDA", 1191,  istat,  errorMessage)
+                  call check_deallocate_f("bandred: tmpCUDA", 1193,  istat,  errorMessage)
                endif
 
             else ! useGPU
 
                allocate(tmpCPU(l_cols,n_cols), stat=istat, errmsg=errorMessage)
-               call check_allocate_f("bandred: tmpCPU", 1197,  istat,  errorMessage)
+               call check_allocate_f("bandred: tmpCPU", 1199,  istat,  errorMessage)
 
                if (wantDebug) call obj%timer%start("mpi_communication")
                call mpi_allreduce(umcCPU, tmpCPU, int(l_cols*n_cols,kind=MPI_KIND), MPI_COMPLEX,    &
@@ -11858,7 +11872,7 @@ contains
                if (wantDebug) call obj%timer%stop("mpi_communication")
 
                deallocate(tmpCPU, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: tmpCPU", 1208,  istat,  errorMessage)
+               call check_deallocate_f("bandred: tmpCPU", 1210,  istat,  errorMessage)
             endif ! useGPU
          endif ! l_cols > 0
 
@@ -11867,11 +11881,11 @@ contains
          if (useGPU) then
             successCUDA = cuda_memcpy(umc_dev, int(loc(umcCUDA(1)),kind=c_intptr_t), &
                l_cols*n_cols*size_of_datatype, cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev ", 1217,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: umcCUDA -> umc_dev ", 1219,  successCUDA)
 
             successCUDA = cuda_memcpy(tmat_dev,int(loc(tmat(1,1,istep)),kind=c_intptr_t), &
                nbw*nbw*size_of_datatype,cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: tmat -> tmat_dev ", 1221,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: tmat -> tmat_dev ", 1223,  successCUDA)
 
             call obj%timer%start("cublas")
             call cublas_CTRMM('Right', 'Upper', 'C', 'Nonunit',  &
@@ -11891,7 +11905,7 @@ contains
 
             successCUDA = cuda_memcpy(int(loc(vav),kind=c_intptr_t), &
                vav_dev, nbw*nbw*size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("bandred: vav_dev -> vav ", 1241,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: vav_dev -> vav ", 1243,  successCUDA)
          else ! useGPU
 
             call obj%timer%start("blas")
@@ -11922,7 +11936,7 @@ contains
          if (useGPU) then
             successCUDA = cuda_memcpy(vav_dev, int(loc(vav),kind=c_intptr_t), &
                nbw*nbw*size_of_datatype,cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: vav -> vav_dev ", 1289,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: vav -> vav_dev ", 1291,  successCUDA)
          endif
 
          ! U = U - 0.5 * V * VAV
@@ -11948,7 +11962,7 @@ contains
 
             successCUDA = cuda_memcpy(int(loc(umcCUDA(1)),kind=c_intptr_t), &
                umc_dev, umc_size*size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA ", 1325,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: umc_dev -> umcCUDA ", 1327,  successCUDA)
 
             ! Transpose umc -> umr (stored in vmr, second half)
             if (isSkewsymmetric) then
@@ -11972,7 +11986,7 @@ contains
             successCUDA = cuda_memcpy(vmr_dev+cur_l_rows*n_cols*size_of_datatype, &
                int(loc(vmrCUDA(1+cur_l_rows*n_cols)),kind=c_intptr_t), &
                (vmr_size-cur_l_rows*n_cols)*size_of_datatype, cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("bandred: vmr -> vmrCUDA ", 1349,  successCUDA)
+            call check_memcpy_CUDA_f("bandred: vmr -> vmrCUDA ", 1351,  successCUDA)
 
          else ! useGPU
             call obj%timer%start("blas")
@@ -12038,17 +12052,17 @@ contains
          if (.not.(useGPU)) then
             if (allocated(vr)) then
                deallocate(vr, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: vr", 1470,  istat,  errorMessage)
+               call check_deallocate_f("bandred: vr", 1472,  istat,  errorMessage)
             endif
 
             if (allocated(umcCPU)) then
                deallocate(umcCPU, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: umcCPU", 1475,  istat,  errorMessage)
+               call check_deallocate_f("bandred: umcCPU", 1477,  istat,  errorMessage)
             endif
 
             if (allocated(vmrCPU)) then
                deallocate(vmrCPU, stat=istat, errmsg=errorMessage)
-               call check_deallocate_f("bandred: vmrCPU", 1480,  istat,  errorMessage)
+               call check_deallocate_f("bandred: vmrCPU", 1482,  istat,  errorMessage)
             endif
          endif !useGPU
 
@@ -12064,57 +12078,57 @@ contains
             int(a_dev,kind=c_intptr_t), &
             int(lda*matrixCols* size_of_datatype, kind=c_intptr_t), &
             cudaMemcpyDeviceToHost)
-         call check_memcpy_CUDA_f("bandred: a_dev -> a_mat ", 1496,  successCUDA)
+         call check_memcpy_CUDA_f("bandred: a_dev -> a_mat ", 1498,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(a_mat),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("bandred: a_mat ", 1499,  successCUDA)
+         call check_host_unregister_CUDA_f("bandred: a_mat ", 1501,  successCUDA)
 
          successCUDA = cuda_free(a_dev)
-         call check_dealloc_CUDA_f("bandred: a_dev ", 1502,  successCUDA)
+         call check_dealloc_CUDA_f("bandred: a_dev ", 1504,  successCUDA)
 
          successCUDA = cuda_free(vav_dev)
-         call check_dealloc_CUDA_f("bandred: vav_dev ", 1505,  successCUDA)
+         call check_dealloc_CUDA_f("bandred: vav_dev ", 1507,  successCUDA)
 
          successCUDA = cuda_free(tmat_dev)
-         call check_dealloc_CUDA_f("bandred: tmat_dev ", 1508,  successCUDA)
+         call check_dealloc_CUDA_f("bandred: tmat_dev ", 1510,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(vav),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("bandred: vav", 1511,  successCUDA)
+         call check_host_unregister_CUDA_f("bandred: vav", 1513,  successCUDA)
 
          if (associated(umcCUDA)) then
             nullify(umcCUDA)
 
             successCUDA = cuda_free_host(umc_host)
-            call check_host_dealloc_CUDA_f("bandred: umc_host ", 1517,  successCUDA)
+            call check_host_dealloc_CUDA_f("bandred: umc_host ", 1519,  successCUDA)
 
             successCUDA = cuda_free(umc_dev)
-            call check_dealloc_CUDA_f("bandred: umc_dev ", 1520,  successCUDA)
+            call check_dealloc_CUDA_f("bandred: umc_dev ", 1522,  successCUDA)
          endif
 
          if (associated(vmrCUDA)) then
             nullify(vmrCUDA)
 
             successCUDA = cuda_free_host(vmr_host)
-            call check_host_dealloc_CUDA_f("bandred: vmr_host ", 1527,  successCUDA)
+            call check_host_dealloc_CUDA_f("bandred: vmr_host ", 1529,  successCUDA)
 
             successCUDA = cuda_free(vmr_dev)
-            call check_dealloc_CUDA_f("bandred: vmr_dev ", 1530,  successCUDA)
+            call check_dealloc_CUDA_f("bandred: vmr_dev ", 1532,  successCUDA)
          endif
       endif ! useGPU
 
       if (allocated(vr)) then
          deallocate(vr, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("bandred: vr", 1536,  istat,  errorMessage)
+         call check_deallocate_f("bandred: vr", 1538,  istat,  errorMessage)
       endif
 
       if (allocated(umcCPU)) then
          deallocate(umcCPU, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("bandred: umcCPU", 1541,  istat,  errorMessage)
+         call check_deallocate_f("bandred: umcCPU", 1543,  istat,  errorMessage)
       endif
 
       if (allocated(vmrCPU)) then
          deallocate(vmrCPU, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("bandred: vmrCPU", 1546,  istat,  errorMessage)
+         call check_deallocate_f("bandred: vmrCPU", 1548,  istat,  errorMessage)
       endif
 
       call obj%timer%stop("bandred_&
@@ -12738,6 +12752,7 @@ contains
       integer(kind=ik), allocatable                :: block_limits(:)
       complex(kind=rck), allocatable         :: ab(:,:), hh_gath(:,:,:), hh_send(:,:,:)
       integer                                      :: istat
+      integer(kind=ik)                             :: nblockEnd
       character(200)                               :: errorMessage
       character(20)                                :: gpuString
 
@@ -12780,7 +12795,7 @@ contains
       ! Get global_id mapping 2D procssor coordinates to global id
 
       allocate(global_id(0:np_rows-1,0:np_cols-1), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: global_id", 184,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: global_id", 185,  istat,  errorMessage)
 
       global_id(:,:) = 0
       global_id(my_prow, my_pcol) = my_pe
@@ -12797,7 +12812,7 @@ contains
       ! Set work distribution
 
       allocate(block_limits(0:n_pes), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: block_limits", 216,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: block_limits", 217,  istat,  errorMessage)
 
       call divide_band(obj,nblocks_total, n_pes, block_limits)
 
@@ -12807,7 +12822,7 @@ contains
       ! allocate the part of the band matrix which is needed by this PE
       ! The size is 1 block larger than needed to avoid extensive shifts
       allocate(ab(2*nb,(nblocks+1)*nb), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: ab", 226,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: ab", 227,  istat,  errorMessage)
 
       ab = 0.0_rck ! needed for lower half, the extra block should also be set to 0 for safety
 
@@ -12825,7 +12840,7 @@ contains
       ! and the space requirements to hold the HH vectors
 
       allocate(limits(0:np_rows), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: limits", 244,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: limits", 245,  istat,  errorMessage)
 
       call determine_workload(obj,na, nb, np_rows, limits)
       max_blk_size = maxval(limits(1:np_rows) - limits(0:np_rows-1))
@@ -12848,19 +12863,20 @@ contains
       ! Allocate space for HH vectors
 
       allocate(hh_trans(nb,num_hh_vecs), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: hh_trans", 267,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_trans", 268,  istat,  errorMessage)
 
       ! Allocate and init MPI requests
 
       allocate(ireq_hhr(num_chunks), stat=istat, errmsg=errorMessage) ! Recv requests
-      call check_allocate_f("tridiag_band: ireq_hhr", 272,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: ireq_hhr", 273,  istat,  errorMessage)
       allocate(ireq_hhs(nblocks), stat=istat, errmsg=errorMessage)    ! Send requests
-      call check_allocate_f("tridiag_band: ireq_hhs", 274,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: ireq_hhs", 275,  istat,  errorMessage)
 
       num_hh_vecs = 0
       num_chunks  = 0
       nx = na
       nt = 0
+      nBlockEnd=1
       do n = 1, nblocks_total
          call determine_workload(obj,nx, nb, np_rows, limits)
          local_size = limits(my_prow+1) - limits(my_prow)
@@ -12883,10 +12899,10 @@ contains
       ! Buffers for gathering/sending the HH vectors
 
       allocate(hh_gath(nb,max_blk_size,nblocks), stat=istat, errmsg=errorMessage) ! gathers HH vectors
-      call check_allocate_f("tridiag_band: hh_gath", 310,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_gath", 312,  istat,  errorMessage)
 
       allocate(hh_send(nb,max_blk_size,nblocks), stat=istat, errmsg=errorMessage) ! send buffer for HH vectors
-      call check_allocate_f("tridiag_band: hh_send", 313,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_send", 315,  istat,  errorMessage)
 
       hh_gath(:,:,:) = 0.0_rck
       hh_send(:,:,:) = 0.0_rck
@@ -12894,10 +12910,10 @@ contains
       ! Some counters
 
       allocate(hh_cnt(nblocks), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: hh_cnt", 321,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_cnt", 323,  istat,  errorMessage)
 
       allocate(hh_dst(nblocks), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: hh_dst", 324,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: hh_dst", 326,  istat,  errorMessage)
 
       hh_cnt(:) = 1 ! The first transfomation Vector is always 0 and not calculated at all
       hh_dst(:) = 0 ! PE number for receive
@@ -12906,7 +12922,7 @@ contains
       ! Limits for sending
 
       allocate(snd_limits(0:np_rows,nblocks), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag_band: snd_limits", 335,  istat,  errorMessage)
+      call check_allocate_f("tridiag_band: snd_limits", 337,  istat,  errorMessage)
 
       do iblk=1,nblocks
          call determine_workload(obj, na-(iblk+block_limits(my_pe)-1)*nb, nb, np_rows, snd_limits(:,iblk))
@@ -12927,7 +12943,7 @@ contains
          if (wantDebug) call obj%timer%stop("mpi_communication")
       endif
 
-      do istep=1,na-1
+      do istep=1,na-nblockEnd
 
          if (my_pe==0) then
             n = MIN(na-na_s,nb) ! number of rows to be reduced
@@ -13194,25 +13210,25 @@ contains
       call mpi_barrier(int(communicator,kind=MPI_KIND),mpierr)
       if (wantDebug) call obj%timer%stop("mpi_communication")
       deallocate(ab, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: ab", 1172,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: ab", 1174,  istat,  errorMessage)
 
       deallocate(ireq_hhr, ireq_hhs, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: ireq_hhr", 1175,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: ireq_hhr", 1177,  istat,  errorMessage)
 
       deallocate(hh_cnt, hh_dst, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: hh_dst", 1178,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: hh_dst", 1180,  istat,  errorMessage)
 
       deallocate(hh_gath, hh_send, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: hh_gath", 1181,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: hh_gath", 1183,  istat,  errorMessage)
 
       deallocate(limits, snd_limits, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: limits", 1184,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: limits", 1186,  istat,  errorMessage)
 
       deallocate(block_limits, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: block_limits", 1187,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: block_limits", 1189,  istat,  errorMessage)
 
       deallocate(global_id, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag_band: global_id", 1190,  istat,  errorMessage)
+      call check_deallocate_f("tridiag_band: global_id", 1192,  istat,  errorMessage)
 
       call obj%timer%stop("tridiag_band_&
       &complex&

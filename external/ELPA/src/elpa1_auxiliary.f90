@@ -2562,62 +2562,62 @@ contains
             ! copy b to b_dev
             num = ldb*ldbCols*size_of_datatype
             successCUDA = cuda_malloc(b_dev,num)
-            call check_alloc_CUDA_f("elpa_mult_at_b: b_dev", 206,  successCUDA)
+            call check_alloc_CUDA_f("elpa_mult_at_b: b_dev", 212,  successCUDA)
 
             successCUDA = cuda_host_register(int(loc(b),kind=c_intptr_t),num,&
                cudaHostRegisterDefault)
 
-            call check_host_register_CUDA_f("elpa_mult_at_b: b", 211,  successCUDA)
+            call check_host_register_CUDA_f("elpa_mult_at_b: b", 217,  successCUDA)
 
             successCUDA = cuda_memcpy(b_dev,int(loc(b),kind=c_intptr_t),num,&
                cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("elpa_mult_at_b: b to b_dev", 215,  successCUDA)
+            call check_memcpy_CUDA_f("elpa_mult_at_b: b to b_dev", 221,  successCUDA)
          else ! C = A^T * A
             ! copy a to a_dev
             num = matrixRows*matrixCols*size_of_datatype
             successCUDA = cuda_malloc(a_dev,num)
-            call check_alloc_CUDA_f("elpa_mult_at_a: a_dev", 220,  successCUDA)
+            call check_alloc_CUDA_f("elpa_mult_at_a: a_dev", 226,  successCUDA)
 
             successCUDA = cuda_host_register(int(loc(a),kind=c_intptr_t),num,&
                cudaHostRegisterDefault)
 
-            call check_host_register_CUDA_f("elpa_mult_at_a: a", 225,  successCUDA)
+            call check_host_register_CUDA_f("elpa_mult_at_a: a", 231,  successCUDA)
 
             successCUDA = cuda_memcpy(a_dev,int(loc(a),kind=c_intptr_t),num,&
                cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("elpa_mult_at_a: a to a_dev", 229,  successCUDA)
+            call check_memcpy_CUDA_f("elpa_mult_at_a: a to a_dev", 235,  successCUDA)
          endif
 
          num = l_rows*nblk_mult*size_of_datatype
          successCUDA = cuda_malloc_host(aux_host,num)
-         call check_host_alloc_CUDA_f("elpa_mult_at_b: aux_host", 234,  successCUDA)
+         call check_host_alloc_CUDA_f("elpa_mult_at_b: aux_host", 240,  successCUDA)
 
          call c_f_pointer(aux_host,aux_mat,(/l_rows,nblk_mult/))
 
          successCUDA = cuda_malloc(aux_dev,num)
-         call check_alloc_CUDA_f("elpa_mult_at_b: aux_dev", 239,  successCUDA)
+         call check_alloc_CUDA_f("elpa_mult_at_b: aux_dev", 245,  successCUDA)
 
          num = nblk_mult*l_cols*size_of_datatype
          successCUDA = cuda_malloc_host(tmp1_host,num)
-         call check_host_alloc_CUDA_f("elpa_mult_at_b: tmp1_host", 243,  successCUDA)
+         call check_host_alloc_CUDA_f("elpa_mult_at_b: tmp1_host", 249,  successCUDA)
 
          call c_f_pointer(tmp1_host,tmp1,(/nblk_mult,l_cols/))
 
          successCUDA = cuda_malloc(tmp1_dev,num)
-         call check_alloc_CUDA_f("elpa_mult_at_b: tmp1_dev", 248,  successCUDA)
+         call check_alloc_CUDA_f("elpa_mult_at_b: tmp1_dev", 254,  successCUDA)
       else ! useGPU
          allocate(aux_mat(l_rows,nblk_mult), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa_mult_at_b: aux_mat", 251,  istat,  errorMessage)
+         call check_allocate_f("elpa_mult_at_b: aux_mat", 257,  istat,  errorMessage)
       endif ! useGPU
 
       allocate(aux_bc(l_rows*nblk), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa_mult_at_b: aux_bc", 255,  istat,  errorMessage)
+      call check_allocate_f("elpa_mult_at_b: aux_bc", 261,  istat,  errorMessage)
 
       allocate(lrs_save(nblk), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa_mult_at_b: lrs_save", 258,  istat,  errorMessage)
+      call check_allocate_f("elpa_mult_at_b: lrs_save", 264,  istat,  errorMessage)
 
       allocate(lre_save(nblk), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa_mult_at_b: lre_save", 261,  istat,  errorMessage)
+      call check_allocate_f("elpa_mult_at_b: lre_save", 267,  istat,  errorMessage)
 
       a_lower = .false.
       a_upper = .false.
@@ -2725,7 +2725,7 @@ contains
                         num = l_rows*nblk_mult*size_of_datatype
                         successCUDA = cuda_memcpy(aux_dev, int(loc(aux_mat),kind=c_intptr_t), &
                            num, cudaMemcpyHostToDevice)
-                        call check_memcpy_CUDA_f("elpa_mult_at_b: aux_mat to aux_dev", 371,  successCUDA)
+                        call check_memcpy_CUDA_f("elpa_mult_at_b: aux_mat to aux_dev", 377,  successCUDA)
 
                         call obj%timer%start("cublas")
 
@@ -2749,7 +2749,7 @@ contains
                         num = nstor*(lce-lcs+1)*size_of_datatype
                         successCUDA = cuda_memcpy(int(loc(tmp1),kind=c_intptr_t), &
                            tmp1_dev, num, cudaMemcpyDeviceToHost)
-                        call check_memcpy_CUDA_f("elpa_mult_at_b: tmp1_dev to tmp1", 395,  successCUDA)
+                        call check_memcpy_CUDA_f("elpa_mult_at_b: tmp1_dev to tmp1", 401,  successCUDA)
                      else ! useGPU
                         call obj%timer%start("blas")
 
@@ -2782,7 +2782,7 @@ contains
                   if (my_prow==np) c(nr_done+1:nr_done+nstor,lcs:lce) = tmp2(1:nstor,lcs:lce)
 
                   deallocate(tmp1,tmp2, stat=istat, errmsg=errorMessage)
-                  call check_deallocate_f("elpa_mult_at_b: tmp1, tmp2", 436,  istat,  errorMessage)
+                  call check_deallocate_f("elpa_mult_at_b: tmp1, tmp2", 442,  istat,  errorMessage)
                endif
 
                nr_done = nr_done+nstor
@@ -2795,39 +2795,39 @@ contains
       if (useGPU) then
          if (multiply_at_a == 0) then ! C = A^T * B
             successCUDA = cuda_free(b_dev)
-            call check_dealloc_CUDA_f("elpa_mult_a_b: b_dev", 449,  successCUDA)
+            call check_dealloc_CUDA_f("elpa_mult_a_b: b_dev", 455,  successCUDA)
 
             successCUDA = cuda_host_unregister(int(loc(b),kind=c_intptr_t))
-            call check_host_unregister_CUDA_f("elpa_mult_a_b: b", 452,  successCUDA)
+            call check_host_unregister_CUDA_f("elpa_mult_a_b: b", 458,  successCUDA)
          else ! C = A^T * A
             successCUDA = cuda_free(a_dev)
-            call check_dealloc_CUDA_f("elpa_mult_a_b: a_dev", 455,  successCUDA)
+            call check_dealloc_CUDA_f("elpa_mult_a_b: a_dev", 461,  successCUDA)
 
             successCUDA = cuda_host_unregister(int(loc(a),kind=c_intptr_t))
-            call check_host_unregister_CUDA_f("elpa_mult_a_b: a", 458,  successCUDA)
+            call check_host_unregister_CUDA_f("elpa_mult_a_b: a", 464,  successCUDA)
          endif
 
          nullify(aux_mat)
          nullify(tmp1)
 
          successCUDA = cuda_free_host(aux_host)
-         call check_host_dealloc_CUDA_f("elpa_mult_a_b: aux_host", 465,  successCUDA)
+         call check_host_dealloc_CUDA_f("elpa_mult_a_b: aux_host", 471,  successCUDA)
 
          successCUDA = cuda_free(aux_dev)
-         call check_dealloc_CUDA_f("elpa_mult_a_b: aux_dev", 468,  successCUDA)
+         call check_dealloc_CUDA_f("elpa_mult_a_b: aux_dev", 474,  successCUDA)
 
          successCUDA = cuda_free_host(tmp1_host)
-         call check_host_dealloc_CUDA_f("elpa_mult_a_b: tmp1_host", 471,  successCUDA)
+         call check_host_dealloc_CUDA_f("elpa_mult_a_b: tmp1_host", 477,  successCUDA)
 
          successCUDA = cuda_free(tmp1_dev)
-         call check_dealloc_CUDA_f("elpa_mult_a_b: tmp1_dev", 474,  successCUDA)
+         call check_dealloc_CUDA_f("elpa_mult_a_b: tmp1_dev", 480,  successCUDA)
       else ! useGPU
          deallocate(aux_mat, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa_mult_at_b: aux_mat", 477,  istat,  errorMessage)
+         call check_deallocate_f("elpa_mult_at_b: aux_mat", 483,  istat,  errorMessage)
       endif ! useGPU
 
       deallocate(aux_bc, lrs_save, lre_save, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa_mult_at_b: aux_bc, lrs_save, lre_save", 481,  istat,  errorMessage)
+      call check_deallocate_f("elpa_mult_at_b: aux_bc, lrs_save, lre_save", 487,  istat,  errorMessage)
 
       call obj%timer%stop("elpa_mult_at_b_&
       &real&
@@ -3068,62 +3068,62 @@ contains
             ! copy b to b_dev
             num = ldb*ldbCols*size_of_datatype
             successCUDA = cuda_malloc(b_dev,num)
-            call check_alloc_CUDA_f("elpa_mult_at_b: b_dev", 206,  successCUDA)
+            call check_alloc_CUDA_f("elpa_mult_at_b: b_dev", 212,  successCUDA)
 
             successCUDA = cuda_host_register(int(loc(b),kind=c_intptr_t),num,&
                cudaHostRegisterDefault)
 
-            call check_host_register_CUDA_f("elpa_mult_at_b: b", 211,  successCUDA)
+            call check_host_register_CUDA_f("elpa_mult_at_b: b", 217,  successCUDA)
 
             successCUDA = cuda_memcpy(b_dev,int(loc(b),kind=c_intptr_t),num,&
                cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("elpa_mult_at_b: b to b_dev", 215,  successCUDA)
+            call check_memcpy_CUDA_f("elpa_mult_at_b: b to b_dev", 221,  successCUDA)
          else ! C = A^T * A
             ! copy a to a_dev
             num = matrixRows*matrixCols*size_of_datatype
             successCUDA = cuda_malloc(a_dev,num)
-            call check_alloc_CUDA_f("elpa_mult_at_a: a_dev", 220,  successCUDA)
+            call check_alloc_CUDA_f("elpa_mult_at_a: a_dev", 226,  successCUDA)
 
             successCUDA = cuda_host_register(int(loc(a),kind=c_intptr_t),num,&
                cudaHostRegisterDefault)
 
-            call check_host_register_CUDA_f("elpa_mult_at_a: a", 225,  successCUDA)
+            call check_host_register_CUDA_f("elpa_mult_at_a: a", 231,  successCUDA)
 
             successCUDA = cuda_memcpy(a_dev,int(loc(a),kind=c_intptr_t),num,&
                cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("elpa_mult_at_a: a to a_dev", 229,  successCUDA)
+            call check_memcpy_CUDA_f("elpa_mult_at_a: a to a_dev", 235,  successCUDA)
          endif
 
          num = l_rows*nblk_mult*size_of_datatype
          successCUDA = cuda_malloc_host(aux_host,num)
-         call check_host_alloc_CUDA_f("elpa_mult_at_b: aux_host", 234,  successCUDA)
+         call check_host_alloc_CUDA_f("elpa_mult_at_b: aux_host", 240,  successCUDA)
 
          call c_f_pointer(aux_host,aux_mat,(/l_rows,nblk_mult/))
 
          successCUDA = cuda_malloc(aux_dev,num)
-         call check_alloc_CUDA_f("elpa_mult_at_b: aux_dev", 239,  successCUDA)
+         call check_alloc_CUDA_f("elpa_mult_at_b: aux_dev", 245,  successCUDA)
 
          num = nblk_mult*l_cols*size_of_datatype
          successCUDA = cuda_malloc_host(tmp1_host,num)
-         call check_host_alloc_CUDA_f("elpa_mult_at_b: tmp1_host", 243,  successCUDA)
+         call check_host_alloc_CUDA_f("elpa_mult_at_b: tmp1_host", 249,  successCUDA)
 
          call c_f_pointer(tmp1_host,tmp1,(/nblk_mult,l_cols/))
 
          successCUDA = cuda_malloc(tmp1_dev,num)
-         call check_alloc_CUDA_f("elpa_mult_at_b: tmp1_dev", 248,  successCUDA)
+         call check_alloc_CUDA_f("elpa_mult_at_b: tmp1_dev", 254,  successCUDA)
       else ! useGPU
          allocate(aux_mat(l_rows,nblk_mult), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa_mult_at_b: aux_mat", 251,  istat,  errorMessage)
+         call check_allocate_f("elpa_mult_at_b: aux_mat", 257,  istat,  errorMessage)
       endif ! useGPU
 
       allocate(aux_bc(l_rows*nblk), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa_mult_at_b: aux_bc", 255,  istat,  errorMessage)
+      call check_allocate_f("elpa_mult_at_b: aux_bc", 261,  istat,  errorMessage)
 
       allocate(lrs_save(nblk), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa_mult_at_b: lrs_save", 258,  istat,  errorMessage)
+      call check_allocate_f("elpa_mult_at_b: lrs_save", 264,  istat,  errorMessage)
 
       allocate(lre_save(nblk), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa_mult_at_b: lre_save", 261,  istat,  errorMessage)
+      call check_allocate_f("elpa_mult_at_b: lre_save", 267,  istat,  errorMessage)
 
       a_lower = .false.
       a_upper = .false.
@@ -3231,7 +3231,7 @@ contains
                         num = l_rows*nblk_mult*size_of_datatype
                         successCUDA = cuda_memcpy(aux_dev, int(loc(aux_mat),kind=c_intptr_t), &
                            num, cudaMemcpyHostToDevice)
-                        call check_memcpy_CUDA_f("elpa_mult_at_b: aux_mat to aux_dev", 371,  successCUDA)
+                        call check_memcpy_CUDA_f("elpa_mult_at_b: aux_mat to aux_dev", 377,  successCUDA)
 
                         call obj%timer%start("cublas")
 
@@ -3255,7 +3255,7 @@ contains
                         num = nstor*(lce-lcs+1)*size_of_datatype
                         successCUDA = cuda_memcpy(int(loc(tmp1),kind=c_intptr_t), &
                            tmp1_dev, num, cudaMemcpyDeviceToHost)
-                        call check_memcpy_CUDA_f("elpa_mult_at_b: tmp1_dev to tmp1", 395,  successCUDA)
+                        call check_memcpy_CUDA_f("elpa_mult_at_b: tmp1_dev to tmp1", 401,  successCUDA)
                      else ! useGPU
                         call obj%timer%start("blas")
 
@@ -3288,7 +3288,7 @@ contains
                   if (my_prow==np) c(nr_done+1:nr_done+nstor,lcs:lce) = tmp2(1:nstor,lcs:lce)
 
                   deallocate(tmp1,tmp2, stat=istat, errmsg=errorMessage)
-                  call check_deallocate_f("elpa_mult_at_b: tmp1, tmp2", 436,  istat,  errorMessage)
+                  call check_deallocate_f("elpa_mult_at_b: tmp1, tmp2", 442,  istat,  errorMessage)
                endif
 
                nr_done = nr_done+nstor
@@ -3301,39 +3301,39 @@ contains
       if (useGPU) then
          if (multiply_at_a == 0) then ! C = A^T * B
             successCUDA = cuda_free(b_dev)
-            call check_dealloc_CUDA_f("elpa_mult_a_b: b_dev", 449,  successCUDA)
+            call check_dealloc_CUDA_f("elpa_mult_a_b: b_dev", 455,  successCUDA)
 
             successCUDA = cuda_host_unregister(int(loc(b),kind=c_intptr_t))
-            call check_host_unregister_CUDA_f("elpa_mult_a_b: b", 452,  successCUDA)
+            call check_host_unregister_CUDA_f("elpa_mult_a_b: b", 458,  successCUDA)
          else ! C = A^T * A
             successCUDA = cuda_free(a_dev)
-            call check_dealloc_CUDA_f("elpa_mult_a_b: a_dev", 455,  successCUDA)
+            call check_dealloc_CUDA_f("elpa_mult_a_b: a_dev", 461,  successCUDA)
 
             successCUDA = cuda_host_unregister(int(loc(a),kind=c_intptr_t))
-            call check_host_unregister_CUDA_f("elpa_mult_a_b: a", 458,  successCUDA)
+            call check_host_unregister_CUDA_f("elpa_mult_a_b: a", 464,  successCUDA)
          endif
 
          nullify(aux_mat)
          nullify(tmp1)
 
          successCUDA = cuda_free_host(aux_host)
-         call check_host_dealloc_CUDA_f("elpa_mult_a_b: aux_host", 465,  successCUDA)
+         call check_host_dealloc_CUDA_f("elpa_mult_a_b: aux_host", 471,  successCUDA)
 
          successCUDA = cuda_free(aux_dev)
-         call check_dealloc_CUDA_f("elpa_mult_a_b: aux_dev", 468,  successCUDA)
+         call check_dealloc_CUDA_f("elpa_mult_a_b: aux_dev", 474,  successCUDA)
 
          successCUDA = cuda_free_host(tmp1_host)
-         call check_host_dealloc_CUDA_f("elpa_mult_a_b: tmp1_host", 471,  successCUDA)
+         call check_host_dealloc_CUDA_f("elpa_mult_a_b: tmp1_host", 477,  successCUDA)
 
          successCUDA = cuda_free(tmp1_dev)
-         call check_dealloc_CUDA_f("elpa_mult_a_b: tmp1_dev", 474,  successCUDA)
+         call check_dealloc_CUDA_f("elpa_mult_a_b: tmp1_dev", 480,  successCUDA)
       else ! useGPU
          deallocate(aux_mat, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa_mult_at_b: aux_mat", 477,  istat,  errorMessage)
+         call check_deallocate_f("elpa_mult_at_b: aux_mat", 483,  istat,  errorMessage)
       endif ! useGPU
 
       deallocate(aux_bc, lrs_save, lre_save, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa_mult_at_b: aux_bc, lrs_save, lre_save", 481,  istat,  errorMessage)
+      call check_deallocate_f("elpa_mult_at_b: aux_bc, lrs_save, lre_save", 487,  istat,  errorMessage)
 
       call obj%timer%stop("elpa_mult_at_b_&
       &real&
@@ -3576,62 +3576,62 @@ contains
             ! copy b to b_dev
             num = ldb*ldbCols*size_of_datatype
             successCUDA = cuda_malloc(b_dev,num)
-            call check_alloc_CUDA_f("elpa_mult_at_b: b_dev", 206,  successCUDA)
+            call check_alloc_CUDA_f("elpa_mult_at_b: b_dev", 212,  successCUDA)
 
             successCUDA = cuda_host_register(int(loc(b),kind=c_intptr_t),num,&
                cudaHostRegisterDefault)
 
-            call check_host_register_CUDA_f("elpa_mult_at_b: b", 211,  successCUDA)
+            call check_host_register_CUDA_f("elpa_mult_at_b: b", 217,  successCUDA)
 
             successCUDA = cuda_memcpy(b_dev,int(loc(b),kind=c_intptr_t),num,&
                cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("elpa_mult_at_b: b to b_dev", 215,  successCUDA)
+            call check_memcpy_CUDA_f("elpa_mult_at_b: b to b_dev", 221,  successCUDA)
          else ! C = A^T * A
             ! copy a to a_dev
             num = matrixRows*matrixCols*size_of_datatype
             successCUDA = cuda_malloc(a_dev,num)
-            call check_alloc_CUDA_f("elpa_mult_at_a: a_dev", 220,  successCUDA)
+            call check_alloc_CUDA_f("elpa_mult_at_a: a_dev", 226,  successCUDA)
 
             successCUDA = cuda_host_register(int(loc(a),kind=c_intptr_t),num,&
                cudaHostRegisterDefault)
 
-            call check_host_register_CUDA_f("elpa_mult_at_a: a", 225,  successCUDA)
+            call check_host_register_CUDA_f("elpa_mult_at_a: a", 231,  successCUDA)
 
             successCUDA = cuda_memcpy(a_dev,int(loc(a),kind=c_intptr_t),num,&
                cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("elpa_mult_at_a: a to a_dev", 229,  successCUDA)
+            call check_memcpy_CUDA_f("elpa_mult_at_a: a to a_dev", 235,  successCUDA)
          endif
 
          num = l_rows*nblk_mult*size_of_datatype
          successCUDA = cuda_malloc_host(aux_host,num)
-         call check_host_alloc_CUDA_f("elpa_mult_at_b: aux_host", 234,  successCUDA)
+         call check_host_alloc_CUDA_f("elpa_mult_at_b: aux_host", 240,  successCUDA)
 
          call c_f_pointer(aux_host,aux_mat,(/l_rows,nblk_mult/))
 
          successCUDA = cuda_malloc(aux_dev,num)
-         call check_alloc_CUDA_f("elpa_mult_at_b: aux_dev", 239,  successCUDA)
+         call check_alloc_CUDA_f("elpa_mult_at_b: aux_dev", 245,  successCUDA)
 
          num = nblk_mult*l_cols*size_of_datatype
          successCUDA = cuda_malloc_host(tmp1_host,num)
-         call check_host_alloc_CUDA_f("elpa_mult_at_b: tmp1_host", 243,  successCUDA)
+         call check_host_alloc_CUDA_f("elpa_mult_at_b: tmp1_host", 249,  successCUDA)
 
          call c_f_pointer(tmp1_host,tmp1,(/nblk_mult,l_cols/))
 
          successCUDA = cuda_malloc(tmp1_dev,num)
-         call check_alloc_CUDA_f("elpa_mult_at_b: tmp1_dev", 248,  successCUDA)
+         call check_alloc_CUDA_f("elpa_mult_at_b: tmp1_dev", 254,  successCUDA)
       else ! useGPU
          allocate(aux_mat(l_rows,nblk_mult), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa_mult_at_b: aux_mat", 251,  istat,  errorMessage)
+         call check_allocate_f("elpa_mult_at_b: aux_mat", 257,  istat,  errorMessage)
       endif ! useGPU
 
       allocate(aux_bc(l_rows*nblk), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa_mult_at_b: aux_bc", 255,  istat,  errorMessage)
+      call check_allocate_f("elpa_mult_at_b: aux_bc", 261,  istat,  errorMessage)
 
       allocate(lrs_save(nblk), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa_mult_at_b: lrs_save", 258,  istat,  errorMessage)
+      call check_allocate_f("elpa_mult_at_b: lrs_save", 264,  istat,  errorMessage)
 
       allocate(lre_save(nblk), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa_mult_at_b: lre_save", 261,  istat,  errorMessage)
+      call check_allocate_f("elpa_mult_at_b: lre_save", 267,  istat,  errorMessage)
 
       a_lower = .false.
       a_upper = .false.
@@ -3739,7 +3739,7 @@ contains
                         num = l_rows*nblk_mult*size_of_datatype
                         successCUDA = cuda_memcpy(aux_dev, int(loc(aux_mat),kind=c_intptr_t), &
                            num, cudaMemcpyHostToDevice)
-                        call check_memcpy_CUDA_f("elpa_mult_at_b: aux_mat to aux_dev", 371,  successCUDA)
+                        call check_memcpy_CUDA_f("elpa_mult_at_b: aux_mat to aux_dev", 377,  successCUDA)
 
                         call obj%timer%start("cublas")
 
@@ -3763,7 +3763,7 @@ contains
                         num = nstor*(lce-lcs+1)*size_of_datatype
                         successCUDA = cuda_memcpy(int(loc(tmp1),kind=c_intptr_t), &
                            tmp1_dev, num, cudaMemcpyDeviceToHost)
-                        call check_memcpy_CUDA_f("elpa_mult_at_b: tmp1_dev to tmp1", 395,  successCUDA)
+                        call check_memcpy_CUDA_f("elpa_mult_at_b: tmp1_dev to tmp1", 401,  successCUDA)
                      else ! useGPU
                         call obj%timer%start("blas")
 
@@ -3796,7 +3796,7 @@ contains
                   if (my_prow==np) c(nr_done+1:nr_done+nstor,lcs:lce) = tmp2(1:nstor,lcs:lce)
 
                   deallocate(tmp1,tmp2, stat=istat, errmsg=errorMessage)
-                  call check_deallocate_f("elpa_mult_at_b: tmp1, tmp2", 436,  istat,  errorMessage)
+                  call check_deallocate_f("elpa_mult_at_b: tmp1, tmp2", 442,  istat,  errorMessage)
                endif
 
                nr_done = nr_done+nstor
@@ -3809,39 +3809,39 @@ contains
       if (useGPU) then
          if (multiply_at_a == 0) then ! C = A^T * B
             successCUDA = cuda_free(b_dev)
-            call check_dealloc_CUDA_f("elpa_mult_a_b: b_dev", 449,  successCUDA)
+            call check_dealloc_CUDA_f("elpa_mult_a_b: b_dev", 455,  successCUDA)
 
             successCUDA = cuda_host_unregister(int(loc(b),kind=c_intptr_t))
-            call check_host_unregister_CUDA_f("elpa_mult_a_b: b", 452,  successCUDA)
+            call check_host_unregister_CUDA_f("elpa_mult_a_b: b", 458,  successCUDA)
          else ! C = A^T * A
             successCUDA = cuda_free(a_dev)
-            call check_dealloc_CUDA_f("elpa_mult_a_b: a_dev", 455,  successCUDA)
+            call check_dealloc_CUDA_f("elpa_mult_a_b: a_dev", 461,  successCUDA)
 
             successCUDA = cuda_host_unregister(int(loc(a),kind=c_intptr_t))
-            call check_host_unregister_CUDA_f("elpa_mult_a_b: a", 458,  successCUDA)
+            call check_host_unregister_CUDA_f("elpa_mult_a_b: a", 464,  successCUDA)
          endif
 
          nullify(aux_mat)
          nullify(tmp1)
 
          successCUDA = cuda_free_host(aux_host)
-         call check_host_dealloc_CUDA_f("elpa_mult_a_b: aux_host", 465,  successCUDA)
+         call check_host_dealloc_CUDA_f("elpa_mult_a_b: aux_host", 471,  successCUDA)
 
          successCUDA = cuda_free(aux_dev)
-         call check_dealloc_CUDA_f("elpa_mult_a_b: aux_dev", 468,  successCUDA)
+         call check_dealloc_CUDA_f("elpa_mult_a_b: aux_dev", 474,  successCUDA)
 
          successCUDA = cuda_free_host(tmp1_host)
-         call check_host_dealloc_CUDA_f("elpa_mult_a_b: tmp1_host", 471,  successCUDA)
+         call check_host_dealloc_CUDA_f("elpa_mult_a_b: tmp1_host", 477,  successCUDA)
 
          successCUDA = cuda_free(tmp1_dev)
-         call check_dealloc_CUDA_f("elpa_mult_a_b: tmp1_dev", 474,  successCUDA)
+         call check_dealloc_CUDA_f("elpa_mult_a_b: tmp1_dev", 480,  successCUDA)
       else ! useGPU
          deallocate(aux_mat, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa_mult_at_b: aux_mat", 477,  istat,  errorMessage)
+         call check_deallocate_f("elpa_mult_at_b: aux_mat", 483,  istat,  errorMessage)
       endif ! useGPU
 
       deallocate(aux_bc, lrs_save, lre_save, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa_mult_at_b: aux_bc, lrs_save, lre_save", 481,  istat,  errorMessage)
+      call check_deallocate_f("elpa_mult_at_b: aux_bc, lrs_save, lre_save", 487,  istat,  errorMessage)
 
       call obj%timer%stop("elpa_mult_at_b_&
       &complex&
@@ -4085,62 +4085,62 @@ contains
             ! copy b to b_dev
             num = ldb*ldbCols*size_of_datatype
             successCUDA = cuda_malloc(b_dev,num)
-            call check_alloc_CUDA_f("elpa_mult_at_b: b_dev", 206,  successCUDA)
+            call check_alloc_CUDA_f("elpa_mult_at_b: b_dev", 212,  successCUDA)
 
             successCUDA = cuda_host_register(int(loc(b),kind=c_intptr_t),num,&
                cudaHostRegisterDefault)
 
-            call check_host_register_CUDA_f("elpa_mult_at_b: b", 211,  successCUDA)
+            call check_host_register_CUDA_f("elpa_mult_at_b: b", 217,  successCUDA)
 
             successCUDA = cuda_memcpy(b_dev,int(loc(b),kind=c_intptr_t),num,&
                cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("elpa_mult_at_b: b to b_dev", 215,  successCUDA)
+            call check_memcpy_CUDA_f("elpa_mult_at_b: b to b_dev", 221,  successCUDA)
          else ! C = A^T * A
             ! copy a to a_dev
             num = matrixRows*matrixCols*size_of_datatype
             successCUDA = cuda_malloc(a_dev,num)
-            call check_alloc_CUDA_f("elpa_mult_at_a: a_dev", 220,  successCUDA)
+            call check_alloc_CUDA_f("elpa_mult_at_a: a_dev", 226,  successCUDA)
 
             successCUDA = cuda_host_register(int(loc(a),kind=c_intptr_t),num,&
                cudaHostRegisterDefault)
 
-            call check_host_register_CUDA_f("elpa_mult_at_a: a", 225,  successCUDA)
+            call check_host_register_CUDA_f("elpa_mult_at_a: a", 231,  successCUDA)
 
             successCUDA = cuda_memcpy(a_dev,int(loc(a),kind=c_intptr_t),num,&
                cudaMemcpyHostToDevice)
-            call check_memcpy_CUDA_f("elpa_mult_at_a: a to a_dev", 229,  successCUDA)
+            call check_memcpy_CUDA_f("elpa_mult_at_a: a to a_dev", 235,  successCUDA)
          endif
 
          num = l_rows*nblk_mult*size_of_datatype
          successCUDA = cuda_malloc_host(aux_host,num)
-         call check_host_alloc_CUDA_f("elpa_mult_at_b: aux_host", 234,  successCUDA)
+         call check_host_alloc_CUDA_f("elpa_mult_at_b: aux_host", 240,  successCUDA)
 
          call c_f_pointer(aux_host,aux_mat,(/l_rows,nblk_mult/))
 
          successCUDA = cuda_malloc(aux_dev,num)
-         call check_alloc_CUDA_f("elpa_mult_at_b: aux_dev", 239,  successCUDA)
+         call check_alloc_CUDA_f("elpa_mult_at_b: aux_dev", 245,  successCUDA)
 
          num = nblk_mult*l_cols*size_of_datatype
          successCUDA = cuda_malloc_host(tmp1_host,num)
-         call check_host_alloc_CUDA_f("elpa_mult_at_b: tmp1_host", 243,  successCUDA)
+         call check_host_alloc_CUDA_f("elpa_mult_at_b: tmp1_host", 249,  successCUDA)
 
          call c_f_pointer(tmp1_host,tmp1,(/nblk_mult,l_cols/))
 
          successCUDA = cuda_malloc(tmp1_dev,num)
-         call check_alloc_CUDA_f("elpa_mult_at_b: tmp1_dev", 248,  successCUDA)
+         call check_alloc_CUDA_f("elpa_mult_at_b: tmp1_dev", 254,  successCUDA)
       else ! useGPU
          allocate(aux_mat(l_rows,nblk_mult), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa_mult_at_b: aux_mat", 251,  istat,  errorMessage)
+         call check_allocate_f("elpa_mult_at_b: aux_mat", 257,  istat,  errorMessage)
       endif ! useGPU
 
       allocate(aux_bc(l_rows*nblk), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa_mult_at_b: aux_bc", 255,  istat,  errorMessage)
+      call check_allocate_f("elpa_mult_at_b: aux_bc", 261,  istat,  errorMessage)
 
       allocate(lrs_save(nblk), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa_mult_at_b: lrs_save", 258,  istat,  errorMessage)
+      call check_allocate_f("elpa_mult_at_b: lrs_save", 264,  istat,  errorMessage)
 
       allocate(lre_save(nblk), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa_mult_at_b: lre_save", 261,  istat,  errorMessage)
+      call check_allocate_f("elpa_mult_at_b: lre_save", 267,  istat,  errorMessage)
 
       a_lower = .false.
       a_upper = .false.
@@ -4248,7 +4248,7 @@ contains
                         num = l_rows*nblk_mult*size_of_datatype
                         successCUDA = cuda_memcpy(aux_dev, int(loc(aux_mat),kind=c_intptr_t), &
                            num, cudaMemcpyHostToDevice)
-                        call check_memcpy_CUDA_f("elpa_mult_at_b: aux_mat to aux_dev", 371,  successCUDA)
+                        call check_memcpy_CUDA_f("elpa_mult_at_b: aux_mat to aux_dev", 377,  successCUDA)
 
                         call obj%timer%start("cublas")
 
@@ -4272,7 +4272,7 @@ contains
                         num = nstor*(lce-lcs+1)*size_of_datatype
                         successCUDA = cuda_memcpy(int(loc(tmp1),kind=c_intptr_t), &
                            tmp1_dev, num, cudaMemcpyDeviceToHost)
-                        call check_memcpy_CUDA_f("elpa_mult_at_b: tmp1_dev to tmp1", 395,  successCUDA)
+                        call check_memcpy_CUDA_f("elpa_mult_at_b: tmp1_dev to tmp1", 401,  successCUDA)
                      else ! useGPU
                         call obj%timer%start("blas")
 
@@ -4305,7 +4305,7 @@ contains
                   if (my_prow==np) c(nr_done+1:nr_done+nstor,lcs:lce) = tmp2(1:nstor,lcs:lce)
 
                   deallocate(tmp1,tmp2, stat=istat, errmsg=errorMessage)
-                  call check_deallocate_f("elpa_mult_at_b: tmp1, tmp2", 436,  istat,  errorMessage)
+                  call check_deallocate_f("elpa_mult_at_b: tmp1, tmp2", 442,  istat,  errorMessage)
                endif
 
                nr_done = nr_done+nstor
@@ -4318,39 +4318,39 @@ contains
       if (useGPU) then
          if (multiply_at_a == 0) then ! C = A^T * B
             successCUDA = cuda_free(b_dev)
-            call check_dealloc_CUDA_f("elpa_mult_a_b: b_dev", 449,  successCUDA)
+            call check_dealloc_CUDA_f("elpa_mult_a_b: b_dev", 455,  successCUDA)
 
             successCUDA = cuda_host_unregister(int(loc(b),kind=c_intptr_t))
-            call check_host_unregister_CUDA_f("elpa_mult_a_b: b", 452,  successCUDA)
+            call check_host_unregister_CUDA_f("elpa_mult_a_b: b", 458,  successCUDA)
          else ! C = A^T * A
             successCUDA = cuda_free(a_dev)
-            call check_dealloc_CUDA_f("elpa_mult_a_b: a_dev", 455,  successCUDA)
+            call check_dealloc_CUDA_f("elpa_mult_a_b: a_dev", 461,  successCUDA)
 
             successCUDA = cuda_host_unregister(int(loc(a),kind=c_intptr_t))
-            call check_host_unregister_CUDA_f("elpa_mult_a_b: a", 458,  successCUDA)
+            call check_host_unregister_CUDA_f("elpa_mult_a_b: a", 464,  successCUDA)
          endif
 
          nullify(aux_mat)
          nullify(tmp1)
 
          successCUDA = cuda_free_host(aux_host)
-         call check_host_dealloc_CUDA_f("elpa_mult_a_b: aux_host", 465,  successCUDA)
+         call check_host_dealloc_CUDA_f("elpa_mult_a_b: aux_host", 471,  successCUDA)
 
          successCUDA = cuda_free(aux_dev)
-         call check_dealloc_CUDA_f("elpa_mult_a_b: aux_dev", 468,  successCUDA)
+         call check_dealloc_CUDA_f("elpa_mult_a_b: aux_dev", 474,  successCUDA)
 
          successCUDA = cuda_free_host(tmp1_host)
-         call check_host_dealloc_CUDA_f("elpa_mult_a_b: tmp1_host", 471,  successCUDA)
+         call check_host_dealloc_CUDA_f("elpa_mult_a_b: tmp1_host", 477,  successCUDA)
 
          successCUDA = cuda_free(tmp1_dev)
-         call check_dealloc_CUDA_f("elpa_mult_a_b: tmp1_dev", 474,  successCUDA)
+         call check_dealloc_CUDA_f("elpa_mult_a_b: tmp1_dev", 480,  successCUDA)
       else ! useGPU
          deallocate(aux_mat, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa_mult_at_b: aux_mat", 477,  istat,  errorMessage)
+         call check_deallocate_f("elpa_mult_at_b: aux_mat", 483,  istat,  errorMessage)
       endif ! useGPU
 
       deallocate(aux_bc, lrs_save, lre_save, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa_mult_at_b: aux_bc, lrs_save, lre_save", 481,  istat,  errorMessage)
+      call check_deallocate_f("elpa_mult_at_b: aux_bc, lrs_save, lre_save", 487,  istat,  errorMessage)
 
       call obj%timer%stop("elpa_mult_at_b_&
       &complex&

@@ -253,6 +253,42 @@ module elpa_generated_fortran_interfaces
       end function
    end interface
    interface
+      function elpa_index_get_float_value_c(index, name, success) result(value) bind(C, name="elpa_index_get_float_value")
+         import c_ptr, c_int, c_float, c_char
+         type(c_ptr), value                              :: index
+         character(kind=c_char), intent(in)              :: name(*)
+         integer(kind=c_int), intent(out)                :: success
+         real(kind=c_float)                             :: value
+      end function
+   end interface
+   interface
+      function elpa_index_set_float_value_c(index, name, value) result(success) &
+         bind(C, name="elpa_index_set_float_value")
+         import c_ptr, c_int, c_float, c_char
+         type(c_ptr), value                    :: index
+         character(kind=c_char), intent(in)    :: name(*)
+         real(kind=c_float),intent(in), value :: value
+         integer(kind=c_int)                   :: success
+      end function
+   end interface
+   interface
+      function elpa_index_float_value_is_set_c(index, name) result(success) &
+         bind(C, name="elpa_index_float_value_is_set")
+         import c_ptr, c_int, c_char
+         type(c_ptr), value                    :: index
+         character(kind=c_char), intent(in)    :: name(*)
+         integer(kind=c_int)                   :: success
+      end function
+   end interface
+   interface
+      function elpa_index_get_float_loc_c(index, name) result(loc) bind(C, name="elpa_index_get_float_loc")
+         import c_ptr, c_char
+         type(c_ptr), value                 :: index
+         character(kind=c_char), intent(in) :: name(*)
+         type(c_ptr)                        :: loc
+      end function
+   end interface
+   interface
       function elpa_index_get_double_value_c(index, name, success) result(value) bind(C, name="elpa_index_get_double_value")
          import c_ptr, c_int, c_double, c_char
          type(c_ptr), value                              :: index
