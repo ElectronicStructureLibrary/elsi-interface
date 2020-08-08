@@ -19,7 +19,6 @@ void test_dm_cmplx_den_c(MPI_Comm comm,
    int n_prow;
    int n_pcol;
    int myid;
-   int mpierr;
    int blacs_ctxt;
    int blk;
    int l_row;
@@ -29,11 +28,7 @@ void test_dm_cmplx_den_c(MPI_Comm comm,
    int n_states;
    int format;
    int parallel;
-   int int_one;
-   int int_zero;
-   int success;
    int tmp;
-   int i;
 
    double n_electrons;
    double _Complex *h;
@@ -62,8 +57,6 @@ void test_dm_cmplx_den_c(MPI_Comm comm,
    blk = 16;
    format = 0; // BLACS_DENSE
    parallel = 1; // MULTI_PROC
-   int_one = 1;
-   int_zero = 0;
    e_ref = e_elpa;
    e_tol = 0.00000001;
 

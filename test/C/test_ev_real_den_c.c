@@ -19,7 +19,6 @@ void test_ev_real_den_c(MPI_Comm comm,
    int n_prow;
    int n_pcol;
    int myid;
-   int mpierr;
    int blacs_ctxt;
    int blk;
    int l_row;
@@ -29,9 +28,6 @@ void test_ev_real_den_c(MPI_Comm comm,
    int n_states;
    int format;
    int parallel;
-   int int_one;
-   int int_zero;
-   int success;
    int tmp;
    int i;
 
@@ -60,8 +56,6 @@ void test_ev_real_den_c(MPI_Comm comm,
    // Parameters
    blk = 16;
    format = 0; // BLACS_DENSE
-   int_one = 1;
-   int_zero = 0;
 
    tmp = (int) round(sqrt((double) n_proc));
    for (n_pcol=tmp; n_pcol>1; n_pcol--) {

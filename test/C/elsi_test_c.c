@@ -16,7 +16,6 @@ void test_ev_cmplx_den_c(MPI_Comm comm, int solver, char *h_file, char *s_file);
 int main(int argc, char** argv) {
 
    int myid;
-   int mpierr;
    int solver;
 
    MPI_Comm comm;
