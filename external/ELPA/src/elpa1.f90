@@ -205,7 +205,7 @@ contains
       integer(kind=ik)                                :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, i, error, matrixRows
-      real(kind=c_double)                                               :: thres_pd
+      real(kind=c_double)                      :: thres_pd
 
       logical                                         :: do_tridiag, do_solve, do_trans_ev
       integer(kind=ik)                                :: nrThreads
@@ -324,7 +324,6 @@ contains
       wantDebug = debug == 1
       do_useGPU = .false.
 
-
       if (useGPU) then
          call obj%timer%start("check_for_gpu")
 
@@ -381,12 +380,12 @@ contains
          q_actual => q(1:matrixRows,1:matrixCols)
       else
          allocate(q_dummy(1:matrixRows,1:matrixCols), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa1_template: q_dummy", 386,  istat,  errorMessage)
+         call check_allocate_f("elpa1_template: q_dummy", 387,  istat,  errorMessage)
          q_actual => q_dummy
       endif
 
       allocate(e(na), tau(na), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa1_template: e, tau", 404,  istat,  errorMessage)
+      call check_allocate_f("elpa1_template: e, tau", 401,  istat,  errorMessage)
 
       ! start the computations
       ! as default do all three steps (this might change at some point)
@@ -428,9 +427,13 @@ contains
             stop
          endif
          if (check_pd .eq. 1) then
-            call obj%get("thres_pd",thres_pd,error)
+            call obj%get("thres_pd_&
+            &double&
+            &",thres_pd,error)
             if (error .ne. ELPA_OK) then
-               print *,"Problem getting option for thres_pd. Aborting..."
+               print *,"Problem getting option for thres_pd_&
+               &double&
+               &. Aborting..."
                stop
             endif
 
@@ -498,11 +501,11 @@ contains
       endif ! do_trans_ev
 
       deallocate(e, tau, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa1_template: e, tau", 558,  istat,  errorMessage)
+      call check_deallocate_f("elpa1_template: e, tau", 565,  istat,  errorMessage)
 
       if (obj%eigenvalues_only) then
          deallocate(q_dummy, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa1_template: q_dummy", 562,  istat,  errorMessage)
+         call check_deallocate_f("elpa1_template: q_dummy", 569,  istat,  errorMessage)
       endif
 
       ! restore original OpenMP settings
@@ -596,7 +599,7 @@ contains
       integer(kind=ik)                                :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, i, error, matrixRows
-      real(kind=c_double)                                               :: thres_pd
+      real(kind=c_float)                      :: thres_pd
 
       logical                                         :: do_tridiag, do_solve, do_trans_ev
       integer(kind=ik)                                :: nrThreads
@@ -715,7 +718,6 @@ contains
       wantDebug = debug == 1
       do_useGPU = .false.
 
-
       if (useGPU) then
          call obj%timer%start("check_for_gpu")
 
@@ -772,12 +774,12 @@ contains
          q_actual => q(1:matrixRows,1:matrixCols)
       else
          allocate(q_dummy(1:matrixRows,1:matrixCols), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa1_template: q_dummy", 386,  istat,  errorMessage)
+         call check_allocate_f("elpa1_template: q_dummy", 387,  istat,  errorMessage)
          q_actual => q_dummy
       endif
 
       allocate(e(na), tau(na), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa1_template: e, tau", 404,  istat,  errorMessage)
+      call check_allocate_f("elpa1_template: e, tau", 401,  istat,  errorMessage)
 
       ! start the computations
       ! as default do all three steps (this might change at some point)
@@ -819,9 +821,13 @@ contains
             stop
          endif
          if (check_pd .eq. 1) then
-            call obj%get("thres_pd",thres_pd,error)
+            call obj%get("thres_pd_&
+            &single&
+            &",thres_pd,error)
             if (error .ne. ELPA_OK) then
-               print *,"Problem getting option for thres_pd. Aborting..."
+               print *,"Problem getting option for thres_pd_&
+               &single&
+               &. Aborting..."
                stop
             endif
 
@@ -889,11 +895,11 @@ contains
       endif ! do_trans_ev
 
       deallocate(e, tau, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa1_template: e, tau", 558,  istat,  errorMessage)
+      call check_deallocate_f("elpa1_template: e, tau", 565,  istat,  errorMessage)
 
       if (obj%eigenvalues_only) then
          deallocate(q_dummy, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa1_template: q_dummy", 562,  istat,  errorMessage)
+         call check_deallocate_f("elpa1_template: q_dummy", 569,  istat,  errorMessage)
       endif
 
       ! restore original OpenMP settings
@@ -989,7 +995,7 @@ contains
       integer(kind=ik)                                :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, i, error, matrixRows
-      real(kind=c_double)                                               :: thres_pd
+      real(kind=c_double)                      :: thres_pd
 
       logical                                         :: do_tridiag, do_solve, do_trans_ev
       integer(kind=ik)                                :: nrThreads
@@ -1108,7 +1114,6 @@ contains
       wantDebug = debug == 1
       do_useGPU = .false.
 
-
       if (useGPU) then
          call obj%timer%start("check_for_gpu")
 
@@ -1165,7 +1170,7 @@ contains
          q_actual => q(1:matrixRows,1:matrixCols)
       else
          allocate(q_dummy(1:matrixRows,1:matrixCols), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa1_template: q_dummy", 386,  istat,  errorMessage)
+         call check_allocate_f("elpa1_template: q_dummy", 387,  istat,  errorMessage)
          q_actual => q_dummy
       endif
 
@@ -1175,9 +1180,9 @@ contains
       l_cols_nev = local_index(nev, my_pcol, np_cols, nblk, -1) ! Local columns corresponding to nev
 
       allocate(q_real(l_rows,l_cols), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa1_template: q_real", 401,  istat,  errorMessage)
+      call check_allocate_f("elpa1_template: q_real", 398,  istat,  errorMessage)
       allocate(e(na), tau(na), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa1_template: e, tau", 404,  istat,  errorMessage)
+      call check_allocate_f("elpa1_template: e, tau", 401,  istat,  errorMessage)
 
       ! start the computations
       ! as default do all three steps (this might change at some point)
@@ -1219,9 +1224,13 @@ contains
             stop
          endif
          if (check_pd .eq. 1) then
-            call obj%get("thres_pd",thres_pd,error)
+            call obj%get("thres_pd_&
+            &double&
+            &",thres_pd,error)
             if (error .ne. ELPA_OK) then
-               print *,"Problem getting option for thres_pd. Aborting..."
+               print *,"Problem getting option for thres_pd_&
+               &double&
+               &. Aborting..."
                stop
             endif
 
@@ -1290,14 +1299,14 @@ contains
       endif ! do_trans_ev
 
       deallocate(q_real, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa1_template: q_real", 554,  istat,  errorMessage)
+      call check_deallocate_f("elpa1_template: q_real", 561,  istat,  errorMessage)
 
       deallocate(e, tau, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa1_template: e, tau", 558,  istat,  errorMessage)
+      call check_deallocate_f("elpa1_template: e, tau", 565,  istat,  errorMessage)
 
       if (obj%eigenvalues_only) then
          deallocate(q_dummy, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa1_template: q_dummy", 562,  istat,  errorMessage)
+         call check_deallocate_f("elpa1_template: q_dummy", 569,  istat,  errorMessage)
       endif
 
       ! restore original OpenMP settings
@@ -1393,7 +1402,7 @@ contains
       integer(kind=ik)                                :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, i, error, matrixRows
-      real(kind=c_double)                                               :: thres_pd
+      real(kind=c_float)                      :: thres_pd
 
       logical                                         :: do_tridiag, do_solve, do_trans_ev
       integer(kind=ik)                                :: nrThreads
@@ -1512,7 +1521,6 @@ contains
       wantDebug = debug == 1
       do_useGPU = .false.
 
-
       if (useGPU) then
          call obj%timer%start("check_for_gpu")
 
@@ -1569,7 +1577,7 @@ contains
          q_actual => q(1:matrixRows,1:matrixCols)
       else
          allocate(q_dummy(1:matrixRows,1:matrixCols), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa1_template: q_dummy", 386,  istat,  errorMessage)
+         call check_allocate_f("elpa1_template: q_dummy", 387,  istat,  errorMessage)
          q_actual => q_dummy
       endif
 
@@ -1579,9 +1587,9 @@ contains
       l_cols_nev = local_index(nev, my_pcol, np_cols, nblk, -1) ! Local columns corresponding to nev
 
       allocate(q_real(l_rows,l_cols), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa1_template: q_real", 401,  istat,  errorMessage)
+      call check_allocate_f("elpa1_template: q_real", 398,  istat,  errorMessage)
       allocate(e(na), tau(na), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa1_template: e, tau", 404,  istat,  errorMessage)
+      call check_allocate_f("elpa1_template: e, tau", 401,  istat,  errorMessage)
 
       ! start the computations
       ! as default do all three steps (this might change at some point)
@@ -1623,9 +1631,13 @@ contains
             stop
          endif
          if (check_pd .eq. 1) then
-            call obj%get("thres_pd",thres_pd,error)
+            call obj%get("thres_pd_&
+            &single&
+            &",thres_pd,error)
             if (error .ne. ELPA_OK) then
-               print *,"Problem getting option for thres_pd. Aborting..."
+               print *,"Problem getting option for thres_pd_&
+               &single&
+               &. Aborting..."
                stop
             endif
 
@@ -1694,14 +1706,14 @@ contains
       endif ! do_trans_ev
 
       deallocate(q_real, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa1_template: q_real", 554,  istat,  errorMessage)
+      call check_deallocate_f("elpa1_template: q_real", 561,  istat,  errorMessage)
 
       deallocate(e, tau, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa1_template: e, tau", 558,  istat,  errorMessage)
+      call check_deallocate_f("elpa1_template: e, tau", 565,  istat,  errorMessage)
 
       if (obj%eigenvalues_only) then
          deallocate(q_dummy, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa1_template: q_dummy", 562,  istat,  errorMessage)
+         call check_deallocate_f("elpa1_template: q_dummy", 569,  istat,  errorMessage)
       endif
 
       ! restore original OpenMP settings

@@ -1966,6 +1966,7 @@ contains
       integer(kind=ik)                              :: istat
       character(200)                                :: errorMessage
       character(20)                                 :: gpuString
+      integer(kind=ik)                              :: nblockEnd
       integer(kind=c_intptr_t), parameter           :: size_of_datatype = size_of_&
       &double&
       &_&
@@ -2039,6 +2040,8 @@ contains
       endif
       tile_size = ((min_tile_size-1)/tile_size+1)*tile_size
 
+      nblockEnd = 3
+
       l_rows_per_tile = tile_size/np_rows ! local rows of a tile
       l_cols_per_tile = tile_size/np_cols ! local cols of a tile
 
@@ -2071,43 +2074,43 @@ contains
       if (useGPU) then
          num = (max_local_rows+1) * size_of_datatype
          successCUDA = cuda_malloc_host(v_row_host,num)
-         call check_host_alloc_CUDA_f("tridiag: v_row_host", 290,  successCUDA)
-         call c_f_pointer(v_row_host,v_row,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: v_row_host", 293,  successCUDA)
+         call c_f_pointer(v_row_host,v_row,(/(max_local_rows+1)/))
 
          num = (max_local_cols) * size_of_datatype
          successCUDA = cuda_malloc_host(v_col_host,num)
-         call check_host_alloc_CUDA_f("tridiag: v_col_host", 295,  successCUDA)
-         call c_f_pointer(v_col_host,v_col,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: v_col_host", 298,  successCUDA)
+         call c_f_pointer(v_col_host,v_col,(/(max_local_cols)/))
 
          num = (max_local_cols) * size_of_datatype
          successCUDA = cuda_malloc_host(u_col_host,num)
-         call check_host_alloc_CUDA_f("tridiag: u_col_host", 300,  successCUDA)
-         call c_f_pointer(u_col_host,u_col,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: u_col_host", 303,  successCUDA)
+         call c_f_pointer(u_col_host,u_col,(/(max_local_cols)/))
 
          num = (max_local_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(u_row_host,num)
-         call check_host_alloc_CUDA_f("tridiag: u_row_host", 305,  successCUDA)
-         call c_f_pointer(u_row_host,u_row,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: u_row_host", 308,  successCUDA)
+         call c_f_pointer(u_row_host,u_row,(/(max_local_rows)/))
 
          num = (max_local_rows * 2*max_stored_uv) * size_of_datatype
          successCUDA = cuda_host_register(int(loc(vu_stored_rows),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: vu_stored_roes", 311,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: vu_stored_roes", 314,  successCUDA)
 
          num = (max_local_cols * 2*max_stored_uv) * size_of_datatype
          successCUDA = cuda_host_register(int(loc(uv_stored_cols),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: uv_stored_cols", 316,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: uv_stored_cols", 319,  successCUDA)
 
          num = na * 8
          successCUDA = cuda_host_register(int(loc(e_vec),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: e_vec", 325,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: e_vec", 328,  successCUDA)
 
          num = na * 8
          successCUDA = cuda_host_register(int(loc(d_vec),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: d_vec", 334,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: d_vec", 337,  successCUDA)
 
       else
          allocate(v_row(max_local_rows+1), stat=istat, errmsg=errorMessage)
@@ -2136,23 +2139,23 @@ contains
 
       if (useGPU) then
          successCUDA = cuda_malloc(v_row_dev, max_local_rows * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: v_row_dev", 373,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: v_row_dev", 376,  successCUDA)
 
          successCUDA = cuda_malloc(u_row_dev, max_local_rows * size_of_datatype)
 
-         call check_alloc_CUDA_f("tridiag: u_row_dev", 377,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: u_row_dev", 380,  successCUDA)
 
          successCUDA = cuda_malloc(v_col_dev, max_local_cols * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: v_col_dev", 380,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: v_col_dev", 383,  successCUDA)
 
          successCUDA = cuda_malloc(u_col_dev, max_local_cols * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: u_col_dev", 383,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: u_col_dev", 386,  successCUDA)
 
          successCUDA = cuda_malloc(vu_stored_rows_dev, max_local_rows * 2 * max_stored_uv * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 386,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 389,  successCUDA)
 
          successCUDA = cuda_malloc(uv_stored_cols_dev, max_local_cols * 2 * max_stored_uv * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 389,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 392,  successCUDA)
       endif !useGPU
 
       d_vec(:) = 0
@@ -2173,20 +2176,20 @@ contains
          num = matrixRows * matrixCols * size_of_datatype
 
          successCUDA = cuda_malloc(a_dev, num)
-         call check_alloc_CUDA_f("tridiag: a_dev", 416,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: a_dev", 419,  successCUDA)
 
          successCUDA = cuda_host_register(int(loc(a_mat),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: a_mat", 420,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: a_mat", 423,  successCUDA)
 
          successCUDA = cuda_memcpy(a_dev, int(loc(a_mat(1,1)),kind=c_intptr_t), &
             num, cudaMemcpyHostToDevice)
-         call check_memcpy_CUDA_f("tridiag: a_dev", 424,  successCUDA)
+         call check_memcpy_CUDA_f("tridiag: a_dev", 427,  successCUDA)
       endif
 
       ! main cycle of tridiagonalization
       ! in each step, 1 Householder Vector is calculated
-      do istep = na, 3 ,-1
+      do istep = na, nblockEnd ,-1
 
          ! Calculate number of local rows and columns of the still remaining matrix
          ! on the local processor
@@ -2209,7 +2212,7 @@ contains
 
                successCUDA = cuda_memcpy(int(loc(v_row),kind=c_intptr_t), &
                   a_dev + a_offset, (l_rows)* size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag a_dev 1", 452,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag a_dev 1", 455,  successCUDA)
             else
                v_row(1:l_rows) = a_mat(1:l_rows,l_cols+1)
             endif
@@ -2290,19 +2293,19 @@ contains
          if (l_rows > 0 .and. l_cols> 0 ) then
             if (useGPU) then
                successCUDA = cuda_memset(u_col_dev, 0, l_cols * size_of_datatype)
-               call check_memcpy_CUDA_f("tridiag: u_col_dev", 565,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_col_dev", 567,  successCUDA)
 
                successCUDA = cuda_memset(u_row_dev, 0, l_rows * size_of_datatype)
-               call check_memcpy_CUDA_f("tridiag: u_row_dev", 568,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_row_dev", 570,  successCUDA)
 
                successCUDA = cuda_memcpy(v_col_dev, int(loc(v_col(1)),kind=c_intptr_t), &
                   l_cols * size_of_datatype, cudaMemcpyHostToDevice)
 
-               call check_memcpy_CUDA_f("tridiag: v_col_dev", 573,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: v_col_dev", 575,  successCUDA)
 
                successCUDA = cuda_memcpy(v_row_dev, int(loc(v_row(1)),kind=c_intptr_t), &
                   l_rows * size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: v_row_dev", 577,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: v_row_dev", 579,  successCUDA)
             endif ! useGU
 
             do i= 0, (istep-2)/tile_size
@@ -2414,11 +2417,11 @@ contains
 
                successCUDA = cuda_memcpy(int(loc(u_col(1)),kind=c_intptr_t), &
                   u_col_dev, l_cols * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: u_col_dev 1", 732,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_col_dev 1", 734,  successCUDA)
 
                successCUDA = cuda_memcpy(int(loc(u_row(1)),kind=c_intptr_t), &
                   u_row_dev, l_rows * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: u_row_dev 1", 736,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_row_dev 1", 738,  successCUDA)
             endif ! useGPU
 
             ! second calculate (VU**T + UV**T)*v part of (A + VU**T + UV**T)*v
@@ -2509,12 +2512,12 @@ contains
                successCUDA = cuda_memcpy(vu_stored_rows_dev, int(loc(vu_stored_rows(1,1)),kind=c_intptr_t), &
                   max_local_rows * 2 * max_stored_uv *          &
                   size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: uv_stored_rows_dev", 864,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: uv_stored_rows_dev", 866,  successCUDA)
 
                successCUDA = cuda_memcpy(uv_stored_cols_dev, int(loc(uv_stored_cols(1,1)),kind=c_intptr_t), &
                   max_local_cols * 2 * max_stored_uv *          &
                   size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: uv_stored_cols_dev", 869,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: uv_stored_cols_dev", 871,  successCUDA)
             endif
 
             do i = 0, (istep-2)/tile_size
@@ -2578,7 +2581,7 @@ contains
 
                successCUDA = cuda_memcpy(int(loc(a_mat(l_rows, l_cols)),kind=c_intptr_t), a_dev + a_offset, &
                   1 *  size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: a_dev 3", 934,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: a_dev 3", 936,  successCUDA)
 
             endif
             if (n_stored_vecs > 0) then
@@ -2594,11 +2597,11 @@ contains
             if (useGPU) then
                !a_dev(l_rows,l_cols) = a_mat(l_rows,l_cols)
                !successCUDA = cuda_threadsynchronize()
-               !call check_memcpy_CUDA_f("tridiag: a_dev 4a5a", 955,  successCUDA)
+               !call check_memcpy_CUDA_f("tridiag: a_dev 4a5a", 957,  successCUDA)
 
                successCUDA = cuda_memcpy(a_dev + a_offset, int(loc(a_mat(l_rows, l_cols)),kind=c_intptr_t), &
                   int(1 * size_of_datatype, kind=c_intptr_t), cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: a_dev 4", 959,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: a_dev 4", 961,  successCUDA)
             endif
          endif
 
@@ -2610,7 +2613,7 @@ contains
          if(useGPU) then
             successCUDA = cuda_memcpy(int(loc(e_vec(1)),kind=c_intptr_t), a_dev + (matrixRows * (l_cols - 1)) * size_of_datatype, &
                1 * size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("tridiag: a_dev 7", 1028,  successCUDA)
+            call check_memcpy_CUDA_f("tridiag: a_dev 7", 1030,  successCUDA)
          else !useGPU
             e_vec(1) = a_mat(1,l_cols) ! use last l_cols value of loop above
          endif !useGPU
@@ -2620,7 +2623,7 @@ contains
       if (my_prow==prow(1, nblk, np_rows) .and. my_pcol==pcol(1, nblk, np_cols)) then
          if(useGPU) then
             successCUDA = cuda_memcpy(int(loc(d_vec(1)),kind=c_intptr_t), a_dev, 1 * size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("tridiag: a_dev 8", 1038,  successCUDA)
+            call check_memcpy_CUDA_f("tridiag: a_dev 8", 1040,  successCUDA)
          else !useGPU
             if (isSkewsymmetric) then
                d_vec(1) = 0.0_rk
@@ -2631,36 +2634,36 @@ contains
       endif
 
       deallocate(tmp, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag: tmp", 1050,  istat,  errorMessage)
+      call check_deallocate_f("tridiag: tmp", 1052,  istat,  errorMessage)
 
       if (useGPU) then
          ! todo: should we leave a_mat on the device for further use?
          successCUDA = cuda_free(a_dev)
-         call check_dealloc_CUDA_f("tridiag: a_dev 9", 1055,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: a_dev 9", 1057,  successCUDA)
 
          successCUDA = cuda_free(v_row_dev)
-         call check_dealloc_CUDA_f("tridiag: v_row_dev", 1058,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: v_row_dev", 1060,  successCUDA)
 
          successCUDA = cuda_free(u_row_dev)
-         call check_dealloc_CUDA_f("tridiag: (u_row_dev", 1061,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: (u_row_dev", 1063,  successCUDA)
 
          successCUDA = cuda_free(v_col_dev)
-         call check_dealloc_CUDA_f("tridiag: v_col_dev", 1064,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: v_col_dev", 1066,  successCUDA)
 
          successCUDA = cuda_free(u_col_dev)
-         call check_dealloc_CUDA_f("tridiag: u_col_dev ", 1067,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: u_col_dev ", 1069,  successCUDA)
 
          successCUDA = cuda_free(vu_stored_rows_dev)
-         call check_dealloc_CUDA_f("tridiag: vu_stored_rows_dev ", 1070,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: vu_stored_rows_dev ", 1072,  successCUDA)
 
          successCUDA = cuda_free(uv_stored_cols_dev)
-         call check_dealloc_CUDA_f("tridiag:uv_stored_cols_dev ", 1073,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag:uv_stored_cols_dev ", 1075,  successCUDA)
       endif
 
       ! distribute the arrays d_vec and e_vec to all processors
 
       allocate(tmp_real(na), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag: tmp_real", 1079,  istat,  errorMessage)
+      call check_allocate_f("tridiag: tmp_real", 1081,  istat,  errorMessage)
 
       if (wantDebug) call obj%timer%start("mpi_communication")
       tmp_real = d_vec
@@ -2678,46 +2681,46 @@ contains
       if (wantDebug) call obj%timer%stop("mpi_communication")
 
       deallocate(tmp_real, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag: tmp_real", 1099,  istat,  errorMessage)
+      call check_deallocate_f("tridiag: tmp_real", 1101,  istat,  errorMessage)
 
       if (useGPU) then
          successCUDA = cuda_host_unregister(int(loc(a_mat),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: a_mat", 1103,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: a_mat", 1105,  successCUDA)
 
          successCUDA = cuda_free_host(v_row_host)
-         call check_host_dealloc_CUDA_f("tridiag: v_row_host", 1106,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: v_row_host", 1108,  successCUDA)
          nullify(v_row)
 
          successCUDA = cuda_free_host(v_col_host)
-         call check_host_dealloc_CUDA_f("tridiag: v_col_host", 1110,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: v_col_host", 1112,  successCUDA)
          nullify(v_col)
 
          successCUDA = cuda_free_host(u_col_host)
-         call check_host_dealloc_CUDA_f("tridiag: u_col_host", 1114,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: u_col_host", 1116,  successCUDA)
          nullify(u_col)
 
          successCUDA = cuda_free_host(u_row_host)
-         call check_host_dealloc_CUDA_f("tridiag: u_row_host", 1118,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: u_row_host", 1120,  successCUDA)
          nullify(u_row)
 
          successCUDA = cuda_host_unregister(int(loc(uv_stored_cols),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: uv_stored_cols", 1122,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: uv_stored_cols", 1124,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(vu_stored_rows),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: vu_stored_rows", 1125,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: vu_stored_rows", 1127,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(e_vec),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: e_vec", 1128,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: e_vec", 1130,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(d_vec),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: d_vec", 1131,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: d_vec", 1133,  successCUDA)
       else
          deallocate(v_row, v_col, u_row, u_col, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("tridiag: v_row, v_col, u_row, u_col", 1134,  istat,  errorMessage)
+         call check_deallocate_f("tridiag: v_row, v_col, u_row, u_col", 1136,  istat,  errorMessage)
       endif
 
       deallocate(vu_stored_rows, uv_stored_cols, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag: vu_stored_rows, uv_stored_cols", 1138,  istat,  errorMessage)
+      call check_deallocate_f("tridiag: vu_stored_rows, uv_stored_cols", 1140,  istat,  errorMessage)
 
       call obj%timer%stop("tridiag_&
       &real&
@@ -2810,6 +2813,7 @@ contains
 
       integer(kind=c_intptr_t)                      :: num
       integer(kind=C_intptr_T)                      :: q_dev, tmp_dev, hvm_dev, tmat_dev
+      integer(kind=ik)                              :: blockStep
       logical                                       :: successCUDA
       integer(kind=c_intptr_t), parameter           :: size_of_datatype = size_of_&
       &double&
@@ -2890,6 +2894,7 @@ contains
 
       hvm = 0   ! Must be set to 0 !!!
       hvb = 0   ! Safety only
+      blockStep = nblk
 
       l_cols = local_index(nqc, my_pcol, np_cols, nblk, -1) ! Local columns of q_mat
 
@@ -2906,47 +2911,47 @@ contains
          !&", "hvm1", istat, errorMessage)
          num = (max_local_rows*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(hvm1_host,num)
-         call check_alloc_CUDA_f("trans_ev: hvm1_host", 242,  successCUDA)
-         call c_f_pointer(hvm1_host,hvm1,(/num/))
+         call check_alloc_CUDA_f("trans_ev: hvm1_host", 244,  successCUDA)
+         call c_f_pointer(hvm1_host,hvm1,(/(max_local_rows*max_stored_rows)/))
 
          num = (max_stored_rows*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(tmat_host,num)
-         call check_alloc_CUDA_f("trans_ev: tmat_host", 247,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev: tmat_host", 249,  successCUDA)
          call c_f_pointer(tmat_host,tmat,(/max_stored_rows,max_stored_rows/))
 
          num = (max_local_cols*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(tmp1_host,num)
-         call check_alloc_CUDA_f("trans_ev: tmp1_host", 252,  successCUDA)
-         call c_f_pointer(tmp1_host,tmp1,(/num/))
+         call check_alloc_CUDA_f("trans_ev: tmp1_host", 254,  successCUDA)
+         call c_f_pointer(tmp1_host,tmp1,(/(max_local_cols*max_stored_rows)/))
 
          num = (max_local_cols*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(tmp2_host,num)
-         call check_alloc_CUDA_f("trans_ev: tmp2_host", 257,  successCUDA)
-         call c_f_pointer(tmp2_host,tmp2,(/num/))
+         call check_alloc_CUDA_f("trans_ev: tmp2_host", 259,  successCUDA)
+         call c_f_pointer(tmp2_host,tmp2,(/(max_local_cols*max_stored_rows)/))
 
          successCUDA = cuda_malloc(tmat_dev, max_stored_rows * max_stored_rows * size_of_datatype)
-         call check_alloc_CUDA_f("trans_ev", 261,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 263,  successCUDA)
 
          successCUDA = cuda_malloc(hvm_dev, max_local_rows * max_stored_rows * size_of_datatype)
-         call check_alloc_CUDA_f("trans_ev", 264,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 266,  successCUDA)
 
          successCUDA = cuda_malloc(tmp_dev, max_local_cols * max_stored_rows * size_of_datatype)
-         call check_alloc_CUDA_f("trans_ev", 267,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 269,  successCUDA)
 
          num = ldq * matrixCols * size_of_datatype
          successCUDA = cuda_malloc(q_dev, num)
-         call check_alloc_CUDA_f("trans_ev", 271,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 273,  successCUDA)
 
          successCUDA = cuda_host_register(int(loc(q_mat),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("trans_ev: q_mat", 275,  successCUDA)
+         call check_host_register_CUDA_f("trans_ev: q_mat", 277,  successCUDA)
 
          successCUDA = cuda_memcpy(q_dev, int(loc(q_mat(1,1)),kind=c_intptr_t), &
             num, cudaMemcpyHostToDevice)
-         call check_memcpy_CUDA_f("trans_ev", 279,  successCUDA)
+         call check_memcpy_CUDA_f("trans_ev", 281,  successCUDA)
       endif  ! useGPU
 
-      do istep = 1, na, nblk
+      do istep = 1, na, blockStep
          ics = MAX(istep,3)
          ice = MIN(istep+nblk-1,na)
          if (ice<ics) cycle
@@ -3034,12 +3039,12 @@ contains
                successCUDA = cuda_memcpy(hvm_dev, int(loc(hvm1(1)),kind=c_intptr_t),   &
                   hvm_ubnd * nstor * size_of_datatype, cudaMemcpyHostToDevice)
 
-               call check_memcpy_CUDA_f("trans_ev", 389,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 391,  successCUDA)
 
                !tmat_dev = tmat
                successCUDA = cuda_memcpy(tmat_dev, int(loc(tmat(1,1)),kind=c_intptr_t),   &
                   max_stored_rows * max_stored_rows * size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("trans_ev", 394,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 396,  successCUDA)
             endif
 
             ! Q = Q - V * T * V**T * Q
@@ -3066,7 +3071,7 @@ contains
 
                if (useGPU) then
                   successCUDA = cuda_memset(tmp_dev, 0, l_cols * nstor * size_of_datatype)
-                  call check_memcpy_CUDA_f("trans_ev", 421,  successCUDA)
+                  call check_memcpy_CUDA_f("trans_ev", 423,  successCUDA)
                else
                   tmp1(1:l_cols*nstor) = 0
                endif
@@ -3077,7 +3082,7 @@ contains
             if (useGPU) then
                successCUDA = cuda_memcpy(int(loc(tmp1(1)),kind=c_intptr_t), tmp_dev,  &
                   max_local_cols * max_stored_rows * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("trans_ev", 433,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 435,  successCUDA)
             endif
             call obj%timer%start("mpi_communication")
             call mpi_allreduce(tmp1, tmp2, int(nstor*l_cols,kind=MPI_KIND), MPI_REAL8, MPI_SUM, &
@@ -3087,7 +3092,7 @@ contains
             if (useGPU) then
                successCUDA = cuda_memcpy(tmp_dev, int(loc(tmp2(1)),kind=c_intptr_t),  &
                   max_local_cols * max_stored_rows * size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("trans_ev", 443,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 445,  successCUDA)
             endif ! useGPU
 
             if (l_rows>0) then
@@ -3116,34 +3121,34 @@ contains
             nstor = 0
          endif  ! (nstor+nblk>max_stored_rows .or. istep+nblk>na .or. (na/np_rows<=256 .and. nstor>=32))
 
-      enddo ! istep=1,na,nblk
+      enddo ! istep
 
       deallocate(h1, h2, hvb, hvm, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("trans_ev_&         &MATH_DATATYPE&         &: h1, h2, hvb, hvm", 493,  istat,  errorMessage)
+      call check_deallocate_f("trans_ev_&       &MATH_DATATYPE&       &: h1, h2, hvb, hvm", 495,  istat,  errorMessage)
 
       if (useGPU) then
          !q_mat = q_dev
          successCUDA = cuda_memcpy(int(loc(q_mat(1,1)),kind=c_intptr_t), &
             q_dev, ldq * matrixCols * size_of_datatype, cudaMemcpyDeviceToHost)
-         call check_memcpy_CUDA_f("trans_ev", 499,  successCUDA)
+         call check_memcpy_CUDA_f("trans_ev", 501,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(q_mat),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("trans_ev: q_mat", 502,  successCUDA)
+         call check_host_unregister_CUDA_f("trans_ev: q_mat", 504,  successCUDA)
 
          successCUDA = cuda_free_host(hvm1_host)
-         call check_host_dealloc_CUDA_f("trans_ev: hvm1_host", 505,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: hvm1_host", 507,  successCUDA)
          nullify(hvm1)
 
          successCUDA = cuda_free_host(tmat_host)
-         call check_host_dealloc_CUDA_f("trans_ev: tmat_host", 509,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: tmat_host", 511,  successCUDA)
          nullify(tmat)
 
          successCUDA = cuda_free_host(tmp1_host)
-         call check_host_dealloc_CUDA_f("trans_ev: tmp1_host", 513,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: tmp1_host", 515,  successCUDA)
          nullify(tmp1)
 
          successCUDA = cuda_free_host(tmp2_host)
-         call check_host_dealloc_CUDA_f("trans_ev: tmp2_host", 517,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: tmp2_host", 519,  successCUDA)
          nullify(tmp2)
 
          !deallocate(hvm1, stat=istat, errmsg=errorMessage)
@@ -3156,19 +3161,19 @@ contains
 
          !deallocate(q_dev, tmp_dev, hvm_dev, tmat_dev)
          successCUDA = cuda_free(q_dev)
-         call check_dealloc_CUDA_f("trans_ev", 530,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 532,  successCUDA)
 
          successCUDA = cuda_free(tmp_dev)
-         call check_dealloc_CUDA_f("trans_ev", 533,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 535,  successCUDA)
 
          successCUDA = cuda_free(hvm_dev)
-         call check_dealloc_CUDA_f("trans_ev", 536,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 538,  successCUDA)
 
          successCUDA = cuda_free(tmat_dev)
-         call check_dealloc_CUDA_f("trans_ev", 539,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 541,  successCUDA)
       else
          deallocate(tmat, tmp1, tmp2, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("trans_ev_&         &MATH_DATATYPE&         &: tmat, tmp1, tmp2", 544,  istat,  errorMessage)
+         call check_deallocate_f("trans_ev_&       &MATH_DATATYPE&       &: tmat, tmp1, tmp2", 546,  istat,  errorMessage)
       endif
 
       call obj%timer%stop("trans_ev_&
@@ -5827,6 +5832,7 @@ contains
       integer(kind=ik)                              :: istat
       character(200)                                :: errorMessage
       character(20)                                 :: gpuString
+      integer(kind=ik)                              :: nblockEnd
       integer(kind=c_intptr_t), parameter           :: size_of_datatype = size_of_&
       &single&
       &_&
@@ -5900,6 +5906,8 @@ contains
       endif
       tile_size = ((min_tile_size-1)/tile_size+1)*tile_size
 
+      nblockEnd = 3
+
       l_rows_per_tile = tile_size/np_rows ! local rows of a tile
       l_cols_per_tile = tile_size/np_cols ! local cols of a tile
 
@@ -5932,43 +5940,43 @@ contains
       if (useGPU) then
          num = (max_local_rows+1) * size_of_datatype
          successCUDA = cuda_malloc_host(v_row_host,num)
-         call check_host_alloc_CUDA_f("tridiag: v_row_host", 290,  successCUDA)
-         call c_f_pointer(v_row_host,v_row,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: v_row_host", 293,  successCUDA)
+         call c_f_pointer(v_row_host,v_row,(/(max_local_rows+1)/))
 
          num = (max_local_cols) * size_of_datatype
          successCUDA = cuda_malloc_host(v_col_host,num)
-         call check_host_alloc_CUDA_f("tridiag: v_col_host", 295,  successCUDA)
-         call c_f_pointer(v_col_host,v_col,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: v_col_host", 298,  successCUDA)
+         call c_f_pointer(v_col_host,v_col,(/(max_local_cols)/))
 
          num = (max_local_cols) * size_of_datatype
          successCUDA = cuda_malloc_host(u_col_host,num)
-         call check_host_alloc_CUDA_f("tridiag: u_col_host", 300,  successCUDA)
-         call c_f_pointer(u_col_host,u_col,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: u_col_host", 303,  successCUDA)
+         call c_f_pointer(u_col_host,u_col,(/(max_local_cols)/))
 
          num = (max_local_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(u_row_host,num)
-         call check_host_alloc_CUDA_f("tridiag: u_row_host", 305,  successCUDA)
-         call c_f_pointer(u_row_host,u_row,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: u_row_host", 308,  successCUDA)
+         call c_f_pointer(u_row_host,u_row,(/(max_local_rows)/))
 
          num = (max_local_rows * 2*max_stored_uv) * size_of_datatype
          successCUDA = cuda_host_register(int(loc(vu_stored_rows),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: vu_stored_roes", 311,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: vu_stored_roes", 314,  successCUDA)
 
          num = (max_local_cols * 2*max_stored_uv) * size_of_datatype
          successCUDA = cuda_host_register(int(loc(uv_stored_cols),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: uv_stored_cols", 316,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: uv_stored_cols", 319,  successCUDA)
 
          num = na * 4
          successCUDA = cuda_host_register(int(loc(e_vec),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: e_vec", 325,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: e_vec", 328,  successCUDA)
 
          num = na * 4
          successCUDA = cuda_host_register(int(loc(d_vec),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: d_vec", 334,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: d_vec", 337,  successCUDA)
 
       else
          allocate(v_row(max_local_rows+1), stat=istat, errmsg=errorMessage)
@@ -5997,23 +6005,23 @@ contains
 
       if (useGPU) then
          successCUDA = cuda_malloc(v_row_dev, max_local_rows * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: v_row_dev", 373,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: v_row_dev", 376,  successCUDA)
 
          successCUDA = cuda_malloc(u_row_dev, max_local_rows * size_of_datatype)
 
-         call check_alloc_CUDA_f("tridiag: u_row_dev", 377,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: u_row_dev", 380,  successCUDA)
 
          successCUDA = cuda_malloc(v_col_dev, max_local_cols * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: v_col_dev", 380,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: v_col_dev", 383,  successCUDA)
 
          successCUDA = cuda_malloc(u_col_dev, max_local_cols * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: u_col_dev", 383,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: u_col_dev", 386,  successCUDA)
 
          successCUDA = cuda_malloc(vu_stored_rows_dev, max_local_rows * 2 * max_stored_uv * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 386,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 389,  successCUDA)
 
          successCUDA = cuda_malloc(uv_stored_cols_dev, max_local_cols * 2 * max_stored_uv * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 389,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 392,  successCUDA)
       endif !useGPU
 
       d_vec(:) = 0
@@ -6034,20 +6042,20 @@ contains
          num = matrixRows * matrixCols * size_of_datatype
 
          successCUDA = cuda_malloc(a_dev, num)
-         call check_alloc_CUDA_f("tridiag: a_dev", 416,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: a_dev", 419,  successCUDA)
 
          successCUDA = cuda_host_register(int(loc(a_mat),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: a_mat", 420,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: a_mat", 423,  successCUDA)
 
          successCUDA = cuda_memcpy(a_dev, int(loc(a_mat(1,1)),kind=c_intptr_t), &
             num, cudaMemcpyHostToDevice)
-         call check_memcpy_CUDA_f("tridiag: a_dev", 424,  successCUDA)
+         call check_memcpy_CUDA_f("tridiag: a_dev", 427,  successCUDA)
       endif
 
       ! main cycle of tridiagonalization
       ! in each step, 1 Householder Vector is calculated
-      do istep = na, 3 ,-1
+      do istep = na, nblockEnd ,-1
 
          ! Calculate number of local rows and columns of the still remaining matrix
          ! on the local processor
@@ -6070,7 +6078,7 @@ contains
 
                successCUDA = cuda_memcpy(int(loc(v_row),kind=c_intptr_t), &
                   a_dev + a_offset, (l_rows)* size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag a_dev 1", 452,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag a_dev 1", 455,  successCUDA)
             else
                v_row(1:l_rows) = a_mat(1:l_rows,l_cols+1)
             endif
@@ -6153,19 +6161,19 @@ contains
          if (l_rows > 0 .and. l_cols> 0 ) then
             if (useGPU) then
                successCUDA = cuda_memset(u_col_dev, 0, l_cols * size_of_datatype)
-               call check_memcpy_CUDA_f("tridiag: u_col_dev", 565,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_col_dev", 567,  successCUDA)
 
                successCUDA = cuda_memset(u_row_dev, 0, l_rows * size_of_datatype)
-               call check_memcpy_CUDA_f("tridiag: u_row_dev", 568,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_row_dev", 570,  successCUDA)
 
                successCUDA = cuda_memcpy(v_col_dev, int(loc(v_col(1)),kind=c_intptr_t), &
                   l_cols * size_of_datatype, cudaMemcpyHostToDevice)
 
-               call check_memcpy_CUDA_f("tridiag: v_col_dev", 573,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: v_col_dev", 575,  successCUDA)
 
                successCUDA = cuda_memcpy(v_row_dev, int(loc(v_row(1)),kind=c_intptr_t), &
                   l_rows * size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: v_row_dev", 577,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: v_row_dev", 579,  successCUDA)
             endif ! useGU
 
             do i= 0, (istep-2)/tile_size
@@ -6277,11 +6285,11 @@ contains
 
                successCUDA = cuda_memcpy(int(loc(u_col(1)),kind=c_intptr_t), &
                   u_col_dev, l_cols * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: u_col_dev 1", 732,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_col_dev 1", 734,  successCUDA)
 
                successCUDA = cuda_memcpy(int(loc(u_row(1)),kind=c_intptr_t), &
                   u_row_dev, l_rows * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: u_row_dev 1", 736,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_row_dev 1", 738,  successCUDA)
             endif ! useGPU
 
             ! second calculate (VU**T + UV**T)*v part of (A + VU**T + UV**T)*v
@@ -6372,12 +6380,12 @@ contains
                successCUDA = cuda_memcpy(vu_stored_rows_dev, int(loc(vu_stored_rows(1,1)),kind=c_intptr_t), &
                   max_local_rows * 2 * max_stored_uv *          &
                   size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: uv_stored_rows_dev", 864,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: uv_stored_rows_dev", 866,  successCUDA)
 
                successCUDA = cuda_memcpy(uv_stored_cols_dev, int(loc(uv_stored_cols(1,1)),kind=c_intptr_t), &
                   max_local_cols * 2 * max_stored_uv *          &
                   size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: uv_stored_cols_dev", 869,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: uv_stored_cols_dev", 871,  successCUDA)
             endif
 
             do i = 0, (istep-2)/tile_size
@@ -6441,7 +6449,7 @@ contains
 
                successCUDA = cuda_memcpy(int(loc(a_mat(l_rows, l_cols)),kind=c_intptr_t), a_dev + a_offset, &
                   1 *  size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: a_dev 3", 934,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: a_dev 3", 936,  successCUDA)
 
             endif
             if (n_stored_vecs > 0) then
@@ -6457,11 +6465,11 @@ contains
             if (useGPU) then
                !a_dev(l_rows,l_cols) = a_mat(l_rows,l_cols)
                !successCUDA = cuda_threadsynchronize()
-               !call check_memcpy_CUDA_f("tridiag: a_dev 4a5a", 955,  successCUDA)
+               !call check_memcpy_CUDA_f("tridiag: a_dev 4a5a", 957,  successCUDA)
 
                successCUDA = cuda_memcpy(a_dev + a_offset, int(loc(a_mat(l_rows, l_cols)),kind=c_intptr_t), &
                   int(1 * size_of_datatype, kind=c_intptr_t), cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: a_dev 4", 959,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: a_dev 4", 961,  successCUDA)
             endif
          endif
 
@@ -6473,7 +6481,7 @@ contains
          if(useGPU) then
             successCUDA = cuda_memcpy(int(loc(e_vec(1)),kind=c_intptr_t), a_dev + (matrixRows * (l_cols - 1)) * size_of_datatype, &
                1 * size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("tridiag: a_dev 7", 1028,  successCUDA)
+            call check_memcpy_CUDA_f("tridiag: a_dev 7", 1030,  successCUDA)
          else !useGPU
             e_vec(1) = a_mat(1,l_cols) ! use last l_cols value of loop above
          endif !useGPU
@@ -6483,7 +6491,7 @@ contains
       if (my_prow==prow(1, nblk, np_rows) .and. my_pcol==pcol(1, nblk, np_cols)) then
          if(useGPU) then
             successCUDA = cuda_memcpy(int(loc(d_vec(1)),kind=c_intptr_t), a_dev, 1 * size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("tridiag: a_dev 8", 1038,  successCUDA)
+            call check_memcpy_CUDA_f("tridiag: a_dev 8", 1040,  successCUDA)
          else !useGPU
             if (isSkewsymmetric) then
                d_vec(1) = 0.0_rk
@@ -6494,36 +6502,36 @@ contains
       endif
 
       deallocate(tmp, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag: tmp", 1050,  istat,  errorMessage)
+      call check_deallocate_f("tridiag: tmp", 1052,  istat,  errorMessage)
 
       if (useGPU) then
          ! todo: should we leave a_mat on the device for further use?
          successCUDA = cuda_free(a_dev)
-         call check_dealloc_CUDA_f("tridiag: a_dev 9", 1055,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: a_dev 9", 1057,  successCUDA)
 
          successCUDA = cuda_free(v_row_dev)
-         call check_dealloc_CUDA_f("tridiag: v_row_dev", 1058,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: v_row_dev", 1060,  successCUDA)
 
          successCUDA = cuda_free(u_row_dev)
-         call check_dealloc_CUDA_f("tridiag: (u_row_dev", 1061,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: (u_row_dev", 1063,  successCUDA)
 
          successCUDA = cuda_free(v_col_dev)
-         call check_dealloc_CUDA_f("tridiag: v_col_dev", 1064,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: v_col_dev", 1066,  successCUDA)
 
          successCUDA = cuda_free(u_col_dev)
-         call check_dealloc_CUDA_f("tridiag: u_col_dev ", 1067,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: u_col_dev ", 1069,  successCUDA)
 
          successCUDA = cuda_free(vu_stored_rows_dev)
-         call check_dealloc_CUDA_f("tridiag: vu_stored_rows_dev ", 1070,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: vu_stored_rows_dev ", 1072,  successCUDA)
 
          successCUDA = cuda_free(uv_stored_cols_dev)
-         call check_dealloc_CUDA_f("tridiag:uv_stored_cols_dev ", 1073,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag:uv_stored_cols_dev ", 1075,  successCUDA)
       endif
 
       ! distribute the arrays d_vec and e_vec to all processors
 
       allocate(tmp_real(na), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag: tmp_real", 1079,  istat,  errorMessage)
+      call check_allocate_f("tridiag: tmp_real", 1081,  istat,  errorMessage)
 
       if (wantDebug) call obj%timer%start("mpi_communication")
       tmp_real = d_vec
@@ -6541,46 +6549,46 @@ contains
       if (wantDebug) call obj%timer%stop("mpi_communication")
 
       deallocate(tmp_real, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag: tmp_real", 1099,  istat,  errorMessage)
+      call check_deallocate_f("tridiag: tmp_real", 1101,  istat,  errorMessage)
 
       if (useGPU) then
          successCUDA = cuda_host_unregister(int(loc(a_mat),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: a_mat", 1103,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: a_mat", 1105,  successCUDA)
 
          successCUDA = cuda_free_host(v_row_host)
-         call check_host_dealloc_CUDA_f("tridiag: v_row_host", 1106,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: v_row_host", 1108,  successCUDA)
          nullify(v_row)
 
          successCUDA = cuda_free_host(v_col_host)
-         call check_host_dealloc_CUDA_f("tridiag: v_col_host", 1110,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: v_col_host", 1112,  successCUDA)
          nullify(v_col)
 
          successCUDA = cuda_free_host(u_col_host)
-         call check_host_dealloc_CUDA_f("tridiag: u_col_host", 1114,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: u_col_host", 1116,  successCUDA)
          nullify(u_col)
 
          successCUDA = cuda_free_host(u_row_host)
-         call check_host_dealloc_CUDA_f("tridiag: u_row_host", 1118,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: u_row_host", 1120,  successCUDA)
          nullify(u_row)
 
          successCUDA = cuda_host_unregister(int(loc(uv_stored_cols),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: uv_stored_cols", 1122,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: uv_stored_cols", 1124,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(vu_stored_rows),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: vu_stored_rows", 1125,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: vu_stored_rows", 1127,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(e_vec),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: e_vec", 1128,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: e_vec", 1130,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(d_vec),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: d_vec", 1131,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: d_vec", 1133,  successCUDA)
       else
          deallocate(v_row, v_col, u_row, u_col, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("tridiag: v_row, v_col, u_row, u_col", 1134,  istat,  errorMessage)
+         call check_deallocate_f("tridiag: v_row, v_col, u_row, u_col", 1136,  istat,  errorMessage)
       endif
 
       deallocate(vu_stored_rows, uv_stored_cols, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag: vu_stored_rows, uv_stored_cols", 1138,  istat,  errorMessage)
+      call check_deallocate_f("tridiag: vu_stored_rows, uv_stored_cols", 1140,  istat,  errorMessage)
 
       call obj%timer%stop("tridiag_&
       &real&
@@ -6673,6 +6681,7 @@ contains
 
       integer(kind=c_intptr_t)                      :: num
       integer(kind=C_intptr_T)                      :: q_dev, tmp_dev, hvm_dev, tmat_dev
+      integer(kind=ik)                              :: blockStep
       logical                                       :: successCUDA
       integer(kind=c_intptr_t), parameter           :: size_of_datatype = size_of_&
       &single&
@@ -6753,6 +6762,7 @@ contains
 
       hvm = 0   ! Must be set to 0 !!!
       hvb = 0   ! Safety only
+      blockStep = nblk
 
       l_cols = local_index(nqc, my_pcol, np_cols, nblk, -1) ! Local columns of q_mat
 
@@ -6769,47 +6779,47 @@ contains
          !&", "hvm1", istat, errorMessage)
          num = (max_local_rows*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(hvm1_host,num)
-         call check_alloc_CUDA_f("trans_ev: hvm1_host", 242,  successCUDA)
-         call c_f_pointer(hvm1_host,hvm1,(/num/))
+         call check_alloc_CUDA_f("trans_ev: hvm1_host", 244,  successCUDA)
+         call c_f_pointer(hvm1_host,hvm1,(/(max_local_rows*max_stored_rows)/))
 
          num = (max_stored_rows*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(tmat_host,num)
-         call check_alloc_CUDA_f("trans_ev: tmat_host", 247,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev: tmat_host", 249,  successCUDA)
          call c_f_pointer(tmat_host,tmat,(/max_stored_rows,max_stored_rows/))
 
          num = (max_local_cols*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(tmp1_host,num)
-         call check_alloc_CUDA_f("trans_ev: tmp1_host", 252,  successCUDA)
-         call c_f_pointer(tmp1_host,tmp1,(/num/))
+         call check_alloc_CUDA_f("trans_ev: tmp1_host", 254,  successCUDA)
+         call c_f_pointer(tmp1_host,tmp1,(/(max_local_cols*max_stored_rows)/))
 
          num = (max_local_cols*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(tmp2_host,num)
-         call check_alloc_CUDA_f("trans_ev: tmp2_host", 257,  successCUDA)
-         call c_f_pointer(tmp2_host,tmp2,(/num/))
+         call check_alloc_CUDA_f("trans_ev: tmp2_host", 259,  successCUDA)
+         call c_f_pointer(tmp2_host,tmp2,(/(max_local_cols*max_stored_rows)/))
 
          successCUDA = cuda_malloc(tmat_dev, max_stored_rows * max_stored_rows * size_of_datatype)
-         call check_alloc_CUDA_f("trans_ev", 261,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 263,  successCUDA)
 
          successCUDA = cuda_malloc(hvm_dev, max_local_rows * max_stored_rows * size_of_datatype)
-         call check_alloc_CUDA_f("trans_ev", 264,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 266,  successCUDA)
 
          successCUDA = cuda_malloc(tmp_dev, max_local_cols * max_stored_rows * size_of_datatype)
-         call check_alloc_CUDA_f("trans_ev", 267,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 269,  successCUDA)
 
          num = ldq * matrixCols * size_of_datatype
          successCUDA = cuda_malloc(q_dev, num)
-         call check_alloc_CUDA_f("trans_ev", 271,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 273,  successCUDA)
 
          successCUDA = cuda_host_register(int(loc(q_mat),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("trans_ev: q_mat", 275,  successCUDA)
+         call check_host_register_CUDA_f("trans_ev: q_mat", 277,  successCUDA)
 
          successCUDA = cuda_memcpy(q_dev, int(loc(q_mat(1,1)),kind=c_intptr_t), &
             num, cudaMemcpyHostToDevice)
-         call check_memcpy_CUDA_f("trans_ev", 279,  successCUDA)
+         call check_memcpy_CUDA_f("trans_ev", 281,  successCUDA)
       endif  ! useGPU
 
-      do istep = 1, na, nblk
+      do istep = 1, na, blockStep
          ics = MAX(istep,3)
          ice = MIN(istep+nblk-1,na)
          if (ice<ics) cycle
@@ -6897,12 +6907,12 @@ contains
                successCUDA = cuda_memcpy(hvm_dev, int(loc(hvm1(1)),kind=c_intptr_t),   &
                   hvm_ubnd * nstor * size_of_datatype, cudaMemcpyHostToDevice)
 
-               call check_memcpy_CUDA_f("trans_ev", 389,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 391,  successCUDA)
 
                !tmat_dev = tmat
                successCUDA = cuda_memcpy(tmat_dev, int(loc(tmat(1,1)),kind=c_intptr_t),   &
                   max_stored_rows * max_stored_rows * size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("trans_ev", 394,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 396,  successCUDA)
             endif
 
             ! Q = Q - V * T * V**T * Q
@@ -6929,7 +6939,7 @@ contains
 
                if (useGPU) then
                   successCUDA = cuda_memset(tmp_dev, 0, l_cols * nstor * size_of_datatype)
-                  call check_memcpy_CUDA_f("trans_ev", 421,  successCUDA)
+                  call check_memcpy_CUDA_f("trans_ev", 423,  successCUDA)
                else
                   tmp1(1:l_cols*nstor) = 0
                endif
@@ -6940,7 +6950,7 @@ contains
             if (useGPU) then
                successCUDA = cuda_memcpy(int(loc(tmp1(1)),kind=c_intptr_t), tmp_dev,  &
                   max_local_cols * max_stored_rows * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("trans_ev", 433,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 435,  successCUDA)
             endif
             call obj%timer%start("mpi_communication")
             call mpi_allreduce(tmp1, tmp2, int(nstor*l_cols,kind=MPI_KIND), MPI_REAL4, MPI_SUM, &
@@ -6950,7 +6960,7 @@ contains
             if (useGPU) then
                successCUDA = cuda_memcpy(tmp_dev, int(loc(tmp2(1)),kind=c_intptr_t),  &
                   max_local_cols * max_stored_rows * size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("trans_ev", 443,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 445,  successCUDA)
             endif ! useGPU
 
             if (l_rows>0) then
@@ -6979,34 +6989,34 @@ contains
             nstor = 0
          endif  ! (nstor+nblk>max_stored_rows .or. istep+nblk>na .or. (na/np_rows<=256 .and. nstor>=32))
 
-      enddo ! istep=1,na,nblk
+      enddo ! istep
 
       deallocate(h1, h2, hvb, hvm, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("trans_ev_&         &MATH_DATATYPE&         &: h1, h2, hvb, hvm", 493,  istat,  errorMessage)
+      call check_deallocate_f("trans_ev_&       &MATH_DATATYPE&       &: h1, h2, hvb, hvm", 495,  istat,  errorMessage)
 
       if (useGPU) then
          !q_mat = q_dev
          successCUDA = cuda_memcpy(int(loc(q_mat(1,1)),kind=c_intptr_t), &
             q_dev, ldq * matrixCols * size_of_datatype, cudaMemcpyDeviceToHost)
-         call check_memcpy_CUDA_f("trans_ev", 499,  successCUDA)
+         call check_memcpy_CUDA_f("trans_ev", 501,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(q_mat),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("trans_ev: q_mat", 502,  successCUDA)
+         call check_host_unregister_CUDA_f("trans_ev: q_mat", 504,  successCUDA)
 
          successCUDA = cuda_free_host(hvm1_host)
-         call check_host_dealloc_CUDA_f("trans_ev: hvm1_host", 505,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: hvm1_host", 507,  successCUDA)
          nullify(hvm1)
 
          successCUDA = cuda_free_host(tmat_host)
-         call check_host_dealloc_CUDA_f("trans_ev: tmat_host", 509,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: tmat_host", 511,  successCUDA)
          nullify(tmat)
 
          successCUDA = cuda_free_host(tmp1_host)
-         call check_host_dealloc_CUDA_f("trans_ev: tmp1_host", 513,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: tmp1_host", 515,  successCUDA)
          nullify(tmp1)
 
          successCUDA = cuda_free_host(tmp2_host)
-         call check_host_dealloc_CUDA_f("trans_ev: tmp2_host", 517,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: tmp2_host", 519,  successCUDA)
          nullify(tmp2)
 
          !deallocate(hvm1, stat=istat, errmsg=errorMessage)
@@ -7019,19 +7029,19 @@ contains
 
          !deallocate(q_dev, tmp_dev, hvm_dev, tmat_dev)
          successCUDA = cuda_free(q_dev)
-         call check_dealloc_CUDA_f("trans_ev", 530,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 532,  successCUDA)
 
          successCUDA = cuda_free(tmp_dev)
-         call check_dealloc_CUDA_f("trans_ev", 533,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 535,  successCUDA)
 
          successCUDA = cuda_free(hvm_dev)
-         call check_dealloc_CUDA_f("trans_ev", 536,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 538,  successCUDA)
 
          successCUDA = cuda_free(tmat_dev)
-         call check_dealloc_CUDA_f("trans_ev", 539,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 541,  successCUDA)
       else
          deallocate(tmat, tmp1, tmp2, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("trans_ev_&         &MATH_DATATYPE&         &: tmat, tmp1, tmp2", 544,  istat,  errorMessage)
+         call check_deallocate_f("trans_ev_&       &MATH_DATATYPE&       &: tmat, tmp1, tmp2", 546,  istat,  errorMessage)
       endif
 
       call obj%timer%stop("trans_ev_&
@@ -9692,6 +9702,7 @@ contains
       integer(kind=ik)                              :: istat
       character(200)                                :: errorMessage
       character(20)                                 :: gpuString
+      integer(kind=ik)                              :: nblockEnd
       integer(kind=c_intptr_t), parameter           :: size_of_datatype = size_of_&
       &double&
       &_&
@@ -9765,6 +9776,8 @@ contains
       endif
       tile_size = ((min_tile_size-1)/tile_size+1)*tile_size
 
+      nblockEnd = 3
+
       l_rows_per_tile = tile_size/np_rows ! local rows of a tile
       l_cols_per_tile = tile_size/np_cols ! local cols of a tile
 
@@ -9797,43 +9810,43 @@ contains
       if (useGPU) then
          num = (max_local_rows+1) * size_of_datatype
          successCUDA = cuda_malloc_host(v_row_host,num)
-         call check_host_alloc_CUDA_f("tridiag: v_row_host", 290,  successCUDA)
-         call c_f_pointer(v_row_host,v_row,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: v_row_host", 293,  successCUDA)
+         call c_f_pointer(v_row_host,v_row,(/(max_local_rows+1)/))
 
          num = (max_local_cols) * size_of_datatype
          successCUDA = cuda_malloc_host(v_col_host,num)
-         call check_host_alloc_CUDA_f("tridiag: v_col_host", 295,  successCUDA)
-         call c_f_pointer(v_col_host,v_col,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: v_col_host", 298,  successCUDA)
+         call c_f_pointer(v_col_host,v_col,(/(max_local_cols)/))
 
          num = (max_local_cols) * size_of_datatype
          successCUDA = cuda_malloc_host(u_col_host,num)
-         call check_host_alloc_CUDA_f("tridiag: u_col_host", 300,  successCUDA)
-         call c_f_pointer(u_col_host,u_col,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: u_col_host", 303,  successCUDA)
+         call c_f_pointer(u_col_host,u_col,(/(max_local_cols)/))
 
          num = (max_local_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(u_row_host,num)
-         call check_host_alloc_CUDA_f("tridiag: u_row_host", 305,  successCUDA)
-         call c_f_pointer(u_row_host,u_row,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: u_row_host", 308,  successCUDA)
+         call c_f_pointer(u_row_host,u_row,(/(max_local_rows)/))
 
          num = (max_local_rows * 2*max_stored_uv) * size_of_datatype
          successCUDA = cuda_host_register(int(loc(vu_stored_rows),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: vu_stored_roes", 311,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: vu_stored_roes", 314,  successCUDA)
 
          num = (max_local_cols * 2*max_stored_uv) * size_of_datatype
          successCUDA = cuda_host_register(int(loc(uv_stored_cols),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: uv_stored_cols", 316,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: uv_stored_cols", 319,  successCUDA)
 
          num = na * 8
          successCUDA = cuda_host_register(int(loc(e_vec),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: e_vec", 325,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: e_vec", 328,  successCUDA)
 
          num = na * 8
          successCUDA = cuda_host_register(int(loc(d_vec),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: d_vec", 334,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: d_vec", 337,  successCUDA)
 
       else
          allocate(v_row(max_local_rows+1), stat=istat, errmsg=errorMessage)
@@ -9862,23 +9875,23 @@ contains
 
       if (useGPU) then
          successCUDA = cuda_malloc(v_row_dev, max_local_rows * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: v_row_dev", 373,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: v_row_dev", 376,  successCUDA)
 
          successCUDA = cuda_malloc(u_row_dev, max_local_rows * size_of_datatype)
 
-         call check_alloc_CUDA_f("tridiag: u_row_dev", 377,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: u_row_dev", 380,  successCUDA)
 
          successCUDA = cuda_malloc(v_col_dev, max_local_cols * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: v_col_dev", 380,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: v_col_dev", 383,  successCUDA)
 
          successCUDA = cuda_malloc(u_col_dev, max_local_cols * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: u_col_dev", 383,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: u_col_dev", 386,  successCUDA)
 
          successCUDA = cuda_malloc(vu_stored_rows_dev, max_local_rows * 2 * max_stored_uv * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 386,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 389,  successCUDA)
 
          successCUDA = cuda_malloc(uv_stored_cols_dev, max_local_cols * 2 * max_stored_uv * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 389,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 392,  successCUDA)
       endif !useGPU
 
       d_vec(:) = 0
@@ -9899,20 +9912,20 @@ contains
          num = matrixRows * matrixCols * size_of_datatype
 
          successCUDA = cuda_malloc(a_dev, num)
-         call check_alloc_CUDA_f("tridiag: a_dev", 416,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: a_dev", 419,  successCUDA)
 
          successCUDA = cuda_host_register(int(loc(a_mat),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: a_mat", 420,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: a_mat", 423,  successCUDA)
 
          successCUDA = cuda_memcpy(a_dev, int(loc(a_mat(1,1)),kind=c_intptr_t), &
             num, cudaMemcpyHostToDevice)
-         call check_memcpy_CUDA_f("tridiag: a_dev", 424,  successCUDA)
+         call check_memcpy_CUDA_f("tridiag: a_dev", 427,  successCUDA)
       endif
 
       ! main cycle of tridiagonalization
       ! in each step, 1 Householder Vector is calculated
-      do istep = na, 3 ,-1
+      do istep = na, nblockEnd ,-1
 
          ! Calculate number of local rows and columns of the still remaining matrix
          ! on the local processor
@@ -9935,7 +9948,7 @@ contains
 
                successCUDA = cuda_memcpy(int(loc(v_row),kind=c_intptr_t), &
                   a_dev + a_offset, (l_rows)* size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag a_dev 1", 452,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag a_dev 1", 455,  successCUDA)
             else
                v_row(1:l_rows) = a_mat(1:l_rows,l_cols+1)
             endif
@@ -9947,7 +9960,6 @@ contains
                   int(l_rows,kind=BLAS_KIND), int(2*n_stored_vecs,kind=BLAS_KIND), &
                   ONE, vu_stored_rows, int(ubound(vu_stored_rows,dim=1),kind=BLAS_KIND), &
                   aux, 1_BLAS_KIND,  &
-
                   ONE, v_row, 1_BLAS_KIND)
                if (wantDebug) call obj%timer%stop("blas")
 
@@ -10019,19 +10031,19 @@ contains
          if (l_rows > 0 .and. l_cols> 0 ) then
             if (useGPU) then
                successCUDA = cuda_memset(u_col_dev, 0, l_cols * size_of_datatype)
-               call check_memcpy_CUDA_f("tridiag: u_col_dev", 565,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_col_dev", 567,  successCUDA)
 
                successCUDA = cuda_memset(u_row_dev, 0, l_rows * size_of_datatype)
-               call check_memcpy_CUDA_f("tridiag: u_row_dev", 568,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_row_dev", 570,  successCUDA)
 
                successCUDA = cuda_memcpy(v_col_dev, int(loc(v_col(1)),kind=c_intptr_t), &
                   l_cols * size_of_datatype, cudaMemcpyHostToDevice)
 
-               call check_memcpy_CUDA_f("tridiag: v_col_dev", 573,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: v_col_dev", 575,  successCUDA)
 
                successCUDA = cuda_memcpy(v_row_dev, int(loc(v_row(1)),kind=c_intptr_t), &
                   l_rows * size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: v_row_dev", 577,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: v_row_dev", 579,  successCUDA)
             endif ! useGU
 
             do i= 0, (istep-2)/tile_size
@@ -10143,11 +10155,11 @@ contains
 
                successCUDA = cuda_memcpy(int(loc(u_col(1)),kind=c_intptr_t), &
                   u_col_dev, l_cols * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: u_col_dev 1", 732,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_col_dev 1", 734,  successCUDA)
 
                successCUDA = cuda_memcpy(int(loc(u_row(1)),kind=c_intptr_t), &
                   u_row_dev, l_rows * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: u_row_dev 1", 736,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_row_dev 1", 738,  successCUDA)
             endif ! useGPU
 
             ! second calculate (VU**T + UV**T)*v part of (A + VU**T + UV**T)*v
@@ -10238,12 +10250,12 @@ contains
                successCUDA = cuda_memcpy(vu_stored_rows_dev, int(loc(vu_stored_rows(1,1)),kind=c_intptr_t), &
                   max_local_rows * 2 * max_stored_uv *          &
                   size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: uv_stored_rows_dev", 864,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: uv_stored_rows_dev", 866,  successCUDA)
 
                successCUDA = cuda_memcpy(uv_stored_cols_dev, int(loc(uv_stored_cols(1,1)),kind=c_intptr_t), &
                   max_local_cols * 2 * max_stored_uv *          &
                   size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: uv_stored_cols_dev", 869,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: uv_stored_cols_dev", 871,  successCUDA)
             endif
 
             do i = 0, (istep-2)/tile_size
@@ -10307,7 +10319,7 @@ contains
 
                successCUDA = cuda_memcpy(int(loc(a_mat(l_rows, l_cols)),kind=c_intptr_t), a_dev + a_offset, &
                   1 *  size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: a_dev 3", 934,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: a_dev 3", 936,  successCUDA)
 
             endif
             if (n_stored_vecs > 0) then
@@ -10319,11 +10331,11 @@ contains
             if (useGPU) then
                !a_dev(l_rows,l_cols) = a_mat(l_rows,l_cols)
                !successCUDA = cuda_threadsynchronize()
-               !call check_memcpy_CUDA_f("tridiag: a_dev 4a5a", 955,  successCUDA)
+               !call check_memcpy_CUDA_f("tridiag: a_dev 4a5a", 957,  successCUDA)
 
                successCUDA = cuda_memcpy(a_dev + a_offset, int(loc(a_mat(l_rows, l_cols)),kind=c_intptr_t), &
                   int(1 * size_of_datatype, kind=c_intptr_t), cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: a_dev 4", 959,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: a_dev 4", 961,  successCUDA)
             endif
          endif
 
@@ -10338,7 +10350,7 @@ contains
                successCUDA = cuda_memcpy(int(loc(aux3(1)),kind=c_intptr_t), &
                   a_dev + (matrixRows * (l_cols - 1)) * size_of_datatype, &
                   1 * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: a_dev 5", 974,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: a_dev 5", 976,  successCUDA)
                vrl = aux3(1)
             else !useGPU
                vrl = a_mat(1,l_cols)
@@ -10366,7 +10378,7 @@ contains
          if(useGPU) then
             successCUDA = cuda_memcpy(int(loc(aux3(1)),kind=c_intptr_t), a_dev, &
                1 * size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("tridiag: a_dev 6", 1012,  successCUDA)
+            call check_memcpy_CUDA_f("tridiag: a_dev 6", 1014,  successCUDA)
             d_vec(1) = DREAL(aux3(1))
          else !useGPU
             d_vec(1) = DREAL(a_mat(1,1))
@@ -10374,36 +10386,36 @@ contains
       endif
 
       deallocate(tmp, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag: tmp", 1050,  istat,  errorMessage)
+      call check_deallocate_f("tridiag: tmp", 1052,  istat,  errorMessage)
 
       if (useGPU) then
          ! todo: should we leave a_mat on the device for further use?
          successCUDA = cuda_free(a_dev)
-         call check_dealloc_CUDA_f("tridiag: a_dev 9", 1055,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: a_dev 9", 1057,  successCUDA)
 
          successCUDA = cuda_free(v_row_dev)
-         call check_dealloc_CUDA_f("tridiag: v_row_dev", 1058,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: v_row_dev", 1060,  successCUDA)
 
          successCUDA = cuda_free(u_row_dev)
-         call check_dealloc_CUDA_f("tridiag: (u_row_dev", 1061,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: (u_row_dev", 1063,  successCUDA)
 
          successCUDA = cuda_free(v_col_dev)
-         call check_dealloc_CUDA_f("tridiag: v_col_dev", 1064,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: v_col_dev", 1066,  successCUDA)
 
          successCUDA = cuda_free(u_col_dev)
-         call check_dealloc_CUDA_f("tridiag: u_col_dev ", 1067,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: u_col_dev ", 1069,  successCUDA)
 
          successCUDA = cuda_free(vu_stored_rows_dev)
-         call check_dealloc_CUDA_f("tridiag: vu_stored_rows_dev ", 1070,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: vu_stored_rows_dev ", 1072,  successCUDA)
 
          successCUDA = cuda_free(uv_stored_cols_dev)
-         call check_dealloc_CUDA_f("tridiag:uv_stored_cols_dev ", 1073,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag:uv_stored_cols_dev ", 1075,  successCUDA)
       endif
 
       ! distribute the arrays d_vec and e_vec to all processors
 
       allocate(tmp_real(na), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag: tmp_real", 1079,  istat,  errorMessage)
+      call check_allocate_f("tridiag: tmp_real", 1081,  istat,  errorMessage)
 
       if (wantDebug) call obj%timer%start("mpi_communication")
       tmp_real = d_vec
@@ -10421,46 +10433,46 @@ contains
       if (wantDebug) call obj%timer%stop("mpi_communication")
 
       deallocate(tmp_real, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag: tmp_real", 1099,  istat,  errorMessage)
+      call check_deallocate_f("tridiag: tmp_real", 1101,  istat,  errorMessage)
 
       if (useGPU) then
          successCUDA = cuda_host_unregister(int(loc(a_mat),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: a_mat", 1103,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: a_mat", 1105,  successCUDA)
 
          successCUDA = cuda_free_host(v_row_host)
-         call check_host_dealloc_CUDA_f("tridiag: v_row_host", 1106,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: v_row_host", 1108,  successCUDA)
          nullify(v_row)
 
          successCUDA = cuda_free_host(v_col_host)
-         call check_host_dealloc_CUDA_f("tridiag: v_col_host", 1110,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: v_col_host", 1112,  successCUDA)
          nullify(v_col)
 
          successCUDA = cuda_free_host(u_col_host)
-         call check_host_dealloc_CUDA_f("tridiag: u_col_host", 1114,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: u_col_host", 1116,  successCUDA)
          nullify(u_col)
 
          successCUDA = cuda_free_host(u_row_host)
-         call check_host_dealloc_CUDA_f("tridiag: u_row_host", 1118,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: u_row_host", 1120,  successCUDA)
          nullify(u_row)
 
          successCUDA = cuda_host_unregister(int(loc(uv_stored_cols),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: uv_stored_cols", 1122,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: uv_stored_cols", 1124,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(vu_stored_rows),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: vu_stored_rows", 1125,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: vu_stored_rows", 1127,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(e_vec),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: e_vec", 1128,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: e_vec", 1130,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(d_vec),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: d_vec", 1131,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: d_vec", 1133,  successCUDA)
       else
          deallocate(v_row, v_col, u_row, u_col, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("tridiag: v_row, v_col, u_row, u_col", 1134,  istat,  errorMessage)
+         call check_deallocate_f("tridiag: v_row, v_col, u_row, u_col", 1136,  istat,  errorMessage)
       endif
 
       deallocate(vu_stored_rows, uv_stored_cols, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag: vu_stored_rows, uv_stored_cols", 1138,  istat,  errorMessage)
+      call check_deallocate_f("tridiag: vu_stored_rows, uv_stored_cols", 1140,  istat,  errorMessage)
 
       call obj%timer%stop("tridiag_&
       &complex&
@@ -10554,6 +10566,7 @@ contains
 
       integer(kind=c_intptr_t)                      :: num
       integer(kind=C_intptr_T)                      :: q_dev, tmp_dev, hvm_dev, tmat_dev
+      integer(kind=ik)                              :: blockStep
       logical                                       :: successCUDA
       integer(kind=c_intptr_t), parameter           :: size_of_datatype = size_of_&
       &double&
@@ -10634,6 +10647,7 @@ contains
 
       hvm = 0   ! Must be set to 0 !!!
       hvb = 0   ! Safety only
+      blockStep = nblk
 
       l_cols = local_index(nqc, my_pcol, np_cols, nblk, -1) ! Local columns of q_mat
 
@@ -10655,47 +10669,47 @@ contains
          !&", "hvm1", istat, errorMessage)
          num = (max_local_rows*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(hvm1_host,num)
-         call check_alloc_CUDA_f("trans_ev: hvm1_host", 242,  successCUDA)
-         call c_f_pointer(hvm1_host,hvm1,(/num/))
+         call check_alloc_CUDA_f("trans_ev: hvm1_host", 244,  successCUDA)
+         call c_f_pointer(hvm1_host,hvm1,(/(max_local_rows*max_stored_rows)/))
 
          num = (max_stored_rows*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(tmat_host,num)
-         call check_alloc_CUDA_f("trans_ev: tmat_host", 247,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev: tmat_host", 249,  successCUDA)
          call c_f_pointer(tmat_host,tmat,(/max_stored_rows,max_stored_rows/))
 
          num = (max_local_cols*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(tmp1_host,num)
-         call check_alloc_CUDA_f("trans_ev: tmp1_host", 252,  successCUDA)
-         call c_f_pointer(tmp1_host,tmp1,(/num/))
+         call check_alloc_CUDA_f("trans_ev: tmp1_host", 254,  successCUDA)
+         call c_f_pointer(tmp1_host,tmp1,(/(max_local_cols*max_stored_rows)/))
 
          num = (max_local_cols*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(tmp2_host,num)
-         call check_alloc_CUDA_f("trans_ev: tmp2_host", 257,  successCUDA)
-         call c_f_pointer(tmp2_host,tmp2,(/num/))
+         call check_alloc_CUDA_f("trans_ev: tmp2_host", 259,  successCUDA)
+         call c_f_pointer(tmp2_host,tmp2,(/(max_local_cols*max_stored_rows)/))
 
          successCUDA = cuda_malloc(tmat_dev, max_stored_rows * max_stored_rows * size_of_datatype)
-         call check_alloc_CUDA_f("trans_ev", 261,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 263,  successCUDA)
 
          successCUDA = cuda_malloc(hvm_dev, max_local_rows * max_stored_rows * size_of_datatype)
-         call check_alloc_CUDA_f("trans_ev", 264,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 266,  successCUDA)
 
          successCUDA = cuda_malloc(tmp_dev, max_local_cols * max_stored_rows * size_of_datatype)
-         call check_alloc_CUDA_f("trans_ev", 267,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 269,  successCUDA)
 
          num = ldq * matrixCols * size_of_datatype
          successCUDA = cuda_malloc(q_dev, num)
-         call check_alloc_CUDA_f("trans_ev", 271,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 273,  successCUDA)
 
          successCUDA = cuda_host_register(int(loc(q_mat),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("trans_ev: q_mat", 275,  successCUDA)
+         call check_host_register_CUDA_f("trans_ev: q_mat", 277,  successCUDA)
 
          successCUDA = cuda_memcpy(q_dev, int(loc(q_mat(1,1)),kind=c_intptr_t), &
             num, cudaMemcpyHostToDevice)
-         call check_memcpy_CUDA_f("trans_ev", 279,  successCUDA)
+         call check_memcpy_CUDA_f("trans_ev", 281,  successCUDA)
       endif  ! useGPU
 
-      do istep = 1, na, nblk
+      do istep = 1, na, blockStep
          ics = MAX(istep,3)
          ice = MIN(istep+nblk-1,na)
          if (ice<ics) cycle
@@ -10783,12 +10797,12 @@ contains
                successCUDA = cuda_memcpy(hvm_dev, int(loc(hvm1(1)),kind=c_intptr_t),   &
                   hvm_ubnd * nstor * size_of_datatype, cudaMemcpyHostToDevice)
 
-               call check_memcpy_CUDA_f("trans_ev", 389,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 391,  successCUDA)
 
                !tmat_dev = tmat
                successCUDA = cuda_memcpy(tmat_dev, int(loc(tmat(1,1)),kind=c_intptr_t),   &
                   max_stored_rows * max_stored_rows * size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("trans_ev", 394,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 396,  successCUDA)
             endif
 
             ! Q = Q - V * T * V**T * Q
@@ -10815,7 +10829,7 @@ contains
 
                if (useGPU) then
                   successCUDA = cuda_memset(tmp_dev, 0, l_cols * nstor * size_of_datatype)
-                  call check_memcpy_CUDA_f("trans_ev", 421,  successCUDA)
+                  call check_memcpy_CUDA_f("trans_ev", 423,  successCUDA)
                else
                   tmp1(1:l_cols*nstor) = 0
                endif
@@ -10826,7 +10840,7 @@ contains
             if (useGPU) then
                successCUDA = cuda_memcpy(int(loc(tmp1(1)),kind=c_intptr_t), tmp_dev,  &
                   max_local_cols * max_stored_rows * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("trans_ev", 433,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 435,  successCUDA)
             endif
             call obj%timer%start("mpi_communication")
             call mpi_allreduce(tmp1, tmp2, int(nstor*l_cols,kind=MPI_KIND), MPI_DOUBLE_COMPLEX, MPI_SUM, &
@@ -10836,7 +10850,7 @@ contains
             if (useGPU) then
                successCUDA = cuda_memcpy(tmp_dev, int(loc(tmp2(1)),kind=c_intptr_t),  &
                   max_local_cols * max_stored_rows * size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("trans_ev", 443,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 445,  successCUDA)
             endif ! useGPU
 
             if (l_rows>0) then
@@ -10865,34 +10879,34 @@ contains
             nstor = 0
          endif  ! (nstor+nblk>max_stored_rows .or. istep+nblk>na .or. (na/np_rows<=256 .and. nstor>=32))
 
-      enddo ! istep=1,na,nblk
+      enddo ! istep
 
       deallocate(h1, h2, hvb, hvm, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("trans_ev_&         &MATH_DATATYPE&         &: h1, h2, hvb, hvm", 493,  istat,  errorMessage)
+      call check_deallocate_f("trans_ev_&       &MATH_DATATYPE&       &: h1, h2, hvb, hvm", 495,  istat,  errorMessage)
 
       if (useGPU) then
          !q_mat = q_dev
          successCUDA = cuda_memcpy(int(loc(q_mat(1,1)),kind=c_intptr_t), &
             q_dev, ldq * matrixCols * size_of_datatype, cudaMemcpyDeviceToHost)
-         call check_memcpy_CUDA_f("trans_ev", 499,  successCUDA)
+         call check_memcpy_CUDA_f("trans_ev", 501,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(q_mat),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("trans_ev: q_mat", 502,  successCUDA)
+         call check_host_unregister_CUDA_f("trans_ev: q_mat", 504,  successCUDA)
 
          successCUDA = cuda_free_host(hvm1_host)
-         call check_host_dealloc_CUDA_f("trans_ev: hvm1_host", 505,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: hvm1_host", 507,  successCUDA)
          nullify(hvm1)
 
          successCUDA = cuda_free_host(tmat_host)
-         call check_host_dealloc_CUDA_f("trans_ev: tmat_host", 509,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: tmat_host", 511,  successCUDA)
          nullify(tmat)
 
          successCUDA = cuda_free_host(tmp1_host)
-         call check_host_dealloc_CUDA_f("trans_ev: tmp1_host", 513,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: tmp1_host", 515,  successCUDA)
          nullify(tmp1)
 
          successCUDA = cuda_free_host(tmp2_host)
-         call check_host_dealloc_CUDA_f("trans_ev: tmp2_host", 517,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: tmp2_host", 519,  successCUDA)
          nullify(tmp2)
 
          !deallocate(hvm1, stat=istat, errmsg=errorMessage)
@@ -10905,19 +10919,19 @@ contains
 
          !deallocate(q_dev, tmp_dev, hvm_dev, tmat_dev)
          successCUDA = cuda_free(q_dev)
-         call check_dealloc_CUDA_f("trans_ev", 530,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 532,  successCUDA)
 
          successCUDA = cuda_free(tmp_dev)
-         call check_dealloc_CUDA_f("trans_ev", 533,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 535,  successCUDA)
 
          successCUDA = cuda_free(hvm_dev)
-         call check_dealloc_CUDA_f("trans_ev", 536,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 538,  successCUDA)
 
          successCUDA = cuda_free(tmat_dev)
-         call check_dealloc_CUDA_f("trans_ev", 539,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 541,  successCUDA)
       else
          deallocate(tmat, tmp1, tmp2, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("trans_ev_&         &MATH_DATATYPE&         &: tmat, tmp1, tmp2", 544,  istat,  errorMessage)
+         call check_deallocate_f("trans_ev_&       &MATH_DATATYPE&       &: tmat, tmp1, tmp2", 546,  istat,  errorMessage)
       endif
 
       call obj%timer%stop("trans_ev_&
@@ -11112,6 +11126,7 @@ contains
       integer(kind=ik)                              :: istat
       character(200)                                :: errorMessage
       character(20)                                 :: gpuString
+      integer(kind=ik)                              :: nblockEnd
       integer(kind=c_intptr_t), parameter           :: size_of_datatype = size_of_&
       &single&
       &_&
@@ -11185,6 +11200,8 @@ contains
       endif
       tile_size = ((min_tile_size-1)/tile_size+1)*tile_size
 
+      nblockEnd = 3
+
       l_rows_per_tile = tile_size/np_rows ! local rows of a tile
       l_cols_per_tile = tile_size/np_cols ! local cols of a tile
 
@@ -11217,43 +11234,43 @@ contains
       if (useGPU) then
          num = (max_local_rows+1) * size_of_datatype
          successCUDA = cuda_malloc_host(v_row_host,num)
-         call check_host_alloc_CUDA_f("tridiag: v_row_host", 290,  successCUDA)
-         call c_f_pointer(v_row_host,v_row,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: v_row_host", 293,  successCUDA)
+         call c_f_pointer(v_row_host,v_row,(/(max_local_rows+1)/))
 
          num = (max_local_cols) * size_of_datatype
          successCUDA = cuda_malloc_host(v_col_host,num)
-         call check_host_alloc_CUDA_f("tridiag: v_col_host", 295,  successCUDA)
-         call c_f_pointer(v_col_host,v_col,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: v_col_host", 298,  successCUDA)
+         call c_f_pointer(v_col_host,v_col,(/(max_local_cols)/))
 
          num = (max_local_cols) * size_of_datatype
          successCUDA = cuda_malloc_host(u_col_host,num)
-         call check_host_alloc_CUDA_f("tridiag: u_col_host", 300,  successCUDA)
-         call c_f_pointer(u_col_host,u_col,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: u_col_host", 303,  successCUDA)
+         call c_f_pointer(u_col_host,u_col,(/(max_local_cols)/))
 
          num = (max_local_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(u_row_host,num)
-         call check_host_alloc_CUDA_f("tridiag: u_row_host", 305,  successCUDA)
-         call c_f_pointer(u_row_host,u_row,(/num/))
+         call check_host_alloc_CUDA_f("tridiag: u_row_host", 308,  successCUDA)
+         call c_f_pointer(u_row_host,u_row,(/(max_local_rows)/))
 
          num = (max_local_rows * 2*max_stored_uv) * size_of_datatype
          successCUDA = cuda_host_register(int(loc(vu_stored_rows),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: vu_stored_roes", 311,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: vu_stored_roes", 314,  successCUDA)
 
          num = (max_local_cols * 2*max_stored_uv) * size_of_datatype
          successCUDA = cuda_host_register(int(loc(uv_stored_cols),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: uv_stored_cols", 316,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: uv_stored_cols", 319,  successCUDA)
 
          num = na * 4
          successCUDA = cuda_host_register(int(loc(e_vec),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: e_vec", 325,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: e_vec", 328,  successCUDA)
 
          num = na * 4
          successCUDA = cuda_host_register(int(loc(d_vec),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: d_vec", 334,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: d_vec", 337,  successCUDA)
 
       else
          allocate(v_row(max_local_rows+1), stat=istat, errmsg=errorMessage)
@@ -11282,23 +11299,23 @@ contains
 
       if (useGPU) then
          successCUDA = cuda_malloc(v_row_dev, max_local_rows * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: v_row_dev", 373,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: v_row_dev", 376,  successCUDA)
 
          successCUDA = cuda_malloc(u_row_dev, max_local_rows * size_of_datatype)
 
-         call check_alloc_CUDA_f("tridiag: u_row_dev", 377,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: u_row_dev", 380,  successCUDA)
 
          successCUDA = cuda_malloc(v_col_dev, max_local_cols * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: v_col_dev", 380,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: v_col_dev", 383,  successCUDA)
 
          successCUDA = cuda_malloc(u_col_dev, max_local_cols * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: u_col_dev", 383,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: u_col_dev", 386,  successCUDA)
 
          successCUDA = cuda_malloc(vu_stored_rows_dev, max_local_rows * 2 * max_stored_uv * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 386,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 389,  successCUDA)
 
          successCUDA = cuda_malloc(uv_stored_cols_dev, max_local_cols * 2 * max_stored_uv * size_of_datatype)
-         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 389,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: vu_stored_rows_dev", 392,  successCUDA)
       endif !useGPU
 
       d_vec(:) = 0
@@ -11319,20 +11336,20 @@ contains
          num = matrixRows * matrixCols * size_of_datatype
 
          successCUDA = cuda_malloc(a_dev, num)
-         call check_alloc_CUDA_f("tridiag: a_dev", 416,  successCUDA)
+         call check_alloc_CUDA_f("tridiag: a_dev", 419,  successCUDA)
 
          successCUDA = cuda_host_register(int(loc(a_mat),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("tridiag: a_mat", 420,  successCUDA)
+         call check_host_register_CUDA_f("tridiag: a_mat", 423,  successCUDA)
 
          successCUDA = cuda_memcpy(a_dev, int(loc(a_mat(1,1)),kind=c_intptr_t), &
             num, cudaMemcpyHostToDevice)
-         call check_memcpy_CUDA_f("tridiag: a_dev", 424,  successCUDA)
+         call check_memcpy_CUDA_f("tridiag: a_dev", 427,  successCUDA)
       endif
 
       ! main cycle of tridiagonalization
       ! in each step, 1 Householder Vector is calculated
-      do istep = na, 3 ,-1
+      do istep = na, nblockEnd ,-1
 
          ! Calculate number of local rows and columns of the still remaining matrix
          ! on the local processor
@@ -11355,7 +11372,7 @@ contains
 
                successCUDA = cuda_memcpy(int(loc(v_row),kind=c_intptr_t), &
                   a_dev + a_offset, (l_rows)* size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag a_dev 1", 452,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag a_dev 1", 455,  successCUDA)
             else
                v_row(1:l_rows) = a_mat(1:l_rows,l_cols+1)
             endif
@@ -11367,7 +11384,6 @@ contains
                   int(l_rows,kind=BLAS_KIND), int(2*n_stored_vecs,kind=BLAS_KIND), &
                   ONE, vu_stored_rows, int(ubound(vu_stored_rows,dim=1),kind=BLAS_KIND), &
                   aux, 1_BLAS_KIND,  &
-
                   ONE, v_row, 1_BLAS_KIND)
                if (wantDebug) call obj%timer%stop("blas")
 
@@ -11439,19 +11455,19 @@ contains
          if (l_rows > 0 .and. l_cols> 0 ) then
             if (useGPU) then
                successCUDA = cuda_memset(u_col_dev, 0, l_cols * size_of_datatype)
-               call check_memcpy_CUDA_f("tridiag: u_col_dev", 565,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_col_dev", 567,  successCUDA)
 
                successCUDA = cuda_memset(u_row_dev, 0, l_rows * size_of_datatype)
-               call check_memcpy_CUDA_f("tridiag: u_row_dev", 568,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_row_dev", 570,  successCUDA)
 
                successCUDA = cuda_memcpy(v_col_dev, int(loc(v_col(1)),kind=c_intptr_t), &
                   l_cols * size_of_datatype, cudaMemcpyHostToDevice)
 
-               call check_memcpy_CUDA_f("tridiag: v_col_dev", 573,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: v_col_dev", 575,  successCUDA)
 
                successCUDA = cuda_memcpy(v_row_dev, int(loc(v_row(1)),kind=c_intptr_t), &
                   l_rows * size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: v_row_dev", 577,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: v_row_dev", 579,  successCUDA)
             endif ! useGU
 
             do i= 0, (istep-2)/tile_size
@@ -11563,11 +11579,11 @@ contains
 
                successCUDA = cuda_memcpy(int(loc(u_col(1)),kind=c_intptr_t), &
                   u_col_dev, l_cols * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: u_col_dev 1", 732,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_col_dev 1", 734,  successCUDA)
 
                successCUDA = cuda_memcpy(int(loc(u_row(1)),kind=c_intptr_t), &
                   u_row_dev, l_rows * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: u_row_dev 1", 736,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: u_row_dev 1", 738,  successCUDA)
             endif ! useGPU
 
             ! second calculate (VU**T + UV**T)*v part of (A + VU**T + UV**T)*v
@@ -11658,12 +11674,12 @@ contains
                successCUDA = cuda_memcpy(vu_stored_rows_dev, int(loc(vu_stored_rows(1,1)),kind=c_intptr_t), &
                   max_local_rows * 2 * max_stored_uv *          &
                   size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: uv_stored_rows_dev", 864,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: uv_stored_rows_dev", 866,  successCUDA)
 
                successCUDA = cuda_memcpy(uv_stored_cols_dev, int(loc(uv_stored_cols(1,1)),kind=c_intptr_t), &
                   max_local_cols * 2 * max_stored_uv *          &
                   size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: uv_stored_cols_dev", 869,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: uv_stored_cols_dev", 871,  successCUDA)
             endif
 
             do i = 0, (istep-2)/tile_size
@@ -11727,7 +11743,7 @@ contains
 
                successCUDA = cuda_memcpy(int(loc(a_mat(l_rows, l_cols)),kind=c_intptr_t), a_dev + a_offset, &
                   1 *  size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: a_dev 3", 934,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: a_dev 3", 936,  successCUDA)
 
             endif
             if (n_stored_vecs > 0) then
@@ -11739,11 +11755,11 @@ contains
             if (useGPU) then
                !a_dev(l_rows,l_cols) = a_mat(l_rows,l_cols)
                !successCUDA = cuda_threadsynchronize()
-               !call check_memcpy_CUDA_f("tridiag: a_dev 4a5a", 955,  successCUDA)
+               !call check_memcpy_CUDA_f("tridiag: a_dev 4a5a", 957,  successCUDA)
 
                successCUDA = cuda_memcpy(a_dev + a_offset, int(loc(a_mat(l_rows, l_cols)),kind=c_intptr_t), &
                   int(1 * size_of_datatype, kind=c_intptr_t), cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("tridiag: a_dev 4", 959,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: a_dev 4", 961,  successCUDA)
             endif
          endif
 
@@ -11758,7 +11774,7 @@ contains
                successCUDA = cuda_memcpy(int(loc(aux3(1)),kind=c_intptr_t), &
                   a_dev + (matrixRows * (l_cols - 1)) * size_of_datatype, &
                   1 * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("tridiag: a_dev 5", 974,  successCUDA)
+               call check_memcpy_CUDA_f("tridiag: a_dev 5", 976,  successCUDA)
                vrl = aux3(1)
             else !useGPU
                vrl = a_mat(1,l_cols)
@@ -11786,7 +11802,7 @@ contains
          if(useGPU) then
             successCUDA = cuda_memcpy(int(loc(aux3(1)),kind=c_intptr_t), a_dev, &
                1 * size_of_datatype, cudaMemcpyDeviceToHost)
-            call check_memcpy_CUDA_f("tridiag: a_dev 6", 1012,  successCUDA)
+            call check_memcpy_CUDA_f("tridiag: a_dev 6", 1014,  successCUDA)
             d_vec(1) = REAL(aux3(1))
          else !useGPU
             d_vec(1) = REAL(a_mat(1,1))
@@ -11794,36 +11810,36 @@ contains
       endif
 
       deallocate(tmp, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag: tmp", 1050,  istat,  errorMessage)
+      call check_deallocate_f("tridiag: tmp", 1052,  istat,  errorMessage)
 
       if (useGPU) then
          ! todo: should we leave a_mat on the device for further use?
          successCUDA = cuda_free(a_dev)
-         call check_dealloc_CUDA_f("tridiag: a_dev 9", 1055,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: a_dev 9", 1057,  successCUDA)
 
          successCUDA = cuda_free(v_row_dev)
-         call check_dealloc_CUDA_f("tridiag: v_row_dev", 1058,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: v_row_dev", 1060,  successCUDA)
 
          successCUDA = cuda_free(u_row_dev)
-         call check_dealloc_CUDA_f("tridiag: (u_row_dev", 1061,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: (u_row_dev", 1063,  successCUDA)
 
          successCUDA = cuda_free(v_col_dev)
-         call check_dealloc_CUDA_f("tridiag: v_col_dev", 1064,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: v_col_dev", 1066,  successCUDA)
 
          successCUDA = cuda_free(u_col_dev)
-         call check_dealloc_CUDA_f("tridiag: u_col_dev ", 1067,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: u_col_dev ", 1069,  successCUDA)
 
          successCUDA = cuda_free(vu_stored_rows_dev)
-         call check_dealloc_CUDA_f("tridiag: vu_stored_rows_dev ", 1070,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag: vu_stored_rows_dev ", 1072,  successCUDA)
 
          successCUDA = cuda_free(uv_stored_cols_dev)
-         call check_dealloc_CUDA_f("tridiag:uv_stored_cols_dev ", 1073,  successCUDA)
+         call check_dealloc_CUDA_f("tridiag:uv_stored_cols_dev ", 1075,  successCUDA)
       endif
 
       ! distribute the arrays d_vec and e_vec to all processors
 
       allocate(tmp_real(na), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("tridiag: tmp_real", 1079,  istat,  errorMessage)
+      call check_allocate_f("tridiag: tmp_real", 1081,  istat,  errorMessage)
 
       if (wantDebug) call obj%timer%start("mpi_communication")
       tmp_real = d_vec
@@ -11841,46 +11857,46 @@ contains
       if (wantDebug) call obj%timer%stop("mpi_communication")
 
       deallocate(tmp_real, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag: tmp_real", 1099,  istat,  errorMessage)
+      call check_deallocate_f("tridiag: tmp_real", 1101,  istat,  errorMessage)
 
       if (useGPU) then
          successCUDA = cuda_host_unregister(int(loc(a_mat),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: a_mat", 1103,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: a_mat", 1105,  successCUDA)
 
          successCUDA = cuda_free_host(v_row_host)
-         call check_host_dealloc_CUDA_f("tridiag: v_row_host", 1106,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: v_row_host", 1108,  successCUDA)
          nullify(v_row)
 
          successCUDA = cuda_free_host(v_col_host)
-         call check_host_dealloc_CUDA_f("tridiag: v_col_host", 1110,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: v_col_host", 1112,  successCUDA)
          nullify(v_col)
 
          successCUDA = cuda_free_host(u_col_host)
-         call check_host_dealloc_CUDA_f("tridiag: u_col_host", 1114,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: u_col_host", 1116,  successCUDA)
          nullify(u_col)
 
          successCUDA = cuda_free_host(u_row_host)
-         call check_host_dealloc_CUDA_f("tridiag: u_row_host", 1118,  successCUDA)
+         call check_host_dealloc_CUDA_f("tridiag: u_row_host", 1120,  successCUDA)
          nullify(u_row)
 
          successCUDA = cuda_host_unregister(int(loc(uv_stored_cols),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: uv_stored_cols", 1122,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: uv_stored_cols", 1124,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(vu_stored_rows),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: vu_stored_rows", 1125,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: vu_stored_rows", 1127,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(e_vec),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: e_vec", 1128,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: e_vec", 1130,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(d_vec),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("tridiag: d_vec", 1131,  successCUDA)
+         call check_host_unregister_CUDA_f("tridiag: d_vec", 1133,  successCUDA)
       else
          deallocate(v_row, v_col, u_row, u_col, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("tridiag: v_row, v_col, u_row, u_col", 1134,  istat,  errorMessage)
+         call check_deallocate_f("tridiag: v_row, v_col, u_row, u_col", 1136,  istat,  errorMessage)
       endif
 
       deallocate(vu_stored_rows, uv_stored_cols, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("tridiag: vu_stored_rows, uv_stored_cols", 1138,  istat,  errorMessage)
+      call check_deallocate_f("tridiag: vu_stored_rows, uv_stored_cols", 1140,  istat,  errorMessage)
 
       call obj%timer%stop("tridiag_&
       &complex&
@@ -11974,6 +11990,7 @@ contains
 
       integer(kind=c_intptr_t)                      :: num
       integer(kind=C_intptr_T)                      :: q_dev, tmp_dev, hvm_dev, tmat_dev
+      integer(kind=ik)                              :: blockStep
       logical                                       :: successCUDA
       integer(kind=c_intptr_t), parameter           :: size_of_datatype = size_of_&
       &single&
@@ -12054,6 +12071,7 @@ contains
 
       hvm = 0   ! Must be set to 0 !!!
       hvb = 0   ! Safety only
+      blockStep = nblk
 
       l_cols = local_index(nqc, my_pcol, np_cols, nblk, -1) ! Local columns of q_mat
 
@@ -12075,47 +12093,47 @@ contains
          !&", "hvm1", istat, errorMessage)
          num = (max_local_rows*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(hvm1_host,num)
-         call check_alloc_CUDA_f("trans_ev: hvm1_host", 242,  successCUDA)
-         call c_f_pointer(hvm1_host,hvm1,(/num/))
+         call check_alloc_CUDA_f("trans_ev: hvm1_host", 244,  successCUDA)
+         call c_f_pointer(hvm1_host,hvm1,(/(max_local_rows*max_stored_rows)/))
 
          num = (max_stored_rows*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(tmat_host,num)
-         call check_alloc_CUDA_f("trans_ev: tmat_host", 247,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev: tmat_host", 249,  successCUDA)
          call c_f_pointer(tmat_host,tmat,(/max_stored_rows,max_stored_rows/))
 
          num = (max_local_cols*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(tmp1_host,num)
-         call check_alloc_CUDA_f("trans_ev: tmp1_host", 252,  successCUDA)
-         call c_f_pointer(tmp1_host,tmp1,(/num/))
+         call check_alloc_CUDA_f("trans_ev: tmp1_host", 254,  successCUDA)
+         call c_f_pointer(tmp1_host,tmp1,(/(max_local_cols*max_stored_rows)/))
 
          num = (max_local_cols*max_stored_rows) * size_of_datatype
          successCUDA = cuda_malloc_host(tmp2_host,num)
-         call check_alloc_CUDA_f("trans_ev: tmp2_host", 257,  successCUDA)
-         call c_f_pointer(tmp2_host,tmp2,(/num/))
+         call check_alloc_CUDA_f("trans_ev: tmp2_host", 259,  successCUDA)
+         call c_f_pointer(tmp2_host,tmp2,(/(max_local_cols*max_stored_rows)/))
 
          successCUDA = cuda_malloc(tmat_dev, max_stored_rows * max_stored_rows * size_of_datatype)
-         call check_alloc_CUDA_f("trans_ev", 261,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 263,  successCUDA)
 
          successCUDA = cuda_malloc(hvm_dev, max_local_rows * max_stored_rows * size_of_datatype)
-         call check_alloc_CUDA_f("trans_ev", 264,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 266,  successCUDA)
 
          successCUDA = cuda_malloc(tmp_dev, max_local_cols * max_stored_rows * size_of_datatype)
-         call check_alloc_CUDA_f("trans_ev", 267,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 269,  successCUDA)
 
          num = ldq * matrixCols * size_of_datatype
          successCUDA = cuda_malloc(q_dev, num)
-         call check_alloc_CUDA_f("trans_ev", 271,  successCUDA)
+         call check_alloc_CUDA_f("trans_ev", 273,  successCUDA)
 
          successCUDA = cuda_host_register(int(loc(q_mat),kind=c_intptr_t),num,&
             cudaHostRegisterDefault)
-         call check_host_register_CUDA_f("trans_ev: q_mat", 275,  successCUDA)
+         call check_host_register_CUDA_f("trans_ev: q_mat", 277,  successCUDA)
 
          successCUDA = cuda_memcpy(q_dev, int(loc(q_mat(1,1)),kind=c_intptr_t), &
             num, cudaMemcpyHostToDevice)
-         call check_memcpy_CUDA_f("trans_ev", 279,  successCUDA)
+         call check_memcpy_CUDA_f("trans_ev", 281,  successCUDA)
       endif  ! useGPU
 
-      do istep = 1, na, nblk
+      do istep = 1, na, blockStep
          ics = MAX(istep,3)
          ice = MIN(istep+nblk-1,na)
          if (ice<ics) cycle
@@ -12203,12 +12221,12 @@ contains
                successCUDA = cuda_memcpy(hvm_dev, int(loc(hvm1(1)),kind=c_intptr_t),   &
                   hvm_ubnd * nstor * size_of_datatype, cudaMemcpyHostToDevice)
 
-               call check_memcpy_CUDA_f("trans_ev", 389,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 391,  successCUDA)
 
                !tmat_dev = tmat
                successCUDA = cuda_memcpy(tmat_dev, int(loc(tmat(1,1)),kind=c_intptr_t),   &
                   max_stored_rows * max_stored_rows * size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("trans_ev", 394,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 396,  successCUDA)
             endif
 
             ! Q = Q - V * T * V**T * Q
@@ -12235,7 +12253,7 @@ contains
 
                if (useGPU) then
                   successCUDA = cuda_memset(tmp_dev, 0, l_cols * nstor * size_of_datatype)
-                  call check_memcpy_CUDA_f("trans_ev", 421,  successCUDA)
+                  call check_memcpy_CUDA_f("trans_ev", 423,  successCUDA)
                else
                   tmp1(1:l_cols*nstor) = 0
                endif
@@ -12246,7 +12264,7 @@ contains
             if (useGPU) then
                successCUDA = cuda_memcpy(int(loc(tmp1(1)),kind=c_intptr_t), tmp_dev,  &
                   max_local_cols * max_stored_rows * size_of_datatype, cudaMemcpyDeviceToHost)
-               call check_memcpy_CUDA_f("trans_ev", 433,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 435,  successCUDA)
             endif
             call obj%timer%start("mpi_communication")
             call mpi_allreduce(tmp1, tmp2, int(nstor*l_cols,kind=MPI_KIND), MPI_COMPLEX, MPI_SUM, &
@@ -12256,7 +12274,7 @@ contains
             if (useGPU) then
                successCUDA = cuda_memcpy(tmp_dev, int(loc(tmp2(1)),kind=c_intptr_t),  &
                   max_local_cols * max_stored_rows * size_of_datatype, cudaMemcpyHostToDevice)
-               call check_memcpy_CUDA_f("trans_ev", 443,  successCUDA)
+               call check_memcpy_CUDA_f("trans_ev", 445,  successCUDA)
             endif ! useGPU
 
             if (l_rows>0) then
@@ -12285,34 +12303,34 @@ contains
             nstor = 0
          endif  ! (nstor+nblk>max_stored_rows .or. istep+nblk>na .or. (na/np_rows<=256 .and. nstor>=32))
 
-      enddo ! istep=1,na,nblk
+      enddo ! istep
 
       deallocate(h1, h2, hvb, hvm, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("trans_ev_&         &MATH_DATATYPE&         &: h1, h2, hvb, hvm", 493,  istat,  errorMessage)
+      call check_deallocate_f("trans_ev_&       &MATH_DATATYPE&       &: h1, h2, hvb, hvm", 495,  istat,  errorMessage)
 
       if (useGPU) then
          !q_mat = q_dev
          successCUDA = cuda_memcpy(int(loc(q_mat(1,1)),kind=c_intptr_t), &
             q_dev, ldq * matrixCols * size_of_datatype, cudaMemcpyDeviceToHost)
-         call check_memcpy_CUDA_f("trans_ev", 499,  successCUDA)
+         call check_memcpy_CUDA_f("trans_ev", 501,  successCUDA)
 
          successCUDA = cuda_host_unregister(int(loc(q_mat),kind=c_intptr_t))
-         call check_host_unregister_CUDA_f("trans_ev: q_mat", 502,  successCUDA)
+         call check_host_unregister_CUDA_f("trans_ev: q_mat", 504,  successCUDA)
 
          successCUDA = cuda_free_host(hvm1_host)
-         call check_host_dealloc_CUDA_f("trans_ev: hvm1_host", 505,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: hvm1_host", 507,  successCUDA)
          nullify(hvm1)
 
          successCUDA = cuda_free_host(tmat_host)
-         call check_host_dealloc_CUDA_f("trans_ev: tmat_host", 509,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: tmat_host", 511,  successCUDA)
          nullify(tmat)
 
          successCUDA = cuda_free_host(tmp1_host)
-         call check_host_dealloc_CUDA_f("trans_ev: tmp1_host", 513,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: tmp1_host", 515,  successCUDA)
          nullify(tmp1)
 
          successCUDA = cuda_free_host(tmp2_host)
-         call check_host_dealloc_CUDA_f("trans_ev: tmp2_host", 517,  successCUDA)
+         call check_host_dealloc_CUDA_f("trans_ev: tmp2_host", 519,  successCUDA)
          nullify(tmp2)
 
          !deallocate(hvm1, stat=istat, errmsg=errorMessage)
@@ -12325,19 +12343,19 @@ contains
 
          !deallocate(q_dev, tmp_dev, hvm_dev, tmat_dev)
          successCUDA = cuda_free(q_dev)
-         call check_dealloc_CUDA_f("trans_ev", 530,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 532,  successCUDA)
 
          successCUDA = cuda_free(tmp_dev)
-         call check_dealloc_CUDA_f("trans_ev", 533,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 535,  successCUDA)
 
          successCUDA = cuda_free(hvm_dev)
-         call check_dealloc_CUDA_f("trans_ev", 536,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 538,  successCUDA)
 
          successCUDA = cuda_free(tmat_dev)
-         call check_dealloc_CUDA_f("trans_ev", 539,  successCUDA)
+         call check_dealloc_CUDA_f("trans_ev", 541,  successCUDA)
       else
          deallocate(tmat, tmp1, tmp2, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("trans_ev_&         &MATH_DATATYPE&         &: tmat, tmp1, tmp2", 544,  istat,  errorMessage)
+         call check_deallocate_f("trans_ev_&       &MATH_DATATYPE&       &: tmat, tmp1, tmp2", 546,  istat,  errorMessage)
       endif
 
       call obj%timer%stop("trans_ev_&

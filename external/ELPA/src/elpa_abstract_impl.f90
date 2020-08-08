@@ -68,10 +68,12 @@ module elpa_abstract_impl
       type(c_ptr)         :: index = C_NULL_PTR
       logical             :: eigenvalues_only
    contains
-      procedure, public :: elpa_set_integer                      !< private methods to implement the setting of an integer/double key/value pair
+      procedure, public :: elpa_set_integer                      !< private methods to implement the setting of an integer/float/double key/value pair
+      procedure, public :: elpa_set_float
       procedure, public :: elpa_set_double
 
-      procedure, public :: elpa_get_integer                      !< private methods to implement the querry of an integer/double key/value pair
+      procedure, public :: elpa_get_integer                      !< private methods to implement the querry of an integer/float/double key/value pair
+      procedure, public :: elpa_get_float
       procedure, public :: elpa_get_double
 
    end type
@@ -115,6 +117,45 @@ contains
 
       value = elpa_index_get_int_value_c(self%index, name // c_null_char, actual_error)
 
+      error = actual_error
+   end subroutine
+
+   !> \brief internal subroutine to set a float key/value pair
+   !> Parameters
+   !> \param   self       the allocated ELPA object
+   !> \param   name       string, the key
+   !> \param   value      float, the value to be set
+   !> \result  error      integer, the error code
+   subroutine elpa_set_float(self, name, value, error)
+      use, intrinsic :: iso_c_binding
+      use elpa_utilities, only : error_unit
+      class(elpa_abstract_impl_t)     :: self
+      character(*), intent(in)        :: name
+      real(kind=c_float), intent(in) :: value
+      integer                         :: actual_error
+
+      integer                         :: error
+      actual_error = elpa_index_set_float_value_c(self%index, name // c_null_char, value)
+
+      error = actual_error
+   end subroutine
+
+   !> \brief internal subroutine to get an float key/value pair
+   !> Parameters
+   !> \param   self       the allocated ELPA object
+   !> \param   name       string, the key
+   !> \param   value      float, the value of the key/vaue pair
+   !> \param   error      integer, optional, to store an error code
+   subroutine elpa_get_float(self, name, value, error)
+      use, intrinsic :: iso_c_binding
+      use elpa_utilities, only : error_unit
+      class(elpa_abstract_impl_t)    :: self
+      character(*), intent(in)       :: name
+      real(kind=c_float)            :: value
+      integer, intent(out)           :: error
+      integer                        :: actual_error
+
+      value = elpa_index_get_float_value_c(self%index, name // c_null_char, actual_error)
       error = actual_error
    end subroutine
 

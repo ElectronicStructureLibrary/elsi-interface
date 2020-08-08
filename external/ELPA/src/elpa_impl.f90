@@ -667,6 +667,36 @@ contains
    end function
 
    !c>
+   !c> void elpa_set_float(elpa_t handle, const char *name, float value, int *error);
+   subroutine elpa_set_float_c(handle, name_p, value, error) bind(C, name="elpa_set_float")
+      type(c_ptr), intent(in), value                :: handle
+      type(elpa_impl_t), pointer                    :: self
+      type(c_ptr), intent(in), value                :: name_p
+      character(len=elpa_strlen_c(name_p)), pointer :: name
+      real(kind=c_float), intent(in), value        :: value
+      integer(kind=c_int), intent(in)               :: error
+
+      call c_f_pointer(handle, self)
+      call c_f_pointer(name_p, name)
+      call elpa_set_float(self, name, value, error)
+   end subroutine
+
+   !c>
+   !c> void elpa_get_float(elpa_t handle, const char *name, float *value, int *error);
+   subroutine elpa_get_float_c(handle, name_p, value, error) bind(C, name="elpa_get_float")
+      type(c_ptr), intent(in), value                :: handle
+      type(elpa_impl_t), pointer                    :: self
+      type(c_ptr), intent(in), value                :: name_p
+      character(len=elpa_strlen_c(name_p)), pointer :: name
+      real(kind=c_float)                           :: value
+      integer(kind=c_int), intent(inout)            :: error
+
+      call c_f_pointer(handle, self)
+      call c_f_pointer(name_p, name)
+      call elpa_get_float(self, name, value, error)
+   end subroutine
+
+   !c>
    !c> void elpa_set_double(elpa_t handle, const char *name, double value, int *error);
    subroutine elpa_set_double_c(handle, name_p, value, error) bind(C, name="elpa_set_double")
       type(c_ptr), intent(in), value                :: handle
@@ -695,7 +725,6 @@ contains
       call c_f_pointer(name_p, name)
       call elpa_get_double(self, name, value, error)
    end subroutine
-
 
    !> \brief function to associate a pointer with an integer value
    !> Parameters

@@ -169,17 +169,17 @@ contains
       &double&
       &_&
       &real
-      integer(kind=ik)                                                  :: na, nev, nblk, matrixCols, &
+      integer(kind=ik)                                                   :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, error, matrixRows
-      real(kind=c_double)                                               :: thres_pd
+      real(kind=c_double)                                         :: thres_pd
 
-      logical                                                           :: do_bandred, do_tridiag, do_solve_tridi,  &
+      logical                                                            :: do_bandred, do_tridiag, do_solve_tridi,  &
          do_trans_to_band, do_trans_to_full
-      logical                                                           :: good_nblk_gpu
+      logical                                                            :: good_nblk_gpu
 
-      integer(kind=ik)                                                  :: nrThreads
-      integer(kind=ik)                                                  :: global_index
+      integer(kind=ik)                                                   :: nrThreads
+      integer(kind=ik)                                                   :: global_index
       logical                                                            :: reDistributeMatrix, doRedistributeMatrix
 
       call obj%timer%start("elpa_solve_evp_&
@@ -463,7 +463,7 @@ contains
          q_actual => q(1:matrixRows,1:matrixCols)
       else
          allocate(q_dummy(1:matrixRows,1:matrixCols), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa2_template: q_dummy", 624,  istat,  errorMessage)
+         call check_allocate_f("elpa2_template: q_dummy", 626,  istat,  errorMessage)
          q_actual => q_dummy(1:matrixRows,1:matrixCols)
       endif
 
@@ -547,7 +547,7 @@ contains
          ! tmat is needed only in full->band and band->full steps, so alocate here
          ! (not allocated for banded matrix on input)
          allocate(tmat(nbw,nbw,num_blocks), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa2_template: tmat", 712,  istat,  errorMessage)
+         call check_allocate_f("elpa2_template: tmat", 714,  istat,  errorMessage)
 
          do_bandred       = .true.
          do_solve_tridi   = .true.
@@ -575,7 +575,7 @@ contains
       ! Reduction band -> tridiagonal
       if (do_tridiag) then
          allocate(e(na), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa2_template: e", 749,  istat,  errorMessage)
+         call check_allocate_f("elpa2_template: e", 751,  istat,  errorMessage)
 
          call obj%timer%start("tridiag")
          call tridiag_band_&
@@ -606,22 +606,25 @@ contains
       endif ! do_solve_tridi
 
       deallocate(e, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa2_template: e", 826,  istat,  errorMessage)
+      call check_deallocate_f("elpa2_template: e", 810,  istat,  errorMessage)
 
       if (obj%eigenvalues_only) then
          do_trans_to_band = .false.
          do_trans_to_full = .false.
       else
-
          call obj%get("check_pd",check_pd,error)
          if (error .ne. ELPA_OK) then
             print *,"Problem getting option for check_pd. Aborting..."
             stop
          endif
          if (check_pd .eq. 1) then
-            call obj%get("thres_pd",thres_pd,error)
+            call obj%get("thres_pd_&
+            &double&
+            &",thres_pd,error)
             if (error .ne. ELPA_OK) then
-               print *,"Problem getting option for thres_pd. Aborting..."
+               print *,"Problem getting option for thres_pd_&
+               &double&
+               &. Aborting..."
                stop
             endif
 
@@ -641,9 +644,6 @@ contains
             endif
          endif
       endif ! eigenvalues only
-
-      if (do_trans_to_band) then
-      endif
 
       if (isSkewsymmetric) then
          ! Extra transformation step for skew-symmetric matrix. Multiplication with diagonal complex matrix D.
@@ -721,7 +721,7 @@ contains
          endif
          ! We can now deallocate the stored householder vectors
          deallocate(hh_trans, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: hh_trans", 957,  istat,  errorMessage)
+         call check_deallocate_f("elpa2_template: hh_trans", 953,  istat,  errorMessage)
       endif
 
       if (do_trans_to_full) then
@@ -744,9 +744,10 @@ contains
          call obj%timer%stop("trans_ev_to_full")
       endif ! do_trans_to_full
 
+      ! make sure tmat is deallocated when using check_pd
       if (allocated(tmat)) then
          deallocate(tmat, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: tmat", 980,  istat,  errorMessage)
+         call check_deallocate_f("elpa2_template: tmat", 984,  istat,  errorMessage)
       endif
 
       if (obj%eigenvalues_only) then
@@ -872,17 +873,17 @@ contains
       &single&
       &_&
       &real
-      integer(kind=ik)                                                  :: na, nev, nblk, matrixCols, &
+      integer(kind=ik)                                                   :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, error, matrixRows
-      real(kind=c_double)                                               :: thres_pd
+      real(kind=c_float)                                         :: thres_pd
 
-      logical                                                           :: do_bandred, do_tridiag, do_solve_tridi,  &
+      logical                                                            :: do_bandred, do_tridiag, do_solve_tridi,  &
          do_trans_to_band, do_trans_to_full
-      logical                                                           :: good_nblk_gpu
+      logical                                                            :: good_nblk_gpu
 
-      integer(kind=ik)                                                  :: nrThreads
-      integer(kind=ik)                                                  :: global_index
+      integer(kind=ik)                                                   :: nrThreads
+      integer(kind=ik)                                                   :: global_index
       logical                                                            :: reDistributeMatrix, doRedistributeMatrix
 
       call obj%timer%start("elpa_solve_evp_&
@@ -1183,7 +1184,7 @@ contains
          q_actual => q(1:matrixRows,1:matrixCols)
       else
          allocate(q_dummy(1:matrixRows,1:matrixCols), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa2_template: q_dummy", 624,  istat,  errorMessage)
+         call check_allocate_f("elpa2_template: q_dummy", 626,  istat,  errorMessage)
          q_actual => q_dummy(1:matrixRows,1:matrixCols)
       endif
 
@@ -1267,7 +1268,7 @@ contains
          ! tmat is needed only in full->band and band->full steps, so alocate here
          ! (not allocated for banded matrix on input)
          allocate(tmat(nbw,nbw,num_blocks), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa2_template: tmat", 712,  istat,  errorMessage)
+         call check_allocate_f("elpa2_template: tmat", 714,  istat,  errorMessage)
 
          do_bandred       = .true.
          do_solve_tridi   = .true.
@@ -1295,7 +1296,7 @@ contains
       ! Reduction band -> tridiagonal
       if (do_tridiag) then
          allocate(e(na), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa2_template: e", 749,  istat,  errorMessage)
+         call check_allocate_f("elpa2_template: e", 751,  istat,  errorMessage)
 
          call obj%timer%start("tridiag")
          call tridiag_band_&
@@ -1326,22 +1327,25 @@ contains
       endif ! do_solve_tridi
 
       deallocate(e, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa2_template: e", 826,  istat,  errorMessage)
+      call check_deallocate_f("elpa2_template: e", 810,  istat,  errorMessage)
 
       if (obj%eigenvalues_only) then
          do_trans_to_band = .false.
          do_trans_to_full = .false.
       else
-
          call obj%get("check_pd",check_pd,error)
          if (error .ne. ELPA_OK) then
             print *,"Problem getting option for check_pd. Aborting..."
             stop
          endif
          if (check_pd .eq. 1) then
-            call obj%get("thres_pd",thres_pd,error)
+            call obj%get("thres_pd_&
+            &single&
+            &",thres_pd,error)
             if (error .ne. ELPA_OK) then
-               print *,"Problem getting option for thres_pd. Aborting..."
+               print *,"Problem getting option for thres_pd_&
+               &single&
+               &. Aborting..."
                stop
             endif
 
@@ -1361,9 +1365,6 @@ contains
             endif
          endif
       endif ! eigenvalues only
-
-      if (do_trans_to_band) then
-      endif
 
       if (isSkewsymmetric) then
          ! Extra transformation step for skew-symmetric matrix. Multiplication with diagonal complex matrix D.
@@ -1441,7 +1442,7 @@ contains
          endif
          ! We can now deallocate the stored householder vectors
          deallocate(hh_trans, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: hh_trans", 957,  istat,  errorMessage)
+         call check_deallocate_f("elpa2_template: hh_trans", 953,  istat,  errorMessage)
       endif
 
       if (do_trans_to_full) then
@@ -1464,9 +1465,10 @@ contains
          call obj%timer%stop("trans_ev_to_full")
       endif ! do_trans_to_full
 
+      ! make sure tmat is deallocated when using check_pd
       if (allocated(tmat)) then
          deallocate(tmat, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: tmat", 980,  istat,  errorMessage)
+         call check_deallocate_f("elpa2_template: tmat", 984,  istat,  errorMessage)
       endif
 
       if (obj%eigenvalues_only) then
@@ -1590,17 +1592,17 @@ contains
       &double&
       &_&
       &complex
-      integer(kind=ik)                                                  :: na, nev, nblk, matrixCols, &
+      integer(kind=ik)                                                   :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, error, matrixRows
-      real(kind=c_double)                                               :: thres_pd
+      real(kind=c_double)                                         :: thres_pd
 
-      logical                                                           :: do_bandred, do_tridiag, do_solve_tridi,  &
+      logical                                                            :: do_bandred, do_tridiag, do_solve_tridi,  &
          do_trans_to_band, do_trans_to_full
-      logical                                                           :: good_nblk_gpu
+      logical                                                            :: good_nblk_gpu
 
-      integer(kind=ik)                                                  :: nrThreads
-      integer(kind=ik)                                                  :: global_index
+      integer(kind=ik)                                                   :: nrThreads
+      integer(kind=ik)                                                   :: global_index
       logical                                                            :: reDistributeMatrix, doRedistributeMatrix
 
       call obj%timer%start("elpa_solve_evp_&
@@ -1857,7 +1859,7 @@ contains
          q_actual => q(1:matrixRows,1:matrixCols)
       else
          allocate(q_dummy(1:matrixRows,1:matrixCols), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa2_template: q_dummy", 624,  istat,  errorMessage)
+         call check_allocate_f("elpa2_template: q_dummy", 626,  istat,  errorMessage)
          q_actual => q_dummy(1:matrixRows,1:matrixCols)
       endif
 
@@ -1941,7 +1943,7 @@ contains
          ! tmat is needed only in full->band and band->full steps, so alocate here
          ! (not allocated for banded matrix on input)
          allocate(tmat(nbw,nbw,num_blocks), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa2_template: tmat", 712,  istat,  errorMessage)
+         call check_allocate_f("elpa2_template: tmat", 714,  istat,  errorMessage)
 
          do_bandred       = .true.
          do_solve_tridi   = .true.
@@ -1968,7 +1970,7 @@ contains
       ! Reduction band -> tridiagonal
       if (do_tridiag) then
          allocate(e(na), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa2_template: e", 749,  istat,  errorMessage)
+         call check_allocate_f("elpa2_template: e", 751,  istat,  errorMessage)
 
          call obj%timer%start("tridiag")
          call tridiag_band_&
@@ -1990,7 +1992,7 @@ contains
       l_cols_nev = local_index(nev, my_pcol, np_cols, nblk, -1) ! Local columns corresponding to nev
 
       allocate(q_real(l_rows,l_cols), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa2_template: q_real", 798,  istat,  errorMessage)
+      call check_allocate_f("elpa2_template: q_real", 782,  istat,  errorMessage)
 
       ! Solve tridiagonal system
       if (do_solve_tridi) then
@@ -2006,22 +2008,25 @@ contains
       endif ! do_solve_tridi
 
       deallocate(e, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa2_template: e", 826,  istat,  errorMessage)
+      call check_deallocate_f("elpa2_template: e", 810,  istat,  errorMessage)
 
       if (obj%eigenvalues_only) then
          do_trans_to_band = .false.
          do_trans_to_full = .false.
       else
-
          call obj%get("check_pd",check_pd,error)
          if (error .ne. ELPA_OK) then
             print *,"Problem getting option for check_pd. Aborting..."
             stop
          endif
          if (check_pd .eq. 1) then
-            call obj%get("thres_pd",thres_pd,error)
+            call obj%get("thres_pd_&
+            &double&
+            &",thres_pd,error)
             if (error .ne. ELPA_OK) then
-               print *,"Problem getting option for thres_pd. Aborting..."
+               print *,"Problem getting option for thres_pd_&
+               &double&
+               &. Aborting..."
                stop
             endif
 
@@ -2048,9 +2053,10 @@ contains
          q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
       endif
 
+      ! make sure q_real is deallocated when using check_pd
       if (allocated(q_real)) then
          deallocate(q_real, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: q_real", 863,  istat,  errorMessage)
+         call check_deallocate_f("elpa2_template: q_real", 859,  istat,  errorMessage)
       endif
 
       if (isSkewsymmetric) then
@@ -2128,7 +2134,7 @@ contains
          endif
          ! We can now deallocate the stored householder vectors
          deallocate(hh_trans, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: hh_trans", 957,  istat,  errorMessage)
+         call check_deallocate_f("elpa2_template: hh_trans", 953,  istat,  errorMessage)
       endif
 
       if (do_trans_to_full) then
@@ -2150,9 +2156,10 @@ contains
          call obj%timer%stop("trans_ev_to_full")
       endif ! do_trans_to_full
 
+      ! make sure tmat is deallocated when using check_pd
       if (allocated(tmat)) then
          deallocate(tmat, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: tmat", 980,  istat,  errorMessage)
+         call check_deallocate_f("elpa2_template: tmat", 984,  istat,  errorMessage)
       endif
 
       if (obj%eigenvalues_only) then
@@ -2276,17 +2283,17 @@ contains
       &single&
       &_&
       &complex
-      integer(kind=ik)                                                  :: na, nev, nblk, matrixCols, &
+      integer(kind=ik)                                                   :: na, nev, nblk, matrixCols, &
          mpi_comm_rows, mpi_comm_cols,        &
          mpi_comm_all, check_pd, error, matrixRows
-      real(kind=c_double)                                               :: thres_pd
+      real(kind=c_float)                                         :: thres_pd
 
-      logical                                                           :: do_bandred, do_tridiag, do_solve_tridi,  &
+      logical                                                            :: do_bandred, do_tridiag, do_solve_tridi,  &
          do_trans_to_band, do_trans_to_full
-      logical                                                           :: good_nblk_gpu
+      logical                                                            :: good_nblk_gpu
 
-      integer(kind=ik)                                                  :: nrThreads
-      integer(kind=ik)                                                  :: global_index
+      integer(kind=ik)                                                   :: nrThreads
+      integer(kind=ik)                                                   :: global_index
       logical                                                            :: reDistributeMatrix, doRedistributeMatrix
 
       call obj%timer%start("elpa_solve_evp_&
@@ -2543,7 +2550,7 @@ contains
          q_actual => q(1:matrixRows,1:matrixCols)
       else
          allocate(q_dummy(1:matrixRows,1:matrixCols), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa2_template: q_dummy", 624,  istat,  errorMessage)
+         call check_allocate_f("elpa2_template: q_dummy", 626,  istat,  errorMessage)
          q_actual => q_dummy(1:matrixRows,1:matrixCols)
       endif
 
@@ -2627,7 +2634,7 @@ contains
          ! tmat is needed only in full->band and band->full steps, so alocate here
          ! (not allocated for banded matrix on input)
          allocate(tmat(nbw,nbw,num_blocks), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa2_template: tmat", 712,  istat,  errorMessage)
+         call check_allocate_f("elpa2_template: tmat", 714,  istat,  errorMessage)
 
          do_bandred       = .true.
          do_solve_tridi   = .true.
@@ -2654,7 +2661,7 @@ contains
       ! Reduction band -> tridiagonal
       if (do_tridiag) then
          allocate(e(na), stat=istat, errmsg=errorMessage)
-         call check_allocate_f("elpa2_template: e", 749,  istat,  errorMessage)
+         call check_allocate_f("elpa2_template: e", 751,  istat,  errorMessage)
 
          call obj%timer%start("tridiag")
          call tridiag_band_&
@@ -2676,7 +2683,7 @@ contains
       l_cols_nev = local_index(nev, my_pcol, np_cols, nblk, -1) ! Local columns corresponding to nev
 
       allocate(q_real(l_rows,l_cols), stat=istat, errmsg=errorMessage)
-      call check_allocate_f("elpa2_template: q_real", 798,  istat,  errorMessage)
+      call check_allocate_f("elpa2_template: q_real", 782,  istat,  errorMessage)
 
       ! Solve tridiagonal system
       if (do_solve_tridi) then
@@ -2692,22 +2699,25 @@ contains
       endif ! do_solve_tridi
 
       deallocate(e, stat=istat, errmsg=errorMessage)
-      call check_deallocate_f("elpa2_template: e", 826,  istat,  errorMessage)
+      call check_deallocate_f("elpa2_template: e", 810,  istat,  errorMessage)
 
       if (obj%eigenvalues_only) then
          do_trans_to_band = .false.
          do_trans_to_full = .false.
       else
-
          call obj%get("check_pd",check_pd,error)
          if (error .ne. ELPA_OK) then
             print *,"Problem getting option for check_pd. Aborting..."
             stop
          endif
          if (check_pd .eq. 1) then
-            call obj%get("thres_pd",thres_pd,error)
+            call obj%get("thres_pd_&
+            &single&
+            &",thres_pd,error)
             if (error .ne. ELPA_OK) then
-               print *,"Problem getting option for thres_pd. Aborting..."
+               print *,"Problem getting option for thres_pd_&
+               &single&
+               &. Aborting..."
                stop
             endif
 
@@ -2734,9 +2744,10 @@ contains
          q(1:l_rows,1:l_cols_nev) = q_real(1:l_rows,1:l_cols_nev)
       endif
 
+      ! make sure q_real is deallocated when using check_pd
       if (allocated(q_real)) then
          deallocate(q_real, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: q_real", 863,  istat,  errorMessage)
+         call check_deallocate_f("elpa2_template: q_real", 859,  istat,  errorMessage)
       endif
 
       if (isSkewsymmetric) then
@@ -2814,7 +2825,7 @@ contains
          endif
          ! We can now deallocate the stored householder vectors
          deallocate(hh_trans, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: hh_trans", 957,  istat,  errorMessage)
+         call check_deallocate_f("elpa2_template: hh_trans", 953,  istat,  errorMessage)
       endif
 
       if (do_trans_to_full) then
@@ -2836,9 +2847,10 @@ contains
          call obj%timer%stop("trans_ev_to_full")
       endif ! do_trans_to_full
 
+      ! make sure tmat is deallocated when using check_pd
       if (allocated(tmat)) then
          deallocate(tmat, stat=istat, errmsg=errorMessage)
-         call check_deallocate_f("elpa2_template: tmat", 980,  istat,  errorMessage)
+         call check_deallocate_f("elpa2_template: tmat", 984,  istat,  errorMessage)
       endif
 
       if (obj%eigenvalues_only) then
