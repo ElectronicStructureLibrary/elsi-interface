@@ -20,7 +20,7 @@ module ELSI_SOLVER
    use ELSI_LAPACK, only: elsi_solve_lapack
    use ELSI_MAGMA, only: elsi_init_magma,elsi_solve_magma
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop
+   use ELSI_MPI
    use ELSI_NTPOLY, only: elsi_init_ntpoly,elsi_solve_ntpoly
    use ELSI_OCC, only: elsi_mu_and_occ,elsi_entropy,elsi_get_occ_for_dm
    use ELSI_OMM, only: elsi_init_omm,elsi_solve_omm

@@ -10,7 +10,7 @@
 module ELSI_SET
 
    use ELSI_DATATYPE, only: elsi_handle
-   use ELSI_MPI, only: elsi_stop
+   use ELSI_MPI
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTIL, only: elsi_check_init
 

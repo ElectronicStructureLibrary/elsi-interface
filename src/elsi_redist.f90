@@ -12,7 +12,7 @@ module ELSI_REDIST
    use ELSI_CONSTANT, only: MASK_H,MASK_S
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: MPI_SUM,MPI_REAL8,MPI_COMPLEX16,MPI_INTEGER4
+   use ELSI_MPI
    use ELSI_NTPOLY, only: Triplet_r,Triplet_c,TripletList_r,TripletList_c,&
        Matrix_ps,ConstructEmptyMatrix,FillMatrixFromTripletList,&
        GetMatrixTripletList,ConstructTripletList,AppendToTripletList,&

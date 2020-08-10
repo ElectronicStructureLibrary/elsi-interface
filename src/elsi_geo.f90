@@ -13,7 +13,7 @@ module ELSI_GEO
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_ELPA, only: elsi_update_dm_elpa
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop
+   use ELSI_MPI
    use ELSI_NTPOLY, only: elsi_update_dm_ntpoly
    use ELSI_PRECISION, only: r8
    use ELSI_REDIST, only: elsi_generic_to_blacs_hs,elsi_generic_to_ntpoly_hs,&

@@ -13,7 +13,7 @@ module ELSI_DECISION
    use ELSI_CONSTANT, only: AUTO_SOLVER,ELPA_SOLVER,PEXSI_SOLVER,NTPOLY_SOLVER,&
        UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_MPI, only: MPI_SUM,MPI_INTEGER4,MPI_REAL8
+   use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTIL, only: elsi_check_err

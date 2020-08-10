@@ -10,7 +10,7 @@
 module ELSI_INPUT
 
    use ELSI_DATATYPE, only: elsi_handle,elsi_basic_t
-   use ELSI_MPI, only: elsi_stop
+   use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_get_unit
    use ELSI_PRECISION, only: r8,i4
    use ELSI_SET, only: elsi_set_output,elsi_set_output_log,elsi_set_zero_def,&
