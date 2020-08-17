@@ -11,7 +11,7 @@ module ELSI_OMM
 
    use ELSI_CONSTANT, only: UNSET
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_MPI, only: MPI_SUM,MPI_INTEGER4
+   use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTIL, only: elsi_check_err

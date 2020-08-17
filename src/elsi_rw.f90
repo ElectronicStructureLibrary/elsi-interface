@@ -14,9 +14,7 @@ module ELSI_RW
        FILE_VERSION,MULTI_PROC,SINGLE_PROC,UNSET,N_PARALLEL_MODES,MASK_H
    use ELSI_DATATYPE, only: elsi_rw_handle,elsi_basic_t,elsi_param_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,MPI_SUM,MPI_REAL8,MPI_COMPLEX16,MPI_INTEGER4,&
-       MPI_MODE_RDONLY,MPI_MODE_WRONLY,MPI_MODE_CREATE,MPI_INFO_NULL,&
-       MPI_STATUS_IGNORE
+   use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_get_unit
    use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_REDIST, only: elsi_blacs_to_mask,elsi_blacs_to_sips_hs_dim,&

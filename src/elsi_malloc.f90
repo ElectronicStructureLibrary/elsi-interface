@@ -11,7 +11,7 @@
 module ELSI_MALLOC
 
    use ELSI_DATATYPE, only: elsi_basic_t
-   use ELSI_MPI, only: elsi_stop
+   use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say
    use ELSI_PRECISION, only: i4,i8,r4,r8
 

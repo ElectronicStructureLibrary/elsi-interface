@@ -13,7 +13,7 @@ module ELSI_GET
        OMM_SOLVER,PEXSI_SOLVER,EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER,GET_EDM
    use ELSI_DATATYPE, only: elsi_handle
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop
+   use ELSI_MPI
    use ELSI_NTPOLY, only: elsi_compute_edm_ntpoly
    use ELSI_OMM, only: elsi_compute_edm_omm
    use ELSI_PEXSI, only: elsi_compute_edm_pexsi

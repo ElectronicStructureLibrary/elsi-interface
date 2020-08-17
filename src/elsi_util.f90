@@ -15,7 +15,7 @@ module ELSI_UTIL
        SIPS_SOLVER,NTPOLY_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,UT_MAT,GET_DM
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop,MPI_COMM_SELF,MPI_REAL8,MPI_SUM
+   use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: i4,r8
 

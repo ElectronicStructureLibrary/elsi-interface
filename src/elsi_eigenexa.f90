@@ -14,7 +14,7 @@ module ELSI_EIGENEXA
    use ELSI_ELPA, only: elsi_factor_ovlp_elpa,elsi_reduce_evp_elpa,&
        elsi_back_ev_elpa
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: MPI_SUM,MPI_INTEGER4
+   use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use ELSI_REDIST, only: elsi_blacs_to_eigenexa_h,elsi_eigenexa_to_blacs_ev

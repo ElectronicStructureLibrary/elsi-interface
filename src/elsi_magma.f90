@@ -11,7 +11,7 @@ module ELSI_MAGMA
 
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: elsi_stop
+   use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use MAGMA, only: magmaf_init,magmaf_finalize,magmaf_num_gpus,&

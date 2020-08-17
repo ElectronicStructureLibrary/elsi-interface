@@ -12,7 +12,7 @@ module ELSI_PEXSI
    use ELSI_CONSTANT, only: UNSET,PEXSI_CSC,GET_DM,GET_EDM,GET_FDM
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
-   use ELSI_MPI, only: MPI_SUM,MPI_REAL8,MPI_COMPLEX16
+   use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTIL, only: elsi_check_err,elsi_reduce_energy
