@@ -31,7 +31,7 @@ Enabling the CUDA-based GPU acceleration in the ELPA solver requires:
 * CMake (3.8 or newer)
 * CUDA (10.0 or newer recommended)
 
-## Quick Start
+## Quick start
 
 We recommend preparing and editing configuration settings in a toolchain file
 that can be read by CMake. Edit one of the templates provided in the
