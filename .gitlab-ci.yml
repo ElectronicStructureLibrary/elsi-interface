@@ -8,7 +8,7 @@ before_script:
 ### GNU compilers + OpenMPI + Netlib BLAS, LAPACK, ScaLAPACK ###
 gnu:
   script:
-    - module load openmpi-4.0.4
+    - module load openmpi-4.0.5
     - cat ./toolchains/gnu.cmake
     - rm -rf build
     - mkdir build
