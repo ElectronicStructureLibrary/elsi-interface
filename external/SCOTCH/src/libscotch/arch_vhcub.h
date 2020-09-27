@@ -41,13 +41,13 @@
 /**                target architecture functions.          **/
 /**                                                        **/
 /**   DATES      : # Version 3.4  : from : 08 nov 2001     **/
-/**                                 to     08 nov 2001     **/
+/**                                 to   : 08 nov 2001     **/
 /**                # Version 4.0  : from : 04 nov 2003     **/
-/**                                 to     04 nov 2003     **/
+/**                                 to   : 04 nov 2003     **/
 /**                # Version 5.1  : from : 21 jan 2008     **/
-/**                                 to     21 jan 2008     **/
+/**                                 to   : 21 jan 2008     **/
 /**                # Version 6.0  : from : 14 feb 2011     **/
-/**                                 to     28 may 2018     **/
+/**                                 to   : 28 may 2018     **/
 /**                                                        **/
 /************************************************************/
 

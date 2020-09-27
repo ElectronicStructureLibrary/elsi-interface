@@ -41,13 +41,13 @@
 /**                the graph bipartitioning methods.       **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 08 oct 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 4.0  : from : 15 jan 2002     **/
-/**                                 to     15 jan 2002     **/
+/**                                 to   : 15 jan 2002     **/
 /**                # Version 5.0  : from : 27 nov 2006     **/
-/**                                 to     13 jan 2007     **/
+/**                                 to   : 13 jan 2007     **/
 /**                # Version 6.0  : from : 05 apr 2018     **/
-/**                                 to     05 apr 2018     **/
+/**                                 to   : 05 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 

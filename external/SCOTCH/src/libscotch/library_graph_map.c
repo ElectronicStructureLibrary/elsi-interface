@@ -40,17 +40,17 @@
 /**                routines of the libSCOTCH library.      **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 19 aug 1998     **/
-/**                                 to     20 aug 1998     **/
+/**                                 to   : 20 aug 1998     **/
 /**                # Version 3.3  : from : 19 oct 1998     **/
-/**                                 to     30 mar 1999     **/
+/**                                 to   : 30 mar 1999     **/
 /**                # Version 3.4  : from : 01 nov 2001     **/
-/**                                 to     01 nov 2001     **/
+/**                                 to   : 01 nov 2001     **/
 /**                # Version 4.0  : from : 13 jan 2004     **/
-/**                                 to     13 nov 2005     **/
+/**                                 to   : 13 nov 2005     **/
 /**                # Version 5.1  : from : 29 oct 2007     **/
-/**                                 to     24 jul 2011     **/
+/**                                 to   : 24 jul 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     15 may 2018     **/
+/**                                 to   : 15 may 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -128,7 +128,7 @@ SCOTCH_Mapping * const      mappptr)
   LibMapping * restrict lmapptr;
 
   lmapptr = (LibMapping *) mappptr;
- 
+
   if (((lmapptr->flagval & LIBMAPPINGFREEPART) != 0) && /* If parttab must be freed */
       (lmapptr->parttab != NULL))                 /* And if exists                  */
     memFree (lmapptr->parttab);                   /* Free it                        */

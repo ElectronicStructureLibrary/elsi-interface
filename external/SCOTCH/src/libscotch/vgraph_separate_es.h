@@ -42,9 +42,9 @@
 /**   DATES      : # Version 3.2  : from : 24 oct 1996     **/
 /**                                 to   : 07 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 18 aug 2004     **/
-/**                                 to     19 aug 2004     **/
+/**                                 to   : 19 aug 2004     **/
 /**                # Version 6.0  : from : 30 apr 2018     **/
 /**                                 to   : 30 apr 2018     **/
 /**                                                        **/

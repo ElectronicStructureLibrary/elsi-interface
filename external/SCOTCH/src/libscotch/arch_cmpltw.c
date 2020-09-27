@@ -40,9 +40,9 @@
 /**                complete graph target architecture.     **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 11 dec 2007     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 14 feb 2011     **/
-/**                                 to     12 apr 2015     **/
+/**                                 to   : 12 apr 2015     **/
 /**                                                        **/
 /************************************************************/
 

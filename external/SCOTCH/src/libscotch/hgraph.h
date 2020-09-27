@@ -39,13 +39,13 @@
 /**                for the source halo graph structure.    **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 02 jan 2002     **/
-/**                                 to     30 apr 2004     **/
+/**                                 to   : 30 apr 2004     **/
 /**                # Version 5.0  : from : 19 dec 2006     **/
-/**                                 to     19 dec 2006     **/
+/**                                 to   : 19 dec 2006     **/
 /**                # Version 5.1  : from : 04 nov 2010     **/
-/**                                 to     04 nov 2010     **/
+/**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 17 oct 2012     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

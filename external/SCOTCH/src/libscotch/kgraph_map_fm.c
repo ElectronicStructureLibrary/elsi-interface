@@ -42,7 +42,7 @@
 /**                method.                                 **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     06 jun 2018     **/
+/**                                 to   : 06 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -269,7 +269,7 @@ Gnum * restrict                     flagval)
 
   if (linkptr == NULL)
     return (NULL);
-     
+
   *comploaddiff += deltnew;
   return (edxxptr);
 }
@@ -400,25 +400,25 @@ Gnum * const                                chektab)
     for (edxxidx = vexxtab[vexxidx].edxxidx; edxxidx != -1; edxxidx = edxxtab[edxxidx].edxxidx) {
       Gnum                        domncur;
       Gnum                        domnflg;
- 
+
       domnflg = 0;
       domncur = edxxtab[edxxidx].domnnum;
- 
+
       commgaintab[domncur] = -commloadloctmp;
       for (edgenum = verttax[vertnum]; edgenum < vendtax[vertnum]; edgenum ++) {
         Gnum                      vertend;
         Anum                      domnend;
         Gnum                      edloval;
- 
+
         vertend = edgetax[edgenum];
         domnend = parttax[vertend];
         edloval = (edlotax != NULL) ? edlotax[edgenum] : 1;
- 
+
         if (domnend == domncur) {
           domnflg = 1;
           continue;
         }
-     
+
         edloval *= grafptr->r.crloval;
         commgaintab[domncur] += edloval        /* Add edge contribution to target domain */
                               * archDomDist (&grafptr->a, &grafptr->m.domntab[domncur], &grafptr->m.domntab[domnend]);
@@ -482,7 +482,7 @@ Gnum * const                                chektab)
 
           if (domnorg != domnend) {
             Anum                distval;
- 
+
             distval = (domnend != domnlst) ? archDomDist (grafptr->m.archptr, &grafptr->m.domntab[domnorg], &grafptr->m.domntab[domnend]) : distlst;
             distlst = distval;
             domnlst = domnend;
@@ -901,7 +901,7 @@ KgraphMapFmVertex ** const        lockptr)        /*+ Pointer to locked list    
     if (savetab[savenum].type == KGRAPHMAPPFMSAVEVEXX) {
       Gnum                  vertnum;
       Gnum                  vexxidx;
- 
+
       vertnum = savetab[savenum].u.vexxdat.vexxidx; /* Get vertex number */
       for (vexxidx = (vertnum * KGRAPHMAPFMHASHPRIME) & hashmsk; vexxtab[vexxidx].vertnum != vertnum; vexxidx = (vexxidx + 1) & hashmsk) {
 #ifdef SCOTCH_DEBUG_KGRAPH2
@@ -916,7 +916,7 @@ KgraphMapFmVertex ** const        lockptr)        /*+ Pointer to locked list    
     else if ((savetab[savenum].type & KGRAPHMAPPFMSAVELINK) != 0) {
       Gnum                  vertnum;
       Gnum                  vexxidx;
- 
+
       vertnum = savetab[savenum].u.linkdat.vexxidx; /* Get vertex number */
       for (vexxidx = (vertnum * KGRAPHMAPFMHASHPRIME) & hashmsk; vexxtab[vexxidx].vertnum != vertnum; vexxidx = (vexxidx + 1) & hashmsk) {
 #ifdef SCOTCH_DEBUG_KGRAPH2
@@ -1007,7 +1007,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
   tablptr = &tabldat;
 
   grafptr->kbalval = paraptr->deltval;            /* Store last k-way imbalance ratio */
-  kgraphCost (grafptr); 
+  kgraphCost (grafptr);
   grafptr->commload *= grafptr->r.crloval;        /* crloval must be 1 if we are not doing a repartitioning of a no-band graph */
   if (memAllocGroup ((void **) (void *)           /* Allocation and initialization of imbalance arrays                         */
                     &comploadmax, (size_t) (grafptr->m.domnnbr * sizeof (Gnum)),
@@ -1022,7 +1022,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
 
   if (grafptr->fronnbr == 0) {                    /* If no current frontier */
     Anum               domnnum;
-   
+
     for (domnnum = 0; domnnum < grafptr->m.domnnbr; domnnum ++) {
       if (abs (grafptr->comploaddlt[domnnum]) > comploadmax[domnnum])
         break;
@@ -1077,7 +1077,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
   if (kgraphMapFmTablInit (tablptr) != 0) {
     errorPrint ("kgraphMapFm: internal error (1)"); /* Unable to do proper initialization */
     kgraphMapFmTablExit (tablptr);
-    return (1); 
+    return (1);
   }
   else {
     if (((vexxtab = memAlloc ((size_t) hashsiz * sizeof (KgraphMapFmVertex))) == NULL) ||
@@ -1153,7 +1153,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
        * All unlocked vertices have all there valid extended edges in the table
        * Any of the deprecated edges are in the table
        * Any of locked vertices have extended edges in the table */
-      Gnum                vexxidx; 
+      Gnum                vexxidx;
       Gnum                oldveloval;
       Anum                domnnum;
       Anum                domnorg;
@@ -1409,7 +1409,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
           vpexptr = edxpptr;
           continue;
         }
-        edxxtab[edxxidx].commgain -= edxxptr->commgain;   
+        edxxtab[edxxidx].commgain -= edxxptr->commgain;
         edxxtab[edxxidx].cmiggain -= edxxptr->cmiggain;
         edxxtab[edxxidx].distval = archDomDist (&grafptr->a, &grafptr->m.domntab[domnend], &grafptr->m.domntab[domncur]);
       }
@@ -1417,7 +1417,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
       edxxptr->cmiggain = - edxxptr->cmiggain;
 
       if (edgenbr == 0) {
-        Gnum              edxxidx; 
+        Gnum              edxxidx;
 
         edxxidx = *vpexptr;
         savetab[savenbr].type = KGRAPHMAPPFMSAVELINKDEL; /* Save it */
@@ -1436,7 +1436,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
          *   linked to this domain.
          * - Update commgain of other edges.
          * - Relink extended edges
-         */ 
+         */
         Gnum                edxxend;
         Gnum                vexxend;
         Gnum                edxoidx;              /* Index of extended edge to old domain                    */
@@ -1454,7 +1454,7 @@ const KgraphMapFmParam * const    paraptr)        /*+ Method parameters +*/
 
         if ((pfixtax != NULL) && (pfixtax[vertend] != -1)) /* Do not link fixed vertices */
           continue;
-        
+
         if (savenbr >= (savesiz - (grafptr->m.domnnbr + 4) * 4)) {
           KgraphMapFmSave *               saveptr; /* Pointer to move array */
 

@@ -39,9 +39,9 @@
 /**   FUNCTION   : This module handles (partial) mappings. **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 31 mar 2008     **/
-/**                                 to     09 nov 2008     **/
+/**                                 to   : 09 nov 2008     **/
 /**                # Version 6.0  : from : 03 sep 2013     **/
-/**                                 to     03 sep 2013     **/
+/**                                 to   : 03 sep 2013     **/
 /**                                                        **/
 /************************************************************/
 

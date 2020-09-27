@@ -40,7 +40,7 @@
 /**                algorithm.                              **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 28 sep 2002     **/
-/**                                 to     09 feb 2005     **/
+/**                                 to   : 09 feb 2005     **/
 /**                # Version 5.0  : from : 25 jul 2007     **/
 /**                                 to   : 25 jul 2007     **/
 /**                                                        **/

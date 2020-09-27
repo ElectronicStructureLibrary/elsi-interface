@@ -39,25 +39,25 @@
 /**                coarsening functions.                   **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 01 dec 1992     **/
-/**                                 to     18 may 1993     **/
+/**                                 to   : 18 may 1993     **/
 /**                # Version 1.3  : from : 30 apr 1994     **/
-/**                                 to     18 may 1994     **/
+/**                                 to   : 18 may 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     31 oct 1994     **/
+/**                                 to   : 31 oct 1994     **/
 /**                # Version 3.0  : from : 07 jul 1995     **/
-/**                                 to     28 sep 1995     **/
+/**                                 to   : 28 sep 1995     **/
 /**                # Version 3.1  : from : 28 nov 1995     **/
-/**                                 to     08 jun 1996     **/
+/**                                 to   : 08 jun 1996     **/
 /**                # Version 3.2  : from : 07 sep 1996     **/
-/**                                 to     17 sep 1998     **/
+/**                                 to   : 17 sep 1998     **/
 /**                # Version 4.0  : from : 13 dec 2001     **/
-/**                                 to     31 aug 2005     **/
+/**                                 to   : 31 aug 2005     **/
 /**                # Version 5.0  : from : 13 dec 2006     **/
-/**                                 to     24 mar 2008     **/
+/**                                 to   : 24 mar 2008     **/
 /**                # Version 5.1  : from : 30 oct 2009     **/
-/**                                 to     30 oct 2009     **/
+/**                                 to   : 30 oct 2009     **/
 /**                # Version 6.0  : from : 09 mar 2011     **/
-/**                                 to     29 apr 2019     **/
+/**                                 to   : 29 apr 2019     **/
 /**                                                        **/
 /************************************************************/
 

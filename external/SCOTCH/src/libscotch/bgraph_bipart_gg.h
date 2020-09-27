@@ -42,15 +42,15 @@
 /**                growing bipartitioning method.          **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 07 jan 1996     **/
-/**                                 to     29 apr 1996     **/
+/**                                 to   : 29 apr 1996     **/
 /**                # Version 3.2  : from : 20 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 09 jan 2004     **/
-/**                                 to     09 jan 2004     **/
+/**                                 to   : 09 jan 2004     **/
 /**                # Version 6.0  : from : 23 feb 2011     **/
-/**                                 to     05 apr 2018     **/
+/**                                 to   : 05 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 

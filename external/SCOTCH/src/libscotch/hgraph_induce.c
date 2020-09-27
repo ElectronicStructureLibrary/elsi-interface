@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2012,2014,2018,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -39,13 +39,13 @@
 /**                graph subgraph-making functions.        **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 02 jan 2002     **/
-/**                                 to     25 feb 2004     **/
+/**                                 to   : 25 feb 2004     **/
 /**                # Version 5.0  : from : 19 dec 2006     **/
-/**                                 to     11 jun 2008     **/
+/**                                 to   : 11 jun 2008     **/
 /**                # Version 5.1  : from : 24 oct 2010     **/
-/**                                 to     24 oct 2010     **/
+/**                                 to   : 24 oct 2010     **/
 /**                # Version 6.0  : from : 27 mar 2012     **/
-/**                                 to     23 may 2018     **/
+/**                                 to   : 20 aug 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -132,8 +132,8 @@ Hgraph * restrict const           indgrafptr)     /* Pointer to induced subgraph
 
     if ((indedgenbr < 0) ||                       /* If cannot compute real number of edges          */
         (memAllocGroup ((void **) (void *)        /* Or cannot allocate edge arrays with real values */
-                       &indedgetab, (size_t) (indedgesiz            * sizeof (Gnum)),
-                       &orgindxtax, (size_t) (orggrafptr->s.vertnbr * sizeof (Gnum)), NULL) == NULL)) {
+                        &indedgetab, (size_t) (indedgesiz            * sizeof (Gnum)),
+                        &orgindxtax, (size_t) (orggrafptr->s.vertnbr * sizeof (Gnum)), NULL) == NULL)) {
       errorPrint ("hgraphInduceList: out of memory (2)");
       hgraphExit (indgrafptr);
       return     (1);
@@ -179,7 +179,7 @@ Gnum * restrict const           indedgetab)       /* Pointer to pre-allocated sp
   }
 #endif /* SCOTCH_DEBUG_HGRAPH2 */
   if (orggrafptr->s.edlotax != NULL) {
-    size_t              indedlooftval;            /* Offset of edge load array with respect to edge array */
+    ptrdiff_t           indedlooftval;            /* Offset of edge load array with respect to edge array */
 
     indedgetnd = memOffset (indedgetnd, &indgrafptr->s.edlotax, (size_t) (indedgenbr * sizeof (Gnum)), NULL);
     indgrafptr->s.edlotax -= indgrafptr->s.baseval;

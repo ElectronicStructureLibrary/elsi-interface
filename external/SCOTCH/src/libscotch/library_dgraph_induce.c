@@ -40,7 +40,7 @@
 /**                the libSCOTCH library.                  **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 30 aug 2012     **/
-/**                                 to     25 apr 2018     **/
+/**                                 to   : 25 apr 2018     **/
 /**                                                        **/
 /**   NOTES      : # This code is directly derived from    **/
 /**                  the code of dgraphInducePart() and    **/

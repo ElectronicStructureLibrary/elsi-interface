@@ -41,15 +41,15 @@
 !*                library.                                **
 !*                                                        **
 !*   DATES      : # Version 3.4  : from : 04 feb 2000     **
-!*                                 to     22 oct 2001     **
+!*                                 to   : 22 oct 2001     **
 !*                # Version 4.0  : from : 16 jan 2004     **
-!*                                 to     16 jan 2004     **
+!*                                 to   : 16 jan 2004     **
 !*                # Version 5.0  : from : 26 apr 2006     **
-!*                                 to     26 apr 2006     **
+!*                                 to   : 26 apr 2006     **
 !*                # Version 5.1  : from : 26 mar 2009     **
-!*                                 to     12 feb 2011     **
+!*                                 to   : 12 feb 2011     **
 !*                # Version 6.0  : from : 22 oct 2011     **
-!*                                 to     27 nov 2012     **
+!*                                 to   : 27 nov 2012     **
 !*                                                        **
 !***********************************************************
 

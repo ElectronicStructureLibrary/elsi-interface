@@ -1,4 +1,4 @@
-/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -39,7 +39,9 @@
 /**                functions.                              **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 29 dec 2001     **/
-/**                                 to     11 may 2004     **/
+/**                                 to   : 11 may 2004     **/
+/**                # Version 6.0  : from : 24 jan 2020     **/
+/**                                 to   : 24 jan 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -80,6 +82,8 @@ const Mesh * const          meshptr)
 
   if ((meshptr->velmbas > meshptr->velmnnd) ||
       (meshptr->vnodbas > meshptr->vnodnnd) ||
+      (meshptr->velmnnd != (meshptr->velmbas + meshptr->velmnbr)) ||
+      (meshptr->vnodnnd != (meshptr->vnodbas + meshptr->vnodnbr)) ||
       ((meshptr->velmnnd != meshptr->vnodbas) &&
        (meshptr->vnodnnd != meshptr->velmbas))) {
     errorPrint ("meshCheck: invalid node and element numbers");
@@ -138,7 +142,7 @@ const Mesh * const          meshptr)
     }
   }
   if (veisnbr != meshptr->veisnbr) {
-    errorPrint ("meshCheck: invalid number of isolated element vertices (1)");
+    errorPrint ("meshCheck: invalid number of isolated element vertices");
     return     (1);
   }
 

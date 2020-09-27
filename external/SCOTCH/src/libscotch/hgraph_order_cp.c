@@ -40,13 +40,13 @@
 /**                structure.                              **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 29 aug 1998     **/
-/**                                 to     12 sep 1998     **/
+/**                                 to   : 12 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     03 jan 1999     **/
+/**                                 to   : 03 jan 1999     **/
 /**                # Version 4.0  : from : 01 jan 2003     **/
-/**                                 to     05 jan 2005     **/
+/**                                 to   : 05 jan 2005     **/
 /**                # Version 5.0  : from : 29 dec 2006     **/
-/**                                 to     22 may 2008     **/
+/**                                 to   : 22 may 2008     **/
 /**                # Version 5.1  : from : 01 oct 2009     **/
 /**                                 to   : 01 oct 2009     **/
 /**                # Version 6.0  : from : 04 aug 2014     **/

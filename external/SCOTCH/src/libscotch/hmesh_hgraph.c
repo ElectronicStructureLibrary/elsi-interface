@@ -39,7 +39,7 @@
 /**                mesh to halo graph conversion function. **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 30 nov 2003     **/
-/**                                 to     05 may 2004     **/
+/**                                 to   : 05 may 2004     **/
 /**                # Version 5.0  : from : 10 sep 2007     **/
 /**                                 to   : 10 sep 2007     **/
 /**                # Version 6.0  : from : 28 apr 2019     **/

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2018,2019 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -45,7 +45,9 @@
 /**                # Version 4.0  : from : 10 jan 2003     **/
 /**                                 to   : 08 dec 2003     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
+/**                # Version 6.1  : from : 02 nov 2019     **/
+/**                                 to   : 02 nov 2019     **/
 /**                                                        **/
 /************************************************************/
 
@@ -53,4 +55,4 @@
 **  The function prototypes.
 */
 
-void                        hallOrderHfR2hamdf4 (const Gnum n, const Gnum nbelts, const Gnum nbbuck, const Gnum iwlen, Gnum pe[], Gnum pfree, Gnum len[], Gnum iw[], Gnum nv[], Gnum elen[], Gnum last[], Gnum * ncmpa, Gnum degree[], Gnum wf[], Gnum next[], Gnum w[], Gnum head[]);
+void                        hallOrderHfR3Hamdf4 (const Gnum, const Gnum, const Gnum, const Gnum, const Gnum , Gnum * const, Gnum, Gnum * const, Gnum * const, Gnum * const, Gnum * const, Gnum * const, Gnum * const, Gnum * const, Gnum * const, Gnum * const, Gnum * const, Gnum * const);

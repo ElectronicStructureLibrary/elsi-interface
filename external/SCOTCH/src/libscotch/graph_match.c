@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2009,2011,2012,2015,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2009,2011,2012,2015,2018,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -40,7 +40,7 @@
 /**                generic pattern.                        **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 05 oct 2012     **/
-/**                                 to     05 jun 2018     **/
+/**                                 to   : 30 aug 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -320,7 +320,7 @@ GraphCoarsenData * restrict coarptr)
 {
 #ifdef SCOTCH_PTHREAD
   coarptr->finelocktax = NULL;
-  coarptr->finequeutab = NULL;
+  coarptr->finequeutax = NULL;
   coarptr->fendptr     = (void (*) (void *)) NULL;
   coarptr->fmidptr     = (void (*) (void *)) NULL;
 #endif /* SCOTCH_PTHREAD */
@@ -358,11 +358,12 @@ GraphCoarsenData * restrict coarptr)
 #if ((defined GRAPHMATCHTHREAD) && ! (defined SCOTCH_DETERMINISTIC))
   if (thrdnbr > 1) {
     if (memAllocGroup ((void **) (void *)
-                       &coarptr->finequeutab, (size_t) (finevertnbr * sizeof (Gnum)),
+                       &coarptr->finequeutax, (size_t) (finevertnbr * sizeof (Gnum)),
                        &coarptr->finelocktax, (size_t) (finevertnbr * sizeof (int)), NULL) == NULL) {
       errorPrint ("graphMatchInit: out of memory");
       return     (1);
     }
+    coarptr->finequeutax -= baseval;
     coarptr->finelocktax -= baseval;
 
     coarptr->fbegptr = (void (*) (void *)) graphmatchfuncthrbegtab[flagval];
@@ -370,7 +371,7 @@ GraphCoarsenData * restrict coarptr)
     coarptr->fendptr = (void (*) (void *)) graphmatchfuncthrendtab[flagval];
   }
   else  {
-    coarptr->finequeutab = NULL;
+    coarptr->finequeutax = NULL;
     coarptr->finelocktax = NULL;                  /* If deterministic behavior wanted, no threaded mating */
     coarptr->fbegptr = (void (*) (void *)) graphmatchfuncseqtab[flagval];
 #ifdef SCOTCH_DEBUG_GRAPH2
@@ -406,8 +407,8 @@ void * restrict const               vremptr)      /* Pointer to remote value */
 
   qremnbr = tremptr->finequeunnd - tremptr->finequeubas; /* Number of enqueued fine vertices in second thread */
 
-  memMov (coarptr->finequeutab + tlocptr->finequeunnd, /* Merge queues */
-          coarptr->finequeutab + tremptr->finequeubas,
+  memMov (coarptr->finequeutax + tlocptr->finequeunnd, /* Merge queues */
+          coarptr->finequeutax + tremptr->finequeubas,
           qremnbr * sizeof (Gnum));
   tlocptr->finequeunnd += qremnbr;
   tlocptr->coarvertnbr += tremptr->coarvertnbr;
@@ -459,7 +460,7 @@ GraphCoarsenThread * restrict thrdptr)            /*+ Pointer to incomplete matc
 
     if (thrdptr->thrddat.thrdnum == 0) {
       coarptr->coarvertnbr = thrdptr->coarvertnbr;  /* Global number of coarse vertices is reduced number */
-      memFree (coarptr->finequeutab);             /* Free group leader of matching data                   */
+      memFree (coarptr->finequeutax + finegrafptr->baseval); /* Free group leader of matching data        */
     }
 
     threadBarrier (thrdptr);                      /* coarptr->coarvertnbr must be known to all */

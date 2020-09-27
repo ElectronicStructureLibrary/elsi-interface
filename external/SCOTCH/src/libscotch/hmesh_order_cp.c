@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2018,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -40,11 +40,11 @@
 /**                adjacency structure.                    **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 08 feb 2004     **/
-/**                                 to     05 jan 2005     **/
+/**                                 to   : 05 jan 2005     **/
 /**                # Version 5.0  : from : 25 jul 2007     **/
 /**                                 to   : 12 sep 2007     **/
 /**                # Version 6.0  : from : 06 jun 2018     **/
-/**                                 to   : 06 jun 2018     **/
+/**                                 to   : 09 feb 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -400,7 +400,7 @@ loop_failed: ;
     return     (1);
   }
 #endif /* SCOTCH_DEBUG_ORDER2 */
-  fineordeptr->treenbr += coarordedat.cblknbr;    /* Adjust number of tree nodes     */
+  fineordeptr->treenbr += coarordedat.treenbr - 1; /* Adjust number of tree nodes    */
   fineordeptr->cblknbr += coarordedat.cblknbr - 1; /* Adjust number of column blocks */
 
   coarvpostax = coarmeshdat.m.verttax;            /* Recycle verttab (not velotab as may be merged with coarvsiztab) */

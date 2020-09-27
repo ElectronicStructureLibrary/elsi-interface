@@ -40,9 +40,9 @@
 /**                the parallel mapping handling routines. **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 31 mar 2008     **/
-/**                                 to     04 nov 2010     **/
+/**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

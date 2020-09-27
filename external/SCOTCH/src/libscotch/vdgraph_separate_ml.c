@@ -461,7 +461,7 @@ const DgraphCoarsenMulti * restrict const coarmulttax) /*+ Based multinode array
   finegrafptr->complocsize[0] =
   finegrafptr->complocsize[1] =
   finegrafptr->complocsize[2] = 0;
- 
+
 #ifdef SCOTCH_DEBUG_VDGRAPH2
   memSet (finegrafptr->partgsttax + finegrafptr->s.baseval, 3, finegrafptr->s.vertgstnbr * sizeof (GraphPart)); /* Mark all vertices as unvisited */
 #endif /* SCOTCH_DEBUG_VDGRAPH2 */

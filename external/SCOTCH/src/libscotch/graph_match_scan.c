@@ -1,4 +1,4 @@
-/* Copyright 2012,2014,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2012,2014,2015,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -41,7 +41,7 @@
 /**                graph matching functions.               **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 01 oct 2012     **/
-/**                                 to     14 aug 2015     **/
+/**                                 to   : 30 aug 2020     **/
 /**                                                        **/
 /**   NOTES      : # This code partly derives from the     **/
 /**                  code of graph_match.c partly updated  **/
@@ -86,7 +86,7 @@ GraphCoarsenThread * restrict thrdptr)            /* Thread-dependent data */
   Gunum                   randval = thrdptr->randval; /* Unsigned to avoid negative random numbers */
 #endif /* ((defined GRAPHMATCHSCANP1INPERT) || defined (GRAPHMATCHSCANP2INPERT)) */
 #if ((defined GRAPHMATCHSCANP1INQUEUE) || defined (GRAPHMATCHSCANP2INQUEUE) || defined (GRAPHMATCHSCANP2OUTQUEUE))
-  Gnum * const            queutab = coarptr->finequeutab;
+  Gnum * const            queutax = coarptr->finequeutax;
   volatile int * const    locktax = coarptr->finelocktax;
 #endif /* ((defined GRAPHMATCHSCANP1INQUEUE) || defined (GRAPHMATCHSCANP2INQUEUE) || defined (GRAPHMATCHSCANP2OUTQUEUE)) */
 #if ((defined GRAPHMATCHSCANP1INQUEUE) || defined (GRAPHMATCHSCANP2INQUEUE))
@@ -121,7 +121,7 @@ GraphCoarsenThread * restrict thrdptr)            /* Thread-dependent data */
 #ifdef GRAPHMATCHSCANP1INQUEUE
   for (queunum = thrdptr->queubas, queunnd = thrdptr->queunnd;
        queunum < queunnd; queunum ++) {
-    finevertnum = queutab[queunum];
+    finevertnum = queutax[queunum];
 #endif /* GRAPHMATCHSCANP1INQUEUE */
 #ifdef GRAPHMATCHSCANP1INPERT
   for (pertbas = thrdptr->finequeubas, pertnnd = thrdptr->finequeunnd;
@@ -191,7 +191,7 @@ GraphCoarsenThread * restrict thrdptr)            /* Thread-dependent data */
         __sync_lock_release (&locktax[finevertnum]); /* Release lock on local vertex                 */
 #ifdef GRAPHMATCHSCANP1OUTQUEUE
 record1:
-        queutab[queunew ++] = finevertnum;        /* Postpone processing to next pass */
+        queutax[queunew ++] = finevertnum;        /* Postpone processing to next pass */
 #endif /* GRAPHMATCHSCANP1OUTQUEUE */
         goto loop1;
       }
@@ -225,7 +225,7 @@ loop1: ;
 #ifdef GRAPHMATCHSCANP2INQUEUE
   for (queunum = thrdptr->finequeubas, queunnd = thrdptr->finequeunnd;
        queunum < queunnd; queunum ++) {
-    finevertnum = queutab[queunum];
+    finevertnum = queutax[queunum];
 #endif /* GRAPHMATCHSCANP2INQUEUE */
 #ifdef GRAPHMATCHSCANP2INPERT
   for (pertbas = thrdptr->finequeubas, pertnnd = thrdptr->finequeunnd;
@@ -259,7 +259,7 @@ loop1: ;
 #ifdef GRAPHMATCHSCANP2INQUEUE
       Gnum                queutmp = queunnd;
       do
-        finevertbst = queutab[-- queutmp];
+        finevertbst = queutax[-- queutmp];
 #endif /* GRAPHMATCHSCANP2INQUEUE */
       while ((finematetax[finevertbst] >= 0)      /* No test for overflow; we will always mate ourselves as we are isolated */
 #ifdef GRAPHMATCHSCANPFIXTAB
@@ -319,7 +319,7 @@ loop1: ;
     if (finevertbst != finevertnum) {             /* If we mated with another vertex                 */
       if (__sync_lock_test_and_set (&locktax[finevertbst], 1)) { /* If could not acquire mate vertex */
         __sync_lock_release (&locktax[finevertnum]); /* Release lock on local vertex                 */
-        queutab[queunew ++] = finevertnum;        /* Postpone processing to next pass                */
+        queutax[queunew ++] = finevertnum;        /* Postpone processing to next pass                */
         goto loop2;
       }
       finematetax[finevertbst] = finevertnum;

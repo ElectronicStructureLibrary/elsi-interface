@@ -40,15 +40,15 @@
 /**                the strategy strings lexical parser.    **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 07 nov 1995     **/
-/**                                 to     13 jun 1996     **/
+/**                                 to   : 13 jun 1996     **/
 /**                # Version 3.2  : from : 03 oct 1996     **/
-/**                                 to     19 oct 1996     **/
+/**                                 to   : 19 oct 1996     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 20 dec 2001     **/
-/**                                 to     20 dec 2001     **/
+/**                                 to   : 20 dec 2001     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

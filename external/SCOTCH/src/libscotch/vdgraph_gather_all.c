@@ -42,11 +42,11 @@
 /**                distributed Vdgraph.                    **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 29 apr 2006     **/
-/**                                 to     01 mar 2008     **/
+/**                                 to   : 01 mar 2008     **/
 /**                # Version 5.1  : from : 18 apr 2009     **/
-/**                                 to     30 jul 2010     **/
+/**                                 to   : 30 jul 2010     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /**   NOTES      : # The definitions of MPI_Gather and     **/
 /**                  MPI_Gatherv indicate that elements in **/

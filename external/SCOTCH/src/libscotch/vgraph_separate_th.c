@@ -38,9 +38,9 @@
 /**   FUNCTION   : This module thins a vertex separator.   **/
 /**                                                        **/
 /**   DATES      : # Version 3.3  : from : 17 oct 1998     **/
-/**                                 to     17 oct 1998     **/
+/**                                 to   : 17 oct 1998     **/
 /**                # Version 4.0  : from : 12 dec 2001     **/
-/**                                 to     06 jan 2002     **/
+/**                                 to   : 06 jan 2002     **/
 /**                                                        **/
 /************************************************************/
 

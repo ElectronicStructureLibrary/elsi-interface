@@ -42,15 +42,15 @@
 /**                the graph multipartitioning methods.    **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 15 oct 1996     **/
-/**                                 to     29 sep 1997     **/
+/**                                 to   : 29 sep 1997     **/
 /**                # Version 3.3  : from : 19 oct 1998     **/
-/**                                 to     09 dec 1998     **/
+/**                                 to   : 09 dec 1998     **/
 /**                # Version 4.0  : from : 12 jan 2004     **/
-/**                                 to     12 jan 2004     **/
+/**                                 to   : 12 jan 2004     **/
 /**                # Version 5.1  : from : 13 jul 2010     **/
-/**                                 to     13 jul 2010     **/
+/**                                 to   : 13 jul 2010     **/
 /**                # Version 6.0  : from : 08 jun 2011     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

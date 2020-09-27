@@ -39,7 +39,7 @@
 /**                nested dissection algorithm.            **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 06 jan 2002     **/
-/**                                 to     05 jan 2005     **/
+/**                                 to   : 05 jan 2005     **/
 /**                # Version 5.0  : from : 25 jul 2007     **/
 /**                                 to   : 12 sep 2007     **/
 /**                # Version 5.1  : from : 09 nov 2008     **/

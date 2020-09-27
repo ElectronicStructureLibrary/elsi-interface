@@ -50,19 +50,19 @@
 /**                # Version 2.1  : from : 07 apr 1995     **/
 /**                                 to   : 29 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     08 sep 1995     **/
+/**                                 to   : 08 sep 1995     **/
 /**                # Version 3.1  : from : 22 jul 1996     **/
-/**                                 to     23 jul 1996     **/
+/**                                 to   : 23 jul 1996     **/
 /**                # Version 3.2  : from : 16 oct 1996     **/
-/**                                 to     14 may 1998     **/
+/**                                 to   : 14 may 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 09 jan 2004     **/
-/**                                 to     10 mar 2005     **/
+/**                                 to   : 10 mar 2005     **/
 /**                # Version 5.1  : from : 21 jan 2008     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 14 feb 2011     **/
-/**                                 to     15 may 2018     **/
+/**                                 to   : 15 may 2018     **/
 /**                                                        **/
 /**   NOTES      : # The vertices of the (dX,dY) mesh are  **/
 /**                  numbered as terminals so that         **/

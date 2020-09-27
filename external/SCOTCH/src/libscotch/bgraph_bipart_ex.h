@@ -40,19 +40,19 @@
 /**                module.                                 **/
 /**                                                        **/
 /**   DATES      : # Version 2.0  : from : 25 oct 1994     **/
-/**                                 to     26 oct 1994     **/
+/**                                 to   : 26 oct 1994     **/
 /**                # Version 3.0  : from : 18 nov 1995     **/
-/**                                 to     20 nov 1995     **/
+/**                                 to   : 20 nov 1995     **/
 /**                # Version 3.1  : from : 20 nov 1995     **/
-/**                                 to     20 nov 1995     **/
+/**                                 to   : 20 nov 1995     **/
 /**                # Version 3.2  : from : 15 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 11 dec 2003     **/
-/**                                 to     11 dec 2003     **/
+/**                                 to   : 11 dec 2003     **/
 /**                # Version 6.0  : from : 05 apr 2018     **/
-/**                                 to     05 apr 2018     **/
+/**                                 to   : 05 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 

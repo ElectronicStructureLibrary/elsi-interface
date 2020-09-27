@@ -1,5 +1,5 @@
 %{
-/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -40,15 +40,15 @@
 /**                which processes strategy strings.       **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 07 nov 1995     **/
-/**                                 to     23 aug 1996     **/
+/**                                 to   : 23 aug 1996     **/
 /**                # Version 3.2  : from : 24 sep 1996     **/
-/**                                 to     05 jun 1997     **/
+/**                                 to   : 05 jun 1997     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     11 sep 2001     **/
+/**                                 to   : 11 sep 2001     **/
 /**                # Version 4.0  : from : 20 dec 2001     **/
-/**                                 to     23 dec 2001     **/
+/**                                 to   : 23 dec 2001     **/
 /**                # Version 5.1  : from : 09 jun 2009     **/
-/**                                 to     24 jul 2011     **/
+/**                                 to   : 24 jul 2011     **/
 /**                                                        **/
 /**   NOTES      : # In order for flex to read its input   **/
 /**                  with getc() instead of fread, we set  **/
@@ -95,7 +95,10 @@
 
 #define YY_NO_UNPUT                               /* No prototype for yyunput as not defined     */
 #define YY_SKIP_YYWRAP                            /* No prototype for yywrap as defined as macro */
-#define yywrap()                    (1)           /* Always return end-of-file on end-of-string  */
+#ifdef yywrap
+#undef yywrap                                     /* Override any previous definition of yywrap */
+#endif /* yywrap */
+#define yywrap()                    (1)           /* Always return end-of-file on end-of-string */
 
 /*
 **  The static variables.

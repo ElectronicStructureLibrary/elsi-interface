@@ -38,9 +38,9 @@
 /**   FUNCTION   : This module handles Fibonacci heaps.    **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 01 may 2010     **/
-/**                                 to     12 may 2010     **/
+/**                                 to   : 12 may 2010     **/
 /**                # Version 6.0  : from : 22 oct 2011     **/
-/**                                 to     25 aug 2016     **/
+/**                                 to   : 25 aug 2016     **/
 /**                                                        **/
 /**   NOTES      : # A very pedagogic explanation of       **/
 /**                  Fibonacci heaps is available in       **/

@@ -43,13 +43,13 @@
 /**   DATES      : # Version 3.2  : from : 17 oct 1996     **/
 /**                                 to   : 07 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 18 aug 2004     **/
-/**                                 to     20 aug 2004     **/
+/**                                 to   : 20 aug 2004     **/
 /**                # Version 5.0  : from : 24 jan 2007     **/
-/**                                 to     12 sep 2007     **/
+/**                                 to   : 12 sep 2007     **/
 /**                # Version 5.1  : from : 09 nov 2008     **/
-/**                                 to     09 nov 2008     **/
+/**                                 to   : 09 nov 2008     **/
 /**                                                        **/
 /**   NOTES      : # This algorithm comes from:            **/
 /**                  "Computing the Block Triangular form  **/
@@ -476,7 +476,7 @@ vgraphSeparateEs (
 Vgraph * restrict const             grafptr,      /*+ Active graph      +*/
 const VgraphSeparateEsParam * const paraptr)      /*+ Method parameters +*/
 {
-  Bgraph            actgrafdat;                   /* Active graph  structure   */
+  Bgraph            actgrafdat;                   /* Active graph structure    */
   Graph             bipgrafdat;                   /* Bipartite graph structure */
 
   actgrafdat.s         = grafptr->s;              /* Initialize active graph */
@@ -611,7 +611,7 @@ const VgraphSeparateEsParam * const paraptr)      /*+ Method parameters +*/
           actpartend = grafptr->parttax[actvertend];
           if (actpartend != actpartval) {
             Gnum              bipedgenum;
-           
+
 #ifdef SCOTCH_DEBUG_VGRAPH2
             if (actvnumtax[actvertend] == ~0) {
               errorPrint ("vgraphSeparateEs: internal error (1)");

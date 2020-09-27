@@ -43,11 +43,11 @@
 /**                ized graph across processors.           **/
 /**                                                        **/
 /**                # Version P0.0 : from : 01 apr 1997     **/
-/**                                 to     20 jun 1997     **/
+/**                                 to   : 20 jun 1997     **/
 /**                # Version P0.1 : from : 14 apr 1998     **/
-/**                                 to     20 jun 1998     **/
+/**                                 to   : 20 jun 1998     **/
 /**                # Version P0.2 : from : 19 may 1999     **/
-/**                                 to     19 may 1999     **/
+/**                                 to   : 19 may 1999     **/
 /**                # Version 5.0  : from : 27 apr 2006     **/
 /**                                 to   : 10 sep 2007     **/
 /**                                                        **/

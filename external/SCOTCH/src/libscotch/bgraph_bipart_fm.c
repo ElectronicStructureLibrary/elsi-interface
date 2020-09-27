@@ -41,31 +41,31 @@
 /**                Fiduccia-Mattheyses heuristics.         **/
 /**                                                        **/
 /**   DATES      : # Version 1.0  : from : 30 sep 1993     **/
-/**                                 to     09 oct 1993     **/
+/**                                 to   : 09 oct 1993     **/
 /**                # Version 1.1  : from : 15 oct 1993     **/
-/**                                 to     15 oct 1993     **/
+/**                                 to   : 15 oct 1993     **/
 /**                # Version 1.2  : from : 07 feb 1994     **/
-/**                                 to     15 feb 1994     **/
+/**                                 to   : 15 feb 1994     **/
 /**                # Version 1.3  : from : 06 apr 1994     **/
-/**                                 to     30 apr 1994     **/
+/**                                 to   : 30 apr 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     03 nov 1994     **/
+/**                                 to   : 03 nov 1994     **/
 /**                # Version 3.1  : from : 06 nov 1995     **/
-/**                                 to     07 jun 1996     **/
+/**                                 to   : 07 jun 1996     **/
 /**                # Version 3.2  : from : 21 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     12 mar 1999     **/
+/**                                 to   : 12 mar 1999     **/
 /**                # Version 3.4  : from : 01 jun 2001     **/
-/**                                 to     01 jun 2001     **/
+/**                                 to   : 01 jun 2001     **/
 /**                # Version 4.0  : from : 20 dec 2003     **/
-/**                                 to     05 may 2006     **/
+/**                                 to   : 05 may 2006     **/
 /**                # Version 5.0  : from : 24 mar 2008     **/
 /**                                 to   : 22 may 2008     **/
 /**                # Version 5.1  : from : 30 oct 2008     **/
 /**                                 to   : 14 apr 2011     **/
 /**                # Version 6.0  : from : 23 feb 2011     **/
-/**                                 to     20 aug 2019     **/
+/**                                 to   : 20 aug 2019     **/
 /**                                                        **/
 /************************************************************/
 
@@ -585,7 +585,7 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
             }
             break;
           }
-          if (hashtab[hashnum].vertnum == ~0) {   /* If hash slot empty */
+          if (hashtab[hashnum].vertnum == ~0) {   /* If hash slot empty                       */
             Gnum                commgain;         /* Communication gain of current vertex     */
             Gnum                commgainold;      /* Old communication gain of current vertex */
             Gnum                veloval;
@@ -1000,6 +1000,13 @@ const Gnum                                  commgainextn)
   Gnum                  commloaddlttmp;           /* Difference between old and current communication load */
   Gnum                  commloadextndlttmp;
   Gnum                  commgainextntmp;
+
+  const Gnum * restrict const verttax = grafptr->s.verttax; /* Fast accesses */
+  const Gnum * restrict const vendtax = grafptr->s.vendtax;
+  const Gnum * restrict const velotax = grafptr->s.velotax;
+  const Gnum * restrict const edgetax = grafptr->s.edgetax;
+  const Gnum * restrict const edlotax = grafptr->s.edlotax;
+  const Gnum * restrict const veextax = grafptr->veextax;
 
   domndist           = grafptr->domndist;
   compload0tmp       = (swapval == 0) ? grafptr->compload0 : (grafptr->s.velosum - grafptr->compload0);

@@ -44,11 +44,11 @@
 /*                for the halo building routine.          */
 /*                                                        */
 /*                # Version P0.0 : from : 01 apr 1997     */
-/*                                 to     20 jun 1997     */
+/*                                 to   : 20 jun 1997     */
 /*                # Version P0.1 : from : 12 apr 1998     */
-/*                                 to     20 jun 1998     */
+/*                                 to   : 20 jun 1998     */
 /*                # Version 5.0  : from : 28 feb 2006     */
-/*                                 to     31 dec 2006     */
+/*                                 to   : 31 dec 2006     */
 /*                                                        */
 /**********************************************************/
 

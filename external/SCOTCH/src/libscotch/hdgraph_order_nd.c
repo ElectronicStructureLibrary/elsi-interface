@@ -39,11 +39,11 @@
 /**                using the nested dissection algorithm.  **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 16 apr 2006     **/
-/**                                 to     01 mar 2008     **/
+/**                                 to   : 01 mar 2008     **/
 /**                # Version 5.1  : from : 27 sep 2008     **/
-/**                                 to     11 nov 2008     **/
+/**                                 to   : 11 nov 2008     **/
 /**                # Version 6.0  : from : 12 sep 2012     **/
-/**                                 to     01 may 2019     **/
+/**                                 to   : 01 may 2019     **/
 /**                                                        **/
 /************************************************************/
 

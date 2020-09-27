@@ -42,17 +42,17 @@
 /**                the algorithm of Ashcraft and Liu 1994. **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 02 nov 1997     **/
-/**                                 to     17 jul 1997     **/
+/**                                 to   : 17 jul 1997     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     31 dec 1998     **/
+/**                                 to   : 31 dec 1998     **/
 /**                # Version 4.0  : from : 07 jan 2002     **/
-/**                                 to     18 aug 2004     **/
+/**                                 to   : 18 aug 2004     **/
 /**                # Version 5.0  : from : 12 sep 2007     **/
-/**                                 to     22 may 2008     **/
+/**                                 to   : 22 may 2008     **/
 /**                # Version 5.1  : from : 10 nov 2008     **/
-/**                                 to     01 jun 2010     **/
+/**                                 to   : 01 jun 2010     **/
 /**                # Version 6.0  : from : 31 mar 2014     **/
-/**                                 to     01 apr 2014     **/
+/**                                 to   : 01 apr 2014     **/
 /**                                                        **/
 /************************************************************/
 

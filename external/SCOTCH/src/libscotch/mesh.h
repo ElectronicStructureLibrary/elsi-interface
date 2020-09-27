@@ -39,11 +39,11 @@
 /**                for the source mesh functions.          **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 29 dec 2001     **/
-/**                                 to     11 may 2004     **/
+/**                                 to   : 11 may 2004     **/
 /**                # Version 5.1  : from : 04 nov 2010     **/
-/**                                 to     04 nov 2010     **/
+/**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 06 jun 2018     **/
-/**                                 to     06 jun 2018     **/
+/**                                 to   : 06 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

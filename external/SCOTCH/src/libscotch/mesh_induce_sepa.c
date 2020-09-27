@@ -40,9 +40,9 @@
 /**                functions.                              **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 26 jan 2003     **/
-/**                                 to     11 may 2004     **/
+/**                                 to   : 11 may 2004     **/
 /**                # Version 5.0  : from : 12 sep 2007     **/
-/**                                 to     03 apr 2008     **/
+/**                                 to   : 03 apr 2008     **/
 /**                                                        **/
 /**   NOTES      : # This routine differs from the         **/
 /**                  standard mesh induction routine by    **/

@@ -1,4 +1,4 @@
-/* Copyright 2007-2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2007-2010,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -45,6 +45,8 @@
 /**                                 to   : 01 jul 2008     **/
 /**                # Version 6.0  : from : 28 may 2010     **/
 /**                                 to   : 29 may 2010     **/
+/**                # Version 6.1  : from : 01 sep 2020     **/
+/**                                 to   : 01 sep 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -143,9 +145,8 @@ void
 wgraphZero (
 Wgraph * const              grafptr)
 {
-  memSet (grafptr->compload, 0, grafptr->partnbr * sizeof (Gnum));
-  memSet (grafptr->compsize, 0, grafptr->partnbr * sizeof (Gnum));
-
+  memSet (grafptr->compload + 1, 0, (grafptr->partnbr - 1) * sizeof (Gnum));
+  memSet (grafptr->compsize + 1, 0, (grafptr->partnbr - 1) * sizeof (Gnum));
   grafptr->compload[0] = grafptr->s.velosum;
   grafptr->compsize[0] = grafptr->s.vertnbr;
   grafptr->fronload    = 0;

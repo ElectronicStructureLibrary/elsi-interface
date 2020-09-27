@@ -1,4 +1,4 @@
-/* Copyright 2008,2010,2015,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2008,2010,2015,2018,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -41,9 +41,9 @@
 /**   DATES      : # Version 5.0  : from : 11 mar 2008     **/
 /**                                 to   : 15 may 2008     **/
 /**                # Version 5.1  : from : 27 jun 2010     **/
-/**                                 to     27 jun 2010     **/
+/**                                 to   : 27 jun 2010     **/
 /**                # Version 6.0  : from : 27 apr 2015     **/
-/**                                 to     14 jul 2018     **/
+/**                                 to   : 30 aug 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -377,12 +377,12 @@ FileCompress * const        compptr)
       ssize_t             bytenbr;
 
       bytenbr = fread (compptr->bufftab, 1, FILECOMPRESSDATASIZE, compptr->oustptr); /* Read from pipe */
-      if (bytenbr < 0) {
+      if (ferror (compptr->oustptr)) {
         errorPrint ("fileDecompressLzma: cannot read");
         break;
       }
       if (bytenbr == 0)
-        deacval = LZMA_FINISH;                    /* If end of stream, request completion of encoding */
+        deacval = LZMA_FINISH;                    /* If end of stream, request completion of decoding */
       decodat.next_in  = compptr->bufftab;
       decodat.avail_in = bytenbr;
     }

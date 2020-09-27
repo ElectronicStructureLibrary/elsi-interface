@@ -41,9 +41,9 @@
 /**                distributed bipartitioning module.      **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 10 sep 2007     **/
-/**                                 to     26 oct 2007     **/
+/**                                 to   : 26 oct 2007     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

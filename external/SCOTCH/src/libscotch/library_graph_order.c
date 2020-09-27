@@ -40,17 +40,17 @@
 /**                library.                                **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 19 aug 1998     **/
-/**                                 to     22 aug 1998     **/
+/**                                 to   : 22 aug 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     27 mar 1999     **/
+/**                                 to   : 27 mar 1999     **/
 /**                # Version 4.0  : from : 29 jan 2002     **/
-/**                                 to     08 sep 2006     **/
+/**                                 to   : 08 sep 2006     **/
 /**                # Version 5.0  : from : 19 dec 2006     **/
-/**                                 to     04 aug 2007     **/
+/**                                 to   : 04 aug 2007     **/
 /**                # Version 5.1  : from : 30 oct 2007     **/
-/**                                 to     14 aug 2010     **/
+/**                                 to   : 14 aug 2010     **/
 /**                # Version 6.0  : from : 08 jan 2012     **/
-/**                                 to     29 sep 2019     **/
+/**                                 to   : 29 sep 2019     **/
 /**                                                        **/
 /************************************************************/
 
@@ -265,7 +265,7 @@ SCOTCH_Strat * const        stratptr)             /*+ Ordering strategy         
   }
 #endif /* SCOTCH_DEBUG_LIBRARY2 */
 
-  if (listnbr == 0) {                             /* If empty list, return identity peremutation */
+  if (listnbr == 0) {                             /* If empty list, return identity permutation */
     intAscn (libordeptr->o.peritab, srcgrafptr->vertnbr, srcgrafptr->baseval);
     return  (0);
   }

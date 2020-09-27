@@ -40,17 +40,17 @@
 /**                of the Greedy Graph Growing algorithm.  **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 10 nov 1997     **/
-/**                                 to     15 jul 1998     **/
+/**                                 to   : 15 jul 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 19 dec 2001     **/
-/**                                 to     22 jan 2004     **/
+/**                                 to   : 22 jan 2004     **/
 /**                # Version 5.0  : from : 02 jan 2007     **/
-/**                                 to     24 mar 2008     **/
+/**                                 to   : 24 mar 2008     **/
 /**                # Version 5.1  : from : 09 nov 2008     **/
-/**                                 to     09 nov 2008     **/
+/**                                 to   : 09 nov 2008     **/
 /**                # Version 6.0  : from : 04 feb 2012     **/
-/**                                 to     26 feb 2018     **/
+/**                                 to   : 26 feb 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -184,7 +184,7 @@ const VgraphSeparateGgParam * const paraptr)      /*+ Method parameters +*/
         gainTablDel (tablptr, (GainLink *) vexxptr); /* Remove vertex from table */
         vexxptr->gainlink.next = VGRAPHSEPAGGSTATEPART1; /* Put vertex in part 1 */
         compload2   += vexxptr->compgain2;        /* Update partition parameters */
-        comploaddlt -= vexxptr->compgain2 + 2 * veloval;          
+        comploaddlt -= vexxptr->compgain2 + 2 * veloval;
 
         sepaptr = NULL;                           /* No separator vertices to relink yet */
         for (edgenum = verttax[vertnum];          /* (Re-)link neighbor vertices         */

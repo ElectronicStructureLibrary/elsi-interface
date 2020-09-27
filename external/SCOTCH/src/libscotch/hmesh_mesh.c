@@ -39,7 +39,7 @@
 /**                haloing routine.                        **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 28 apr 2004     **/
-/**                                 to     11 may 2004     **/
+/**                                 to   : 11 may 2004     **/
 /**                                                        **/
 /**   NOTES      : # From a given halo mesh is created a   **/
 /**                  non-halo mesh. When nodes are         **/

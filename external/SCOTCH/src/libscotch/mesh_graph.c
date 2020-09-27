@@ -39,11 +39,11 @@
 /**                to graph conversion function.           **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 11 oct 2003     **/
-/**                                 to     05 may 2004     **/
+/**                                 to   : 05 may 2004     **/
 /**                # Version 5.1  : from : 19 nov 2009     **/
-/**                                 to     19 nov 2009     **/
+/**                                 to   : 19 nov 2009     **/
 /**                # Version 6.0  : from : 15 aug 2016     **/
-/**                                 to     13 feb 2018     **/
+/**                                 to   : 13 feb 2018     **/
 /**                                                        **/
 /**   NOTES      : # From a given mesh is created a graph, **/
 /**                  such that all vertices of the graph   **/

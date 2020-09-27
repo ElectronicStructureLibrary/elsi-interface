@@ -41,29 +41,29 @@
 /**                mapping algorithm.                      **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 23 mar 1993     **/
-/**                                 to     12 may 1993     **/
+/**                                 to   : 12 may 1993     **/
 /**                # Version 1.3  : from : 06 apr 1994     **/
-/**                                 to     09 apr 1994     **/
+/**                                 to   : 09 apr 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     04 nov 1994     **/
+/**                                 to   : 04 nov 1994     **/
 /**                # Version 2.1  : from : 07 apr 1995     **/
-/**                                 to     30 jun 1995     **/
+/**                                 to   : 30 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     28 sep 1995     **/
+/**                                 to   : 28 sep 1995     **/
 /**                # Version 3.1  : from : 15 nov 1995     **/
-/**                                 to     15 nov 1995     **/
+/**                                 to   : 15 nov 1995     **/
 /**                # Version 3.2  : from : 01 oct 1996     **/
-/**                                 to     10 jun 1998     **/
+/**                                 to   : 10 jun 1998     **/
 /**                # Version 3.3  : from : 19 oct 1998     **/
-/**                                 to     17 may 1999     **/
+/**                                 to   : 17 may 1999     **/
 /**                # Version 3.4  : from : 12 sep 2001     **/
-/**                                 to     06 nov 2001     **/
+/**                                 to   : 06 nov 2001     **/
 /**                # Version 4.0  : from : 29 nov 2003     **/
-/**                                 to     05 may 2006     **/
+/**                                 to   : 05 may 2006     **/
 /**                # Version 5.1  : from : 30 sep 2008     **/
-/**                                 to     04 nov 2010     **/
+/**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

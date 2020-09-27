@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2018,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -39,13 +39,13 @@
 /**                the generic gain tables.                **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 26 oct 1996     **/
-/**                                 to     17 nov 1997     **/
+/**                                 to   : 17 nov 1997     **/
 /**                # Version 0.1  : from : 10 may 1999     **/
-/**                                 to     18 mar 2005     **/
+/**                                 to   : 18 mar 2005     **/
 /**                # Version 5.0  : from : 24 mar 2008     **/
-/**                                 to     01 jun 2008     **/
+/**                                 to   : 01 jun 2008     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 20 aug 2020     **/
 /**                                                        **/
 /**   NOTES      : # Most of the contents of this module   **/
 /**                  comes from "map_b_fm" of the SCOTCH   **/
@@ -92,7 +92,7 @@ typedef struct GainTabl_ {
   INT                       totsize;              /*+ Total table size                       +*/
   GainEntr *                tmin;                 /*+ Non-empty entry of minimum gain        +*/
   GainEntr *                tmax;                 /*+ Non-empty entry of maximum gain        +*/
-  GainEntr *                tend;                 /*+ Point after last valid gain entry      +*/
+  GainEntr *                tend;                 /*+ Last valid gain entry                  +*/
   GainEntr *                tabl;                 /*+ Gain table structure is.. [SIZE - ADJ] +*/
   GainEntr                  tabk[1];              /*+ Split in two for relative access [ADJ] +*/
 } GainTabl;
@@ -109,11 +109,12 @@ void                        gainTablAddLog      (GainTabl * const, GainLink * co
 void                        gainTablDel         (GainTabl * const, GainLink * const);
 GainLink *                  gainTablFrst        (GainTabl * const);
 GainLink *                  gainTablNext        (GainTabl * const, const GainLink * const);
+void                        gainTablMove        (GainTabl * const, const ptrdiff_t);
 #ifdef SCOTCH_DEBUG_GAIN3
 #ifdef GAIN
+static int                  gainTablCheck       (GainEntr * const);
 static int                  gainTablCheck2      (GainEntr * const, GainLink * const);
 #endif /* GAIN */
-int                         gainTablCheck       (GainEntr * const);
 #endif /* SCOTCH_DEBUG_GAIN3 */
 
 /*

@@ -41,7 +41,7 @@
 /**                ordering routines.                      **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 24 jan 2004     **/
-/**                                 to     24 jan 2004     **/
+/**                                 to   : 24 jan 2004     **/
 /**                # Version 6.0  : from : 30 apr 2018     **/
 /**                                 to   : 03 jun 2018     **/
 /**                                                        **/

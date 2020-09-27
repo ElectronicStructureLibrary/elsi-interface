@@ -41,11 +41,11 @@
 /**                heuristics.                             **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 26 feb 2003     **/
-/**                                 to     06 may 2004     **/
+/**                                 to   : 06 may 2004     **/
 /**                # Version 5.0  : from : 12 sep 2007     **/
-/**                                 to     22 may 2008     **/
+/**                                 to   : 22 may 2008     **/
 /**                # Version 5.1  : from : 12 nov 2008     **/
-/**                                 to     12 nov 2008     **/
+/**                                 to   : 12 nov 2008     **/
 /**                                                        **/
 /************************************************************/
 
@@ -931,7 +931,7 @@ const VmeshSeparateFmParam * restrict const paraptr) /*+ Method parameters    +*
 
     while (savenbr > 0) {                         /* Delete exceeding moves */
       Gnum                hertnum;
-     
+
       hertnum = movetab[-- savenbr].hertnum;      /* Get vertex hash number */
       if (hertnum >= 0) {                         /* If vertex is element   */
         helmtab[hertnum].vertpart    = movetab[savenbr].data.elem.vertpart;

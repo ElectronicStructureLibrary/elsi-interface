@@ -39,7 +39,7 @@
 /**                functions.                              **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 28 dec 2016     **/
-/**                                 to     31 may 2018     **/
+/**                                 to   : 31 may 2018     **/
 /**                                                        **/
 /**   NOTES      : # This code derives from that of        **/
 /**                  arch_build.c.                         **/

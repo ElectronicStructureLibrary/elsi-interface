@@ -1,4 +1,4 @@
-/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -39,7 +39,9 @@
 /**                mesh functions.                         **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 12 sep 2002     **/
-/**                                 to     11 may 2004     **/
+/**                                 to   : 11 may 2004     **/
+/**                # Version 6.0  : from : 26 jan 2020     **/
+/**                                 to   : 26 jan 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -73,6 +75,7 @@ hmeshCheck (
 const Hmesh * const         meshptr)
 {
   Gnum                vnhlsum;
+  Gnum                veihnbr;
 
   if ((meshptr->vnohnnd < meshptr->m.vnodbas) ||
       (meshptr->vnohnnd > meshptr->m.vnodnnd)) {
@@ -85,11 +88,11 @@ const Hmesh * const         meshptr)
     return     (1);
   }
 
+  veihnbr = 0;
   if (meshptr->vehdtax != meshptr->m.vendtax) {
-    Gnum                veihnbr;
     Gnum                velmnum;
 
-    for (velmnum = meshptr->m.velmbas, veihnbr = 0; /* For all element vertices */
+    for (velmnum = meshptr->m.velmbas;            /* For all element vertices */
          velmnum < meshptr->m.velmnnd; velmnum ++) {
       if ((meshptr->vehdtax[velmnum] < meshptr->m.verttax[velmnum]) ||
           (meshptr->vehdtax[velmnum] > meshptr->m.vendtax[velmnum])) {
@@ -99,16 +102,10 @@ const Hmesh * const         meshptr)
       if (meshptr->vehdtax[velmnum] == meshptr->m.verttax[velmnum])
         veihnbr ++;
     }
-    if (veihnbr != meshptr->veihnbr) {
-      errorPrint ("hmeshCheck: invalid number of halo-isolated element vertices (1)");
-      return     (1);
-    }
   }
-  else {
-    if (meshptr->veihnbr != 0) {
-      errorPrint ("hmeshCheck: invalid number of halo-isolated element vertices (2)");
-      return     (1);
-    }
+  if (veihnbr != meshptr->veihnbr) {
+    errorPrint ("hmeshCheck: invalid number of halo-isolated element vertices");
+    return     (1);
   }
 
   if (meshptr->m.vnlotax == NULL)                 /* Recompute non-halo node vertex load sum */

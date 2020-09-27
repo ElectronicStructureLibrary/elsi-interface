@@ -41,9 +41,9 @@
 /**                using a multi-level scheme.             **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 13 jul 2010     **/
-/**                                 to     14 jul 2010     **/
+/**                                 to   : 14 jul 2010     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     25 feb 2018     **/
+/**                                 to   : 25 feb 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -156,7 +156,7 @@ const KgraphMapMlParam * const        paraptr)    /*+ Method parameters         
                                  : ((finevertnum0 == finevertnum1) ? 1 : 2);
 #ifdef SCOTCH_DEBUG_KGRAPH2
       if ((fineparotax[finevertnum1] != fineparotax[finevertnum0]) && /* If vertices were not in the same part */
-          ((finegrafptr->pfixtax == NULL) || 
+          ((finegrafptr->pfixtax == NULL) ||
            ((finepfixtax[finevertnum1] == -1) &&  /* And both are not fixed */
             (finepfixtax[finevertnum0] == -1)))) {
         errorPrint ("kgraphMapMlCoarsen: internal error (2)");
@@ -181,7 +181,7 @@ const KgraphMapMlParam * const        paraptr)    /*+ Method parameters         
     coargrafptr->r.vmlotax   = NULL;
   }
 
-  if (finepfixtax != NULL) {                      /* If we have fixed vertices */ 
+  if (finepfixtax != NULL) {                      /* If we have fixed vertices */
     Gnum                coarvertnbr;
     Anum * restrict     coarpfixtab;
     Gnum                coarvfixnbr;
@@ -319,7 +319,7 @@ const GraphCoarsenMulti * const coarmulttab)      /*+ Pointer to multinode array
     coarvertnum  = coarfrontab[coarfronnum];
     finevertnum0 = coarmulttax[coarvertnum].vertnum[0];
     finevertnum1 = coarmulttax[coarvertnum].vertnum[1];
-     
+
     if (finevertnum0 != finevertnum1) {           /* If multinode si made of two distinct vertices */
       Gnum                fineedgenum;
       Gnum                partval;

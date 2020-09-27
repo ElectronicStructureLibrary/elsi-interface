@@ -40,9 +40,9 @@
 /**                mesh element separation routine.        **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 26 feb 2003     **/
-/**                                 to     06 may 2004     **/
+/**                                 to   : 06 may 2004     **/
 /**                # Version 6.0  : from : 31 may 2018     **/
-/**                                 to     31 may 2018     **/
+/**                                 to   : 31 may 2018     **/
 /**                                                        **/
 /************************************************************/
 

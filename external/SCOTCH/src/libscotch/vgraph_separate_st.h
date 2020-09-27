@@ -40,11 +40,11 @@
 /**                strategy and method tables.             **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 24 oct 1996     **/
-/**                                 to     14 nov 1997     **/
+/**                                 to   : 14 nov 1997     **/
 /**                # Version 3.3  : from : 31 may 1999     **/
-/**                                 to     31 may 1999     **/
+/**                                 to   : 31 may 1999     **/
 /**                # Version 4.0  : from : 06 jan 2002     **/
-/**                                 to     19 aug 2004     **/
+/**                                 to   : 19 aug 2004     **/
 /**                # Version 5.0  : from : 12 sep 2006     **/
 /**                                 to   : 17 feb 2007     **/
 /**                # Version 5.1  : from : 30 oct 2007     **/

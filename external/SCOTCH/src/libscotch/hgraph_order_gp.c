@@ -40,7 +40,7 @@
 /**                Poole, and Stockmeyer algorithm.        **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 31 oct 1996     **/
-/**                                 to     27 aug 1998     **/
+/**                                 to   : 27 aug 1998     **/
 /**                # Version 3.3  : from : 02 oct 1998     **/
 /**                                 to   : 02 oct 1998     **/
 /**                # Version 4.0  : from : 28 jun 2002     **/

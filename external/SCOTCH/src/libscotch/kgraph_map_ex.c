@@ -40,7 +40,7 @@
 /**                it can.                                 **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 27 may 2011     **/
-/**                                 to     06 jun 2018     **/
+/**                                 to   : 06 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -150,7 +150,7 @@ const KgraphMapExParam * const  paraptr)          /*+ Method parameters +*/
 
       domnnum = termtab[termnum].domnnum;
       doextab[domnnum].comploadmax = ((double) doextab[domnnum].domnwght * velosum * (1.0 + paraptr->kbalval)) / wghtsum;
-     
+
       if ((grafptr->comploadavg[domnnum] + grafptr->comploaddlt[domnnum]) > doextab[domnnum].comploadmax)
         flagval = 0;                              /* Set flag if at least one domain is imbalanced */
     }

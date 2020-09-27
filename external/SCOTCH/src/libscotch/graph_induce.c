@@ -40,25 +40,25 @@
 /**                subgraph-making functions.              **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 01 dec 1992     **/
-/**                                 to     18 may 1993     **/
+/**                                 to   : 18 may 1993     **/
 /**                # Version 1.3  : from : 30 apr 1994     **/
-/**                                 to     18 may 1994     **/
+/**                                 to   : 18 may 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     31 oct 1994     **/
+/**                                 to   : 31 oct 1994     **/
 /**                # Version 3.0  : from : 07 jul 1995     **/
-/**                                 to     28 sep 1995     **/
+/**                                 to   : 28 sep 1995     **/
 /**                # Version 3.1  : from : 28 nov 1995     **/
-/**                                 to     08 jun 1996     **/
+/**                                 to   : 08 jun 1996     **/
 /**                # Version 3.2  : from : 07 sep 1996     **/
-/**                                 to     17 sep 1998     **/
+/**                                 to   : 17 sep 1998     **/
 /**                # Version 4.0  : from : 28 nov 2001     **/
-/**                                 to     17 apr 2006     **/
+/**                                 to   : 17 apr 2006     **/
 /**                # Version 5.0  : from : 14 dec 2006     **/
-/**                                 to     11 jun 2008     **/
+/**                                 to   : 11 jun 2008     **/
 /**                # Version 5.1  : from : 01 jan 2009     **/
-/**                                 to     01 jan 2009     **/
+/**                                 to   : 01 jan 2009     **/
 /**                # Version 6.0  : from : 29 mar 2011     **/
-/**                                 to     05 apr 2018     **/
+/**                                 to   : 05 apr 2018     **/
 /**                                                        **/
 /**   NOTES      : # Several algorithms, such as the       **/
 /**                  active graph building routine of      **/

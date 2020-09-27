@@ -39,9 +39,9 @@
 /**                for the file (de)compression routines.  **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 12 mar 2008     **/
-/**                                 to     17 mar 2008     **/
+/**                                 to   : 17 mar 2008     **/
 /**                # Version 6.0  : from : 08 jul 2018     **/
-/**                                 to     14 jul 2018     **/
+/**                                 to   : 14 jul 2018     **/
 /**                                                        **/
 /************************************************************/
 

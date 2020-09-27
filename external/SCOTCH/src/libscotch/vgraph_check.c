@@ -39,9 +39,9 @@
 /**                graph consistency checking routine.     **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 24 aug 1996     **/
-/**                                 to     03 nov 1997     **/
+/**                                 to   : 03 nov 1997     **/
 /**                # Version 4.0  : from : 12 dec 2001     **/
-/**                                 to     08 jan 2004     **/
+/**                                 to   : 08 jan 2004     **/
 /**                # Version 5.0  : from : 16 sep 2006     **/
 /**                                 to   : 16 sep 2006     **/
 /**                # Version 5.1  : from : 09 nov 2008     **/

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2012,2014-2016,2018,2019 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2012,2014-2016,2018-2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -42,19 +42,19 @@
 /**                ordering library.                       **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 07 sep 1996     **/
-/**                                 to     22 aug 1998     **/
+/**                                 to   : 22 aug 1998     **/
 /**                # Version 3.3  : from : 02 oct 1998     **/
-/**                                 to     31 may 1999     **/
+/**                                 to   : 31 may 1999     **/
 /**                # Version 3.4  : from : 10 oct 1999     **/
-/**                                 to     15 nov 2001     **/
+/**                                 to   : 15 nov 2001     **/
 /**                # Version 4.0  : from : 11 dec 2001     **/
-/**                                 to     20 dec 2005     **/
+/**                                 to   : 20 dec 2005     **/
 /**                # Version 5.0  : from : 26 apr 2006     **/
 /**                                 to   : 20 feb 2008     **/
 /**                # Version 5.1  : from : 30 nov 2007     **/
 /**                                 to   : 07 aug 2011     **/
 /**                # Version 6.0  : from : 12 sep 2008     **/
-/**                                 to     24 sep 2019     **/
+/**                                 to   : 20 jan 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -224,6 +224,7 @@ void                        SCOTCH_graphData    (const SCOTCH_Graph * const, SCO
 void                        SCOTCH_graphSize    (const SCOTCH_Graph * const, SCOTCH_Num * const, SCOTCH_Num * const);
 void                        SCOTCH_graphStat    (const SCOTCH_Graph * const, SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, double * const, double * const, SCOTCH_Num * const, SCOTCH_Num * const, double * const, double * const, SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, double * const, double * const);
 SCOTCH_Num                  SCOTCH_graphDiamPV  (const SCOTCH_Graph * const);
+int                         SCOTCH_graphDump    (const SCOTCH_Graph * const, const char * const, const char * const, FILE * const);
 int                         SCOTCH_graphGeomLoadChac (SCOTCH_Graph * const, SCOTCH_Geom * const, FILE * const, FILE * const, const char * const);
 int                         SCOTCH_graphGeomLoadHabo (SCOTCH_Graph * const, SCOTCH_Geom * const, FILE * const, FILE * const, const char * const);
 int                         SCOTCH_graphGeomLoadMmkt (SCOTCH_Graph * const, SCOTCH_Geom * const, FILE * const, FILE * const, const char * const);
@@ -257,7 +258,7 @@ int                         SCOTCH_graphRepart  (SCOTCH_Graph * const, const SCO
 int                         SCOTCH_graphRepartFixed (SCOTCH_Graph * const, const SCOTCH_Num, SCOTCH_Num * const, const double, const SCOTCH_Num *, SCOTCH_Strat * const, SCOTCH_Num * const);
 int                         SCOTCH_graphTabLoad (const SCOTCH_Graph * const, SCOTCH_Num * const, FILE * const);
 int                         SCOTCH_graphTabSave (const SCOTCH_Graph * const, const SCOTCH_Num * const, FILE * const);
- 
+
 int                         SCOTCH_graphOrderInit (const SCOTCH_Graph * const, SCOTCH_Ordering * const, SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const);
 void                        SCOTCH_graphOrderExit (const SCOTCH_Graph * const, SCOTCH_Ordering * const);
 int                         SCOTCH_graphOrderLoad (const SCOTCH_Graph * const, SCOTCH_Ordering * const, FILE * const);
@@ -278,6 +279,7 @@ void                        SCOTCH_memFree      (void * const);
 SCOTCH_Idx                  SCOTCH_memCur       (void);
 SCOTCH_Idx                  SCOTCH_memMax       (void);
 
+SCOTCH_Mesh *               SCOTCH_meshAlloc    (void);
 int                         SCOTCH_meshInit     (SCOTCH_Mesh * const);
 void                        SCOTCH_meshExit     (SCOTCH_Mesh * const);
 int                         SCOTCH_meshLoad     (SCOTCH_Mesh * const, FILE * const, const SCOTCH_Num);

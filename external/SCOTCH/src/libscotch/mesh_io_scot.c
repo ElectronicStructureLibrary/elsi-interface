@@ -39,13 +39,13 @@
 /**                for handling the Scotch mesh format.    **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 19 jan 2004     **/
-/**                                 to     19 jan 2004     **/
+/**                                 to   : 19 jan 2004     **/
 /**                # Version 5.0  : from : 13 sep 2006     **/
-/**                                 to     27 feb 2008     **/
+/**                                 to   : 27 feb 2008     **/
 /**                # Version 5.1  : from : 11 aug 2010     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 28 apr 2019     **/
-/**                                 to     28 apr 2019     **/
+/**                                 to   : 28 apr 2019     **/
 /**                                                        **/
 /************************************************************/
 

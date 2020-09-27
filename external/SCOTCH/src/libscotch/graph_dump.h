@@ -1,4 +1,4 @@
-/* Copyright 2007-2010,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2019 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -31,54 +31,23 @@
 */
 /************************************************************/
 /**                                                        **/
-/**   NAME       : wgraph_part_gp.h                        **/
+/**   NAME       : graph_dump.h                            **/
 /**                                                        **/
-/**   AUTHOR     : Jun-Ho HER (v6.0)                       **/
-/**                Charles-Edmond BICHOT (v5.1b)           **/
+/**   AUTHOR     : Francois PELLEGRINI                     **/
 /**                                                        **/
 /**   FUNCTION   : These lines are the data declarations   **/
-/**                for the graph partitioning rountine     **/
-/**                based on a vertex-oriented version of   **/
-/**                the Gibbs-Poole-Stockmeyer algorithm.   **/
+/**                for the source graph dump functions.    **/
 /**                                                        **/
-/**   DATES      : # Version 5.1  : from : 01 dec 2007     **/
-/**                                 to   : 01 jul 2008     **/
-/**                # Version 6.0  : from : 05 nov 2009     **/
-/**                                 to   : 31 may 2018     **/
+/**   DATES      : # Version 6.0  : from : 27 dec 2019     **/
+/**                                 to   : 27 dec 2019     **/
 /**                                                        **/
 /************************************************************/
-
-/*
-**  The defines.
-*/
-
-/*+ System-defined constants. +*/
-
-#define WGRAPHSEPAGPSUBBITS         4
-
-#define WGRAPHGPCHOOSELASTPART
-
-/*
-**  The type and structure definitions.
-*/
-
-/*+ Method parameters. +*/
-
-typedef struct WgraphPartGpParam_ {
-  INT                       passnbr;              /*+ Number of passes to do +*/
-} WgraphPartGpParam;
-
-/*+ The complementary vertex structure. +*/
-
-typedef struct WgraphPartGpVertex_ {
-  Gnum                          partlvl;
-  struct WgraphPartGpVertex_ *  prev;
-  struct WgraphPartGpVertex_ *  next;
-  Gnum                          isinstack;
-} WgraphPartGpVertex;
 
 /*
 **  The function prototypes.
 */
 
-int                         wgraphPartGp        (Wgraph * restrict const, const WgraphPartGpParam * restrict const);
+int graphDump                                   (const Graph * const, const char * const, const char * const, FILE * const);
+int graphDump2                                  (const Graph * const, const char * const, const char * const, const char * const, FILE * const);
+int graphDumpArray                              (const Gnum * const, const Gnum, const char * const, const char * const, const char * const, const char * const, FILE * const);
+int graphDumpArrays                             (const Graph * const, const char * const, const char * const, const char * const, FILE * const);

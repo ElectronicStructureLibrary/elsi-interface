@@ -40,9 +40,9 @@
 /**                graph separation algorithm.             **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 14 may 2004     **/
-/**                                 to     17 may 2004     **/
+/**                                 to   : 17 may 2004     **/
 /**                # Version 5.1  : from : 04 nov 2010     **/
-/**                                 to     04 nov 2010     **/
+/**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 30 apr 2018     **/
 /**                                 to   : 30 apr 2018     **/
 /**                                                        **/

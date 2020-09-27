@@ -39,21 +39,19 @@
 /**                for handling the Chaco graph format.    **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 06 nov 1997     **/
-/**                                 to     26 may 1998     **/
+/**                                 to   : 26 may 1998     **/
 /**                # Version 3.3  : from : 13 dec 1998     **/
-/**                                 to     24 dec 1998     **/
+/**                                 to   : 24 dec 1998     **/
 /**                # Version 3.4  : from : 05 oct 1999     **/
 /**                                 to   : 04 feb 2000     **/
 /**                # Version 4.0  : from : 18 dec 2001     **/
-/**                                 to     19 jan 2004     **/
+/**                                 to   : 19 jan 2004     **/
 /**                # Version 5.0  : from : 04 feb 2007     **/
-/**                                 to     21 may 2008     **/
+/**                                 to   : 21 may 2008     **/
 /**                # Version 5.1  : from : 02 dec 2008     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 10 oct 2013     **/
-/**                                 to     03 aug 2016     **/
-/**                # Version 6.1  : from : 03 aug 2016     **/
-/**                                 to     03 aug 2016     **/
+/**                                 to   : 03 aug 2016     **/
 /**                                                        **/
 /************************************************************/
 

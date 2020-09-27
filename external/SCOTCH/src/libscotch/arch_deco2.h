@@ -40,7 +40,7 @@
 /**                target architecture functions.          **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 01 may 2015     **/
-/**                                 to     28 may 2018     **/
+/**                                 to   : 28 may 2018     **/
 /**                                                        **/
 /**   NOTES      : # The internals of the "deco2"          **/
 /**                  architecture derive from those of     **/

@@ -39,15 +39,15 @@
 /**                for handling the Scotch graph format.   **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 06 nov 1997     **/
-/**                                 to     26 may 1998     **/
+/**                                 to   : 26 may 1998     **/
 /**                # Version 3.3  : from : 13 dec 1998     **/
-/**                                 to     21 dec 1998     **/
+/**                                 to   : 21 dec 1998     **/
 /**                # Version 4.0  : from : 18 dec 2001     **/
-/**                                 to     22 dec 2005     **/
+/**                                 to   : 22 dec 2005     **/
 /**                # Version 5.0  : from : 13 sep 2006     **/
-/**                                 to     27 feb 2008     **/
+/**                                 to   : 27 feb 2008     **/
 /**                # Version 5.1  : from : 11 aug 2010     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                                                        **/
 /************************************************************/
 

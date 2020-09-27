@@ -40,7 +40,7 @@
 /**                from a source graph.                    **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 02 may 2015     **/
-/**                                 to     22 feb 2018     **/
+/**                                 to   : 22 feb 2018     **/
 /**                                                        **/
 /**   NOTES      : # The code of the main routine derives  **/
 /**                  from that of archSubArchBuild().      **/

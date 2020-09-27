@@ -40,7 +40,7 @@
 /**                method.                                 **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 29 oct 2007     **/
-/**                                 to     24 may 2008     **/
+/**                                 to   : 24 may 2008     **/
 /**                # Version 6.0  : from : 30 apr 2018     **/
 /**                                 to   : 30 apr 2018     **/
 /**                                                        **/

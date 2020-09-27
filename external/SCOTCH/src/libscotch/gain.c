@@ -1,4 +1,4 @@
-/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -39,13 +39,15 @@
 /**                table structures.                       **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 26 oct 1996     **/
-/**                                 to     30 nov 1996     **/
+/**                                 to   : 30 nov 1996     **/
 /**                # Version 0.1  : from : 10 may 1999     **/
-/**                                 to     10 may 1999     **/
+/**                                 to   : 10 may 1999     **/
 /**                # Version 4.0  : from : 10 jan 2004     **/
-/**                                 to     18 mar 2005     **/
+/**                                 to   : 18 mar 2005     **/
 /**                # Version 5.0  : from : 24 mar 2008     **/
-/**                                 to     24 mar 2008     **/
+/**                                 to   : 24 mar 2008     **/
+/**                # Version 6.0  : from : 20 aug 2020     **/
+/**                                 to   : 26 aug 2020     **/
 /**                                                        **/
 /**   NOTES      : # Most of the contents of this module   **/
 /**                  comes from "map_b_fm" of the SCOTCH   **/
@@ -63,6 +65,8 @@
 #include "common.h"
 #include "gain.h"
 
+/* #define SCOTCH_DEBUG_GAIN3 */
+
 /*
 **  The static variables.
 */
@@ -74,6 +78,59 @@ static GainLink             gainLinkDummy;        /*+ Dummy link space for fast 
 /* These routines deal with generic gain tables. */
 /*                                               */
 /*************************************************/
+
+/* This routine checks the consistency of the
+** given linked list.
+** It returns:
+** - !NULL  : pointer to the vertex.
+** - NULL   : if no such vertex available.
+*/
+
+#ifdef SCOTCH_DEBUG_GAIN3
+
+static
+int
+gainTablCheck2 (
+GainEntr * const            entrptr,
+GainLink * const            linkptr)
+{
+  GainLink *          nextptr;
+  int                 o;
+
+  if (linkptr->next == &gainLinkDummy)            /* If end of list successfully reached */
+    return (0);
+  if (linkptr->next == NULL)                      /* If loop discovered */
+    return (1);
+
+  if (linkptr->tabl != entrptr)
+    return (1);
+
+  nextptr       = linkptr->next;                  /* Save pointer to next cell    */
+  linkptr->next = NULL;                           /* Flag cell as already visited */
+  o             = gainTablCheck2 (entrptr, nextptr); /* Process next cell         */
+  linkptr->next = nextptr;                        /* Restore cell state           */
+
+  return (o);
+}
+
+static
+int
+gainTablCheck (
+GainEntr * const            entrptr)
+{
+  if (entrptr->next == &gainLinkDummy)            /* If end of list successfully reached */
+    return (0);
+
+  if ((entrptr->next == NULL) ||                  /* If problem with link */
+      (gainTablCheck2 (entrptr, entrptr->next) != 0)) {
+    errorPrint ("gainTablCheck: bad linked list");
+    return     (1);
+  }
+
+  return (0);
+}
+
+#endif /* SCOTCH_DEBUG_GAIN3 */
 
 /* This routine allocates and initializes
 ** a gain table structure with the proper
@@ -247,9 +304,8 @@ const INT                   gain)                 /*+ Gain value              +*
     errorPrint ("gainTablAddLog: bad first element");
     return;
   }
-  if (gainTablCheck (entrptr) != 0) {
+  if (gainTablCheck (entrptr) != 0)
     errorPrint ("gainTablAddLog: bad chaining");
-  }
 #endif /* SCOTCH_DEBUG_GAIN3 */
 
   entrptr->next->prev = linkptr;                  /* Link vertex in gain list: TRICK */
@@ -284,7 +340,6 @@ GainLink * const            linkptr)              /*+ Pointer to link to delete 
     }
   }
 #endif /* SCOTCH_DEBUG_GAIN3 */
-
   linkptr->next->prev = linkptr->prev;            /* TRICK: may write in dummy link area */
   linkptr->prev->next = linkptr->next;
 }
@@ -303,21 +358,30 @@ GainTabl * const            tablptr)
 {
   GainEntr *          entrptr;
 
-  for (entrptr  = tablptr->tmin;
-       entrptr <= tablptr->tend;
-       entrptr ++) {
-    if (entrptr->next != &gainLinkDummy) {
-      tablptr->tmin = entrptr;
+  entrptr = tablptr->tmin;
+  if (entrptr->next != &gainLinkDummy) {
+#ifdef SCOTCH_DEBUG_GAIN3
+    if (gainTablCheck (entrptr) != 0) {
+      errorPrint ("gainTablFrst: bad chaining (1)");
+      return     (NULL);
+    }
+#endif /* SCOTCH_DEBUG_GAIN3 */
+    return (entrptr->next);
+  }
+
+  for (entrptr ++; entrptr <= tablptr->tend; entrptr ++) {
+    if (entrptr->next != &gainLinkDummy) {        /* If found non-empty slot */
+      tablptr->tmin = entrptr;                    /* record its position     */
 #ifdef SCOTCH_DEBUG_GAIN3
       if (gainTablCheck (entrptr) != 0) {
-        errorPrint ("gainTablFrst: bad chaining");
+        errorPrint ("gainTablFrst: bad chaining (2)");
         return     (NULL);
       }
 #endif /* SCOTCH_DEBUG_GAIN3 */
       return (entrptr->next);
     }
   }
-  tablptr->tmin = tablptr->tend;
+  tablptr->tmin = tablptr->tend;                  /* Set table as empty */
   tablptr->tmax = tablptr->tabk;
 
   return (NULL);
@@ -364,54 +428,44 @@ const GainLink * const      linkptr)
   return (NULL);
 }
 
-/* This routine checks the consistency of the
-** given linked list.
+/* This routine recomputes all the pointer
+** addresses of the given gain table when the
+** memory area that contains gain links has
+** been moved by the given number of bytes.
 ** It returns:
-** - !NULL  : pointer to the vertex.
-** - NULL   : if no such vertex available.
+** - void  : in all cases.
 */
 
+void
+gainTablMove (
+GainTabl * const            tablptr,
+const ptrdiff_t             addrdlt)
+{
+  GainEntr *          entrptr;
+
+  for (entrptr = tablptr->tmin; entrptr <= tablptr->tmax; entrptr ++) { /* For all active gain table entries */
+    GainLink *          linkptr;
+    GainLink *          prevptr;
+
+    if (entrptr->next == &gainLinkDummy)          /* If slot is empty, skip it */
+      continue;
+
+    linkptr = (GainLink *) ((byte *) entrptr->next + addrdlt); /* Get skewed address of new first slot */
+    entrptr->next = linkptr;                      /* Update entry pointer to first slot                */
+
+    for (prevptr = linkptr; prevptr->next != &gainLinkDummy; prevptr = linkptr) { /* For all remaining links of this table entry */
+      linkptr = (GainLink *) ((byte *) prevptr->next + addrdlt); /* Get new address of link from its predecessor                 */
+      prevptr->next = linkptr;                    /* Skew forward chaining of previous link                                      */
+      linkptr->prev = prevptr;                    /* Skew backward chaining of current link                                      */
+    }
+
 #ifdef SCOTCH_DEBUG_GAIN3
-
-static
-int
-gainTablCheck2 (
-GainEntr * const            entrptr,
-GainLink * const            linkptr)
-{
-  GainLink *          nextptr;
-  int                 o;
-
-  if (linkptr->next == &gainLinkDummy)            /* If end of list successfully reached */
-    return (0);
-  if (linkptr->next == NULL)                      /* If loop discovered */
-    return (1);
-
-  if (linkptr->tabl != entrptr)
-    return (1);
-
-  nextptr       = linkptr->next;                  /* Save pointer to next cell    */
-  linkptr->next = NULL;                           /* Flag cell as already visited */
-  o             = gainTablCheck2 (entrptr, nextptr); /* Process next cell         */
-  linkptr->next = nextptr;                        /* Restore cell state           */
-
-  return (o);
-}
-
-int
-gainTablCheck (
-GainEntr * const            entrptr)
-{
-  if (entrptr->next == &gainLinkDummy)            /* If end of list successfully reached */
-    return (0);
-
-  if ((entrptr->next == NULL) ||                  /* If problem with link */
-      (gainTablCheck2 (entrptr, entrptr->next) != 0)) {
-    errorPrint ("gainTablCheck: bad linked list");
-    return     (1);
-  }
-
-  return (0);
-}
-
+    if (entrptr->next->prev != (GainLink *) entrptr) {
+      errorPrint ("gainTablMove: bad first element");
+      return;
+    }
+    if (gainTablCheck (entrptr) != 0)
+      errorPrint ("gainTablMove: bad chaining");
 #endif /* SCOTCH_DEBUG_GAIN3 */
+  }
+}

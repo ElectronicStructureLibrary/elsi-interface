@@ -41,7 +41,7 @@
 /**                ng approach.                            **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 16 mar 2010     **/
-/**                                 to     31 may 2018     **/
+/**                                 to   : 31 may 2018     **/
 /**                                                        **/
 /**   NOTES      : # This code derives from the code of    **/
 /**                  kgraph_map_rb_part.h for the vertex   **/

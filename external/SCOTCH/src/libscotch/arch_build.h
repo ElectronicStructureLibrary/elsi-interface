@@ -39,13 +39,13 @@
 /**                for the architecture building routine.  **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 29 may 1997     **/
-/**                                 to     01 sep 1998     **/
+/**                                 to   : 01 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 29 nov 2003     **/
-/**                                 to     29 nov 2003     **/
+/**                                 to   : 29 nov 2003     **/
 /**                # Version 6.0  : from : 14 mar 2016     **/
-/**                                 to     31 may 2018     **/
+/**                                 to   : 31 may 2018     **/
 /**                                                        **/
 /**   NOTES      : # This file contains pieces of code     **/
 /**                  extracted from release 3.1 of         **/

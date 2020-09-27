@@ -40,15 +40,15 @@
 /**                graph using a multi-level scheme.       **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 28 oct 1997     **/
-/**                                 to     05 nov 1997     **/
+/**                                 to   : 05 nov 1997     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 13 dec 2001     **/
-/**                                 to     20 mar 2005     **/
+/**                                 to   : 20 mar 2005     **/
 /**                # Version 5.1  : from : 11 nov 2009     **/
-/**                                 to     11 nov 2009     **/
+/**                                 to   : 11 nov 2009     **/
 /**                # Version 6.0  : from : 09 mar 2011     **/
-/**                                 to     16 aug 2015     **/
+/**                                 to   : 16 aug 2015     **/
 /**                                                        **/
 /************************************************************/
 
