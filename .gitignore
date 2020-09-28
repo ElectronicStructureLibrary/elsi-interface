@@ -1,4 +1,3 @@
-.Rhistory
 .tags
 *.[oaxd]
 *.err
@@ -17,3 +16,4 @@ tags
 /include/
 /install/
 /lib/
+/build*/
