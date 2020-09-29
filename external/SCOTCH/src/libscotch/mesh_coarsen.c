@@ -1,4 +1,4 @@
-/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -39,9 +39,11 @@
 /**                coarsening functions.                   **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 30 jan 2004     **/
-/**                                 to     05 may 2004     **/
+/**                                 to   : 05 may 2004     **/
 /**                # Version 5.0  : from : 12 sep 2007     **/
-/**                                 to     12 sep 2007     **/
+/**                                 to   : 12 sep 2007     **/
+/**                # Version 6.0  : from : 23 jan 2020     **/
+/**                                 to   : 23 jan 2020     **/
 /**                                                        **/
 /**   NOTES      : # The coarsening process is as follows. **/
 /**                  First, node collapsing is performed,  **/
@@ -110,6 +112,7 @@ const MeshCoarsenType         coartype)           /*+ Matching type             
   Gnum                        coarvnodnbr;        /* Number of coarse node vertices              */
   Gnum                        finevertnbr;        /* Number of vertices in fine graph            */
   Gnum * restrict             finecoartax;        /* Based access to finecoartab                 */
+  Gnum                        coarveisnbr;        /* Number of coarse isolated elements          */
   Gnum                        coarvelmnum;        /* Number of currently selected coarse element */
   Gnum                        coareelmnum;
   Gnum                        coarvnodnum;
@@ -157,13 +160,6 @@ const MeshCoarsenType         coartype)           /*+ Matching type             
   memSet (coarhbdgtab, ~0, coarhashsiz * sizeof (MeshCoarsenHbdg));
   finemulttax -= coarmeshptr->baseval;
 
-#define SCOTCH_DEBUG_MESH3
-#ifdef SCOTCH_DEBUG_MESH3
-fprintf (stderr, "-------- ENTERING COARSENING ---------\n");
-
-fprintf (stderr, "finenodenbr=%ld, fineelemnbr=%ld, fineedgenbr=%ld, finedegrmax=%ld\n", (long) finemeshptr->vnodnbr, (long) finemeshptr->velmnbr, (long) finemeshptr->edgenbr, (long) finemeshptr->degrmax);
-#endif /* SCOTCH_DEBUG_MESH3 */
-
   meshCoarFuncTab[coartype] (finemeshptr, finemulttax, finecoartax, &coarvelmnbr, &coarvnodnbr, &coaredgenbr); /* Call proper matching function */
 
 #ifndef DEAD_CODE
@@ -185,8 +181,9 @@ fprintf (stderr, "finenodenbr=%ld, fineelemnbr=%ld, fineedgenbr=%ld, finedegrmax
   coarmeshptr->velmnnd  =
   coarmeshptr->vnodbas  = coarvelmnbr + coarmeshptr->velmbas;
 
-  for (coarvelmnum = coaredgenum = coarmeshptr->baseval, coarvnodnum = coarmeshptr->vnodbas, coardegrmax = 0; /* For all coarse elements */
+  for (coarvelmnum = coaredgenum = coarmeshptr->baseval, coarvnodnum = coarmeshptr->vnodbas, coarveisnbr = coardegrmax = 0; /* For all coarse elements */
        coarvelmnum < coarmeshptr->velmnnd; coarvelmnum ++) {
+    Gnum                coardegrval;              /* Degree of coarsened element    */
     Gnum                coarveloval;              /* Weight of coarsened element    */
     Gnum                coarvnisnum;              /* Number of coarse isolated node */
     Gnum                finevelmnum;              /* Number of current element      */
@@ -287,9 +284,13 @@ fprintf (stderr, "finenodenbr=%ld, fineelemnbr=%ld, fineedgenbr=%ld, finedegrmax
     } while (i ++, finevelmnum != finemulttax[coarvelmnum].finevelmnum[1]);
 
     coarvelotax[coarvelmnum] = coarveloval;       /* Lose initial weights of elements, if any, to keep coarsening weights */
-    if ((coaredgenum - coarverttax[coarvelmnum]) > coardegrmax)
-      coardegrmax = (coaredgenum - coarverttax[coarvelmnum]);
+    coardegrval = coaredgenum - coarverttax[coarvelmnum];
+    if (coardegrval <= 0)                         /* If zero degree, one more isolated element */
+      coarveisnbr ++;
+    if (coardegrval > coardegrmax)
+      coardegrmax = coardegrval;
   }
+  coarmeshptr->veisnbr = coarveisnbr;
   coarmeshptr->vnodnnd = coarvnodnum;
   coarmeshptr->vnodnbr = coarvnodnum - coarmeshptr->vnodbas;
   coarmeshptr->velosum = finemeshptr->velosum;
@@ -342,11 +343,6 @@ fprintf (stderr, "finenodenbr=%ld, fineelemnbr=%ld, fineedgenbr=%ld, finedegrmax
 #endif /* SCOTCH_DEBUG_MESH2 */
 
   *finecoarptr = finecoartax;                     /* Return multinode array */
-
-#ifdef SCOTCH_DEBUG_MESH3
-fprintf (stderr, "coarvnodnbr=%ld\tcoarvelmnbr=%ld\tcoaredgenbr=%ld, coardegrmax=%ld\n", (long) coarmeshptr->vnodnbr, (long) coarmeshptr->velmnbr, (long) coarmeshptr->edgenbr, (long) coarmeshptr->degrmax);
-fprintf (stderr, "-------- EXITING COARSENING ---------\n"); /* TODO REMOVE */
-#endif /* SCOTCH_DEBUG_MESH3 */
 
   return (0);
 }

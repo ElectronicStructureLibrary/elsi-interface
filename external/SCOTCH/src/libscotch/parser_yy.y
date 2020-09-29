@@ -40,17 +40,17 @@
 /**                which processes strategy strings.       **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 07 nov 1995     **/
-/**                                 to     13 jun 1996     **/
+/**                                 to   : 13 jun 1996     **/
 /**                # Version 3.2  : from : 24 sep 1996     **/
-/**                                 to     27 feb 1997     **/
+/**                                 to   : 27 feb 1997     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 20 dec 2001     **/
-/**                                 to     11 jun 2004     **/
+/**                                 to   : 11 jun 2004     **/
 /**                # Version 5.1  : from : 30 oct 2007     **/
-/**                                 to     24 jul 2011     **/
+/**                                 to   : 24 jul 2011     **/
 /**                # Version 6.0  : from : 30 sep 2014     **/
-/**                                 to     27 apr 2018     **/
+/**                                 to   : 27 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 

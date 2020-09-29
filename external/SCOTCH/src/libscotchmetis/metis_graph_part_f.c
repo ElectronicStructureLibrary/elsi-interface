@@ -41,11 +41,11 @@
 /**                MeTiS partitioning routines.            **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 10 sep 2006     **/
-/**                                 to     07 jun 2007     **/
+/**                                 to   : 07 jun 2007     **/
 /**                # Version 5.1  : from : 30 jun 2010     **/
-/**                                 to     30 jun 2010     **/
+/**                                 to   : 30 jun 2010     **/
 /**                # Version 6.0  : from : 13 sep 2012     **/
-/**                                 to     18 may 2019     **/
+/**                                 to   : 18 may 2019     **/
 /**                                                        **/
 /************************************************************/
 

@@ -40,7 +40,7 @@
 /**                and using a graph separation strategy.  **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 13 oct 2003     **/
-/**                                 to     13 oct 2003     **/
+/**                                 to   : 13 oct 2003     **/
 /**                                                        **/
 /************************************************************/
 

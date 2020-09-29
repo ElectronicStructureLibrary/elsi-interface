@@ -41,19 +41,19 @@
 /**                methods.                                **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 08 oct 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     12 mar 1999     **/
+/**                                 to   : 12 mar 1999     **/
 /**                # Version 3.4  : from : 01 jun 2001     **/
-/**                                 to     01 jun 2001     **/
+/**                                 to   : 01 jun 2001     **/
 /**                # Version 4.0  : from : 12 jan 2004     **/
-/**                                 to     20 aug 2004     **/
+/**                                 to   : 20 aug 2004     **/
 /**                # Version 5.0  : from : 27 nov 2006     **/
-/**                                 to     29 may 2007     **/
+/**                                 to   : 29 may 2007     **/
 /**                # Version 5.1  : from : 26 oct 2009     **/
-/**                                 to     15 apr 2011     **/
+/**                                 to   : 15 apr 2011     **/
 /**                # Version 6.0  : from : 23 feb 2011     **/
-/**                                 to     02 jan 2017     **/
+/**                                 to   : 02 jan 2017     **/
 /**                                                        **/
 /************************************************************/
 

@@ -47,9 +47,9 @@
 /**                  anchor of part 1.                     **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 09 jan 2007     **/
-/**                                 to     10 sep 2007     **/
+/**                                 to   : 10 sep 2007     **/
 /**                # Version 5.1  : from : 29 oct 2007     **/
-/**                                 to     27 mar 2011     **/
+/**                                 to   : 27 mar 2011     **/
 /**                # Version 6.0  : from : 07 nov 2011     **/
 /**                                 to   : 03 jun 2018     **/
 /**                                                        **/

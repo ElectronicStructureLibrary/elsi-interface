@@ -42,9 +42,9 @@
 /**                target architectures.                   **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 16 sep 2008     **/
-/**                                 to     31 aug 2011     **/
+/**                                 to   : 31 aug 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     16 sep 2014     **/
+/**                                 to   : 16 sep 2014     **/
 /**                                                        **/
 /**   NOTES      : # This is a rewrite of kgraphMapRb()    **/
 /**                  for complete-graph target topologies. **/

@@ -40,17 +40,17 @@
 /**                bipartitioning algorithm.               **/
 /**                                                        **/
 /**   DATES      : # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     28 oct 1994     **/
+/**                                 to   : 28 oct 1994     **/
 /**                # Version 3.2  : from : 21 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 01 nov 2003     **/
-/**                                 to     20 aug 2004     **/
+/**                                 to   : 20 aug 2004     **/
 /**                # Version 5.1  : from : 04 nov 2010     **/
-/**                                 to     04 nov 2010     **/
+/**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 05 apr 2018     **/
-/**                                 to     05 apr 2018     **/
+/**                                 to   : 05 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 

@@ -41,13 +41,13 @@
 /**                bipartitioning module.                  **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 23 aug 1996     **/
-/**                                 to     19 oct 1996     **/
+/**                                 to   : 19 oct 1996     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 01 nov 2003     **/
-/**                                 to     01 nov 2003     **/
+/**                                 to   : 01 nov 2003     **/
 /**                # Version 6.0  : from : 05 apr 2018     **/
-/**                                 to     05 apr 2018     **/
+/**                                 to   : 05 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 

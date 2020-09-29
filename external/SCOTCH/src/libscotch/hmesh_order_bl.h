@@ -39,11 +39,11 @@
 /**                for the block splitting algorithm.      **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 28 sep 2002     **/
-/**                                 to     04 jan 2005     **/
+/**                                 to   : 04 jan 2005     **/
 /**                # Version 5.1  : from : 01 oct 2009     **/
 /**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

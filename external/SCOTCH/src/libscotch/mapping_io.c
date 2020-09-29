@@ -39,35 +39,35 @@
 /**   FUNCTION   : This module handles (partial) mappings. **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 31 mar 1993     **/
-/**                                 to     31 mar 1993     **/
+/**                                 to   : 31 mar 1993     **/
 /**                # Version 1.0  : from : 04 oct 1993     **/
-/**                                 to     06 oct 1993     **/
+/**                                 to   : 06 oct 1993     **/
 /**                # Version 1.1  : from : 15 oct 1993     **/
-/**                                 to     15 oct 1993     **/
+/**                                 to   : 15 oct 1993     **/
 /**                # Version 1.3  : from : 09 apr 1994     **/
-/**                                 to     11 may 1994     **/
+/**                                 to   : 11 may 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     17 nov 1994     **/
+/**                                 to   : 17 nov 1994     **/
 /**                # Version 2.1  : from : 07 apr 1995     **/
-/**                                 to     18 jun 1995     **/
+/**                                 to   : 18 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     19 oct 1995     **/
+/**                                 to   : 19 oct 1995     **/
 /**                # Version 3.1  : from : 30 oct 1995     **/
-/**                                 to     14 jun 1996     **/
+/**                                 to   : 14 jun 1996     **/
 /**                # Version 3.2  : from : 23 aug 1996     **/
-/**                                 to     07 sep 1998     **/
+/**                                 to   : 07 sep 1998     **/
 /**                # Version 3.3  : from : 19 oct 1998     **/
-/**                                 to     30 mar 1999     **/
+/**                                 to   : 30 mar 1999     **/
 /**                # Version 3.4  : from : 11 sep 2001     **/
-/**                                 to     08 nov 2001     **/
+/**                                 to   : 08 nov 2001     **/
 /**                # Version 4.0  : from : 16 jan 2004     **/
-/**                                 to     14 nov 2005     **/
+/**                                 to   : 14 nov 2005     **/
 /**                # Version 5.0  : from : 13 sep 2006     **/
-/**                                 to     27 feb 2008     **/
+/**                                 to   : 27 feb 2008     **/
 /**                # Version 5.1  : from : 11 aug 2010     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     22 aug 2014     **/
+/**                                 to   : 22 aug 2014     **/
 /**                                                        **/
 /************************************************************/
 

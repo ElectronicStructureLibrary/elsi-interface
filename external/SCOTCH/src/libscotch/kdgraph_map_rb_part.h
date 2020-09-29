@@ -40,9 +40,9 @@
 /**                Bipartitioning mapping algorithm.       **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 23 jun 2008     **/
-/**                                 to     31 aug 2011     **/
+/**                                 to   : 31 aug 2011     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

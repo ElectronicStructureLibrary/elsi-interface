@@ -38,15 +38,15 @@
 /**   FUNCTION   : This module handles generic orderings.  **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 19 oct 1996     **/
-/**                                 to     27 aug 1998     **/
+/**                                 to   : 27 aug 1998     **/
 /**                # Version 4.0  : from : 19 dec 2001     **/
-/**                                 to     28 jun 2004     **/
+/**                                 to   : 28 jun 2004     **/
 /**                # Version 5.0  : from : 12 sep 2007     **/
-/**                                 to     27 feb 2008     **/
+/**                                 to   : 27 feb 2008     **/
 /**                # Version 5.1  : from : 11 aug 2010     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 29 sep 2019     **/
-/**                                 to     29 sep 2019     **/
+/**                                 to   : 29 sep 2019     **/
 /**                                                        **/
 /************************************************************/
 

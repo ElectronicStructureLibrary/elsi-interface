@@ -40,11 +40,11 @@
 /**                routines of the libSCOTCH library.      **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 04 sep 2006     **/
-/**                                 to     05 aug 2007     **/
+/**                                 to   : 05 aug 2007     **/
 /**                # Version 5.1  : from : 27 jul 2008     **/
-/**                                 to     15 apr 2010     **/
+/**                                 to   : 15 apr 2010     **/
 /**                # Version 6.0  : from : 29 nov 2012     **/
-/**                                 to     25 apr 2018     **/
+/**                                 to   : 25 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 

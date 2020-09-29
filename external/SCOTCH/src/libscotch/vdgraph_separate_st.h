@@ -40,11 +40,11 @@
 /**                ration strategy and method tables.      **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 16 feb 2006     **/
-/**                                 to     08 mar 2006     **/
+/**                                 to   : 08 mar 2006     **/
 /**                # Version 5.1  : from : 05 nov 2007     **/
-/**                                 to     05 nov 2007     **/
+/**                                 to   : 05 nov 2007     **/
 /**                # Version 6.0  : from : 06 jun 2018     **/
-/**                                 to     06 jun 2018     **/
+/**                                 to   : 06 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

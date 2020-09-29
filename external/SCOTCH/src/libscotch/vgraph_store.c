@@ -40,7 +40,7 @@
 /**                tion graphs.                            **/
 /**                                                        **/
 /**   DATES      : # Version 3.3  : from : 17 oct 1998     **/
-/**                                 to     17 oct 1998     **/
+/**                                 to   : 17 oct 1998     **/
 /**                # Version 3.4  : from : 11 dec 2001     **/
 /**                                 to   : 11 dec 2001     **/
 /**                # Version 4.0  : from : 01 jan 2002     **/

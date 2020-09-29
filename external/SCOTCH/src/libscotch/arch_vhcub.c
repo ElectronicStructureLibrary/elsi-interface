@@ -40,13 +40,13 @@
 /**                hypercube target architecture.          **/
 /**                                                        **/
 /**   DATES      : # Version 3.4  : from : 08 nov 2001     **/
-/**                                 to     08 nov 2001     **/
+/**                                 to   : 08 nov 2001     **/
 /**                # Version 4.0  : from : 04 nov 2003     **/
-/**                                 to     04 nov 2003     **/
+/**                                 to   : 04 nov 2003     **/
 /**                # Version 5.1  : from : 21 jan 2008     **/
-/**                                 to     27 feb 2008     **/
+/**                                 to   : 27 feb 2008     **/
 /**                # Version 6.0  : from : 14 feb 2011     **/
-/**                                 to     26 aug 2014     **/
+/**                                 to   : 26 aug 2014     **/
 /**                                                        **/
 /************************************************************/
 

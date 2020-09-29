@@ -40,11 +40,11 @@
 /**                dissection ordering algorithm.          **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 16 apr 2006     **/
-/**                                 to     16 jun 2007     **/
+/**                                 to   : 16 jun 2007     **/
 /**                # Version 5.1  : from : 11 nov 2008     **/
-/**                                 to     04 nov 2010     **/
+/**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     30 apr 2019     **/
+/**                                 to   : 30 apr 2019     **/
 /**                                                        **/
 /************************************************************/
 

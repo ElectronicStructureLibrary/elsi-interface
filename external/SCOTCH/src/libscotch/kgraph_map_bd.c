@@ -296,9 +296,9 @@ const KgraphMapBdParam * const      paraptr)      /*+ Method parameters +*/
       if ((orggrafptr->pfixtax[vertnum] == -1) || /* If it is not a fixed vertex            */
           (kgraphMapBdFlagVal (orgflagtab, vertnum) != 0)) /* Or has already been processed */
         continue;                                 /* Skip it                                */
- 
+
       partval = orggrafptr->m.parttax[vertnum];
- 
+
       for (edgenum = orggrafptr->s.verttax[vertnum]; edgenum < orggrafptr->s.vendtax[vertnum]; edgenum ++) {
         if (orggrafptr->m.parttax[orggrafptr->s.edgetax[edgenum]] != partval) { /* If first vertex belongs to frontier */
           orggrafptr->frontab[orgfronnum] = vertnum;

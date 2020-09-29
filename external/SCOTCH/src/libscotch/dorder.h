@@ -40,11 +40,11 @@
 /**                distributed ordering structure.         **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 15 apr 2006     **/
-/**                                 to     14 oct 2007     **/
+/**                                 to   : 14 oct 2007     **/
 /**                # Version 5.1  : from : 28 nov 2007     **/
-/**                                 to     04 nov 2010     **/
+/**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 08 may 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

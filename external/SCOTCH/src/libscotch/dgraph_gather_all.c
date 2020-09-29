@@ -41,11 +41,11 @@
 /**                a distributed graph.                    **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 07 feb 2006     **/
-/**                                 to     17 jun 2008     **/
+/**                                 to   : 17 jun 2008     **/
 /**                # Version 5.1  : from : 30 jul 2010     **/
-/**                                 to     30 jul 2010     **/
+/**                                 to   : 30 jul 2010     **/
 /**                # Version 6.0  : from : 27 nov 2012     **/
-/**                                 to     27 nov 2012     **/
+/**                                 to   : 27 nov 2012     **/
 /**                                                        **/
 /**   NOTES      : # The definitions of MPI_Gather and     **/
 /**                  MPI_Gatherv indicate that elements in **/

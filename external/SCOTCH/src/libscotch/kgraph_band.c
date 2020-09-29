@@ -425,7 +425,7 @@ Gnum * restrict * restrict const  bandvnumptr)    /*+ Pointer to bandvnumtax    
       else
         bandedgetax[bandedgenum ++] = vnumotbdtax[vertend];
     }
-   
+
     if (vfixflag == 1) {                          /* If vertex has at least one neighbours that is fixed */
       Gnum                    edloval;
 
@@ -575,7 +575,7 @@ Gnum * restrict * restrict const  bandvnumptr)    /*+ Pointer to bandvnumtax    
 
   if (bandvertancadj == 1)                        /* Anchors have to be adjusted                       */
     for (domnnum = 0; domnnum < domnnbr; domnnum ++) /* Increase weight of all anchors to keep balance */
-      bandvelotax[bandvertnnd + domnnum] ++;  
+      bandvelotax[bandvertnnd + domnnum] ++;
 
   bandverttax[bandvertnum] = bandedgenum;         /* Fill last element without anchors */
   if (pfixtax != NULL)
@@ -659,7 +659,7 @@ Gnum * restrict * restrict const  bandvnumptr)    /*+ Pointer to bandvnumtax    
       }
     }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
-  } 
+  }
   bandedgenbr = bandgrafptr->s.verttax[bandvertnnd + domnnbr] - bandgrafptr->s.baseval; /* Set real number of edges */
 
   bandgrafptr->s.vendtax = bandgrafptr->s.verttax + 1; /* Band graph is compact */

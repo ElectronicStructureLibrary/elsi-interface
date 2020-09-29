@@ -39,9 +39,9 @@
 /**                the generic Fibonacci trees.            **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 01 may 2010     **/
-/**                                 to     12 may 2010     **/
+/**                                 to   : 12 may 2010     **/
 /**                # Version 6.0  : from : 22 oct 2011     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /**   NOTES      : # Since this module is to be used as    **/
 /**                  the gain keeping data structure for   **/
@@ -84,7 +84,7 @@ typedef struct FiboLink_ {
    "bitsizeof (INT)", so it can hold on an
    "int". The flag value is stored in the
    lowest bit of the value.                   */
-  
+
 
 typedef struct FiboNode_ {
   struct FiboNode_ *        pareptr;              /*+ Pointer to parent element, if any                +*/

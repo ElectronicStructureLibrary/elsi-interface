@@ -1,4 +1,4 @@
-/* Copyright 2010-2012,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2010-2012,2014,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -42,7 +42,7 @@
 /**                to be a band graph.                     **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 05 jan 2010     **/
-/**                                 to   : 23 aug 2014     **/
+/**                                 to   : 21 feb 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -129,7 +129,7 @@ KgraphMapDfThread * restrict  thrdptr)            /* Thread-dependent data */
   }
   if (velsmsk == 0) {                             /* If graph is too small to have any usable anchors */
 #ifdef KGRAPHMAPDFLOOPTHREAD
-    loopptr->abrtval == 1;                        /* We will leave during the first iteration */
+    loopptr->abrtval = 1;                         /* We will leave during the first iteration */
 #else /* KGRAPHMAPDFLOOPTHREAD */
     return (1);
 #endif /* KGRAPHMAPDFLOOPTHREAD */
@@ -143,7 +143,7 @@ KgraphMapDfThread * restrict  thrdptr)            /* Thread-dependent data */
     return (1);
 #endif /* KGRAPHMAPDFLOOPTHREAD */
   }
-   
+
   if (velotax == NULL) {
     for (domnnum = domnbas; domnnum < domnnnd; domnnum ++)
       valotab[domnnum] = 1.0F;
@@ -247,7 +247,7 @@ KgraphMapDfThread * restrict  thrdptr)            /* Thread-dependent data */
 #endif /* KGRAPHMAPDFLOOPTHREAD */
 
 #ifndef KGRAPHDIFFMAPPNONE
-  if (archPart (grafptr->m.archptr))  
+  if (archPart (grafptr->m.archptr))
     mappflag = 0;
   else
     mappflag = 1;
@@ -403,7 +403,7 @@ endloop1 : ;
           if (parotax[vertnum] == sorttab[0].partval) {
             difntax[vertnum].mdisval = migrval / soplval;
             difntax[vertnum].mdidval = 0;
-          } 
+          }
           else {
             difntax[vertnum].mdisval = 0;
             difntax[vertnum].mdidval = migrval / (velstax[vertnum] - soplval);

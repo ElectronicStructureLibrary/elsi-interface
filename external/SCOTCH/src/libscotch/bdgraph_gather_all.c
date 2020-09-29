@@ -42,9 +42,9 @@
 /**                a distributed Bdgraph.                  **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 21 dec 2007     **/
-/**                                 to     14 apr 2011     **/
+/**                                 to   : 14 apr 2011     **/
 /**                # Version 6.0  : from : 29 aug 2014     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /**   NOTES      : # The definitions of MPI_Gather and     **/
 /**                  MPI_Gatherv indicate that elements in **/

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010-2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010-2012,2014,2018,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -42,15 +42,15 @@
 /**                routines.                               **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 03 oct 1997     **/
-/**                                 to     26 may 1998     **/
+/**                                 to   : 26 may 1998     **/
 /**                # Version 3.4  : from : 30 oct 2001     **/
-/**                                 to     30 oct 2001     **/
+/**                                 to   : 30 oct 2001     **/
 /**                # Version 4.0  : from : 24 jun 2004     **/
-/**                                 to     16 feb 2005     **/
+/**                                 to   : 16 feb 2005     **/
 /**                # Version 5.1  : from : 28 sep 2008     **/
-/**                                 to     31 aug 2011     **/
+/**                                 to   : 31 aug 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     26 feb 2018     **/
+/**                                 to   : 27 aug 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -97,7 +97,8 @@ const Gnum * restrict const     vmlotax)          /*+ Vertex migration cost arra
   ArchDom                   domndat;              /* First, largest domain */
 
 #ifdef SCOTCH_DEBUG_KGRAPH2
-  if ((crloval < 1) || (cmloval < 0)) {
+  if (((parotax != NULL) && (crloval < 1)) ||
+      ((vmlotax != NULL) && (cmloval < 0))) {
     errorPrint ("kgraphInit: invalid parameters");
     return     (1);
   }
@@ -295,7 +296,7 @@ Kgraph * restrict const     grafptr)
         distval = (partend != partlst) ? archDomDist (archptr, &domntab[partval], &domntab[partend]) : distlst;
         distlst = distval;
         partlst = partend;
-         
+
         commload += (Gnum) distval * ((edlotax != NULL) ? edlotax[edgenum] : 1);
       }
     }
@@ -316,7 +317,7 @@ Kgraph * restrict const     grafptr)
       for (domnnum = 0; domnnum < domnnbr; domnnum ++) {
         if ((grafptr->s.verttax[vertancnnd + domnnum + 1] - grafptr->s.verttax[vertancnnd + domnnum]) == 0) {
           veloval = grafptr->s.velotax[vertancnnd + domnnum];
- 
+
           fdomwgt += (double) archDomWght (archptr, &grafptr->m.domntab[domnnum]);
           fvelsum += veloval;
           compload[domnnum] -=

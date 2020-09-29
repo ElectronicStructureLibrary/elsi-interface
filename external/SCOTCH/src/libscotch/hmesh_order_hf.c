@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2018-2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -47,6 +47,8 @@
 /**                                 to   : 12 sep 2007     **/
 /**                # Version 6.0  : from : 30 apr 2018     **/
 /**                                 to   : 30 apr 2018     **/
+/**                # Version 6.1  : from : 29 oct 2019     **/
+/**                                 to   : 18 jan 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -88,54 +90,60 @@ const Gnum                                ordenum,
 OrderCblk * restrict const                cblkptr, /*+ Single column-block +*/
 const HmeshOrderHfParam * restrict const  paraptr)
 {
+  Gnum                n;                          /* Number of nodes to order                   */
+  Gnum                norig;                      /* Number of nodes in uncompressed graph      */
   Gnum                nbbuck;
   Gnum * restrict     petab;
   Gnum                pfree;
+  Gnum * restrict     lentab;
   Gnum                iwlen;
   Gnum * restrict     iwtab;
-  Gnum * restrict     lentab;
-  Gnum * restrict     nvartab;
+  Gnum * restrict     nvtab;
   Gnum * restrict     elentab;
   Gnum * restrict     lasttab;
   Gnum * restrict     leaftab;
   Gnum * restrict     secntab;                    /* Array of index to first secondary variable */
   Gnum * restrict     nexttab;                    /* Array of index of next principal variable  */
   Gnum * restrict     frsttab;
-  Gnum * restrict     headtab;                    /* Head array : nbbuck = 2 * n */
+  Gnum * restrict     headtab;                    /* Head array : nbbuck = 2 * n                */
+  Gnum * restrict     cwgttax;                    /* Column weight array                        */
+  Gnum                cwgtsiz;
   Gnum                ncmpa;
-  Gnum                n;                          /* Number of nodes to order */
   int                 o;
 
   n = meshptr->m.velmnbr + meshptr->m.vnodnbr;
 
-  if (n < paraptr->colmin)                        /* If graph is too small, order simply */
+  if (n < paraptr->colmin)                        /* If mesh is too small, order simply */
     return (hmeshOrderSi (meshptr, ordeptr, ordenum, cblkptr));
 
-  nbbuck = n * 2;
+  norig  = meshptr->m.velmnbr + meshptr->m.vnlosum; /* Elements always have weight 1 */
+  nbbuck = norig * 2;
   iwlen  = (Gnum) ((double) meshptr->m.edgenbr * HMESHORDERHFCOMPRAT) + 32;
-  if (iwlen < n)                                  /* Prepare to re-use array */
+  if (iwlen < n)                                  /* TRICK: make sure to be able to re-use array */
     iwlen = n;
+  cwgtsiz = (meshptr->m.vnlotax != NULL) ? n : 0;
 
   if (memAllocGroup ((void **) (void *)
-                     &petab,   (size_t) (n            * sizeof (Gnum)),
-                     &iwtab,   (size_t) (iwlen        * sizeof (Gnum)),
-                     &lentab,  (size_t) (n            * sizeof (Gnum)),
-                     &nvartab, (size_t) (n            * sizeof (Gnum)),
-                     &elentab, (size_t) (n            * sizeof (Gnum)),
-                     &lasttab, (size_t) (n            * sizeof (Gnum)),
-                     &leaftab, (size_t) (n            * sizeof (Gnum)),
-                     &frsttab, (size_t) (n            * sizeof (Gnum)),
-                     &secntab, (size_t) (n            * sizeof (Gnum)),
-                     &nexttab, (size_t) (n            * sizeof (Gnum)),
-                     &headtab, (size_t) ((nbbuck + 2) * sizeof (Gnum)), NULL) == NULL) {
+                     &petab,   (size_t) (n * sizeof (Gnum)),
+                     &lentab,  (size_t) (n * sizeof (Gnum)),
+                     &nvtab,   (size_t) (n * sizeof (Gnum)),
+                     &elentab, (size_t) (n * sizeof (Gnum)),
+                     &lasttab, (size_t) (n * sizeof (Gnum)),
+                     &leaftab, (size_t) (n * sizeof (Gnum)),
+                     &frsttab, (size_t) (n * sizeof (Gnum)),
+                     &secntab, (size_t) (n * sizeof (Gnum)),
+                     &nexttab, (size_t) (n * sizeof (Gnum)),
+                     &cwgttax, (size_t) (cwgtsiz * sizeof (Gnum)), /* Not based yet */
+                     &headtab, (size_t) ((nbbuck + 2) * sizeof (Gnum)),
+                     &iwtab,   (size_t) (iwlen * sizeof (Gnum)), NULL) == NULL) {
     errorPrint  ("hmeshOrderHf: out of memory");
     return      (1);
   }
 
-  hmeshOrderHxFill (meshptr, petab, lentab, iwtab, nvartab, elentab, &pfree);
+  hmeshOrderHxFill (meshptr, petab, lentab, iwtab, nvtab, elentab, &pfree);
 
-  hallOrderHfR2hamdf4 (n, meshptr->m.velmnbr, nbbuck, iwlen, petab, pfree,
-                       lentab, iwtab, nvartab, elentab, lasttab, &ncmpa,
+  hallOrderHfR3Hamdf4 (norig, n, meshptr->m.velmnbr, nbbuck, iwlen, petab, pfree,
+                       lentab, iwtab, nvtab, elentab, lasttab, &ncmpa,
                        leaftab, secntab, nexttab, frsttab, headtab);
   if (ncmpa < 0) {
     errorPrint ("hmeshOrderHf: internal error");
@@ -143,11 +151,20 @@ const HmeshOrderHfParam * restrict const  paraptr)
     return     (1);
   }
 
+  if (meshptr->m.vnlotax != NULL) {
+    cwgttax -= meshptr->m.baseval;                /* Pre-base array for index computations */
+    memCpy (cwgttax + meshptr->m.vnodbas, meshptr->m.vnlotax + meshptr->m.vnodbas, meshptr->m.vnodnbr * sizeof (Gnum));
+    memSet (cwgttax + meshptr->m.velmbas, 0,                                       meshptr->m.velmnbr * sizeof (Gnum));
+  }
+  else
+    cwgttax = NULL;
+
   o = hallOrderHxBuild (meshptr->m.baseval, n, meshptr->vnohnbr,
                         (meshptr->m.vnumtax == NULL) ? NULL : meshptr->m.vnumtax + (meshptr->m.vnodbas - meshptr->m.baseval), /* Point to node part of vnumtab array */
                         ordeptr, cblkptr,
-                        nvartab - meshptr->m.baseval,
+                        nvtab   - meshptr->m.baseval,
                         lentab  - meshptr->m.baseval,
+                        cwgttax,
                         petab   - meshptr->m.baseval,
                         frsttab - meshptr->m.baseval,
                         nexttab - meshptr->m.baseval,

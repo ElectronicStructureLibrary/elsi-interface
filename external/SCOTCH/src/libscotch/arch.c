@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2013,2015,2016,2018,2019 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2013,2015,2016,2018-2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -50,21 +50,21 @@
 /**                # Version 2.1  : from : 07 apr 1995     **/
 /**                                 to   : 29 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     16 aug 1995     **/
+/**                                 to   : 16 aug 1995     **/
 /**                # Version 3.1  : from : 02 may 1996     **/
-/**                                 to     17 jul 1996     **/
+/**                                 to   : 17 jul 1996     **/
 /**                # Version 3.2  : from : 07 sep 1996     **/
-/**                                 to     28 sep 1998     **/
+/**                                 to   : 28 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 3.4  : from : 08 nov 2001     **/
-/**                                 to     08 nov 2001     **/
+/**                                 to   : 08 nov 2001     **/
 /**                # Version 4.0  : from : 04 nov 2003     **/
-/**                                 to     09 jan 2004     **/
+/**                                 to   : 09 jan 2004     **/
 /**                # Version 5.1  : from : 11 dec 2007     **/
-/**                                 to     25 jun 2010     **/
+/**                                 to   : 25 jun 2010     **/
 /**                # Version 6.0  : from : 14 feb 2011     **/
-/**                                 to     28 apr 2019     **/
+/**                                 to   : 24 aug 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -104,10 +104,6 @@ static const ArchClass      archClassTab[] = { ARCHCLASSBLOCK ("cmplt",    Cmplt
                                                ARCHCLASSBLOCK ("tleaf",    Tleaf,  ARCHNONE),
                                                ARCHCLASSBLOCK ("ltleaf",   Ltleaf, ARCHNONE),
                                                ARCHCLASSBLOCK ("mesh2D",   Mesh2,  ARCHNONE),
-#ifdef SCOTCH_DEBUG_ARCH3
-                                               ARCHCLASSBLOCK ("mesh2O",   Mesh2o, ARCHNONE),
-                                               ARCHCLASSBLOCK ("mesh2U",   Mesh2u, ARCHNONE),
-#endif /* SCOTCH_DEBUG_ARCH3 */
                                                ARCHCLASSBLOCK ("mesh3D",   Mesh3,  ARCHNONE),
                                                ARCHCLASSBLOCK ("meshXD",   MeshX,  ARCHNONE),
                                                ARCHCLASSBLOCK ("sub",      Sub,    ARCHNONE),

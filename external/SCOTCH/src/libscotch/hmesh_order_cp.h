@@ -39,11 +39,11 @@
 /**                for the mesh compression algorithm.     **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 08 feb 2004     **/
-/**                                 to     08 feb 2004     **/
+/**                                 to   : 08 feb 2004     **/
 /**                # Version 5.1  : from : 04 nov 2010     **/
-/**                                 to     04 nov 2010     **/
+/**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

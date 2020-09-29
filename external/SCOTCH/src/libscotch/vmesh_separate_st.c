@@ -39,11 +39,11 @@
 /**                separation strategy and method tables.  **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 20 sep 2002     **/
-/**                                 to     08 feb 2003     **/
+/**                                 to   : 08 feb 2003     **/
 /**                # Version 5.0  : from : 04 aug 2007     **/
-/**                                 to     04 aug 2007     **/
+/**                                 to   : 04 aug 2007     **/
 /**                # Version 6.0  : from : 06 jun 2018     **/
-/**                                 to     06 jun 2018     **/
+/**                                 to   : 06 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 

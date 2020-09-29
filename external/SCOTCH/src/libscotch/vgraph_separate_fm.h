@@ -40,11 +40,11 @@
 /**                graph separation routine.               **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 02 nov 1997     **/
-/**                                 to     20 nov 1997     **/
+/**                                 to   : 20 nov 1997     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     28 dec 1998     **/
+/**                                 to   : 28 dec 1998     **/
 /**                # Version 4.0  : from : 13 dec 2001     **/
-/**                                 to     18 aug 2004     **/
+/**                                 to   : 18 aug 2004     **/
 /**                # Version 6.0  : from : 30 apr 2018     **/
 /**                                 to   : 30 apr 2018     **/
 /**                                                        **/

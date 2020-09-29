@@ -42,17 +42,17 @@
 /**                and routines.                           **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 12 sep 1997     **/
-/**                                 to     26 may 1998     **/
+/**                                 to   : 26 may 1998     **/
 /**                # Version 3.3  : from : 19 oct 1998     **/
-/**                                 to     12 mar 1999     **/
+/**                                 to   : 12 mar 1999     **/
 /**                # Version 4.0  : from : 11 dec 2001     **/
-/**                                 to     16 feb 2005     **/
+/**                                 to   : 16 feb 2005     **/
 /**                # Version 5.0  : from : 17 jun 2008     **/
-/**                                 to     17 jun 2008     **/
+/**                                 to   : 17 jun 2008     **/
 /**                # Version 5.1  : from : 13 jul 2010     **/
-/**                                 to     31 aug 2011     **/
+/**                                 to   : 31 aug 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /**   NOTES      : # The comploadavg and comploaddlt       **/
 /**                  should always be allocated together,  **/

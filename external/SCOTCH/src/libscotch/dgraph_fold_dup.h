@@ -40,9 +40,9 @@
 /**                folding routine.                        **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 13 aug 2006     **/
-/**                                 to     13 aug 2006     **/
+/**                                 to   : 13 aug 2006     **/
 /**                # Version 5.1  : from : 04 nov 2010     **/
-/**                                 to     04 nov 2010     **/
+/**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 28 sep 2014     **/
 /**                                 to   : 07 jun 2018     **/
 /**                                                        **/

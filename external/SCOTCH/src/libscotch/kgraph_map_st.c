@@ -41,17 +41,17 @@
 /**                mapping routines.                       **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 15 oct 1996     **/
-/**                                 to     26 may 1998     **/
+/**                                 to   : 26 may 1998     **/
 /**                # Version 3.3  : from : 19 oct 1998     **/
-/**                                 to     17 may 1999     **/
+/**                                 to   : 17 may 1999     **/
 /**                # Version 3.4  : from : 12 sep 2001     **/
-/**                                 to     12 sep 2001     **/
+/**                                 to   : 12 sep 2001     **/
 /**                # Version 4.0  : from : 12 jan 2004     **/
-/**                                 to     05 jan 2005     **/
+/**                                 to   : 05 jan 2005     **/
 /**                # Version 5.1  : from : 04 oct 2009     **/
-/**                                 to     29 mar 2011     **/
+/**                                 to   : 29 mar 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     04 aug 2018     **/
+/**                                 to   : 04 aug 2018     **/
 /**                                                        **/
 /************************************************************/
 

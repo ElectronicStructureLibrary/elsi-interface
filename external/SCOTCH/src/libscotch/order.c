@@ -38,11 +38,11 @@
 /**   FUNCTION   : This module handles generic orderings.  **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 19 oct 1996     **/
-/**                                 to     27 aug 1998     **/
+/**                                 to   : 27 aug 1998     **/
 /**                # Version 4.0  : from : 19 dec 2001     **/
-/**                                 to     26 dec 2004     **/
+/**                                 to   : 26 dec 2004     **/
 /**                # Version 5.0  : from : 25 jul 2007     **/
-/**                                 to     25 jul 2007     **/
+/**                                 to   : 25 jul 2007     **/
 /**                                                        **/
 /************************************************************/
 
@@ -263,7 +263,7 @@ Gnum                              cbfanum)        /* Current number of ancestor 
       cbfanum = cblanum;                          /* Separator becomes most recent ancestor of parts */
       cblknum = 1;                                /* Only scan the two parts, not the separator      */
     }
-     
+
     for ( ; cblknum >= 0; cblknum --) {
       orderTree2 (treetax, cblaptr, &cblkptr->cblktab[cblknum], cbfanum);
 #ifdef SCOTCH_DEBUG_ORDER2

@@ -41,7 +41,7 @@
 /**                distributed graphs.                     **/
 /**                                                        **/
 /**                # Version P0.2 : from : 11 may 1999     **/
-/**                                 to     12 may 1999     **/
+/**                                 to   : 12 may 1999     **/
 /**                # Version 5.0  : from : 22 jul 2005     **/
 /**                                 to   : 22 apr 2008     **/
 /**                # Version 5.1  : from : 11 aug 2010     **/

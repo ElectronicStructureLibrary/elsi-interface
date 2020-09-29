@@ -40,11 +40,11 @@
 /**                routines.                               **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 17 oct 2007     **/
-/**                                 to     07 dec 2007     **/
+/**                                 to   : 07 dec 2007     **/
 /**                # Version 5.1  : from : 18 mar 2009     **/
-/**                                 to     30 jun 2010     **/
+/**                                 to   : 30 jun 2010     **/
 /**                # Version 6.0  : from : 13 sep 2012     **/
-/**                                 to     18 may 2019     **/
+/**                                 to   : 18 may 2019     **/
 /**                                                        **/
 /************************************************************/
 
@@ -171,7 +171,7 @@ MPI_Comm *                  commptr)
                 SCOTCH_Num          cblknum;
 
                 memSet (sepaglbtab, ~0, cblkglbnbr * sizeof (SCOTCH_Num) * 3);
-               
+
                 for (rootnum = -1, cblknum = 0; cblknum < cblkglbnbr; cblknum ++) {
                   SCOTCH_Num          fathnum;
 

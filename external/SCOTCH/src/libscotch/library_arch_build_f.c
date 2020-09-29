@@ -40,9 +40,9 @@
 /**                routine of the libSCOTCH library.       **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 17 mar 2005     **/
-/**                                 to     17 mar 2005     **/
+/**                                 to   : 17 mar 2005     **/
 /**                # Version 6.0  : from : 21 apr 2018     **/
-/**                                 to     25 apr 2018     **/
+/**                                 to   : 25 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 

@@ -45,11 +45,11 @@
 /**                graph consistency checking routine.     **/
 /**                                                        **/
 /**                # Version P0.0 : from : 01 apr 1997     **/
-/**                                 to     20 jun 1997     **/
+/**                                 to   : 20 jun 1997     **/
 /**                # Version P0.1 : from : 14 apr 1998     **/
-/**                                 to     20 jun 1998     **/
+/**                                 to   : 20 jun 1998     **/
 /**                # Version P0.2 : from : 11 may 1999     **/
-/**                                 to     02 feb 2000     **/
+/**                                 to   : 02 feb 2000     **/
 /**                # Version 5.0  : from : 04 jul 2005     **/
 /**                                 to   : 10 sep 2007     **/
 /**                # Version 5.1  : from : 20 nov 2008     **/

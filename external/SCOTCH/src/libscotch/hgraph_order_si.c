@@ -39,11 +39,11 @@
 /**                using a simple method.                  **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 01 nov 1996     **/
-/**                                 to     21 aug 1998     **/
+/**                                 to   : 21 aug 1998     **/
 /**                # Version 3.3  : from : 02 oct 1998     **/
-/**                                 to     02 oct 1998     **/
+/**                                 to   : 02 oct 1998     **/
 /**                # Version 4.0  : from : 19 dec 2001     **/
-/**                                 to     11 dec 2002     **/
+/**                                 to   : 11 dec 2002     **/
 /**                # Version 6.0  : from : 17 oct 2012     **/
 /**                                 to   : 04 aug 2014     **/
 /**                                                        **/

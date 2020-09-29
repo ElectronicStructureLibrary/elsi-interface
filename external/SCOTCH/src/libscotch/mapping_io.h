@@ -39,29 +39,29 @@
 /**                the mapping handling routines.          **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 15 dec 1992     **/
-/**                                 to     01 apr 1993     **/
+/**                                 to   : 01 apr 1993     **/
 /**                # Version 1.0  : from : 04 oct 1993     **/
-/**                                 to     06 oct 1993     **/
+/**                                 to   : 06 oct 1993     **/
 /**                # Version 1.1  : from : 15 oct 1993     **/
-/**                                 to     15 oct 1993     **/
+/**                                 to   : 15 oct 1993     **/
 /**                # Version 1.3  : from : 09 apr 1994     **/
-/**                                 to     11 may 1994     **/
+/**                                 to   : 11 may 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     02 nov 1994     **/
+/**                                 to   : 02 nov 1994     **/
 /**                # Version 2.1  : from : 07 apr 1995     **/
-/**                                 to     18 jun 1995     **/
+/**                                 to   : 18 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     04 jul 1995     **/
+/**                                 to   : 04 jul 1995     **/
 /**                # Version 3.1  : from : 30 oct 1995     **/
-/**                                 to     06 jun 1996     **/
+/**                                 to   : 06 jun 1996     **/
 /**                # Version 3.2  : from : 23 aug 1996     **/
-/**                                 to     26 may 1998     **/
+/**                                 to   : 26 may 1998     **/
 /**                # Version 3.3  : from : 19 oct 1998     **/
-/**                                 to     30 mar 1999     **/
+/**                                 to   : 30 mar 1999     **/
 /**                # Version 4.0  : from : 11 dec 2001     **/
-/**                                 to     13 nov 2005     **/
+/**                                 to   : 13 nov 2005     **/
 /**                # Version 5.0  : from : 13 sep 2006     **/
-/**                                 to     13 sep 2006     **/
+/**                                 to   : 13 sep 2006     **/
 /**                                                        **/
 /************************************************************/
 

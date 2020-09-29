@@ -40,11 +40,11 @@
 /**                separation method.                      **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 14 nov 1997     **/
-/**                                 to     15 jul 1998     **/
+/**                                 to   : 15 jul 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 19 dec 2001     **/
-/**                                 to     09 jan 2004     **/
+/**                                 to   : 09 jan 2004     **/
 /**                # Version 6.0  : from : 30 apr 2018     **/
 /**                                 to   : 30 apr 2018     **/
 /**                                                        **/

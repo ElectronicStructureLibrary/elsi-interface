@@ -40,15 +40,15 @@
 /**                libSCOTCH library.                      **/
 /**                                                        **/
 /**   DATES      : # Version 3.4  : from : 02 feb 2000     **/
-/**                                 to     15 nov 2001     **/
+/**                                 to   : 15 nov 2001     **/
 /**                # Version 4.0  : from : 02 feb 2002     **/
-/**                                 to     13 dec 2005     **/
+/**                                 to   : 13 dec 2005     **/
 /**                # Version 5.0  : from : 04 aug 2007     **/
-/**                                 to     31 may 2008     **/
+/**                                 to   : 31 may 2008     **/
 /**                # Version 5.1  : from : 27 mar 2010     **/
-/**                                 to     25 jul 2010     **/
+/**                                 to   : 25 jul 2010     **/
 /**                # Version 6.0  : from : 08 jan 2012     **/
-/**                                 to     25 apr 2018     **/
+/**                                 to   : 25 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 

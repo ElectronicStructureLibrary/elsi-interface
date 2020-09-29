@@ -47,9 +47,9 @@
 /**                  anchor of part 1.                     **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 29 oct 2007     **/
-/**                                 to     24 may 2008     **/
+/**                                 to   : 24 may 2008     **/
 /**                # Version 6.0  : from : 24 dec 2013     **/
-/**                                 to     31 may 2018     **/
+/**                                 to   : 31 may 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -151,7 +151,7 @@ const VgraphSeparateDfParam * const paraptr)      /*+ Method parameters +*/
     Gnum                  compload0;
     Gnum                  compload1;
     int                   rootval;                /* Root part for separator vertices */
-   
+
     compload0  = compload0avg - grafptr->compload[2] / 2;
     compload1  = grafptr->s.velosum - compload0avg - (grafptr->compload[2] + 1) / 2;
     vanctab[0] = (float) (- compload0);           /* Values to be injected to anchor vertices at every iteration  */

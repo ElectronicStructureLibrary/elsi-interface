@@ -41,19 +41,19 @@
 /**                graph using a multi-level scheme.       **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 24 oct 1995     **/
-/**                                 to     19 sep 1996     **/
+/**                                 to   : 19 sep 1996     **/
 /**                # Version 3.2  : from : 20 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     12 mar 1999     **/
+/**                                 to   : 12 mar 1999     **/
 /**                # Version 3.4  : from : 01 jun 2001     **/
-/**                                 to     01 jun 2001     **/
+/**                                 to   : 01 jun 2001     **/
 /**                # Version 4.0  : from : 12 dec 2003     **/
-/**                                 to     20 mar 2005     **/
+/**                                 to   : 20 mar 2005     **/
 /**                # Version 5.1  : from : 28 sep 2008     **/
-/**                                 to     27 mar 2011     **/
+/**                                 to   : 27 mar 2011     **/
 /**                # Version 6.0  : from : 09 mar 2011     **/
-/**                                 to     16 aug 2015     **/
+/**                                 to   : 16 aug 2015     **/
 /**                                                        **/
 /************************************************************/
 

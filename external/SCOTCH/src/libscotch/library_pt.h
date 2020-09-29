@@ -42,19 +42,19 @@
 /**                matrix block ordering library.          **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 07 sep 1996     **/
-/**                                 to     22 aug 1998     **/
+/**                                 to   : 22 aug 1998     **/
 /**                # Version 3.3  : from : 02 oct 1998     **/
-/**                                 to     31 may 1999     **/
+/**                                 to   : 31 may 1999     **/
 /**                # Version 3.4  : from : 10 oct 1999     **/
-/**                                 to     15 nov 2001     **/
+/**                                 to   : 15 nov 2001     **/
 /**                # Version 4.0  : from : 11 dec 2001     **/
-/**                                 to     20 dec 2005     **/
+/**                                 to   : 20 dec 2005     **/
 /**                # Version 5.0  : from : 26 apr 2006     **/
 /**                                 to   : 20 feb 2008     **/
 /**                # Version 5.1  : from : 30 nov 2007     **/
 /**                                 to   : 07 aug 2011     **/
 /**                # Version 6.0  : from : 12 sep 2008     **/
-/**                                 to     29 apr 2018     **/
+/**                                 to   : 29 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 

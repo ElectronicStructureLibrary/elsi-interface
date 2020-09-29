@@ -40,21 +40,21 @@
 /**                Stockmeyer algorithm.                   **/
 /**                                                        **/
 /**   DATES      : # Version 2.0  : from : 02 jun 1994     **/
-/**                                 to     05 oct 1994     **/
+/**                                 to   : 05 oct 1994     **/
 /**                # Version 3.1  : from : 02 may 1996     **/
-/**                                 to     02 may 1996     **/
+/**                                 to   : 02 may 1996     **/
 /**                # Version 3.2  : from : 21 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 3.4  : from : 01 jun 2001     **/
-/**                                 to     01 jun 2001     **/
+/**                                 to   : 01 jun 2001     **/
 /**                # Version 4.0  : from : 04 nov 2003     **/
-/**                                 to     27 nov 2006     **/
+/**                                 to   : 27 nov 2006     **/
 /**                # Version 5.0  : from : 10 sep 2007     **/
-/**                                 to     22 feb 2011     **/
+/**                                 to   : 22 feb 2011     **/
 /**                # Version 6.0  : from : 08 aug 2014     **/
-/**                                 to     14 aug 2016     **/
+/**                                 to   : 14 aug 2016     **/
 /**                                                        **/
 /************************************************************/
 

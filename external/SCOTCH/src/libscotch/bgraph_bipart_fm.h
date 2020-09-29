@@ -41,25 +41,25 @@
 /**                bipartitioning algorithm.               **/
 /**                                                        **/
 /**   DATES      : # Version 1.0  : from : 30 sep 1993     **/
-/**                                 to     09 oct 1993     **/
+/**                                 to   : 09 oct 1993     **/
 /**                # Version 1.1  : from : 15 oct 1993     **/
-/**                                 to     15 oct 1993     **/
+/**                                 to   : 15 oct 1993     **/
 /**                # Version 1.3  : from : 06 apr 1994     **/
-/**                                 to     13 apr 1994     **/
+/**                                 to   : 13 apr 1994     **/
 /**                # Version 2.0  : from : 04 jul 1994     **/
-/**                                 to     25 nov 1994     **/
+/**                                 to   : 25 nov 1994     **/
 /**                # Version 3.0  : from : 06 jul 1995     **/
-/**                                 to     06 jul 1995     **/
+/**                                 to   : 06 jul 1995     **/
 /**                # Version 3.1  : from : 06 nov 1995     **/
-/**                                 to     07 jun 1996     **/
+/**                                 to   : 07 jun 1996     **/
 /**                # Version 3.2  : from : 21 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     12 mar 1999     **/
+/**                                 to   : 12 mar 1999     **/
 /**                # Version 4.0  : from : 27 aug 2004     **/
-/**                                 to     27 aug 2004     **/
+/**                                 to   : 27 aug 2004     **/
 /**                # Version 6.0  : from : 23 feb 2011     **/
-/**                                 to     27 aug 2016     **/
+/**                                 to   : 27 aug 2016     **/
 /**                                                        **/
 /************************************************************/
 

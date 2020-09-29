@@ -41,17 +41,17 @@
 /**                ning routines.                          **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 24 oct 1995     **/
-/**                                 to     03 jul 1996     **/
+/**                                 to   : 03 jul 1996     **/
 /**                # Version 3.2  : from : 20 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 12 dec 2003     **/
-/**                                 to     20 mar 2005     **/
+/**                                 to   : 20 mar 2005     **/
 /**                # Version 5.1  : from : 13 jul 2010     **/
-/**                                 to     13 jul 2010     **/
+/**                                 to   : 13 jul 2010     **/
 /**                # Version 6.0  : from : 16 apr 2011     **/
-/**                                 to     05 apr 2018     **/
+/**                                 to   : 05 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 

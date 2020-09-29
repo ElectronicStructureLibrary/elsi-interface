@@ -40,9 +40,9 @@
 /**                purpose routines.                       **/
 /**                                                        **/
 /**    DATES     : # Version P0.0 : from : 01 apr 1997     **/
-/**                                 to     01 apr 1997     **/
+/**                                 to   : 01 apr 1997     **/
 /**                # Version P0.1 : from : 12 apr 1998     **/
-/**                                 to     20 jun 1998     **/
+/**                                 to   : 20 jun 1998     **/
 /**                # Version 5.0  : from : 16 feb 2005     **/
 /**                                 to   : 15 aug 2006     **/
 /**                # Version 5.1  : from : 11 aug 2010     **/

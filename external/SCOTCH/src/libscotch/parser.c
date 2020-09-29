@@ -40,19 +40,19 @@
 /**                syntactic analyzer.                     **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 07 nov 1995     **/
-/**                                 to     02 may 1996     **/
+/**                                 to   : 02 may 1996     **/
 /**                # Version 3.2  : from : 07 oct 1996     **/
-/**                                 to     19 oct 1996     **/
+/**                                 to   : 19 oct 1996     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     10 sep 2001     **/
+/**                                 to   : 10 sep 2001     **/
 /**                # Version 4.0  : from : 20 dec 2001     **/
-/**                                 to     02 feb 2004     **/
+/**                                 to   : 02 feb 2004     **/
 /**                # Version 5.0  : from : 20 feb 2008     **/
-/**                                 to     20 feb 2008     **/
+/**                                 to   : 20 feb 2008     **/
 /**                # Version 5.1  : from : 22 oct 2008     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 01 jun 2012     **/
-/**                                 to     30 dec 2016     **/
+/**                                 to   : 30 dec 2016     **/
 /**                                                        **/
 /************************************************************/
 

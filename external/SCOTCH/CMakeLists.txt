@@ -114,6 +114,7 @@ LIST(APPEND scotch_src
   src/libscotch/graph_clone.c
   src/libscotch/graph_coarsen.c
   src/libscotch/graph_diam.c
+  src/libscotch/graph_dump.c
   src/libscotch/graph_ielo.c
   src/libscotch/graph_induce.c
   src/libscotch/graph_io.c
@@ -128,6 +129,7 @@ LIST(APPEND scotch_src
   src/libscotch/hall_order_hx.c
   src/libscotch/hgraph.c
   src/libscotch/hgraph_check.c
+  src/libscotch/hgraph_dump.c
   src/libscotch/hgraph_induce.c
   src/libscotch/hgraph_order_bl.c
   src/libscotch/hgraph_order_cc.c
@@ -190,6 +192,7 @@ LIST(APPEND scotch_src
   src/libscotch/library_graph_color_f.c
   src/libscotch/library_graph_diam.c
   src/libscotch/library_graph_diam_f.c
+  src/libscotch/library_graph_dump.c
   src/libscotch/library_graph_induce.c
   src/libscotch/library_graph_induce_f.c
   src/libscotch/library_graph_io_chac.c
@@ -270,9 +273,9 @@ LIST(APPEND scotch_src
   src/libscotch/vmesh_store.c
   src/libscotch/wgraph.c
   src/libscotch/wgraph_check.c
+  src/libscotch/wgraph_part_es.c
   src/libscotch/wgraph_part_fm.c
   src/libscotch/wgraph_part_gg.c
-  src/libscotch/wgraph_part_gp.c
   src/libscotch/wgraph_part_ml.c
   src/libscotch/wgraph_part_rb.c
   src/libscotch/wgraph_part_st.c

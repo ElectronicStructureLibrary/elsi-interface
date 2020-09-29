@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2018,2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -42,7 +42,9 @@
 /**   DATES      : # Version 4.0  : from : 14 jan 2003     **/
 /**                                 to   : 08 dec 2003     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
+/**                # Version 6.1  : from : 18 jan 2020     **/
+/**                                 to   : 18 jan 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -50,5 +52,5 @@
 **  The function prototypes.
 */
 
-int                         hallOrderHxBuild    (const Gnum, const Gnum, const Gnum, const Gnum * restrict const, Order * restrict const, OrderCblk * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, const Gnum, const Gnum, const float);
+int                         hallOrderHxBuild    (const Gnum, const Gnum, const Gnum, const Gnum * restrict const, Order * restrict const, OrderCblk * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, Gnum * restrict const, const Gnum, const Gnum, const float);
 Gnum                        hallOrderHxTree     (const Gnum * restrict const, const Gnum * restrict const, const Gnum * restrict const, Gnum * restrict const, const Gnum, const Gnum);

@@ -39,9 +39,9 @@
 /**                This module handles errors.             **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 07 sep 2001     **/
-/**                                 to     07 sep 2001     **/
+/**                                 to   : 07 sep 2001     **/
 /**                # Version 0.1  : from : 14 apr 2001     **/
-/**                                 to     24 mar 2003     **/
+/**                                 to   : 24 mar 2003     **/
 /**                # Version 2.0  : from : 01 jul 2008     **/
 /**                                 to   : 01 jul 2008     **/
 /**                # Version 5.1  : from : 22 nov 2008     **/

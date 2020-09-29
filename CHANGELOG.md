@@ -1,17 +1,20 @@
 # ELSI changelog
 
-## v2.6.2 (July 2020)
+## Not released
 
-### ELPA
-* Fixed a performance regression of the ELPA2 generic kernel.
+### PEXSI
+* Updated redistributed (PT-)SCOTCH source code to version 6.1.0.
 
 ### Known issues
 * The ELPA code can not be compiled with the NAG Fortran compiler, due to the
   use of GNU extensions in ELPA.
-* ELPA AVX kernels cannot be built with the PGI compiler suite due to incomplete
-  support of AVX intrinsics in PGI.
 * Depending on the choice of k-points, the complex PEXSI solver may randomly
   fail at the inertia counting stage.
+
+## v2.6.2 (July 2020)
+
+### ELPA
+* Fixed a performance regression of the ELPA2 generic kernel.
 
 ## v2.6.1 (June 2020)
 

@@ -41,29 +41,29 @@
 /**                routines.                               **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 01 dec 1992     **/
-/**                                 to     12 may 1993     **/
+/**                                 to   : 12 may 1993     **/
 /**                # Version 1.3  : from : 06 apr 1994     **/
-/**                                 to     09 apr 1994     **/
+/**                                 to   : 09 apr 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     01 nov 1994     **/
+/**                                 to   : 01 nov 1994     **/
 /**                # Version 2.1  : from : 07 apr 1995     **/
-/**                                 to     30 jun 1995     **/
+/**                                 to   : 30 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     15 aug 1995     **/
+/**                                 to   : 15 aug 1995     **/
 /**                # Version 3.1  : from : 15 nov 1995     **/
-/**                                 to     16 nov 1995     **/
+/**                                 to   : 16 nov 1995     **/
 /**                # Version 3.2  : from : 24 aug 1996     **/
 /**                                 to   : 14 oct 1997     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     19 oct 1998     **/
+/**                                 to   : 19 oct 1998     **/
 /**                # Version 4.0  : from : 18 dec 2001     **/
-/**                                 to     31 aug 2004     **/
+/**                                 to   : 31 aug 2004     **/
 /**                # Version 5.0  : from : 17 dec 2006     **/
-/**                                 to     10 sep 2007     **/
+/**                                 to   : 10 sep 2007     **/
 /**                # Version 5.1  : from : 08 oct 2008     **/
-/**                                 to     18 mar 2011     **/
+/**                                 to   : 18 mar 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     15 may 2018     **/
+/**                                 to   : 15 may 2018     **/
 /**                                                        **/
 /************************************************************/
 

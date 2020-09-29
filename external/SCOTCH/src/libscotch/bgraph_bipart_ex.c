@@ -40,23 +40,23 @@
 /**                it can.                                 **/
 /**                                                        **/
 /**   DATES      : # Version 2.0  : from : 25 oct 1994     **/
-/**                                 to     03 nov 1994     **/
+/**                                 to   : 03 nov 1994     **/
 /**                # Version 3.0  : from : 18 nov 1995     **/
-/**                                 to     18 nov 1995     **/
+/**                                 to   : 18 nov 1995     **/
 /**                # Version 3.1  : from : 20 nov 1995     **/
-/**                                 to     29 nov 1995     **/
+/**                                 to   : 29 nov 1995     **/
 /**                # Version 3.2  : from : 15 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 3.4  : from : 01 jun 2001     **/
-/**                                 to     01 jun 2001     **/
+/**                                 to   : 01 jun 2001     **/
 /**                # Version 4.0  : from : 11 dec 2003     **/
-/**                                 to     11 dec 2003     **/
+/**                                 to   : 11 dec 2003     **/
 /**                # Version 5.1  : from : 30 nov 2007     **/
-/**                                 to     30 nov 2007     **/
+/**                                 to   : 30 nov 2007     **/
 /**                # Version 6.0  : from : 14 aug 2016     **/
-/**                                 to     21 may 2018     **/
+/**                                 to   : 21 may 2018     **/
 /**                                                        **/
 /************************************************************/
 

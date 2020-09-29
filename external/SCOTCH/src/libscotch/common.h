@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2016,2018,2019 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2016,2018-2020 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -53,7 +53,7 @@
 /**                # Version 5.1  : from : 09 nov 2008     **/
 /**                                 to   : 23 nov 2010     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     30 oct 2019     **/
+/**                                 to   : 21 aug 2020     **/
 /**                                                        **/
 /************************************************************/
 
@@ -73,7 +73,6 @@
 #ifdef COMMON_WINDOWS
 #include            <io.h>                        /* For _pipe ()              */
 #include            <fcntl.h>                     /* Fow Windows _pipe () call */
-#include            <stddef.h>                    /* For intptr_t              */
 #include            <windows.h>
 #define HAVE_STDINT_H
 #define HAVE_UINT_T
@@ -91,6 +90,7 @@
 #include            <ctype.h>
 #include            <math.h>
 #include            <memory.h>
+#include            <stddef.h>                    /* For ptrdiff_t */
 #include            <stdio.h>
 #include            <stdarg.h>
 #include            <stdlib.h>

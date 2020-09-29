@@ -78,7 +78,7 @@ const Wgraph * const        grafptr,
 WgraphStore * const         storptr)
 {
   Gnum                savsize;
- 
+
   savsize = 2 * grafptr->partnbr * sizeof (Gnum) + /* Compute size for frontier, part arrays, communication load and size */
             grafptr->s.vertnbr * (sizeof (Gnum) + sizeof (Anum));
 

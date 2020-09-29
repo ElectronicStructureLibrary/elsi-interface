@@ -42,21 +42,21 @@
 /**                the greedy graph growing algorithm.     **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 07 jan 1996     **/
-/**                                 to     07 jun 1996     **/
+/**                                 to   : 07 jun 1996     **/
 /**                # Version 3.2  : from : 20 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 3.4  : from : 01 jun 2001     **/
-/**                                 to     01 jun 2001     **/
+/**                                 to   : 01 jun 2001     **/
 /**                # Version 4.0  : from : 09 jan 2004     **/
-/**                                 to     01 sep 2004     **/
+/**                                 to   : 01 sep 2004     **/
 /**                # Version 5.0  : from : 02 jan 2007     **/
-/**                                 to     04 feb 2007     **/
+/**                                 to   : 04 feb 2007     **/
 /**                # Version 5.1  : from : 21 nov 2007     **/
-/**                                 to     22 feb 2011     **/
+/**                                 to   : 22 feb 2011     **/
 /**                # Version 6.0  : from : 23 feb 2011     **/
-/**                                 to     01 may 2016     **/
+/**                                 to   : 01 may 2016     **/
 /**                                                        **/
 /************************************************************/
 

@@ -40,9 +40,9 @@
 /**                the libSCOTCH library.                  **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 23 feb 2007     **/
-/**                                 to     18 jul 2007     **/
+/**                                 to   : 18 jul 2007     **/
 /**                # Version 6.0  : from : 29 nov 2012     **/
-/**                                 to     25 apr 2018     **/
+/**                                 to   : 25 apr 2018     **/
 /**                                                        **/
 /************************************************************/
 
@@ -110,7 +110,7 @@ Gnum * const                edloloctab)           /* Local edge load array (if a
   }
 
   srcgrafptr = (Dgraph *) grafptr;                /* Use structure as source graph */
- 
+
   vertloctax = (Gnum *) vertloctab - baseval;
   vendloctax = ((vendloctab == NULL) || (vendloctab == vertloctab + 1)) ? vertloctax + 1 : (Gnum *) vendloctab - baseval;
   veloloctax = ((veloloctab == NULL) || (veloloctab == vertloctab)) ? NULL : (Gnum *) veloloctab - baseval;

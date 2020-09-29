@@ -40,9 +40,9 @@
 /**                vertex separation method.               **/
 /**                                                        **/
 /**   DATES      : # Version 3.3  : from : 17 oct 1998     **/
-/**                                 to     17 oct 1998     **/
+/**                                 to   : 17 oct 1998     **/
 /**                # Version 4.0  : from : 12 dec 2001     **/
-/**                                 to     01 jan 2002     **/
+/**                                 to   : 01 jan 2002     **/
 /**                # Version 6.0  : from : 30 apr 2018     **/
 /**                                 to   : 30 apr 2018     **/
 /**                                                        **/

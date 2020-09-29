@@ -40,17 +40,17 @@
 /**                format I/O module.                      **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 06 nov 1997     **/
-/**                                 to     06 nov 1997     **/
+/**                                 to   : 06 nov 1997     **/
 /**                # Version 3.3  : from : 13 dec 1998     **/
-/**                                 to     15 dec 1998     **/
+/**                                 to   : 15 dec 1998     **/
 /**                # Version 4.0  : from : 18 dec 2001     **/
-/**                                 to     19 jan 2004     **/
+/**                                 to   : 19 jan 2004     **/
 /**                # Version 5.0  : from : 06 jun 2007     **/
-/**                                 to     06 jun 2007     **/
+/**                                 to   : 06 jun 2007     **/
 /**                # Version 5.1  : from : 09 nov 2008     **/
-/**                                 to     09 nov 2008     **/
+/**                                 to   : 09 nov 2008     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
 /**                                                        **/
 /************************************************************/
 
