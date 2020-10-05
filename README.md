@@ -2,10 +2,10 @@
 
 ## About
 
-ELSI provides and enhances open-source software packages which solve or
-circumvent eigenvalue problems in self-consistent field calculations based on
-the Kohn-Sham density-functional theory. For more information, please visit the
-[ELSI interchange](https://elsi-interchange.org) website.
+ELSI is a unified software interface designed for electronic structure codes to
+connect with various high-performance eigensolvers and density matrix solvers.
+For more information, visit the [ELSI interchange](https://elsi-interchange.org)
+website.
 
 ## Installation
 
@@ -19,9 +19,9 @@ The standard installation of ELSI requires:
 * BLAS, LAPACK, ScaLAPACK
 * CUDA (optional)
 
-Installation with recent versions of Cray, GNU, IBM, Intel, and PGI compilers
-has been tested. For a complete description of the installation process, please
-refer to [`./INSTALL.md`](./INSTALL.md).
+Installation with recent versions of Cray, GNU, IBM, Intel, and NVIDIA (formerly
+PGI) compilers has been tested. For a complete description of the installation
+process, please refer to [`./INSTALL.md`](./INSTALL.md).
 
 ## More
 
