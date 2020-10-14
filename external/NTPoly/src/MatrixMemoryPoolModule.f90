@@ -7,7 +7,6 @@
 MODULE MatrixMemoryPoolModule
   USE DataTypesModule, ONLY: NTREAL, NTCOMPLEX
   USE TripletModule, ONLY : Triplet_r, Triplet_c
-  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -88,9 +87,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The matrix to construct.
     TYPE(MatrixMemoryPool_lr), TARGET :: this
     !> Number of columns in the matrix.
-    INTEGER(kind=c_int), INTENT(IN) :: columns
+    INTEGER, INTENT(IN) :: columns
     !> Number of rows in the matrix.
-    INTEGER(kind=c_int), INTENT(IN) :: rows
+    INTEGER, INTENT(IN) :: rows
     !> Estimated sparsity (optional).
     REAL(NTREAL), INTENT(IN), OPTIONAL :: sparsity_in
 
@@ -106,9 +105,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The matrix to construct.
     TYPE(MatrixMemoryPool_lc), TARGET :: this
     !> Number of columns in the matrix.
-    INTEGER(kind=c_int), INTENT(IN) :: columns
+    INTEGER, INTENT(IN) :: columns
     !> Number of rows in the matrix.
-    INTEGER(kind=c_int), INTENT(IN) :: rows
+    INTEGER, INTENT(IN) :: rows
     !> Estimated sparsity (optional).
     REAL(NTREAL), INTENT(IN), OPTIONAL :: sparsity_in
 
@@ -124,9 +123,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The matrix to construct.
     TYPE(MatrixMemoryPool_lr), TARGET :: this
     !> Number of columns in the matrix.
-    INTEGER(kind=c_int), INTENT(IN) :: columns
+    INTEGER, INTENT(IN) :: columns
     !> Number of rows in the matrix.
-    INTEGER(kind=c_int), INTENT(IN) :: rows
+    INTEGER, INTENT(IN) :: rows
     !> Estimated sparsity (optional).
     REAL(NTREAL), INTENT(IN), OPTIONAL :: sparsity_in
 
@@ -166,9 +165,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The matrix to construct.
     TYPE(MatrixMemoryPool_lc), TARGET :: this
     !> Number of columns in the matrix.
-    INTEGER(kind=c_int), INTENT(IN) :: columns
+    INTEGER, INTENT(IN) :: columns
     !> Number of rows in the matrix.
-    INTEGER(kind=c_int), INTENT(IN) :: rows
+    INTEGER, INTENT(IN) :: rows
     !> Estimated sparsity (optional).
     REAL(NTREAL), INTENT(IN), OPTIONAL :: sparsity_in
 

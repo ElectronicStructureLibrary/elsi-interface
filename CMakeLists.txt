@@ -7,7 +7,7 @@ SET(elsi_URL "http://elsi-interchange.org")
 SET(elsi_EMAIL "elsi-team@duke.edu")
 SET(elsi_LICENSE "BSD 3")
 SET(elsi_DESCRIPTION "Electronic Structure Infrastructure")
-SET(elsi_DATESTAMP "20200927")
+SET(elsi_DATESTAMP "20201014")
 
 ### CMake modules ###
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
