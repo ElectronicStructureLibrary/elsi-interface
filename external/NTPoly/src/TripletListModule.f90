@@ -9,7 +9,6 @@ MODULE TripletListModule
        & ConvertTripletType
   USE MatrixMarketModule, ONLY : MM_SYMMETRIC, MM_SKEW_SYMMETRIC, MM_HERMITIAN
   USE NTMPIModule
-  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
   IMPLICIT NONE
   PRIVATE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -108,7 +107,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to construct.
     TYPE(TripletList_r), INTENT(INOUT) :: this
     !> The length of the triplet list (default=0).
-    INTEGER(kind=c_int), INTENT(IN), OPTIONAL :: size_in
+    INTEGER, INTENT(IN), OPTIONAL :: size_in
 
     IF (PRESENT(size_in)) THEN
        this = ConstructTripletList_r(size_in)
@@ -122,7 +121,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to construct.
     TYPE(TripletList_c), INTENT(INOUT) :: this
     !> The length of the triplet list (default=0).
-    INTEGER(kind=c_int), INTENT(IN), OPTIONAL :: size_in
+    INTEGER, INTENT(IN), OPTIONAL :: size_in
 
     IF (PRESENT(size_in)) THEN
        this = ConstructTripletList_c(size_in)
@@ -136,7 +135,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to construct.
     TYPE(TripletList_r) :: this
     !> The length of the triplet list (default=0).
-    INTEGER(kind=c_int), INTENT(IN), OPTIONAL :: size_in
+    INTEGER, INTENT(IN), OPTIONAL :: size_in
 
   !! Local data
   INTEGER :: size
@@ -159,7 +158,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to construct.
     TYPE(TripletList_c) :: this
     !> The length of the triplet list (default=0).
-    INTEGER(kind=c_int), INTENT(IN), OPTIONAL :: size_in
+    INTEGER, INTENT(IN), OPTIONAL :: size_in
 
   !! Local data
   INTEGER :: size
@@ -202,7 +201,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to resize.
     TYPE(TripletList_r), INTENT(INOUT) :: this
     !> Size to resize to.
-    INTEGER(KIND=c_int), INTENT(IN) :: size
+    INTEGER, INTENT(IN) :: size
     !! Local Data
     TYPE(Triplet_r), DIMENSION(:), ALLOCATABLE :: temporary_data
 
@@ -227,7 +226,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to resize.
     TYPE(TripletList_c), INTENT(INOUT) :: this
     !> Size to resize to.
-    INTEGER(KIND=c_int), INTENT(IN) :: size
+    INTEGER, INTENT(IN) :: size
     !! Local Data
     TYPE(Triplet_c), DIMENSION(:), ALLOCATABLE :: temporary_data
 
@@ -308,7 +307,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to set.
     TYPE(TripletList_r), INTENT(INOUT) :: this
     !> The index at which to set the triplet.
-    INTEGER(KIND=c_int), INTENT(IN)    :: index
+    INTEGER, INTENT(IN)    :: index
     !> The value of the triplet to set.
     TYPE(Triplet_r), INTENT(IN)        :: triplet_value
 
@@ -320,7 +319,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to set.
     TYPE(TripletList_c), INTENT(INOUT) :: this
     !> The index at which to set the triplet.
-    INTEGER(KIND=c_int), INTENT(IN)    :: index
+    INTEGER, INTENT(IN)    :: index
     !> The value of the triplet to set.
     TYPE(Triplet_c), INTENT(IN)        :: triplet_value
 
@@ -332,7 +331,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to get the value from.
     TYPE(TripletList_r), INTENT(IN) :: this
     !> The index from which to get the triplet.
-    INTEGER(kind=c_int), INTENT(IN) :: index
+    INTEGER, INTENT(IN) :: index
     !> The extracted triplet value.
     TYPE(Triplet_r), INTENT(OUT)    :: triplet_value
 
@@ -344,7 +343,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to get the value from.
     TYPE(TripletList_c), INTENT(IN) :: this
     !> The index from which to get the triplet.
-    INTEGER(kind=c_int), INTENT(IN) :: index
+    INTEGER, INTENT(IN) :: index
     !> The extracted triplet value.
     TYPE(Triplet_c), INTENT(OUT)    :: triplet_value
 

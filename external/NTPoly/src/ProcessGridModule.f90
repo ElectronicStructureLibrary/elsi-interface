@@ -7,7 +7,6 @@ MODULE ProcessGridModule
   USE LoggingModule, ONLY : ActivateLogger, EnterSubLog, ExitSubLog, &
        & WriteHeader, WriteListElement
   USE NTMPIModule
-  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_bool
 
 
 
@@ -83,15 +82,15 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   SUBROUTINE ConstructProcessGrid_full(world_comm_, process_rows_, &
        & process_columns_, process_slices_, be_verbose_in)
     !> A communicator that every process in the grid is a part of.
-    INTEGER(kind=c_int), INTENT(IN) :: world_comm_
+    INTEGER, INTENT(IN) :: world_comm_
     !> The number of grid rows.
-    INTEGER(kind=c_int), INTENT(IN) :: process_rows_
+    INTEGER, INTENT(IN) :: process_rows_
     !> The number of grid columns.
-    INTEGER(kind=c_int), INTENT(IN) :: process_columns_
+    INTEGER, INTENT(IN) :: process_columns_
     !> The number of grid slices.
-    INTEGER(kind=c_int), INTENT(IN) :: process_slices_
+    INTEGER, INTENT(IN) :: process_slices_
     !> Set true to print process grid info.
-    LOGICAL(kind=c_bool), INTENT(IN), OPTIONAL :: be_verbose_in
+    LOGICAL, INTENT(IN), OPTIONAL :: be_verbose_in
     !! Local Data
     LOGICAL :: be_verbose
 
@@ -131,13 +130,13 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   SUBROUTINE ConstructProcessGrid_onlyslice(world_comm_, process_slices_in, &
        & be_verbose_in)
     !> A communicator that every process in the grid is a part of.
-    INTEGER(kind=c_int), INTENT(IN) :: world_comm_
+    INTEGER, INTENT(IN) :: world_comm_
     !> The number of grid slices.
-    INTEGER(kind=c_int), INTENT(IN), OPTIONAL :: process_slices_in
+    INTEGER, INTENT(IN), OPTIONAL :: process_slices_in
     !> Set true to print process grid info.
-    LOGICAL(kind=c_bool), INTENT(IN), OPTIONAL :: be_verbose_in
+    LOGICAL, INTENT(IN), OPTIONAL :: be_verbose_in
     !! Local Data
-    LOGICAL(kind=c_bool) :: be_verbose
+    LOGICAL :: be_verbose
     INTEGER :: process_rows, process_columns, process_slices
     INTEGER :: total_processors
     INTEGER :: ierr
@@ -172,13 +171,13 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The grid to construct
     TYPE(ProcessGrid_t), INTENT(INOUT) :: grid
     !> A communicator that every process in the grid is a part of.
-    INTEGER(kind=c_int), INTENT(IN) :: world_comm_
+    INTEGER, INTENT(IN) :: world_comm_
     !> The number of grid rows.
-    INTEGER(kind=c_int), INTENT(IN) :: process_rows_
+    INTEGER, INTENT(IN) :: process_rows_
     !> The number of grid columns.
-    INTEGER(kind=c_int), INTENT(IN) :: process_columns_
+    INTEGER, INTENT(IN) :: process_columns_
     !> The number of grid slices.
-    INTEGER(kind=c_int), INTENT(IN) :: process_slices_
+    INTEGER, INTENT(IN) :: process_slices_
     !! Local Data
     INTEGER :: column_block_multiplier
     INTEGER :: row_block_multiplier
@@ -292,9 +291,9 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The grid to construct
     TYPE(ProcessGrid_t), INTENT(INOUT) :: grid
     !> A communicator that every process in the grid is a part of.
-    INTEGER(kind=c_int), INTENT(IN) :: world_comm_
+    INTEGER, INTENT(IN) :: world_comm_
     !> The number of grid slices.
-    INTEGER(kind=c_int), INTENT(IN), OPTIONAL :: process_slices_in
+    INTEGER, INTENT(IN), OPTIONAL :: process_slices_in
     !! Local Data
     INTEGER :: process_rows, process_columns, process_slices
     INTEGER :: total_processors
