@@ -57,7 +57,7 @@ subroutine elsi_factor_ovlp_sp_real(ph,bh,ovlp)
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: ovlp(ph%n_basis,ph%n_basis)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -102,9 +102,9 @@ subroutine elsi_reduce_evp_sp_real(ph,bh,ham,ovlp,evec)
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: ham(ph%n_basis,ph%n_basis)
+   real(kind=r8), intent(in) :: ovlp(ph%n_basis,ph%n_basis)
+   real(kind=r8), intent(out) :: evec(ph%n_basis,ph%n_basis)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -167,8 +167,8 @@ subroutine elsi_back_ev_sp_real(ph,bh,ovlp,evec)
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(in) :: ovlp(ph%n_basis,ph%n_basis)
+   real(kind=r8), intent(inout) :: evec(ph%n_basis,ph%n_basis)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -181,7 +181,7 @@ subroutine elsi_back_ev_sp_real(ph,bh,ovlp,evec)
    call elsi_get_time(t0)
 
    if(ph%ill_ovlp) then
-      call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
+      call elsi_allocate(bh,tmp,ph%n_basis,ph%n_basis,"tmp",caller)
 
       tmp(:,:) = evec
 
@@ -212,10 +212,10 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: ham(ph%n_basis,ph%n_basis)
+   real(kind=r8), intent(inout) :: ovlp(ph%n_basis,ph%n_basis)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
-   real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: evec(ph%n_basis,ph%n_basis)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -254,12 +254,12 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
 
    call dsytrd("U",ph%n_good,ham,ph%n_basis,eval,offd,tau,tmp,ph%n_good**2,ierr)
 
-   call elsi_elpa_tridiag(ph,bh,eval,offd,tmp,.false.)
+   call elsi_elpa_tridiag(ph,bh,eval(1:ph%n_good),offd,tmp)
 
    evec(1:ph%n_good,1:ph%n_states_solve) = tmp(1:ph%n_good,1:ph%n_states_solve)
 
    call dormtr("L","U","N",ph%n_good,ph%n_states_solve,ham,ph%n_basis,tau,evec,&
-        ph%n_basis,tmp,ph%n_good*ph%n_good,ierr)
+        ph%n_basis,tmp,ph%n_good**2,ierr)
 
    call elsi_deallocate(bh,offd,"offd")
    call elsi_deallocate(bh,tau,"tau")
@@ -294,9 +294,9 @@ subroutine elsi_check_ovlp_sp_real(ph,bh,ovlp,eval,evec)
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: ovlp(ph%n_basis,ph%n_basis)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
-   real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: evec(ph%n_basis,ph%n_basis)
 
    real(kind=r8) :: ev_sqrt
    real(kind=r8) :: t0
@@ -305,18 +305,18 @@ subroutine elsi_check_ovlp_sp_real(ph,bh,ovlp,eval,evec)
    integer(kind=i4) :: ierr
    character(len=200) :: msg
 
+   real(kind=r8), allocatable :: copy(:,:)
    real(kind=r8), allocatable :: offd(:)
    real(kind=r8), allocatable :: tau(:)
    real(kind=r8), allocatable :: tmp(:,:)
-   real(kind=r8), allocatable :: copy(:,:)
 
    character(len=*), parameter :: caller = "elsi_check_ovlp_sp_real"
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
+   call elsi_allocate(bh,copy,ph%n_basis,ph%n_basis,"copy",caller)
 
-   ! Overlap will be destroyed by eigenvalue calculation
+   ! Save overlap
    copy(:,:) = -ovlp
 
    call elsi_allocate(bh,offd,ph%n_basis,"offd",caller)
@@ -326,39 +326,25 @@ subroutine elsi_check_ovlp_sp_real(ph,bh,ovlp,eval,evec)
    call dsytrd("U",ph%n_basis,copy,ph%n_basis,eval,offd,tau,tmp,ph%n_basis**2,&
         ierr)
 
-   call elsi_elpa_tridiag(ph,bh,eval,offd,tmp,.true.)
+   ph%n_good = ph%n_basis
+   ph%n_states_solve = ph%n_basis
+
+   call elsi_elpa_tridiag(ph,bh,eval,offd,tmp)
 
    ! Get the number of nonsingular eigenvalues
    eval(:) = -eval
 
    do i = 1,ph%n_basis
       if(eval(i) < ph%ill_tol) then
-         exit
+         ph%n_good = ph%n_good-1
       end if
    end do
-
-   ph%n_good = i-1
-
-   ! Eigenvectors computed only for singular overlap matrix
-   if(ph%n_good < ph%n_basis) then
-      evec(:,:) = tmp
-
-      call dormtr("L","U","N",ph%n_basis,ph%n_basis,copy,ph%n_basis,tau,evec,&
-           ph%n_basis,tmp,ph%n_basis*ph%n_basis,ierr)
-   end if
-
-   call elsi_deallocate(bh,offd,"offd")
-   call elsi_deallocate(bh,tau,"tau")
-   call elsi_deallocate(bh,tmp,"tmp")
-   call elsi_deallocate(bh,copy,"copy")
 
    ph%n_states_solve = min(ph%n_good,ph%n_states)
    ph%ovlp_ev_min = eval(ph%n_basis)
    ph%ovlp_ev_max = eval(1)
 
    if(ph%n_good < ph%n_basis) then ! Singular
-      ph%ill_ovlp = .true.
-
       write(msg,"(A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
       write(msg,"(A,E12.4,A,E12.4)") "| Lowest and highest eigenvalues :",&
@@ -367,20 +353,31 @@ subroutine elsi_check_ovlp_sp_real(ph,bh,ovlp,eval,evec)
       write(msg,"(A,I10)") "| Number of basis functions reduced to :",ph%n_good
       call elsi_say(bh,msg)
 
+      ph%ill_ovlp = .true.
+      evec(:,:) = tmp
+
+      call dormtr("L","U","N",ph%n_basis,ph%n_basis,copy,ph%n_basis,tau,evec,&
+           ph%n_basis,tmp,ph%n_basis**2,ierr)
+
       ! Overlap matrix is overwritten with scaled eigenvectors
       do i = 1,ph%n_good
          ev_sqrt = sqrt(eval(i))
          ovlp(:,i) = evec(:,i)/ev_sqrt
       end do
    else
-      ph%ill_ovlp = .false.
-
       write(msg,"(A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
       write(msg,"(A,E12.4,A,E12.4)") "| Lowest and highest eigenvalues :",&
          eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,msg)
+
+      ph%ill_ovlp = .false.
    end if
+
+   call elsi_deallocate(bh,offd,"offd")
+   call elsi_deallocate(bh,tau,"tau")
+   call elsi_deallocate(bh,tmp,"tmp")
+   call elsi_deallocate(bh,copy,"copy")
 
    call elsi_get_time(t1)
 
@@ -400,7 +397,7 @@ subroutine elsi_factor_ovlp_sp_cmplx(ph,bh,ovlp)
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ovlp(ph%n_basis,ph%n_basis)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -445,9 +442,9 @@ subroutine elsi_reduce_evp_sp_cmplx(ph,bh,ham,ovlp,evec)
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ham(ph%n_basis,ph%n_basis)
+   complex(kind=r8), intent(in) :: ovlp(ph%n_basis,ph%n_basis)
+   complex(kind=r8), intent(out) :: evec(ph%n_basis,ph%n_basis)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -512,8 +509,8 @@ subroutine elsi_back_ev_sp_cmplx(ph,bh,ovlp,evec)
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(in) :: ovlp(ph%n_basis,ph%n_basis)
+   complex(kind=r8), intent(inout) :: evec(ph%n_basis,ph%n_basis)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -526,7 +523,7 @@ subroutine elsi_back_ev_sp_cmplx(ph,bh,ovlp,evec)
    call elsi_get_time(t0)
 
    if(ph%ill_ovlp) then
-      call elsi_allocate(bh,tmp,bh%n_lrow,bh%n_lcol,"tmp",caller)
+      call elsi_allocate(bh,tmp,ph%n_basis,ph%n_basis,"tmp",caller)
 
       tmp(:,:) = evec
 
@@ -558,10 +555,10 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
-   complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ham(ph%n_basis,ph%n_basis)
+   complex(kind=r8), intent(inout) :: ovlp(ph%n_basis,ph%n_basis)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
-   complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(out) :: evec(ph%n_basis,ph%n_basis)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
@@ -603,13 +600,13 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
    call zhetrd("U",ph%n_good,ham,ph%n_basis,eval,offd,tau,tmp_cmplx,&
         ph%n_good**2,ierr)
 
-   call elsi_elpa_tridiag(ph,bh,eval,offd,tmp_real,.false.)
+   call elsi_elpa_tridiag(ph,bh,eval(1:ph%n_good),offd,tmp_real)
 
    evec(1:ph%n_good,1:ph%n_states_solve)&
       = tmp_real(1:ph%n_good,1:ph%n_states_solve)
 
    call zunmtr("L","U","N",ph%n_good,ph%n_states_solve,ham,ph%n_basis,tau,evec,&
-        ph%n_basis,tmp_cmplx,ph%n_good*ph%n_good,ierr)
+        ph%n_basis,tmp_cmplx,ph%n_good**2,ierr)
 
    call elsi_deallocate(bh,offd,"offd")
    call elsi_deallocate(bh,tau,"tau")
@@ -645,9 +642,9 @@ subroutine elsi_check_ovlp_sp_cmplx(ph,bh,ovlp,eval,evec)
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ovlp(ph%n_basis,ph%n_basis)
    real(kind=r8), intent(out) :: eval(ph%n_basis)
-   complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(out) :: evec(ph%n_basis,ph%n_basis)
 
    real(kind=r8) :: ev_sqrt
    real(kind=r8) :: t0
@@ -656,9 +653,9 @@ subroutine elsi_check_ovlp_sp_cmplx(ph,bh,ovlp,eval,evec)
    integer(kind=i4) :: ierr
    character(len=200) :: msg
 
+   complex(kind=r8), allocatable :: copy(:,:)
    complex(kind=r8), allocatable :: tau(:)
    complex(kind=r8), allocatable :: tmp_cmplx(:,:)
-   complex(kind=r8), allocatable :: copy(:,:)
    real(kind=r8), allocatable :: offd(:)
    real(kind=r8), allocatable :: tmp_real(:,:)
 
@@ -666,9 +663,9 @@ subroutine elsi_check_ovlp_sp_cmplx(ph,bh,ovlp,eval,evec)
 
    call elsi_get_time(t0)
 
-   call elsi_allocate(bh,copy,bh%n_lrow,bh%n_lcol,"copy",caller)
+   call elsi_allocate(bh,copy,ph%n_basis,ph%n_basis,"copy",caller)
 
-   ! Overlap will be destroyed by eigenvalue calculation
+   ! Save overlap
    copy(:,:) = -ovlp
 
    call elsi_allocate(bh,offd,ph%n_basis,"offd",caller)
@@ -677,42 +674,27 @@ subroutine elsi_check_ovlp_sp_cmplx(ph,bh,ovlp,eval,evec)
    call elsi_allocate(bh,tmp_cmplx,ph%n_basis,ph%n_basis,"tmp_cmplx",caller)
 
    call zhetrd("U",ph%n_basis,copy,ph%n_basis,eval,offd,tau,tmp_cmplx,&
-        ph%n_basis*ph%n_basis,ierr)
+        ph%n_basis**2,ierr)
 
-   call elsi_elpa_tridiag(ph,bh,eval,offd,tmp_real,.true.)
+   ph%n_good = ph%n_basis
+   ph%n_states_solve = ph%n_basis
+
+   call elsi_elpa_tridiag(ph,bh,eval,offd,tmp_real)
 
    ! Get the number of nonsingular eigenvalues
    eval(:) = -eval
 
    do i = 1,ph%n_basis
       if(eval(i) < ph%ill_tol) then
-         exit
+         ph%n_good = ph%n_good-1
       end if
    end do
-
-   ph%n_good = i-1
-
-   ! Eigenvectors computed only for singular overlap matrix
-   if(ph%n_good < ph%n_basis) then
-      evec(:,:) = tmp_real
-
-      call zunmtr("L","U","N",ph%n_basis,ph%n_basis,copy,ph%n_basis,tau,evec,&
-           ph%n_basis,tmp_cmplx,ph%n_basis*ph%n_basis,ierr)
-   end if
-
-   call elsi_deallocate(bh,offd,"offd")
-   call elsi_deallocate(bh,tau,"tau")
-   call elsi_deallocate(bh,tmp_real,"tmp_real")
-   call elsi_deallocate(bh,tmp_cmplx,"tmp_cmplx")
-   call elsi_deallocate(bh,copy,"copy")
 
    ph%n_states_solve = min(ph%n_good,ph%n_states)
    ph%ovlp_ev_min = eval(ph%n_basis)
    ph%ovlp_ev_max = eval(1)
 
    if(ph%n_good < ph%n_basis) then ! Singular
-      ph%ill_ovlp = .true.
-
       write(msg,"(A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
       write(msg,"(A,E12.4,A,E12.4)") "| Lowest and highest eigenvalues :",&
@@ -721,20 +703,32 @@ subroutine elsi_check_ovlp_sp_cmplx(ph,bh,ovlp,eval,evec)
       write(msg,"(A,I10)") "| Number of basis functions reduced to :",ph%n_good
       call elsi_say(bh,msg)
 
+      ph%ill_ovlp = .true.
+      evec(:,:) = tmp_real
+
+      call zunmtr("L","U","N",ph%n_basis,ph%n_basis,copy,ph%n_basis,tau,evec,&
+           ph%n_basis,tmp_cmplx,ph%n_basis**2,ierr)
+
       ! Overlap matrix is overwritten with scaled eigenvectors
       do i = 1,ph%n_good
          ev_sqrt = sqrt(eval(i))
          ovlp(:,i) = evec(:,i)/ev_sqrt
       end do
    else
-      ph%ill_ovlp = .false.
-
       write(msg,"(A)") "Overlap matrix is not singular"
       call elsi_say(bh,msg)
       write(msg,"(A,E12.4,A,E12.4)") "| Lowest and highest eigenvalues :",&
          eval(ph%n_basis),",",eval(1)
       call elsi_say(bh,msg)
+
+      ph%ill_ovlp = .false.
    end if
+
+   call elsi_deallocate(bh,offd,"offd")
+   call elsi_deallocate(bh,tau,"tau")
+   call elsi_deallocate(bh,tmp_real,"tmp_real")
+   call elsi_deallocate(bh,tmp_cmplx,"tmp_cmplx")
+   call elsi_deallocate(bh,copy,"copy")
 
    call elsi_get_time(t1)
 
