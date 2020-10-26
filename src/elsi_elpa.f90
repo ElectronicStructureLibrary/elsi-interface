@@ -1187,16 +1187,15 @@ end subroutine
 !>
 !! Interface to ELPA tridiagonal solver, to be used together with LAPACK.
 !!
-subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
+subroutine elsi_elpa_tridiag(ph,bh,diag,offd,evec)
 
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
-   real(kind=r8), intent(inout) :: d(ph%n_basis)
-   real(kind=r8), intent(inout) :: e(ph%n_good)
-   real(kind=r8), intent(inout) :: q(ph%n_good,ph%n_good)
-   logical, intent(in) :: sing_check
+   real(kind=r8), intent(inout) :: diag(ph%n_good)
+   real(kind=r8), intent(inout) :: offd(ph%n_good)
+   real(kind=r8), intent(inout) :: evec(ph%n_good,ph%n_good)
 
    integer(kind=i4) :: ierr
 
@@ -1206,53 +1205,28 @@ subroutine elsi_elpa_tridiag(ph,bh,d,e,q,sing_check)
 
    call elsi_check_err(bh,"ELPA initialization failed",ierr,caller)
 
-   if(sing_check) then
-      ph%elpa_aux => elpa_allocate(ierr)
+   ph%elpa_aux => elpa_allocate(ierr)
 
-      call ph%elpa_aux%set("na",ph%n_basis,ierr)
-      call ph%elpa_aux%set("nev",ph%n_basis,ierr)
-      call ph%elpa_aux%set("nblk",bh%blk,ierr)
-      call ph%elpa_aux%set("local_nrows",bh%n_lrow,ierr)
-      call ph%elpa_aux%set("local_ncols",bh%n_lcol,ierr)
-      call ph%elpa_aux%set("mpi_comm_parent",MPI_COMM_SELF,ierr)
-      call ph%elpa_aux%set("mpi_comm_rows",MPI_COMM_SELF,ierr)
-      call ph%elpa_aux%set("mpi_comm_cols",MPI_COMM_SELF,ierr)
+   call ph%elpa_aux%set("na",ph%n_good,ierr)
+   call ph%elpa_aux%set("nev",ph%n_states_solve,ierr)
+   call ph%elpa_aux%set("nblk",bh%blk,ierr)
+   call ph%elpa_aux%set("local_nrows",ph%n_good,ierr)
+   call ph%elpa_aux%set("local_ncols",ph%n_good,ierr)
+   call ph%elpa_aux%set("mpi_comm_parent",MPI_COMM_SELF,ierr)
+   call ph%elpa_aux%set("mpi_comm_rows",MPI_COMM_SELF,ierr)
+   call ph%elpa_aux%set("mpi_comm_cols",MPI_COMM_SELF,ierr)
 
-      ierr = ph%elpa_aux%setup()
+   ierr = ph%elpa_aux%setup()
 
-      call elsi_check_err(bh,"ELPA setup",ierr,caller)
+   call elsi_check_err(bh,"ELPA setup",ierr,caller)
 
-      call ph%elpa_aux%solve_tridiagonal(d,e,q,ierr)
+   call ph%elpa_aux%solve_tridiagonal(diag,offd,evec,ierr)
 
-      call elsi_check_err(bh,"ELPA tridiagonal eigensolver",ierr,caller)
+   call elsi_check_err(bh,"ELPA tridiagonal eigensolver",ierr,caller)
 
-      call elpa_deallocate(ph%elpa_aux,ierr)
+   call elpa_deallocate(ph%elpa_aux,ierr)
 
-      nullify(ph%elpa_aux)
-   else
-      ph%elpa_solve => elpa_allocate(ierr)
-
-      call ph%elpa_solve%set("na",ph%n_good,ierr)
-      call ph%elpa_solve%set("nev",ph%n_states_solve,ierr)
-      call ph%elpa_solve%set("nblk",bh%blk,ierr)
-      call ph%elpa_solve%set("local_nrows",ph%n_good,ierr)
-      call ph%elpa_solve%set("local_ncols",ph%n_good,ierr)
-      call ph%elpa_solve%set("mpi_comm_parent",MPI_COMM_SELF,ierr)
-      call ph%elpa_solve%set("mpi_comm_rows",MPI_COMM_SELF,ierr)
-      call ph%elpa_solve%set("mpi_comm_cols",MPI_COMM_SELF,ierr)
-
-      ierr = ph%elpa_solve%setup()
-
-      call elsi_check_err(bh,"ELPA setup",ierr,caller)
-
-      call ph%elpa_solve%solve_tridiagonal(d,e,q,ierr)
-
-      call elsi_check_err(bh,"ELPA tridiagonal eigensolver",ierr,caller)
-
-      call elpa_deallocate(ph%elpa_solve,ierr)
-
-      nullify(ph%elpa_solve)
-   end if
+   nullify(ph%elpa_aux)
 
 end subroutine
 
