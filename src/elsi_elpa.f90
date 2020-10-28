@@ -231,7 +231,7 @@ subroutine elsi_check_ovlp_elpa_real(ph,bh,ovlp,eval,evec)
    ! Solve eigenvalues of S
    call elsi_elpa_evec(ph,bh,ovlp,eval,evec,.true.)
 
-   if(ph%n_good < ph%n_basis) then ! Singular
+   if(ph%n_good < ph%n_basis) then
       ph%ill_ovlp = .true.
 
       write(msg,"(A)") "Overlap matrix is singular"
@@ -375,7 +375,8 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
 
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
-      if(ph%elpa_first .and. ph%n_good == ph%n_basis) then ! Not singular
+      if(ph%elpa_first .and. ph%n_good == ph%n_basis) then
+         ! Do Cholesky if not singular
          call elsi_factor_ovlp_elpa(ph,bh,ovlp)
       end if
 
@@ -614,7 +615,7 @@ subroutine elsi_check_ovlp_elpa_cmplx(ph,bh,ovlp,eval,evec)
    ! Solve eigenvalues of S
    call elsi_elpa_evec(ph,bh,ovlp,eval,evec,.true.)
 
-   if(ph%n_good < ph%n_basis) then ! Singular
+   if(ph%n_good < ph%n_basis) then
       ph%ill_ovlp = .true.
 
       write(msg,"(A)") "Overlap matrix is singular"
@@ -758,7 +759,8 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
-      if(ph%elpa_first .and. ph%n_good == ph%n_basis) then ! Not singular
+      if(ph%elpa_first .and. ph%n_good == ph%n_basis) then
+         ! Do Cholesky if not singular
          call elsi_factor_ovlp_elpa(ph,bh,ovlp)
       end if
 

@@ -109,7 +109,9 @@ subroutine elsi_set_input_file(eh,f_name)
 
       read(msg,*,iostat=ierr) kwd
 
-      call elsi_check_read(eh%bh,ierr,kwd)
+      if(ierr /= 0) then
+         cycle
+      end if
 
       select case(kwd)
       case("output")

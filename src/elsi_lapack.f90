@@ -238,7 +238,8 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
 
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
-      if(ph%n_good == ph%n_basis) then ! Not singular
+      if(ph%n_good == ph%n_basis) then
+         ! Do Cholesky if not singular
          call elsi_factor_ovlp_sp(ph,bh,ovlp)
       end if
 
@@ -344,7 +345,7 @@ subroutine elsi_check_ovlp_sp_real(ph,bh,ovlp,eval,evec)
    ph%ovlp_ev_min = eval(ph%n_basis)
    ph%ovlp_ev_max = eval(1)
 
-   if(ph%n_good < ph%n_basis) then ! Singular
+   if(ph%n_good < ph%n_basis) then
       write(msg,"(A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
       write(msg,"(A,E12.4,A,E12.4)") "| Lowest and highest eigenvalues :",&
@@ -582,7 +583,8 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
 
    ! Transform to standard form
    if(.not. ph%unit_ovlp) then
-      if(ph%n_good == ph%n_basis) then ! Not singular
+      if(ph%n_good == ph%n_basis) then
+         ! Do Cholesky if not singular
          call elsi_factor_ovlp_sp(ph,bh,ovlp)
       end if
 
@@ -694,7 +696,7 @@ subroutine elsi_check_ovlp_sp_cmplx(ph,bh,ovlp,eval,evec)
    ph%ovlp_ev_min = eval(ph%n_basis)
    ph%ovlp_ev_max = eval(1)
 
-   if(ph%n_good < ph%n_basis) then ! Singular
+   if(ph%n_good < ph%n_basis) then
       write(msg,"(A)") "Overlap matrix is singular"
       call elsi_say(bh,msg)
       write(msg,"(A,E12.4,A,E12.4)") "| Lowest and highest eigenvalues :",&
