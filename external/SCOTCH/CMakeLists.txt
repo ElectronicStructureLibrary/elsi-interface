@@ -1,7 +1,7 @@
 MACRO(cpp_scotch arg1)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_VERSION_NUM=6)
-  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_RELEASE_NUM=0)
-  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_PATCHLEVEL_NUM=9)
+  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_RELEASE_NUM=1)
+  TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_PATCHLEVEL_NUM=0)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE COMMON_RANDOM_FIXED_SEED)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE SCOTCH_RENAME)
   TARGET_COMPILE_DEFINITIONS(${arg1} PRIVATE IDXSIZE32)
@@ -24,8 +24,6 @@ SET(SCOTCHMETIS_DIR "${PROJECT_SOURCE_DIR}/external/SCOTCH/src/libscotchmetis")
 ADD_EXECUTABLE(dummysizes src/libscotch/dummysizes.c)
 ADD_EXECUTABLE(ptdummysizes src/libscotch/ptdummysizes.c)
 
-cpp_scotch(dummysizes)
-cpp_scotch(ptdummysizes)
 TARGET_COMPILE_DEFINITIONS(ptdummysizes PRIVATE SCOTCH_PTSCOTCH)
 
 inc_scotch(dummysizes)
@@ -460,10 +458,6 @@ ADD_DEPENDENCIES(ptscotch scotch)
 ADD_DEPENDENCIES(ptscotcherr ptscotch)
 ADD_DEPENDENCIES(ptscotchparmetis ptscotch)
 
-cpp_scotch(scotch)
-cpp_scotch(scotcherr)
-cpp_scotch(ptscotch)
-cpp_scotch(ptscotcherr)
 TARGET_COMPILE_DEFINITIONS(ptscotch PRIVATE SCOTCH_PTSCOTCH)
 TARGET_COMPILE_DEFINITIONS(ptscotcherr PRIVATE SCOTCH_PTSCOTCH)
 TARGET_COMPILE_DEFINITIONS(ptscotchparmetis PRIVATE SCOTCH_PTSCOTCH)
@@ -471,6 +465,8 @@ TARGET_COMPILE_DEFINITIONS(scotchmetis PRIVATE SCOTCH_METIS_VERSION=5)
 TARGET_COMPILE_DEFINITIONS(ptscotchparmetis PRIVATE SCOTCH_METIS_VERSION=5)
 
 LIST(APPEND scotch_target
+  dummysizes
+  ptdummysizes
   scotch
   scotcherr
   scotchmetis
@@ -484,6 +480,7 @@ FOREACH(_target ${scotch_target})
   ENDIF()
 
   inc_scotch(${_target})
+  cpp_scotch(${_target})
 
   INSTALL(TARGETS ${_target}
     EXPORT elsiConfig
