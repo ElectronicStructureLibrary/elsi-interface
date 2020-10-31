@@ -54,6 +54,8 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
    real(kind=r8) :: diff_min ! Error on lower bound
    real(kind=r8) :: diff_max ! Error on upper bound
    integer(kind=i4) :: i_step
+   logical :: found_mu
+   logical :: found_interval
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_mu_and_occ"
@@ -69,36 +71,65 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
    end if
 
    occ(:,:,:) = 0.0_r8
+   found_mu = .false.
+   found_interval = .false.
 
-   ! Compute electron count error
-   call elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
-        mu_min,diff_min)
-   call elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
-        mu_max,diff_max)
+   ! Find solution interval
+   do i_step = 1,ph%mu_max_steps
+      call elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_wt,eval,&
+           occ,mu_min,diff_min)
 
-   ! Enlarge the interval towards both sides if solution not found
-   i_step = 0
+      if(abs(diff_min) < ph%mu_tol) then
+         mu = mu_min
+         found_mu = .true.
 
-   do while(diff_min*diff_max > 0.0_r8)
-      i_step = i_step+1
+         exit
+      end if
 
-      if(i_step > ph%mu_max_steps) then
+      call elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_wt,eval,&
+           occ,mu_max,diff_max)
+
+      if(abs(diff_max) < ph%mu_tol) then
+         mu = mu_max
+         found_mu = .true.
+
+         exit
+      end if
+
+      if(diff_min*diff_max < 0.0_r8) then
+         found_interval = .true.
+
+         exit
+      end if
+
+      ! Enlarge interval if solution not found
+      mu_min = mu_min-buf
+      mu_max = mu_max+buf
+   end do
+
+   if(.not. found_interval .and. .not. found_mu) then
+      ! Test fully occupied and empty states
+      diff_max = n_state*n_spin*ph%spin_degen-n_electron
+
+      if(abs(diff_max) < ph%mu_tol) then
+         found_mu = .true.
+         mu = maxval(eval)+10.0_r8
+         occ(:,:,:) = ph%spin_degen
+      else if(abs(n_electron) < ph%mu_tol) then
+         found_mu = .true.
+         mu = minval(eval)-10.0_r8
+         occ(:,:,:) = 0.0_r8
+      else
          write(msg,"(A)") "Chemical potential not found"
          call elsi_stop(bh,msg,caller)
       end if
+   end if
 
-      mu_min = mu_min-buf
-      mu_max = mu_max+buf
-
-      call elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_wt,eval,&
-           occ,mu_min,diff_min)
-      call elsi_check_electrons(ph,n_electron,n_state,n_spin,n_kpt,k_wt,eval,&
-           occ,mu_max,diff_max)
-   end do
-
-   ! Perform bisection
-   call elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
-        mu_min,mu_max,mu)
+   if(found_interval .and. .not. found_mu) then
+      ! Perform bisection
+      call elsi_find_mu(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
+           mu_min,mu_max,mu)
+   end if
 
 end subroutine
 
