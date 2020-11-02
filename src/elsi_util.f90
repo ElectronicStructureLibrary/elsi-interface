@@ -828,7 +828,11 @@ subroutine elsi_build_dm_edm_real(ph,bh,factor,evec,dm,which)
       call pdgemm("N","T",ph%n_basis,ph%n_basis,ph%n_states_solve,alpha,tmp,1,&
            1,bh%desc,evec,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
    else
-      max_state = count(factor > 0.0_r8)
+      do i = 1,ph%n_states
+         if(factor(i) > 0.0_r8) then
+            max_state = i
+         end if
+      end do
 
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
@@ -943,7 +947,11 @@ subroutine elsi_build_dm_edm_cmplx(ph,bh,factor,evec,dm,which)
       call pzgemm("N","C",ph%n_basis,ph%n_basis,ph%n_states_solve,alpha,tmp,1,&
            1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),dm,1,1,bh%desc)
    else
-      max_state = count(factor > 0.0_r8)
+      do i = 1,ph%n_states
+         if(factor(i) > 0.0_r8) then
+            max_state = i
+         end if
+      end do
 
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
