@@ -2,11 +2,17 @@
 
 ## v2.6.3 (November 2020)
 
+### ELSI interface
+* Computation of chemical potential and occupation numbers was made more robust.
+
 ### PEXSI
 * Updated redistributed (PT-)SCOTCH source code to version 6.1.0.
 
 ### NTPoly
 * Updated redistributed NTPoly source code to version 2.5.1.
+
+### EigenExa
+* Interface compatible with EigenExa 2.6.
 
 ### Known issues
 * The ELPA code can not be compiled with the NAG Fortran compiler, due to the
