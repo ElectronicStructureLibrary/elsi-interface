@@ -1,6 +1,6 @@
 # ELSI changelog
 
-## Not released
+## v2.6.3 (November 2020)
 
 ### PEXSI
 * Updated redistributed (PT-)SCOTCH source code to version 6.1.0.
