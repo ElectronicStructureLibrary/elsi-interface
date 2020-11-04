@@ -776,6 +776,8 @@ end subroutine
 
 !>
 !! Construct density matrix or energy-weighted density matrix from eigenvectors.
+!! Factor contains occupation numbers (GET_DM) or (minus) occupation numbers
+!! multiplied with eigenvalues (GET_EDM).
 !!
 subroutine elsi_build_dm_edm_real(ph,bh,factor,evec,dm,which)
 
@@ -815,7 +817,7 @@ subroutine elsi_build_dm_edm_real(ph,bh,factor,evec,dm,which)
       alpha = -1.0_r8
    end if
 
-   ! Compute density matrix
+   ! Methfessel-Paxton or energy density matrix may have negative factors
    if(any(factor < 0.0_r8)) then
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
@@ -827,7 +829,7 @@ subroutine elsi_build_dm_edm_real(ph,bh,factor,evec,dm,which)
 
       call pdgemm("N","T",ph%n_basis,ph%n_basis,ph%n_states_solve,alpha,tmp,1,&
            1,bh%desc,evec,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
-   else
+   else if(any(factor > 0.0_r8)) then
       do i = 1,ph%n_states
          if(factor(i) > 0.0_r8) then
             max_state = i
@@ -845,6 +847,7 @@ subroutine elsi_build_dm_edm_real(ph,bh,factor,evec,dm,which)
       if(associated(ph%elpa_aux)) then
          call ph%elpa_aux%set("multiply_at_a",1,ierr)
 
+         ! ELPA routine only faster on GPUs
          if(ierr /= 0 .or. ph%elpa_gpu == 0 .or. ph%solver /= ELPA_SOLVER&
             .or. bh%blk*(max(bh%n_prow,bh%n_pcol)-1) >= max_state) then
             use_elpa_mult = .false.
@@ -895,6 +898,8 @@ end subroutine
 
 !>
 !! Construct density matrix or energy-weighted density matrix from eigenvectors.
+!! Factor contains occupation numbers (GET_DM) or (minus) occupation numbers
+!! multiplied with eigenvalues (GET_EDM).
 !!
 subroutine elsi_build_dm_edm_cmplx(ph,bh,factor,evec,dm,which)
 
@@ -934,7 +939,7 @@ subroutine elsi_build_dm_edm_cmplx(ph,bh,factor,evec,dm,which)
       alpha = (-1.0_r8,0.0_r8)
    end if
 
-   ! Compute density matrix
+   ! Methfessel-Paxton or energy density matrix may have negative factors
    if(any(factor < 0.0_r8)) then
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
@@ -946,7 +951,7 @@ subroutine elsi_build_dm_edm_cmplx(ph,bh,factor,evec,dm,which)
 
       call pzgemm("N","C",ph%n_basis,ph%n_basis,ph%n_states_solve,alpha,tmp,1,&
            1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),dm,1,1,bh%desc)
-   else
+   else if(any(factor > 0.0_r8)) then
       do i = 1,ph%n_states
          if(factor(i) > 0.0_r8) then
             max_state = i
@@ -964,6 +969,7 @@ subroutine elsi_build_dm_edm_cmplx(ph,bh,factor,evec,dm,which)
       if(associated(ph%elpa_aux)) then
          call ph%elpa_aux%set("multiply_at_a",1,ierr)
 
+         ! ELPA routine only faster on GPUs
          if(ierr /= 0 .or. ph%elpa_gpu == 0 .or. ph%solver /= ELPA_SOLVER&
             .or. bh%blk*(max(bh%n_prow,bh%n_pcol)-1) >= max_state) then
             use_elpa_mult = .false.
