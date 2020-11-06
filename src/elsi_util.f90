@@ -939,21 +939,9 @@ subroutine elsi_build_dm_edm_cmplx(ph,bh,factor,evec,dm,which)
       alpha = (-1.0_r8,0.0_r8)
    end if
 
-   ! Methfessel-Paxton or energy density matrix may have negative factors
-   if(any(factor < 0.0_r8)) then
-      do i = 1,bh%n_lcol
-         call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
-
-         if(gid <= ph%n_states_solve) then
-            tmp(:,i) = evec(:,i)*factor(gid)
-         end if
-      end do
-
-      call pzgemm("N","C",ph%n_basis,ph%n_basis,ph%n_states_solve,alpha,tmp,1,&
-           1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),dm,1,1,bh%desc)
-   else if(any(factor > 0.0_r8)) then
+   if(any(factor /= 0.0_r8)) then
       do i = 1,ph%n_states
-         if(factor(i) > 0.0_r8) then
+         if(factor(i) /= 0.0_r8) then
             max_state = i
          end if
       end do
@@ -962,7 +950,7 @@ subroutine elsi_build_dm_edm_cmplx(ph,bh,factor,evec,dm,which)
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
          if(gid <= max_state) then
-            tmp(:,i) = evec(:,i)*sqrt(factor(gid))
+            tmp(:,i) = evec(:,i)*sqrt(cmplx(factor(gid),kind=r8))
          end if
       end do
 
