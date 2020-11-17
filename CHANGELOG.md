@@ -1,6 +1,6 @@
 # ELSI changelog
 
-## Not released
+## v2.6.4 (November 2020)
 
 ### ELSI interface
 * Computation of density matrix from eigenvectors was made more robust.
