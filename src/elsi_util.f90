@@ -818,7 +818,7 @@ subroutine elsi_build_dm_edm_real(ph,bh,factor,evec,dm,which)
    end if
 
    ! Methfessel-Paxton or energy density matrix may have negative factors
-   if(any(factor < 0.0_r8)) then
+   if(any(factor(1:ph%n_states_solve) < 0.0_r8)) then
       do i = 1,bh%n_lcol
          call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i,gid)
 
@@ -829,8 +829,8 @@ subroutine elsi_build_dm_edm_real(ph,bh,factor,evec,dm,which)
 
       call pdgemm("N","T",ph%n_basis,ph%n_basis,ph%n_states_solve,alpha,tmp,1,&
            1,bh%desc,evec,1,1,bh%desc,0.0_r8,dm,1,1,bh%desc)
-   else if(any(factor > 0.0_r8)) then
-      do i = 1,ph%n_states
+   else if(any(factor(1:ph%n_states_solve) > 0.0_r8)) then
+      do i = 1,ph%n_states_solve
          if(factor(i) > 0.0_r8) then
             max_state = i
          end if
@@ -939,8 +939,8 @@ subroutine elsi_build_dm_edm_cmplx(ph,bh,factor,evec,dm,which)
       alpha = (-1.0_r8,0.0_r8)
    end if
 
-   if(any(factor /= 0.0_r8)) then
-      do i = 1,ph%n_states
+   if(any(factor(1:ph%n_states_solve) /= 0.0_r8)) then
+      do i = 1,ph%n_states_solve
          if(factor(i) /= 0.0_r8) then
             max_state = i
          end if

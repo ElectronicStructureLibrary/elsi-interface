@@ -1,5 +1,16 @@
 # ELSI changelog
 
+## Not released
+
+### ELSI interface
+* Computation of density matrix from eigenvectors was made more robust.
+
+### Known issues
+* The ELPA code can not be compiled with the NAG Fortran compiler, due to the
+  use of GNU extensions in ELPA.
+* Depending on the choice of k-points, the complex PEXSI solver may randomly
+  fail at the inertia counting stage.
+
 ## v2.6.3 (November 2020)
 
 ### ELSI interface
@@ -13,12 +24,6 @@
 
 ### EigenExa
 * Interface compatible with EigenExa 2.6.
-
-### Known issues
-* The ELPA code can not be compiled with the NAG Fortran compiler, due to the
-  use of GNU extensions in ELPA.
-* Depending on the choice of k-points, the complex PEXSI solver may randomly
-  fail at the inertia counting stage.
 
 ## v2.6.2 (July 2020)
 
