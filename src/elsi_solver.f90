@@ -2188,7 +2188,8 @@ subroutine elsi_compute_edm_real(eh,eval,occ,evec,edm)
 
    call elsi_allocate(eh%bh,factor,eh%ph%n_states,"factor",caller)
 
-   factor(:) = -occ*eval
+   factor(1:eh%ph%n_states_solve) = -occ(1:eh%ph%n_states_solve)&
+      *eval(1:eh%ph%n_states_solve)
 
    call elsi_build_dm_edm(eh%ph,eh%bh,factor,evec,edm,GET_EDM)
 
@@ -2217,7 +2218,8 @@ subroutine elsi_compute_edm_complex(eh,eval,occ,evec,edm)
 
    call elsi_allocate(eh%bh,factor,eh%ph%n_states,"factor",caller)
 
-   factor(:) = -occ*eval
+   factor(1:eh%ph%n_states_solve) = -occ(1:eh%ph%n_states_solve)&
+      *eval(1:eh%ph%n_states_solve)
 
    call elsi_build_dm_edm(eh%ph,eh%bh,factor,evec,edm,GET_EDM)
 
