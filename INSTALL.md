@@ -138,4 +138,4 @@ A complete description of the ELSI build system is available in
 For comments, feedback, and suggestions, please
 [contact the ELSI team](mailto:elsi-team@duke.edu).
 
-Copyright (c) 2015-2020, the ELSI team. All rights reserved.
+Copyright (c) 2015-2021, the ELSI team. All rights reserved.
