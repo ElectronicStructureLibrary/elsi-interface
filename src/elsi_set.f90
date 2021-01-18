@@ -9,7 +9,9 @@
 !!
 module ELSI_SET
 
+   use ELSI_CONSTANT, only: MULTI_PROC
    use ELSI_DATATYPE, only: elsi_handle
+   use ELSI_MALLOC, only: elsi_allocate
    use ELSI_MPI
    use ELSI_PRECISION, only: r8,i4
    use ELSI_UTIL, only: elsi_check_init
@@ -64,6 +66,9 @@ module ELSI_SET
    public :: elsi_set_mu_broaden_width
    public :: elsi_set_mu_tol
    public :: elsi_set_mu_mp_order
+   public :: elsi_set_n_frozen
+   public :: elsi_set_frozen_idx
+   public :: elsi_set_frozen_method
 
    ! Deprecated
    public :: elsi_set_write_unit
@@ -941,7 +946,7 @@ subroutine elsi_set_sips_interval(eh,lower,upper)
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
    if(lower >= upper) then
-      write(msg,"(A)") "Lower bound must be smaller than upper bound"
+      write(msg,"(A)") "Lower bound should be smaller than upper bound"
       call elsi_stop(eh%bh,msg,caller)
    end if
 
@@ -1193,6 +1198,120 @@ subroutine elsi_set_mu_mp_order(eh,mp_order)
    end if
 
    eh%ph%mu_mp_order = mp_order
+
+end subroutine
+
+!>
+!! Set the number of frozen core orbitals.
+!!
+subroutine elsi_set_n_frozen(eh,n_frozen)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: n_frozen !< Number of frozen orbitals
+
+   integer(kind=i4) :: ierr
+   character(len=200) :: msg
+
+   integer(kind=i4), external :: numroc
+
+   character(len=*), parameter :: caller = "elsi_set_n_frozen"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(n_frozen < 0) then
+      write(msg,"(A)") "Input value cannot be negative"
+      call elsi_stop(eh%bh,msg,caller)
+   end if
+
+   eh%ph%n_basis_c = n_frozen
+   eh%ph%n_basis_v = eh%ph%n_basis-n_frozen
+
+   if(eh%ph%parallel_mode == MULTI_PROC) then
+      eh%ph%n_lrow_v = numroc(eh%ph%n_basis_v,eh%bh%blk,eh%bh%my_prow,0,&
+         eh%bh%n_prow)
+      eh%ph%n_lcol_v = numroc(eh%ph%n_basis_v,eh%bh%blk,eh%bh%my_pcol,0,&
+         eh%bh%n_pcol)
+
+      call descinit(eh%ph%desc_v,eh%ph%n_basis_v,eh%ph%n_basis_v,eh%bh%blk,&
+           eh%bh%blk,0,0,eh%bh%blacs_ctxt,max(1,eh%ph%n_lrow_v),ierr)
+   end if
+
+   call elsi_allocate(eh%bh,eh%perm_fc,eh%ph%n_basis,"perm_fc",caller)
+
+end subroutine
+
+!>
+!! Set the indices of frozen core orbitals.
+!!
+subroutine elsi_set_frozen_idx(eh,frozen_idx)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: frozen_idx(eh%ph%n_basis_c) !< Indices
+
+   integer :: i
+   integer :: j
+   integer :: tmp
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_set_frozen_idx"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(eh%ph%n_basis_c > 0) then
+      if(any(frozen_idx <= 0)) then
+         write(msg,"(A)") "Input value should be positive"
+         call elsi_stop(eh%bh,msg,caller)
+      end if
+
+      if(any(frozen_idx > eh%ph%n_basis)) then
+         write(msg,"(A)") "Input value cannot be larger than number of basis"
+         call elsi_stop(eh%bh,msg,caller)
+      end if
+
+      if(any(frozen_idx > eh%ph%n_basis_c)) then
+         eh%ph%fc_perm = .true.
+
+         do i = 1,eh%ph%n_basis
+            eh%perm_fc(i) = i
+         end do
+
+         do i = 1,eh%ph%n_basis_c
+            j = frozen_idx(i)
+            tmp = eh%perm_fc(i)
+            eh%perm_fc(i) = eh%perm_fc(j)
+            eh%perm_fc(j) = tmp
+         end do
+      end if
+   end if
+
+end subroutine
+
+!>
+!! Set the frozen core approximation method.
+!!
+subroutine elsi_set_frozen_method(eh,frozen_method)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: frozen_method !< Frozen core method
+
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_set_frozen_method"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   if(frozen_method < 0 .or. frozen_method > 2) then
+      write(msg,"(A)") "Input value should be 0, 1, or 2"
+      call elsi_stop(eh%bh,msg,caller)
+   end if
+
+   eh%ph%fc_method = frozen_method
 
 end subroutine
 

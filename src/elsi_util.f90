@@ -103,6 +103,13 @@ subroutine elsi_reset_param(ph)
    ph%mu_tol = 1.0e-13_r8
    ph%mu_max_steps = 100
    ph%mu_mp_order = 1
+   ph%fc_method = 2
+   ph%n_basis_c = UNSET
+   ph%n_basis_v = UNSET
+   ph%n_lrow_v = UNSET
+   ph%n_lcol_v = UNSET
+   ph%desc_v(:) = UNSET
+   ph%fc_perm = .false.
    ph%sparsity_mask = 2
    ph%first_blacs_to_ntpoly = .true.
    ph%first_blacs_to_pexsi = .true.
