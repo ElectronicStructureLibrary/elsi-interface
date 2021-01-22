@@ -9,17 +9,21 @@
 !!
 module ELSI_LAPACK
 
+   use ELSI_CONSTANT, only: FC_BASIC,FC_PLUS_V
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_ELPA, only: elsi_elpa_tridiag
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r8,i4
+   use ELSI_SORT, only: elsi_heapsort,elsi_permute
 
    implicit none
 
    private
 
    public :: elsi_solve_lapack
+   public :: elsi_do_fc_lapack
+   public :: elsi_undo_fc_lapack
 
    interface elsi_solve_lapack
       module procedure elsi_solve_lapack_real
@@ -44,6 +48,16 @@ module ELSI_LAPACK
    interface elsi_back_ev_sp
       module procedure elsi_back_ev_sp_real
       module procedure elsi_back_ev_sp_cmplx
+   end interface
+
+   interface elsi_do_fc_lapack
+      module procedure elsi_do_fc_lapack_real
+      module procedure elsi_do_fc_lapack_cmplx
+   end interface
+
+   interface elsi_undo_fc_lapack
+      module procedure elsi_undo_fc_lapack_real
+      module procedure elsi_undo_fc_lapack_cmplx
    end interface
 
 contains
@@ -283,6 +297,14 @@ subroutine elsi_solve_lapack_real(ph,bh,ham,ovlp,eval,evec)
       call elsi_back_ev_sp(ph,bh,ovlp,evec)
    end if
 
+   ! Switch back to full dimension in case of frozen core
+   if(ph%n_basis_c > 0) then
+      ph%n_basis = ph%n_basis_v+ph%n_basis_c
+      ph%n_states = ph%n_states+ph%n_basis_c
+      ph%n_good = ph%n_good+ph%n_basis_c
+      ph%n_states_solve = ph%n_states_solve+ph%n_basis_c
+   end if
+
 end subroutine
 
 !>
@@ -386,6 +408,172 @@ subroutine elsi_check_ovlp_sp_real(ph,bh,ovlp,eval,evec)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
+
+end subroutine
+
+!>
+!! Freeze core orbitals by transforming Hamiltonian and overlap.
+!!
+subroutine elsi_do_fc_lapack_real(ph,ham,ovlp,evec,perm)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   real(kind=r8), intent(inout) :: ham(ph%n_basis,ph%n_basis)
+   real(kind=r8), intent(inout) :: ovlp(ph%n_basis,ph%n_basis)
+   real(kind=r8), intent(out) :: evec(ph%n_basis,ph%n_basis)
+   integer(kind=i4), intent(in) :: perm(ph%n_basis)
+
+   integer(kind=i4) :: i
+
+   character(len=*), parameter :: caller = "elsi_do_fc_lapack_real"
+
+   if(ph%fc_perm) then
+      evec(:,:) = ovlp
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            evec(:,i) = ovlp(:,perm(i))
+         end if
+      end do
+
+      ovlp(:,:) = evec
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            ovlp(i,:) = evec(perm(i),:)
+         end if
+      end do
+   end if
+
+   evec(:,:) = ovlp
+
+   ! S_vv = S_vv - S_vc * S_cv
+   call dsyrk("U","N",ph%n_basis_v,ph%n_basis_c,-1.0_r8,evec(ph%n_basis_c+1,1),&
+        ph%n_basis,1.0_r8,ovlp(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+
+   if(ph%fc_perm) then
+      evec(:,:) = ham
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            evec(:,i) = ham(:,perm(i))
+         end if
+      end do
+
+      ham(:,:) = evec
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            ham(i,:) = evec(perm(i),:)
+         end if
+      end do
+   end if
+
+   ! Compute H_vv
+   call dgemm("N","N",ph%n_basis_v,ph%n_basis_c,ph%n_basis_c,1.0_r8,&
+        ovlp(ph%n_basis_c+1,1),ph%n_basis,ham,ph%n_basis,0.0_r8,evec,ph%n_basis)
+
+   if(ph%fc_method == FC_PLUS_V) then
+      ! H_vv = H_vv + S_vc * H_cc * S_cv - H_vc * S_cv - S_vc * H_cv
+      ! More accurate than H_vv = H_vv - S_vc * H_cc * S_cv
+      call dgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,1.0_r8,evec,&
+           ph%n_basis,ovlp(1,ph%n_basis_c+1),ph%n_basis,1.0_r8,&
+           ham(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+
+      call dgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,1.0_r8,&
+           ham(ph%n_basis_c+1,1),ph%n_basis,ovlp(1,ph%n_basis_c+1),ph%n_basis,&
+           0.0_r8,evec(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+
+      ham(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis) =&
+         ham(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis)&
+         -evec(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis)&
+         -transpose(evec(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis))
+   else
+      ! H_vv = H_vv - S_vc * H_cc * S_cv
+      call dgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,-1.0_r8,evec,&
+           ph%n_basis,ovlp(1,ph%n_basis_c+1),ph%n_basis,1.0_r8,&
+           ham(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+   end if
+
+   ! Switch to valence dimension
+   ph%n_basis = ph%n_basis-ph%n_basis_c
+   ph%n_states = ph%n_states-ph%n_basis_c
+   ph%n_good = ph%n_good-ph%n_basis_c
+   ph%n_states_solve = ph%n_states_solve-ph%n_basis_c
+
+end subroutine
+
+!>
+!! Transforming eigenvectors back to unfrozen eigenproblem.
+!!
+subroutine elsi_undo_fc_lapack_real(ph,bh,ham,ovlp,evec,perm,eval_c)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(inout) :: bh
+   real(kind=r8), intent(inout) :: ham(ph%n_basis,ph%n_basis)
+   real(kind=r8), intent(in) :: ovlp(ph%n_basis,ph%n_basis)
+   real(kind=r8), intent(out) :: evec(ph%n_basis,ph%n_basis)
+   integer(kind=i4), intent(in) :: perm(ph%n_basis)
+   real(kind=r8), intent(out) :: eval_c(ph%n_basis_c)
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+
+   integer(kind=i4), allocatable :: idx(:)
+   integer(kind=i4), allocatable :: tmp(:)
+
+   character(len=*), parameter :: caller = "elsi_undo_fc_lapack_real"
+
+   call elsi_allocate(bh,idx,ph%n_basis_c,"idx",caller)
+   call elsi_allocate(bh,tmp,ph%n_basis_c,"tmp",caller)
+
+   eval_c(:) = 0.0_r8
+
+   do i = 1,ph%n_basis_c
+      idx(i) = i
+
+      if(ph%fc_method > FC_BASIC) then
+         eval_c(i) = ham(i,i)/ovlp(i,i)
+      else
+         eval_c(i) = ham(i,i)
+      end if
+   end do
+
+   call elsi_heapsort(ph%n_basis_c,eval_c,tmp)
+   call elsi_permute(ph%n_basis_c,tmp,idx)
+
+   evec(:,1:ph%n_basis_c) = 0.0_r8
+
+   do j = 1,ph%n_basis_c
+      i = idx(j)
+
+      if(ph%fc_method > FC_BASIC) then
+         evec(i,j) = 1.0_r8/sqrt(ovlp(i,i))
+      else
+         evec(i,j) = 1.0_r8
+      end if
+   end do
+
+   call elsi_deallocate(bh,idx,"idx")
+   call elsi_deallocate(bh,tmp,"tmp")
+
+   ! C_cv = -S_cv * C_vv
+   call dgemm("N","N",ph%n_basis_c,ph%n_basis_v,ph%n_basis_v,-1.0_r8,&
+        ovlp(1,ph%n_basis_c+1),ph%n_basis,evec(ph%n_basis_c+1,ph%n_basis_c+1),&
+        ph%n_basis,0.0_r8,evec(1,ph%n_basis_c+1),ph%n_basis)
+
+   if(ph%fc_perm) then
+      ham(:,:) = evec
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            evec(perm(i),:) = ham(i,:)
+         end if
+      end do
+   end if
 
 end subroutine
 
@@ -632,6 +820,14 @@ subroutine elsi_solve_lapack_cmplx(ph,bh,ham,ovlp,eval,evec)
       call elsi_back_ev_sp(ph,bh,ovlp,evec)
    end if
 
+   ! Switch back to full dimension in case of frozen core
+   if(ph%n_basis_c > 0) then
+      ph%n_basis = ph%n_basis_v+ph%n_basis_c
+      ph%n_states = ph%n_states+ph%n_basis_c
+      ph%n_good = ph%n_good+ph%n_basis_c
+      ph%n_states_solve = ph%n_states_solve+ph%n_basis_c
+   end if
+
 end subroutine
 
 !>
@@ -738,6 +934,176 @@ subroutine elsi_check_ovlp_sp_cmplx(ph,bh,ovlp,eval,evec)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
+
+end subroutine
+
+!>
+!! Freeze core orbitals by transforming Hamiltonian and overlap.
+!!
+subroutine elsi_do_fc_lapack_cmplx(ph,ham,ovlp,evec,perm)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   complex(kind=r8), intent(inout) :: ham(ph%n_basis,ph%n_basis)
+   complex(kind=r8), intent(inout) :: ovlp(ph%n_basis,ph%n_basis)
+   complex(kind=r8), intent(out) :: evec(ph%n_basis,ph%n_basis)
+   integer(kind=i4), intent(in) :: perm(ph%n_basis)
+
+   integer(kind=i4) :: i
+
+   character(len=*), parameter :: caller = "elsi_do_fc_lapack_cmplx"
+
+   if(ph%fc_perm) then
+      evec(:,:) = ovlp
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            evec(:,i) = ovlp(:,perm(i))
+         end if
+      end do
+
+      ovlp(:,:) = evec
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            ovlp(i,:) = evec(perm(i),:)
+         end if
+      end do
+   end if
+
+   evec(:,:) = ovlp
+
+   ! S_vv = S_vv - S_vc * S_cv
+   call zherk("U","N",ph%n_basis_v,ph%n_basis_c,(-1.0_r8,0.0_r8),&
+        evec(ph%n_basis_c+1,1),ph%n_basis,(1.0_r8,0.0_r8),&
+        ovlp(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+
+   if(ph%fc_perm) then
+      evec(:,:) = ham
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            evec(:,i) = ham(:,perm(i))
+         end if
+      end do
+
+      ham(:,:) = evec
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            ham(i,:) = evec(perm(i),:)
+         end if
+      end do
+   end if
+
+   ! Compute H_vv
+   call zgemm("N","N",ph%n_basis_v,ph%n_basis_c,ph%n_basis_c,(1.0_r8,0.0_r8),&
+        ovlp(ph%n_basis_c+1,1),ph%n_basis,ham,ph%n_basis,(0.0_r8,0.0_r8),evec,&
+        ph%n_basis)
+
+   if(ph%fc_method == FC_PLUS_V) then
+      ! H_vv = H_vv + S_vc * H_cc * S_cv - H_vc * S_cv - S_vc * H_cv
+      ! More accurate than H_vv = H_vv - S_vc * H_cc * S_cv
+      call zgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,&
+           (1.0_r8,0.0_r8),evec,ph%n_basis,ovlp(1,ph%n_basis_c+1),ph%n_basis,&
+           (1.0_r8,0.0_r8),ham(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+
+      call zgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,&
+           (1.0_r8,0.0_r8),ham(ph%n_basis_c+1,1),ph%n_basis,&
+           ovlp(1,ph%n_basis_c+1),ph%n_basis,(0.0_r8,0.0_r8),&
+           evec(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+
+      ham(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis) =&
+         ham(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis)&
+         -evec(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis)&
+         -conjg(transpose(evec(ph%n_basis_c+1:ph%n_basis,&
+         ph%n_basis_c+1:ph%n_basis)))
+   else
+      ! H_vv = H_vv - S_vc * H_cc * S_cv
+      call zgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,&
+           (-1.0_r8,0.0_r8),evec,ph%n_basis,ovlp(1,ph%n_basis_c+1),ph%n_basis,&
+           (1.0_r8,0.0_r8),ham(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+   end if
+
+   ! Switch to valence dimension
+   ph%n_basis = ph%n_basis-ph%n_basis_c
+   ph%n_states = ph%n_states-ph%n_basis_c
+   ph%n_good = ph%n_good-ph%n_basis_c
+   ph%n_states_solve = ph%n_states_solve-ph%n_basis_c
+
+end subroutine
+
+!>
+!! Transforming eigenvectors back to unfrozen eigenproblem.
+!!
+subroutine elsi_undo_fc_lapack_cmplx(ph,bh,ham,ovlp,evec,perm,eval_c)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(inout) :: bh
+   complex(kind=r8), intent(inout) :: ham(ph%n_basis,ph%n_basis)
+   complex(kind=r8), intent(in) :: ovlp(ph%n_basis,ph%n_basis)
+   complex(kind=r8), intent(out) :: evec(ph%n_basis,ph%n_basis)
+   integer(kind=i4), intent(in) :: perm(ph%n_basis)
+   real(kind=r8), intent(out) :: eval_c(ph%n_basis_c)
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+
+   integer(kind=i4), allocatable :: idx(:)
+   integer(kind=i4), allocatable :: tmp(:)
+
+   character(len=*), parameter :: caller = "elsi_undo_fc_lapack_cmplx"
+
+   call elsi_allocate(bh,idx,ph%n_basis_c,"idx",caller)
+   call elsi_allocate(bh,tmp,ph%n_basis_c,"tmp",caller)
+
+   eval_c(:) = 0.0_r8
+
+   do i = 1,ph%n_basis_c
+      idx(i) = i
+
+      if(ph%fc_method > FC_BASIC) then
+         eval_c(i) = ham(i,i)/ovlp(i,i)
+      else
+         eval_c(i) = ham(i,i)
+      end if
+   end do
+
+   call elsi_heapsort(ph%n_basis_c,eval_c,tmp)
+   call elsi_permute(ph%n_basis_c,tmp,idx)
+
+   evec(:,1:ph%n_basis_c) = (0.0_r8,0.0_r8)
+
+   do j = 1,ph%n_basis_c
+      i = idx(j)
+
+      if(ph%fc_method > FC_BASIC) then
+         evec(i,j) = (1.0_r8,0.0_r8)/sqrt(real(ovlp(i,i),kind=r8))
+      else
+         evec(i,j) = (1.0_r8,0.0_r8)
+      end if
+   end do
+
+   call elsi_deallocate(bh,idx,"idx")
+   call elsi_deallocate(bh,tmp,"tmp")
+
+   ! C_cv = -S_cv * C_vv
+   call zgemm("N","N",ph%n_basis_c,ph%n_basis_v,ph%n_basis_v,(-1.0_r8,0.0_r8),&
+        ovlp(1,ph%n_basis_c+1),ph%n_basis,evec(ph%n_basis_c+1,ph%n_basis_c+1),&
+        ph%n_basis,(0.0_r8,0.0_r8),evec(1,ph%n_basis_c+1),ph%n_basis)
+
+   if(ph%fc_perm) then
+      ham(:,:) = evec
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            evec(perm(i),:) = ham(i,:)
+         end if
+      end do
+   end if
 
 end subroutine
 

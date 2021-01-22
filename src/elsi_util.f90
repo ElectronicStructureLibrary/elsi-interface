@@ -104,7 +104,7 @@ subroutine elsi_reset_param(ph)
    ph%mu_max_steps = 100
    ph%mu_mp_order = 1
    ph%fc_method = 2
-   ph%n_basis_c = UNSET
+   ph%n_basis_c = 0
    ph%n_basis_v = UNSET
    ph%n_lrow_v = UNSET
    ph%n_lcol_v = UNSET
