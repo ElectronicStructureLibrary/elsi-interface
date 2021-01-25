@@ -861,50 +861,49 @@ In all the subroutines listed below, the first argument (input and output) is an
 \multicolumn{4}{l}{\api{elsi\_set\_mu\_broaden\_width}(handle, mu\_broaden\_width)}\\
 \multicolumn{4}{l}{\api{elsi\_set\_mu\_tol}(handle, mu\_tol)}\\
 \multicolumn{4}{l}{\api{elsi\_set\_mu\_mp\_order}(handle, mu\_mp\_order)}\\
-\multicolumn{4}{l}{\api{elsi\_set\_write\_unit}(handle, write\_unit)}\\
-\multicolumn{4}{l}{\api{elsi\_set\_sing\_check}(handle, sing\_check)}\\
-\multicolumn{4}{l}{\api{elsi\_set\_sing\_tol}(handle, sing\_tol)}\\
+\multicolumn{4}{l}{\api{elsi\_set\_n\_frozen}(handle, n\_frozen)}\\
+\multicolumn{4}{l}{\api{elsi\_set\_frozen\_idx}(handle, frozen\_idx)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
 \hline
-\texttt{output\_level}       & integer     & 0           & 0: No output. 1: Informative output from ELSI. 2: Informative output from ELSI and the solvers. 3: Informative and debugging output from ELSI and the solvers.\\
+\texttt{output\_level}       & integer          & 0           & 0: No output. 1: Informative output from ELSI. 2: Informative output from ELSI and the solvers. 3: Informative and debugging output from ELSI and the solvers.\\
 \hline
-\texttt{output\_unit}        & integer     & 6           & Unit used by ELSI to write out information.\\
+\texttt{output\_unit}        & integer          & 6           & Unit used by ELSI to write out information.\\
 \hline
-\texttt{output\_log}         & integer     & 0           & If not 0, a separate JSON log file will be written out.\\
+\texttt{output\_log}         & integer          & 0           & If not 0, a separate JSON log file will be written out.\\
 \hline
-\texttt{save\_ovlp}          & integer     & 0           & If not 0, the overlap matrix will be saved for density matrix extrapolation.\\
+\texttt{save\_ovlp}          & integer          & 0           & If not 0, the overlap matrix will be saved for density matrix extrapolation.\\
 \hline
-\texttt{unit\_ovlp}          & integer     & 0           & If not 0, the overlap matrix is treated as an identity (unit) matrix. See remark 1.\\
+\texttt{unit\_ovlp}          & integer          & 0           & If not 0, the overlap matrix is treated as an identity (unit) matrix. See remark 1.\\
 \hline
-\texttt{zero\_def}           & real double & $10^{-15}$  & When converting a matrix from dense to sparse format, values below this threshold are discarded.\\
+\texttt{zero\_def}           & real double      & $10^{-15}$  & When converting a matrix from dense to sparse format, values below this threshold are discarded.\\
 \hline
-\texttt{sparsity\_mask}      & integer     & 2           & Which sparsity pattern to use when converting a matrix from dense to sparse format. 0: The union of the sparsity patterns of the Hamiltonian and overlap matrices. 1: The sparsity pattern of the Hamiltonian matrix. 2: The sparsity pattern of the overlap matrix.\\
+\texttt{sparsity\_mask}      & integer          & 2           & Which sparsity pattern to use when converting a matrix from dense to sparse format. 0: The union of the sparsity patterns of the Hamiltonian and overlap matrices. 1: The sparsity pattern of the Hamiltonian matrix. 2: The sparsity pattern of the overlap matrix.\\
 \hline
-\texttt{illcond\_check}      & integer     & 0           & If not 0, the eigenvalues of the overlap matrix will be calculated to check if the overlap matrix is ill-conditioned. See remark 2.\\
+\texttt{illcond\_check}      & integer          & 0           & If not 0, the eigenvalues of the overlap matrix will be calculated to check if the overlap matrix is ill-conditioned. See remark 2.\\
 \hline
-\texttt{illcond\_tol}        & real double & $10^{-5}$   & Eigenfunctions of the overlap matrix with eigenvalues smaller than this threshold will be removed to avoid ill-conditioning. See remark 2.\\
+\texttt{illcond\_tol}        & real double      & $10^{-5}$   & Eigenfunctions of the overlap matrix with eigenvalues smaller than this threshold will be removed to avoid ill-conditioning. See remark 2.\\
 \hline
-\texttt{spin\_degeneracy}    & real double & 2.0/n\_spin & Spin degeneracy that controls the maximum number of electrons on a state.\\
+\texttt{spin\_degeneracy}    & real double      & 2.0/n\_spin & Spin degeneracy that controls the maximum number of electrons on a state.\\
 \hline
-\texttt{energy\_gap}         & real double & 0           & Energy gap. See remark 3.\\
+\texttt{energy\_gap}         & real double      & 0           & Energy gap. See remark 3.\\
 \hline
-\texttt{spectrum\_width}     & real double & $10^{3}$    & Width of the eigenspectrum. See remark 3.\\
+\texttt{spectrum\_width}     & real double      & $10^{3}$    & Width of the eigenspectrum. See remark 3.\\
 \hline
-\texttt{dimensionality}      & integer     & 3           & Dimensionality (1, 2, or 3) of the physical system being simulated. Only used for automatic solver selection.\\
+\texttt{dimensionality}      & integer          & 3           & Dimensionality (1, 2, or 3) of the physical system being simulated. Only used for automatic solver selection.\\
 \hline
-\texttt{mu\_broaden\_scheme} & integer     & 0           & Broadening scheme employed to compute the occupation numbers and the Fermi level. 0: Gaussian. 1: Fermi-Dirac. 2: Methfessel-Paxton. 4: Marzari-Vanderbilt. See remark 4.\\
+\texttt{mu\_broaden\_scheme} & integer          & 0           & Broadening scheme employed to compute the occupation numbers and the Fermi level. 0: Gaussian. 1: Fermi-Dirac. 2: Methfessel-Paxton. 4: Marzari-Vanderbilt. See remark 4.\\
 \hline
-\texttt{mu\_broaden\_width}  & real double & 0.01        & Broadening width employed to compute the occupation numbers and the Fermi level. See remark 5.\\
+\texttt{mu\_broaden\_width}  & real double      & 0.01        & Broadening width employed to compute the occupation numbers and the Fermi level. See remark 5.\\
 \hline
-\texttt{mu\_tol}             & real double & $10^{-13}$  & Convergence tolerance (in terms of the absolute error in electron count) of the bisection algorithm employed to compute the occupation numbers and the Fermi level.\\
+\texttt{mu\_tol}             & real double      & $10^{-13}$  & Convergence tolerance (in terms of the absolute error in electron count) of the bisection algorithm employed to compute the occupation numbers and the Fermi level.\\
 \hline
-\texttt{mu\_mp\_order}       & integer     & 0           & Order of the Methfessel-Paxton broadening scheme. No effect if Methfessel-Paxton is not used.\\
+\texttt{mu\_mp\_order}       & integer          & 0           & Order of the Methfessel-Paxton broadening scheme. No effect if Methfessel-Paxton is not used.\\
 \hline
-\texttt{sing\_check}         & integer     & 0           & Deprecated. Use \api{elsi\_set\_illcond\_check} instead.\\
+\texttt{n\_frozen}           & integer          & 0           & Number of states to be treated as ``frozen'' when using \api{elsi\_ev\_\{real$\vert$complex\}} with ELPA or LAPACK.\\
 \hline
-\texttt{sing\_tol}           & real double & $10^{-5}$   & Deprecated. Use \api{elsi\_set\_illcond\_tol} instead.\\
+\texttt{frozen\_idx}         & 1D integer array & -           & List of indices of states to be frozen. Only relevant if \texttt{n\_frozen} is set. By default, the first \texttt{n\_frozen} states are frozen.\\
 \hline
 \end{longtable}
 
@@ -984,8 +983,6 @@ In all the subroutines listed below, the first argument (input and output) is an
 \multicolumn{4}{l}{\api{elsi\_set\_pexsi\_mu\_min}(handle, pexsi\_mu\_min)}\\
 \multicolumn{4}{l}{\api{elsi\_set\_pexsi\_mu\_max}(handle, pexsi\_mu\_max)}\\
 \multicolumn{4}{l}{\api{elsi\_set\_pexsi\_inertia\_tol}(handle, pexsi\_inertia\_tol)}\\
-\multicolumn{4}{l}{\api{elsi\_set\_pexsi\_gap}(handle, pexsi\_gap)}\\
-\multicolumn{4}{l}{\api{elsi\_set\_pexsi\_delta\_e}(handle, pexsi\_delta\_e)}\\
 \multicolumn{4}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Default}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
@@ -1007,10 +1004,6 @@ In all the subroutines listed below, the first argument (input and output) is an
 \texttt{pexsi\_mu\_min}       & real double & -10.0 & Lower bound of mu. See remark 7.\\
 \hline
 \texttt{pexsi\_mu\_max}       & real double & 10.0  & Upper bound of mu. See remark 7.\\
-\hline
-\texttt{pexsi\_gap}           & real double & 0.0   & Deprecated. Use \api{elsi\_set\_energy\_gap} instead. See remark 8.\\
-\hline
-\texttt{pexsi\_delta\_e}      & real double & 10.0  & Deprecated. Use \api{elsi\_set\_spectrum\_width} instead.\\
 \hline
 \end{tabular}
 
@@ -1172,7 +1165,6 @@ In all the subroutines listed below, the first argument (input and output) is an
 \multicolumn{3}{l}{\api{elsi\_get\_evec\_real}(handle, evec\_real)}\\
 \multicolumn{3}{l}{\api{elsi\_get\_evec\_complex}(handle, evec\_complex)}\\
 \multicolumn{3}{l}{\api{elsi\_get\_occ}(handle, occ)}\\
-\multicolumn{3}{l}{\api{elsi\_get\_n\_sing}(handle, n\_sing)}\\
 \multicolumn{3}{l}{}\\
 \hline
 \multicolumn{1}{|l|}{\textbf{Argument}} & \multicolumn{1}{l|}{\textbf{Data Type}} & \multicolumn{1}{l|}{\textbf{Explanation}}\\
@@ -1213,8 +1205,6 @@ In all the subroutines listed below, the first argument (input and output) is an
 \hline
 \texttt{occ}                  & 1D real double array    & Occupation numbers. See remark 4.\\
 \hline
-\texttt{n\_sing}              & integer                 & Deprecated. Use \api{elsi\_get\_n\_illcond} instead.\\
-\hline
 \end{longtable}
 
 \textbf{Remarks}
@@ -1225,7 +1215,7 @@ In all the subroutines listed below, the first argument (input and output) is an
 
 (3) In general, the energy-weighted density matrix is only needed in a late stage of an SCF cycle to evaluate forces. It is, therefore, not calculated when any of the density matrix solver interface is called. When the energy-weighted density matrix is actually needed, it can be requested by calling \api{elsi\_get\_edm\_\{real$\vert$complex\}\{\_sparse\}}. These subroutines have the requirement that the corresponding \api{elsi\_dm} subroutine must have been invoked. For instance, \api{elsi\_get\_edm\_real\_sparse} only makes sense if \api{elsi\_dm\_real\_sparse} has been successfully executed.
 
-(4) When using \api{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} with an eigensolver, ELSI internally computes and stores the eigenvalues, eigenvectors, and occupation numbers. These quantities may be retrieved by calling \api{elsi\_get\_eval}, \api{elsi\_get\_evec\_\{real$\vert$complex\}}, and \api{elsi\_get\_occ}. The dimension of \texttt{eval} and \texttt{occ} should be equal to the value of \texttt{n\_states} set in \api{elsi\_init}. Even with \api{elsi\_dm\_\{real$\vert$complex\}\_sparse}, the eigenvectors are returned in a dense format (``\texttt{BLACS\_DENSE}''), as they are in general not sparse. The size of \texttt{evec\_\{real$\vert$complex\}} should always correspond to a global array of size \texttt{n\_basis} by \texttt{n\_basis}, regardless of the value of \texttt{n\_states}.
+(4) When using \api{elsi\_dm\_\{real$\vert$complex\}\{\_sparse\}} with an eigensolver, ELSI computes and stores the eigenvalues, eigenvectors, and occupation numbers. They may be accessed by calling \api{elsi\_get\_eval}, \api{elsi\_get\_evec\_\{real$\vert$complex\}}, and \api{elsi\_get\_occ}. The dimension of \texttt{eval} and \texttt{occ} should be equal to the value of \texttt{n\_states} set in \api{elsi\_init}. Even with \api{elsi\_dm\_\{real$\vert$complex\}\_sparse}, the eigenvectors are returned in a dense format (``\texttt{BLACS\_DENSE}''), as they are in general not sparse. The size of \texttt{evec\_\{real$\vert$complex\}} should always correspond to a global array of size \texttt{n\_basis} by \texttt{n\_basis}, regardless of the value of \texttt{n\_states}.
 
 \subsection{Getting Results from the PEXSI Solver}
 \label{subsec:getter_pexsi}
