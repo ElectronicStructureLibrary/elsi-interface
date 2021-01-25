@@ -11,7 +11,7 @@ variables:
 ### GNU compilers + OpenMPI + Netlib BLAS, LAPACK, ScaLAPACK ###
 gnu:
   script:
-    - module load openmpi-4.0.5
+    - module load openmpi-4.1.0
     - cat ./toolchains/gnu.cmake
     - rm -rf build
     - mkdir build
