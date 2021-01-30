@@ -3,6 +3,7 @@ before_script:
   - module purge
   - module load gcc-7.5.0
   - module load cmake-3.0.2
+  - module load git-2.30.0
   - export OMP_NUM_THREADS=1
 
 ### GNU compilers + OpenMPI + Netlib BLAS, LAPACK, ScaLAPACK ###
