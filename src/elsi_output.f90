@@ -9,7 +9,7 @@
 !!
 module ELSI_OUTPUT
 
-   use ELSI_CONSTANT, only: MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
+   use ELSI_CONSTANT, only: UNSET,MULTI_PROC,SINGLE_PROC,BLACS_DENSE,PEXSI_CSC,&
        SIESTA_CSC,GENERIC_COO,ELPA_SOLVER,OMM_SOLVER,PEXSI_SOLVER,&
        EIGENEXA_SOLVER,SIPS_SOLVER,NTPOLY_SOLVER,MAGMA_SOLVER,BSEPACK_SOLVER,&
        METHFESSEL_PAXTON
@@ -276,6 +276,14 @@ subroutine elsi_print_handle_summary(ph,bh,jh,caller)
       end select
    end if
 
+   if(caller(6:6) == "e" .and. ph%solver == ELPA_SOLVER&
+      .and. ph%matrix_format == BLACS_DENSE .and. ph%n_basis_c > 0) then
+      call fjson_write_name_value(jh,"frozen_core_method",ph%fc_method)
+      call fjson_write_name_value(jh,"frozen_core_permute",ph%fc_perm)
+      call fjson_write_name_value(jh,"n_core",ph%n_basis_c)
+      call fjson_write_name_value(jh,"n_valence",ph%n_basis_v)
+   end if
+
 end subroutine
 
 !>
@@ -319,10 +327,27 @@ subroutine elsi_print_elpa_settings(ph,jh)
    character(len=*), parameter :: caller = "elsi_print_elpa_settings"
 
    call fjson_start_name_object(jh,"solver_settings")
-   call fjson_write_name_value(jh,"elpa_solver",ph%elpa_solver)
+
+   if(ph%elpa_solver == UNSET) then
+      call fjson_write_name_value(jh,"elpa_solver",2)
+   else
+      call fjson_write_name_value(jh,"elpa_solver",ph%elpa_solver)
+   end if
+
    call fjson_write_name_value(jh,"elpa_n_single_precision",ph%elpa_n_single)
-   call fjson_write_name_value(jh,"elpa_gpu",ph%elpa_gpu)
-   call fjson_write_name_value(jh,"elpa_autotune",ph%elpa_autotune)
+
+   if(ph%elpa_gpu == UNSET) then
+      call fjson_write_name_value(jh,"elpa_gpu",0)
+   else
+      call fjson_write_name_value(jh,"elpa_gpu",ph%elpa_gpu)
+   end if
+
+   if(ph%elpa_autotune == UNSET) then
+      call fjson_write_name_value(jh,"elpa_autotune",0)
+   else
+      call fjson_write_name_value(jh,"elpa_autotune",ph%elpa_autotune)
+   end if
+
    call fjson_finish_object(jh)
 
 end subroutine

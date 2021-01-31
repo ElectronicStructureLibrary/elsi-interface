@@ -68,6 +68,11 @@ module ELSI_CONSTANT
    integer(kind=i4), parameter :: GET_EDM = 1
    integer(kind=i4), parameter :: GET_FDM = 2
 
+   ! Frozen core
+   integer(kind=i4), parameter :: FC_BASIC = 0
+   integer(kind=i4), parameter :: FC_PLUS_C = 1
+   integer(kind=i4), parameter :: FC_PLUS_V = 2
+
    ! Density matrix purification
    integer(kind=i4), parameter :: NTPOLY_PM = 0
    integer(kind=i4), parameter :: NTPOLY_TRS2 = 1

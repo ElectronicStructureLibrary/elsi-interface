@@ -126,6 +126,15 @@ module ELSI_DATATYPE
       integer(kind=i4) :: mu_max_steps
       integer(kind=i4) :: mu_mp_order
 
+      ! Frozen core
+      integer(kind=i4) :: fc_method
+      integer(kind=i4) :: n_basis_c
+      integer(kind=i4) :: n_basis_v
+      integer(kind=i4) :: n_lrow_v
+      integer(kind=i4) :: n_lcol_v
+      integer(kind=i4) :: desc_v(9)
+      logical :: fc_perm ! Permute matrices before solving
+
       ! Matrix redistribution
       integer(kind=i4) :: sparsity_mask
       logical :: first_blacs_to_ntpoly
@@ -267,6 +276,15 @@ module ELSI_DATATYPE
       type(Matrix_ps) :: nt_ham
       type(Matrix_ps) :: nt_ovlp
       type(Matrix_ps) :: nt_dm
+
+      ! Frozen core
+      integer(kind=i4), allocatable :: perm_fc(:)
+      real(kind=r8), allocatable :: ham_real_v(:,:)
+      complex(kind=r8), allocatable :: ham_cmplx_v(:,:)
+      real(kind=r8), allocatable :: ovlp_real_v(:,:)
+      complex(kind=r8), allocatable :: ovlp_cmplx_v(:,:)
+      real(kind=r8), allocatable :: evec_real_v(:,:)
+      complex(kind=r8), allocatable :: evec_cmplx_v(:,:)
 
       ! Matrix redistribution
       integer(kind=i4), allocatable :: mask(:,:)

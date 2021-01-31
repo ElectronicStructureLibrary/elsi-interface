@@ -9,12 +9,13 @@
 !!
 module ELSI_ELPA
 
-   use ELSI_CONSTANT, only: LT_MAT,UT_MAT,UNSET
+   use ELSI_CONSTANT, only: LT_MAT,UT_MAT,UNSET,FC_BASIC,FC_PLUS_V
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
    use ELSI_PRECISION, only: r4,r8,i4
+   use ELSI_SORT, only: elsi_heapsort,elsi_permute
    use ELSI_UTIL, only: elsi_check_err,elsi_get_gid,elsi_set_full_mat
    use ELPA, only: elpa_init,elpa_allocate,elpa_deallocate,&
        elpa_autotune_deallocate,ELPA_2STAGE_REAL_GPU,ELPA_2STAGE_COMPLEX_GPU,&
@@ -32,6 +33,8 @@ module ELSI_ELPA
    public :: elsi_factor_ovlp_elpa
    public :: elsi_reduce_evp_elpa
    public :: elsi_back_ev_elpa
+   public :: elsi_do_fc_elpa
+   public :: elsi_undo_fc_elpa
    public :: elsi_elpa_tridiag
 
    interface elsi_solve_elpa
@@ -62,6 +65,16 @@ module ELSI_ELPA
    interface elsi_back_ev_elpa
       module procedure elsi_back_ev_elpa_real
       module procedure elsi_back_ev_elpa_cmplx
+   end interface
+
+   interface elsi_do_fc_elpa
+      module procedure elsi_do_fc_elpa_real
+      module procedure elsi_do_fc_elpa_cmplx
+   end interface
+
+   interface elsi_undo_fc_elpa
+      module procedure elsi_undo_fc_elpa_real
+      module procedure elsi_undo_fc_elpa_cmplx
    end interface
 
    interface elsi_elpa_evec
@@ -340,6 +353,8 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
    integer(kind=i4) :: ierr
    character(len=200) :: msg
 
+   integer(kind=i4), external :: numroc
+
    character(len=*), parameter :: caller = "elsi_solve_elpa_real"
 
    ! Compute sparsity
@@ -407,6 +422,19 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
    ! Back-transform eigenvectors
    if(.not. ph%unit_ovlp) then
       call elsi_back_ev_elpa(ph,bh,ham,ovlp,evec)
+   end if
+
+   ! Switch back to full dimension in case of frozen core
+   if(ph%n_basis_c > 0) then
+      ph%n_basis = ph%n_basis_v+ph%n_basis_c
+      ph%n_states = ph%n_states+ph%n_basis_c
+      ph%n_good = ph%n_good+ph%n_basis_c
+      ph%n_states_solve = ph%n_states_solve+ph%n_basis_c
+      bh%n_lrow = numroc(ph%n_basis,bh%blk,bh%my_prow,0,bh%n_prow)
+      bh%n_lcol = numroc(ph%n_basis,bh%blk,bh%my_pcol,0,bh%n_pcol)
+
+      call descinit(bh%desc,ph%n_basis,ph%n_basis,bh%blk,bh%blk,0,0,&
+           bh%blacs_ctxt,max(1,bh%n_lrow),ierr)
    end if
 
    ph%elpa_first = .false.
@@ -486,6 +514,260 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm0,dm1)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
+
+end subroutine
+
+!>
+!! Freeze core orbitals by transforming Hamiltonian and overlap.
+!!
+subroutine elsi_do_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(inout) :: bh
+   real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: perm(ph%n_basis)
+   real(kind=r8), intent(out) :: ham_v(ph%n_lrow_v,ph%n_lcol_v)
+   real(kind=r8), intent(out) :: ovlp_v(ph%n_lrow_v,ph%n_lcol_v)
+   real(kind=r8), intent(out) :: evec_v(ph%n_lrow_v,ph%n_lcol_v)
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: ierr
+
+   character(len=*), parameter :: caller = "elsi_do_fc_elpa_real"
+
+   if(ph%elpa_first) then
+      if(ph%fc_perm) then
+         evec(:,:) = ovlp
+
+         do i = 1,ph%n_basis
+            if(i /= perm(i)) then
+               call pdcopy(ph%n_basis,ovlp,1,perm(i),bh%desc,1,evec,1,i,&
+                    bh%desc,1)
+            end if
+         end do
+
+         ovlp(:,:) = evec
+
+         do i = 1,ph%n_basis
+            if(i /= perm(i)) then
+               call pdcopy(ph%n_basis,evec,perm(i),1,bh%desc,ph%n_basis,ovlp,i,&
+                    1,bh%desc,ph%n_basis)
+            end if
+         end do
+      end if
+
+      evec(:,:) = ovlp
+
+      ! S_vv = S_vv - S_vc * S_cv
+      call pdsyrk("U","N",ph%n_basis_v,ph%n_basis_c,-1.0_r8,evec,ph%n_basis_c+1,&
+           1,bh%desc,1.0_r8,ovlp,ph%n_basis_c+1,ph%n_basis_c+1,bh%desc)
+
+      call elsi_set_full_mat(ph,bh,UT_MAT,ovlp)
+
+      call pdgemr2d(ph%n_basis_v,ph%n_basis_v,ovlp,ph%n_basis_c+1,&
+           ph%n_basis_c+1,bh%desc,ovlp_v,1,1,ph%desc_v,bh%blacs_ctxt)
+   end if
+
+   if(ph%fc_perm) then
+      evec(:,:) = ham
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            call pdcopy(ph%n_basis,ham,1,perm(i),bh%desc,1,evec,1,i,bh%desc,1)
+         end if
+      end do
+
+      ham(:,:) = evec
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            call pdcopy(ph%n_basis,evec,perm(i),1,bh%desc,ph%n_basis,ham,i,1,&
+                 bh%desc,ph%n_basis)
+         end if
+      end do
+   end if
+
+   call pdgemr2d(ph%n_basis_v,ph%n_basis_v,ham,ph%n_basis_c+1,ph%n_basis_c+1,&
+        bh%desc,ham_v,1,1,ph%desc_v,bh%blacs_ctxt)
+
+   ! Compute H_vv
+   call pdgemm("N","N",ph%n_basis_v,ph%n_basis_c,ph%n_basis_c,1.0_r8,ovlp,&
+        ph%n_basis_c+1,1,bh%desc,ham,1,1,bh%desc,0.0_r8,evec,1,1,bh%desc)
+
+   if(ph%fc_method == FC_PLUS_V) then
+      ! H_vv = H_vv + S_vc * H_cc * S_cv - H_vc * S_cv - S_vc * H_cv
+      ! More accurate than H_vv = H_vv - S_vc * H_cc * S_cv
+      call pdgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,1.0_r8,evec,1,&
+           1,bh%desc,ovlp,1,ph%n_basis_c+1,bh%desc,1.0_r8,ham_v,1,1,ph%desc_v)
+
+      call pdgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,1.0_r8,ham,&
+           ph%n_basis_c+1,1,bh%desc,ovlp,1,ph%n_basis_c+1,bh%desc,0.0_r8,&
+           evec_v,1,1,ph%desc_v)
+
+      ham_v(:,:) = ham_v-evec_v
+
+      call pdtran(ph%n_basis_v,ph%n_basis_v,-1.0_r8,evec_v,1,1,ph%desc_v,&
+           1.0_r8,ham_v,1,1,ph%desc_v)
+   else
+      ! H_vv = H_vv - S_vc * H_cc * S_cv
+      call pdgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,-1.0_r8,evec,&
+           1,1,bh%desc,ovlp,1,ph%n_basis_c+1,bh%desc,1.0_r8,ham_v,1,1,&
+           ph%desc_v)
+   end if
+
+   ! Switch to valence dimension
+   ph%n_basis = ph%n_basis-ph%n_basis_c
+   ph%n_states = ph%n_states-ph%n_basis_c
+   ph%n_good = ph%n_good-ph%n_basis_c
+   ph%n_states_solve = ph%n_states_solve-ph%n_basis_c
+   bh%n_lrow = ph%n_lrow_v
+   bh%n_lcol = ph%n_lcol_v
+
+   call descinit(bh%desc,ph%n_basis,ph%n_basis,bh%blk,bh%blk,0,0,bh%blacs_ctxt,&
+        max(1,bh%n_lrow),ierr)
+
+end subroutine
+
+!>
+!! Transforming eigenvectors back to unfrozen eigenproblem.
+!!
+subroutine elsi_undo_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,eval_c,evec_v)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(inout) :: bh
+   real(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: perm(ph%n_basis)
+   real(kind=r8), intent(out) :: eval_c(ph%n_basis_c)
+   real(kind=r8), intent(in) :: evec_v(ph%n_lrow_v,ph%n_lcol_v)
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: g_row
+   integer(kind=i4) :: g_col
+   integer(kind=i4) :: ierr
+
+   real(kind=r8), allocatable :: ovlp_d(:)
+   real(kind=r8), allocatable :: tmp(:)
+   integer(kind=i4), allocatable :: idx(:)
+   integer(kind=i4), allocatable :: tmp2(:)
+
+   character(len=*), parameter :: caller = "elsi_undo_fc_elpa_real"
+
+   call elsi_allocate(bh,ovlp_d,ph%n_basis_c,"ovlp_d",caller)
+   call elsi_allocate(bh,tmp,ph%n_basis_c,"tmp",caller)
+
+   eval_c(:) = 0.0_r8
+
+   do j = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,j,g_col)
+
+      if(g_col > ph%n_basis_c) then
+         exit
+      end if
+
+      do i = 1,bh%n_lrow
+         call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i,g_row)
+
+         if(g_row > ph%n_basis_c) then
+            exit
+         end if
+
+         if(g_row == g_col) then
+            if(ph%fc_method > FC_BASIC) then
+               eval_c(g_col) = ham(i,j)/ovlp(i,j)
+            else
+               eval_c(g_col) = ham(i,j)
+            end if
+
+            ovlp_d(g_col) = ovlp(i,j)
+
+            exit
+         end if
+      end do
+   end do
+
+   call MPI_Allreduce(eval_c,tmp,ph%n_basis_c,MPI_REAL8,MPI_SUM,bh%comm,ierr)
+
+   call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
+
+   eval_c(:) = tmp
+
+   call MPI_Allreduce(ovlp_d,tmp,ph%n_basis_c,MPI_REAL8,MPI_SUM,bh%comm,ierr)
+
+   call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
+
+   ovlp_d(:) = tmp
+
+   call elsi_deallocate(bh,tmp,"tmp")
+   call elsi_allocate(bh,idx,ph%n_basis_c,"idx",caller)
+   call elsi_allocate(bh,tmp2,ph%n_basis_c,"tmp2",caller)
+
+   do i = 1,ph%n_basis_c
+      idx(i) = i
+   end do
+
+   call elsi_heapsort(ph%n_basis_c,eval_c,tmp2)
+   call elsi_permute(ph%n_basis_c,tmp2,idx)
+   call elsi_permute(ph%n_basis_c,tmp2,ovlp_d)
+
+   evec(:,:) = 0.0_r8
+
+   do j = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,j,g_col)
+
+      if(g_col > ph%n_basis_c) then
+         exit
+      end if
+
+      do i = 1,bh%n_lrow
+         call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i,g_row)
+
+         if(g_row > ph%n_basis_c) then
+            exit
+         end if
+
+         if(g_row == idx(g_col)) then
+            if(ph%fc_method > FC_BASIC) then
+               evec(i,j) = 1.0_r8/sqrt(ovlp_d(g_col))
+            else
+               evec(i,j) = 1.0_r8
+            end if
+
+            exit
+         end if
+      end do
+   end do
+
+   call elsi_deallocate(bh,ovlp_d,"ovlp_d")
+   call elsi_deallocate(bh,idx,"idx")
+   call elsi_deallocate(bh,tmp2,"tmp2")
+
+   call pdgemr2d(ph%n_basis_v,ph%n_basis_v,evec_v,1,1,ph%desc_v,evec,&
+        ph%n_basis_c+1,ph%n_basis_c+1,bh%desc,bh%blacs_ctxt)
+
+   ! C_cv = -S_cv * C_vv
+   call pdgemm("N","N",ph%n_basis_c,ph%n_basis_v,ph%n_basis_v,-1.0_r8,ovlp,1,&
+        ph%n_basis_c+1,bh%desc,evec_v,1,1,ph%desc_v,0.0_r8,evec,1,&
+        ph%n_basis_c+1,bh%desc)
+
+   if(ph%fc_perm) then
+      ham(:,:) = evec
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            call pdcopy(ph%n_basis,ham,i,1,bh%desc,ph%n_basis,evec,perm(i),1,&
+                 bh%desc,ph%n_basis)
+         end if
+      end do
+   end if
 
 end subroutine
 
@@ -724,6 +1006,8 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
    integer(kind=i4) :: ierr
    character(len=200) :: msg
 
+   integer(kind=i4), external :: numroc
+
    character(len=*), parameter :: caller = "elsi_solve_elpa_cmplx"
 
    ! Compute sparsity
@@ -791,6 +1075,19 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
    ! Back-transform eigenvectors
    if(.not. ph%unit_ovlp) then
       call elsi_back_ev_elpa(ph,bh,ham,ovlp,evec)
+   end if
+
+   ! Switch back to full dimension in case of frozen core
+   if(ph%n_basis_c > 0) then
+      ph%n_basis = ph%n_basis_v+ph%n_basis_c
+      ph%n_states = ph%n_states+ph%n_basis_c
+      ph%n_good = ph%n_good+ph%n_basis_c
+      ph%n_states_solve = ph%n_states_solve+ph%n_basis_c
+      bh%n_lrow = numroc(ph%n_basis,bh%blk,bh%my_prow,0,bh%n_prow)
+      bh%n_lcol = numroc(ph%n_basis,bh%blk,bh%my_pcol,0,bh%n_pcol)
+
+      call descinit(bh%desc,ph%n_basis,ph%n_basis,bh%blk,bh%blk,0,0,&
+           bh%blacs_ctxt,max(1,bh%n_lrow),ierr)
    end if
 
    ph%elpa_first = .false.
@@ -870,6 +1167,262 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm0,dm1)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
+
+end subroutine
+
+!>
+!! Freeze core orbitals by transforming Hamiltonian and overlap.
+!!
+subroutine elsi_do_fc_elpa_cmplx(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(inout) :: bh
+   complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: perm(ph%n_basis)
+   complex(kind=r8), intent(out) :: ham_v(ph%n_lrow_v,ph%n_lcol_v)
+   complex(kind=r8), intent(out) :: ovlp_v(ph%n_lrow_v,ph%n_lcol_v)
+   complex(kind=r8), intent(out) :: evec_v(ph%n_lrow_v,ph%n_lcol_v)
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: ierr
+
+   character(len=*), parameter :: caller = "elsi_do_fc_elpa_cmplx"
+
+   if(ph%elpa_first) then
+      if(ph%fc_perm) then
+         evec(:,:) = ovlp
+
+         do i = 1,ph%n_basis
+            if(i /= perm(i)) then
+               call pzcopy(ph%n_basis,ovlp,1,perm(i),bh%desc,1,evec,1,i,bh%desc,1)
+            end if
+         end do
+
+         ovlp(:,:) = evec
+
+         do i = 1,ph%n_basis
+            if(i /= perm(i)) then
+               call pzcopy(ph%n_basis,evec,perm(i),1,bh%desc,ph%n_basis,ovlp,i,1,&
+                    bh%desc,ph%n_basis)
+            end if
+         end do
+      end if
+
+      evec(:,:) = ovlp
+
+      ! S_vv = S_vv - S_vc * S_cv
+      call pzherk("U","N",ph%n_basis_v,ph%n_basis_c,(-1.0_r8,0.0_r8),evec,&
+           ph%n_basis_c+1,1,bh%desc,(1.0_r8,0.0_r8),ovlp,ph%n_basis_c+1,&
+           ph%n_basis_c+1,bh%desc)
+
+      call elsi_set_full_mat(ph,bh,UT_MAT,ovlp)
+
+      call pzgemr2d(ph%n_basis_v,ph%n_basis_v,ovlp,ph%n_basis_c+1,&
+           ph%n_basis_c+1,bh%desc,ovlp_v,1,1,ph%desc_v,bh%blacs_ctxt)
+   end if
+
+   if(ph%fc_perm) then
+      evec(:,:) = ham
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            call pzcopy(ph%n_basis,ham,1,perm(i),bh%desc,1,evec,1,i,bh%desc,1)
+         end if
+      end do
+
+      ham(:,:) = evec
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            call pzcopy(ph%n_basis,evec,perm(i),1,bh%desc,ph%n_basis,ham,i,1,&
+                 bh%desc,ph%n_basis)
+         end if
+      end do
+   end if
+
+   call pzgemr2d(ph%n_basis_v,ph%n_basis_v,ham,ph%n_basis_c+1,ph%n_basis_c+1,&
+        bh%desc,ham_v,1,1,ph%desc_v,bh%blacs_ctxt)
+
+   ! Compute H_vv
+   call pzgemm("N","N",ph%n_basis_v,ph%n_basis_c,ph%n_basis_c,(1.0_r8,0.0_r8),&
+        ovlp,ph%n_basis_c+1,1,bh%desc,ham,1,1,bh%desc,(0.0_r8,0.0_r8),evec,1,1,&
+        bh%desc)
+
+   if(ph%fc_method == FC_PLUS_V) then
+      ! H_vv = H_vv + S_vc * H_cc * S_cv - H_vc * S_cv - S_vc * H_cv
+      ! More accurate than H_vv = H_vv - S_vc * H_cc * S_cv
+      call pzgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,&
+           (1.0_r8,0.0_r8),evec,1,1,bh%desc,ovlp,1,ph%n_basis_c+1,bh%desc,&
+           (1.0_r8,0.0_r8),ham_v,1,1,ph%desc_v)
+
+      call pzgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,&
+           (1.0_r8,0.0_r8),ham,ph%n_basis_c+1,1,bh%desc,ovlp,1,ph%n_basis_c+1,&
+           bh%desc,(0.0_r8,0.0_r8),evec_v,1,1,ph%desc_v)
+
+      ham_v(:,:) = ham_v-evec_v
+
+      call pztranc(ph%n_basis_v,ph%n_basis_v,(-1.0_r8,0.0_r8),evec_v,1,1,&
+           ph%desc_v,(1.0_r8,0.0_r8),ham_v,1,1,ph%desc_v)
+   else
+      ! H_vv = H_vv - S_vc * H_cc * S_cv
+      call pzgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,&
+           (-1.0_r8,0.0_r8),evec,1,1,bh%desc,ovlp,1,ph%n_basis_c+1,bh%desc,&
+           (1.0_r8,0.0_r8),ham_v,1,1,ph%desc_v)
+   end if
+
+   ! Switch to valence dimension
+   ph%n_basis = ph%n_basis-ph%n_basis_c
+   ph%n_states = ph%n_states-ph%n_basis_c
+   ph%n_good = ph%n_good-ph%n_basis_c
+   ph%n_states_solve = ph%n_states_solve-ph%n_basis_c
+   bh%n_lrow = ph%n_lrow_v
+   bh%n_lcol = ph%n_lcol_v
+
+   call descinit(bh%desc,ph%n_basis,ph%n_basis,bh%blk,bh%blk,0,0,bh%blacs_ctxt,&
+        max(1,bh%n_lrow),ierr)
+
+end subroutine
+
+!>
+!! Transforming eigenvectors back to unfrozen eigenproblem.
+!!
+subroutine elsi_undo_fc_elpa_cmplx(ph,bh,ham,ovlp,evec,perm,eval_c,evec_v)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(inout) :: bh
+   complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+   integer(kind=i4), intent(in) :: perm(ph%n_basis)
+   real(kind=r8), intent(out) :: eval_c(ph%n_basis_c)
+   complex(kind=r8), intent(in) :: evec_v(ph%n_lrow_v,ph%n_lcol_v)
+
+   integer(kind=i4) :: i
+   integer(kind=i4) :: j
+   integer(kind=i4) :: g_row
+   integer(kind=i4) :: g_col
+   integer(kind=i4) :: ierr
+
+   real(kind=r8), allocatable :: ovlp_d(:)
+   real(kind=r8), allocatable :: tmp(:)
+   integer(kind=i4), allocatable :: idx(:)
+   integer(kind=i4), allocatable :: tmp2(:)
+
+   character(len=*), parameter :: caller = "elsi_undo_fc_elpa_cmplx"
+
+   call elsi_allocate(bh,ovlp_d,ph%n_basis_c,"ovlp_d",caller)
+   call elsi_allocate(bh,tmp,ph%n_basis_c,"tmp",caller)
+
+   eval_c(:) = 0.0_r8
+
+   do j = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,j,g_col)
+
+      if(g_col > ph%n_basis_c) then
+         exit
+      end if
+
+      do i = 1,bh%n_lrow
+         call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i,g_row)
+
+         if(g_row > ph%n_basis_c) then
+            exit
+         end if
+
+         if(g_row == g_col) then
+            if(ph%fc_method > FC_BASIC) then
+               eval_c(g_col) = real(ham(i,j),kind=r8)/real(ovlp(i,j),kind=r8)
+            else
+               eval_c(g_col) = real(ham(i,j),kind=r8)
+            end if
+
+            ovlp_d(g_col) = real(ovlp(i,j),kind=r8)
+
+            exit
+         end if
+      end do
+   end do
+
+   call MPI_Allreduce(eval_c,tmp,ph%n_basis_c,MPI_REAL8,MPI_SUM,bh%comm,ierr)
+
+   call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
+
+   eval_c(:) = tmp
+
+   call MPI_Allreduce(ovlp_d,tmp,ph%n_basis_c,MPI_REAL8,MPI_SUM,bh%comm,ierr)
+
+   call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
+
+   ovlp_d(:) = tmp
+
+   call elsi_deallocate(bh,tmp,"tmp")
+   call elsi_allocate(bh,idx,ph%n_basis_c,"idx",caller)
+   call elsi_allocate(bh,tmp2,ph%n_basis_c,"tmp2",caller)
+
+   do i = 1,ph%n_basis_c
+      idx(i) = i
+   end do
+
+   call elsi_heapsort(ph%n_basis_c,eval_c,tmp2)
+   call elsi_permute(ph%n_basis_c,tmp2,idx)
+   call elsi_permute(ph%n_basis_c,tmp2,ovlp_d)
+
+   evec(:,:) = (0.0_r8,0.0_r8)
+
+   do j = 1,bh%n_lcol
+      call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,j,g_col)
+
+      if(g_col > ph%n_basis_c) then
+         exit
+      end if
+
+      do i = 1,bh%n_lrow
+         call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i,g_row)
+
+         if(g_row > ph%n_basis_c) then
+            exit
+         end if
+
+         if(g_row == idx(g_col)) then
+            if(ph%fc_method > FC_BASIC) then
+               evec(i,j) = (1.0_r8,0.0_r8)/sqrt(ovlp_d(g_col))
+            else
+               evec(i,j) = (1.0_r8,0.0_r8)
+            end if
+
+            exit
+         end if
+      end do
+   end do
+
+   call elsi_deallocate(bh,ovlp_d,"ovlp_d")
+   call elsi_deallocate(bh,idx,"idx")
+   call elsi_deallocate(bh,tmp2,"tmp2")
+
+   call pzgemr2d(ph%n_basis_v,ph%n_basis_v,evec_v,1,1,ph%desc_v,evec,&
+        ph%n_basis_c+1,ph%n_basis_c+1,bh%desc,bh%blacs_ctxt)
+
+   ! C_cv = -S_cv * C_vv
+   call pzgemm("N","N",ph%n_basis_c,ph%n_basis_v,ph%n_basis_v,(-1.0_r8,0.0_r8),&
+        ovlp,1,ph%n_basis_c+1,bh%desc,evec_v,1,1,ph%desc_v,(0.0_r8,0.0_r8),&
+        evec,1,ph%n_basis_c+1,bh%desc)
+
+   if(ph%fc_perm) then
+      ham(:,:) = evec
+
+      do i = 1,ph%n_basis
+         if(i /= perm(i)) then
+            call pzcopy(ph%n_basis,ham,i,1,bh%desc,ph%n_basis,evec,perm(i),1,&
+                 bh%desc,ph%n_basis)
+         end if
+      end do
+   end if
 
 end subroutine
 

@@ -644,6 +644,35 @@ subroutine elsi_cleanup(eh)
       call elsi_deallocate(eh%bh,eh%col_ind_sp3,"col_ind_sp3")
    end if
 
+   ! Frozen core
+   if(allocated(eh%perm_fc)) then
+      call elsi_deallocate(eh%bh,eh%perm_fc,"perm_fc")
+   end if
+
+   if(allocated(eh%ham_real_v)) then
+      call elsi_deallocate(eh%bh,eh%ham_real_v,"ham_real_v")
+   end if
+
+   if(allocated(eh%ham_cmplx_v)) then
+      call elsi_deallocate(eh%bh,eh%ham_cmplx_v,"ham_cmplx_v")
+   end if
+
+   if(allocated(eh%ovlp_real_v)) then
+      call elsi_deallocate(eh%bh,eh%ovlp_real_v,"ovlp_real_v")
+   end if
+
+   if(allocated(eh%ovlp_cmplx_v)) then
+      call elsi_deallocate(eh%bh,eh%ovlp_cmplx_v,"ovlp_cmplx_v")
+   end if
+
+   if(allocated(eh%evec_real_v)) then
+      call elsi_deallocate(eh%bh,eh%evec_real_v,"evec_real_v")
+   end if
+
+   if(allocated(eh%evec_cmplx_v)) then
+      call elsi_deallocate(eh%bh,eh%evec_cmplx_v,"evec_cmplx_v")
+   end if
+
    ! Matrix redistribution
    if(allocated(eh%mask)) then
       call elsi_deallocate(eh%bh,eh%mask,"mask")

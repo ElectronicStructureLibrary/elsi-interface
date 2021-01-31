@@ -2630,6 +2630,7 @@ contains
       endif
       if (uplo_c=='u' .or. uplo_c=='U') c_upper = .true.
       if (uplo_c=='l' .or. uplo_c=='L') c_lower = .true.
+      c(1:matrixRows,1:matrixCols) = 0
 
       ! Build up the result matrix by processor rows
 
@@ -3136,6 +3137,7 @@ contains
       endif
       if (uplo_c=='u' .or. uplo_c=='U') c_upper = .true.
       if (uplo_c=='l' .or. uplo_c=='L') c_lower = .true.
+      c(1:matrixRows,1:matrixCols) = 0
 
       ! Build up the result matrix by processor rows
 
@@ -3644,6 +3646,7 @@ contains
       endif
       if (uplo_c=='u' .or. uplo_c=='U') c_upper = .true.
       if (uplo_c=='l' .or. uplo_c=='L') c_lower = .true.
+      c(1:matrixRows,1:matrixCols) = 0
 
       ! Build up the result matrix by processor rows
 
@@ -4153,6 +4156,7 @@ contains
       endif
       if (uplo_c=='u' .or. uplo_c=='U') c_upper = .true.
       if (uplo_c=='l' .or. uplo_c=='L') c_lower = .true.
+      c(1:matrixRows,1:matrixCols) = 0
 
       ! Build up the result matrix by processor rows
 

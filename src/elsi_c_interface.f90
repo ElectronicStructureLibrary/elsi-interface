@@ -1343,6 +1343,58 @@ subroutine c_elsi_set_mu_mp_order(h_c,mp_order) bind(C)
 
 end subroutine
 
+subroutine c_elsi_set_n_frozen(h_c,n_frozen) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: n_frozen
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_n_frozen(h_f,n_frozen)
+
+end subroutine
+
+subroutine c_elsi_set_frozen_method(h_c,frozen_method) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   integer(kind=c_int), value, intent(in) :: frozen_method
+
+   type(elsi_handle), pointer :: h_f
+
+   call c_f_pointer(h_c,h_f)
+
+   call elsi_set_frozen_method(h_f,frozen_method)
+
+end subroutine
+
+subroutine c_elsi_set_frozen_idx(h_c,frozen_idx_c) bind(C)
+
+   implicit none
+
+   type(c_ptr), value, intent(in) :: h_c
+   type(c_ptr), value, intent(in) :: frozen_idx_c
+
+   type(elsi_handle), pointer :: h_f
+   integer(kind=c_int), pointer :: frozen_idx_f(:)
+
+   integer(kind=c_int) :: n_basis_c
+
+   call c_f_pointer(h_c,h_f)
+
+   n_basis_c = h_f%ph%n_basis_c
+
+   call c_f_pointer(frozen_idx_c,frozen_idx_f,shape=[n_basis_c])
+
+   call elsi_set_frozen_idx(h_f,frozen_idx_f)
+
+end subroutine
+
 subroutine c_elsi_get_version(major,minor,patch) bind(C)
 
    implicit none

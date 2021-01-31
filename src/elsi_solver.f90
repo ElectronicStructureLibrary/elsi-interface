@@ -16,8 +16,10 @@ module ELSI_SOLVER
    use ELSI_DATATYPE, only: elsi_handle,elsi_param_t,elsi_basic_t
    use ELSI_DECISION, only: elsi_decide_ev,elsi_decide_dm
    use ELSI_EIGENEXA, only: elsi_init_eigenexa,elsi_solve_eigenexa
-   use ELSI_ELPA, only: elsi_init_elpa,elsi_solve_elpa
-   use ELSI_LAPACK, only: elsi_solve_lapack
+   use ELSI_ELPA, only: elsi_init_elpa,elsi_solve_elpa,elsi_do_fc_elpa,&
+       elsi_undo_fc_elpa
+   use ELSI_LAPACK, only: elsi_solve_lapack,elsi_do_fc_lapack,&
+       elsi_undo_fc_lapack
    use ELSI_MAGMA, only: elsi_init_magma,elsi_solve_magma
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI
@@ -203,10 +205,44 @@ subroutine elsi_ev_real(eh,ham,ovlp,eval,evec)
    select case(solver)
    case(ELPA_SOLVER)
       if(eh%ph%parallel_mode == SINGLE_PROC) then
-         call elsi_solve_lapack(eh%ph,eh%bh,ham,ovlp,eval,evec)
+         if(eh%ph%n_basis_c > 0) then
+            call elsi_do_fc_lapack(eh%ph,ham,ovlp,evec,eh%perm_fc)
+            call elsi_solve_lapack(eh%ph,eh%bh,&
+                 ham(eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v,&
+                 eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v),&
+                 ovlp(eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v,&
+                 eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v),&
+                 eval(eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v),&
+                 evec(eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v,&
+                 eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v))
+            call elsi_undo_fc_lapack(eh%ph,eh%bh,ham,ovlp,evec,eh%perm_fc,&
+                 eval(1:eh%ph%n_basis_c))
+         else
+            call elsi_solve_lapack(eh%ph,eh%bh,ham,ovlp,eval,evec)
+         end if
       else
-         call elsi_init_elpa(eh%ph,eh%bh)
-         call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eval,evec)
+         if(eh%ph%n_basis_c > 0) then
+            if(.not. allocated(eh%ham_real_v)) then
+               call elsi_allocate(eh%bh,eh%ham_real_v,eh%ph%n_lrow_v,&
+                    eh%ph%n_lcol_v,"ham_real_v",caller)
+               call elsi_allocate(eh%bh,eh%ovlp_real_v,eh%ph%n_lrow_v,&
+                    eh%ph%n_lcol_v,"ovlp_real_v",caller)
+               call elsi_allocate(eh%bh,eh%evec_real_v,eh%ph%n_lrow_v,&
+                    eh%ph%n_lcol_v,"evec_real_v",caller)
+            end if
+
+            call elsi_do_fc_elpa(eh%ph,eh%bh,ham,ovlp,evec,eh%perm_fc,&
+                 eh%ham_real_v,eh%ovlp_real_v,eh%evec_real_v)
+            call elsi_init_elpa(eh%ph,eh%bh)
+            call elsi_solve_elpa(eh%ph,eh%bh,eh%ham_real_v,eh%ovlp_real_v,&
+                 eval(eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v),&
+                 eh%evec_real_v)
+            call elsi_undo_fc_elpa(eh%ph,eh%bh,ham,ovlp,evec,eh%perm_fc,&
+                 eval(1:eh%ph%n_basis_c),eh%evec_real_v)
+         else
+            call elsi_init_elpa(eh%ph,eh%bh)
+            call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eval,evec)
+         end if
       end if
    case(EIGENEXA_SOLVER)
       call elsi_init_elpa(eh%ph,eh%bh)
@@ -292,10 +328,44 @@ subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
    select case(eh%ph%solver)
    case(ELPA_SOLVER)
       if(eh%ph%parallel_mode == SINGLE_PROC) then
-         call elsi_solve_lapack(eh%ph,eh%bh,ham,ovlp,eval,evec)
+         if(eh%ph%n_basis_c > 0) then
+            call elsi_do_fc_lapack(eh%ph,ham,ovlp,evec,eh%perm_fc)
+            call elsi_solve_lapack(eh%ph,eh%bh,&
+                 ham(eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v,&
+                 eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v),&
+                 ovlp(eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v,&
+                 eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v),&
+                 eval(eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v),&
+                 evec(eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v,&
+                 eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v))
+            call elsi_undo_fc_lapack(eh%ph,eh%bh,ham,ovlp,evec,eh%perm_fc,&
+                 eval(1:eh%ph%n_basis_c))
+         else
+            call elsi_solve_lapack(eh%ph,eh%bh,ham,ovlp,eval,evec)
+         end if
       else
-         call elsi_init_elpa(eh%ph,eh%bh)
-         call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eval,evec)
+         if(eh%ph%n_basis_c > 0) then
+            if(.not. allocated(eh%ham_cmplx_v)) then
+               call elsi_allocate(eh%bh,eh%ham_cmplx_v,eh%ph%n_lrow_v,&
+                    eh%ph%n_lcol_v,"ham_cmplx_v",caller)
+               call elsi_allocate(eh%bh,eh%ovlp_cmplx_v,eh%ph%n_lrow_v,&
+                    eh%ph%n_lcol_v,"ovlp_cmplx_v",caller)
+               call elsi_allocate(eh%bh,eh%evec_cmplx_v,eh%ph%n_lrow_v,&
+                    eh%ph%n_lcol_v,"evec_cmplx_v",caller)
+            end if
+
+            call elsi_do_fc_elpa(eh%ph,eh%bh,ham,ovlp,evec,eh%perm_fc,&
+                 eh%ham_cmplx_v,eh%ovlp_cmplx_v,eh%evec_cmplx_v)
+            call elsi_init_elpa(eh%ph,eh%bh)
+            call elsi_solve_elpa(eh%ph,eh%bh,eh%ham_cmplx_v,eh%ovlp_cmplx_v,&
+                 eval(eh%ph%n_basis_c+1:eh%ph%n_basis_c+eh%ph%n_basis_v),&
+                 eh%evec_cmplx_v)
+            call elsi_undo_fc_elpa(eh%ph,eh%bh,ham,ovlp,evec,eh%perm_fc,&
+                 eval(1:eh%ph%n_basis_c),eh%evec_cmplx_v)
+         else
+            call elsi_init_elpa(eh%ph,eh%bh)
+            call elsi_solve_elpa(eh%ph,eh%bh,ham,ovlp,eval,evec)
+         end if
       end if
    case(MAGMA_SOLVER)
       call elsi_init_magma(eh%ph)

@@ -1,15 +1,21 @@
 # ELSI changelog
 
+## Not released
+
+### ELSI interface
+* Added support for frozen core approximation when using the dense eigensolver
+  interfaces with ELPA and LAPACK.
+
+### Known issues
+* The ELPA code cannot be compiled with the NAG Fortran compiler, due to the
+  use of GNU extensions in ELPA.
+* Depending on the choice of k-points, the complex PEXSI solver may randomly
+  fail at the inertia counting stage.
+
 ## v2.6.4 (November 2020)
 
 ### ELSI interface
 * Computation of density matrix from eigenvectors was made more robust.
-
-### Known issues
-* The ELPA code can not be compiled with the NAG Fortran compiler, due to the
-  use of GNU extensions in ELPA.
-* Depending on the choice of k-points, the complex PEXSI solver may randomly
-  fail at the inertia counting stage.
 
 ## v2.6.3 (November 2020)
 
@@ -63,7 +69,7 @@
 
 ### ELSI interface
 * Added utility subroutines to retrieve the internally computed eigenvalues,
-  eigenvectors, and occupation numbers when using density matrix solver
+  eigenvectors, and occupation numbers when using the density matrix solver
   interfaces with an eigensolver.
 * Fixed Marzari-Vanderbilt broadening.
 

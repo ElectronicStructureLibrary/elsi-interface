@@ -281,6 +281,15 @@ void c_elsi_set_mu_tol(elsi_handle handle_c,
 void c_elsi_set_mu_mp_order(elsi_handle handle_c,
      int mp_order);
 
+void c_elsi_set_n_frozen(elsi_handle handle_c,
+     int n_frozen);
+
+void c_elsi_set_frozen_method(elsi_handle handle_c,
+     int frozen_method);
+
+void c_elsi_set_frozen_idx(elsi_handle handle_c,
+     int *frozen_idx);
+
 void c_elsi_get_version(int *major,
      int *minor,
      int *patch);
