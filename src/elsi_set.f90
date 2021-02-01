@@ -38,6 +38,7 @@ module ELSI_SET
    public :: elsi_set_elpa_n_single
    public :: elsi_set_elpa_gpu
    public :: elsi_set_elpa_autotune
+   public :: elsi_set_occ_non_aufbau
    public :: elsi_set_omm_flavor
    public :: elsi_set_omm_n_elpa
    public :: elsi_set_omm_tol
@@ -1173,6 +1174,25 @@ subroutine elsi_set_mu_tol(eh,tol)
    end if
 
    eh%ph%mu_tol = tol
+
+end subroutine
+!>
+!! Set the non Aufbau occupation
+!!
+subroutine elsi_set_occ_non_aufbau(eh,occ_non_aufbau)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   logical, intent(in) :: occ_non_aufbau !< whether to use non Aufbau occupation
+
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_set_occ_non_aufbau"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   eh%ph%occ_non_aufbau = occ_non_aufbau
 
 end subroutine
 
