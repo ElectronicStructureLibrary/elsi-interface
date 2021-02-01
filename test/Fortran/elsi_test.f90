@@ -10,7 +10,7 @@
 program elsi_test
 
    use ELSI_MPI
-   use ELSI_PRECISION, only: i4
+   use ELSI_PRECISION, only: i4, r8
 
    implicit none
 
@@ -24,6 +24,8 @@ program elsi_test
    integer(kind=i4) :: solver
    integer(kind=i4) :: myid
    integer(kind=i4) :: ierr
+
+   real(kind=r8) :: mu_width
 
    call MPI_Init(ierr)
    call MPI_Comm_rank(MPI_COMM_WORLD,myid,ierr)
@@ -130,6 +132,16 @@ program elsi_test
          call test_bse_real_den(MPI_COMM_WORLD,solver,arg5,arg6)
       case("c") ! complex
          call test_bse_cmplx_den(MPI_COMM_WORLD,solver,arg5,arg6)
+      case default
+         call test_die()
+      end select
+   case("o") ! occupation number
+      read(arg3,*) mu_width
+      select case(arg2(1:1))
+      case("1") ! normal occupation distribution
+         call test_occ_normal(MPI_COMM_WORLD,mu_width)
+      case("2") ! Non-Aufbau occupation distribution
+         call test_occ_non_aufbau(MPI_COMM_WORLD,mu_width)
       case default
          call test_die()
       end select
