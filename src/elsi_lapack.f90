@@ -471,29 +471,33 @@ subroutine elsi_do_fc_lapack_real(ph,ham,ovlp,evec,perm)
    end if
 
    ! Compute H_vv
-   call dgemm("N","N",ph%n_basis_v,ph%n_basis_c,ph%n_basis_c,1.0_r8,&
-        ovlp(ph%n_basis_c+1,1),ph%n_basis,ham,ph%n_basis,0.0_r8,evec,ph%n_basis)
-
    if(ph%fc_method == FC_PLUS_V) then
       ! H_vv = H_vv + S_vc * H_cc * S_cv - H_vc * S_cv - S_vc * H_cv
       ! More accurate than H_vv = H_vv - S_vc * H_cc * S_cv
-      call dgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,1.0_r8,evec,&
-           ph%n_basis,ovlp(1,ph%n_basis_c+1),ph%n_basis,1.0_r8,&
-           ham(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+      ! H_vv = A + A^*
+      ! A = (0.5*S_vc * H_cc - H_vc) * S_cv
+      call dgemm("N","N",ph%n_basis_v,ph%n_basis_c,ph%n_basis_c,0.5_r8,&
+           ovlp(ph%n_basis_c+1,1),ph%n_basis,ham,ph%n_basis,0.0_r8,&
+           evec(ph%n_basis_c+1,1),ph%n_basis)
+
+      evec(:,:) = evec-ham
 
       call dgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,1.0_r8,&
-           ham(ph%n_basis_c+1,1),ph%n_basis,ovlp(1,ph%n_basis_c+1),ph%n_basis,&
-           0.0_r8,evec(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+           evec(ph%n_basis_c+1,1),ph%n_basis,ovlp(1,ph%n_basis_c+1),ph%n_basis,&
+           0.0_r8,ham(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
 
       ham(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis) =&
          ham(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis)&
-         -evec(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis)&
-         -transpose(evec(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis))
+         +transpose(ham(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis))
    else
       ! H_vv = H_vv - S_vc * H_cc * S_cv
-      call dgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,-1.0_r8,evec,&
-           ph%n_basis,ovlp(1,ph%n_basis_c+1),ph%n_basis,1.0_r8,&
-           ham(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+      call dgemm("N","N",ph%n_basis_v,ph%n_basis_c,ph%n_basis_c,1.0_r8,&
+           ovlp(ph%n_basis_c+1,1),ph%n_basis,ham,ph%n_basis,0.0_r8,&
+           evec(ph%n_basis_c+1,1),ph%n_basis)
+
+      call dgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,-1.0_r8,&
+           evec(ph%n_basis_c+1,1),ph%n_basis,ovlp(1,ph%n_basis_c+1),ph%n_basis,&
+           1.0_r8,ham(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
    end if
 
    ! Switch to valence dimension
@@ -998,32 +1002,36 @@ subroutine elsi_do_fc_lapack_cmplx(ph,ham,ovlp,evec,perm)
    end if
 
    ! Compute H_vv
-   call zgemm("N","N",ph%n_basis_v,ph%n_basis_c,ph%n_basis_c,(1.0_r8,0.0_r8),&
-        ovlp(ph%n_basis_c+1,1),ph%n_basis,ham,ph%n_basis,(0.0_r8,0.0_r8),evec,&
-        ph%n_basis)
-
    if(ph%fc_method == FC_PLUS_V) then
       ! H_vv = H_vv + S_vc * H_cc * S_cv - H_vc * S_cv - S_vc * H_cv
       ! More accurate than H_vv = H_vv - S_vc * H_cc * S_cv
-      call zgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,&
-           (1.0_r8,0.0_r8),evec,ph%n_basis,ovlp(1,ph%n_basis_c+1),ph%n_basis,&
-           (1.0_r8,0.0_r8),ham(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+      ! H_vv = A + A^*
+      ! A = (0.5*S_vc * H_cc - H_vc) * S_cv
+      call zgemm("N","N",ph%n_basis_v,ph%n_basis_c,ph%n_basis_c,&
+           (0.5_r8,0.0_r8),ovlp(ph%n_basis_c+1,1),ph%n_basis,ham,ph%n_basis,&
+           (0.0_r8,0.0_r8),evec(ph%n_basis_c+1,1),ph%n_basis)
+
+      evec(:,:) = evec-ham
 
       call zgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,&
-           (1.0_r8,0.0_r8),ham(ph%n_basis_c+1,1),ph%n_basis,&
+           (1.0_r8,0.0_r8),evec(ph%n_basis_c+1,1),ph%n_basis,&
            ovlp(1,ph%n_basis_c+1),ph%n_basis,(0.0_r8,0.0_r8),&
-           evec(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+           ham(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
 
       ham(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis) =&
          ham(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis)&
-         -evec(ph%n_basis_c+1:ph%n_basis,ph%n_basis_c+1:ph%n_basis)&
-         -conjg(transpose(evec(ph%n_basis_c+1:ph%n_basis,&
+         +conjg(transpose(ham(ph%n_basis_c+1:ph%n_basis,&
          ph%n_basis_c+1:ph%n_basis)))
    else
       ! H_vv = H_vv - S_vc * H_cc * S_cv
+      call zgemm("N","N",ph%n_basis_v,ph%n_basis_c,ph%n_basis_c,&
+           (1.0_r8,0.0_r8),ovlp(ph%n_basis_c+1,1),ph%n_basis,ham,ph%n_basis,&
+           (0.0_r8,0.0_r8),evec(ph%n_basis_c+1,1),ph%n_basis)
+
       call zgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,&
-           (-1.0_r8,0.0_r8),evec,ph%n_basis,ovlp(1,ph%n_basis_c+1),ph%n_basis,&
-           (1.0_r8,0.0_r8),ham(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
+           (-1.0_r8,0.0_r8),evec(ph%n_basis_c+1,1),ph%n_basis,&
+           ovlp(1,ph%n_basis_c+1),ph%n_basis,(1.0_r8,0.0_r8),&
+           ham(ph%n_basis_c+1,ph%n_basis_c+1),ph%n_basis)
    end if
 
    ! Switch to valence dimension

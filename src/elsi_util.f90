@@ -856,7 +856,8 @@ subroutine elsi_build_dm_edm_real(ph,bh,factor,evec,dm,which)
 
          ! ELPA routine only faster on GPUs
          if(ierr /= 0 .or. ph%elpa_gpu == 0 .or. ph%solver /= ELPA_SOLVER&
-            .or. bh%blk*(max(bh%n_prow,bh%n_pcol)-1) >= max_state) then
+            .or. bh%blk*(max(bh%n_prow,bh%n_pcol)-1) >= max_state&
+            .or. ph%n_basis_c > 0) then
             use_elpa_mult = .false.
          else
             use_elpa_mult = .true.
@@ -966,7 +967,8 @@ subroutine elsi_build_dm_edm_cmplx(ph,bh,factor,evec,dm,which)
 
          ! ELPA routine only faster on GPUs
          if(ierr /= 0 .or. ph%elpa_gpu == 0 .or. ph%solver /= ELPA_SOLVER&
-            .or. bh%blk*(max(bh%n_prow,bh%n_pcol)-1) >= max_state) then
+            .or. bh%blk*(max(bh%n_prow,bh%n_pcol)-1) >= max_state&
+            .or. ph%n_basis_c > 0) then
             use_elpa_mult = .false.
          else
             use_elpa_mult = .true.
