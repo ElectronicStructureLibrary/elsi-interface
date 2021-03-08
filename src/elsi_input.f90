@@ -24,7 +24,8 @@ module ELSI_INPUT
        elsi_set_eigenexa_method,elsi_set_sips_n_elpa,elsi_set_sips_n_slice,&
        elsi_set_ntpoly_method,elsi_set_ntpoly_tol,elsi_set_ntpoly_filter,&
        elsi_set_magma_solver,elsi_set_mu_broaden_scheme,&
-       elsi_set_mu_broaden_width,elsi_set_mu_tol,elsi_set_mu_mp_order
+       elsi_set_mu_broaden_width,elsi_set_mu_tol,elsi_set_mu_mp_order,&
+       elsi_set_n_frozen,elsi_set_frozen_method
    use ELSI_UTIL, only: elsi_check_init
 
    implicit none
@@ -293,6 +294,16 @@ subroutine elsi_set_input_file(eh,f_name)
 
          call elsi_check_read(eh%bh,ierr,kwd)
          call elsi_set_mu_mp_order(eh,val_i4)
+      case("n_frozen")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_n_frozen(eh,val_i4)
+      case("frozen_method")
+         read(msg,*,iostat=ierr) kwd,val_i4
+
+         call elsi_check_read(eh%bh,ierr,kwd)
+         call elsi_set_frozen_method(eh,val_i4)
       end select
    end do
 
