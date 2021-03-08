@@ -2,7 +2,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0 FATAL_ERROR)
 
 ### Project ###
-PROJECT(elsi VERSION 2.6.4 LANGUAGES NONE)
+PROJECT(elsi VERSION 2.7.0 LANGUAGES NONE)
 SET(elsi_URL "http://elsi-interchange.org")
 SET(elsi_EMAIL "elsi-team@duke.edu")
 SET(elsi_LICENSE "BSD 3")

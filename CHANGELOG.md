@@ -1,6 +1,6 @@
 # ELSI changelog
 
-## Not released
+## v2.7.0 (March 2021)
 
 ### ELSI interface
 * Added support for frozen core approximation when using the dense eigensolver
