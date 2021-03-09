@@ -595,11 +595,13 @@ subroutine elsi_do_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
         bh%desc,ham_v,1,1,ph%desc_v,bh%blacs_ctxt)
 
    ! Compute H_vv
+   evec(:,:) = 0.0_r8
+
    if(ph%fc_method == FC_PLUS_V) then
       ! H_vv = H_vv + S_vc * H_cc * S_cv - H_vc * S_cv - S_vc * H_cv
       ! More accurate than H_vv = H_vv - S_vc * H_cc * S_cv
       ! H_vv = A + A^*
-      ! A = (0.5*S_vc * H_cc - H_vc) * S_cv
+      ! A = 0.5*H_vv + (0.5*S_vc * H_cc - H_vc) * S_cv
       call pdgemm("N","N",ph%n_basis_v,ph%n_basis_c,ph%n_basis_c,0.5_r8,ovlp,&
            ph%n_basis_c+1,1,bh%desc,ham,1,1,bh%desc,0.0_r8,evec,ph%n_basis_c+1,&
            1,bh%desc)
@@ -607,7 +609,7 @@ subroutine elsi_do_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
       evec(:,:) = evec-ham
 
       call pdgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,1.0_r8,evec,&
-           ph%n_basis_c+1,1,bh%desc,ovlp,1,ph%n_basis_c+1,bh%desc,0.0_r8,ham_v,&
+           ph%n_basis_c+1,1,bh%desc,ovlp,1,ph%n_basis_c+1,bh%desc,0.5_r8,ham_v,&
            1,1,ph%desc_v)
 
       call pdtran(ph%n_basis_v,ph%n_basis_v,1.0_r8,ham_v,1,1,ph%desc_v,0.0_r8,&
@@ -1254,11 +1256,13 @@ subroutine elsi_do_fc_elpa_cmplx(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
         bh%desc,ham_v,1,1,ph%desc_v,bh%blacs_ctxt)
 
    ! Compute H_vv
+   evec(:,:) = (0.0_r8,0.0_r8)
+
    if(ph%fc_method == FC_PLUS_V) then
       ! H_vv = H_vv + S_vc * H_cc * S_cv - H_vc * S_cv - S_vc * H_cv
       ! More accurate than H_vv = H_vv - S_vc * H_cc * S_cv
       ! H_vv = A + A^*
-      ! A = (0.5*S_vc * H_cc - H_vc) * S_cv
+      ! A = 0.5*H_vv + (0.5*S_vc * H_cc - H_vc) * S_cv
       call pzgemm("N","N",ph%n_basis_v,ph%n_basis_c,ph%n_basis_c,&
            (0.5_r8,0.0_r8),ovlp,ph%n_basis_c+1,1,bh%desc,ham,1,1,bh%desc,&
            (0.0_r8,0.0_r8),evec,ph%n_basis_c+1,1,bh%desc)
@@ -1267,7 +1271,7 @@ subroutine elsi_do_fc_elpa_cmplx(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
 
       call pzgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,&
            (1.0_r8,0.0_r8),evec,ph%n_basis_c+1,1,bh%desc,ovlp,1,ph%n_basis_c+1,&
-           bh%desc,(0.0_r8,0.0_r8),ham_v,1,1,ph%desc_v)
+           bh%desc,(0.5_r8,0.0_r8),ham_v,1,1,ph%desc_v)
 
       call pztranc(ph%n_basis_v,ph%n_basis_v,(1.0_r8,0.0_r8),ham_v,1,1,&
            ph%desc_v,(0.0_r8,0.0_r8),evec_v,1,1,ph%desc_v)
