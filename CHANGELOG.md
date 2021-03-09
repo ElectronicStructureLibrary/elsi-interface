@@ -1,16 +1,21 @@
 # ELSI changelog
 
-## v2.7.0 (March 2021)
+## v2.7.1 (March 2021)
 
 ### ELSI interface
-* Added support for frozen core approximation when using the dense eigensolver
-  interfaces with ELPA and LAPACK.
+* Fixed bugs in the frozen core approximation code.
 
 ### Known issues
 * The ELPA code cannot be compiled with the NAG Fortran compiler, due to the
   use of GNU extensions in ELPA.
 * Depending on the choice of k-points, the complex PEXSI solver may randomly
   fail at the inertia counting stage.
+
+## v2.7.0 (March 2021)
+
+### ELSI interface
+* Added support for frozen core approximation when using the dense eigensolver
+  interfaces with ELPA and LAPACK.
 
 ## v2.6.4 (November 2020)
 
