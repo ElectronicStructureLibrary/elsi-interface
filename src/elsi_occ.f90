@@ -48,6 +48,48 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
    real(kind=r8), intent(out) :: occ(n_state,n_spin,n_kpt)
    real(kind=r8), intent(out) :: mu
 
+   real(kind=r8) :: occ1(n_state,n_spin,n_kpt)
+   real(kind=r8) :: occ2(n_state,n_spin,n_kpt)
+   real(kind=r8) :: mu1
+   real(kind=r8) :: mu2
+
+
+   if (ph%occ_non_aufbau) then
+     ! YY: This is for non Aufbau distribution occ number.
+     ! YY: Used for (lowest excited state) delta SCF
+     ! YY: normal occ_number    :  2 2 2 2 0 0 0 0
+     ! YY: non-Aufbau occ_number:  2 2 2 1 1 0 0 0
+     call elsi_mu_and_occ_normal(ph,bh,n_electron-2,n_state,n_spin,n_kpt,k_wt,&
+          eval,occ1,mu1)
+     call elsi_mu_and_occ_normal(ph,bh,n_electron+2,n_state,n_spin,n_kpt,k_wt,&
+          eval,occ2,mu2)
+     occ = (occ1 + occ2) / 2
+     mu = (mu1 + mu2) / 2
+   else
+     call elsi_mu_and_occ_normal(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,&
+          eval,occ,mu)
+   end if
+
+end subroutine
+!>
+!! Compute the chemical potential and occupation numbers normal distribution.
+!!
+subroutine elsi_mu_and_occ_normal(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
+   mu)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   real(kind=r8), intent(in) :: n_electron
+   integer(kind=i4), intent(in) :: n_state
+   integer(kind=i4), intent(in) :: n_spin
+   integer(kind=i4), intent(in) :: n_kpt
+   real(kind=r8), intent(in) :: k_wt(n_kpt)
+   real(kind=r8), intent(in) :: eval(n_state,n_spin,n_kpt)
+   real(kind=r8), intent(out) :: occ(n_state,n_spin,n_kpt)
+   real(kind=r8), intent(out) :: mu
+
    real(kind=r8) :: mu_min
    real(kind=r8) :: mu_max
    real(kind=r8) :: buf
@@ -58,7 +100,7 @@ subroutine elsi_mu_and_occ(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eval,occ,&
    logical :: found_interval
    character(len=200) :: msg
 
-   character(len=*), parameter :: caller = "elsi_mu_and_occ"
+   character(len=*), parameter :: caller = "elsi_mu_and_occ_normal"
 
    ! Determine upper and lower bounds of mu
    mu_min = minval(eval)

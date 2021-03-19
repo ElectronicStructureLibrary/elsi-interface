@@ -116,8 +116,9 @@ module ELSI_DATATYPE
       logical :: eval_ready = .false.
       logical :: evec_ready = .false.
       logical :: occ_ready = .false.
+      logical :: occ_non_aufbau = .false. ! occ for lowest excited state ( ...222000... => ...221100... )
 
-      ! Chemical potential
+      ! Chemical potential 
       real(kind=r8) :: mu ! Fermi level
       real(kind=r8) :: ts ! Entropy
       integer(kind=i4) :: mu_scheme

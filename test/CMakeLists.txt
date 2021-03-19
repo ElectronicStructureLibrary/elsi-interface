@@ -18,7 +18,9 @@ LIST(APPEND ftest_src
   Fortran/test_ev_real_den.f90
   Fortran/test_ev_real_coo.f90
   Fortran/test_ev_real_csc1.f90
-  Fortran/test_ev_real_csc2.f90)
+  Fortran/test_ev_real_csc2.f90
+  Fortran/test_occ_normal.f90
+  Fortran/test_occ_non_aufbau.f90)
 
 MACRO(add_test_target arg1)
   ADD_DEPENDENCIES(${arg1} elsi)
