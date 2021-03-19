@@ -1,5 +1,8 @@
 # ELSI changelog
 
+## v2.8.0 (March 2021)
+* Interface for the non-Aufbau occupation.
+
 ## v2.7.1 (March 2021)
 
 ### ELSI interface
