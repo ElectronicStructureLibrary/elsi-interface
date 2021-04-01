@@ -1,0 +1,16 @@
+This is a script for io of elsi matrices.
+
+###### prerequisites 
+ libelsi.so
+ Clone it from gitlab with a clean source code. https://gitlab.com/elsi_project/elsi_interface
+ Here are my cmake setting to build the shared library.
+ ####
+  SET(CMAKE_Fortran_COMPILER "mpif90" CACHE STRING "MPI Fortran compiler")
+  SET(CMAKE_C_COMPILER "mpicc" CACHE STRING "MPI C compiler")
+  SET(CMAKE_Fortran_FLAGS "-O3 -ip -fp-model precise" CACHE STRING "Fortran flags")
+  SET(CMAKE_C_FLAGS "-O3 -ip -fp-model precise -std=c99" CACHE STRING "C flags")
+  SET(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries")
+  SET(LIB_PATHS "$ENV{MKLROOT}/lib/intel64" CACHE STRING "External library paths")
+  SET(LIBS "mkl_scalapack_lp64 mkl_blacs_openmpi_lp64 mkl_intel_lp64 mkl_sequential mkl_core" CACHE STRING "External libraries")
+ ####
+ After the libelsi.so is compiled. Copy it the this folder (or set environment variable).
