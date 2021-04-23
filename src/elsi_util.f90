@@ -566,7 +566,7 @@ subroutine elsi_check_err(bh,routine,ierr,caller)
    character(len=200) :: msg
 
    if(ierr /= 0) then
-      write(msg,"(2A)") trim(routine)," failed"
+      write(msg,*) trim(routine)," failed ", "ierr:", ierr
 
       call elsi_stop(bh,msg,caller)
    end if
