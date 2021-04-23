@@ -164,32 +164,33 @@ subroutine elsi_mu_and_occ_normal(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eva
          occ(:,:,:) = 0.0_r8
       else
          write(msg,"(A)") "*** A problem occurred in subroutine elsi_mu_and_occ_normal"
-         call elsi_say(bh,msg,caller)
+         call elsi_say(bh,msg)
          write(msg,"(A)") "The ELSI routine to determine occupation numbers elsi_mu_and_occ_normal was unable to"
-         call elsi_say(bh,msg,caller)
+         call elsi_say(bh,msg)
          write(msg,"(A)") "find a suitable chemical potential (Fermi level). This may be"
-         call elsi_say(bh,msg,caller)
+         call elsi_say(bh,msg)
          write(msg,"(A)") "due to faulty input to the routine, i.e. a problem at an earlier stage of"
-         call elsi_say(bh,msg,caller)
+         call elsi_say(bh,msg)
          write(msg,"(A)") "the computation. For reference, the eigenvalues (in internal units of the"
-         call elsi_say(bh,msg,caller)
+         call elsi_say(bh,msg)
          write(msg,"(A)") "the code, typically atomic units in electronic structure theory) have the"
-         call elsi_say(bh,msg,caller)
+         call elsi_say(bh,msg)
          write(msg,"(A)") "following values:"
          do i_kpt = 1, n_kpt
            write(msg,"(A)") "k-point ", i_kpt
-           call elsi_say(bh,msg,caller)
+           call elsi_say(bh,msg)
            do i_spin = 1, n_spin
              write(msg,"(A)") "spin channel ", i_spin
-             call elsi_say(bh,msg,caller)
+             call elsi_say(bh,msg)
              do i_state = 1, n_state
                write(msg,"(A)") "EV number eigenvalue "
-               call elsi_say(bh,msg,caller)
+               call elsi_say(bh,msg)
                write(msg,"(A)") i_state, eval(i_state, i_spin, i_kpt)
-               call elsi_say(bh,msg,caller)
+               call elsi_say(bh,msg)
              end do
            end do
          end do
+         call sleep(10)
          write(msg,"(A)") "Chemical potential not found"
          call elsi_stop(bh,msg,caller)
       end if
