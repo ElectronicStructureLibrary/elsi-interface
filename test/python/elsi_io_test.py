@@ -44,11 +44,13 @@ print("Finished reading overlap matrices")
 print()
 
 ### solve the generalized eigenvalue problem by scipy
-print("Solve the generalized eigenvalue problem")
+print("Solve the generalized eigenvalue problem in scipy")
 e_vals, e_vecs = scipy.linalg.eigh(H_mat, S_mat)
 print("eigenvalues:")
 for e_val in e_vals:
     print(e_val)
+
+### solve the generalized eigenvalue problem by elsi
 
 ### solver eigenvalue problem
 
