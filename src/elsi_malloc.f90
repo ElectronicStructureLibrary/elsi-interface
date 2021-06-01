@@ -84,6 +84,10 @@ subroutine elsi_allocate_real4_1d(bh,array,dim_1,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
