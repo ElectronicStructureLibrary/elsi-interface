@@ -1,5 +1,9 @@
 # ELSI changelog
 
+## v2.8.1 (March 2021)
+* Cython interface for ELSI -- elsipy
+* Detailed error message for wrong occupation number
+
 ## v2.8.0 (March 2021)
 * Interface for the non-Aufbau occupation.
 
