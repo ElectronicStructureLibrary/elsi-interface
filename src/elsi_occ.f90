@@ -176,22 +176,24 @@ subroutine elsi_mu_and_occ_normal(ph,bh,n_electron,n_state,n_spin,n_kpt,k_wt,eva
          write(msg,"(A)") "the code, typically atomic units in electronic structure theory) have the"
          call elsi_say(bh,msg)
          write(msg,"(A)") "following values:"
+         call elsi_say(bh,msg)
          do i_kpt = 1, n_kpt
-           write(msg,"(A)") "k-point ", i_kpt
+           write(msg,"(A,I8)") "k-point ", i_kpt
            call elsi_say(bh,msg)
            do i_spin = 1, n_spin
-             write(msg,"(A)") "spin channel ", i_spin
+             write(msg,"(A,I5)") "spin channel ", i_spin
+             call elsi_say(bh,msg)
+             write(msg,"(A)") "EV number eigenvalue "
              call elsi_say(bh,msg)
              do i_state = 1, n_state
-               write(msg,"(A)") "EV number eigenvalue "
-               call elsi_say(bh,msg)
-               write(msg,"(A)") i_state, eval(i_state, i_spin, i_kpt)
+               write(msg,"(I8,A,E14.7)") i_state, " ", eval(i_state, i_spin, i_kpt)
                call elsi_say(bh,msg)
              end do
            end do
          end do
          call sleep(10)
-         write(msg,"(A)") "Chemical potential not found"
+         write(msg,"(A)") "Chemical potential not found - please see above &
+                           for a more detailed error message and output"
          call elsi_stop(bh,msg,caller)
       end if
    end if
