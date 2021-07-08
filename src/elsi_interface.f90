@@ -150,6 +150,7 @@ module ELSI
    public :: elsi_compute_edm_complex
    public :: elsi_compute_mu_and_occ
    public :: elsi_compute_entropy
+   public :: elsi_suggest_blacs_distribution
 
    ! Read and write matrix
    public :: elsi_init_rw
