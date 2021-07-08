@@ -1,5 +1,11 @@
 # ELSI changelog
 
+## v2.8.3 (July 2021)
+* suggest BLACS distribution
+
+## v2.8.2 (June 2021)
+* Detailed error message for wrong occupation number: bug fix
+
 ## v2.8.1 (March 2021)
 * Cython interface for ELSI -- elsipy
 * Detailed error message for wrong occupation number
