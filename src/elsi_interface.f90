@@ -17,6 +17,7 @@ module ELSI
    use ELSI_SET
    use ELSI_SETUP
    use ELSI_SOLVER
+   use ELSI_UTIL, only: elsi_suggest_blacs_distribution
 
    implicit none
 
@@ -150,6 +151,7 @@ module ELSI
    public :: elsi_compute_edm_complex
    public :: elsi_compute_mu_and_occ
    public :: elsi_compute_entropy
+   public :: elsi_suggest_blacs_distribution
 
    ! Read and write matrix
    public :: elsi_init_rw

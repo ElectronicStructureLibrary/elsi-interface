@@ -34,6 +34,7 @@ module ELSI_UTIL
    public :: elsi_set_full_mat
    public :: elsi_build_dm_edm
    public :: elsi_gram_schmidt
+   public :: elsi_suggest_blacs_distribution
 
    interface elsi_set_full_mat
       module procedure elsi_set_full_mat_real
@@ -1204,6 +1205,35 @@ subroutine elsi_gram_schmidt_cmplx(ph,bh,ovlp,evec)
    call elsi_say(bh,msg)
    write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
    call elsi_say(bh,msg)
+
+end subroutine
+
+!>
+!! suggest BLACS distribution
+!!
+subroutine elsi_suggest_blacs_distribution(n_proc, n_proc_blacs, nprow_blacs, npcol_blacs)
+
+   implicit none
+
+   integer(kind=i4), intent(in) :: n_proc
+   integer(kind=i4), intent(out) :: n_proc_blacs
+   integer(kind=i4), intent(out) :: nprow_blacs
+   integer(kind=i4), intent(out) :: npcol_blacs
+
+   real(kind=r8) :: blacs_ratio
+   integer(kind=i4) :: ierr
+
+   character(len=*), parameter :: caller = "elsi_suggest_blacs_distribution"
+
+   do n_proc_blacs = n_proc, 2, -1
+     do npcol_blacs = nint(sqrt(real(n_proc_blacs))),2,-1
+        if(mod(n_proc_blacs,npcol_blacs) == 0) exit
+     end do
+     nprow_blacs = n_proc_blacs/npcol_blacs
+     blacs_ratio = real(nprow_blacs)/real(npcol_blacs)
+     if (n_proc_blacs <= 16 ) exit
+     if (blacs_ratio < 4.0_r8) exit
+   end do
 
 end subroutine
 
