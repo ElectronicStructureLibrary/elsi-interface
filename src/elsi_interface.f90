@@ -17,6 +17,7 @@ module ELSI
    use ELSI_SET
    use ELSI_SETUP
    use ELSI_SOLVER
+   use ELSI_UTIL, only: elsi_suggest_blacs_distribution
 
    implicit none
 
