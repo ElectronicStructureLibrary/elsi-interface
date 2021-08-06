@@ -57,6 +57,12 @@ LIST(APPEND bsepack_src
 ADD_LIBRARY(sseig ${sseig_src})
 ADD_LIBRARY(bsepack ${bsepack_src})
 
+IF(ELSI_USE_FIND_PACKAGE_MPI)
+  find_package(MPI)
+  TARGET_LINK_LIBRARIES(sseig PUBLIC MPI::MPI_C MPI::MPI_Fortran)
+  TARGET_LINK_LIBRARIES(bsepack PUBLIC MPI::MPI_C MPI::MPI_Fortran)
+ENDIF()
+
 ADD_DEPENDENCIES(bsepack sseig)
 
 TARGET_LINK_LIBRARIES(bsepack PRIVATE sseig ${LIBS})

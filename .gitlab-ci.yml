@@ -1,8 +1,9 @@
 before_script:
   - module use /home/wy29/opt/modulefiles
+  - module use /home/yy244/yy_modules
   - module purge
   - module load gcc-7.5.0
-  - module load cmake-3.0.2
+  - module load cmake_3.20.5
   - export OMP_NUM_THREADS=1
 
 variables:
@@ -20,15 +21,20 @@ gnu:
     - make -j4
     - ctest --output-on-failure
 
-### PGI compilers + OpenMPI + OpenBLAS, LAPACK, ScaLAPACK ###
-pgi:
+### NVIDIA HPC SDK (20.7) ###
+nvhpc:
   script:
-    - module load PrgEnv-pgi/19.10
-    - cat ./toolchains/pgi.cmake
+    - module unload gcc-7.5.0
+    - module load gcc-7.5
+    - module load glibc-2.14
+    - module load nvhpc_yy/20.7
+    - module list
+    - cat ./toolchains/nvhpc.cmake
+    - export LD_PRELOAD=/home/yy244/compilers/gcc_install/7.5/lib64/libstdc++.so.6
     - rm -rf build
     - mkdir build
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/pgi.cmake ..
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/nvhpc.cmake ..
     - make -j4
     - ctest --output-on-failure
 
