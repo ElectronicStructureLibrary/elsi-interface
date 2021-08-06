@@ -12,8 +12,8 @@ SET(ENABLE_PEXSI ON CACHE BOOL "Enable PEXSI")
 SET(ENABLE_TESTS ON CACHE BOOL "Enable Fortran tests")
 SET(ENABLE_C_TESTS ON CACHE BOOL "Enable C tests")
 
-SET(LIB_PATHS "/home/wy29/opt/pgi/linux86-64-llvm/19.10/lib/scalapack/scalapack-2.0.2/openmpi-3.1.3/lib /home/wy29/opt/pgi/linux86-64-llvm/19.10/lib" CACHE STRING "External library paths")
-SET(LIBS "scalapack lapack blas" CACHE STRING "External libraries")
+SET(LIB_PATHS "/home/yy244/compilers/mpich-3.2.1/install_pgi19.4/scalapack_libs/scalapack-2.1.0 /home/yy244/compilers/mpich-3.2.1/install_pgi19.4/scalapack_libs/lapack-3.10.0" CACHE STRING "External library paths")
+SET(LIBS "scalapack lapack refblas" CACHE STRING "External libraries")
 
-SET(MPIEXEC_1P "mpirun --mca io romio314 -n 1" CACHE STRING "Command to run serial tests with 1 MPI task")
-SET(MPIEXEC_NP "mpirun --mca io romio314 -n 4" CACHE STRING "Command to run parallel tests with multiple MPI tasks")
+SET(MPIEXEC_1P "mpirun -n 1" CACHE STRING "Command to run serial tests with 1 MPI task")
+SET(MPIEXEC_NP "mpirun -n 4" CACHE STRING "Command to run parallel tests with multiple MPI tasks")

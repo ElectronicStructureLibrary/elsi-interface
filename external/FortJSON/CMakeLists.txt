@@ -10,6 +10,11 @@ LIST(APPEND fortjson_src
 
 ADD_LIBRARY(fortjson ${fortjson_src})
 
+IF(ELSI_USE_FIND_PACKAGE_MPI)
+  find_package(MPI)
+  TARGET_LINK_LIBRARIES(fortjson PUBLIC MPI::MPI_C MPI::MPI_Fortran)
+ENDIF()
+
 TARGET_INCLUDE_DIRECTORIES(fortjson PRIVATE
   ${INC_PATHS}
   ${CMAKE_Fortran_MODULE_DIRECTORY})

@@ -85,6 +85,9 @@ subroutine elsi_allocate_real4_1d(bh,array,dim_1,label,caller)
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
       call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*4
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
       write(msg,*) "Error number ", ierr
       call elsi_say(bh,msg)
       write(msg,"(A)") "This probably means not enough memory"
@@ -123,6 +126,13 @@ subroutine elsi_allocate_real8_1d(bh,array,dim_1,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*8
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -158,6 +168,13 @@ subroutine elsi_allocate_integer4_1d(bh,array,dim_1,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*4
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -193,6 +210,13 @@ subroutine elsi_allocate_integer8_1d(bh,array,dim_1,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*8
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -228,6 +252,13 @@ subroutine elsi_allocate_complex16_1d(bh,array,dim_1,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*16
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -264,6 +295,13 @@ subroutine elsi_allocate_real4_2d(bh,array,dim_1,dim_2,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*dim_2*4
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -300,6 +338,13 @@ subroutine elsi_allocate_real8_2d(bh,array,dim_1,dim_2,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*dim_2*8
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -336,6 +381,13 @@ subroutine elsi_allocate_integer4_2d(bh,array,dim_1,dim_2,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*dim_2*4
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -372,6 +424,13 @@ subroutine elsi_allocate_complex8_2d(bh,array,dim_1,dim_2,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*dim_2*8
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -408,6 +467,13 @@ subroutine elsi_allocate_complex16_2d(bh,array,dim_1,dim_2,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*dim_2*16
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -445,6 +511,13 @@ subroutine elsi_allocate_real8_3d(bh,array,dim_1,dim_2,dim_3,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*dim_2*dim_3*8
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -482,6 +555,13 @@ subroutine elsi_allocate_integer4_3d(bh,array,dim_1,dim_2,dim_3,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*dim_2*dim_3*4
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
@@ -519,6 +599,13 @@ subroutine elsi_allocate_complex16_3d(bh,array,dim_1,dim_2,dim_3,label,caller)
 
    if(ierr > 0) then
       write(msg,"(2A)") "Error in allocating ",trim(label)
+      call elsi_say(bh,msg)
+      mem = 1.0e-6_r8*dim_1*dim_2*dim_3*16
+      write(msg,"(4X,A,F10.3,2A)") "Trying to Allocating ",mem," MB for ",trim(label)
+      call elsi_say(bh,msg)
+      write(msg,*) "Error number ", ierr
+      call elsi_say(bh,msg)
+      write(msg,"(A)") "This probably means not enough memory"
       call elsi_stop(bh,msg,caller)
    end if
 
