@@ -36,6 +36,7 @@ module ELSI_ELPA
    public :: elsi_do_fc_elpa
    public :: elsi_undo_fc_elpa
    public :: elsi_elpa_tridiag
+   public :: elsi_cholesky_inverse_inplace_elpa
 
    interface elsi_solve_elpa
       module procedure elsi_solve_elpa_real
@@ -53,6 +54,11 @@ module ELSI_ELPA
    end interface
 
    interface elsi_factor_ovlp_elpa
+      module procedure elsi_factor_ovlp_elpa_real
+      module procedure elsi_factor_ovlp_elpa_cmplx
+   end interface
+
+   interface elsi_cholesky_inverse_inplace_elpa
       module procedure elsi_factor_ovlp_elpa_real
       module procedure elsi_factor_ovlp_elpa_cmplx
    end interface
