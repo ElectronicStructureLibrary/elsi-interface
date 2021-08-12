@@ -17,7 +17,7 @@ module ELSI_SOLVER
    use ELSI_DECISION, only: elsi_decide_ev,elsi_decide_dm
    use ELSI_EIGENEXA, only: elsi_init_eigenexa,elsi_solve_eigenexa
    use ELSI_ELPA, only: elsi_init_elpa,elsi_solve_elpa,elsi_do_fc_elpa,&
-       elsi_undo_fc_elpa
+       elsi_undo_fc_elpa, elsi_cholesky_inverse_inplace_elpa
    use ELSI_LAPACK, only: elsi_solve_lapack,elsi_do_fc_lapack,&
        elsi_undo_fc_lapack
    use ELSI_MAGMA, only: elsi_init_magma,elsi_solve_magma
@@ -69,6 +69,8 @@ module ELSI_SOLVER
    public :: elsi_compute_edm_complex
    public :: elsi_compute_mu_and_occ
    public :: elsi_compute_entropy
+   public :: elsi_inverse_cholesky_real
+   public :: elsi_inverse_cholesky_complex
 
 contains
 
@@ -2344,5 +2346,61 @@ subroutine elsi_compute_entropy(eh,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
    call elsi_entropy(eh%ph,n_state,n_spin,n_kpt,k_wt,eval,occ,mu,ts)
 
 end subroutine
+
+!>
+!! Compute the inverse of matrix inplace via Cholesky real matrix
+!!
+subroutine elsi_inverse_cholesky_real(eh,mat)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(inout) :: mat(eh%bh%n_lrow,eh%bh%n_lcol) !< Matrix
+
+   real(kind=r8) :: t0
+   character(len=29) :: dt0
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_inverse_cholesky_real"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+   call elsi_check(eh%ph,eh%bh,caller)
+   call elsi_get_time(t0)
+   call fjson_get_datetime_rfc3339(dt0)
+
+   call elsi_cholesky_inverse_inplace_elpa(eh%ph, eh%bh, mat)
+
+   call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
+
+end subroutine
+
+!>
+!! Compute the inverse of matrix inplace via Cholesky complex matrix
+!!
+subroutine elsi_inverse_cholesky_complex(eh,mat)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   complex(kind=r8), intent(inout) :: mat(eh%bh%n_lrow,eh%bh%n_lcol) !< Matrix
+
+   real(kind=r8) :: t0
+   character(len=29) :: dt0
+   character(len=200) :: msg
+
+   character(len=*), parameter :: caller = "elsi_inverse_cholesky_complex"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+   call elsi_check(eh%ph,eh%bh,caller)
+   call elsi_get_time(t0)
+   call fjson_get_datetime_rfc3339(dt0)
+
+   call elsi_cholesky_inverse_inplace_elpa(eh%ph, eh%bh, mat)
+
+   call elsi_add_log(eh%ph,eh%bh,eh%jh,dt0,t0,caller)
+
+end subroutine
+
+
 
 end module ELSI_SOLVER
