@@ -771,7 +771,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(local_values_buffer)
   CALL MPI_Barrier(this%process_grid%global_comm,ierr)
   CALL DestructMatrix(merged_local_data)
-# 706 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE WriteMatrixToBinary_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -856,7 +855,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(local_values_buffer)
   CALL MPI_Barrier(this%process_grid%global_comm,ierr)
   CALL DestructMatrix(merged_local_data)
-# 722 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE WriteMatrixToBinary_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1029,7 +1027,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      CALL MPI_File_close(mpi_file_handler, ierr)
   END IF
   CALL MPI_Barrier(this%process_grid%global_comm, ierr)
-# 751 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE WriteMatrixToMatrixMarket_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1188,7 +1185,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      CALL MPI_File_close(mpi_file_handler, ierr)
   END IF
   CALL MPI_Barrier(this%process_grid%global_comm, ierr)
-# 766 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
 
   END SUBROUTINE WriteMatrixToMatrixMarket_psc
@@ -1280,7 +1276,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructTripletList(sorted_triplet_list)
 
   CALL StopTimer("FillFromTriplet")
-# 804 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
   END SUBROUTINE FillMatrixFromTripletList_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> This routine fills in a matrix based on local triplet lists. Each process
@@ -1370,7 +1365,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructTripletList(sorted_triplet_list)
 
   CALL StopTimer("FillFromTriplet")
-# 840 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
   END SUBROUTINE FillMatrixFromTripletList_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Fill in the values of a distributed matrix with the identity matrix.
@@ -1420,7 +1414,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Cleanup
   CALL DestructTripletList(triplet_list)
-# 863 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE FillMatrixIdentity_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1458,7 +1451,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Cleanup
   CALL DestructTripletList(triplet_list)
-# 874 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE FillMatrixIdentity_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1537,7 +1529,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Cleanup
   CALL DestructTripletList(triplet_list)
-# 916 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE FillMatrixPermutation_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1589,7 +1580,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Cleanup
   CALL DestructTripletList(triplet_list)
-# 931 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE FillMatrixPermutation_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1619,7 +1609,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & working_matrix%start_column - 1)
 
   CALL DestructMatrix(working_matrix)
-# 952 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
   END SUBROUTINE GetMatrixTripletList_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Extracts a triplet list of the data that is stored on this process.
@@ -1648,7 +1637,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & working_matrix%start_column - 1)
 
   CALL DestructMatrix(working_matrix)
-# 972 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
   END SUBROUTINE GetMatrixTripletList_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Extract an arbitrary block of a matrix into a triplet list. Block is

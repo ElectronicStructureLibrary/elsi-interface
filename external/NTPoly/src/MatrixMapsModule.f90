@@ -72,7 +72,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Cleanup
   CALL DestructTripletList(inlist)
   CALL DestructTripletList(outlist)
-# 58 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMapsModule.F90" 2
   END SUBROUTINE MapMatrix_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Given a distributed matrix, apply this procedure to each element (complex).
@@ -116,7 +115,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Cleanup
   CALL DestructTripletList(inlist)
   CALL DestructTripletList(outlist)
-# 84 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMapsModule.F90" 2
   END SUBROUTINE MapMatrix_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Given a triplet list, apply this procedure to each element.
@@ -334,7 +332,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Cleanup
   CALL DestructTripletList(inlist)
   CALL DestructTripletList(outlist)
-# 209 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMapsModule.F90" 2
 
   END SUBROUTINE MapMatrixArray_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -401,7 +398,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         CALL AppendToTripletList(outlist, temp)
      END IF
   END DO
-# 246 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMapsModule.F90" 2
 
   END SUBROUTINE MapTripletListArray_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -468,7 +464,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         CALL AppendToTripletList(outlist, temp)
      END IF
   END DO
-# 283 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMapsModule.F90" 2
 
   END SUBROUTINE MapTripletListArray_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

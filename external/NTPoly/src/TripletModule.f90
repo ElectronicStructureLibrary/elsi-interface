@@ -64,7 +64,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   this%index_column = index_column
   this%index_row    = index_row
   this%point_value  = point_value
-# 64 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletModule.F90" 2
 
   END SUBROUTINE SetTriplet_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -83,7 +82,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   this%index_column = index_column
   this%index_row    = index_row
   this%point_value  = point_value
-# 79 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletModule.F90" 2
 
   END SUBROUTINE SetTriplet_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -102,7 +100,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   index_column = this%index_column
   index_row    = this%index_row
   point_value  = this%point_value
-# 94 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletModule.F90" 2
 
   END SUBROUTINE GetTripletValues_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

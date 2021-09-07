@@ -289,7 +289,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL ConstructEmptyMatrix(matAT, matA%columns, matA%rows)
   matAT%DATA = TRANSPOSE(matA%DATA)
-# 213 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE TransposeMatrix_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -340,7 +339,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & mat_array(II,JJ)%DATA
      END DO
   END DO
-# 231 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE ComposeMatrix_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -407,7 +405,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & column_offsets(JJ):column_offsets(JJ+1)-1)
      END DO
   END DO
-# 251 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE SplitMatrix_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -517,7 +514,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   this%columns = columns
 
   ALLOCATE(this%DATA(rows,columns))
-# 356 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END FUNCTION ConstructEmptyMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -554,7 +550,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         total_counter = total_counter + 1
      END DO
   END DO
-# 369 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE ConstructMatrixDFromS_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -609,7 +604,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL ConstructMatrixFromTripletList(sparse_matrix, temporary_list, &
        & rows, columns)
   CALL DestructTripletList(temporary_list)
-# 386 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE ConstructMatrixSFromD_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -623,7 +617,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL ConstructEmptyMatrix(matB, matA%rows, matA%columns)
   matB%DATA = matA%DATA
-# 397 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE CopyMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -636,7 +629,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   IF (ALLOCATED(this%DATA)) THEN
      DEALLOCATE(this%DATA)
   END IF
-# 406 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE DestructMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -660,7 +652,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END IF
 
   MatB%DATA = MatB%DATA + alpha*MatA%DATA
-# 421 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE IncrementMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -695,7 +686,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL ConstructEmptyMatrix(matAT, matA%columns, matA%rows)
   matAT%DATA = TRANSPOSE(matA%DATA)
-# 453 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE TransposeMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -746,7 +736,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & mat_array(II,JJ)%DATA
      END DO
   END DO
-# 471 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE ComposeMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -813,7 +802,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & column_offsets(JJ):column_offsets(JJ+1)-1)
      END DO
   END DO
-# 491 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE SplitMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -303,7 +303,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   this%hash_size = INT(1.0/sparsity)
   IF (this%hash_size > this%columns) this%hash_size = this%columns
   num_buckets = this%columns/this%hash_size + 1
-# 208 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMemoryPoolModule.F90" 2
 
   END SUBROUTINE SetPoolSparsity_lr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -321,7 +320,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   this%hash_size = INT(1.0/sparsity)
   IF (this%hash_size > this%columns) this%hash_size = this%columns
   num_buckets = this%columns/this%hash_size + 1
-# 219 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMemoryPoolModule.F90" 2
 
   END SUBROUTINE SetPoolSparsity_lc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

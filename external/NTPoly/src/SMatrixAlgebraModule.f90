@@ -85,7 +85,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
   matA%values = constant * matA%values
-# 87 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE ScaleMatrix_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Will scale a sparse matrix by a constant.
@@ -97,7 +96,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
   matA%values = constant * matA%values
-# 97 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE ScaleMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Will scale a sparse matrix by a constant.
@@ -584,7 +582,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL DestructMatrix(matAB)
   CALL DestructMatrixMemoryPool(blocked_memory_pool)
-# 247 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE GemmMatrix_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Multiply two matrices together, and add to the third.
@@ -721,7 +718,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL DestructMatrix(matAB)
   CALL DestructMatrixMemoryPool(blocked_memory_pool)
-# 282 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE GemmMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the norm of a sparse matrix along the columns.
@@ -752,7 +748,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & ABS(temp_value)
      END DO
   END DO
-# 294 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE MatrixColumnNorm_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the norm of a sparse matrix along the columns.
@@ -783,7 +778,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & ABS(temp_value)
      END DO
   END DO
-# 306 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE MatrixColumnNorm_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the 1 norm of a sparse matrix.
@@ -798,7 +792,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL MatrixColumnNorm(this,column)
   norm = MAXVAL(column)
-# 318 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
 
   END FUNCTION MatrixNorm_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -814,7 +807,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL MatrixColumnNorm(this,column)
   norm = MAXVAL(column)
-# 331 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
 
   END FUNCTION MatrixNorm_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -827,7 +819,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
   sum_value = SUM(this%values)
-# 342 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
 
   END SUBROUTINE MatrixGrandSum_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -840,7 +831,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
   sum_value = SUM(this%values)
-# 353 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
 
   END SUBROUTINE MatrixGrandSum_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -888,7 +878,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Go from triplets to return matrix
   CALL PruneList(blocked_memory_pool, alpha, threshold, &
        & blocked_memory_pool%columns, blocked_memory_pool%rows, matC)
-# 379 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE SparseBranch_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Calculates the matrix product if using the sparse-sparse algorithm.
@@ -935,7 +924,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Go from triplets to return matrix
   CALL PruneList(blocked_memory_pool, alpha, threshold, &
        & blocked_memory_pool%columns, blocked_memory_pool%rows, matC)
-# 404 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE SparseBranch_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Calculate the matrix product using the dense-dense algorithm.
@@ -977,7 +965,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructMatrix(DenseA)
   CALL DestructMatrix(DenseB)
   CALL DestructMatrix(DenseC)
-# 429 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE DenseBranch_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Calculate the matrix product using the dense-dense algorithm.
@@ -1019,7 +1006,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructMatrix(DenseA)
   CALL DestructMatrix(DenseB)
   CALL DestructMatrix(DenseC)
-# 454 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE DenseBranch_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Multiplies a single block fo sparse-sparse.
@@ -1077,7 +1063,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         END DO
      END DO
   END DO
-# 468 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE MultiplyBlock_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Multiplies a single block fo sparse-sparse.
@@ -1135,7 +1120,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         END DO
      END DO
   END DO
-# 482 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE MultiplyBlock_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Prunes out the values of the hash table into the matrix.
@@ -1199,7 +1183,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & mat_c_columns)
   CALL DestructTripletList(sorted_pruned_list)
   CALL DestructTripletList(unsorted_pruned_list)
-# 505 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE PruneList_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Prunes out the values of the hash table into the matrix.
@@ -1263,7 +1246,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & mat_c_columns)
   CALL DestructTripletList(sorted_pruned_list)
   CALL DestructTripletList(unsorted_pruned_list)
-# 528 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE PruneList_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE SMatrixAlgebraModule

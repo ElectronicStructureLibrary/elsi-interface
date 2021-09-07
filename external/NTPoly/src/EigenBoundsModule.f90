@@ -86,7 +86,6 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructTripletList(triplet_list_c)
   DEALLOCATE(per_column_min)
   DEALLOCATE(per_column_max)
-# 47 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/EigenBoundsModule.F90" 2
 
     ELSE
 
@@ -133,7 +132,6 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructTripletList(triplet_list_r)
   DEALLOCATE(per_column_min)
   DEALLOCATE(per_column_max)
-# 51 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/EigenBoundsModule.F90" 2
 
     END IF
   END SUBROUTINE GershgorinBounds

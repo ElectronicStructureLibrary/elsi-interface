@@ -105,7 +105,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   DEALLOCATE(column_sigma_contribution)
   CALL DestructMatrix(merged_local_data_c)
-# 86 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
     ELSE
 
@@ -132,7 +131,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   DEALLOCATE(column_sigma_contribution)
   CALL DestructMatrix(merged_local_data_r)
-# 90 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
     ENDIF
   END SUBROUTINE MatrixSigma_ps
@@ -288,7 +286,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: ABTasks_completed
 
     IF (matA%is_complex) THEN
-# 256 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90"
   CALL StartTimer("GEMM")
 
   !! The threshold needs to be smaller if we are doing a sliced version
@@ -588,10 +585,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(SliceContribution_c)
 
   CALL StopTimer("GEMM")
-# 256 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
-# 266 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90"
     ELSE
-# 278 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90"
   CALL StartTimer("GEMM")
 
   !! The threshold needs to be smaller if we are doing a sliced version
@@ -891,8 +885,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(SliceContribution_r)
 
   CALL StopTimer("GEMM")
-# 278 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
-# 288 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90"
     END IF
   END SUBROUTINE MatrixMultiply_ps_imp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -924,7 +916,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Sum Among Process Slice
   CALL MPI_Allreduce(MPI_IN_PLACE, sum, 1, MPINTREAL, &
        & MPI_SUM, this%process_grid%within_slice_comm, ierr)
-# 308 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
 
     ELSE
@@ -942,7 +933,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Sum Among Process Slice
   CALL MPI_Allreduce(MPI_IN_PLACE, sum, 1, MPINTREAL, &
        & MPI_SUM, this%process_grid%within_slice_comm, ierr)
-# 314 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
 
     END IF
@@ -977,7 +967,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Sum Among Process Slice
   CALL MPI_Allreduce(MPI_IN_PLACE, sum, 1, MPINTCOMPLEX, &
        & MPI_SUM, this%process_grid%within_slice_comm, ierr)
-# 337 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
 
     ELSE
@@ -995,7 +984,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Sum Among Process Slice
   CALL MPI_Allreduce(MPI_IN_PLACE, sum, 1, MPINTCOMPLEX, &
        & MPI_SUM, this%process_grid%within_slice_comm, ierr)
-# 343 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
 
     END IF
@@ -1039,7 +1027,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   !$omp end do
   !$omp end parallel
-# 373 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
     ELSE
 
@@ -1057,7 +1044,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   !$omp end do
   !$omp end parallel
-# 377 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
     END IF
   END SUBROUTINE PairwiseMultiplyMatrix_ps
@@ -1093,7 +1079,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL DestructMatrix(merged_local_data_c)
   DEALLOCATE(local_norm)
-# 396 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
     ELSE
 
@@ -1114,7 +1099,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL DestructMatrix(merged_local_data_r)
   DEALLOCATE(local_norm)
-# 400 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
     END IF
   END FUNCTION MatrixNorm_ps
@@ -1146,7 +1130,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL MatrixGrandSum(matC, product)
   CALL DestructMatrix(matC)
-# 416 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
   END SUBROUTINE DotMatrix_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> product = dot(Matrix A,Matrix B)
@@ -1176,7 +1159,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL MatrixGrandSum(matC, product)
   CALL DestructMatrix(matC)
-# 430 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
   END SUBROUTINE DotMatrix_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Matrix B = alpha*Matrix A + Matrix B (AXPY)
@@ -1228,7 +1210,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   !$omp end do
   !$omp end parallel
-# 471 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
     ELSE
 
@@ -1243,7 +1224,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   !$omp end do
   !$omp end parallel
-# 475 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
     END IF
 
@@ -1272,7 +1252,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   !$omp end do
   !$omp end parallel
-# 494 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
     ELSE
 
@@ -1286,7 +1265,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   !$omp end do
   !$omp end parallel
-# 498 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
     END IF
 
@@ -1314,7 +1292,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   !$omp end do
   !$omp end parallel
-# 516 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
     ELSE
        CALL ConvertMatrixToComplex(this, this_c)
@@ -1364,7 +1341,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & MPI_SUM, this%process_grid%within_slice_comm, ierr)
 
   CALL DestructMatrix(merged_local_data_c)
-# 546 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
 
 
@@ -1392,7 +1368,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & MPI_SUM, this%process_grid%within_slice_comm, ierr)
 
   CALL DestructMatrix(merged_local_data_r)
-# 554 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixAlgebraModule.F90" 2
 
 
 

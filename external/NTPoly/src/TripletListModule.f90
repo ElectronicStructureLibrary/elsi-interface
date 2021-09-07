@@ -276,7 +276,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Append
   this%CurrentSize = this%CurrentSize+1
   this%DATA(this%CurrentSize) = triplet_value
-# 205 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE AppendToTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -306,7 +305,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Append
   this%CurrentSize = this%CurrentSize+1
   this%DATA(this%CurrentSize) = triplet_value
-# 216 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE AppendToTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -321,7 +319,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
   this%DATA(index) = triplet_value
-# 229 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
   END SUBROUTINE SetTripletAt_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Set the value of a triplet at a particular index.
@@ -335,7 +332,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
   this%DATA(index) = triplet_value
-# 241 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
   END SUBROUTINE SetTripletAt_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Get the value of a triplet at a particular index.
@@ -349,7 +345,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
   triplet_value = this%DATA(index)
-# 253 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
   END SUBROUTINE GetTripletAt_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Get the value of a triplet at a particular index.
@@ -363,7 +358,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
   triplet_value = this%DATA(index)
-# 265 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
   END SUBROUTINE GetTripletAt_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Sorts a triplet list by index values.
@@ -459,7 +453,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      DEALLOCATE(offset_array)
      DEALLOCATE(inserted_per_row)
   END IF
-# 286 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE SortTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -556,7 +549,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      DEALLOCATE(offset_array)
      DEALLOCATE(inserted_per_row)
   END IF
-# 308 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE SortTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -569,7 +561,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
   list_size = triplet_list%CurrentSize
-# 319 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END FUNCTION GetTripletListSize_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -582,7 +573,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
   list_size = triplet_list%CurrentSize
-# 330 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END FUNCTION GetTripletListSize_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -694,7 +684,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(recv_buffer_row)
   DEALLOCATE(recv_buffer_col)
   DEALLOCATE(recv_buffer_val)
-# 350 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
 
   END SUBROUTINE RedistributeTripletLists_r
@@ -807,7 +796,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(recv_buffer_row)
   DEALLOCATE(recv_buffer_col)
   DEALLOCATE(recv_buffer_val)
-# 371 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
 
   END SUBROUTINE RedistributeTripletLists_c
@@ -834,7 +822,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      triplet_list%DATA(counter)%index_column = &
           triplet_list%DATA(counter)%index_column + column_shift
   END DO
-# 390 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE ShiftTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -860,7 +847,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      triplet_list%DATA(counter)%index_column = &
           triplet_list%DATA(counter)%index_column + column_shift
   END DO
-# 408 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE ShiftTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -918,7 +904,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Cleanup
   DEALLOCATE(value_buffer)
   DEALLOCATE(dirty_buffer)
-# 427 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE SortDenseTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -976,7 +961,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Cleanup
   DEALLOCATE(value_buffer)
   DEALLOCATE(dirty_buffer)
-# 446 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE SortDenseTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
