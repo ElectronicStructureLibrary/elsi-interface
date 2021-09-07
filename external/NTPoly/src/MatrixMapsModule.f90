@@ -55,23 +55,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_r) :: inlist, outlist
 
 
-  !! Convert to a triplet list, map the triplet list, fill.
-  CALL ConstructEmptyMatrix(outmat, inmat)
-  CALL GetMatrixTripletList(inmat, inlist)
+    !! Convert to a triplet list, map the triplet list, fill.
+    CALL ConstructEmptyMatrix(outmat, inmat)
+    CALL GetMatrixTripletList(inmat, inlist)
 
 
 
 
 
-  CALL MapTripletList(inlist, outlist, proc, &
-       & num_slices_in=inmat%process_grid%num_process_slices, &
-       & my_slice_in=inmat%process_grid%my_slice)
+    CALL MapTripletList(inlist, outlist, proc, &
+         & num_slices_in=inmat%process_grid%num_process_slices, &
+         & my_slice_in=inmat%process_grid%my_slice)
 
-  CALL FillMatrixFromTripletList(outmat, outlist, preduplicated_in=.FALSE.)
+    CALL FillMatrixFromTripletList(outmat, outlist, preduplicated_in=.FALSE.)
 
-  !! Cleanup
-  CALL DestructTripletList(inlist)
-  CALL DestructTripletList(outlist)
+    !! Cleanup
+    CALL DestructTripletList(inlist)
+    CALL DestructTripletList(outlist)
   END SUBROUTINE MapMatrix_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Given a distributed matrix, apply this procedure to each element (complex).
@@ -98,23 +98,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_c) :: inlist, outlist
 
 
-  !! Convert to a triplet list, map the triplet list, fill.
-  CALL ConstructEmptyMatrix(outmat, inmat)
-  CALL GetMatrixTripletList(inmat, inlist)
+    !! Convert to a triplet list, map the triplet list, fill.
+    CALL ConstructEmptyMatrix(outmat, inmat)
+    CALL GetMatrixTripletList(inmat, inlist)
 
 
 
 
 
-  CALL MapTripletList(inlist, outlist, proc, &
-       & num_slices_in=inmat%process_grid%num_process_slices, &
-       & my_slice_in=inmat%process_grid%my_slice)
+    CALL MapTripletList(inlist, outlist, proc, &
+         & num_slices_in=inmat%process_grid%num_process_slices, &
+         & my_slice_in=inmat%process_grid%my_slice)
 
-  CALL FillMatrixFromTripletList(outmat, outlist, preduplicated_in=.FALSE.)
+    CALL FillMatrixFromTripletList(outmat, outlist, preduplicated_in=.FALSE.)
 
-  !! Cleanup
-  CALL DestructTripletList(inlist)
-  CALL DestructTripletList(outlist)
+    !! Cleanup
+    CALL DestructTripletList(inlist)
+    CALL DestructTripletList(outlist)
   END SUBROUTINE MapMatrix_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Given a triplet list, apply this procedure to each element.
@@ -146,35 +146,35 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Triplet_r) :: temp
 
 
-  INTEGER :: II
-  LOGICAL :: valid
-  INTEGER :: num_slices
-  INTEGER :: my_slice
+    INTEGER :: II
+    LOGICAL :: valid
+    INTEGER :: num_slices
+    INTEGER :: my_slice
 
-  IF (PRESENT(num_slices_in)) THEN
-     num_slices = num_slices_in
-     IF (PRESENT(my_slice_in)) THEN
-        my_slice = my_slice_in
-     ELSE
-        my_slice = 0
-     END IF
-  ELSE
-     num_slices = 1
-     my_slice = 1
-  END IF
+    IF (PRESENT(num_slices_in)) THEN
+       num_slices = num_slices_in
+       IF (PRESENT(my_slice_in)) THEN
+          my_slice = my_slice_in
+       ELSE
+          my_slice = 0
+       END IF
+    ELSE
+       num_slices = 1
+       my_slice = 1
+    END IF
 
-  CALL ConstructTripletList(outlist)
-  DO II = my_slice+1, inlist%CurrentSize, num_slices
-     CALL GetTripletAt(inlist, II, temp)
+    CALL ConstructTripletList(outlist)
+    DO II = my_slice+1, inlist%CurrentSize, num_slices
+       CALL GetTripletAt(inlist, II, temp)
 
 
 
-     valid = proc(temp%index_row, temp%index_column, temp%point_value)
+       valid = proc(temp%index_row, temp%index_column, temp%point_value)
 
-     IF (valid) THEN
-        CALL AppendToTripletList(outlist, temp)
-     END IF
-  END DO
+       IF (valid) THEN
+          CALL AppendToTripletList(outlist, temp)
+       END IF
+    END DO
   END SUBROUTINE MapTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Given a triplet list, apply this procedure to each element.
@@ -206,35 +206,35 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Triplet_c) :: temp
 
 
-  INTEGER :: II
-  LOGICAL :: valid
-  INTEGER :: num_slices
-  INTEGER :: my_slice
+    INTEGER :: II
+    LOGICAL :: valid
+    INTEGER :: num_slices
+    INTEGER :: my_slice
 
-  IF (PRESENT(num_slices_in)) THEN
-     num_slices = num_slices_in
-     IF (PRESENT(my_slice_in)) THEN
-        my_slice = my_slice_in
-     ELSE
-        my_slice = 0
-     END IF
-  ELSE
-     num_slices = 1
-     my_slice = 1
-  END IF
+    IF (PRESENT(num_slices_in)) THEN
+       num_slices = num_slices_in
+       IF (PRESENT(my_slice_in)) THEN
+          my_slice = my_slice_in
+       ELSE
+          my_slice = 0
+       END IF
+    ELSE
+       num_slices = 1
+       my_slice = 1
+    END IF
 
-  CALL ConstructTripletList(outlist)
-  DO II = my_slice+1, inlist%CurrentSize, num_slices
-     CALL GetTripletAt(inlist, II, temp)
+    CALL ConstructTripletList(outlist)
+    DO II = my_slice+1, inlist%CurrentSize, num_slices
+       CALL GetTripletAt(inlist, II, temp)
 
 
 
-     valid = proc(temp%index_row, temp%index_column, temp%point_value)
+       valid = proc(temp%index_row, temp%index_column, temp%point_value)
 
-     IF (valid) THEN
-        CALL AppendToTripletList(outlist, temp)
-     END IF
-  END DO
+       IF (valid) THEN
+          CALL AppendToTripletList(outlist, temp)
+       END IF
+    END DO
   END SUBROUTINE MapTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Given a distributed matrix, apply this procedure to each element (real).
@@ -266,23 +266,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
-  !! Convert to a triplet list, map the triplet list, fill.
-  CALL ConstructEmptyMatrix(outmat, inmat)
-  CALL GetMatrixTripletList(inmat, inlist)
+    !! Convert to a triplet list, map the triplet list, fill.
+    CALL ConstructEmptyMatrix(outmat, inmat)
+    CALL GetMatrixTripletList(inmat, inlist)
 
-  CALL MapTripletList(inlist, outlist, proc, supp_in=supp_in, &
-       & num_slices_in=inmat%process_grid%num_process_slices, &
-       & my_slice_in=inmat%process_grid%my_slice)
-
-
+    CALL MapTripletList(inlist, outlist, proc, supp_in=supp_in, &
+         & num_slices_in=inmat%process_grid%num_process_slices, &
+         & my_slice_in=inmat%process_grid%my_slice)
 
 
 
-  CALL FillMatrixFromTripletList(outmat, outlist, preduplicated_in=.FALSE.)
 
-  !! Cleanup
-  CALL DestructTripletList(inlist)
-  CALL DestructTripletList(outlist)
+
+    CALL FillMatrixFromTripletList(outmat, outlist, preduplicated_in=.FALSE.)
+
+    !! Cleanup
+    CALL DestructTripletList(inlist)
+    CALL DestructTripletList(outlist)
 
   END SUBROUTINE MapMatrixArray_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -315,23 +315,23 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
-  !! Convert to a triplet list, map the triplet list, fill.
-  CALL ConstructEmptyMatrix(outmat, inmat)
-  CALL GetMatrixTripletList(inmat, inlist)
+    !! Convert to a triplet list, map the triplet list, fill.
+    CALL ConstructEmptyMatrix(outmat, inmat)
+    CALL GetMatrixTripletList(inmat, inlist)
 
-  CALL MapTripletList(inlist, outlist, proc, supp_in=supp_in, &
-       & num_slices_in=inmat%process_grid%num_process_slices, &
-       & my_slice_in=inmat%process_grid%my_slice)
-
-
+    CALL MapTripletList(inlist, outlist, proc, supp_in=supp_in, &
+         & num_slices_in=inmat%process_grid%num_process_slices, &
+         & my_slice_in=inmat%process_grid%my_slice)
 
 
 
-  CALL FillMatrixFromTripletList(outmat, outlist, preduplicated_in=.FALSE.)
 
-  !! Cleanup
-  CALL DestructTripletList(inlist)
-  CALL DestructTripletList(outlist)
+
+    CALL FillMatrixFromTripletList(outmat, outlist, preduplicated_in=.FALSE.)
+
+    !! Cleanup
+    CALL DestructTripletList(inlist)
+    CALL DestructTripletList(outlist)
 
   END SUBROUTINE MapMatrixArray_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -369,35 +369,35 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
-  INTEGER :: II
-  LOGICAL :: valid
-  INTEGER :: num_slices
-  INTEGER :: my_slice
+    INTEGER :: II
+    LOGICAL :: valid
+    INTEGER :: num_slices
+    INTEGER :: my_slice
 
-  IF (PRESENT(num_slices_in)) THEN
-     num_slices = num_slices_in
-     IF (PRESENT(my_slice_in)) THEN
-        my_slice = my_slice_in
-     ELSE
-        my_slice = 0
-     END IF
-  ELSE
-     num_slices = 1
-     my_slice = 1
-  END IF
+    IF (PRESENT(num_slices_in)) THEN
+       num_slices = num_slices_in
+       IF (PRESENT(my_slice_in)) THEN
+          my_slice = my_slice_in
+       ELSE
+          my_slice = 0
+       END IF
+    ELSE
+       num_slices = 1
+       my_slice = 1
+    END IF
 
-  CALL ConstructTripletList(outlist)
-  DO II = my_slice+1, inlist%CurrentSize, num_slices
-     CALL GetTripletAt(inlist, II, temp)
+    CALL ConstructTripletList(outlist)
+    DO II = my_slice+1, inlist%CurrentSize, num_slices
+       CALL GetTripletAt(inlist, II, temp)
 
-     valid = proc(temp%index_row, temp%index_column, temp%point_value, supp_in)
+       valid = proc(temp%index_row, temp%index_column, temp%point_value, supp_in)
 
 
 
-     IF (valid) THEN
-        CALL AppendToTripletList(outlist, temp)
-     END IF
-  END DO
+       IF (valid) THEN
+          CALL AppendToTripletList(outlist, temp)
+       END IF
+    END DO
 
   END SUBROUTINE MapTripletListArray_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -435,35 +435,35 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
-  INTEGER :: II
-  LOGICAL :: valid
-  INTEGER :: num_slices
-  INTEGER :: my_slice
+    INTEGER :: II
+    LOGICAL :: valid
+    INTEGER :: num_slices
+    INTEGER :: my_slice
 
-  IF (PRESENT(num_slices_in)) THEN
-     num_slices = num_slices_in
-     IF (PRESENT(my_slice_in)) THEN
-        my_slice = my_slice_in
-     ELSE
-        my_slice = 0
-     END IF
-  ELSE
-     num_slices = 1
-     my_slice = 1
-  END IF
+    IF (PRESENT(num_slices_in)) THEN
+       num_slices = num_slices_in
+       IF (PRESENT(my_slice_in)) THEN
+          my_slice = my_slice_in
+       ELSE
+          my_slice = 0
+       END IF
+    ELSE
+       num_slices = 1
+       my_slice = 1
+    END IF
 
-  CALL ConstructTripletList(outlist)
-  DO II = my_slice+1, inlist%CurrentSize, num_slices
-     CALL GetTripletAt(inlist, II, temp)
+    CALL ConstructTripletList(outlist)
+    DO II = my_slice+1, inlist%CurrentSize, num_slices
+       CALL GetTripletAt(inlist, II, temp)
 
-     valid = proc(temp%index_row, temp%index_column, temp%point_value, supp_in)
+       valid = proc(temp%index_row, temp%index_column, temp%point_value, supp_in)
 
 
 
-     IF (valid) THEN
-        CALL AppendToTripletList(outlist, temp)
-     END IF
-  END DO
+       IF (valid) THEN
+          CALL AppendToTripletList(outlist, temp)
+       END IF
+    END DO
 
   END SUBROUTINE MapTripletListArray_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

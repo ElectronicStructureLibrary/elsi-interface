@@ -61,9 +61,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL), INTENT(IN)       :: point_value
 
 
-  this%index_column = index_column
-  this%index_row    = index_row
-  this%point_value  = point_value
+    this%index_column = index_column
+    this%index_row    = index_row
+    this%point_value  = point_value
 
   END SUBROUTINE SetTriplet_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -79,9 +79,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     COMPLEX(NTCOMPLEX), INTENT(IN) :: point_value
 
 
-  this%index_column = index_column
-  this%index_row    = index_row
-  this%point_value  = point_value
+    this%index_column = index_column
+    this%index_row    = index_row
+    this%point_value  = point_value
 
   END SUBROUTINE SetTriplet_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -97,9 +97,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL), INTENT(OUT)   :: point_value
 
 
-  index_column = this%index_column
-  index_row    = this%index_row
-  point_value  = this%point_value
+    index_column = this%index_column
+    index_row    = this%index_row
+    point_value  = this%point_value
 
   END SUBROUTINE GetTripletValues_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -115,9 +115,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     COMPLEX(NTCOMPLEX), INTENT(OUT) :: point_value
 
 
-  index_column = this%index_column
-  index_row    = this%index_row
-  point_value  = this%point_value
+    index_column = this%index_column
+    index_row    = this%index_row
+    point_value  = this%point_value
 
   END SUBROUTINE GetTripletValues_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -132,14 +132,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     LOGICAL :: islessthan
 
 
-  IF (tripA%index_column .GT. tripB%index_column) THEN
-     islessthan = .TRUE.
-  ELSE IF ((tripA%index_column .EQ. tripB%index_column) .AND. &
-       & (tripA%index_row .GT. tripB%index_row)) THEN
-     islessthan = .TRUE.
-  ELSE
-     islessthan = .FALSE.
-  END IF
+    IF (tripA%index_column .GT. tripB%index_column) THEN
+       islessthan = .TRUE.
+    ELSE IF ((tripA%index_column .EQ. tripB%index_column) .AND. &
+         & (tripA%index_row .GT. tripB%index_row)) THEN
+       islessthan = .TRUE.
+    ELSE
+       islessthan = .FALSE.
+    END IF
 
   END FUNCTION CompareTriplets_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -154,14 +154,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     LOGICAL :: islessthan
 
 
-  IF (tripA%index_column .GT. tripB%index_column) THEN
-     islessthan = .TRUE.
-  ELSE IF ((tripA%index_column .EQ. tripB%index_column) .AND. &
-       & (tripA%index_row .GT. tripB%index_row)) THEN
-     islessthan = .TRUE.
-  ELSE
-     islessthan = .FALSE.
-  END IF
+    IF (tripA%index_column .GT. tripB%index_column) THEN
+       islessthan = .TRUE.
+    ELSE IF ((tripA%index_column .EQ. tripB%index_column) .AND. &
+         & (tripA%index_row .GT. tripB%index_row)) THEN
+       islessthan = .TRUE.
+    ELSE
+       islessthan = .FALSE.
+    END IF
 
   END FUNCTION CompareTriplets_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
