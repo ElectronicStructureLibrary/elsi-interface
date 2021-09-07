@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A Module For Simplfiying Per Element Operations on Matrices.
 MODULE MatrixMapsModule
@@ -56,17 +54,25 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(TripletList_r) :: inlist, outlist
 
+
   !! Convert to a triplet list, map the triplet list, fill.
   CALL ConstructEmptyMatrix(outmat, inmat)
   CALL GetMatrixTripletList(inmat, inlist)
+
+
+
+
+
   CALL MapTripletList(inlist, outlist, proc, &
        & num_slices_in=inmat%process_grid%num_process_slices, &
        & my_slice_in=inmat%process_grid%my_slice)
+
   CALL FillMatrixFromTripletList(outmat, outlist, preduplicated_in=.FALSE.)
 
   !! Cleanup
   CALL DestructTripletList(inlist)
   CALL DestructTripletList(outlist)
+# 58 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMapsModule.F90" 2
   END SUBROUTINE MapMatrix_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Given a distributed matrix, apply this procedure to each element (complex).
@@ -92,17 +98,25 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(TripletList_c) :: inlist, outlist
 
+
   !! Convert to a triplet list, map the triplet list, fill.
   CALL ConstructEmptyMatrix(outmat, inmat)
   CALL GetMatrixTripletList(inmat, inlist)
+
+
+
+
+
   CALL MapTripletList(inlist, outlist, proc, &
        & num_slices_in=inmat%process_grid%num_process_slices, &
        & my_slice_in=inmat%process_grid%my_slice)
+
   CALL FillMatrixFromTripletList(outmat, outlist, preduplicated_in=.FALSE.)
 
   !! Cleanup
   CALL DestructTripletList(inlist)
   CALL DestructTripletList(outlist)
+# 84 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMapsModule.F90" 2
   END SUBROUTINE MapMatrix_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Given a triplet list, apply this procedure to each element.
@@ -133,6 +147,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Triplet_r) :: temp
 
+
   INTEGER :: II
   LOGICAL :: valid
   INTEGER :: num_slices
@@ -153,7 +168,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL ConstructTripletList(outlist)
   DO II = my_slice+1, inlist%CurrentSize, num_slices
      CALL GetTripletAt(inlist, II, temp)
+
+
+
      valid = proc(temp%index_row, temp%index_column, temp%point_value)
+
      IF (valid) THEN
         CALL AppendToTripletList(outlist, temp)
      END IF
@@ -188,6 +207,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Triplet_c) :: temp
 
+
   INTEGER :: II
   LOGICAL :: valid
   INTEGER :: num_slices
@@ -208,7 +228,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL ConstructTripletList(outlist)
   DO II = my_slice+1, inlist%CurrentSize, num_slices
      CALL GetTripletAt(inlist, II, temp)
+
+
+
      valid = proc(temp%index_row, temp%index_column, temp%point_value)
+
      IF (valid) THEN
         CALL AppendToTripletList(outlist, temp)
      END IF
@@ -242,17 +266,26 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(TripletList_r) :: inlist, outlist
 
+
+
   !! Convert to a triplet list, map the triplet list, fill.
   CALL ConstructEmptyMatrix(outmat, inmat)
   CALL GetMatrixTripletList(inmat, inlist)
+
   CALL MapTripletList(inlist, outlist, proc, supp_in=supp_in, &
        & num_slices_in=inmat%process_grid%num_process_slices, &
        & my_slice_in=inmat%process_grid%my_slice)
+
+
+
+
+
   CALL FillMatrixFromTripletList(outmat, outlist, preduplicated_in=.FALSE.)
 
   !! Cleanup
   CALL DestructTripletList(inlist)
   CALL DestructTripletList(outlist)
+
   END SUBROUTINE MapMatrixArray_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Given a distributed matrix, apply this procedure to each element (complex).
@@ -282,17 +315,27 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(TripletList_c) :: inlist, outlist
 
+
+
   !! Convert to a triplet list, map the triplet list, fill.
   CALL ConstructEmptyMatrix(outmat, inmat)
   CALL GetMatrixTripletList(inmat, inlist)
+
   CALL MapTripletList(inlist, outlist, proc, supp_in=supp_in, &
        & num_slices_in=inmat%process_grid%num_process_slices, &
        & my_slice_in=inmat%process_grid%my_slice)
+
+
+
+
+
   CALL FillMatrixFromTripletList(outmat, outlist, preduplicated_in=.FALSE.)
 
   !! Cleanup
   CALL DestructTripletList(inlist)
   CALL DestructTripletList(outlist)
+# 209 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMapsModule.F90" 2
+
   END SUBROUTINE MapMatrixArray_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Given a triplet list, apply this procedure to each element.
@@ -327,6 +370,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Triplet_r) :: temp
 
+
+
   INTEGER :: II
   LOGICAL :: valid
   INTEGER :: num_slices
@@ -347,11 +392,17 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL ConstructTripletList(outlist)
   DO II = my_slice+1, inlist%CurrentSize, num_slices
      CALL GetTripletAt(inlist, II, temp)
+
      valid = proc(temp%index_row, temp%index_column, temp%point_value, supp_in)
+
+
+
      IF (valid) THEN
         CALL AppendToTripletList(outlist, temp)
      END IF
   END DO
+# 246 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMapsModule.F90" 2
+
   END SUBROUTINE MapTripletListArray_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Given a triplet list, apply this procedure to each element.
@@ -386,6 +437,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Triplet_c) :: temp
 
+
+
   INTEGER :: II
   LOGICAL :: valid
   INTEGER :: num_slices
@@ -406,11 +459,17 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL ConstructTripletList(outlist)
   DO II = my_slice+1, inlist%CurrentSize, num_slices
      CALL GetTripletAt(inlist, II, temp)
+
      valid = proc(temp%index_row, temp%index_column, temp%point_value, supp_in)
+
+
+
      IF (valid) THEN
         CALL AppendToTripletList(outlist, temp)
      END IF
   END DO
+# 283 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMapsModule.F90" 2
+
   END SUBROUTINE MapTripletListArray_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE MatrixMapsModule

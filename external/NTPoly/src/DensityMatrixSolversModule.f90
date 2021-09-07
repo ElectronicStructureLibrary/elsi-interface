@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A Module For Solving Quantum Chemistry Systems using Purification.
 MODULE DensityMatrixSolversModule
@@ -7,13 +5,14 @@ MODULE DensityMatrixSolversModule
   USE EigenBoundsModule, ONLY : GershgorinBounds
   USE LoadBalancerModule, ONLY : PermuteMatrix, UndoPermuteMatrix
   USE LoggingModule, ONLY : WriteElement, WriteListElement, WriteHeader, &
-       & WriteCitation, EnterSubLog, ExitSubLog
+       & EnterSubLog, ExitSubLog
   USE PMatrixMemoryPoolModule, ONLY : MatrixMemoryPool_p, &
        & DestructMatrixMemoryPool
   USE PSMatrixAlgebraModule, ONLY : IncrementMatrix, MatrixMultiply, &
        & DotMatrix, MatrixTrace, ScaleMatrix
   USE PSMatrixModule, ONLY : Matrix_ps, ConstructEmptyMatrix, DestructMatrix, &
-       & CopyMatrix, PrintMatrixInformation, FillMatrixIdentity
+       & CopyMatrix, PrintMatrixInformation, FillMatrixIdentity, &
+       & TransposeMatrix
   USE SolverParametersModule, ONLY : SolverParameters_t, PrintParameters, &
        & DestructSolverParameters
   IMPLICIT NONE
@@ -50,6 +49,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Matrices
     TYPE(Matrix_ps) :: WorkingHamiltonian
     TYPE(Matrix_ps) :: Identity
+    TYPE(Matrix_ps) :: InverseSquareRoot_T
     TYPE(Matrix_ps) :: X_k, X_k2, X_k3, TempMat
     !! Local Variables
     REAL(NTREAL) :: e_min, e_max
@@ -79,7 +79,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL WriteHeader("Density Matrix Solver")
        CALL EnterSubLog
        CALL WriteElement(key="Method", VALUE="PM")
-       CALL WriteCitation("palser1998canonical")
+       CALL WriteHeader("Citations")
+       CALL EnterSubLog
+       CALL WriteListElement("palser1998canonical")
+       CALL ExitSubLog
        CALL PrintParameters(solver_parameters)
     END IF
 
@@ -96,9 +99,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL FillMatrixIdentity(Identity)
 
     !! Compute the working hamiltonian.
-    CALL MatrixMultiply(InverseSquareRoot,Hamiltonian,TempMat, &
+    CALL TransposeMatrix(InverseSquareRoot, InverseSquareRoot_T)
+    CALL MatrixMultiply(InverseSquareRoot, Hamiltonian, TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
-    CALL MatrixMultiply(TempMat,InverseSquareRoot,WorkingHamiltonian, &
+    CALL MatrixMultiply(TempMat, InverseSquareRoot_T, WorkingHamiltonian, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
 
     !! Load Balancing Step
@@ -160,7 +164,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        !! Compute Sigma
        CALL MatrixTrace(TempMat, trace_value)
        CALL DotMatrix(TempMat,X_k,trace_value2)
-       sigma_array(outer_counter) = trace_value2/trace_value
+       !! If we hit 0 exact convergence, avoid a division by zero.
+       IF (trace_value .LE. TINY(trace_value)) THEN
+          sigma_array(outer_counter) = 1.0_NTREAL
+       ELSE
+          sigma_array(outer_counter) = trace_value2/trace_value
+       END IF
 
        IF (sigma_array(outer_counter) .GT. 0.5_NTREAL) THEN
           a1 = 0.0_NTREAL
@@ -190,9 +199,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        norm_value = ABS(energy_value - energy_value2)
 
        IF (solver_parameters%be_verbose) THEN
-          CALL WriteListElement(key="Round", VALUE=outer_counter)
+          CALL WriteListElement(key="Convergence", VALUE=norm_value)
           CALL EnterSubLog
-          CALL WriteElement(key="Convergence", VALUE=norm_value)
           CALL WriteElement("Energy_Value", VALUE=energy_value)
           CALL ExitSubLog
        END IF
@@ -219,13 +227,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
 
     !! Compute the density matrix in the non-orthogonalized basis
-    CALL MatrixMultiply(InverseSquareRoot,X_k,TempMat, &
+    CALL MatrixMultiply(InverseSquareRoot_T, X_k, TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
-    CALL MatrixMultiply(TempMat,InverseSquareRoot,Density, &
+    CALL MatrixMultiply(TempMat, InverseSquareRoot, Density, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
 
     !! Cleanup
     CALL DestructMatrix(WorkingHamiltonian)
+    CALL DestructMatrix(InverseSquareRoot_T)
     CALL DestructMatrix(X_k)
     CALL DestructMatrix(X_k2)
     CALL DestructMatrix(X_k3)
@@ -305,6 +314,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Matrices
     TYPE(Matrix_ps) :: WorkingHamiltonian
     TYPE(Matrix_ps) :: Identity
+    TYPE(Matrix_ps) :: InverseSquareRoot_T
     TYPE(Matrix_ps) :: X_k, X_k2, TempMat
     !! Local Variables
     REAL(NTREAL) :: e_min, e_max
@@ -330,7 +340,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL WriteHeader("Density Matrix Solver")
        CALL EnterSubLog
        CALL WriteElement(key="Method", VALUE="TRS2")
-       CALL WriteCitation("niklasson2002expansion")
+       CALL WriteHeader("Citations")
+       CALL EnterSubLog
+       CALL WriteListElement("niklasson2002expansion")
+       CALL ExitSubLog
        CALL PrintParameters(solver_parameters)
     END IF
 
@@ -346,9 +359,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL FillMatrixIdentity(Identity)
 
     !! Compute the working hamiltonian.
-    CALL MatrixMultiply(InverseSquareRoot,Hamiltonian,TempMat, &
+    CALL TransposeMatrix(InverseSquareRoot, InverseSquareRoot_T)
+    CALL MatrixMultiply(InverseSquareRoot, Hamiltonian, TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
-    CALL MatrixMultiply(TempMat,InverseSquareRoot,WorkingHamiltonian, &
+    CALL MatrixMultiply(TempMat, InverseSquareRoot_T, WorkingHamiltonian, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
 
     !! Load Balancing Step
@@ -407,9 +421,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        norm_value = ABS(energy_value - energy_value2)
 
        IF (solver_parameters%be_verbose) THEN
-          CALL WriteListElement(key="Round", VALUE=outer_counter)
+          CALL WriteListElement(key="Convergence", VALUE=norm_value)
           CALL EnterSubLog
-          CALL WriteElement(key="Convergence", VALUE=norm_value)
           CALL WriteElement("Energy_Value", VALUE=energy_value)
           CALL ExitSubLog
        END IF
@@ -436,13 +449,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
 
     !! Compute the density matrix in the non-orthogonalized basis
-    CALL MatrixMultiply(InverseSquareRoot,X_k,TempMat, &
+    CALL MatrixMultiply(InverseSquareRoot_T, X_k, TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
-    CALL MatrixMultiply(TempMat,InverseSquareRoot,Density, &
+    CALL MatrixMultiply(TempMat, InverseSquareRoot, Density, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
 
     !! Cleanup
     CALL DestructMatrix(WorkingHamiltonian)
+    CALL DestructMatrix(InverseSquareRoot_T)
     CALL DestructMatrix(X_k)
     CALL DestructMatrix(X_k2)
     CALL DestructMatrix(TempMat)
@@ -515,6 +529,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Matrices
     TYPE(Matrix_ps) :: WorkingHamiltonian
     TYPE(Matrix_ps) :: Identity
+    TYPE(Matrix_ps) :: InverseSquareRoot_T
     TYPE(Matrix_ps) :: X_k, X_k2, Fx_right, GX_right, TempMat
     !! Local Variables
     REAL(NTREAL) :: e_min, e_max
@@ -541,7 +556,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL WriteHeader("Density Matrix Solver")
        CALL EnterSubLog
        CALL WriteElement(key="Method", VALUE="TRS4")
-       CALL WriteCitation("niklasson2002expansion")
+       CALL WriteHeader("Citations")
+       CALL EnterSubLog
+       CALL WriteListElement("niklasson2002expansion")
+       CALL ExitSubLog
        CALL PrintParameters(solver_parameters)
     END IF
 
@@ -559,9 +577,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL FillMatrixIdentity(Identity)
 
     !! Compute the working hamiltonian.
-    CALL MatrixMultiply(InverseSquareRoot,Hamiltonian,TempMat, &
+    CALL TransposeMatrix(InverseSquareRoot, InverseSquareRoot_T)
+    CALL MatrixMultiply(InverseSquareRoot, Hamiltonian, TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
-    CALL MatrixMultiply(TempMat,InverseSquareRoot,WorkingHamiltonian, &
+    CALL MatrixMultiply(TempMat, InverseSquareRoot_T, WorkingHamiltonian, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
 
     !! Load Balancing Step
@@ -638,9 +657,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        norm_value = ABS(energy_value - energy_value2)
 
        IF (solver_parameters%be_verbose) THEN
-          CALL WriteListElement(key="Round", VALUE=outer_counter)
+          CALL WriteListElement(key="Convergence", VALUE=norm_value)
           CALL EnterSubLog
-          CALL WriteElement(key="Convergence", VALUE=norm_value)
           CALL WriteElement("Energy_Value", VALUE=energy_value)
           CALL ExitSubLog
        END IF
@@ -667,13 +685,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
 
     !! Compute the density matrix in the non-orthogonalized basis
-    CALL MatrixMultiply(InverseSquareRoot,X_k,TempMat, &
+    CALL MatrixMultiply(InverseSquareRoot_T, X_k, TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
-    CALL MatrixMultiply(TempMat,InverseSquareRoot,Density, &
+    CALL MatrixMultiply(TempMat, InverseSquareRoot, Density, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
 
     !! Cleanup
     CALL DestructMatrix(WorkingHamiltonian)
+    CALL DestructMatrix(InverseSquareRoot_T)
     CALL DestructMatrix(X_k)
     CALL DestructMatrix(X_k2)
     CALL DestructMatrix(Fx_right)
@@ -754,6 +773,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_ps) :: WorkingHamiltonian
     TYPE(Matrix_ps) :: TempMat
     TYPE(Matrix_ps) :: Identity
+    TYPE(Matrix_ps) :: InverseSquareRoot_T
     TYPE(Matrix_ps) :: D1, DH, DDH, D2DH
     !! Local Variables
     REAL(NTREAL) :: e_min, e_max
@@ -784,7 +804,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL WriteHeader("Density Matrix Solver")
        CALL EnterSubLog
        CALL WriteElement(key="Method", VALUE="HPCP")
-       CALL WriteCitation("truflandier2016communication")
+       CALL WriteHeader("Citations")
+       CALL EnterSubLog
+       CALL WriteListElement("truflandier2016communication")
+       CALL ExitSubLog
        CALL PrintParameters(solver_parameters)
     END IF
 
@@ -804,9 +827,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL FillMatrixIdentity(Identity)
 
     !! Compute the working hamiltonian.
-    CALL MatrixMultiply(InverseSquareRoot,Hamiltonian,TempMat, &
+    CALL TransposeMatrix(InverseSquareRoot, InverseSquareRoot_T)
+    CALL MatrixMultiply(InverseSquareRoot, Hamiltonian, TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
-    CALL MatrixMultiply(TempMat,InverseSquareRoot,WorkingHamiltonian, &
+    CALL MatrixMultiply(TempMat, InverseSquareRoot_T, WorkingHamiltonian, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
 
     !! Load Balancing Step
@@ -885,9 +909,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        norm_value = ABS(energy_value - energy_value2)
 
        IF (solver_parameters%be_verbose) THEN
-          CALL WriteListElement(key="Round", VALUE=outer_counter)
+          CALL WriteListElement(key="Convergence", VALUE=norm_value)
           CALL EnterSubLog
-          CALL WriteElement(key="Convergence", VALUE=norm_value)
           CALL WriteElement("Energy_Value", VALUE=energy_value)
           CALL ExitSubLog
        END IF
@@ -914,13 +937,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
 
     !! Compute the density matrix in the non-orthogonalized basis
-    CALL MatrixMultiply(InverseSquareRoot,D1,TempMat, &
+    CALL MatrixMultiply(InverseSquareRoot_T, D1, TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
-    CALL MatrixMultiply(TempMat,InverseSquareRoot,Density, &
+    CALL MatrixMultiply(TempMat, InverseSquareRoot, Density, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
 
     !! Cleanup
     CALL DestructMatrix(WorkingHamiltonian)
+    CALL DestructMatrix(InverseSquareRoot_T)
     CALL DestructMatrix(TempMat)
     CALL DestructMatrix(D1)
     CALL DestructMatrix(DH)
@@ -995,6 +1019,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Matrices
     TYPE(Matrix_ps) :: WorkingHamiltonian
     TYPE(Matrix_ps) :: Identity
+    TYPE(Matrix_ps) :: InverseSquareRoot_T
     TYPE(Matrix_ps) :: X_k, X_k2, TempMat
     !! Local Variables
     REAL(NTREAL) :: e_min, e_max
@@ -1018,7 +1043,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL WriteHeader("Density Matrix Solver")
        CALL EnterSubLog
        CALL WriteElement(key="Method", VALUE="Scale and Fold")
-       CALL WriteCitation("rubensson2011nonmonotonic")
+       CALL WriteHeader("Citations")
+       CALL EnterSubLog
+       CALL WriteListElement("rubensson2011nonmonotonic")
+       CALL ExitSubLog
        CALL PrintParameters(solver_parameters)
     END IF
 
@@ -1032,9 +1060,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL FillMatrixIdentity(Identity)
 
     !! Compute the working hamiltonian.
-    CALL MatrixMultiply(InverseSquareRoot,Hamiltonian,TempMat, &
+    CALL TransposeMatrix(InverseSquareRoot, InverseSquareRoot_T)
+    CALL MatrixMultiply(InverseSquareRoot, Hamiltonian, TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
-    CALL MatrixMultiply(TempMat,InverseSquareRoot,WorkingHamiltonian, &
+    CALL MatrixMultiply(TempMat, InverseSquareRoot_T, WorkingHamiltonian, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
 
     !! Load Balancing Step
@@ -1067,8 +1096,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     DO outer_counter = 1,solver_parameters%max_iterations
        !! Determine the path
        CALL MatrixTrace(X_k, trace_value)
-       IF (trace_value .GT. 0.5_NTREAL*nel) THEN
-          alpha = 2.0_NTREAL/(2.0_NTREAL - Beta)
+       IF (trace_value .GT. 0.5*nel) THEN
+          alpha = 2.0/(2.0 - Beta)
           CALL ScaleMatrix(X_k, alpha)
           CALL IncrementMatrix(Identity, X_k, alpha_in=(1.0_NTREAL-alpha))
           CALL MatrixMultiply(X_k,X_k,X_k2, &
@@ -1078,14 +1107,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           Beta = (alpha * Beta + 1 - alpha)**2
           BetaBar = (alpha * BetaBar + 1 - alpha)**2
        ELSE
-          alpha = 2.0_NTREAL/(1.0_NTREAL + BetaBar)
+          alpha = 2.0/(1.0 + BetaBar)
           CALL MatrixMultiply(X_k,X_k,X_k2, &
                & threshold_in=solver_parameters%threshold, &
                & memory_pool_in=pool)
           CALL ScaleMatrix(X_k, 2*alpha)
           CALL IncrementMatrix(X_k2, X_k, alpha_in=-1.0_NTREAL*alpha**2)
-          Beta = 2.0_NTREAL * alpha * Beta - alpha**2 * Beta**2
-          BetaBar = 2.0_NTREAL * alpha * BetaBar - alpha**2 * BetaBar ** 2
+          Beta = 2.0 * alpha * Beta - alpha**2 * Beta**2
+          BetaBar = 2.0 * alpha * BetaBar - alpha**2 * BetaBar ** 2
        END IF
 
        !! Energy value based convergence
@@ -1095,9 +1124,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        norm_value = ABS(energy_value - energy_value2)
 
        IF (solver_parameters%be_verbose) THEN
-          CALL WriteListElement(key="Round", VALUE=outer_counter)
+          CALL WriteListElement(key="Convergence", VALUE=norm_value)
           CALL EnterSubLog
-          CALL WriteElement(key="Convergence", VALUE=norm_value)
           CALL WriteElement("Energy_Value", VALUE=energy_value)
           CALL ExitSubLog
        END IF
@@ -1124,13 +1152,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     END IF
 
     !! Compute the density matrix in the non-orthogonalized basis
-    CALL MatrixMultiply(InverseSquareRoot,X_k,TempMat, &
+    CALL MatrixMultiply(InverseSquareRoot_T, X_k, TempMat, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
-    CALL MatrixMultiply(TempMat,InverseSquareRoot,Density, &
+    CALL MatrixMultiply(TempMat, InverseSquareRoot, Density, &
          & threshold_in=solver_parameters%threshold, memory_pool_in=pool)
 
     !! Cleanup
     CALL DestructMatrix(WorkingHamiltonian)
+    CALL DestructMatrix(InverseSquareRoot_T)
     CALL DestructMatrix(X_k)
     CALL DestructMatrix(X_k2)
     CALL DestructMatrix(TempMat)

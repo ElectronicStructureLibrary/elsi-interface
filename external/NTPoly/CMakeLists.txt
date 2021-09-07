@@ -1,6 +1,8 @@
 ### Source files ###
 LIST(APPEND ntpoly_src
+  src/AnalysisModule.f90 
   src/ChebyshevSolversModule.f90
+  src/CholeskySolversModule.f90 
   src/DataTypesModule.f90
   src/DensityMatrixSolversModule.f90
   src/DMatrixModule.f90

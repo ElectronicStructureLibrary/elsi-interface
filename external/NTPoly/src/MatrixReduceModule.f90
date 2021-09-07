@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> Module for reducing matrices across processes.
 MODULE MatrixReduceModule
@@ -27,6 +25,7 @@ MODULE MatrixReduceModule
      INTEGER, DIMENSION(:), ALLOCATABLE :: values_per_process
      !> The displacements for where those gathered values should go.
      INTEGER, DIMENSION(:), ALLOCATABLE :: displacement
+# 39 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90"
   END TYPE ReduceHelper_t
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PUBLIC :: ReduceAndComposeMatrixSizes
@@ -87,6 +86,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(INOUT)              :: communicator
     !> The  helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
+
+
+
+
   !! Local Data
   INTEGER :: grid_error
 
@@ -116,6 +119,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(INOUT)              :: communicator
     !! The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
+
+
+
+
   !! Local Data
   INTEGER :: grid_error
 
@@ -131,6 +138,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & MPINTINTEGER, gathered_matrix%outer_index(2:), &
        & matrix%columns, MPINTINTEGER, communicator, helper%outer_request, &
        & grid_error)
+
   END SUBROUTINE ReduceAndComposeMatrixSizes_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Second function to call, will gather the data and align it one matrix
@@ -179,6 +187,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & gathered_matrix%values, helper%values_per_process, &
          & helper%displacement, MPINTREAL, communicator, helper%data_request, &
          & grid_error)
+
   END SUBROUTINE ReduceAndComposeMatrixData_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Second function to call, will gather the data and align it one matrix
@@ -232,6 +241,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & gathered_matrix%values, helper%values_per_process, &
          & helper%displacement, MPINTCOMPLEX, communicator, &
          & helper%data_request, grid_error)
+
   END SUBROUTINE ReduceAndComposeMatrixData_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Third function to call, finishes setting up the matrices.
@@ -243,6 +253,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_lsr), INTENT(INOUT) :: gathered_matrix
     !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
+
 
   !! Local Data
   INTEGER :: II, JJ
@@ -259,6 +270,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
+# 206 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90" 2
+# 226 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90"
 
   END SUBROUTINE ReduceAndComposeMatrixCleanup_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -272,6 +285,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
 
+
   !! Local Data
   INTEGER :: II, JJ
   INTEGER :: temp_offset
@@ -287,6 +301,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
+# 240 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90" 2
+# 260 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90"
 
   END SUBROUTINE ReduceAndComposeMatrixCleanup_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -302,6 +318,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(ReduceHelper_t) :: helper
 
+
   CALL ReduceAndComposeMatrixSizes(matrix, comm, gathered_matrix, helper)
   DO WHILE(.NOT. TestReduceSizeRequest(helper))
   END DO
@@ -313,6 +330,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
 
   CALL ReduceAndComposeMatrixCleanup(matrix, gathered_matrix, helper)
+# 276 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90" 2
 
   END SUBROUTINE ReduceAndComposeMatrix_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -328,6 +346,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(ReduceHelper_t) :: helper
 
+
   CALL ReduceAndComposeMatrixSizes(matrix, comm, gathered_matrix, helper)
   DO WHILE(.NOT. TestReduceSizeRequest(helper))
   END DO
@@ -339,6 +358,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
 
   CALL ReduceAndComposeMatrixCleanup(matrix, gathered_matrix, helper)
+# 292 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90" 2
 
   END SUBROUTINE ReduceAndComposeMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -353,6 +373,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(INOUT)              :: communicator
     !> The  helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
+
+
+
+
   !! Local Data
   INTEGER :: grid_error
   INTEGER :: sum_outer_indices
@@ -368,6 +392,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL MPI_IAllGather(matrix%outer_index, matrix%columns+1,&
        & MPINTINTEGER, gathered_matrix%outer_index, matrix%columns+1, &
        & MPINTINTEGER, communicator, helper%outer_request, grid_error)
+# 310 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90" 2
+
   END SUBROUTINE ReduceAndSumMatrixSizes_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> The first routine to call, gathers the sizes of the data to be sent.
@@ -381,6 +407,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(INOUT)              :: communicator
     !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
+
+
+
+
   !! Local Data
   INTEGER :: grid_error
   INTEGER :: sum_outer_indices
@@ -396,6 +426,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL MPI_IAllGather(matrix%outer_index, matrix%columns+1,&
        & MPINTINTEGER, gathered_matrix%outer_index, matrix%columns+1, &
        & MPINTINTEGER, communicator, helper%outer_request, grid_error)
+# 328 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90" 2
+
   END SUBROUTINE ReduceAndSumMatrixSizes_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Second routine to call for gathering and summing up the data.
@@ -409,6 +441,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(INOUT)              :: communicator
     !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
+# 357 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90"
   !! Local Data
   INTEGER :: grid_error
   INTEGER :: II
@@ -440,10 +473,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & gathered_matrix%inner_index, helper%values_per_process, &
        & helper%displacement, MPINTINTEGER, communicator, &
        & helper%inner_request, grid_error)
+# 357 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90" 2
     CALL MPI_IAllGatherv(matrix%values, SIZE(matrix%values), MPINTREAL,&
          & gathered_matrix%values, helper%values_per_process, &
          & helper%displacement, MPINTREAL, communicator, helper%data_request, &
          & grid_error)
+
   END SUBROUTINE ReduceAndSumMatrixData_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Second routine to call for gathering and summing up the data.
@@ -457,6 +492,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(INOUT)              :: communicator
     !> The helper associated with this gather.
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
+# 390 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90"
   !! Local Data
   INTEGER :: grid_error
   INTEGER :: II
@@ -488,10 +524,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & gathered_matrix%inner_index, helper%values_per_process, &
        & helper%displacement, MPINTINTEGER, communicator, &
        & helper%inner_request, grid_error)
+# 390 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90" 2
     CALL MPI_IAllGatherv(matrix%values, SIZE(matrix%values), MPINTCOMPLEX,&
          & gathered_matrix%values, helper%values_per_process, &
          & helper%displacement, MPINTCOMPLEX, communicator, &
          & helper%data_request, grid_error)
+
   END SUBROUTINE ReduceAndSumMatrixData_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Finally routine to sum up the matrices.
@@ -508,6 +546,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(Matrix_lsr) :: temporary_matrix, sum_matrix
 
+
   !! Local Data
   INTEGER :: II
   INTEGER :: temporary_total_values
@@ -545,6 +584,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructMatrix(temporary_matrix)
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
+# 412 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90" 2
+# 432 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90"
   END SUBROUTINE ReduceAndSumMatrixCleanup_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Finally routine to sum up the matrices.
@@ -561,6 +602,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(Matrix_lsc) :: temporary_matrix, sum_matrix
 
+
   !! Local Data
   INTEGER :: II
   INTEGER :: temporary_total_values
@@ -598,6 +640,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructMatrix(temporary_matrix)
   DEALLOCATE(helper%values_per_process)
   DEALLOCATE(helper%displacement)
+# 449 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90" 2
+# 469 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90"
   END SUBROUTINE ReduceAndSumMatrixCleanup_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Reduce and sum the matrices in one step. If you use this method, you
@@ -614,6 +658,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(ReduceHelper_t) :: helper
 
+
   CALL ReduceAndSumMatrixSizes(matrix, comm, gathered_matrix, helper)
   DO WHILE(.NOT. TestReduceSizeRequest(helper))
   END DO
@@ -625,6 +670,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
 
   CALL ReduceAndSumMatrixCleanup(matrix, gathered_matrix, threshold, helper)
+# 486 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90" 2
   END SUBROUTINE ReduceAndSumMatrix_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Reduce and sum the matrices in one step. If you use this method, you
@@ -641,6 +687,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(ReduceHelper_t) :: helper
 
+
   CALL ReduceAndSumMatrixSizes(matrix, comm, gathered_matrix, helper)
   DO WHILE(.NOT. TestReduceSizeRequest(helper))
   END DO
@@ -652,6 +699,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO
 
   CALL ReduceAndSumMatrixCleanup(matrix, gathered_matrix, threshold, helper)
+# 503 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90" 2
   END SUBROUTINE ReduceAndSumMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Test if a request for the size of the matrices is complete.
@@ -660,8 +708,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
     !> True if the request is finished.
     LOGICAL :: request_completed
+# 521 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90"
     CALL MPI_Test(helper%outer_request, request_completed, &
          & MPI_STATUS_IGNORE, helper%error_code)
+
   END FUNCTION TestReduceSizeRequest
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Test if a request for the inner indices of the matrices is complete.
@@ -670,8 +720,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
     !> True if the request is finished.
     LOGICAL :: request_completed
+# 542 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90"
     CALL MPI_Test(helper%inner_request, request_completed, &
          & MPI_STATUS_IGNORE, helper%error_code)
+
   END FUNCTION TestReduceInnerRequest
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Test if a request for the data of the matrices is complete.
@@ -680,8 +732,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(ReduceHelper_t), INTENT(INOUT) :: helper
     !> True if the request is finished.
     LOGICAL :: request_completed
+# 563 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixReduceModule.F90"
     CALL MPI_Test(helper%data_request, request_completed, &
          & MPI_STATUS_IGNORE, helper%error_code)
+
   END FUNCTION TestReduceDataRequest
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE MatrixReduceModule

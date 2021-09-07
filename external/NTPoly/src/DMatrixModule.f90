@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> This module allows one to convert a sparse matrix to a dense matrix. It also
 !! supports dense the dense versions of core matrix routines. This module is
@@ -117,6 +115,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Columns of the matrix.
     INTEGER, INTENT(IN) :: columns
 
+
   this%rows = rows
   this%columns = columns
 
@@ -132,6 +131,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_ldr), INTENT(INOUT) :: dense_matrix
     !! Helper Variables
     TYPE(Triplet_r) :: temporary
+
 
   !! Helper Variables
   INTEGER :: inner_counter, outer_counter
@@ -171,6 +171,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Triplet_r) :: temporary
     TYPE(TripletList_r) :: temporary_list
+
 
   !! Local Variables
   INTEGER :: inner_counter, outer_counter
@@ -219,6 +220,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> matB = matA
     TYPE(Matrix_ldr), INTENT(INOUT) :: matB
 
+
   CALL ConstructEmptyMatrix(matB, matA%rows, matA%columns)
   matB%DATA = matA%DATA
 
@@ -228,6 +230,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PURE SUBROUTINE DestructMatrix_ldr(this)
     !> The matrix to delete.
     TYPE(Matrix_ldr), INTENT(INOUT) :: this
+
 
   IF (ALLOCATED(this%DATA)) THEN
      DEALLOCATE(this%DATA)
@@ -245,6 +248,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL), OPTIONAL, INTENT(IN) :: alpha_in
     !! Temporary
     REAL(NTREAL) :: alpha
+
 
   !! Process Optional Parameters
   IF (.NOT. PRESENT(alpha_in)) THEN
@@ -282,8 +286,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> matAT = matA^T.
     TYPE(Matrix_ldr), INTENT(INOUT) :: matAT
 
+
   CALL ConstructEmptyMatrix(matAT, matA%columns, matA%rows)
   matAT%DATA = TRANSPOSE(matA%DATA)
+# 213 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE TransposeMatrix_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -300,6 +306,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & mat_array
     !> The composed matrix.
     TYPE(Matrix_ldr), INTENT(INOUT) :: out_matrix
+
 
   !! Local Data
   INTEGER, DIMENSION(block_rows+1) :: row_offsets
@@ -333,6 +340,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & mat_array(II,JJ)%DATA
      END DO
   END DO
+# 231 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE ComposeMatrix_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -351,6 +359,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, DIMENSION(:), INTENT(IN), OPTIONAL :: block_size_row_in
     !> Specifies the size of the columns.
     INTEGER, DIMENSION(:), INTENT(IN), OPTIONAL :: block_size_column_in
+
 
   !! Local Data
   INTEGER, DIMENSION(block_rows) :: block_size_row
@@ -398,6 +407,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & column_offsets(JJ):column_offsets(JJ+1)-1)
      END DO
   END DO
+# 251 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE SplitMatrix_ldr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -502,10 +512,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Columns of the matrix.
     INTEGER, INTENT(IN) :: columns
 
+
   this%rows = rows
   this%columns = columns
 
   ALLOCATE(this%DATA(rows,columns))
+# 356 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END FUNCTION ConstructEmptyMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -517,6 +529,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_ldc), INTENT(INOUT) :: dense_matrix
     !! Helper Variables
     TYPE(Triplet_c) :: temporary
+
 
   !! Helper Variables
   INTEGER :: inner_counter, outer_counter
@@ -541,6 +554,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         total_counter = total_counter + 1
      END DO
   END DO
+# 369 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE ConstructMatrixDFromS_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -556,6 +570,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Triplet_c) :: temporary
     TYPE(TripletList_c) :: temporary_list
+
 
   !! Local Variables
   INTEGER :: inner_counter, outer_counter
@@ -594,6 +609,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL ConstructMatrixFromTripletList(sparse_matrix, temporary_list, &
        & rows, columns)
   CALL DestructTripletList(temporary_list)
+# 386 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE ConstructMatrixSFromD_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -604,8 +620,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> matB = matA
     TYPE(Matrix_ldc), INTENT(INOUT) :: matB
 
+
   CALL ConstructEmptyMatrix(matB, matA%rows, matA%columns)
   matB%DATA = matA%DATA
+# 397 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE CopyMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -614,9 +632,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> This the matrix to delete.
     TYPE(Matrix_ldc), INTENT(INOUT) :: this
 
+
   IF (ALLOCATED(this%DATA)) THEN
      DEALLOCATE(this%DATA)
   END IF
+# 406 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE DestructMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -631,6 +651,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Temporary
     REAL(NTREAL) :: alpha
 
+
   !! Process Optional Parameters
   IF (.NOT. PRESENT(alpha_in)) THEN
      alpha = 1.0_NTREAL
@@ -639,6 +660,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END IF
 
   MatB%DATA = MatB%DATA + alpha*MatA%DATA
+# 421 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE IncrementMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -670,8 +692,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> matAT = matA^T.
     TYPE(Matrix_ldc), INTENT(INOUT) :: matAT
 
+
   CALL ConstructEmptyMatrix(matAT, matA%columns, matA%rows)
   matAT%DATA = TRANSPOSE(matA%DATA)
+# 453 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE TransposeMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -688,6 +712,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & mat_array
     !> The composed matrix.
     TYPE(Matrix_ldc), INTENT(INOUT) :: out_matrix
+
 
   !! Local Data
   INTEGER, DIMENSION(block_rows+1) :: row_offsets
@@ -721,6 +746,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & mat_array(II,JJ)%DATA
      END DO
   END DO
+# 471 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE ComposeMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -739,6 +765,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, DIMENSION(:), INTENT(IN), OPTIONAL :: block_size_row_in
     !> Specifies the size of the columns.
     INTEGER, DIMENSION(:), INTENT(IN), OPTIONAL :: block_size_column_in
+
 
   !! Local Data
   INTEGER, DIMENSION(block_rows) :: block_size_row
@@ -786,6 +813,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & column_offsets(JJ):column_offsets(JJ+1)-1)
      END DO
   END DO
+# 491 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/DMatrixModule.F90" 2
 
   END SUBROUTINE SplitMatrix_ldc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

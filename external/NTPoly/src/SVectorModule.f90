@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module for handling compressed vectors.
 !> Compressed vectors are stored in two lists. The first is a list of indices,
@@ -53,6 +51,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     REAL(NTREAL) :: working_value_a, working_value_b
 
+
   !! Local Data
   REAL(NTREAL) :: alpha
   REAL(NTREAL) :: threshold
@@ -124,6 +123,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO cleanup_b
 
   total_values_c = counter_c - 1
+# 55 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SVectorModule.F90" 2
 
   END SUBROUTINE AddSparseVectors_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -154,6 +154,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     COMPLEX(NTCOMPLEX) :: working_value_a, working_value_b
 
+
   !! Local Data
   REAL(NTREAL) :: alpha
   REAL(NTREAL) :: threshold
@@ -225,6 +226,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END DO cleanup_b
 
   total_values_c = counter_c - 1
+# 86 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SVectorModule.F90" 2
 
   END SUBROUTINE AddSparseVectors_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -243,6 +245,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL) :: product
     !! Temporary Variables
     REAL(NTREAL) :: working_value_a, working_value_b
+
 
   INTEGER :: working_index_a, working_index_b
   !! Counter Variables
@@ -287,6 +290,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     COMPLEX(NTCOMPLEX) :: product
     !! Temporary Variables
     COMPLEX(NTCOMPLEX) :: working_value_a, working_value_b
+
 
   INTEGER :: working_index_a, working_index_b
   !! Counter Variables
@@ -335,6 +339,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(OUT) :: total_values_c
     !! Temporary Variables
     REAL(NTREAL) :: working_value_a, working_value_b
+
 
   INTEGER :: working_index_a, working_index_b
   !! Counter Variables
@@ -386,6 +391,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(OUT) :: total_values_c
     !! Temporary Variables
     COMPLEX(NTCOMPLEX) :: working_value_a, working_value_b
+
 
   INTEGER :: working_index_a, working_index_b
   !! Counter Variables

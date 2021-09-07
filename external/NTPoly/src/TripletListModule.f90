@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A Module For Storing Lists of Triplets.
 MODULE TripletListModule
@@ -137,6 +135,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The length of the triplet list (default=0).
     INTEGER, INTENT(IN), OPTIONAL :: size_in
 
+
   !! Local data
   INTEGER :: size
 
@@ -160,6 +159,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The length of the triplet list (default=0).
     INTEGER, INTENT(IN), OPTIONAL :: size_in
 
+
   !! Local data
   INTEGER :: size
 
@@ -181,6 +181,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to destruct.
     TYPE(TripletList_r), INTENT(INOUT) :: this
 
+
   IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
   this%CurrentSize = 0
 
@@ -190,6 +191,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PURE SUBROUTINE DestructTripletList_c(this)
     !> The triplet list to destruct.
     TYPE(TripletList_c), INTENT(INOUT) :: this
+
 
   IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
   this%CurrentSize = 0
@@ -204,6 +206,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(IN) :: size
     !! Local Data
     TYPE(Triplet_r), DIMENSION(:), ALLOCATABLE :: temporary_data
+
 
   !! Temporary copy
   ALLOCATE(temporary_data(this%CurrentSize))
@@ -230,6 +233,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(Triplet_c), DIMENSION(:), ALLOCATABLE :: temporary_data
 
+
   !! Temporary copy
   ALLOCATE(temporary_data(this%CurrentSize))
   temporary_data = this%DATA(:this%CurrentSize)
@@ -253,6 +257,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The value to append.
     TYPE(Triplet_r), INTENT(IN)        :: triplet_value
 
+
   !! Local data
   INTEGER :: new_size
 
@@ -271,6 +276,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Append
   this%CurrentSize = this%CurrentSize+1
   this%DATA(this%CurrentSize) = triplet_value
+# 205 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE AppendToTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -281,6 +287,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The value to append.
     TYPE(Triplet_c), INTENT(IN)        :: triplet_value
 
+
   !! Local data
   INTEGER :: new_size
 
@@ -299,6 +306,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Append
   this%CurrentSize = this%CurrentSize+1
   this%DATA(this%CurrentSize) = triplet_value
+# 216 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE AppendToTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -311,7 +319,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The value of the triplet to set.
     TYPE(Triplet_r), INTENT(IN)        :: triplet_value
 
+
   this%DATA(index) = triplet_value
+# 229 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
   END SUBROUTINE SetTripletAt_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Set the value of a triplet at a particular index.
@@ -323,7 +333,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The value of the triplet to set.
     TYPE(Triplet_c), INTENT(IN)        :: triplet_value
 
+
   this%DATA(index) = triplet_value
+# 241 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
   END SUBROUTINE SetTripletAt_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Get the value of a triplet at a particular index.
@@ -335,7 +347,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The extracted triplet value.
     TYPE(Triplet_r), INTENT(OUT)    :: triplet_value
 
+
   triplet_value = this%DATA(index)
+# 253 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
   END SUBROUTINE GetTripletAt_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Get the value of a triplet at a particular index.
@@ -347,7 +361,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The extracted triplet value.
     TYPE(Triplet_c), INTENT(OUT)    :: triplet_value
 
+
   triplet_value = this%DATA(index)
+# 265 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
   END SUBROUTINE GetTripletAt_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Sorts a triplet list by index values.
@@ -367,6 +383,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     LOGICAL, OPTIONAL, INTENT(IN) :: bubble_in
     !! Local Data
     TYPE(Triplet_r) :: temporary
+
 
   !! Local Data
   LOGICAL :: bubble
@@ -442,6 +459,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      DEALLOCATE(offset_array)
      DEALLOCATE(inserted_per_row)
   END IF
+# 286 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE SortTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -463,6 +481,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(Triplet_c) :: temporary
 
+
   !! Local Data
   LOGICAL :: bubble
   LOGICAL :: swap_occured
@@ -537,6 +556,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      DEALLOCATE(offset_array)
      DEALLOCATE(inserted_per_row)
   END IF
+# 308 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE SortTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -547,7 +567,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The number of entries in the triplet list.
     INTEGER :: list_size
 
+
   list_size = triplet_list%CurrentSize
+# 319 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END FUNCTION GetTripletListSize_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -558,7 +580,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The number of entries in the triplet list.
     INTEGER :: list_size
 
+
   list_size = triplet_list%CurrentSize
+# 330 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END FUNCTION GetTripletListSize_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -576,6 +600,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL), DIMENSION(:), ALLOCATABLE :: send_buffer_val
     REAL(NTREAL), DIMENSION(:), ALLOCATABLE :: recv_buffer_val
     TYPE(Triplet_r) :: temp_triplet
+
+
 
   !! Local Data - Offsets
   INTEGER, DIMENSION(:), ALLOCATABLE :: send_per_process
@@ -668,6 +694,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(recv_buffer_row)
   DEALLOCATE(recv_buffer_col)
   DEALLOCATE(recv_buffer_val)
+# 350 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
+
 
   END SUBROUTINE RedistributeTripletLists_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -685,6 +713,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     COMPLEX(NTCOMPLEX), DIMENSION(:), ALLOCATABLE :: send_buffer_val
     COMPLEX(NTCOMPLEX), DIMENSION(:), ALLOCATABLE :: recv_buffer_val
     TYPE(Triplet_c) :: temp_triplet
+
+
 
   !! Local Data - Offsets
   INTEGER, DIMENSION(:), ALLOCATABLE :: send_per_process
@@ -777,6 +807,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(recv_buffer_row)
   DEALLOCATE(recv_buffer_col)
   DEALLOCATE(recv_buffer_val)
+# 371 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
+
 
   END SUBROUTINE RedistributeTripletLists_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -794,6 +826,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     INTEGER :: counter
 
+
   !! Loop
   DO counter = 1, triplet_list%CurrentSize
      triplet_list%DATA(counter)%index_row = &
@@ -801,6 +834,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      triplet_list%DATA(counter)%index_column = &
           triplet_list%DATA(counter)%index_column + column_shift
   END DO
+# 390 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE ShiftTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -818,6 +852,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     INTEGER :: counter
 
+
   !! Loop
   DO counter = 1, triplet_list%CurrentSize
      triplet_list%DATA(counter)%index_row = &
@@ -825,6 +860,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      triplet_list%DATA(counter)%index_column = &
           triplet_list%DATA(counter)%index_column + column_shift
   END DO
+# 408 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE ShiftTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -843,6 +879,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     REAL(NTREAL), DIMENSION(:,:), ALLOCATABLE :: value_buffer
 
+
   !! Local Data
   INTEGER, DIMENSION(:,:), ALLOCATABLE :: dirty_buffer
   INTEGER :: list_length
@@ -881,6 +918,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Cleanup
   DEALLOCATE(value_buffer)
   DEALLOCATE(dirty_buffer)
+# 427 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE SortDenseTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -899,6 +937,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     COMPLEX(NTCOMPLEX), DIMENSION(:,:), ALLOCATABLE :: value_buffer
 
+
   !! Local Data
   INTEGER, DIMENSION(:,:), ALLOCATABLE :: dirty_buffer
   INTEGER :: list_length
@@ -937,6 +976,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Cleanup
   DEALLOCATE(value_buffer)
   DEALLOCATE(dirty_buffer)
+# 446 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletListModule.F90" 2
 
   END SUBROUTINE SortDenseTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

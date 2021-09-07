@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module for performing linear algebra using sparse matrices.
 MODULE SMatrixAlgebraModule
@@ -85,7 +83,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Constant scale factor.
     REAL(NTREAL), INTENT(IN) :: constant
 
+
   matA%values = constant * matA%values
+# 87 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE ScaleMatrix_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Will scale a sparse matrix by a constant.
@@ -95,7 +95,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Constant scale factor.
     REAL(NTREAL), INTENT(IN) :: constant
 
+
   matA%values = constant * matA%values
+# 97 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE ScaleMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Will scale a sparse matrix by a constant.
@@ -104,6 +106,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_lsc), INTENT(INOUT) :: matA
     !> Constant scale factor.
     COMPLEX(NTCOMPLEX), INTENT(IN) :: constant
+
 
   matA%values = constant * matA%values
   END SUBROUTINE ScaleMatrix_lsc_c
@@ -121,6 +124,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL), OPTIONAL, INTENT(IN) :: threshold_in
     !! Local Variables
     TYPE(Matrix_lsr) :: matC
+
 
   !! Counter Variables
   INTEGER :: outer_counter
@@ -153,8 +157,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      ALLOCATE(matC%inner_index(size_of_a+size_of_b))
      ALLOCATE(matC%values(size_of_a+size_of_b))
   ELSE
-     CALL CopyMatrix(matA, matB)
-     matB%values = 0.0_NTREAL
      ALLOCATE(matC%inner_index(size_of_a))
      ALLOCATE(matC%values(size_of_a))
   END IF
@@ -208,6 +210,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Matrix_lsc) :: matC
 
+
   !! Counter Variables
   INTEGER :: outer_counter
   INTEGER :: inner_a, inner_b
@@ -239,8 +242,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      ALLOCATE(matC%inner_index(size_of_a+size_of_b))
      ALLOCATE(matC%values(size_of_a+size_of_b))
   ELSE
-     CALL CopyMatrix(matA, matB)
-     matB%values = 0.0_NTREAL
      ALLOCATE(matC%inner_index(size_of_a))
      ALLOCATE(matC%values(size_of_a))
   END IF
@@ -291,6 +292,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_lsr), INTENT(INOUT) :: matC
     !! Local Variables
     TYPE(Matrix_lsr) :: TempMat
+
 
   !! Counter Variables
   INTEGER :: outer_counter
@@ -354,6 +356,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_lsc), INTENT(INOUT) :: matC
     !! Local Variables
     TYPE(Matrix_lsc) :: TempMat
+
 
   !! Counter Variables
   INTEGER :: outer_counter
@@ -479,6 +482,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL) :: threshold
     TYPE(MatrixMemoryPool_lr) :: blocked_memory_pool
 
+
   REAL(NTREAL), PARAMETER :: sparsity_threshold = 0.1_NTREAL
   !! Counters and temporary data
   INTEGER :: mat_c_columns, mat_c_rows
@@ -580,6 +584,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL DestructMatrix(matAB)
   CALL DestructMatrixMemoryPool(blocked_memory_pool)
+# 247 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE GemmMatrix_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Multiply two matrices together, and add to the third.
@@ -614,6 +619,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL) :: threshold
     TYPE(MatrixMemoryPool_lc) :: blocked_memory_pool
 
+
   REAL(NTREAL), PARAMETER :: sparsity_threshold = 0.1_NTREAL
   !! Counters and temporary data
   INTEGER :: mat_c_columns, mat_c_rows
@@ -715,6 +721,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL DestructMatrix(matAB)
   CALL DestructMatrixMemoryPool(blocked_memory_pool)
+# 282 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE GemmMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the norm of a sparse matrix along the columns.
@@ -726,6 +733,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     REAL(NTREAL) :: temp_value
 
+
   !! Local Data
   INTEGER :: outer_counter, inner_counter
   INTEGER :: elements_per_inner
@@ -744,6 +752,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & ABS(temp_value)
      END DO
   END DO
+# 294 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE MatrixColumnNorm_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the norm of a sparse matrix along the columns.
@@ -755,6 +764,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     COMPLEX(NTCOMPLEX)  :: temp_value
 
+
   !! Local Data
   INTEGER :: outer_counter, inner_counter
   INTEGER :: elements_per_inner
@@ -773,6 +783,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & ABS(temp_value)
      END DO
   END DO
+# 306 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE MatrixColumnNorm_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Compute the 1 norm of a sparse matrix.
@@ -784,8 +795,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     REAL(NTREAL), DIMENSION(this%columns) :: column
 
+
   CALL MatrixColumnNorm(this,column)
   norm = MAXVAL(column)
+# 318 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
 
   END FUNCTION MatrixNorm_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -798,8 +811,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     REAL(NTREAL), DIMENSION(this%columns) :: column
 
+
   CALL MatrixColumnNorm(this,column)
   norm = MAXVAL(column)
+# 331 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
 
   END FUNCTION MatrixNorm_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -810,7 +825,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The sum of the matrix elements
     REAL(NTREAL), INTENT(OUT) :: sum_value
 
+
   sum_value = SUM(this%values)
+# 342 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
 
   END SUBROUTINE MatrixGrandSum_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -821,7 +838,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The sum of the matrix elements
     COMPLEX(NTCOMPLEX), INTENT(OUT) :: sum_value
 
+
   sum_value = SUM(this%values)
+# 353 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
 
   END SUBROUTINE MatrixGrandSum_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -847,6 +866,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(Matrix_lsr) :: matAT, matBT
 
+
   !! Block A and B
   IF (.NOT. IsATransposed) THEN
      CALL TransposeMatrix(matA,matAT)
@@ -868,6 +888,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Go from triplets to return matrix
   CALL PruneList(blocked_memory_pool, alpha, threshold, &
        & blocked_memory_pool%columns, blocked_memory_pool%rows, matC)
+# 379 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE SparseBranch_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Calculates the matrix product if using the sparse-sparse algorithm.
@@ -892,6 +913,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(Matrix_lsc) :: matAT, matBT
 
+
   !! Block A and B
   IF (.NOT. IsATransposed) THEN
      CALL TransposeMatrix(matA,matAT)
@@ -913,6 +935,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Go from triplets to return matrix
   CALL PruneList(blocked_memory_pool, alpha, threshold, &
        & blocked_memory_pool%columns, blocked_memory_pool%rows, matC)
+# 404 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE SparseBranch_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Calculate the matrix product using the dense-dense algorithm.
@@ -937,6 +960,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_ldr) :: DenseB
     TYPE(Matrix_ldr) :: DenseC
 
+
   !! Convert Forward
   CALL ConstructMatrixDFromS(matA, DenseA)
   CALL ConstructMatrixDFromS(matB, DenseB)
@@ -953,6 +977,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructMatrix(DenseA)
   CALL DestructMatrix(DenseB)
   CALL DestructMatrix(DenseC)
+# 429 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE DenseBranch_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Calculate the matrix product using the dense-dense algorithm.
@@ -977,6 +1002,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_ldc) :: DenseB
     TYPE(Matrix_ldc) :: DenseC
 
+
   !! Convert Forward
   CALL ConstructMatrixDFromS(matA, DenseA)
   CALL ConstructMatrixDFromS(matB, DenseB)
@@ -993,6 +1019,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructMatrix(DenseA)
   CALL DestructMatrix(DenseB)
   CALL DestructMatrix(DenseC)
+# 454 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE DenseBranch_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Multiplies a single block fo sparse-sparse.
@@ -1006,6 +1033,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Temp Variables
     REAL(NTREAL) :: temp_value_a, temp_value_b, temp_value_c
 
+
   INTEGER :: temp_inserted_values
   INTEGER :: temp_index_a, temp_index_b
   INTEGER :: elements_per_inner_a
@@ -1049,6 +1077,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         END DO
      END DO
   END DO
+# 468 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE MultiplyBlock_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Multiplies a single block fo sparse-sparse.
@@ -1062,6 +1091,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Temp Variables
     COMPLEX(NTCOMPLEX) :: temp_value_a, temp_value_b, temp_value_c
 
+
   INTEGER :: temp_inserted_values
   INTEGER :: temp_index_a, temp_index_b
   INTEGER :: elements_per_inner_a
@@ -1105,6 +1135,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         END DO
      END DO
   END DO
+# 482 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE MultiplyBlock_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Prunes out the values of the hash table into the matrix.
@@ -1127,6 +1158,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_r) :: unsorted_pruned_list
     TYPE(TripletList_r) :: sorted_pruned_list
 
+
   !! Local data
   INTEGER :: row_counter_c, column_counter_c, hash_counter
   INTEGER :: working_column
@@ -1167,6 +1199,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & mat_c_columns)
   CALL DestructTripletList(sorted_pruned_list)
   CALL DestructTripletList(unsorted_pruned_list)
+# 505 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE PruneList_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Prunes out the values of the hash table into the matrix.
@@ -1189,6 +1222,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_c) :: unsorted_pruned_list
     TYPE(TripletList_c) :: sorted_pruned_list
 
+
   !! Local data
   INTEGER :: row_counter_c, column_counter_c, hash_counter
   INTEGER :: working_column
@@ -1229,6 +1263,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & mat_c_columns)
   CALL DestructTripletList(sorted_pruned_list)
   CALL DestructTripletList(unsorted_pruned_list)
+# 528 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixAlgebraModule.F90" 2
   END SUBROUTINE PruneList_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE SMatrixAlgebraModule

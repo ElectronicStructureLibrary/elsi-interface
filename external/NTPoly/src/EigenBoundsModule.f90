@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module for computing estimates of the bounds of the spectrum of a matrix.
 MODULE EigenBoundsModule
@@ -44,6 +42,8 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: ierr
 
     IF (this%is_complex) THEN
+
+
   !! Allocate Space For Result
   ALLOCATE(per_column_min(this%local_columns))
   ALLOCATE(per_column_max(this%local_columns))
@@ -86,7 +86,11 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructTripletList(triplet_list_c)
   DEALLOCATE(per_column_min)
   DEALLOCATE(per_column_max)
+# 47 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/EigenBoundsModule.F90" 2
+
     ELSE
+
+
   !! Allocate Space For Result
   ALLOCATE(per_column_min(this%local_columns))
   ALLOCATE(per_column_max(this%local_columns))
@@ -129,6 +133,8 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructTripletList(triplet_list_r)
   DEALLOCATE(per_column_min)
   DEALLOCATE(per_column_max)
+# 51 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/EigenBoundsModule.F90" 2
+
     END IF
   END SUBROUTINE GershgorinBounds
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -189,10 +195,7 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     norm_value = solver_parameters%converge_diff + 1.0_NTREAL
     DO outer_counter = 1,solver_parameters%max_iterations
        IF (solver_parameters%be_verbose .AND. outer_counter .GT. 1) THEN
-          CALL WriteListElement(key="Round", VALUE=outer_counter-1)
-          CALL EnterSubLog
-          CALL WriteElement(key="Convergence", VALUE=norm_value)
-          CALL ExitSubLog
+          CALL WriteListElement(key="Convergence", VALUE=norm_value)
        END IF
 
        !! x = Ax

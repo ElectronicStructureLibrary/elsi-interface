@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module for handling scratch memory for matrix multiplication.
 !> The purpose of this module is to avoid having to allocate memory on the
@@ -129,6 +127,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Estimated sparsity (optional).
     REAL(NTREAL), INTENT(IN), OPTIONAL :: sparsity_in
 
+
   !! Temporary variables
   INTEGER :: alloc_stat
   INTEGER :: num_buckets
@@ -171,6 +170,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Estimated sparsity (optional).
     REAL(NTREAL), INTENT(IN), OPTIONAL :: sparsity_in
 
+
   !! Temporary variables
   INTEGER :: alloc_stat
   INTEGER :: num_buckets
@@ -207,6 +207,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The matrix being destructed.
     TYPE(MatrixMemoryPool_lr), INTENT(INOUT) :: this
 
+
   !! Perform deallocations.
   IF (ALLOCATED(this%pruned_list)) DEALLOCATE(this%pruned_list)
   IF (ALLOCATED(this%value_array)) DEALLOCATE(this%value_array)
@@ -220,6 +221,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   PURE SUBROUTINE DestructMatrixMemoryPool_lc(this)
     !> The matrix being destructed.
     TYPE(MatrixMemoryPool_lc), INTENT(INOUT) :: this
+
 
   !! Perform deallocations.
   IF (ALLOCATED(this%pruned_list)) DEALLOCATE(this%pruned_list)
@@ -241,6 +243,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(IN) :: rows
     !> true if the memory pool is valid.
     LOGICAL :: isvalid
+
 
   isvalid = .TRUE.
   !! Check allocation
@@ -270,6 +273,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> true if the memory pool is valid.
     LOGICAL :: isvalid
 
+
   isvalid = .TRUE.
   !! Check allocation
   IF (.NOT. ALLOCATED(this%pruned_list)) isvalid = .FALSE.
@@ -292,12 +296,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The sparsity value.
     REAL(NTREAL), INTENT(IN) :: sparsity
 
+
   !! Local Variables
   INTEGER :: num_buckets
 
   this%hash_size = INT(1.0/sparsity)
   IF (this%hash_size > this%columns) this%hash_size = this%columns
   num_buckets = this%columns/this%hash_size + 1
+# 208 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMemoryPoolModule.F90" 2
 
   END SUBROUTINE SetPoolSparsity_lr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -308,12 +314,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The sparsity value.
     REAL(NTREAL), INTENT(IN) :: sparsity
 
+
   !! Local Variables
   INTEGER :: num_buckets
 
   this%hash_size = INT(1.0/sparsity)
   IF (this%hash_size > this%columns) this%hash_size = this%columns
   num_buckets = this%columns/this%hash_size + 1
+# 219 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/MatrixMemoryPoolModule.F90" 2
 
   END SUBROUTINE SetPoolSparsity_lc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -1,14 +1,12 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module to manage the process grid.
 MODULE ProcessGridModule
   USE ErrorModule, ONLY : Error_t, ConstructError, SetGenericError
-  USE LoggingModule, ONLY : ActivateLogger, EnterSubLog, ExitSubLog, &
+  USE LoggingModule, ONLY : EnterSubLog, ExitSubLog, &
        & WriteHeader, WriteListElement
   USE NTMPIModule
 
-
+  USE omp_lib, ONLY : omp_get_num_threads, omp_get_max_threads
 
   IMPLICIT NONE
   PRIVATE
@@ -53,6 +51,8 @@ MODULE ProcessGridModule
      INTEGER, DIMENSION(:,:), ALLOCATABLE, PUBLIC :: blocked_within_slice_comm
      !> blocked communicator between slices.
      INTEGER, DIMENSION(:,:), ALLOCATABLE, PUBLIC :: blocked_between_slice_comm
+     !> The maximum number of openmp threads.
+     INTEGER :: omp_max_threads
   END TYPE ProcessGrid_t
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> The default process grid.
@@ -105,9 +105,6 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & process_columns_, process_slices_)
 
     !! Report
-    IF (IsRoot(global_grid)) THEN
-       CALL ActivateLogger
-    END IF
     IF (be_verbose) THEN
        CALL WriteHeader("Process Grid")
        CALL EnterSubLog
@@ -183,7 +180,7 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: row_block_multiplier
     INTEGER :: II, JJ
 
-
+    INTEGER :: num_threads
 
     INTEGER :: ierr
     TYPE(Error_t) :: err
@@ -249,7 +246,22 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     !! The rule right now seems to be to have at least half as many blocks as
     !! threads.
-    grid%block_multiplier = 1
+
+
+
+
+    !$omp PARALLEL
+    num_threads = omp_get_num_threads()
+    grid%omp_max_threads = omp_get_max_threads()
+    !$omp end PARALLEL
+    grid%block_multiplier = num_threads/&
+         & (column_block_multiplier+row_block_multiplier)
+    IF (grid%block_multiplier .EQ. 0) THEN
+       grid%block_multiplier = 1
+    END IF
+
+
+
 
     grid%number_of_blocks_columns = &
          & column_block_multiplier*grid%block_multiplier
@@ -349,6 +361,7 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     new_grid%block_multiplier = old_grid%block_multiplier
     new_grid%number_of_blocks_columns = old_grid%number_of_blocks_columns
     new_grid%number_of_blocks_rows = old_grid%number_of_blocks_rows
+    new_grid%omp_max_threads = old_grid%omp_max_threads
 
     !! Allocate Blocks
     ALLOCATE(new_grid%blocked_row_comm(old_grid%number_of_blocks_rows))
@@ -536,16 +549,17 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   END SUBROUTINE SplitProcessGrid
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Check if the current process is the root process.
-  FUNCTION IsRoot(grid) RESULT(is_root)
+  FUNCTION IsRoot(grid_in) RESULT(is_root)
     !! Parameters
     !> The process grid.
-    TYPE(ProcessGrid_t), INTENT(IN) :: grid
+    TYPE(ProcessGrid_t), INTENT(IN), OPTIONAL :: grid_in
     !> True if the current process is root.
     LOGICAL :: is_root
-    IF (grid%global_rank == 0) THEN
-       is_root = .TRUE.
+
+    IF (PRESENT(grid_in)) THEN
+       is_root = (grid_in%global_rank .EQ. 0)
     ELSE
-       is_root = .FALSE.
+       is_root = (global_grid%global_rank .EQ. 0)
     END IF
   END FUNCTION IsRoot
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

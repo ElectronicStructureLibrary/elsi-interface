@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A Module For Computing Trigonometric functions of a Matrix.
 MODULE TrigonometrySolversModule
@@ -7,7 +5,7 @@ MODULE TrigonometrySolversModule
   USE EigenBoundsModule, ONLY : GershgorinBounds
   USE LoadBalancerModule, ONLY : PermuteMatrix, UndoPermuteMatrix
   USE LoggingModule, ONLY : EnterSubLog, ExitSubLog, WriteHeader, &
-       & WriteElement, WriteCitation
+       & WriteListElement, WriteElement
   USE PMatrixMemoryPoolModule, ONLY : MatrixMemoryPool_p, &
        & DestructMatrixMemoryPool
   USE PSMatrixAlgebraModule, ONLY : MatrixMultiply, IncrementMatrix, &
@@ -106,7 +104,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL WriteHeader("Trigonometry Solver")
        CALL EnterSubLog
        CALL WriteElement(key="Method", VALUE="Taylor")
-       CALL WriteCitation("higham2003computing")
+       CALL WriteHeader("Citations")
+       CALL EnterSubLog
+       CALL WriteListElement("higham2003computing")
+       CALL ExitSubLog
        CALL PrintParameters(solver_parameters)
     END IF
 
@@ -223,8 +224,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL WriteHeader("Trigonometry Solver")
        CALL EnterSubLog
        CALL WriteElement(key="Method", VALUE="Chebyshev")
-       CALL WriteCitation("serbin1980algorithm higham2003computing&
-            & yau1993reducing")
+       CALL WriteHeader("Citations")
+       CALL EnterSubLog
+       CALL WriteListElement("serbin1980algorithm")
+       CALL WriteListElement("higham2003computing")
+       CALL WriteListElement("yau1993reducing")
+       CALL ExitSubLog
        CALL PrintParameters(solver_parameters)
     END IF
 

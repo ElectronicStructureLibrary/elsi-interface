@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A Module For Storing Triplets of Integer, Integer, Value.
 MODULE TripletModule
@@ -62,9 +60,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The value at that point.
     REAL(NTREAL), INTENT(IN)       :: point_value
 
+
   this%index_column = index_column
   this%index_row    = index_row
   this%point_value  = point_value
+# 64 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletModule.F90" 2
 
   END SUBROUTINE SetTriplet_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -79,9 +79,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The value at that point.
     COMPLEX(NTCOMPLEX), INTENT(IN) :: point_value
 
+
   this%index_column = index_column
   this%index_row    = index_row
   this%point_value  = point_value
+# 79 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletModule.F90" 2
 
   END SUBROUTINE SetTriplet_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -96,9 +98,11 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Actual stored value.
     REAL(NTREAL), INTENT(OUT)   :: point_value
 
+
   index_column = this%index_column
   index_row    = this%index_row
   point_value  = this%point_value
+# 94 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/TripletModule.F90" 2
 
   END SUBROUTINE GetTripletValues_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -112,6 +116,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER, INTENT(OUT)            :: index_row
     !> Actual stored value.
     COMPLEX(NTCOMPLEX), INTENT(OUT) :: point_value
+
 
   index_column = this%index_column
   index_row    = this%index_row
@@ -128,6 +133,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Triplet_r), INTENT(IN) :: tripB
     !> A < B.
     LOGICAL :: islessthan
+
 
   IF (tripA%index_column .GT. tripB%index_column) THEN
      islessthan = .TRUE.
@@ -149,6 +155,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Triplet_c), INTENT(IN) :: tripB
     !> A < B.
     LOGICAL :: islessthan
+
 
   IF (tripA%index_column .GT. tripB%index_column) THEN
      islessthan = .TRUE.

@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module for handling locally stored CSR matrices.
 MODULE SMatrixModule
@@ -187,6 +185,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Whether to set the matrix to zero.
     LOGICAL, INTENT(IN), OPTIONAL :: zero_in
 
+
   this%rows = rows
   this%columns = columns
   ALLOCATE(this%outer_index(this%columns+1))
@@ -213,6 +212,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Whether to set the matrix to zero.
     LOGICAL, INTENT(IN), OPTIONAL :: zero_in
 
+
   this%rows = rows
   this%columns = columns
   ALLOCATE(this%outer_index(this%columns+1))
@@ -224,6 +224,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ALLOCATE(this%values(0))
      END IF
   END IF
+# 205 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END FUNCTION ConstructEmptyMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Subroutine wrapper for the construct from file function.
@@ -258,6 +259,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_r) :: sorted_triplet_list
     TYPE(Triplet_r) :: temporary
 
+
   !! Local Data
   INTEGER :: temp_rows, temp_columns, temp_total_values
   CHARACTER(len=81) :: input_buffer
@@ -290,8 +292,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Read Values
   DO counter = 1, temp_total_values
+
+
+
+
+
      READ(file_handler,*) temporary%index_row, temporary%index_column, &
           & temporary%point_value
+
      CALL AppendToTripletList(triplet_list,temporary)
   END DO
 
@@ -304,6 +312,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL DestructTripletList(triplet_list)
   CALL DestructTripletList(sorted_triplet_list)
+# 240 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END FUNCTION ConstructMatrixFromFile_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Create a sparse matrix by reading in a matrix market file.
@@ -320,6 +329,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Triplet_c) :: temporary
     REAL(NTREAL) :: real_val, comp_val
 
+
+
   !! Local Data
   INTEGER :: temp_rows, temp_columns, temp_total_values
   CHARACTER(len=81) :: input_buffer
@@ -352,9 +363,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Read Values
   DO counter = 1, temp_total_values
+
      READ(file_handler,*) temporary%index_row, temporary%index_column, &
           & real_val, comp_val
      temporary%point_value = CMPLX(real_val, comp_val, KIND=NTCOMPLEX)
+
+
+
+
      CALL AppendToTripletList(triplet_list,temporary)
   END DO
 
@@ -367,6 +383,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL DestructTripletList(triplet_list)
   CALL DestructTripletList(sorted_triplet_list)
+# 258 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
+
 
   END FUNCTION ConstructMatrixFromFile_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -416,6 +434,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Number of matrix columns
     INTEGER, INTENT(IN) :: columns
 
+
+
   !! Local Data
   INTEGER :: outer_array_ptr
   INTEGER :: values_counter
@@ -450,6 +470,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DO outer_array_ptr = outer_array_ptr+2, this%columns+1
      this%outer_index(outer_array_ptr) = this%outer_index(outer_array_ptr-1)
   END DO
+# 310 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
+
 
   END FUNCTION ConstructMatrixFromTripletList_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -467,6 +489,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Number of matrix columns
     INTEGER, INTENT(IN) :: columns
 
+
   !! Local Data
   INTEGER :: outer_array_ptr
   INTEGER :: values_counter
@@ -501,6 +524,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DO outer_array_ptr = outer_array_ptr+2, this%columns+1
      this%outer_index(outer_array_ptr) = this%outer_index(outer_array_ptr-1)
   END DO
+# 329 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END FUNCTION ConstructMatrixFromTripletList_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Explicitly destruct a sparse matrix.
@@ -508,21 +532,6 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The matrix to free up.
     TYPE(Matrix_lsr), INTENT(INOUT) :: this
 
-  IF (ALLOCATED(this%outer_index)) THEN
-     DEALLOCATE(this%outer_index)
-  END IF
-  IF (ALLOCATED(this%inner_index)) THEN
-     DEALLOCATE(this%inner_index)
-  END IF
-  IF (ALLOCATED(this%values)) THEN
-     DEALLOCATE(this%values)
-  END IF
-  END SUBROUTINE DestructMatrix_lsr
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !> Explicitly destruct a sparse matrix.
-  PURE SUBROUTINE DestructMatrix_lsc(this)
-    !> The matrix to free up.
-    TYPE(Matrix_lsc), INTENT(INOUT) :: this
 
   IF (ALLOCATED(this%outer_index)) THEN
      DEALLOCATE(this%outer_index)
@@ -533,6 +542,25 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   IF (ALLOCATED(this%values)) THEN
      DEALLOCATE(this%values)
   END IF
+# 337 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
+  END SUBROUTINE DestructMatrix_lsr
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> Explicitly destruct a sparse matrix.
+  PURE SUBROUTINE DestructMatrix_lsc(this)
+    !> The matrix to free up.
+    TYPE(Matrix_lsc), INTENT(INOUT) :: this
+
+
+  IF (ALLOCATED(this%outer_index)) THEN
+     DEALLOCATE(this%outer_index)
+  END IF
+  IF (ALLOCATED(this%inner_index)) THEN
+     DEALLOCATE(this%inner_index)
+  END IF
+  IF (ALLOCATED(this%values)) THEN
+     DEALLOCATE(this%values)
+  END IF
+# 345 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE DestructMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Copy a sparse matrix in a safe way.
@@ -542,8 +570,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> matB = matA
     TYPE(Matrix_lsr), INTENT(INOUT) :: matB
 
+
   CALL DestructMatrix(matB)
   matB = matA
+# 355 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE CopyMatrix_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Copy a sparse matrix in a safe way.
@@ -553,8 +583,10 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> matB = matA
     TYPE(Matrix_lsc), INTENT(INOUT) :: matB
 
+
   CALL DestructMatrix(matB)
   matB = matA
+# 365 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE CopyMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Get the number of rows of a matrix.
@@ -564,7 +596,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The number of rows.
     INTEGER :: rows
 
+
   rows = this%rows
+# 375 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END FUNCTION GetMatrixRows_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Get the number of rows of a matrix.
@@ -574,7 +608,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The number of rows.
     INTEGER :: rows
 
+
   rows = this%rows
+# 385 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END FUNCTION GetMatrixRows_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Get the number of columns of a matrix.
@@ -584,7 +620,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The number of columns.
     INTEGER :: columns
 
+
   columns = this%columns
+# 395 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END FUNCTION GetMatrixColumns_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Get the number of columns of a matrix.
@@ -594,7 +632,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The number of columns.
     INTEGER :: columns
 
+
   columns = this%columns
+# 405 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END FUNCTION GetMatrixColumns_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Extract a row from the matrix.
@@ -608,6 +648,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Temporary Variables
     REAL(NTREAL), DIMENSION(:), ALLOCATABLE :: value_buffer
 
+
   !! Temporary Variables
   INTEGER :: values_found
   INTEGER :: total_counter, elements_per_inner
@@ -645,6 +686,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Cleanup
   DEALLOCATE(value_buffer)
+# 419 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE ExtractMatrixRow_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Extract a row from the matrix.
@@ -658,6 +700,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Temporary Variables
     COMPLEX(NTCOMPLEX), DIMENSION(:), ALLOCATABLE :: value_buffer
 
+
   !! Temporary Variables
   INTEGER :: values_found
   INTEGER :: total_counter, elements_per_inner
@@ -695,6 +738,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Cleanup
   DEALLOCATE(value_buffer)
+# 433 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE ExtractMatrixRow_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Extract a column from the matrix.
@@ -706,6 +750,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The column representing that row.
     TYPE(Matrix_lsr), INTENT(INOUT) :: column_out
 
+
   !! Local variables
   INTEGER :: number_of_values
   INTEGER :: start_index
@@ -726,6 +771,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      column_out%inner_index(counter) = this%inner_index(start_index+counter)
      column_out%values(counter) = this%values(start_index+counter)
   END DO
+# 445 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE ExtractMatrixColumn_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Extract a column from the matrix.
@@ -737,6 +783,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The column representing that row.
     TYPE(Matrix_lsc), INTENT(INOUT) :: column_out
 
+
   !! Local variables
   INTEGER :: number_of_values
   INTEGER :: start_index
@@ -757,6 +804,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      column_out%inner_index(counter) = this%inner_index(start_index+counter)
      column_out%values(counter) = this%values(start_index+counter)
   END DO
+# 457 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE ExtractMatrixColumn_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Transpose a sparse matrix and return it in a separate matrix.
@@ -769,6 +817,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The input matrix transposed.
     TYPE(Matrix_lsr), INTENT(INOUT) :: matT
 
+
   !! Local Data
   INTEGER, DIMENSION(:), ALLOCATABLE :: values_per_row
   INTEGER, DIMENSION(:), ALLOCATABLE :: offset_array
@@ -817,6 +866,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Cleanup
   DEALLOCATE(values_per_row)
   DEALLOCATE(offset_array)
+# 470 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE TransposeMatrix_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Transpose a sparse matrix and return it in a separate matrix.
@@ -829,6 +879,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The input matrix transposed.
     TYPE(Matrix_lsc), INTENT(INOUT) :: matT
 
+
   !! Local Data
   INTEGER, DIMENSION(:), ALLOCATABLE :: values_per_row
   INTEGER, DIMENSION(:), ALLOCATABLE :: offset_array
@@ -877,6 +928,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Cleanup
   DEALLOCATE(values_per_row)
   DEALLOCATE(offset_array)
+# 483 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE TransposeMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Create a big matrix from an array of matrices by putting them one next
@@ -897,6 +949,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_lsr) :: Temp
     TYPE(Matrix_lsr), DIMENSION(block_rows,block_columns) :: mat_t
 
+
   INTEGER :: II, JJ
 
   !! First transpose the matrices
@@ -924,6 +977,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DO JJ = 1, block_columns
      CALL DestructMatrix(merged_columns(JJ))
   END DO
+# 504 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE ComposeMatrix_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Create a big matrix from an array of matrices by putting them one next
@@ -944,6 +998,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_lsc) :: Temp
     TYPE(Matrix_lsc), DIMENSION(block_rows,block_columns) :: mat_t
 
+
   INTEGER :: II, JJ
 
   !! First transpose the matrices
@@ -971,6 +1026,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DO JJ = 1, block_columns
      CALL DestructMatrix(merged_columns(JJ))
   END DO
+# 525 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE ComposeMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Create a big Matrix C = [Matrix 1 | Matrix 1, ...] where the columns of
@@ -981,6 +1037,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> out_matrix = [Matrix 1 | Matrix 2, ...].
     TYPE(Matrix_lsr), INTENT(INOUT) :: out_matrix
 
+
   !! Local Variables
   INTEGER :: total_columns, total_values
   INTEGER :: inner_start, inner_length
@@ -1025,6 +1082,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      outer_start = outer_start + outer_length - 1
      outer_offset = out_matrix%outer_index(outer_start)
   END DO
+# 536 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE ComposeMatrixColumns_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Create a big Matrix C = [Matrix 1 | Matrix 1, ...] where the columns of
@@ -1035,6 +1093,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> out_matrix = [Matrix 1 | Matrix 2, ...].
     TYPE(Matrix_lsc), INTENT(INOUT) :: out_matrix
 
+
   !! Local Variables
   INTEGER :: total_columns, total_values
   INTEGER :: inner_start, inner_length
@@ -1079,6 +1138,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      outer_start = outer_start + outer_length - 1
      outer_offset = out_matrix%outer_index(outer_start)
   END DO
+# 547 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE ComposeMatrixColumns_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Split a sparse matrix into an array of sparse matrices.
@@ -1101,6 +1161,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_lsr), DIMENSION(block_rows) :: row_split
     TYPE(Matrix_lsr) :: Temp
 
+
   !! Local Data
   INTEGER, DIMENSION(block_rows) :: block_size_row
   INTEGER, DIMENSION(block_columns) :: block_size_column
@@ -1148,6 +1209,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DO II = 1, block_columns
      CALL DestructMatrix(column_split(II))
   END DO
+# 570 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE SplitMatrix_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Split a sparse matrix into an array of sparse matrices.
@@ -1170,6 +1232,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_lsc), DIMENSION(block_rows) :: row_split
     TYPE(Matrix_lsc) :: Temp
 
+
   !! Local Data
   INTEGER, DIMENSION(block_rows) :: block_size_row
   INTEGER, DIMENSION(block_columns) :: block_size_column
@@ -1217,6 +1280,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DO II = 1, block_columns
      CALL DestructMatrix(column_split(II))
   END DO
+# 593 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE SplitMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Split a matrix into into small blocks based on the specified offsets.
@@ -1231,6 +1295,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> 1D array of blocks.
     TYPE(Matrix_lsr), DIMENSION(num_blocks), INTENT(INOUT) :: split_list
 
+
   !! Local Data
   INTEGER, DIMENSION(num_blocks+1) :: block_offsets
   !! Counters
@@ -1270,6 +1335,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & this%values(linner_offset:linner_offset+total_values-1)
      END IF
   END DO
+# 608 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE SplitMatrixColumns_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Split a matrix into into small blocks based on the specified offsets.
@@ -1284,6 +1350,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> 1D array of blocks.
     TYPE(Matrix_lsc), DIMENSION(num_blocks), INTENT(INOUT) :: split_list
 
+
   !! Local Data
   INTEGER, DIMENSION(num_blocks+1) :: block_offsets
   !! Counters
@@ -1323,6 +1390,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
              & this%values(linner_offset:linner_offset+total_values-1)
      END IF
   END DO
+# 623 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE SplitMatrixColumns_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Construct a triplet list from a matrix.
@@ -1334,6 +1402,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Triplet_r) :: temporary
 
+
   !! Helper variables
   INTEGER :: outer_counter, inner_counter
   INTEGER :: elements_per_inner
@@ -1355,6 +1424,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         total_counter = total_counter + 1
      END DO
   END DO
+# 635 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE MatrixToTripletList_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Construct a triplet list from a matrix.
@@ -1366,6 +1436,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Triplet_c) :: temporary
 
+
   !! Helper variables
   INTEGER :: outer_counter, inner_counter
   INTEGER :: elements_per_inner
@@ -1387,6 +1458,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         total_counter = total_counter + 1
      END DO
   END DO
+# 647 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
   END SUBROUTINE MatrixToTripletList_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Print out a sparse matrix to the console.
@@ -1397,6 +1469,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CHARACTER(len=*), OPTIONAL, INTENT(IN) :: file_name_in
     !! Local Data
     TYPE(TripletList_r) :: triplet_list
+
 
   !! Local Data
   INTEGER :: file_handler
@@ -1417,23 +1490,36 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   size_of_this = this%outer_index(this%columns+1)
 
+
+
+
   WRITE(file_handler,'(A)') "%%MatrixMarket matrix coordinate real general"
+
 
   WRITE(file_handler,'(A)') "%"
   CALL WriteMMSize(tempstr, this%rows, this%columns, &
        & INT(size_of_this, KIND=NTLONG))
   WRITE(file_handler,'(A)') ADJUSTL(TRIM(tempstr))
   DO counter = 1,size_of_this
+
+
+
+
+
+
+
      CALL WriteMMLine(tempstr, triplet_list%DATA(counter)%index_row, &
           & triplet_list%DATA(counter)%index_column, &
           & triplet_list%DATA(counter)%point_value)
      WRITE(file_handler,'(A)') ADJUSTL(TRIM(tempstr))
+
   END DO
 
   IF (PRESENT(file_name_in)) THEN
      CLOSE(file_handler)
   END IF
   CALL DestructTripletList(triplet_list)
+# 659 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
 
   END SUBROUTINE PrintMatrix_lsr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1446,6 +1532,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(TripletList_c) :: triplet_list
 
+
+
   !! Local Data
   INTEGER :: file_handler
   INTEGER :: counter
@@ -1465,24 +1553,37 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   size_of_this = this%outer_index(this%columns+1)
 
+
   WRITE(file_handler,'(A)') "%%MatrixMarket matrix coordinate complex general"
+
+
+
 
   WRITE(file_handler,'(A)') "%"
   CALL WriteMMSize(tempstr, this%rows, this%columns, &
        & INT(size_of_this, KIND=NTLONG))
   WRITE(file_handler,'(A)') ADJUSTL(TRIM(tempstr))
   DO counter = 1,size_of_this
+
      CALL WriteMMLine(tempstr, triplet_list%DATA(counter)%index_row, &
           & triplet_list%DATA(counter)%index_column, &
           & REAL(triplet_list%DATA(counter)%point_value), &
           & AIMAG(triplet_list%DATA(counter)%point_value))
      WRITE(file_handler,'(A)') ADJUSTL(TRIM(tempstr))
+
+
+
+
+
+
   END DO
 
   IF (PRESENT(file_name_in)) THEN
      CLOSE(file_handler)
   END IF
   CALL DestructTripletList(triplet_list)
+# 673 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/SMatrixModule.F90" 2
+
   END SUBROUTINE PrintMatrix_lsc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Every value in the matrix is changed into its complex conjugate.

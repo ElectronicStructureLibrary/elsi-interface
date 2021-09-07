@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A Module For Performing Distributed Sparse Matrix Operations.
 MODULE PSMatrixModule
@@ -704,6 +702,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_r) :: triplet_list
     TYPE(Matrix_lsr) :: merged_local_data
 
+
   !! Local Data
   INTEGER, DIMENSION(:), ALLOCATABLE :: local_values_buffer
   INTEGER :: mpi_file_handler
@@ -772,6 +771,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(local_values_buffer)
   CALL MPI_Barrier(this%process_grid%global_comm,ierr)
   CALL DestructMatrix(merged_local_data)
+# 706 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE WriteMatrixToBinary_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -787,6 +787,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_c) :: triplet_list
     TYPE(Matrix_lsc) :: merged_local_data
 
+
   !! Local Data
   INTEGER, DIMENSION(:), ALLOCATABLE :: local_values_buffer
   INTEGER :: mpi_file_handler
@@ -855,6 +856,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DEALLOCATE(local_values_buffer)
   CALL MPI_Barrier(this%process_grid%global_comm,ierr)
   CALL DestructMatrix(merged_local_data)
+# 722 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE WriteMatrixToBinary_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -883,6 +885,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_r) :: triplet_list
     TYPE(Matrix_lsr) :: merged_local_data
 
+
   !! Local MPI Variables
   INTEGER :: mpi_file_handler
   INTEGER :: message_status(MPI_STATUS_SIZE)
@@ -915,8 +918,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Create the matrix size line
   NEW_LINE_LENGTH = LEN(new_LINE('A'))
+
+
+
+
   WRITE(temp_string1,'(A)') "%%MatrixMarket matrix coordinate real general" &
        & //new_LINE('A')//"%"//new_LINE('A')
+
   ALLOCATE(CHARACTER(len=LEN_TRIM(temp_string1)) :: header_line1)
   header_line1 = TRIM(temp_string1)
 
@@ -938,9 +946,17 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Figure out the length of the string for storing.
   triplet_list_string_length = 0
   DO counter = 1, triplet_list%CurrentSize
+
+
+
+
+
+
+
      CALL WriteMMLine(temp_string3, triplet_list%DATA(counter)%index_row, &
           & triplet_list%DATA(counter)%index_column, &
           & triplet_list%DATA(counter)%point_value, add_newline_in=.TRUE.)
+
      WRITE(temp_string2, '(A)') ADJUSTL(temp_string3)
      triplet_list_string_length = triplet_list_string_length + &
           & LEN_TRIM(temp_string2)
@@ -951,9 +967,17 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ALLOCATE(CHARACTER(len=triplet_list_string_length+1) :: write_buffer)
   offset_counter = 1
   DO counter = 1, triplet_list%CurrentSize
+
+
+
+
+
+
+
      CALL WriteMMLine(temp_string3, triplet_list%DATA(counter)%index_row, &
           & triplet_list%DATA(counter)%index_column, &
           & triplet_list%DATA(counter)%point_value, add_newline_in=.TRUE.)
+
      WRITE(temp_string2, '(A)') ADJUSTL(temp_string3)
      temp_length = LEN_TRIM(temp_string2)+NEW_LINE_LENGTH
      WRITE(write_buffer(offset_counter:offset_counter+temp_length),*) &
@@ -1005,6 +1029,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      CALL MPI_File_close(mpi_file_handler, ierr)
   END IF
   CALL MPI_Barrier(this%process_grid%global_comm, ierr)
+# 751 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE WriteMatrixToMatrixMarket_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1018,6 +1043,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_c) :: triplet_list
     TYPE(Matrix_lsc) :: merged_local_data
 
+
+
   !! Local MPI Variables
   INTEGER :: mpi_file_handler
   INTEGER :: message_status(MPI_STATUS_SIZE)
@@ -1050,8 +1077,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Create the matrix size line
   NEW_LINE_LENGTH = LEN(new_LINE('A'))
+
   WRITE(temp_string1,'(A)') "%%MatrixMarket matrix coordinate complex general" &
        & //new_LINE('A')//"%"//new_LINE('A')
+
+
+
+
   ALLOCATE(CHARACTER(len=LEN_TRIM(temp_string1)) :: header_line1)
   header_line1 = TRIM(temp_string1)
 
@@ -1073,11 +1105,17 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Figure out the length of the string for storing.
   triplet_list_string_length = 0
   DO counter = 1, triplet_list%CurrentSize
+
      CALL WriteMMLine(temp_string3, triplet_list%DATA(counter)%index_row, &
           & triplet_list%DATA(counter)%index_column, &
           & REAL(triplet_list%DATA(counter)%point_value), &
           & AIMAG(triplet_list%DATA(counter)%point_value), &
           & add_newline_in=.TRUE.)
+
+
+
+
+
      WRITE(temp_string2, '(A)') ADJUSTL(temp_string3)
      triplet_list_string_length = triplet_list_string_length + &
           & LEN_TRIM(temp_string2)
@@ -1088,11 +1126,17 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ALLOCATE(CHARACTER(len=triplet_list_string_length+1) :: write_buffer)
   offset_counter = 1
   DO counter = 1, triplet_list%CurrentSize
+
      CALL WriteMMLine(temp_string3, triplet_list%DATA(counter)%index_row, &
           & triplet_list%DATA(counter)%index_column, &
           & REAL(triplet_list%DATA(counter)%point_value), &
           & AIMAG(triplet_list%DATA(counter)%point_value), &
           & add_newline_in=.TRUE.)
+
+
+
+
+
      WRITE(temp_string2, '(A)') ADJUSTL(temp_string3)
      temp_length = LEN_TRIM(temp_string2)+NEW_LINE_LENGTH
      WRITE(write_buffer(offset_counter:offset_counter+temp_length),*) &
@@ -1144,6 +1188,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      CALL MPI_File_close(mpi_file_handler, ierr)
   END IF
   CALL MPI_Barrier(this%process_grid%global_comm, ierr)
+# 766 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
+
 
   END SUBROUTINE WriteMatrixToMatrixMarket_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1180,6 +1226,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL DestructMatrix(temp_matrix)
     END IF
 
+
   !! Optional Parameteres
   IF (.NOT. PRESENT(preduplicated_in)) THEN
      preduplicated = .FALSE.
@@ -1218,7 +1265,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      CALL ConstructMatrixFromTripletList(local_matrix, sorted_triplet_list, &
           & this%local_rows, this%local_columns)
 
-     !! And reduce over the Z dimension.
+     !! And reduce over the Z dimension. 
      IF (.NOT. preduplicated .AND. &
           & .NOT. this%process_grid%num_process_slices .EQ. 1) THEN
         CALL ReduceAndSumMatrix(local_matrix, gathered_matrix, threshold, &
@@ -1233,6 +1280,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructTripletList(sorted_triplet_list)
 
   CALL StopTimer("FillFromTriplet")
+# 804 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
   END SUBROUTINE FillMatrixFromTripletList_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> This routine fills in a matrix based on local triplet lists. Each process
@@ -1268,6 +1316,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL DestructMatrix(temp_matrix)
     END IF
 
+
   !! Optional Parameteres
   IF (.NOT. PRESENT(preduplicated_in)) THEN
      preduplicated = .FALSE.
@@ -1306,7 +1355,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      CALL ConstructMatrixFromTripletList(local_matrix, sorted_triplet_list, &
           & this%local_rows, this%local_columns)
 
-     !! And reduce over the Z dimension.
+     !! And reduce over the Z dimension. 
      IF (.NOT. preduplicated .AND. &
           & .NOT. this%process_grid%num_process_slices .EQ. 1) THEN
         CALL ReduceAndSumMatrix(local_matrix, gathered_matrix, threshold, &
@@ -1321,6 +1370,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructTripletList(sorted_triplet_list)
 
   CALL StopTimer("FillFromTriplet")
+# 840 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
   END SUBROUTINE FillMatrixFromTripletList_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Fill in the values of a distributed matrix with the identity matrix.
@@ -1343,6 +1393,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(TripletList_r) :: triplet_list
 
+
   !! Local Data
   INTEGER :: II, JJ
   INTEGER :: total
@@ -1369,6 +1420,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Cleanup
   CALL DestructTripletList(triplet_list)
+# 863 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE FillMatrixIdentity_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1379,6 +1431,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(TripletList_c) :: triplet_list
 
+
   !! Local Data
   INTEGER :: II, JJ
   INTEGER :: total
@@ -1405,6 +1458,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Cleanup
   CALL DestructTripletList(triplet_list)
+# 874 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE FillMatrixIdentity_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1446,6 +1500,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(TripletList_r) :: triplet_list
 
+
   !! Local Data
   INTEGER :: total
   INTEGER :: II
@@ -1482,6 +1537,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Cleanup
   CALL DestructTripletList(triplet_list)
+# 916 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE FillMatrixPermutation_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1496,6 +1552,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(TripletList_c) :: triplet_list
 
+
   !! Local Data
   INTEGER :: total
   INTEGER :: II
@@ -1532,6 +1589,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !! Cleanup
   CALL DestructTripletList(triplet_list)
+# 931 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
 
   END SUBROUTINE FillMatrixPermutation_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1552,6 +1610,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL CopyMatrix(this, working_matrix)
     END IF
 
+
   !! Merge all the local data
   CALL MergeMatrixLocalBlocks(working_matrix, merged_local_data)
 
@@ -1560,6 +1619,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & working_matrix%start_column - 1)
 
   CALL DestructMatrix(working_matrix)
+# 952 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
   END SUBROUTINE GetMatrixTripletList_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Extracts a triplet list of the data that is stored on this process.
@@ -1579,6 +1639,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL CopyMatrix(this, working_matrix)
     END IF
 
+
   !! Merge all the local data
   CALL MergeMatrixLocalBlocks(working_matrix, merged_local_data)
 
@@ -1587,6 +1648,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        & working_matrix%start_column - 1)
 
   CALL DestructMatrix(working_matrix)
+# 972 "/Users/wddawson/Documents/NTPoly/NTPoly-Max/Source/Fortran/PSMatrixModule.F90" 2
   END SUBROUTINE GetMatrixTripletList_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Extract an arbitrary block of a matrix into a triplet list. Block is
@@ -1641,6 +1703,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ELSE
        CALL CopyMatrix(this, working_matrix)
     END IF
+
+
 
   !! Merge all the local data
   CALL MergeMatrixLocalBlocks(working_matrix, merged_local_data)
@@ -1772,6 +1836,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL DestructMatrix(working_matrix)
 
+
   END SUBROUTINE GetMatrixBlock_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Extract an arbitrary block of a matrix into a triplet list. Block is
@@ -1826,6 +1891,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ELSE
        CALL CopyMatrix(this, working_matrix)
     END IF
+
+
 
   !! Merge all the local data
   CALL MergeMatrixLocalBlocks(working_matrix, merged_local_data)
@@ -1957,6 +2024,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   CALL DestructMatrix(working_matrix)
 
+
   END SUBROUTINE GetMatrixBlock_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Copy an arbitrary slice from a matrix into a new smaller matrix.
@@ -2004,6 +2072,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The last column to include in this matrix.
     INTEGER :: end_column
 
+
+
+
   !! Local Variables
   TYPE(TripletList_r) :: tlist, slist
   TYPE(Triplet_r) :: triplet
@@ -2037,6 +2108,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL DestructTripletList(tlist)
   CALL DestructTripletList(slist)
 
+
+
   END SUBROUTINE GetMatrixSlice_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Implements slice matrix for complex types.
@@ -2054,6 +2127,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: start_column
     !> The last column to include in this matrix.
     INTEGER :: end_column
+
+
+
 
   !! Local Variables
   TYPE(TripletList_c) :: tlist, slist
@@ -2087,6 +2163,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !! Cleanup
   CALL DestructTripletList(tlist)
   CALL DestructTripletList(slist)
+
+
 
   END SUBROUTINE GetMatrixSlice_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2164,6 +2242,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Temporary Variables
     TYPE(Matrix_lsr) :: local_mat
 
+
   CALL GatherMatrixToProcess(this, local_mat, this%process_grid%RootID)
 
   IF (IsRoot(this%process_grid)) THEN
@@ -2185,6 +2264,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CHARACTER(len=*), OPTIONAL, INTENT(IN) :: file_name_in
     !! Temporary Variables
     TYPE(Matrix_lsc) :: local_mat
+
 
   CALL GatherMatrixToProcess(this, local_mat, this%process_grid%RootID)
 
@@ -2225,6 +2305,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_r) :: new_list
     TYPE(Triplet_r) :: temporary
 
+
   !! Local Data
   INTEGER :: counter
   INTEGER :: size_temp
@@ -2260,6 +2341,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_c) :: triplet_list
     TYPE(TripletList_c) :: new_list
     TYPE(Triplet_c) :: temporary
+
 
   !! Local Data
   INTEGER :: counter
@@ -2380,6 +2462,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_r) :: new_list
     TYPE(Triplet_r) :: temporary, temporary_t
 
+
   !! Local Data
   INTEGER :: counter
 
@@ -2416,6 +2499,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_c) :: triplet_list
     TYPE(TripletList_c) :: new_list
     TYPE(Triplet_c) :: temporary, temporary_t
+
 
   !! Local Data
   INTEGER :: counter
@@ -2491,6 +2575,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! For Data Redistribution
     TYPE(TripletList_r) :: full_list, new_list
     TYPE(TripletList_r), DIMENSION(:), ALLOCATABLE :: send_list
+
 
   !! For Grid Splitting
   TYPE(ProcessGrid_t) :: new_grid
@@ -2577,6 +2662,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! For Data Redistribution
     TYPE(TripletList_c) :: full_list, new_list
     TYPE(TripletList_c), DIMENSION(:), ALLOCATABLE :: send_list
+
 
   !! For Grid Splitting
   TYPE(ProcessGrid_t) :: new_grid
@@ -2672,6 +2758,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          & send_triplet_lists
     TYPE(Triplet_r) :: temp_triplet
 
+
   !! Local Data
   INTEGER, DIMENSION(:), ALLOCATABLE :: row_lookup
   INTEGER, DIMENSION(:), ALLOCATABLE :: column_lookup
@@ -2766,6 +2853,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_c), DIMENSION(this%process_grid%slice_size) :: &
          & send_triplet_lists
     TYPE(Triplet_c) :: temp_triplet
+
 
   !! Local Data
   INTEGER, DIMENSION(:), ALLOCATABLE :: row_lookup
@@ -2872,9 +2960,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The matrix to split up.
     TYPE(Matrix_lsr), INTENT(IN) :: matrix_to_split
 
+
+
   CALL SplitMatrix(matrix_to_split, &
        & this%process_grid%number_of_blocks_rows, &
        & this%process_grid%number_of_blocks_columns, this%local_data_r)
+
 
   END SUBROUTINE SplitMatrixToLocalBlocks_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2885,9 +2976,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The matrix to split up.
     TYPE(Matrix_lsc), INTENT(IN) :: matrix_to_split
 
+
+
   CALL SplitMatrix(matrix_to_split, &
        & this%process_grid%number_of_blocks_rows, &
        & this%process_grid%number_of_blocks_columns, this%local_data_c)
+
 
   END SUBROUTINE SplitMatrixToLocalBlocks_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2898,9 +2992,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The merged matrix.
     TYPE(Matrix_lsr), INTENT(INOUT) :: merged_matrix
 
+
+
   CALL ComposeMatrix(this%local_data_r, &
        & this%process_grid%number_of_blocks_rows, &
        & this%process_grid%number_of_blocks_columns, merged_matrix)
+
 
   END SUBROUTINE MergeMatrixLocalBlocks_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2911,9 +3008,12 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The merged matrix.
     TYPE(Matrix_lsc), INTENT(INOUT) :: merged_matrix
 
+
+
   CALL ComposeMatrix(this%local_data_c, &
        & this%process_grid%number_of_blocks_rows, &
        & this%process_grid%number_of_blocks_columns, merged_matrix)
+
 
   END SUBROUTINE MergeMatrixLocalBlocks_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2927,6 +3027,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Matrix_lsc) :: local_matrix
     TYPE(Matrix_lsr) :: converted_matrix
+
 
   IF (.NOT. in%is_complex .EQV. convert_to_complex) THEN
      CALL MergeMatrixLocalBlocks(in, local_matrix)
@@ -2949,6 +3050,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(Matrix_lsr) :: local_matrix
     TYPE(Matrix_lsc) :: converted_matrix
+
 
   IF (.NOT. in%is_complex .EQV. convert_to_complex) THEN
      CALL MergeMatrixLocalBlocks(in, local_matrix)
@@ -2988,6 +3090,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(TripletList_r) :: tlist, pruned
     TYPE(Triplet_r) :: temp
 
+
   INTEGER :: II
 
   !! Get the triplet values.
@@ -3021,6 +3124,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(TripletList_c) :: tlist, pruned
     TYPE(Triplet_c) :: temp
+
 
   INTEGER :: II
 
@@ -3059,6 +3163,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(TripletList_r) :: tlist, sorted
     TYPE(TripletList_r), DIMENSION(:), ALLOCATABLE :: slist
+
 
   !! Local Variables
   INTEGER :: list_size
@@ -3112,6 +3217,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_lsr) :: gathered
 
 
+  
   CALL MergeMatrixLocalBlocks(this, local)
 
   !! Merge Columns
@@ -3147,6 +3253,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     TYPE(TripletList_c) :: tlist, sorted
     TYPE(TripletList_c), DIMENSION(:), ALLOCATABLE :: slist
+
 
   !! Local Variables
   INTEGER :: list_size
@@ -3200,6 +3307,7 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     TYPE(Matrix_lsc) :: gathered
 
 
+  
   CALL MergeMatrixLocalBlocks(this, local)
 
   !! Merge Columns
