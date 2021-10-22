@@ -569,8 +569,9 @@ subroutine elsi_do_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
       evec(:,:) = ovlp
 
       ! S_vv = S_vv - S_vc * S_cv
-      call pdsyrk("U","N",ph%n_basis_v,ph%n_basis_c,-1.0_r8,evec,ph%n_basis_c+1,&
-           1,bh%desc,1.0_r8,ovlp,ph%n_basis_c+1,ph%n_basis_c+1,bh%desc)
+      call pdsyrk("U","N",ph%n_basis_v,ph%n_basis_c,-1.0_r8,evec,&
+           ph%n_basis_c+1,1,bh%desc,1.0_r8,ovlp,ph%n_basis_c+1,ph%n_basis_c+1,&
+           bh%desc)
 
       call elsi_set_full_mat(ph,bh,UT_MAT,ovlp)
 
@@ -597,9 +598,6 @@ subroutine elsi_do_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
       end do
    end if
 
-   call pdgemr2d(ph%n_basis_v,ph%n_basis_v,ham,ph%n_basis_c+1,ph%n_basis_c+1,&
-        bh%desc,ham_v,1,1,ph%desc_v,bh%blacs_ctxt)
-
    ! Compute H_vv
    evec(:,:) = 0.0_r8
 
@@ -615,8 +613,11 @@ subroutine elsi_do_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
       evec(:,:) = evec-ham
 
       call pdgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,1.0_r8,evec,&
-           ph%n_basis_c+1,1,bh%desc,ovlp,1,ph%n_basis_c+1,bh%desc,0.5_r8,ham_v,&
-           1,1,ph%desc_v)
+           ph%n_basis_c+1,1,bh%desc,ovlp,1,ph%n_basis_c+1,bh%desc,0.5_r8,ham,&
+           ph%n_basis_c+1,ph%n_basis_c+1,bh%desc)
+
+      call pdgemr2d(ph%n_basis_v,ph%n_basis_v,ham,ph%n_basis_c+1,&
+           ph%n_basis_c+1,bh%desc,ham_v,1,1,ph%desc_v,bh%blacs_ctxt)
 
       call pdtran(ph%n_basis_v,ph%n_basis_v,1.0_r8,ham_v,1,1,ph%desc_v,0.0_r8,&
            evec_v,1,1,ph%desc_v)
@@ -629,8 +630,11 @@ subroutine elsi_do_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
            1,bh%desc)
 
       call pdgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,-1.0_r8,evec,&
-           ph%n_basis_c+1,1,bh%desc,ovlp,1,ph%n_basis_c+1,bh%desc,1.0_r8,ham_v,&
-           1,1,ph%desc_v)
+           ph%n_basis_c+1,1,bh%desc,ovlp,1,ph%n_basis_c+1,bh%desc,1.0_r8,ham,&
+           ph%n_basis_c+1,ph%n_basis_c+1,bh%desc)
+
+      call pdgemr2d(ph%n_basis_v,ph%n_basis_v,ham,ph%n_basis_c+1,&
+           ph%n_basis_c+1,bh%desc,ham_v,1,1,ph%desc_v,bh%blacs_ctxt)
    end if
 
    ! Switch to valence dimension
@@ -767,10 +771,12 @@ subroutine elsi_undo_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,eval_c,evec_v)
    call pdgemr2d(ph%n_basis_v,ph%n_basis_v,evec_v,1,1,ph%desc_v,evec,&
         ph%n_basis_c+1,ph%n_basis_c+1,bh%desc,bh%blacs_ctxt)
 
+   ham(:,:) = evec
+
    ! C_cv = -S_cv * C_vv
    call pdgemm("N","N",ph%n_basis_c,ph%n_basis_v,ph%n_basis_v,-1.0_r8,ovlp,1,&
-        ph%n_basis_c+1,bh%desc,evec_v,1,1,ph%desc_v,0.0_r8,evec,1,&
-        ph%n_basis_c+1,bh%desc)
+        ph%n_basis_c+1,bh%desc,ham,ph%n_basis_c+1,ph%n_basis_c+1,bh%desc,&
+        0.0_r8,evec,1,ph%n_basis_c+1,bh%desc)
 
    if(ph%fc_perm) then
       ham(:,:) = evec
@@ -1258,9 +1264,6 @@ subroutine elsi_do_fc_elpa_cmplx(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
       end do
    end if
 
-   call pzgemr2d(ph%n_basis_v,ph%n_basis_v,ham,ph%n_basis_c+1,ph%n_basis_c+1,&
-        bh%desc,ham_v,1,1,ph%desc_v,bh%blacs_ctxt)
-
    ! Compute H_vv
    evec(:,:) = (0.0_r8,0.0_r8)
 
@@ -1277,7 +1280,10 @@ subroutine elsi_do_fc_elpa_cmplx(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
 
       call pzgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,&
            (1.0_r8,0.0_r8),evec,ph%n_basis_c+1,1,bh%desc,ovlp,1,ph%n_basis_c+1,&
-           bh%desc,(0.5_r8,0.0_r8),ham_v,1,1,ph%desc_v)
+           bh%desc,(0.5_r8,0.0_r8),ham,ph%n_basis_c+1,ph%n_basis_c+1,bh%desc)
+
+      call pzgemr2d(ph%n_basis_v,ph%n_basis_v,ham,ph%n_basis_c+1,&
+           ph%n_basis_c+1,bh%desc,ham_v,1,1,ph%desc_v,bh%blacs_ctxt)
 
       call pztranc(ph%n_basis_v,ph%n_basis_v,(1.0_r8,0.0_r8),ham_v,1,1,&
            ph%desc_v,(0.0_r8,0.0_r8),evec_v,1,1,ph%desc_v)
@@ -1291,7 +1297,11 @@ subroutine elsi_do_fc_elpa_cmplx(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
 
       call pzgemm("N","N",ph%n_basis_v,ph%n_basis_v,ph%n_basis_c,&
            (-1.0_r8,0.0_r8),evec,ph%n_basis_c+1,1,bh%desc,ovlp,1,&
-           ph%n_basis_c+1,bh%desc,(1.0_r8,0.0_r8),ham_v,1,1,ph%desc_v)
+           ph%n_basis_c+1,bh%desc,(1.0_r8,0.0_r8),ham,ph%n_basis_c+1,&
+           ph%n_basis_c+1,bh%desc)
+
+      call pzgemr2d(ph%n_basis_v,ph%n_basis_v,ham,ph%n_basis_c+1,&
+           ph%n_basis_c+1,bh%desc,ham_v,1,1,ph%desc_v,bh%blacs_ctxt)
    end if
 
    ! Switch to valence dimension
@@ -1428,10 +1438,12 @@ subroutine elsi_undo_fc_elpa_cmplx(ph,bh,ham,ovlp,evec,perm,eval_c,evec_v)
    call pzgemr2d(ph%n_basis_v,ph%n_basis_v,evec_v,1,1,ph%desc_v,evec,&
         ph%n_basis_c+1,ph%n_basis_c+1,bh%desc,bh%blacs_ctxt)
 
+   ham(:,:) = evec
+
    ! C_cv = -S_cv * C_vv
    call pzgemm("N","N",ph%n_basis_c,ph%n_basis_v,ph%n_basis_v,(-1.0_r8,0.0_r8),&
-        ovlp,1,ph%n_basis_c+1,bh%desc,evec_v,1,1,ph%desc_v,(0.0_r8,0.0_r8),&
-        evec,1,ph%n_basis_c+1,bh%desc)
+        ovlp,1,ph%n_basis_c+1,bh%desc,ham,ph%n_basis_c+1,ph%n_basis_c+1,&
+        bh%desc,(0.0_r8,0.0_r8),evec,1,ph%n_basis_c+1,bh%desc)
 
    if(ph%fc_perm) then
       ham(:,:) = evec
