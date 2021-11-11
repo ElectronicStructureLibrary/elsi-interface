@@ -16,7 +16,7 @@ module ELSI_EIGENEXA
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_REDIST, only: elsi_blacs_to_eigenexa_h,elsi_eigenexa_to_blacs_ev
    use ELSI_UTIL, only: elsi_check_err
    use EIGEN_LIBS_MOD, only: eigen_init,eigen_get_procs,eigen_get_id,&
@@ -90,10 +90,10 @@ subroutine elsi_solve_eigenexa_real(ph,bh,ham,ovlp,eval,evec)
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
-         bh%nnz_l = count(abs(ham) > bh%def0)
+         bh%nnz_l = count( (abs(ham) > bh%def0), kind=i8)
       end if
 
-      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
       call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
    end if

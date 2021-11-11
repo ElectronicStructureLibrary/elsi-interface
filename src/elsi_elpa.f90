@@ -14,7 +14,7 @@ module ELSI_ELPA
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
-   use ELSI_PRECISION, only: r4,r8,i4
+   use ELSI_PRECISION, only: r4,r8,i4,i8
    use ELSI_SORT, only: elsi_heapsort,elsi_permute
    use ELSI_UTIL, only: elsi_check_err,elsi_get_gid,elsi_set_full_mat
    use ELPA, only: elpa_init,elpa_allocate,elpa_deallocate,&
@@ -366,10 +366,10 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
-         bh%nnz_l = count(abs(ham) > bh%def0)
+         bh%nnz_l = count( (abs(ham) > bh%def0), kind=i8)
       end if
 
-      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
       call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
    end if
@@ -1033,10 +1033,10 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
-         bh%nnz_l = count(abs(ham) > bh%def0)
+         bh%nnz_l = count( (abs(ham) > bh%def0), kind=i8)
       end if
 
-      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
       call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
    end if

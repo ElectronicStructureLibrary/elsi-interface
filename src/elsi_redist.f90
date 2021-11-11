@@ -223,7 +223,7 @@ subroutine elsi_blacs_to_mask_real(ph,bh,ham_den,ovlp_den,mask)
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-   integer(kind=i4), intent(out) :: mask(bh%n_lrow,bh%n_lcol)
+   integer(kind=i8), intent(out) :: mask(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -262,7 +262,7 @@ subroutine elsi_blacs_to_mask_real(ph,bh,ham_den,ovlp_den,mask)
 
    bh%nnz_l = sum(mask)
 
-   call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+   call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
    call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
@@ -279,7 +279,7 @@ subroutine elsi_blacs_to_mask_cmplx(ph,bh,ham_den,ovlp_den,mask)
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-   integer(kind=i4), intent(out) :: mask(bh%n_lrow,bh%n_lcol)
+   integer(kind=i8), intent(out) :: mask(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -318,7 +318,7 @@ subroutine elsi_blacs_to_mask_cmplx(ph,bh,ham_den,ovlp_den,mask)
 
    bh%nnz_l = sum(mask)
 
-   call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+   call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
    call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
@@ -334,7 +334,7 @@ subroutine elsi_blacs_to_pexsi_hs_dim(ph,bh,mask)
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
+   integer(kind=i8), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -342,8 +342,8 @@ subroutine elsi_blacs_to_pexsi_hs_dim(ph,bh,mask)
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: ierr
 
-   integer(kind=i4), allocatable :: dest(:)
-   integer(kind=i4), allocatable :: nnz(:)
+   integer(kind=i8), allocatable :: dest(:)
+   integer(kind=i8), allocatable :: nnz(:)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_pexsi_hs_dim"
 
@@ -363,7 +363,7 @@ subroutine elsi_blacs_to_pexsi_hs_dim(ph,bh,mask)
       end do
    end do
 
-   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,MPI_INTEGER4,MPI_SUM,&
+   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,MPI_INTEGER8,MPI_SUM,&
         bh%comm,ierr)
 
    call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
@@ -389,18 +389,18 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
+   integer(kind=i8), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: ham_sp(bh%nnz_l_sp)
    real(kind=r8), intent(inout) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: g_col
    integer(kind=i4) :: g_row
@@ -419,7 +419,7 @@ subroutine elsi_blacs_to_pexsi_hs_real(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_pexsi_hs_real"
 
@@ -584,18 +584,18 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
    type(elsi_basic_t), intent(in) :: bh
    complex(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
+   integer(kind=i8), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: ham_sp(bh%nnz_l_sp)
    complex(kind=r8), intent(inout) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: g_col
    integer(kind=i4) :: g_row
@@ -614,7 +614,7 @@ subroutine elsi_blacs_to_pexsi_hs_cmplx(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_pexsi_hs_cmplx"
 
@@ -778,7 +778,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(in) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    real(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8) :: t0
@@ -786,7 +786,7 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
@@ -805,8 +805,8 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_pexsi_to_blacs_dm_real"
 
@@ -875,8 +875,11 @@ subroutine elsi_pexsi_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
 
    ! Redistribute packed data
    ! Row index
+   write(*,*) bh%nnz_l, bh%nnz_l_sp
    call elsi_allocate(bh,row_recv,bh%nnz_l,"row_recv",caller)
 
+   !write(*,*) "row_send", row_send(:)
+   write(*,*) "send_displ", send_displ(:)
    call MPI_Alltoallv(row_send,send_count,send_displ,MPI_INTEGER4,row_recv,&
         recv_count,recv_displ,MPI_INTEGER4,bh%comm,ierr)
 
@@ -945,7 +948,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8), intent(in) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    complex(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8) :: t0
@@ -953,7 +956,7 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
@@ -972,8 +975,8 @@ subroutine elsi_pexsi_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_pexsi_to_blacs_dm_cmplx"
 
@@ -1110,7 +1113,7 @@ subroutine elsi_blacs_to_sips_hs_dim(ph,bh,mask)
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
+   integer(kind=i8), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
 
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
@@ -1118,8 +1121,8 @@ subroutine elsi_blacs_to_sips_hs_dim(ph,bh,mask)
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: ierr
 
-   integer(kind=i4), allocatable :: dest(:)
-   integer(kind=i4), allocatable :: nnz(:)
+   integer(kind=i8), allocatable :: dest(:)
+   integer(kind=i8), allocatable :: nnz(:)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_sips_hs_dim"
 
@@ -1139,7 +1142,7 @@ subroutine elsi_blacs_to_sips_hs_dim(ph,bh,mask)
       end do
    end do
 
-   call MPI_Allreduce(dest,nnz,bh%n_procs,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+   call MPI_Allreduce(dest,nnz,bh%n_procs,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
    call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
@@ -1164,11 +1167,11 @@ subroutine elsi_blacs_to_sips_hs_real(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
+   integer(kind=i8), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: ham_sp(bh%nnz_l_sp)
    real(kind=r8), intent(inout) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_sips_hs_real"
 
@@ -1194,11 +1197,11 @@ subroutine elsi_blacs_to_sips_hs_cmplx(ph,bh,ham_den,ovlp_den,mask,ham_sp,&
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
+   integer(kind=i8), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: ham_sp(bh%nnz_l_sp)
    complex(kind=r8), intent(inout) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(inout) :: col_ptr(bh%n_lcol_sp+1)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_sips_hs_cmplx"
 
@@ -1225,7 +1228,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    real(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
    real(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    real(kind=r8), intent(out) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
 
@@ -1234,7 +1237,7 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
@@ -1255,8 +1258,8 @@ subroutine elsi_sips_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_sips_to_blacs_hs_real"
 
@@ -1436,7 +1439,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    complex(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
    complex(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    complex(kind=r8), intent(out) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
 
@@ -1445,7 +1448,7 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
@@ -1466,8 +1469,8 @@ subroutine elsi_sips_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_sips_to_blacs_hs_cmplx"
 
@@ -1651,14 +1654,14 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   integer(kind=i4) :: nnz_l_before
-   integer(kind=i4) :: nnz_l_after
+   integer(kind=i8) :: nnz_l_before
+   integer(kind=i8) :: nnz_l_after
    integer(kind=i4) :: n_lrow_aux
    character(len=200) :: msg
 
@@ -1673,8 +1676,8 @@ subroutine elsi_sips_to_blacs_ev_real(ph,bh,evec_sips,evec)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_sips_to_blacs_ev_real"
 
@@ -1812,14 +1815,14 @@ subroutine elsi_blacs_to_sips_dm_real(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
    real(kind=r8), intent(in) :: dm_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
@@ -1968,14 +1971,14 @@ subroutine elsi_blacs_to_sips_dm_cmplx(ph,bh,dm_den,dm_sp,row_ind,col_ptr)
    complex(kind=r8), intent(in) :: dm_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
@@ -2125,7 +2128,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    real(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
    real(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    real(kind=r8), intent(out) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
 
@@ -2134,7 +2137,7 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
@@ -2155,8 +2158,8 @@ subroutine elsi_siesta_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_siesta_to_blacs_hs_real"
 
@@ -2337,7 +2340,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    complex(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
    complex(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    complex(kind=r8), intent(out) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: ovlp_den(bh%n_lrow,bh%n_lcol)
 
@@ -2346,7 +2349,7 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
@@ -2367,8 +2370,8 @@ subroutine elsi_siesta_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_siesta_to_blacs_hs_cmplx"
 
@@ -2547,14 +2550,14 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,dm_den,dm_sp,row_ind,col_ptr)
    real(kind=r8), intent(in) :: dm_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
@@ -2573,8 +2576,8 @@ subroutine elsi_blacs_to_siesta_dm_real(bh,dm_den,dm_sp,row_ind,col_ptr)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_siesta_dm_real"
 
@@ -2713,14 +2716,14 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,dm_den,dm_sp,row_ind,col_ptr)
    complex(kind=r8), intent(in) :: dm_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
@@ -2739,8 +2742,8 @@ subroutine elsi_blacs_to_siesta_dm_cmplx(bh,dm_den,dm_sp,row_ind,col_ptr)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_siesta_dm_cmplx"
 
@@ -2877,15 +2880,15 @@ subroutine elsi_siesta_to_pexsi_hs_dim(ph,bh,col_ptr2)
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
+   integer(kind=i8), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
 
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_col
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: ierr
 
-   integer(kind=i4), allocatable :: dest(:)
-   integer(kind=i4), allocatable :: nnz(:)
+   integer(kind=i8), allocatable :: dest(:)
+   integer(kind=i8), allocatable :: nnz(:)
 
    character(len=*), parameter :: caller = "elsi_siesta_to_pexsi_hs_dim"
 
@@ -2901,7 +2904,7 @@ subroutine elsi_siesta_to_pexsi_hs_dim(ph,bh,col_ptr2)
       dest(i_proc+1) = dest(i_proc+1)+col_ptr2(i_col+1)-col_ptr2(i_col)
    end do
 
-   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,MPI_INTEGER4,MPI_SUM,&
+   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,MPI_INTEGER8,MPI_SUM,&
         bh%comm,ierr)
 
    call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
@@ -2927,18 +2930,18 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    real(kind=r8), intent(in) :: ham_sp2(bh%nnz_l_sp2)
    real(kind=r8), intent(in) :: ovlp_sp2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
-   integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
+   integer(kind=i8), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
    real(kind=r8), intent(out) :: ham_sp1(bh%nnz_l_sp1)
    real(kind=r8), intent(inout) :: ovlp_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: n_lcol_aux
@@ -2955,7 +2958,7 @@ subroutine elsi_siesta_to_pexsi_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_siesta_to_pexsi_hs_real"
 
@@ -3120,18 +3123,18 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    complex(kind=r8), intent(in) :: ham_sp2(bh%nnz_l_sp2)
    complex(kind=r8), intent(in) :: ovlp_sp2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
-   integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
+   integer(kind=i8), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
    complex(kind=r8), intent(out) :: ham_sp1(bh%nnz_l_sp1)
    complex(kind=r8), intent(inout) :: ovlp_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: dest ! Destination of an element
    integer(kind=i4) :: n_lcol_aux
@@ -3148,7 +3151,7 @@ subroutine elsi_siesta_to_pexsi_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_siesta_to_pexsi_hs_cmplx"
 
@@ -3312,17 +3315,17 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(in) :: dm_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
    real(kind=r8), intent(out) :: dm_sp2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
-   integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
+   integer(kind=i8), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
@@ -3340,8 +3343,8 @@ subroutine elsi_pexsi_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_pexsi_to_siesta_dm_real"
 
@@ -3479,17 +3482,17 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8), intent(in) :: dm_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
    complex(kind=r8), intent(out) :: dm_sp2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
-   integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
+   integer(kind=i8), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
@@ -3507,8 +3510,8 @@ subroutine elsi_pexsi_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_pexsi_to_siesta_dm_cmplx"
 
@@ -3645,7 +3648,7 @@ subroutine elsi_sips_to_blacs_dm_real(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(in) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    real(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
 
    character(len=*), parameter :: caller = "elsi_sips_to_blacs_dm_real"
@@ -3670,7 +3673,7 @@ subroutine elsi_sips_to_blacs_dm_cmplx(ph,bh,dm_sp,row_ind,col_ptr,dm_den)
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8), intent(in) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    complex(kind=r8), intent(out) :: dm_den(bh%n_lrow,bh%n_lcol)
 
    character(len=*), parameter :: caller = "elsi_sips_to_blacs_dm_cmplx"
@@ -3696,10 +3699,10 @@ subroutine elsi_sips_to_siesta_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(in) :: dm_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
    real(kind=r8), intent(out) :: dm_sp2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
-   integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
+   integer(kind=i8), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
 
    character(len=*), parameter :: caller = "elsi_sips_to_siesta_dm_real"
 
@@ -3725,10 +3728,10 @@ subroutine elsi_sips_to_siesta_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,dm_sp2,&
    type(elsi_basic_t), intent(inout) :: bh
    complex(kind=r8), intent(in) :: dm_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
    complex(kind=r8), intent(out) :: dm_sp2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
-   integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
+   integer(kind=i8), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
 
    character(len=*), parameter :: caller = "elsi_sips_to_siesta_dm_cmplx"
 
@@ -3751,15 +3754,15 @@ subroutine elsi_siesta_to_sips_hs_dim(ph,bh,col_ptr2)
 
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(inout) :: bh
-   integer(kind=i4), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
+   integer(kind=i8), intent(in) :: col_ptr2(bh%n_lcol_sp2+1)
 
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_col
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: ierr
 
-   integer(kind=i4), allocatable :: dest(:)
-   integer(kind=i4), allocatable :: nnz(:)
+   integer(kind=i8), allocatable :: dest(:)
+   integer(kind=i8), allocatable :: nnz(:)
 
    character(len=*), parameter :: caller = "elsi_siesta_to_sips_hs_dim"
 
@@ -3775,7 +3778,7 @@ subroutine elsi_siesta_to_sips_hs_dim(ph,bh,col_ptr2)
       dest(i_proc+1) = dest(i_proc+1)+col_ptr2(i_col+1)-col_ptr2(i_col)
    end do
 
-   call MPI_Allreduce(dest,nnz,bh%n_procs,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+   call MPI_Allreduce(dest,nnz,bh%n_procs,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
    call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
@@ -3800,11 +3803,11 @@ subroutine elsi_siesta_to_sips_hs_real(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    real(kind=r8), intent(in) :: ham_sp2(bh%nnz_l_sp2)
    real(kind=r8), intent(in) :: ovlp_sp2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
-   integer(kind=i4), intent(in) :: col_ptr2(bh%nnz_l_sp2)
+   integer(kind=i8), intent(in) :: col_ptr2(bh%nnz_l_sp2)
    real(kind=r8), intent(out) :: ham_sp1(bh%nnz_l_sp1)
    real(kind=r8), intent(inout) :: ovlp_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr1(bh%nnz_l_sp1)
+   integer(kind=i8), intent(inout) :: col_ptr1(bh%nnz_l_sp1)
 
    character(len=*), parameter :: caller = "elsi_siesta_to_sips_hs_real"
 
@@ -3831,11 +3834,11 @@ subroutine elsi_siesta_to_sips_hs_cmplx(ph,bh,ham_sp2,ovlp_sp2,row_ind2,&
    complex(kind=r8), intent(in) :: ham_sp2(bh%nnz_l_sp2)
    complex(kind=r8), intent(in) :: ovlp_sp2(bh%nnz_l_sp2)
    integer(kind=i4), intent(in) :: row_ind2(bh%nnz_l_sp2)
-   integer(kind=i4), intent(in) :: col_ptr2(bh%nnz_l_sp2)
+   integer(kind=i8), intent(in) :: col_ptr2(bh%nnz_l_sp2)
    complex(kind=r8), intent(out) :: ham_sp1(bh%nnz_l_sp1)
    complex(kind=r8), intent(inout) :: ovlp_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr1(bh%nnz_l_sp1)
+   integer(kind=i8), intent(inout) :: col_ptr1(bh%nnz_l_sp1)
 
    character(len=*), parameter :: caller = "elsi_siesta_to_sips_hs_cmplx"
 
@@ -3861,7 +3864,7 @@ subroutine elsi_blacs_to_ntpoly_hs_real(ph,bh,ham_den,ovlp_den,mask,ham_nt,&
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
+   integer(kind=i8), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
@@ -3946,7 +3949,7 @@ subroutine elsi_blacs_to_ntpoly_hs_cmplx(ph,bh,ham_den,ovlp_den,mask,ham_nt,&
    type(elsi_basic_t), intent(in) :: bh
    complex(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(in) :: ovlp_den(bh%n_lrow,bh%n_lcol)
-   integer(kind=i4), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
+   integer(kind=i8), intent(in) :: mask(bh%n_lrow,bh%n_lcol)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
@@ -4032,13 +4035,13 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_row
    integer(kind=i4) :: p_col
-   integer(kind=i4) :: nnz_l_nt
+   integer(kind=i8) :: nnz_l_nt
    integer(kind=i4) :: nnz_l_aux
    character(len=200) :: msg
 
@@ -4053,8 +4056,8 @@ subroutine elsi_ntpoly_to_blacs_dm_real(bh,dm_nt,dm_den)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    type(TripletList_r) :: dm_list
 
@@ -4195,13 +4198,13 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_row
    integer(kind=i4) :: p_col
-   integer(kind=i4) :: nnz_l_nt
+   integer(kind=i8) :: nnz_l_nt
    integer(kind=i4) :: nnz_l_aux
    character(len=200) :: msg
 
@@ -4216,8 +4219,8 @@ subroutine elsi_ntpoly_to_blacs_dm_cmplx(bh,dm_nt,dm_den)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    type(TripletList_c) :: dm_list
 
@@ -4358,13 +4361,13 @@ subroutine elsi_sips_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    real(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
    real(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_col
    character(len=200) :: msg
 
@@ -4440,13 +4443,13 @@ subroutine elsi_sips_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    complex(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
    complex(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_col
    character(len=200) :: msg
 
@@ -4520,18 +4523,18 @@ subroutine elsi_ntpoly_to_sips_dm_real(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    type(Matrix_ps), intent(inout) :: dm_nt
    real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: dest ! Destination of an element
-   integer(kind=i4) :: nnz_l_nt
+   integer(kind=i8) :: nnz_l_nt
    integer(kind=i4) :: nnz_l_aux
    character(len=200) :: msg
 
@@ -4673,18 +4676,18 @@ subroutine elsi_ntpoly_to_sips_dm_cmplx(ph,bh,dm_nt,dm_sp,row_ind,col_ptr)
    type(Matrix_ps), intent(inout) :: dm_nt
    complex(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: dest ! Destination of an element
-   integer(kind=i4) :: nnz_l_nt
+   integer(kind=i8) :: nnz_l_nt
    integer(kind=i4) :: nnz_l_aux
    character(len=200) :: msg
 
@@ -4828,13 +4831,13 @@ subroutine elsi_siesta_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    real(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
    real(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    type(Matrix_ps), intent(inout) :: ham_nt
    type(Matrix_ps), intent(inout) :: ovlp_nt
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_col
    character(len=200) :: msg
@@ -4911,7 +4914,7 @@ subroutine elsi_siesta_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
    complex(kind=r8), intent(in) :: ham_sp(bh%nnz_l_sp)
    complex(kind=r8), intent(in) :: ovlp_sp(bh%nnz_l_sp)
    type(Matrix_ps), intent(inout) :: ham_nt
@@ -4919,7 +4922,7 @@ subroutine elsi_siesta_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ptr,&
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_col
    integer(kind=i4) :: g_col
    character(len=200) :: msg
@@ -4995,17 +4998,17 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,dm_nt,dm_sp,row_ind,col_ptr)
    type(Matrix_ps), intent(inout) :: dm_nt
    real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
-   integer(kind=i4) :: nnz_l_nt
+   integer(kind=i8) :: nnz_l_nt
    integer(kind=i4) :: nnz_l_aux
    character(len=200) :: msg
 
@@ -5020,8 +5023,8 @@ subroutine elsi_ntpoly_to_siesta_dm_real(bh,dm_nt,dm_sp,row_ind,col_ptr)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    type(TripletList_r) :: dm_list
 
@@ -5160,17 +5163,17 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,dm_nt,dm_sp,row_ind,col_ptr)
    type(Matrix_ps), intent(inout) :: dm_nt
    complex(kind=r8), intent(out):: dm_sp(bh%nnz_l_sp)
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp+1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
-   integer(kind=i4) :: nnz_l_nt
+   integer(kind=i8) :: nnz_l_nt
    integer(kind=i4) :: nnz_l_aux
    character(len=200) :: msg
 
@@ -5185,8 +5188,8 @@ subroutine elsi_ntpoly_to_siesta_dm_cmplx(bh,dm_nt,dm_sp,row_ind,col_ptr)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    type(TripletList_c) :: dm_list
 
@@ -5336,7 +5339,7 @@ subroutine elsi_generic_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
@@ -5359,8 +5362,8 @@ subroutine elsi_generic_to_blacs_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_generic_to_blacs_hs_real"
 
@@ -5568,7 +5571,7 @@ subroutine elsi_generic_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
@@ -5591,8 +5594,8 @@ subroutine elsi_generic_to_blacs_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_generic_to_blacs_hs_cmplx"
 
@@ -5799,7 +5802,7 @@ subroutine elsi_generic_to_ntpoly_hs_real(ph,bh,ham_sp,ovlp_sp,row_ind,col_ind,&
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    character(len=200) :: msg
 
    type(TripletList_r) :: ham_list
@@ -5889,7 +5892,7 @@ subroutine elsi_generic_to_ntpoly_hs_cmplx(ph,bh,ham_sp,ovlp_sp,row_ind,&
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    character(len=200) :: msg
 
    type(TripletList_c) :: ham_list
@@ -5970,12 +5973,12 @@ subroutine elsi_generic_to_pexsi_hs_dim(ph,bh,col_ind3)
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: col_ind3(bh%nnz_l_sp3)
 
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: ierr
 
-   integer(kind=i4), allocatable :: dest(:)
-   integer(kind=i4), allocatable :: nnz(:)
+   integer(kind=i8), allocatable :: dest(:)
+   integer(kind=i8), allocatable :: nnz(:)
 
    character(len=*), parameter :: caller = "elsi_generic_to_pexsi_hs_dim"
 
@@ -5989,7 +5992,7 @@ subroutine elsi_generic_to_pexsi_hs_dim(ph,bh,col_ind3)
       dest(i_proc+1) = dest(i_proc+1)+1
    end do
 
-   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,MPI_INTEGER4,MPI_SUM,&
+   call MPI_Allreduce(dest,nnz,ph%pexsi_np_per_pole,MPI_INTEGER8,MPI_SUM,&
         bh%comm,ierr)
 
    call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
@@ -6019,14 +6022,14 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    real(kind=r8), intent(out) :: ham_sp1(bh%nnz_l_sp1)
    real(kind=r8), intent(inout) :: ovlp_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
    integer(kind=i4), intent(inout) :: map_sp1(bh%nnz_l_sp1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: n_lcol_aux
    character(len=200) :: msg
@@ -6043,8 +6046,8 @@ subroutine elsi_generic_to_pexsi_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_generic_to_pexsi_hs_real"
 
@@ -6233,14 +6236,14 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    complex(kind=r8), intent(out) :: ham_sp1(bh%nnz_l_sp1)
    complex(kind=r8), intent(inout) :: ovlp_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
    integer(kind=i4), intent(inout) :: map_sp1(bh%nnz_l_sp1)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: n_lcol_aux
    character(len=200) :: msg
@@ -6257,8 +6260,8 @@ subroutine elsi_generic_to_pexsi_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_generic_to_pexsi_hs_cmplx"
 
@@ -6441,12 +6444,12 @@ subroutine elsi_generic_to_sips_hs_dim(ph,bh,col_ind3)
    type(elsi_basic_t), intent(inout) :: bh
    integer(kind=i4), intent(in) :: col_ind3(bh%nnz_l_sp3)
 
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: ierr
 
-   integer(kind=i4), allocatable :: dest(:)
-   integer(kind=i4), allocatable :: nnz(:)
+   integer(kind=i8), allocatable :: dest(:)
+   integer(kind=i8), allocatable :: nnz(:)
 
    character(len=*), parameter :: caller = "elsi_generic_to_sips_hs_dim"
 
@@ -6460,7 +6463,7 @@ subroutine elsi_generic_to_sips_hs_dim(ph,bh,col_ind3)
       dest(i_proc+1) = dest(i_proc+1)+1
    end do
 
-   call MPI_Allreduce(dest,nnz,bh%n_procs,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+   call MPI_Allreduce(dest,nnz,bh%n_procs,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
    call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
@@ -6489,7 +6492,7 @@ subroutine elsi_generic_to_sips_hs_real(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    real(kind=r8), intent(out) :: ham_sp1(bh%nnz_l_sp1)
    real(kind=r8), intent(inout) :: ovlp_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
    integer(kind=i4), intent(inout) :: map_sp1(bh%nnz_l_sp1)
 
    character(len=*), parameter :: caller = "elsi_generic_to_sips_hs_real"
@@ -6521,7 +6524,7 @@ subroutine elsi_generic_to_sips_hs_cmplx(ph,bh,ham_sp3,ovlp_sp3,row_ind3,&
    complex(kind=r8), intent(out) :: ham_sp1(bh%nnz_l_sp1)
    complex(kind=r8), intent(inout) :: ovlp_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(inout) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(inout) :: col_ptr1(bh%n_lcol_sp1+1)
    integer(kind=i4), intent(inout) :: map_sp1(bh%nnz_l_sp1)
 
    character(len=*), parameter :: caller = "elsi_generic_to_sips_hs_cmplx"
@@ -6547,16 +6550,16 @@ subroutine elsi_blacs_to_generic_dm_real(ph,bh,dm_den,map_den,dm_sp,perm_sp)
    real(kind=r8), intent(in) :: dm_den(bh%n_lrow,bh%n_lcol)
    integer(kind=i4), intent(in) :: map_den(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: perm_sp(bh%nnz_l_sp)
+   integer(kind=i8), intent(in) :: perm_sp(bh%nnz_l_sp)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_row
-   integer(kind=i4) :: nnz_l_aux
+   integer(kind=i8) :: nnz_l_aux
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -6570,8 +6573,8 @@ subroutine elsi_blacs_to_generic_dm_real(ph,bh,dm_den,map_den,dm_sp,perm_sp)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_generic_dm_real"
 
@@ -6710,16 +6713,16 @@ subroutine elsi_blacs_to_generic_dm_cmplx(ph,bh,dm_den,map_den,dm_sp,perm_sp)
    complex(kind=r8), intent(in) :: dm_den(bh%n_lrow,bh%n_lcol)
    integer(kind=i4), intent(in) :: map_den(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: perm_sp(bh%nnz_l_sp)
+   integer(kind=i8), intent(in) :: perm_sp(bh%nnz_l_sp)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_row
-   integer(kind=i4) :: nnz_l_aux
+   integer(kind=i8) :: nnz_l_aux
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -6733,8 +6736,8 @@ subroutine elsi_blacs_to_generic_dm_cmplx(ph,bh,dm_den,map_den,dm_sp,perm_sp)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_generic_dm_cmplx"
 
@@ -6873,15 +6876,15 @@ subroutine elsi_pexsi_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(in) :: dm_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
    integer(kind=i4), intent(in) :: map_sp1(bh%nnz_l_sp1)
    real(kind=r8), intent(out) :: dm_sp3(bh%nnz_l_sp3)
-   integer(kind=i4), intent(in) :: perm_sp3(bh%nnz_l_sp3)
+   integer(kind=i8), intent(in) :: perm_sp3(bh%nnz_l_sp3)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_proc
@@ -6898,8 +6901,8 @@ subroutine elsi_pexsi_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_pexsi_to_generic_dm_real"
 
@@ -7031,15 +7034,15 @@ subroutine elsi_pexsi_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    type(elsi_basic_t), intent(in) :: bh
    complex(kind=r8), intent(in) :: dm_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
    integer(kind=i4), intent(in) :: map_sp1(bh%nnz_l_sp1)
    complex(kind=r8), intent(out) :: dm_sp3(bh%nnz_l_sp3)
-   integer(kind=i4), intent(in) :: perm_sp3(bh%nnz_l_sp3)
+   integer(kind=i8), intent(in) :: perm_sp3(bh%nnz_l_sp3)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
    integer(kind=i4) :: i_proc
@@ -7056,8 +7059,8 @@ subroutine elsi_pexsi_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_pexsi_to_generic_dm_cmplx"
 
@@ -7189,10 +7192,10 @@ subroutine elsi_sips_to_generic_dm_real(ph,bh,dm_sp1,row_ind1,col_ptr1,map_sp1,&
    type(elsi_basic_t), intent(in) :: bh
    real(kind=r8), intent(in) :: dm_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
    integer(kind=i4), intent(in) :: map_sp1(bh%nnz_l_sp1)
    real(kind=r8), intent(out) :: dm_sp3(bh%nnz_l_sp3)
-   integer(kind=i4), intent(in) :: perm_sp3(bh%nnz_l_sp3)
+   integer(kind=i8), intent(in) :: perm_sp3(bh%nnz_l_sp3)
 
    character(len=*), parameter :: caller = "elsi_sips_to_generic_dm_real"
 
@@ -7217,10 +7220,10 @@ subroutine elsi_sips_to_generic_dm_cmplx(ph,bh,dm_sp1,row_ind1,col_ptr1,&
    type(elsi_basic_t), intent(in) :: bh
    complex(kind=r8), intent(in) :: dm_sp1(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: row_ind1(bh%nnz_l_sp1)
-   integer(kind=i4), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(in) :: col_ptr1(bh%n_lcol_sp1+1)
    integer(kind=i4), intent(in) :: map_sp1(bh%nnz_l_sp1)
    complex(kind=r8), intent(out) :: dm_sp3(bh%nnz_l_sp3)
-   integer(kind=i4), intent(in) :: perm_sp3(bh%nnz_l_sp3)
+   integer(kind=i8), intent(in) :: perm_sp3(bh%nnz_l_sp3)
 
    character(len=*), parameter :: caller = "elsi_sips_to_generic_dm_cmplx"
 
@@ -7245,19 +7248,19 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    type(Matrix_ps), intent(inout) :: dm_nt
    type(Matrix_ps), intent(inout) :: map_nt
    real(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: perm_sp(bh%nnz_l_sp)
+   integer(kind=i8), intent(in) :: perm_sp(bh%nnz_l_sp)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i8) :: gid_map
    integer(kind=i8) :: gid_dm
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: nnz_l_nt
+   integer(kind=i8) :: nnz_l_nt
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -7271,8 +7274,8 @@ subroutine elsi_ntpoly_to_generic_dm_real(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    type(TripletList_r) :: dm_list
    type(TripletList_r) :: map_list
@@ -7435,19 +7438,19 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    type(Matrix_ps), intent(inout) :: dm_nt
    type(Matrix_ps), intent(inout) :: map_nt
    complex(kind=r8), intent(out) :: dm_sp(bh%nnz_l_sp)
-   integer(kind=i4), intent(in) :: perm_sp(bh%nnz_l_sp)
+   integer(kind=i8), intent(in) :: perm_sp(bh%nnz_l_sp)
 
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i8) :: gid_map
    integer(kind=i8) :: gid_dm
    integer(kind=i4) :: ierr
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: j_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: nnz_l_nt
+   integer(kind=i8) :: nnz_l_nt
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -7461,8 +7464,8 @@ subroutine elsi_ntpoly_to_generic_dm_cmplx(ph,bh,dm_nt,map_nt,dm_sp,perm_sp)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    type(TripletList_c) :: dm_list
    type(TripletList_c) :: map_list
@@ -7632,14 +7635,14 @@ subroutine elsi_blacs_to_eigenexa_h_real(ph,bh,ham_den,ham_exa)
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   integer(kind=i4) :: nnz_l_before
-   integer(kind=i4) :: nnz_l_after
+   integer(kind=i8) :: nnz_l_before
+   integer(kind=i8) :: nnz_l_after
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -7653,14 +7656,14 @@ subroutine elsi_blacs_to_eigenexa_h_real(ph,bh,ham_den,ham_exa)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_eigenexa_h_real"
 
    call elsi_get_time(t0)
 
-   nnz_l_before = count(abs(ham_den) > bh%def0)
+   nnz_l_before = count( (abs(ham_den) > bh%def0), kind=i8)
 
    call elsi_allocate(bh,dest,nnz_l_before,"dest",caller)
    call elsi_allocate(bh,perm,nnz_l_before,"perm",caller)
@@ -7795,14 +7798,14 @@ subroutine elsi_eigenexa_to_blacs_ev_real(ph,bh,evec_exa,evec)
    integer(kind=i4) :: ierr
    integer(kind=i4) :: i_row
    integer(kind=i4) :: i_col
-   integer(kind=i4) :: i_val
+   integer(kind=i8) :: i_val
    integer(kind=i4) :: i_proc
    integer(kind=i4) :: l_col
    integer(kind=i4) :: l_row
    integer(kind=i4) :: p_col
    integer(kind=i4) :: p_row
-   integer(kind=i4) :: nnz_l_before
-   integer(kind=i4) :: nnz_l_after
+   integer(kind=i8) :: nnz_l_before
+   integer(kind=i8) :: nnz_l_after
    character(len=200) :: msg
 
    ! See documentation of MPI_Alltoallv
@@ -7816,8 +7819,8 @@ subroutine elsi_eigenexa_to_blacs_ev_real(ph,bh,evec_exa,evec)
    integer(kind=i4), allocatable :: col_recv(:)
    integer(kind=i4), allocatable :: recv_count(:)
    integer(kind=i4), allocatable :: recv_displ(:)
-   integer(kind=i4), allocatable :: dest(:) ! Destination of each element
-   integer(kind=i4), allocatable :: perm(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
 
    character(len=*), parameter :: caller = "elsi_eigenexa_to_blacs_ev_real"
 

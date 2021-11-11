@@ -15,7 +15,7 @@ module ELSI_DECISION
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_UTIL, only: elsi_check_err
 
    implicit none
@@ -68,17 +68,17 @@ subroutine elsi_decide_dm_real(ph,bh,mat)
    real(kind=r8), intent(in) :: mat(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8) :: sparsity
-   integer(kind=i4) :: nnz_g
-   integer(kind=i4) :: nnz_l
+   integer(kind=i8) :: nnz_g
+   integer(kind=i8) :: nnz_l
    integer(kind=i4) :: ierr
 
    character(len=*), parameter :: caller = "elsi_decide_dm_real"
 
    if(ph%solver == AUTO_SOLVER) then
       if(ph%i_spin == 1 .and. ph%i_kpt == 1) then
-         nnz_l = count(abs(mat) > bh%def0)
+         nnz_l = count( (abs(mat) > bh%def0), kind=i8)
 
-         call MPI_Allreduce(nnz_l,nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+         call MPI_Allreduce(nnz_l,nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
          call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 
@@ -106,17 +106,17 @@ subroutine elsi_decide_dm_cmplx(ph,bh,mat)
    complex(kind=r8), intent(in) :: mat(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8) :: sparsity
-   integer(kind=i4) :: nnz_g
-   integer(kind=i4) :: nnz_l
+   integer(kind=i8) :: nnz_g
+   integer(kind=i8) :: nnz_l
    integer(kind=i4) :: ierr
 
    character(len=*), parameter :: caller = "elsi_decide_dm_cmplx"
 
    if(ph%solver == AUTO_SOLVER) then
       if(ph%i_spin == 1 .and. ph%i_kpt == 1) then
-         nnz_l = count(abs(mat) > bh%def0)
+         nnz_l = count( (abs(mat) > bh%def0), kind=i8)
 
-         call MPI_Allreduce(nnz_l,nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+         call MPI_Allreduce(nnz_l,nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
          call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
 

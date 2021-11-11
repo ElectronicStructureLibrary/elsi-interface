@@ -11,7 +11,7 @@
 module ELSI_SIPS
 
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: r8,i4,i8
 
    implicit none
 
@@ -48,7 +48,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    type(elsi_param_t) :: ph
    type(elsi_basic_t) :: bh
    integer(kind=i4) :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4) :: col_ptr(bh%n_lcol_sp1+1)
+   integer(kind=i8) :: col_ptr(bh%n_lcol_sp1+1)
    real(kind=r8) :: ham(bh%nnz_l_sp1)
    real(kind=r8) :: ovlp(bh%nnz_l_sp1)
    real(kind=r8) :: eval(ph%n_states)
@@ -66,7 +66,7 @@ subroutine elsi_build_dm_edm_sips_real(ph,bh,row_ind,col_ptr,occ,dm,which)
    type(elsi_param_t) :: ph
    type(elsi_basic_t) :: bh
    integer(kind=i4) :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4) :: col_ptr(bh%n_lcol_sp1+1)
+   integer(kind=i8) :: col_ptr(bh%n_lcol_sp1+1)
    real(kind=r8) :: occ(ph%n_states)
    real(kind=r8) :: dm(bh%nnz_l_sp1)
    integer(kind=i4) :: which
