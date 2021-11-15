@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module for handling scratch memory for distributed matrix multiplication.
 MODULE PMatrixMemoryPoolModule
@@ -55,27 +53,33 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     INTEGER :: row_counter, column_counter
 
-  !! Allocate
-  IF (ALLOCATED(this%grid_r)) THEN
-     DO column_counter = LBOUND(this%grid_r,2), UBOUND(this%grid_r,2)
-        DO row_counter = LBOUND(this%grid_r,1), UBOUND(this%grid_r,1)
-           CALL DestructMatrixMemoryPool( &
-                & this%grid_r(row_counter, column_counter))
-        END DO
-     END DO
-     DEALLOCATE(this%grid_r)
-  END IF
 
-  !! Allocate
-  IF (ALLOCATED(this%grid_c)) THEN
-     DO column_counter = LBOUND(this%grid_c,2), UBOUND(this%grid_c,2)
-        DO row_counter = LBOUND(this%grid_c,1), UBOUND(this%grid_c,1)
-           CALL DestructMatrixMemoryPool( &
-                & this%grid_c(row_counter, column_counter))
-        END DO
-     END DO
-     DEALLOCATE(this%grid_c)
-  END IF
+
+    !! Allocate
+    IF (ALLOCATED(this%grid_r)) THEN
+       DO column_counter = LBOUND(this%grid_r,2), UBOUND(this%grid_r,2)
+          DO row_counter = LBOUND(this%grid_r,1), UBOUND(this%grid_r,1)
+             CALL DestructMatrixMemoryPool( &
+                  & this%grid_r(row_counter, column_counter))
+          END DO
+       END DO
+       DEALLOCATE(this%grid_r)
+    END IF
+
+
+
+
+    !! Allocate
+    IF (ALLOCATED(this%grid_c)) THEN
+       DO column_counter = LBOUND(this%grid_c,2), UBOUND(this%grid_c,2)
+          DO row_counter = LBOUND(this%grid_c,1), UBOUND(this%grid_c,1)
+             CALL DestructMatrixMemoryPool( &
+                  & this%grid_c(row_counter, column_counter))
+          END DO
+       END DO
+       DEALLOCATE(this%grid_c)
+    END IF
+
 
   END SUBROUTINE DestructMatrixMemoryPool_p
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module for computing estimates of the bounds of the spectrum of a matrix.
 MODULE EigenBoundsModule
@@ -44,91 +42,97 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: ierr
 
     IF (this%is_complex) THEN
-  !! Allocate Space For Result
-  ALLOCATE(per_column_min(this%local_columns))
-  ALLOCATE(per_column_max(this%local_columns))
 
-  !! Compute The Local Contribution
-  per_column_min = 0
-  per_column_max = 0
-  CALL GetMatrixTripletList(this, triplet_list_c)
-  DO counter = 1, triplet_list_c%CurrentSize
-     local_column = triplet_list_c%DATA(counter)%index_column - &
-          & this%start_column + 1
-     IF (triplet_list_c%DATA(counter)%index_row .EQ. &
-          & triplet_list_c%DATA(counter)%index_column) THEN
-        per_column_min(local_column) = per_column_min(local_column) + &
-             & REAL(triplet_list_c%DATA(counter)%point_value,KIND=NTREAL)
-        per_column_max(local_column) = per_column_max(local_column) + &
-             & REAL(triplet_list_c%DATA(counter)%point_value,KIND=NTREAL)
-     ELSE
-        per_column_min(local_column) = per_column_min(local_column) - &
-             & ABS(triplet_list_c%DATA(counter)%point_value)
-        per_column_max(local_column) = per_column_max(local_column) + &
-             & ABS(triplet_list_c%DATA(counter)%point_value)
-     END IF
-  END DO
 
-  !! Sum Along Columns
-  CALL MPI_Allreduce(MPI_IN_PLACE,per_column_min,SIZE(per_column_min), &
-       & MPINTREAL,MPI_SUM,this%process_grid%column_comm,ierr)
-  CALL MPI_Allreduce(MPI_IN_PLACE,per_column_max,SIZE(per_column_max), &
-       & MPINTREAL,MPI_SUM,this%process_grid%column_comm,ierr)
+       !! Allocate Space For Result
+       ALLOCATE(per_column_min(this%local_columns))
+       ALLOCATE(per_column_max(this%local_columns))
 
-  min_value = MINVAL(per_column_min)
-  max_value = MAXVAL(per_column_max)
+       !! Compute The Local Contribution
+       per_column_min = 0
+       per_column_max = 0
+       CALL GetMatrixTripletList(this, triplet_list_c)
+       DO counter = 1, triplet_list_c%CurrentSize
+          local_column = triplet_list_c%DATA(counter)%index_column - &
+               & this%start_column + 1
+          IF (triplet_list_c%DATA(counter)%index_row .EQ. &
+               & triplet_list_c%DATA(counter)%index_column) THEN
+             per_column_min(local_column) = per_column_min(local_column) + &
+                  & REAL(triplet_list_c%DATA(counter)%point_value,KIND=NTREAL)
+             per_column_max(local_column) = per_column_max(local_column) + &
+                  & REAL(triplet_list_c%DATA(counter)%point_value,KIND=NTREAL)
+          ELSE
+             per_column_min(local_column) = per_column_min(local_column) - &
+                  & ABS(triplet_list_c%DATA(counter)%point_value)
+             per_column_max(local_column) = per_column_max(local_column) + &
+                  & ABS(triplet_list_c%DATA(counter)%point_value)
+          END IF
+       END DO
 
-  CALL MPI_Allreduce(MPI_IN_PLACE,min_value,1,MPINTREAL,MPI_MIN, &
-       & this%process_grid%row_comm, ierr)
-  CALL MPI_Allreduce(MPI_IN_PLACE,max_value,1,MPINTREAL,MPI_MAX, &
-       & this%process_grid%row_comm, ierr)
+       !! Sum Along Columns
+       CALL MPI_Allreduce(MPI_IN_PLACE,per_column_min,SIZE(per_column_min), &
+            & MPINTREAL,MPI_SUM,this%process_grid%column_comm,ierr)
+       CALL MPI_Allreduce(MPI_IN_PLACE,per_column_max,SIZE(per_column_max), &
+            & MPINTREAL,MPI_SUM,this%process_grid%column_comm,ierr)
 
-  CALL DestructTripletList(triplet_list_c)
-  DEALLOCATE(per_column_min)
-  DEALLOCATE(per_column_max)
+       min_value = MINVAL(per_column_min)
+       max_value = MAXVAL(per_column_max)
+
+       CALL MPI_Allreduce(MPI_IN_PLACE,min_value,1,MPINTREAL,MPI_MIN, &
+            & this%process_grid%row_comm, ierr)
+       CALL MPI_Allreduce(MPI_IN_PLACE,max_value,1,MPINTREAL,MPI_MAX, &
+            & this%process_grid%row_comm, ierr)
+
+       CALL DestructTripletList(triplet_list_c)
+       DEALLOCATE(per_column_min)
+       DEALLOCATE(per_column_max)
+
     ELSE
-  !! Allocate Space For Result
-  ALLOCATE(per_column_min(this%local_columns))
-  ALLOCATE(per_column_max(this%local_columns))
 
-  !! Compute The Local Contribution
-  per_column_min = 0
-  per_column_max = 0
-  CALL GetMatrixTripletList(this, triplet_list_r)
-  DO counter = 1, triplet_list_r%CurrentSize
-     local_column = triplet_list_r%DATA(counter)%index_column - &
-          & this%start_column + 1
-     IF (triplet_list_r%DATA(counter)%index_row .EQ. &
-          & triplet_list_r%DATA(counter)%index_column) THEN
-        per_column_min(local_column) = per_column_min(local_column) + &
-             & REAL(triplet_list_r%DATA(counter)%point_value,KIND=NTREAL)
-        per_column_max(local_column) = per_column_max(local_column) + &
-             & REAL(triplet_list_r%DATA(counter)%point_value,KIND=NTREAL)
-     ELSE
-        per_column_min(local_column) = per_column_min(local_column) - &
-             & ABS(triplet_list_r%DATA(counter)%point_value)
-        per_column_max(local_column) = per_column_max(local_column) + &
-             & ABS(triplet_list_r%DATA(counter)%point_value)
-     END IF
-  END DO
 
-  !! Sum Along Columns
-  CALL MPI_Allreduce(MPI_IN_PLACE,per_column_min,SIZE(per_column_min), &
-       & MPINTREAL,MPI_SUM,this%process_grid%column_comm,ierr)
-  CALL MPI_Allreduce(MPI_IN_PLACE,per_column_max,SIZE(per_column_max), &
-       & MPINTREAL,MPI_SUM,this%process_grid%column_comm,ierr)
+       !! Allocate Space For Result
+       ALLOCATE(per_column_min(this%local_columns))
+       ALLOCATE(per_column_max(this%local_columns))
 
-  min_value = MINVAL(per_column_min)
-  max_value = MAXVAL(per_column_max)
+       !! Compute The Local Contribution
+       per_column_min = 0
+       per_column_max = 0
+       CALL GetMatrixTripletList(this, triplet_list_r)
+       DO counter = 1, triplet_list_r%CurrentSize
+          local_column = triplet_list_r%DATA(counter)%index_column - &
+               & this%start_column + 1
+          IF (triplet_list_r%DATA(counter)%index_row .EQ. &
+               & triplet_list_r%DATA(counter)%index_column) THEN
+             per_column_min(local_column) = per_column_min(local_column) + &
+                  & REAL(triplet_list_r%DATA(counter)%point_value,KIND=NTREAL)
+             per_column_max(local_column) = per_column_max(local_column) + &
+                  & REAL(triplet_list_r%DATA(counter)%point_value,KIND=NTREAL)
+          ELSE
+             per_column_min(local_column) = per_column_min(local_column) - &
+                  & ABS(triplet_list_r%DATA(counter)%point_value)
+             per_column_max(local_column) = per_column_max(local_column) + &
+                  & ABS(triplet_list_r%DATA(counter)%point_value)
+          END IF
+       END DO
 
-  CALL MPI_Allreduce(MPI_IN_PLACE,min_value,1,MPINTREAL,MPI_MIN, &
-       & this%process_grid%row_comm, ierr)
-  CALL MPI_Allreduce(MPI_IN_PLACE,max_value,1,MPINTREAL,MPI_MAX, &
-       & this%process_grid%row_comm, ierr)
+       !! Sum Along Columns
+       CALL MPI_Allreduce(MPI_IN_PLACE,per_column_min,SIZE(per_column_min), &
+            & MPINTREAL,MPI_SUM,this%process_grid%column_comm,ierr)
+       CALL MPI_Allreduce(MPI_IN_PLACE,per_column_max,SIZE(per_column_max), &
+            & MPINTREAL,MPI_SUM,this%process_grid%column_comm,ierr)
 
-  CALL DestructTripletList(triplet_list_r)
-  DEALLOCATE(per_column_min)
-  DEALLOCATE(per_column_max)
+       min_value = MINVAL(per_column_min)
+       max_value = MAXVAL(per_column_max)
+
+       CALL MPI_Allreduce(MPI_IN_PLACE,min_value,1,MPINTREAL,MPI_MIN, &
+            & this%process_grid%row_comm, ierr)
+       CALL MPI_Allreduce(MPI_IN_PLACE,max_value,1,MPINTREAL,MPI_MAX, &
+            & this%process_grid%row_comm, ierr)
+
+       CALL DestructTripletList(triplet_list_r)
+       DEALLOCATE(per_column_min)
+       DEALLOCATE(per_column_max)
+
     END IF
   END SUBROUTINE GershgorinBounds
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -189,10 +193,7 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     norm_value = solver_parameters%converge_diff + 1.0_NTREAL
     DO outer_counter = 1,solver_parameters%max_iterations
        IF (solver_parameters%be_verbose .AND. outer_counter .GT. 1) THEN
-          CALL WriteListElement(key="Round", VALUE=outer_counter-1)
-          CALL EnterSubLog
-          CALL WriteElement(key="Convergence", VALUE=norm_value)
-          CALL ExitSubLog
+          CALL WriteListElement(key="Convergence", VALUE=norm_value)
        END IF
 
        !! x = Ax

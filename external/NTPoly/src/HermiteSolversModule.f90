@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module for computing matrix functions based on Hermite polynomials.
 !! The Physicist variety.

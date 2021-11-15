@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A Module For Storing Lists of Triplets.
 MODULE TripletListModule
@@ -137,19 +135,20 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The length of the triplet list (default=0).
     INTEGER, INTENT(IN), OPTIONAL :: size_in
 
-  !! Local data
-  INTEGER :: size
 
-  IF (PRESENT(size_in)) THEN
-     size = size_in
-  ELSE
-     size = 0
-  END IF
+    !! Local data
+    INTEGER :: size
 
-  IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
-  this%CurrentSize = size
+    IF (PRESENT(size_in)) THEN
+       size = size_in
+    ELSE
+       size = 0
+    END IF
 
-  ALLOCATE(this%DATA(size))
+    IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
+    this%CurrentSize = size
+
+    ALLOCATE(this%DATA(size))
 
   END FUNCTION ConstructTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -160,19 +159,20 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The length of the triplet list (default=0).
     INTEGER, INTENT(IN), OPTIONAL :: size_in
 
-  !! Local data
-  INTEGER :: size
 
-  IF (PRESENT(size_in)) THEN
-     size = size_in
-  ELSE
-     size = 0
-  END IF
+    !! Local data
+    INTEGER :: size
 
-  IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
-  this%CurrentSize = size
+    IF (PRESENT(size_in)) THEN
+       size = size_in
+    ELSE
+       size = 0
+    END IF
 
-  ALLOCATE(this%DATA(size))
+    IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
+    this%CurrentSize = size
+
+    ALLOCATE(this%DATA(size))
 
   END FUNCTION ConstructTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -181,8 +181,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to destruct.
     TYPE(TripletList_r), INTENT(INOUT) :: this
 
-  IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
-  this%CurrentSize = 0
+
+    IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
+    this%CurrentSize = 0
 
   END SUBROUTINE DestructTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -191,8 +192,9 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The triplet list to destruct.
     TYPE(TripletList_c), INTENT(INOUT) :: this
 
-  IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
-  this%CurrentSize = 0
+
+    IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
+    this%CurrentSize = 0
 
   END SUBROUTINE DestructTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -205,19 +207,20 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(Triplet_r), DIMENSION(:), ALLOCATABLE :: temporary_data
 
-  !! Temporary copy
-  ALLOCATE(temporary_data(this%CurrentSize))
-  temporary_data = this%DATA(:this%CurrentSize)
 
-  !! Create new memory
-  IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
-  ALLOCATE(this%DATA(size))
+    !! Temporary copy
+    ALLOCATE(temporary_data(this%CurrentSize))
+    temporary_data = this%DATA(:this%CurrentSize)
 
-  !! Copy back
-  this%DATA(:this%CurrentSize) = temporary_data
+    !! Create new memory
+    IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
+    ALLOCATE(this%DATA(size))
 
-  !! Cleanup
-  DEALLOCATE(temporary_data)
+    !! Copy back
+    this%DATA(:this%CurrentSize) = temporary_data
+
+    !! Cleanup
+    DEALLOCATE(temporary_data)
 
   END SUBROUTINE ResizeTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -230,19 +233,20 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(Triplet_c), DIMENSION(:), ALLOCATABLE :: temporary_data
 
-  !! Temporary copy
-  ALLOCATE(temporary_data(this%CurrentSize))
-  temporary_data = this%DATA(:this%CurrentSize)
 
-  !! Create new memory
-  IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
-  ALLOCATE(this%DATA(size))
+    !! Temporary copy
+    ALLOCATE(temporary_data(this%CurrentSize))
+    temporary_data = this%DATA(:this%CurrentSize)
 
-  !! Copy back
-  this%DATA(:this%CurrentSize) = temporary_data
+    !! Create new memory
+    IF (ALLOCATED(this%DATA)) DEALLOCATE(this%DATA)
+    ALLOCATE(this%DATA(size))
 
-  !! Cleanup
-  DEALLOCATE(temporary_data)
+    !! Copy back
+    this%DATA(:this%CurrentSize) = temporary_data
+
+    !! Cleanup
+    DEALLOCATE(temporary_data)
 
   END SUBROUTINE ResizeTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -253,24 +257,25 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The value to append.
     TYPE(Triplet_r), INTENT(IN)        :: triplet_value
 
-  !! Local data
-  INTEGER :: new_size
 
-  !! First, check if we need to allocate more memory
-  IF (this%CurrentSize+1 .GT. SIZE(this%DATA)) THEN
-     IF (SIZE(this%DATA) .EQ. 0) THEN
-        new_size = 1
-     ELSE IF (SIZE(this%DATA) .EQ. 1) THEN
-        new_size = 2
-     ELSE
-        new_size = INT(SIZE(this%DATA)*1.5)
-     END IF
-     CALL ResizeTripletList(this,new_size)
-  END IF
+    !! Local data
+    INTEGER :: new_size
 
-  !! Append
-  this%CurrentSize = this%CurrentSize+1
-  this%DATA(this%CurrentSize) = triplet_value
+    !! First, check if we need to allocate more memory
+    IF (this%CurrentSize+1 .GT. SIZE(this%DATA)) THEN
+       IF (SIZE(this%DATA) .EQ. 0) THEN
+          new_size = 1
+       ELSE IF (SIZE(this%DATA) .EQ. 1) THEN
+          new_size = 2
+       ELSE
+          new_size = INT(SIZE(this%DATA)*1.5)
+       END IF
+       CALL ResizeTripletList(this,new_size)
+    END IF
+
+    !! Append
+    this%CurrentSize = this%CurrentSize+1
+    this%DATA(this%CurrentSize) = triplet_value
 
   END SUBROUTINE AppendToTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -281,24 +286,25 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The value to append.
     TYPE(Triplet_c), INTENT(IN)        :: triplet_value
 
-  !! Local data
-  INTEGER :: new_size
 
-  !! First, check if we need to allocate more memory
-  IF (this%CurrentSize+1 .GT. SIZE(this%DATA)) THEN
-     IF (SIZE(this%DATA) .EQ. 0) THEN
-        new_size = 1
-     ELSE IF (SIZE(this%DATA) .EQ. 1) THEN
-        new_size = 2
-     ELSE
-        new_size = INT(SIZE(this%DATA)*1.5)
-     END IF
-     CALL ResizeTripletList(this,new_size)
-  END IF
+    !! Local data
+    INTEGER :: new_size
 
-  !! Append
-  this%CurrentSize = this%CurrentSize+1
-  this%DATA(this%CurrentSize) = triplet_value
+    !! First, check if we need to allocate more memory
+    IF (this%CurrentSize+1 .GT. SIZE(this%DATA)) THEN
+       IF (SIZE(this%DATA) .EQ. 0) THEN
+          new_size = 1
+       ELSE IF (SIZE(this%DATA) .EQ. 1) THEN
+          new_size = 2
+       ELSE
+          new_size = INT(SIZE(this%DATA)*1.5)
+       END IF
+       CALL ResizeTripletList(this,new_size)
+    END IF
+
+    !! Append
+    this%CurrentSize = this%CurrentSize+1
+    this%DATA(this%CurrentSize) = triplet_value
 
   END SUBROUTINE AppendToTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -311,7 +317,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The value of the triplet to set.
     TYPE(Triplet_r), INTENT(IN)        :: triplet_value
 
-  this%DATA(index) = triplet_value
+
+    this%DATA(index) = triplet_value
   END SUBROUTINE SetTripletAt_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Set the value of a triplet at a particular index.
@@ -323,7 +330,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The value of the triplet to set.
     TYPE(Triplet_c), INTENT(IN)        :: triplet_value
 
-  this%DATA(index) = triplet_value
+
+    this%DATA(index) = triplet_value
   END SUBROUTINE SetTripletAt_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Get the value of a triplet at a particular index.
@@ -335,7 +343,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The extracted triplet value.
     TYPE(Triplet_r), INTENT(OUT)    :: triplet_value
 
-  triplet_value = this%DATA(index)
+
+    triplet_value = this%DATA(index)
   END SUBROUTINE GetTripletAt_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Get the value of a triplet at a particular index.
@@ -347,7 +356,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The extracted triplet value.
     TYPE(Triplet_c), INTENT(OUT)    :: triplet_value
 
-  triplet_value = this%DATA(index)
+
+    triplet_value = this%DATA(index)
   END SUBROUTINE GetTripletAt_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Sorts a triplet list by index values.
@@ -368,80 +378,81 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(Triplet_r) :: temporary
 
-  !! Local Data
-  LOGICAL :: bubble
-  LOGICAL :: swap_occured
-  INTEGER, DIMENSION(:), ALLOCATABLE :: values_per_row
-  INTEGER, DIMENSION(:), ALLOCATABLE :: offset_array
-  INTEGER, DIMENSION(:), ALLOCATABLE :: inserted_per_row
-  !! Counters and temporary variables
-  INTEGER :: counter
-  INTEGER :: idx
-  INTEGER :: alloc_stat
-  INTEGER :: list_length
 
-  IF (PRESENT(bubble_in)) THEN
-     bubble = bubble_in
-  ELSE
-     bubble = .TRUE.
-  END IF
+    !! Local Data
+    LOGICAL :: bubble
+    LOGICAL :: swap_occured
+    INTEGER, DIMENSION(:), ALLOCATABLE :: values_per_row
+    INTEGER, DIMENSION(:), ALLOCATABLE :: offset_array
+    INTEGER, DIMENSION(:), ALLOCATABLE :: inserted_per_row
+    !! Counters and temporary variables
+    INTEGER :: counter
+    INTEGER :: idx
+    INTEGER :: alloc_stat
+    INTEGER :: list_length
 
-  list_length = input_list%CurrentSize
+    IF (PRESENT(bubble_in)) THEN
+       bubble = bubble_in
+    ELSE
+       bubble = .TRUE.
+    END IF
 
-  IF (bubble .AND. list_length .GT. matrix_rows*matrix_columns*0.1) THEN
-     CALL SortDenseTripletList(input_list, matrix_columns, matrix_rows, &
-          & sorted_list)
-  ELSE
-     !! Data Allocation
-     CALL ConstructTripletList(sorted_list, list_length)
-     ALLOCATE(values_per_row(matrix_columns), stat=alloc_stat)
-     ALLOCATE(offset_array(matrix_columns), stat=alloc_stat)
-     ALLOCATE(inserted_per_row(matrix_columns), stat=alloc_stat)
+    list_length = input_list%CurrentSize
 
-     !! Initial one dimensional sort
-     values_per_row = 0
-     inserted_per_row = 0
+    IF (bubble .AND. list_length .GT. matrix_rows*matrix_columns*0.1) THEN
+       CALL SortDenseTripletList(input_list, matrix_columns, matrix_rows, &
+            & sorted_list)
+    ELSE
+       !! Data Allocation
+       CALL ConstructTripletList(sorted_list, list_length)
+       ALLOCATE(values_per_row(matrix_columns), stat=alloc_stat)
+       ALLOCATE(offset_array(matrix_columns), stat=alloc_stat)
+       ALLOCATE(inserted_per_row(matrix_columns), stat=alloc_stat)
 
-     !! Do a first pass bucket sort
-     DO counter = 1, input_list%CurrentSize
-        values_per_row(input_list%DATA(counter)%index_column) = &
-             & values_per_row(input_list%DATA(counter)%index_column) + 1
-     END DO
-     offset_array(1) = 1
-     DO counter = 2, UBOUND(offset_array,dim=1)
-        offset_array(counter) = offset_array(counter-1) + &
-             & values_per_row(counter-1)
-     END DO
-     DO counter = 1, input_list%CurrentSize
-        idx = input_list%DATA(counter)%index_column
-        sorted_list%DATA(offset_array(idx)+inserted_per_row(idx))=&
-             & input_list%DATA(counter)
-        inserted_per_row(idx) = inserted_per_row(idx) + 1
-     END DO
+       !! Initial one dimensional sort
+       values_per_row = 0
+       inserted_per_row = 0
 
-     !! Finish with bubble sort
-     !! Not necessary for transposing or unpacking.
-     swap_occured = .TRUE.
-     IF (bubble) THEN
-        DO WHILE (swap_occured .EQV. .TRUE.)
-           swap_occured = .FALSE.
-           DO counter = 2, sorted_list%CurrentSize
-              IF (CompareTriplets(sorted_list%DATA(counter-1), &
-                   & sorted_list%DATA(counter))) THEN
-                 temporary = sorted_list%DATA(counter)
-                 sorted_list%DATA(counter) = sorted_list%DATA(counter-1)
-                 sorted_list%DATA(counter-1) = temporary
-                 swap_occured = .TRUE.
-              END IF
-           END DO
-        END DO
-     END IF
+       !! Do a first pass bucket sort
+       DO counter = 1, input_list%CurrentSize
+          values_per_row(input_list%DATA(counter)%index_column) = &
+               & values_per_row(input_list%DATA(counter)%index_column) + 1
+       END DO
+       offset_array(1) = 1
+       DO counter = 2, UBOUND(offset_array,dim=1)
+          offset_array(counter) = offset_array(counter-1) + &
+               & values_per_row(counter-1)
+       END DO
+       DO counter = 1, input_list%CurrentSize
+          idx = input_list%DATA(counter)%index_column
+          sorted_list%DATA(offset_array(idx)+inserted_per_row(idx))=&
+               & input_list%DATA(counter)
+          inserted_per_row(idx) = inserted_per_row(idx) + 1
+       END DO
 
-     !! Cleanup
-     DEALLOCATE(values_per_row)
-     DEALLOCATE(offset_array)
-     DEALLOCATE(inserted_per_row)
-  END IF
+       !! Finish with bubble sort
+       !! Not necessary for transposing or unpacking.
+       swap_occured = .TRUE.
+       IF (bubble) THEN
+          DO WHILE (swap_occured .EQV. .TRUE.)
+             swap_occured = .FALSE.
+             DO counter = 2, sorted_list%CurrentSize
+                IF (CompareTriplets(sorted_list%DATA(counter-1), &
+                     & sorted_list%DATA(counter))) THEN
+                   temporary = sorted_list%DATA(counter)
+                   sorted_list%DATA(counter) = sorted_list%DATA(counter-1)
+                   sorted_list%DATA(counter-1) = temporary
+                   swap_occured = .TRUE.
+                END IF
+             END DO
+          END DO
+       END IF
+
+       !! Cleanup
+       DEALLOCATE(values_per_row)
+       DEALLOCATE(offset_array)
+       DEALLOCATE(inserted_per_row)
+    END IF
 
   END SUBROUTINE SortTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -463,80 +474,81 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Data
     TYPE(Triplet_c) :: temporary
 
-  !! Local Data
-  LOGICAL :: bubble
-  LOGICAL :: swap_occured
-  INTEGER, DIMENSION(:), ALLOCATABLE :: values_per_row
-  INTEGER, DIMENSION(:), ALLOCATABLE :: offset_array
-  INTEGER, DIMENSION(:), ALLOCATABLE :: inserted_per_row
-  !! Counters and temporary variables
-  INTEGER :: counter
-  INTEGER :: idx
-  INTEGER :: alloc_stat
-  INTEGER :: list_length
 
-  IF (PRESENT(bubble_in)) THEN
-     bubble = bubble_in
-  ELSE
-     bubble = .TRUE.
-  END IF
+    !! Local Data
+    LOGICAL :: bubble
+    LOGICAL :: swap_occured
+    INTEGER, DIMENSION(:), ALLOCATABLE :: values_per_row
+    INTEGER, DIMENSION(:), ALLOCATABLE :: offset_array
+    INTEGER, DIMENSION(:), ALLOCATABLE :: inserted_per_row
+    !! Counters and temporary variables
+    INTEGER :: counter
+    INTEGER :: idx
+    INTEGER :: alloc_stat
+    INTEGER :: list_length
 
-  list_length = input_list%CurrentSize
+    IF (PRESENT(bubble_in)) THEN
+       bubble = bubble_in
+    ELSE
+       bubble = .TRUE.
+    END IF
 
-  IF (bubble .AND. list_length .GT. matrix_rows*matrix_columns*0.1) THEN
-     CALL SortDenseTripletList(input_list, matrix_columns, matrix_rows, &
-          & sorted_list)
-  ELSE
-     !! Data Allocation
-     CALL ConstructTripletList(sorted_list, list_length)
-     ALLOCATE(values_per_row(matrix_columns), stat=alloc_stat)
-     ALLOCATE(offset_array(matrix_columns), stat=alloc_stat)
-     ALLOCATE(inserted_per_row(matrix_columns), stat=alloc_stat)
+    list_length = input_list%CurrentSize
 
-     !! Initial one dimensional sort
-     values_per_row = 0
-     inserted_per_row = 0
+    IF (bubble .AND. list_length .GT. matrix_rows*matrix_columns*0.1) THEN
+       CALL SortDenseTripletList(input_list, matrix_columns, matrix_rows, &
+            & sorted_list)
+    ELSE
+       !! Data Allocation
+       CALL ConstructTripletList(sorted_list, list_length)
+       ALLOCATE(values_per_row(matrix_columns), stat=alloc_stat)
+       ALLOCATE(offset_array(matrix_columns), stat=alloc_stat)
+       ALLOCATE(inserted_per_row(matrix_columns), stat=alloc_stat)
 
-     !! Do a first pass bucket sort
-     DO counter = 1, input_list%CurrentSize
-        values_per_row(input_list%DATA(counter)%index_column) = &
-             & values_per_row(input_list%DATA(counter)%index_column) + 1
-     END DO
-     offset_array(1) = 1
-     DO counter = 2, UBOUND(offset_array,dim=1)
-        offset_array(counter) = offset_array(counter-1) + &
-             & values_per_row(counter-1)
-     END DO
-     DO counter = 1, input_list%CurrentSize
-        idx = input_list%DATA(counter)%index_column
-        sorted_list%DATA(offset_array(idx)+inserted_per_row(idx))=&
-             & input_list%DATA(counter)
-        inserted_per_row(idx) = inserted_per_row(idx) + 1
-     END DO
+       !! Initial one dimensional sort
+       values_per_row = 0
+       inserted_per_row = 0
 
-     !! Finish with bubble sort
-     !! Not necessary for transposing or unpacking.
-     swap_occured = .TRUE.
-     IF (bubble) THEN
-        DO WHILE (swap_occured .EQV. .TRUE.)
-           swap_occured = .FALSE.
-           DO counter = 2, sorted_list%CurrentSize
-              IF (CompareTriplets(sorted_list%DATA(counter-1), &
-                   & sorted_list%DATA(counter))) THEN
-                 temporary = sorted_list%DATA(counter)
-                 sorted_list%DATA(counter) = sorted_list%DATA(counter-1)
-                 sorted_list%DATA(counter-1) = temporary
-                 swap_occured = .TRUE.
-              END IF
-           END DO
-        END DO
-     END IF
+       !! Do a first pass bucket sort
+       DO counter = 1, input_list%CurrentSize
+          values_per_row(input_list%DATA(counter)%index_column) = &
+               & values_per_row(input_list%DATA(counter)%index_column) + 1
+       END DO
+       offset_array(1) = 1
+       DO counter = 2, UBOUND(offset_array,dim=1)
+          offset_array(counter) = offset_array(counter-1) + &
+               & values_per_row(counter-1)
+       END DO
+       DO counter = 1, input_list%CurrentSize
+          idx = input_list%DATA(counter)%index_column
+          sorted_list%DATA(offset_array(idx)+inserted_per_row(idx))=&
+               & input_list%DATA(counter)
+          inserted_per_row(idx) = inserted_per_row(idx) + 1
+       END DO
 
-     !! Cleanup
-     DEALLOCATE(values_per_row)
-     DEALLOCATE(offset_array)
-     DEALLOCATE(inserted_per_row)
-  END IF
+       !! Finish with bubble sort
+       !! Not necessary for transposing or unpacking.
+       swap_occured = .TRUE.
+       IF (bubble) THEN
+          DO WHILE (swap_occured .EQV. .TRUE.)
+             swap_occured = .FALSE.
+             DO counter = 2, sorted_list%CurrentSize
+                IF (CompareTriplets(sorted_list%DATA(counter-1), &
+                     & sorted_list%DATA(counter))) THEN
+                   temporary = sorted_list%DATA(counter)
+                   sorted_list%DATA(counter) = sorted_list%DATA(counter-1)
+                   sorted_list%DATA(counter-1) = temporary
+                   swap_occured = .TRUE.
+                END IF
+             END DO
+          END DO
+       END IF
+
+       !! Cleanup
+       DEALLOCATE(values_per_row)
+       DEALLOCATE(offset_array)
+       DEALLOCATE(inserted_per_row)
+    END IF
 
   END SUBROUTINE SortTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -547,7 +559,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The number of entries in the triplet list.
     INTEGER :: list_size
 
-  list_size = triplet_list%CurrentSize
+
+    list_size = triplet_list%CurrentSize
 
   END FUNCTION GetTripletListSize_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -558,7 +571,8 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The number of entries in the triplet list.
     INTEGER :: list_size
 
-  list_size = triplet_list%CurrentSize
+
+    list_size = triplet_list%CurrentSize
 
   END FUNCTION GetTripletListSize_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -577,97 +591,100 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     REAL(NTREAL), DIMENSION(:), ALLOCATABLE :: recv_buffer_val
     TYPE(Triplet_r) :: temp_triplet
 
-  !! Local Data - Offsets
-  INTEGER, DIMENSION(:), ALLOCATABLE :: send_per_process
-  INTEGER, DIMENSION(:), ALLOCATABLE :: send_offsets
-  INTEGER, DIMENSION(:), ALLOCATABLE :: recv_per_process
-  INTEGER, DIMENSION(:), ALLOCATABLE :: recv_offsets
-  !! Local Data - Send/Recv Buffers
-  INTEGER, DIMENSION(:), ALLOCATABLE :: send_buffer_row
-  INTEGER, DIMENSION(:), ALLOCATABLE :: send_buffer_col
-  INTEGER, DIMENSION(:), ALLOCATABLE :: recv_buffer_row
-  INTEGER, DIMENSION(:), ALLOCATABLE :: recv_buffer_col
-  !! ETC
-  INTEGER :: num_processes
-  INTEGER :: counter, inner_counter, insert_pt
-  INTEGER :: mpi_error
 
-  !! Allocate Size Buffers
-  CALL MPI_COMM_SIZE(comm, num_processes, mpi_error)
-  ALLOCATE(send_per_process(num_processes))
-  ALLOCATE(send_offsets(num_processes))
-  ALLOCATE(recv_per_process(num_processes))
-  ALLOCATE(recv_offsets(num_processes))
 
-  !! Figure Out How Much Data Gets Sent
-  DO counter = 1, num_processes
-     send_per_process(counter) = triplet_lists(counter)%CurrentSize
-  END DO
-  send_offsets(1) = 0
-  DO counter = 2, num_processes
-     send_offsets(counter) = send_offsets(counter-1) + &
-          & send_per_process(counter-1)
-  END DO
+    !! Local Data - Offsets
+    INTEGER, DIMENSION(:), ALLOCATABLE :: send_per_process
+    INTEGER, DIMENSION(:), ALLOCATABLE :: send_offsets
+    INTEGER, DIMENSION(:), ALLOCATABLE :: recv_per_process
+    INTEGER, DIMENSION(:), ALLOCATABLE :: recv_offsets
+    !! Local Data - Send/Recv Buffers
+    INTEGER, DIMENSION(:), ALLOCATABLE :: send_buffer_row
+    INTEGER, DIMENSION(:), ALLOCATABLE :: send_buffer_col
+    INTEGER, DIMENSION(:), ALLOCATABLE :: recv_buffer_row
+    INTEGER, DIMENSION(:), ALLOCATABLE :: recv_buffer_col
+    !! ETC
+    INTEGER :: num_processes
+    INTEGER :: counter, inner_counter, insert_pt
+    INTEGER :: mpi_error
 
-  !! Figure Out How Much Data Gets Received
-  CALL MPI_ALLTOALL(send_per_process, 1, MPINTINTEGER, recv_per_process, 1, &
-       & MPINTINTEGER, comm, mpi_error)
-  recv_offsets(1) = 0
-  DO counter = 2, num_processes
-     recv_offsets(counter) = recv_offsets(counter-1) + &
-          & recv_per_process(counter-1)
-  END DO
+    !! Allocate Size Buffers
+    CALL MPI_COMM_SIZE(comm, num_processes, mpi_error)
+    ALLOCATE(send_per_process(num_processes))
+    ALLOCATE(send_offsets(num_processes))
+    ALLOCATE(recv_per_process(num_processes))
+    ALLOCATE(recv_offsets(num_processes))
 
-  !! Allocate And Fill Send Buffers
-  ALLOCATE(send_buffer_row(SUM(send_per_process)))
-  ALLOCATE(send_buffer_col(SUM(send_per_process)))
-  ALLOCATE(send_buffer_val(SUM(send_per_process)))
-  ALLOCATE(recv_buffer_row(SUM(recv_per_process)))
-  ALLOCATE(recv_buffer_col(SUM(recv_per_process)))
-  ALLOCATE(recv_buffer_val(SUM(recv_per_process)))
+    !! Figure Out How Much Data Gets Sent
+    DO counter = 1, num_processes
+       send_per_process(counter) = triplet_lists(counter)%CurrentSize
+    END DO
+    send_offsets(1) = 0
+    DO counter = 2, num_processes
+       send_offsets(counter) = send_offsets(counter-1) + &
+            & send_per_process(counter-1)
+    END DO
 
-  !! Fill Send Buffer
-  insert_pt = 1
-  DO counter = 1, num_processes
-     DO inner_counter = 1, triplet_lists(counter)%CurrentSize
-        CALL GetTripletAt(triplet_lists(counter), inner_counter, temp_triplet)
-        send_buffer_row(insert_pt) = temp_triplet%index_row
-        send_buffer_col(insert_pt) = temp_triplet%index_column
-        send_buffer_val(insert_pt) = temp_triplet%point_value
-        insert_pt = insert_pt + 1
-     END DO
-  END DO
+    !! Figure Out How Much Data Gets Received
+    CALL MPI_ALLTOALL(send_per_process, 1, MPINTINTEGER, recv_per_process, 1, &
+         & MPINTINTEGER, comm, mpi_error)
+    recv_offsets(1) = 0
+    DO counter = 2, num_processes
+       recv_offsets(counter) = recv_offsets(counter-1) + &
+            & recv_per_process(counter-1)
+    END DO
 
-  !! Do Actual Send
-  CALL MPI_Alltoallv(send_buffer_col, send_per_process, send_offsets, &
-       & MPINTINTEGER, recv_buffer_col, recv_per_process, recv_offsets, &
-       & MPINTINTEGER, comm, mpi_error)
-  CALL MPI_Alltoallv(send_buffer_row, send_per_process, send_offsets, &
-       & MPINTINTEGER, recv_buffer_row, recv_per_process, recv_offsets, &
-       & MPINTINTEGER, comm, mpi_error)
-  CALL MPI_Alltoallv(send_buffer_val, send_per_process, send_offsets, &
-       & MPINTREAL, recv_buffer_val, recv_per_process, recv_offsets, &
-       & MPINTREAL, comm, mpi_error)
+    !! Allocate And Fill Send Buffers
+    ALLOCATE(send_buffer_row(SUM(send_per_process)))
+    ALLOCATE(send_buffer_col(SUM(send_per_process)))
+    ALLOCATE(send_buffer_val(SUM(send_per_process)))
+    ALLOCATE(recv_buffer_row(SUM(recv_per_process)))
+    ALLOCATE(recv_buffer_col(SUM(recv_per_process)))
+    ALLOCATE(recv_buffer_val(SUM(recv_per_process)))
 
-  !! Unpack Into The Output Triplet List
-  CALL ConstructTripletList(local_data_out, size_in=SUM(recv_per_process))
-  DO counter = 1, SUM(recv_per_process)
-     local_data_out%DATA(counter)%index_column = recv_buffer_col(counter)
-     local_data_out%DATA(counter)%index_row = recv_buffer_row(counter)
-     local_data_out%DATA(counter)%point_value = recv_buffer_val(counter)
-  END DO
+    !! Fill Send Buffer
+    insert_pt = 1
+    DO counter = 1, num_processes
+       DO inner_counter = 1, triplet_lists(counter)%CurrentSize
+          CALL GetTripletAt(triplet_lists(counter), inner_counter, temp_triplet)
+          send_buffer_row(insert_pt) = temp_triplet%index_row
+          send_buffer_col(insert_pt) = temp_triplet%index_column
+          send_buffer_val(insert_pt) = temp_triplet%point_value
+          insert_pt = insert_pt + 1
+       END DO
+    END DO
 
-  !! Cleanup
-  DEALLOCATE(send_per_process)
-  DEALLOCATE(send_offsets)
-  DEALLOCATE(recv_per_process)
-  DEALLOCATE(recv_offsets)
-  DEALLOCATE(send_buffer_row)
-  DEALLOCATE(send_buffer_col)
-  DEALLOCATE(send_buffer_val)
-  DEALLOCATE(recv_buffer_row)
-  DEALLOCATE(recv_buffer_col)
-  DEALLOCATE(recv_buffer_val)
+    !! Do Actual Send
+    CALL MPI_Alltoallv(send_buffer_col, send_per_process, send_offsets, &
+         & MPINTINTEGER, recv_buffer_col, recv_per_process, recv_offsets, &
+         & MPINTINTEGER, comm, mpi_error)
+    CALL MPI_Alltoallv(send_buffer_row, send_per_process, send_offsets, &
+         & MPINTINTEGER, recv_buffer_row, recv_per_process, recv_offsets, &
+         & MPINTINTEGER, comm, mpi_error)
+    CALL MPI_Alltoallv(send_buffer_val, send_per_process, send_offsets, &
+         & MPINTREAL, recv_buffer_val, recv_per_process, recv_offsets, &
+         & MPINTREAL, comm, mpi_error)
+
+    !! Unpack Into The Output Triplet List
+    CALL ConstructTripletList(local_data_out, size_in=SUM(recv_per_process))
+    DO counter = 1, SUM(recv_per_process)
+       local_data_out%DATA(counter)%index_column = recv_buffer_col(counter)
+       local_data_out%DATA(counter)%index_row = recv_buffer_row(counter)
+       local_data_out%DATA(counter)%point_value = recv_buffer_val(counter)
+    END DO
+
+    !! Cleanup
+    DEALLOCATE(send_per_process)
+    DEALLOCATE(send_offsets)
+    DEALLOCATE(recv_per_process)
+    DEALLOCATE(recv_offsets)
+    DEALLOCATE(send_buffer_row)
+    DEALLOCATE(send_buffer_col)
+    DEALLOCATE(send_buffer_val)
+    DEALLOCATE(recv_buffer_row)
+    DEALLOCATE(recv_buffer_col)
+    DEALLOCATE(recv_buffer_val)
+
 
   END SUBROUTINE RedistributeTripletLists_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -686,97 +703,100 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     COMPLEX(NTCOMPLEX), DIMENSION(:), ALLOCATABLE :: recv_buffer_val
     TYPE(Triplet_c) :: temp_triplet
 
-  !! Local Data - Offsets
-  INTEGER, DIMENSION(:), ALLOCATABLE :: send_per_process
-  INTEGER, DIMENSION(:), ALLOCATABLE :: send_offsets
-  INTEGER, DIMENSION(:), ALLOCATABLE :: recv_per_process
-  INTEGER, DIMENSION(:), ALLOCATABLE :: recv_offsets
-  !! Local Data - Send/Recv Buffers
-  INTEGER, DIMENSION(:), ALLOCATABLE :: send_buffer_row
-  INTEGER, DIMENSION(:), ALLOCATABLE :: send_buffer_col
-  INTEGER, DIMENSION(:), ALLOCATABLE :: recv_buffer_row
-  INTEGER, DIMENSION(:), ALLOCATABLE :: recv_buffer_col
-  !! ETC
-  INTEGER :: num_processes
-  INTEGER :: counter, inner_counter, insert_pt
-  INTEGER :: mpi_error
 
-  !! Allocate Size Buffers
-  CALL MPI_COMM_SIZE(comm, num_processes, mpi_error)
-  ALLOCATE(send_per_process(num_processes))
-  ALLOCATE(send_offsets(num_processes))
-  ALLOCATE(recv_per_process(num_processes))
-  ALLOCATE(recv_offsets(num_processes))
 
-  !! Figure Out How Much Data Gets Sent
-  DO counter = 1, num_processes
-     send_per_process(counter) = triplet_lists(counter)%CurrentSize
-  END DO
-  send_offsets(1) = 0
-  DO counter = 2, num_processes
-     send_offsets(counter) = send_offsets(counter-1) + &
-          & send_per_process(counter-1)
-  END DO
+    !! Local Data - Offsets
+    INTEGER, DIMENSION(:), ALLOCATABLE :: send_per_process
+    INTEGER, DIMENSION(:), ALLOCATABLE :: send_offsets
+    INTEGER, DIMENSION(:), ALLOCATABLE :: recv_per_process
+    INTEGER, DIMENSION(:), ALLOCATABLE :: recv_offsets
+    !! Local Data - Send/Recv Buffers
+    INTEGER, DIMENSION(:), ALLOCATABLE :: send_buffer_row
+    INTEGER, DIMENSION(:), ALLOCATABLE :: send_buffer_col
+    INTEGER, DIMENSION(:), ALLOCATABLE :: recv_buffer_row
+    INTEGER, DIMENSION(:), ALLOCATABLE :: recv_buffer_col
+    !! ETC
+    INTEGER :: num_processes
+    INTEGER :: counter, inner_counter, insert_pt
+    INTEGER :: mpi_error
 
-  !! Figure Out How Much Data Gets Received
-  CALL MPI_ALLTOALL(send_per_process, 1, MPINTINTEGER, recv_per_process, 1, &
-       & MPINTINTEGER, comm, mpi_error)
-  recv_offsets(1) = 0
-  DO counter = 2, num_processes
-     recv_offsets(counter) = recv_offsets(counter-1) + &
-          & recv_per_process(counter-1)
-  END DO
+    !! Allocate Size Buffers
+    CALL MPI_COMM_SIZE(comm, num_processes, mpi_error)
+    ALLOCATE(send_per_process(num_processes))
+    ALLOCATE(send_offsets(num_processes))
+    ALLOCATE(recv_per_process(num_processes))
+    ALLOCATE(recv_offsets(num_processes))
 
-  !! Allocate And Fill Send Buffers
-  ALLOCATE(send_buffer_row(SUM(send_per_process)))
-  ALLOCATE(send_buffer_col(SUM(send_per_process)))
-  ALLOCATE(send_buffer_val(SUM(send_per_process)))
-  ALLOCATE(recv_buffer_row(SUM(recv_per_process)))
-  ALLOCATE(recv_buffer_col(SUM(recv_per_process)))
-  ALLOCATE(recv_buffer_val(SUM(recv_per_process)))
+    !! Figure Out How Much Data Gets Sent
+    DO counter = 1, num_processes
+       send_per_process(counter) = triplet_lists(counter)%CurrentSize
+    END DO
+    send_offsets(1) = 0
+    DO counter = 2, num_processes
+       send_offsets(counter) = send_offsets(counter-1) + &
+            & send_per_process(counter-1)
+    END DO
 
-  !! Fill Send Buffer
-  insert_pt = 1
-  DO counter = 1, num_processes
-     DO inner_counter = 1, triplet_lists(counter)%CurrentSize
-        CALL GetTripletAt(triplet_lists(counter), inner_counter, temp_triplet)
-        send_buffer_row(insert_pt) = temp_triplet%index_row
-        send_buffer_col(insert_pt) = temp_triplet%index_column
-        send_buffer_val(insert_pt) = temp_triplet%point_value
-        insert_pt = insert_pt + 1
-     END DO
-  END DO
+    !! Figure Out How Much Data Gets Received
+    CALL MPI_ALLTOALL(send_per_process, 1, MPINTINTEGER, recv_per_process, 1, &
+         & MPINTINTEGER, comm, mpi_error)
+    recv_offsets(1) = 0
+    DO counter = 2, num_processes
+       recv_offsets(counter) = recv_offsets(counter-1) + &
+            & recv_per_process(counter-1)
+    END DO
 
-  !! Do Actual Send
-  CALL MPI_Alltoallv(send_buffer_col, send_per_process, send_offsets, &
-       & MPINTINTEGER, recv_buffer_col, recv_per_process, recv_offsets, &
-       & MPINTINTEGER, comm, mpi_error)
-  CALL MPI_Alltoallv(send_buffer_row, send_per_process, send_offsets, &
-       & MPINTINTEGER, recv_buffer_row, recv_per_process, recv_offsets, &
-       & MPINTINTEGER, comm, mpi_error)
-  CALL MPI_Alltoallv(send_buffer_val, send_per_process, send_offsets, &
-       & MPINTCOMPLEX, recv_buffer_val, recv_per_process, recv_offsets, &
-       & MPINTCOMPLEX, comm, mpi_error)
+    !! Allocate And Fill Send Buffers
+    ALLOCATE(send_buffer_row(SUM(send_per_process)))
+    ALLOCATE(send_buffer_col(SUM(send_per_process)))
+    ALLOCATE(send_buffer_val(SUM(send_per_process)))
+    ALLOCATE(recv_buffer_row(SUM(recv_per_process)))
+    ALLOCATE(recv_buffer_col(SUM(recv_per_process)))
+    ALLOCATE(recv_buffer_val(SUM(recv_per_process)))
 
-  !! Unpack Into The Output Triplet List
-  CALL ConstructTripletList(local_data_out, size_in=SUM(recv_per_process))
-  DO counter = 1, SUM(recv_per_process)
-     local_data_out%DATA(counter)%index_column = recv_buffer_col(counter)
-     local_data_out%DATA(counter)%index_row = recv_buffer_row(counter)
-     local_data_out%DATA(counter)%point_value = recv_buffer_val(counter)
-  END DO
+    !! Fill Send Buffer
+    insert_pt = 1
+    DO counter = 1, num_processes
+       DO inner_counter = 1, triplet_lists(counter)%CurrentSize
+          CALL GetTripletAt(triplet_lists(counter), inner_counter, temp_triplet)
+          send_buffer_row(insert_pt) = temp_triplet%index_row
+          send_buffer_col(insert_pt) = temp_triplet%index_column
+          send_buffer_val(insert_pt) = temp_triplet%point_value
+          insert_pt = insert_pt + 1
+       END DO
+    END DO
 
-  !! Cleanup
-  DEALLOCATE(send_per_process)
-  DEALLOCATE(send_offsets)
-  DEALLOCATE(recv_per_process)
-  DEALLOCATE(recv_offsets)
-  DEALLOCATE(send_buffer_row)
-  DEALLOCATE(send_buffer_col)
-  DEALLOCATE(send_buffer_val)
-  DEALLOCATE(recv_buffer_row)
-  DEALLOCATE(recv_buffer_col)
-  DEALLOCATE(recv_buffer_val)
+    !! Do Actual Send
+    CALL MPI_Alltoallv(send_buffer_col, send_per_process, send_offsets, &
+         & MPINTINTEGER, recv_buffer_col, recv_per_process, recv_offsets, &
+         & MPINTINTEGER, comm, mpi_error)
+    CALL MPI_Alltoallv(send_buffer_row, send_per_process, send_offsets, &
+         & MPINTINTEGER, recv_buffer_row, recv_per_process, recv_offsets, &
+         & MPINTINTEGER, comm, mpi_error)
+    CALL MPI_Alltoallv(send_buffer_val, send_per_process, send_offsets, &
+         & MPINTCOMPLEX, recv_buffer_val, recv_per_process, recv_offsets, &
+         & MPINTCOMPLEX, comm, mpi_error)
+
+    !! Unpack Into The Output Triplet List
+    CALL ConstructTripletList(local_data_out, size_in=SUM(recv_per_process))
+    DO counter = 1, SUM(recv_per_process)
+       local_data_out%DATA(counter)%index_column = recv_buffer_col(counter)
+       local_data_out%DATA(counter)%index_row = recv_buffer_row(counter)
+       local_data_out%DATA(counter)%point_value = recv_buffer_val(counter)
+    END DO
+
+    !! Cleanup
+    DEALLOCATE(send_per_process)
+    DEALLOCATE(send_offsets)
+    DEALLOCATE(recv_per_process)
+    DEALLOCATE(recv_offsets)
+    DEALLOCATE(send_buffer_row)
+    DEALLOCATE(send_buffer_col)
+    DEALLOCATE(send_buffer_val)
+    DEALLOCATE(recv_buffer_row)
+    DEALLOCATE(recv_buffer_col)
+    DEALLOCATE(recv_buffer_val)
+
 
   END SUBROUTINE RedistributeTripletLists_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -794,13 +814,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     INTEGER :: counter
 
-  !! Loop
-  DO counter = 1, triplet_list%CurrentSize
-     triplet_list%DATA(counter)%index_row = &
-          triplet_list%DATA(counter)%index_row + row_shift
-     triplet_list%DATA(counter)%index_column = &
-          triplet_list%DATA(counter)%index_column + column_shift
-  END DO
+
+    !! Loop
+    DO counter = 1, triplet_list%CurrentSize
+       triplet_list%DATA(counter)%index_row = &
+            triplet_list%DATA(counter)%index_row + row_shift
+       triplet_list%DATA(counter)%index_column = &
+            triplet_list%DATA(counter)%index_column + column_shift
+    END DO
 
   END SUBROUTINE ShiftTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -818,13 +839,14 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     INTEGER :: counter
 
-  !! Loop
-  DO counter = 1, triplet_list%CurrentSize
-     triplet_list%DATA(counter)%index_row = &
-          triplet_list%DATA(counter)%index_row + row_shift
-     triplet_list%DATA(counter)%index_column = &
-          triplet_list%DATA(counter)%index_column + column_shift
-  END DO
+
+    !! Loop
+    DO counter = 1, triplet_list%CurrentSize
+       triplet_list%DATA(counter)%index_row = &
+            triplet_list%DATA(counter)%index_row + row_shift
+       triplet_list%DATA(counter)%index_column = &
+            triplet_list%DATA(counter)%index_column + column_shift
+    END DO
 
   END SUBROUTINE ShiftTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -843,44 +865,45 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     REAL(NTREAL), DIMENSION(:,:), ALLOCATABLE :: value_buffer
 
-  !! Local Data
-  INTEGER, DIMENSION(:,:), ALLOCATABLE :: dirty_buffer
-  INTEGER :: list_length
-  INTEGER :: row, col, ind
-  INTEGER :: II, JJ
 
-  !! Setup Memory
-  ALLOCATE(value_buffer(matrix_rows,matrix_columns))
-  ALLOCATE(dirty_buffer(matrix_rows,matrix_columns))
-  value_buffer = 0
-  dirty_buffer = 0
-  list_length = input_list%CurrentSize
-  CALL ConstructTripletList(sorted_list, list_length)
+    !! Local Data
+    INTEGER, DIMENSION(:,:), ALLOCATABLE :: dirty_buffer
+    INTEGER :: list_length
+    INTEGER :: row, col, ind
+    INTEGER :: II, JJ
 
-  !! Unpack
-  DO II = 1, list_length
-     row = input_list%DATA(II)%index_row
-     col = input_list%DATA(II)%index_column
-     value_buffer(row,col) = input_list%DATA(II)%point_value
-     dirty_buffer(row,col) = 1
-  END DO
+    !! Setup Memory
+    ALLOCATE(value_buffer(matrix_rows,matrix_columns))
+    ALLOCATE(dirty_buffer(matrix_rows,matrix_columns))
+    value_buffer = 0
+    dirty_buffer = 0
+    list_length = input_list%CurrentSize
+    CALL ConstructTripletList(sorted_list, list_length)
 
-  !! Repack
-  ind = 1
-  DO JJ = 1, matrix_columns
-     DO II = 1, matrix_rows
-        IF (dirty_buffer(II,JJ) .EQ. 1) THEN
-           sorted_list%DATA(ind)%index_row = II
-           sorted_list%DATA(ind)%index_column = JJ
-           sorted_list%DATA(ind)%point_value = value_buffer(II,JJ)
-           ind = ind + 1
-        END IF
-     END DO
-  END DO
+    !! Unpack
+    DO II = 1, list_length
+       row = input_list%DATA(II)%index_row
+       col = input_list%DATA(II)%index_column
+       value_buffer(row,col) = input_list%DATA(II)%point_value
+       dirty_buffer(row,col) = 1
+    END DO
 
-  !! Cleanup
-  DEALLOCATE(value_buffer)
-  DEALLOCATE(dirty_buffer)
+    !! Repack
+    ind = 1
+    DO JJ = 1, matrix_columns
+       DO II = 1, matrix_rows
+          IF (dirty_buffer(II,JJ) .EQ. 1) THEN
+             sorted_list%DATA(ind)%index_row = II
+             sorted_list%DATA(ind)%index_column = JJ
+             sorted_list%DATA(ind)%point_value = value_buffer(II,JJ)
+             ind = ind + 1
+          END IF
+       END DO
+    END DO
+
+    !! Cleanup
+    DEALLOCATE(value_buffer)
+    DEALLOCATE(dirty_buffer)
 
   END SUBROUTINE SortDenseTripletList_r
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -899,44 +922,45 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Local Variables
     COMPLEX(NTCOMPLEX), DIMENSION(:,:), ALLOCATABLE :: value_buffer
 
-  !! Local Data
-  INTEGER, DIMENSION(:,:), ALLOCATABLE :: dirty_buffer
-  INTEGER :: list_length
-  INTEGER :: row, col, ind
-  INTEGER :: II, JJ
 
-  !! Setup Memory
-  ALLOCATE(value_buffer(matrix_rows,matrix_columns))
-  ALLOCATE(dirty_buffer(matrix_rows,matrix_columns))
-  value_buffer = 0
-  dirty_buffer = 0
-  list_length = input_list%CurrentSize
-  CALL ConstructTripletList(sorted_list, list_length)
+    !! Local Data
+    INTEGER, DIMENSION(:,:), ALLOCATABLE :: dirty_buffer
+    INTEGER :: list_length
+    INTEGER :: row, col, ind
+    INTEGER :: II, JJ
 
-  !! Unpack
-  DO II = 1, list_length
-     row = input_list%DATA(II)%index_row
-     col = input_list%DATA(II)%index_column
-     value_buffer(row,col) = input_list%DATA(II)%point_value
-     dirty_buffer(row,col) = 1
-  END DO
+    !! Setup Memory
+    ALLOCATE(value_buffer(matrix_rows,matrix_columns))
+    ALLOCATE(dirty_buffer(matrix_rows,matrix_columns))
+    value_buffer = 0
+    dirty_buffer = 0
+    list_length = input_list%CurrentSize
+    CALL ConstructTripletList(sorted_list, list_length)
 
-  !! Repack
-  ind = 1
-  DO JJ = 1, matrix_columns
-     DO II = 1, matrix_rows
-        IF (dirty_buffer(II,JJ) .EQ. 1) THEN
-           sorted_list%DATA(ind)%index_row = II
-           sorted_list%DATA(ind)%index_column = JJ
-           sorted_list%DATA(ind)%point_value = value_buffer(II,JJ)
-           ind = ind + 1
-        END IF
-     END DO
-  END DO
+    !! Unpack
+    DO II = 1, list_length
+       row = input_list%DATA(II)%index_row
+       col = input_list%DATA(II)%index_column
+       value_buffer(row,col) = input_list%DATA(II)%point_value
+       dirty_buffer(row,col) = 1
+    END DO
 
-  !! Cleanup
-  DEALLOCATE(value_buffer)
-  DEALLOCATE(dirty_buffer)
+    !! Repack
+    ind = 1
+    DO JJ = 1, matrix_columns
+       DO II = 1, matrix_rows
+          IF (dirty_buffer(II,JJ) .EQ. 1) THEN
+             sorted_list%DATA(ind)%index_row = II
+             sorted_list%DATA(ind)%index_column = JJ
+             sorted_list%DATA(ind)%point_value = value_buffer(II,JJ)
+             ind = ind + 1
+          END IF
+       END DO
+    END DO
+
+    !! Cleanup
+    DEALLOCATE(value_buffer)
+    DEALLOCATE(dirty_buffer)
 
   END SUBROUTINE SortDenseTripletList_c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

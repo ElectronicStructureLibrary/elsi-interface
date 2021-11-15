@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A Module For Performing Distributed Sparse Matrix Algebra Operations.
 MODULE PSMatrixAlgebraModule
@@ -83,51 +81,57 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: ierr
 
     IF (this%is_complex) THEN
-  !! Merge all the local data
-  CALL MergeMatrixLocalBlocks(this, merged_local_data_c)
 
-  ALLOCATE(column_sigma_contribution(merged_local_data_c%columns))
-  column_sigma_contribution = 0
-  DO outer_counter = 1, merged_local_data_c%columns
-     DO inner_counter = merged_local_data_c%outer_index(outer_counter), &
-          & merged_local_data_c%outer_index(outer_counter+1)-1
-        column_sigma_contribution(outer_counter) = &
-             & column_sigma_contribution(outer_counter) + &
-             & ABS(merged_local_data_c%values(inner_counter+1))
-     END DO
-  END DO
-  CALL MPI_Allreduce(MPI_IN_PLACE,column_sigma_contribution,&
-       & merged_local_data_c%columns,MPINTREAL,MPI_SUM, &
-       & this%process_grid%column_comm, ierr)
-  CALL MPI_Allreduce(MAXVAL(column_sigma_contribution),sigma_value,1, &
-       & MPINTREAL,MPI_MAX, this%process_grid%row_comm, ierr)
-  sigma_value = 1.0_NTREAL/(sigma_value**2)
 
-  DEALLOCATE(column_sigma_contribution)
-  CALL DestructMatrix(merged_local_data_c)
+       !! Merge all the local data
+       CALL MergeMatrixLocalBlocks(this, merged_local_data_c)
+
+       ALLOCATE(column_sigma_contribution(merged_local_data_c%columns))
+       column_sigma_contribution = 0
+       DO outer_counter = 1, merged_local_data_c%columns
+          DO inner_counter = merged_local_data_c%outer_index(outer_counter), &
+               & merged_local_data_c%outer_index(outer_counter+1)-1
+             column_sigma_contribution(outer_counter) = &
+                  & column_sigma_contribution(outer_counter) + &
+                  & ABS(merged_local_data_c%values(inner_counter+1))
+          END DO
+       END DO
+       CALL MPI_Allreduce(MPI_IN_PLACE,column_sigma_contribution,&
+            & merged_local_data_c%columns,MPINTREAL,MPI_SUM, &
+            & this%process_grid%column_comm, ierr)
+       CALL MPI_Allreduce(MAXVAL(column_sigma_contribution),sigma_value,1, &
+            & MPINTREAL,MPI_MAX, this%process_grid%row_comm, ierr)
+       sigma_value = 1.0_NTREAL/(sigma_value**2)
+
+       DEALLOCATE(column_sigma_contribution)
+       CALL DestructMatrix(merged_local_data_c)
+
     ELSE
-  !! Merge all the local data
-  CALL MergeMatrixLocalBlocks(this, merged_local_data_r)
 
-  ALLOCATE(column_sigma_contribution(merged_local_data_r%columns))
-  column_sigma_contribution = 0
-  DO outer_counter = 1, merged_local_data_r%columns
-     DO inner_counter = merged_local_data_r%outer_index(outer_counter), &
-          & merged_local_data_r%outer_index(outer_counter+1)-1
-        column_sigma_contribution(outer_counter) = &
-             & column_sigma_contribution(outer_counter) + &
-             & ABS(merged_local_data_r%values(inner_counter+1))
-     END DO
-  END DO
-  CALL MPI_Allreduce(MPI_IN_PLACE,column_sigma_contribution,&
-       & merged_local_data_r%columns,MPINTREAL,MPI_SUM, &
-       & this%process_grid%column_comm, ierr)
-  CALL MPI_Allreduce(MAXVAL(column_sigma_contribution),sigma_value,1, &
-       & MPINTREAL,MPI_MAX, this%process_grid%row_comm, ierr)
-  sigma_value = 1.0_NTREAL/(sigma_value**2)
 
-  DEALLOCATE(column_sigma_contribution)
-  CALL DestructMatrix(merged_local_data_r)
+       !! Merge all the local data
+       CALL MergeMatrixLocalBlocks(this, merged_local_data_r)
+
+       ALLOCATE(column_sigma_contribution(merged_local_data_r%columns))
+       column_sigma_contribution = 0
+       DO outer_counter = 1, merged_local_data_r%columns
+          DO inner_counter = merged_local_data_r%outer_index(outer_counter), &
+               & merged_local_data_r%outer_index(outer_counter+1)-1
+             column_sigma_contribution(outer_counter) = &
+                  & column_sigma_contribution(outer_counter) + &
+                  & ABS(merged_local_data_r%values(inner_counter+1))
+          END DO
+       END DO
+       CALL MPI_Allreduce(MPI_IN_PLACE,column_sigma_contribution,&
+            & merged_local_data_r%columns,MPINTREAL,MPI_SUM, &
+            & this%process_grid%column_comm, ierr)
+       CALL MPI_Allreduce(MAXVAL(column_sigma_contribution),sigma_value,1, &
+            & MPINTREAL,MPI_MAX, this%process_grid%row_comm, ierr)
+       sigma_value = 1.0_NTREAL/(sigma_value**2)
+
+       DEALLOCATE(column_sigma_contribution)
+       CALL DestructMatrix(merged_local_data_r)
+
     ENDIF
   END SUBROUTINE MatrixSigma_ps
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -282,597 +286,605 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: ABTasks_completed
 
     IF (matA%is_complex) THEN
-  CALL StartTimer("GEMM")
+       CALL StartTimer("GEMM")
 
-  !! The threshold needs to be smaller if we are doing a sliced version
-  !! because you might flush a value that would be kept in the summed version.
-  IF (matA%process_grid%num_process_slices .GT. 1) THEN
-     working_threshold = threshold/(matA%process_grid%num_process_slices*1000)
-  ELSE
-     working_threshold = threshold
-  END IF
+       !! The threshold needs to be smaller if we are doing a sliced version
+       !! because you might flush a value that would be kept in the summed version.
+       IF (matA%process_grid%num_process_slices .GT. 1) THEN
+          working_threshold = threshold/(matA%process_grid%num_process_slices*1000)
+       ELSE
+          working_threshold = threshold
+       END IF
 
-  !! Construct The Temporary Matrices
-  CALL ConstructEmptyMatrix(matAB, matA)
+       !! Construct The Temporary Matrices
+       CALL ConstructEmptyMatrix(matAB, matA)
 
-  ALLOCATE(AdjacentABlocks_c(matAB%process_grid%number_of_blocks_rows, &
-       & matAB%process_grid%number_of_blocks_columns/&
-       & matAB%process_grid%num_process_slices))
-  ALLOCATE(LocalRowContribution_c(matAB%process_grid%number_of_blocks_rows))
-  ALLOCATE(GatheredRowContribution_c(matAB%process_grid%number_of_blocks_rows))
-  ALLOCATE(GatheredRowContributionT_c(matAB%process_grid%number_of_blocks_rows))
+       ALLOCATE(AdjacentABlocks_c(matAB%process_grid%number_of_blocks_rows, &
+            & matAB%process_grid%number_of_blocks_columns/&
+            & matAB%process_grid%num_process_slices))
+       ALLOCATE(LocalRowContribution_c(matAB%process_grid%number_of_blocks_rows))
+       ALLOCATE(GatheredRowContribution_c(matAB%process_grid%number_of_blocks_rows))
+       ALLOCATE(GatheredRowContributionT_c(matAB%process_grid%number_of_blocks_rows))
 
-  ALLOCATE(TransposedBBlocks_c(matAB%process_grid%number_of_blocks_rows/&
-       & matAB%process_grid%num_process_slices, &
-       & matAB%process_grid%number_of_blocks_columns))
-  ALLOCATE(LocalColumnContribution_c(&
-       & matAB%process_grid%number_of_blocks_columns))
-  ALLOCATE(GatheredColumnContribution_c(&
-       & matAB%process_grid%number_of_blocks_columns))
-  ALLOCATE(SliceContribution_c(matAB%process_grid%number_of_blocks_rows, &
-       & matAB%process_grid%number_of_blocks_columns))
+       ALLOCATE(TransposedBBlocks_c(matAB%process_grid%number_of_blocks_rows/&
+            & matAB%process_grid%num_process_slices, &
+            & matAB%process_grid%number_of_blocks_columns))
+       ALLOCATE(LocalColumnContribution_c(&
+            & matAB%process_grid%number_of_blocks_columns))
+       ALLOCATE(GatheredColumnContribution_c(&
+            & matAB%process_grid%number_of_blocks_columns))
+       ALLOCATE(SliceContribution_c(matAB%process_grid%number_of_blocks_rows, &
+            & matAB%process_grid%number_of_blocks_columns))
 
-  !! Helpers
-  ALLOCATE(row_helper(matAB%process_grid%number_of_blocks_rows))
-  ALLOCATE(column_helper(matAB%process_grid%number_of_blocks_columns))
-  ALLOCATE(slice_helper(matAB%process_grid%number_of_blocks_rows, &
-       & matAB%process_grid%number_of_blocks_columns))
+       !! Helpers
+       ALLOCATE(row_helper(matAB%process_grid%number_of_blocks_rows))
+       ALLOCATE(column_helper(matAB%process_grid%number_of_blocks_columns))
+       ALLOCATE(slice_helper(matAB%process_grid%number_of_blocks_rows, &
+            & matAB%process_grid%number_of_blocks_columns))
 
-  !! Construct the task queues
-  ALLOCATE(ATasks(matAB%process_grid%number_of_blocks_rows))
-  DO II=1,matAB%process_grid%number_of_blocks_rows
-     ATasks(II) = LocalGatherA
-  END DO
-  ALLOCATE(BTasks(matAB%process_grid%number_of_blocks_columns))
-  DO JJ=1,matAB%process_grid%number_of_blocks_columns
-     BTasks(JJ) = LocalGatherB
-  END DO
-  ALLOCATE(ABTasks(matAB%process_grid%number_of_blocks_rows, &
-       & matAB%process_grid%number_of_blocks_columns))
-  DO JJ=1,matAB%process_grid%number_of_blocks_columns
-     DO II=1,matAB%process_grid%number_of_blocks_rows
-        ABTasks(II,JJ) = AwaitingAB
-     END DO
-  END DO
+       !! Construct the task queues
+       ALLOCATE(ATasks(matAB%process_grid%number_of_blocks_rows))
+       DO II=1,matAB%process_grid%number_of_blocks_rows
+          ATasks(II) = LocalGatherA
+       END DO
+       ALLOCATE(BTasks(matAB%process_grid%number_of_blocks_columns))
+       DO JJ=1,matAB%process_grid%number_of_blocks_columns
+          BTasks(JJ) = LocalGatherB
+       END DO
+       ALLOCATE(ABTasks(matAB%process_grid%number_of_blocks_rows, &
+            & matAB%process_grid%number_of_blocks_columns))
+       DO JJ=1,matAB%process_grid%number_of_blocks_columns
+          DO II=1,matAB%process_grid%number_of_blocks_rows
+             ABTasks(II,JJ) = AwaitingAB
+          END DO
+       END DO
 
-  !! Setup A Tasks
-  duplicate_start_column = matAB%process_grid%my_slice+1
-  duplicate_offset_column = matAB%process_grid%num_process_slices
+       !! Setup A Tasks
+       duplicate_start_column = matAB%process_grid%my_slice+1
+       duplicate_offset_column = matAB%process_grid%num_process_slices
 
-  !! Setup B Tasks
-  duplicate_start_row = matAB%process_grid%my_slice+1
-  duplicate_offset_row = matAB%process_grid%num_process_slices
+       !! Setup B Tasks
+       duplicate_start_row = matAB%process_grid%my_slice+1
+       duplicate_offset_row = matAB%process_grid%num_process_slices
 
-  !! Run A Tasks
-  ATasks_completed = 0
-  BTasks_completed = 0
-  ABTasks_completed = 0
-  !$OMP PARALLEL
-  !$OMP MASTER
-  DO WHILE (ATasks_completed .LT. SIZE(ATasks) .OR. &
-       & BTasks_completed .LT. SIZE(BTasks) .OR. &
-       & ABTasks_completed .LT. SIZE(ABTasks))
-     DO II=1, matAB%process_grid%number_of_blocks_rows
-        SELECT CASE (ATasks(II))
-        CASE(LocalGatherA)
-           ATasks(II) = TaskRunningA
-           !$OMP TASK DEFAULT(SHARED), PRIVATE(JJ2), FIRSTPRIVATE(II)
-           !! First Align The Data We Are Working With
-           DO JJ2=1, &
-                & matAB%process_grid%number_of_blocks_columns/ &
-                & matAB%process_grid%num_process_slices
-              CALL CopyMatrix(matA%local_data_c(II, &
-                   & duplicate_start_column+duplicate_offset_column*(JJ2-1)),&
-                   & AdjacentABlocks_c(II,JJ2))
-           END DO
-           !! Then Do A Local Gather
-           CALL ComposeMatrixColumns(AdjacentABlocks_c(II,:), &
-                & LocalRowContribution_c(II))
-           ATasks(II) = SendSizeA
-           !$OMP END TASK
-        CASE(SendSizeA)
-           !! Then Start A Global Gather
-           CALL ReduceAndComposeMatrixSizes(LocalRowContribution_c(II), &
-                & matAB%process_grid%blocked_row_comm(II), &
-                & GatheredRowContribution_c(II), row_helper(II))
-           ATasks(II) = ComposeA
-        CASE(ComposeA)
-           IF (TestReduceSizeRequest(row_helper(II))) THEN
-              CALL ReduceAndComposeMatrixData(LocalRowContribution_c(II), &
-                   & matAB%process_grid%blocked_row_comm(II), &
-                   & GatheredRowContribution_c(II), row_helper(II))
-              ATasks(II) = WaitInnerA
-           END IF
-        CASE(WaitInnerA)
-           IF (TestReduceInnerRequest(row_helper(II))) THEN
-              ATasks(II) = WaitDataA
-           END IF
-        CASE(WaitDataA)
-           IF (TestReduceDataRequest(row_helper(II))) THEN
-              ATasks(II) = AdjustIndicesA
-           END IF
-        CASE(AdjustIndicesA)
-           ATasks(II) = TaskRunningA
-           !$OMP TASK DEFAULT(SHARED), FIRSTPRIVATE(II)
-           CALL ReduceAndComposeMatrixCleanup(LocalRowContribution_c(II), &
-                & GatheredRowContribution_c(II), row_helper(II))
-           CALL TransposeMatrix(GatheredRowContribution_c(II), &
-                & GatheredRowContributionT_c(II))
-           ATasks(II) = CleanupA
-           !$OMP END TASK
-        CASE(CleanupA)
-           ATasks(II) = FinishedA
-           ATasks_completed = ATasks_completed + 1
-        END SELECT
-     END DO
-     !! B Tasks
-     DO JJ=1,matAB%process_grid%number_of_blocks_columns
-        SELECT CASE (BTasks(JJ))
-        CASE(LocalGatherB)
-           BTasks(JJ) = TaskRunningB
-           !$OMP TASK DEFAULT(SHARED), PRIVATE(II2), FIRSTPRIVATE(JJ)
-           !! First Transpose The Data We Are Working With
-           DO II2=1, matAB%process_grid%number_of_blocks_rows/&
-                & matAB%process_grid%num_process_slices
-              CALL TransposeMatrix(matB%local_data_c(duplicate_start_row+&
-                   & duplicate_offset_row*(II2-1),JJ), &
-                   & TransposedBBlocks_c(II2,JJ))
-           END DO
-           !! Then Do A Local Gather
-           CALL ComposeMatrixColumns(TransposedBBlocks_c(:,JJ), &
-                & LocalColumnContribution_c(JJ))
-           BTasks(JJ) = SendSizeB
-           !$OMP END TASK
-        CASE(SendSizeB)
-           !! Then A Global Gather
-           CALL ReduceAndComposeMatrixSizes(LocalColumnContribution_c(JJ), &
-                & matAB%process_grid%blocked_column_comm(JJ), &
-                & GatheredColumnContribution_c(JJ), column_helper(JJ))
-           BTasks(JJ) = LocalComposeB
-        CASE(LocalComposeB)
-           IF (TestReduceSizeRequest(column_helper(JJ))) THEN
-              CALL ReduceAndComposeMatrixData(LocalColumnContribution_c(JJ),&
-                   & matAB%process_grid%blocked_column_comm(JJ), &
-                   & GatheredColumnContribution_c(JJ), column_helper(JJ))
-              BTasks(JJ) = WaitInnerB
-           END IF
-        CASE(WaitInnerB)
-           IF (TestReduceInnerRequest(column_helper(JJ))) THEN
-              BTasks(JJ) = WaitDataB
-           END IF
-        CASE(WaitDataB)
-           IF (TestReduceDataRequest(column_helper(JJ))) THEN
-              BTasks(JJ) = AdjustIndicesB
-           END IF
-        CASE(AdjustIndicesB)
-           BTasks(JJ) = TaskRunningB
-           !$OMP TASK DEFAULT(SHARED), FIRSTPRIVATE(JJ)
-           CALL ReduceAndComposeMatrixCleanup(LocalColumnContribution_c(JJ), &
-                & GatheredColumnContribution_c(JJ), column_helper(JJ))
-           BTasks(JJ) = CleanupB
-           !$OMP END TASK
-        CASE(CleanupB)
-           BTasks(JJ) = FinishedB
-           BTasks_completed = BTasks_completed + 1
-        END SELECT
-     END DO
-     !! AB Tasks
-     DO II=1,matAB%process_grid%number_of_blocks_rows
-        DO JJ=1,matAB%process_grid%number_of_blocks_columns
-           SELECT CASE(ABTasks(II,JJ))
-           CASE (AwaitingAB)
-              IF (ATasks(II) .EQ. FinishedA .AND. &
-                   & BTasks(JJ) .EQ. FinishedB) THEN
-                 ABTasks(II,JJ) = GemmAB
-              END IF
-           CASE (GemmAB)
-              ABTasks(II,JJ) = TaskRunningAB
-              !$OMP TASK DEFAULT(shared), FIRSTPRIVATE(II,JJ)
-              CALL MatrixMultiply(GatheredRowContributionT_c(II), &
-                   & GatheredColumnContribution_c(JJ), &
-                   & SliceContribution_c(II,JJ), &
-                   & IsATransposed_in=.TRUE., IsBTransposed_in=.TRUE., &
-                   & alpha_in=alpha, threshold_in=working_threshold, &
-                   & blocked_memory_pool_in=memory_pool%grid_c(II,JJ))
-              !! We can exit early if there is only one process slice
-              IF (matAB%process_grid%num_process_slices .EQ. 1) THEN
-                 ABTasks(II,JJ) = CleanupAB
-                 CALL CopyMatrix(SliceContribution_c(II,JJ), matAB%local_data_c(II,JJ))
-              ELSE
-                 ABTasks(II,JJ) = SendSizeAB
-              END IF
-              !$OMP END TASK
-           CASE(SendSizeAB)
-              CALL ReduceAndSumMatrixSizes(SliceContribution_c(II,JJ),&
-                   & matAB%process_grid%blocked_between_slice_comm(II,JJ), &
-                   & matAB%local_data_c(II,JJ), slice_helper(II,JJ))
-              ABTasks(II,JJ) = GatherAndSumAB
-           CASE (GatherAndSumAB)
-              IF (TestReduceSizeRequest(slice_helper(II,JJ))) THEN
-                 CALL ReduceAndSumMatrixData(SliceContribution_c(II,JJ), &
-                      & matAB%local_data_c(II,JJ), &
-                      & matAB%process_grid%blocked_between_slice_comm(II,JJ),&
-                      & slice_helper(II,JJ))
-                 ABTasks(II,JJ) = WaitInnerAB
-              END IF
-           CASE (WaitInnerAB)
-              IF (TestReduceInnerRequest(slice_helper(II,JJ))) THEN
-                 ABTasks(II,JJ) = WaitDataAB
-              END IF
-           CASE (WaitDataAB)
-              IF (TestReduceDataRequest(slice_helper(II,JJ))) THEN
-                 ABTasks(II,JJ) = LocalSumAB
-              END IF
-           CASE(LocalSumAB)
-              ABTasks(II,JJ) = TaskRunningAB
-              !$OMP TASK DEFAULT(SHARED), FIRSTPRIVATE(II,JJ)
-              CALL ReduceAndSumMatrixCleanup(SliceContribution_c(II,JJ), &
-                   & matAB%local_data_c(II,JJ), threshold, slice_helper(II,JJ))
-              ABTasks(II,JJ) = CleanupAB
-              !$OMP END TASK
-           CASE(CleanupAB)
-              ABTasks(II,JJ) = FinishedAB
-              ABTasks_completed = ABTasks_completed + 1
-           END SELECT
-        END DO
-     END DO
-  END DO
-  !$OMP END MASTER
-  !$OMP END PARALLEL
+       !! Run A Tasks
+       ATasks_completed = 0
+       BTasks_completed = 0
+       ABTasks_completed = 0
+       !$OMP PARALLEL
+       !$OMP MASTER
+       DO WHILE (ATasks_completed .LT. SIZE(ATasks) .OR. &
+            & BTasks_completed .LT. SIZE(BTasks) .OR. &
+            & ABTasks_completed .LT. SIZE(ABTasks))
+          DO II=1, matAB%process_grid%number_of_blocks_rows
+             SELECT CASE (ATasks(II))
+             CASE(LocalGatherA)
+                ATasks(II) = TaskRunningA
+                !$OMP TASK DEFAULT(SHARED), PRIVATE(JJ2), FIRSTPRIVATE(II)
+                !! First Align The Data We Are Working With
+                DO JJ2=1, &
+                     & matAB%process_grid%number_of_blocks_columns/ &
+                     & matAB%process_grid%num_process_slices
+                   CALL CopyMatrix(matA%local_data_c(II, &
+                        & duplicate_start_column+duplicate_offset_column*(JJ2-1)),&
+                        & AdjacentABlocks_c(II,JJ2))
+                END DO
+                !! Then Do A Local Gather
+                CALL ComposeMatrixColumns(AdjacentABlocks_c(II,:), &
+                     & LocalRowContribution_c(II))
+                ATasks(II) = SendSizeA
+                !$OMP END TASK
+             CASE(SendSizeA)
+                !! Then Start A Global Gather
+                CALL ReduceAndComposeMatrixSizes(LocalRowContribution_c(II), &
+                     & matAB%process_grid%blocked_row_comm(II), &
+                     & GatheredRowContribution_c(II), row_helper(II))
+                ATasks(II) = ComposeA
+             CASE(ComposeA)
+                IF (TestReduceSizeRequest(row_helper(II))) THEN
+                   CALL ReduceAndComposeMatrixData(LocalRowContribution_c(II), &
+                        & matAB%process_grid%blocked_row_comm(II), &
+                        & GatheredRowContribution_c(II), row_helper(II))
+                   ATasks(II) = WaitInnerA
+                END IF
+             CASE(WaitInnerA)
+                IF (TestReduceInnerRequest(row_helper(II))) THEN
+                   ATasks(II) = WaitDataA
+                END IF
+             CASE(WaitDataA)
+                IF (TestReduceDataRequest(row_helper(II))) THEN
+                   ATasks(II) = AdjustIndicesA
+                END IF
+             CASE(AdjustIndicesA)
+                ATasks(II) = TaskRunningA
+                !$OMP TASK DEFAULT(SHARED), FIRSTPRIVATE(II)
+                CALL ReduceAndComposeMatrixCleanup(LocalRowContribution_c(II), &
+                     & GatheredRowContribution_c(II), row_helper(II))
+                CALL TransposeMatrix(GatheredRowContribution_c(II), &
+                     & GatheredRowContributionT_c(II))
+                ATasks(II) = CleanupA
+                !$OMP END TASK
+             CASE(CleanupA)
+                ATasks(II) = FinishedA
+                ATasks_completed = ATasks_completed + 1
+             END SELECT
+          END DO
+          !! B Tasks
+          DO JJ=1,matAB%process_grid%number_of_blocks_columns
+             SELECT CASE (BTasks(JJ))
+             CASE(LocalGatherB)
+                BTasks(JJ) = TaskRunningB
+                !$OMP TASK DEFAULT(SHARED), PRIVATE(II2), FIRSTPRIVATE(JJ)
+                !! First Transpose The Data We Are Working With
+                DO II2=1, matAB%process_grid%number_of_blocks_rows/&
+                     & matAB%process_grid%num_process_slices
+                   CALL TransposeMatrix(matB%local_data_c(duplicate_start_row+&
+                        & duplicate_offset_row*(II2-1),JJ), &
+                        & TransposedBBlocks_c(II2,JJ))
+                END DO
+                !! Then Do A Local Gather
+                CALL ComposeMatrixColumns(TransposedBBlocks_c(:,JJ), &
+                     & LocalColumnContribution_c(JJ))
+                BTasks(JJ) = SendSizeB
+                !$OMP END TASK
+             CASE(SendSizeB)
+                !! Then A Global Gather
+                CALL ReduceAndComposeMatrixSizes(LocalColumnContribution_c(JJ), &
+                     & matAB%process_grid%blocked_column_comm(JJ), &
+                     & GatheredColumnContribution_c(JJ), column_helper(JJ))
+                BTasks(JJ) = LocalComposeB
+             CASE(LocalComposeB)
+                IF (TestReduceSizeRequest(column_helper(JJ))) THEN
+                   CALL ReduceAndComposeMatrixData(LocalColumnContribution_c(JJ),&
+                        & matAB%process_grid%blocked_column_comm(JJ), &
+                        & GatheredColumnContribution_c(JJ), column_helper(JJ))
+                   BTasks(JJ) = WaitInnerB
+                END IF
+             CASE(WaitInnerB)
+                IF (TestReduceInnerRequest(column_helper(JJ))) THEN
+                   BTasks(JJ) = WaitDataB
+                END IF
+             CASE(WaitDataB)
+                IF (TestReduceDataRequest(column_helper(JJ))) THEN
+                   BTasks(JJ) = AdjustIndicesB
+                END IF
+             CASE(AdjustIndicesB)
+                BTasks(JJ) = TaskRunningB
+                !$OMP TASK DEFAULT(SHARED), FIRSTPRIVATE(JJ)
+                CALL ReduceAndComposeMatrixCleanup(LocalColumnContribution_c(JJ), &
+                     & GatheredColumnContribution_c(JJ), column_helper(JJ))
+                BTasks(JJ) = CleanupB
+                !$OMP END TASK
+             CASE(CleanupB)
+                BTasks(JJ) = FinishedB
+                BTasks_completed = BTasks_completed + 1
+             END SELECT
+          END DO
+          !! AB Tasks
+          DO II=1,matAB%process_grid%number_of_blocks_rows
+             DO JJ=1,matAB%process_grid%number_of_blocks_columns
+                SELECT CASE(ABTasks(II,JJ))
+                CASE (AwaitingAB)
+                   IF (ATasks(II) .EQ. FinishedA .AND. &
+                        & BTasks(JJ) .EQ. FinishedB) THEN
+                      ABTasks(II,JJ) = GemmAB
+                   END IF
+                CASE (GemmAB)
+                   ABTasks(II,JJ) = TaskRunningAB
+                   !$OMP TASK DEFAULT(shared), FIRSTPRIVATE(II,JJ)
+                   CALL MatrixMultiply(GatheredRowContributionT_c(II), &
+                        & GatheredColumnContribution_c(JJ), &
+                        & SliceContribution_c(II,JJ), &
+                        & IsATransposed_in=.TRUE., IsBTransposed_in=.TRUE., &
+                        & alpha_in=alpha, threshold_in=working_threshold, &
+                        & blocked_memory_pool_in=memory_pool%grid_c(II,JJ))
+                   !! We can exit early if there is only one process slice
+                   IF (matAB%process_grid%num_process_slices .EQ. 1) THEN
+                      ABTasks(II,JJ) = CleanupAB
+                      CALL CopyMatrix(SliceContribution_c(II,JJ), matAB%local_data_c(II,JJ))
+                   ELSE
+                      ABTasks(II,JJ) = SendSizeAB
+                   END IF
+                   !$OMP END TASK
+                CASE(SendSizeAB)
+                   CALL ReduceAndSumMatrixSizes(SliceContribution_c(II,JJ),&
+                        & matAB%process_grid%blocked_between_slice_comm(II,JJ), &
+                        & matAB%local_data_c(II,JJ), slice_helper(II,JJ))
+                   ABTasks(II,JJ) = GatherAndSumAB
+                CASE (GatherAndSumAB)
+                   IF (TestReduceSizeRequest(slice_helper(II,JJ))) THEN
+                      CALL ReduceAndSumMatrixData(SliceContribution_c(II,JJ), &
+                           & matAB%local_data_c(II,JJ), &
+                           & matAB%process_grid%blocked_between_slice_comm(II,JJ),&
+                           & slice_helper(II,JJ))
+                      ABTasks(II,JJ) = WaitInnerAB
+                   END IF
+                CASE (WaitInnerAB)
+                   IF (TestReduceInnerRequest(slice_helper(II,JJ))) THEN
+                      ABTasks(II,JJ) = WaitDataAB
+                   END IF
+                CASE (WaitDataAB)
+                   IF (TestReduceDataRequest(slice_helper(II,JJ))) THEN
+                      ABTasks(II,JJ) = LocalSumAB
+                   END IF
+                CASE(LocalSumAB)
+                   ABTasks(II,JJ) = TaskRunningAB
+                   !$OMP TASK DEFAULT(SHARED), FIRSTPRIVATE(II,JJ)
+                   CALL ReduceAndSumMatrixCleanup(SliceContribution_c(II,JJ), &
+                        & matAB%local_data_c(II,JJ), threshold, slice_helper(II,JJ))
+                   ABTasks(II,JJ) = CleanupAB
+                   !$OMP END TASK
+                CASE(CleanupAB)
+                   ABTasks(II,JJ) = FinishedAB
+                   ABTasks_completed = ABTasks_completed + 1
+                END SELECT
+             END DO
+          END DO
+          !! Prevent deadlock in the case where the number of tasks is capped.
+          IF (matA%process_grid%omp_max_threads .EQ. 1) THEN
+             !$OMP taskwait
+          END IF
+       END DO
+       !$OMP END MASTER
+       !$OMP END PARALLEL
 
-  !! Copy to output matrix.
-  IF (beta .EQ. 0.0) THEN
-     CALL CopyMatrix(matAB,matC)
-  ELSE
-     CALL ScaleMatrix(MatC,beta)
-     CALL IncrementMatrix(MatAB,MatC)
-  END IF
+       !! Copy to output matrix.
+       IF (beta .EQ. 0.0) THEN
+          CALL CopyMatrix(matAB,matC)
+       ELSE
+          CALL ScaleMatrix(MatC,beta)
+          CALL IncrementMatrix(MatAB,MatC)
+       END IF
 
-  !! Cleanup
-  CALL DestructMatrix(matAB)
-  DEALLOCATE(row_helper)
-  DEALLOCATE(column_helper)
-  DEALLOCATE(slice_helper)
-  DEALLOCATE(ATasks)
-  DEALLOCATE(BTasks)
-  DEALLOCATE(ABTasks)
+       !! Cleanup
+       CALL DestructMatrix(matAB)
+       DEALLOCATE(row_helper)
+       DEALLOCATE(column_helper)
+       DEALLOCATE(slice_helper)
+       DEALLOCATE(ATasks)
+       DEALLOCATE(BTasks)
+       DEALLOCATE(ABTasks)
 
-  !! Deallocate Buffers From A
-  DO II=1,matAB%process_grid%number_of_blocks_rows
-     DO JJ2=1,matAB%process_grid%number_of_blocks_columns/&
-          & matAB%process_grid%num_process_slices
-        CALL DestructMatrix(AdjacentABlocks_c(II,JJ2))
-     END DO
-     CALL DestructMatrix(LocalRowContribution_c(II))
-     CALL DestructMatrix(GatheredRowContribution_c(II))
-  END DO
-  DEALLOCATE(AdjacentABlocks_c)
-  DEALLOCATE(LocalRowContribution_c)
-  DEALLOCATE(GatheredRowContribution_c)
-  !! Deallocate Buffers From B
-  DO JJ=1,matAB%process_grid%number_of_blocks_columns
-     DO II2=1,matAB%process_grid%number_of_blocks_rows/&
-          & matAB%process_grid%num_process_slices
-        CALL DestructMatrix(TransposedBBlocks_c(II2,JJ))
-     END DO
-     CALL DestructMatrix(LocalColumnContribution_c(JJ))
-  END DO
-  DEALLOCATE(TransposedBBlocks_c)
-  DEALLOCATE(LocalColumnContribution_c)
-  !! Deallocate Buffers From Multiplying The Block
-  DO II=1,matAB%process_grid%number_of_blocks_rows
-     CALL DestructMatrix(GatheredRowContributionT_c(II))
-  END DO
-  DO JJ=1,matAB%process_grid%number_of_blocks_columns
-     CALL DestructMatrix(GatheredColumnContribution_c(JJ))
-  END DO
-  DEALLOCATE(GatheredRowContributionT_c)
-  DEALLOCATE(GatheredColumnContribution_c)
-  !! Deallocate Buffers From Sum
-  DO JJ=1,matAB%process_grid%number_of_blocks_columns
-     DO II=1,matAB%process_grid%number_of_blocks_rows
-        CALL DestructMatrix(SliceContribution_c(II,JJ))
-     END DO
-  END DO
-  DEALLOCATE(SliceContribution_c)
+       !! Deallocate Buffers From A
+       DO II=1,matAB%process_grid%number_of_blocks_rows
+          DO JJ2=1,matAB%process_grid%number_of_blocks_columns/&
+               & matAB%process_grid%num_process_slices
+             CALL DestructMatrix(AdjacentABlocks_c(II,JJ2))
+          END DO
+          CALL DestructMatrix(LocalRowContribution_c(II))
+          CALL DestructMatrix(GatheredRowContribution_c(II))
+       END DO
+       DEALLOCATE(AdjacentABlocks_c)
+       DEALLOCATE(LocalRowContribution_c)
+       DEALLOCATE(GatheredRowContribution_c)
+       !! Deallocate Buffers From B
+       DO JJ=1,matAB%process_grid%number_of_blocks_columns
+          DO II2=1,matAB%process_grid%number_of_blocks_rows/&
+               & matAB%process_grid%num_process_slices
+             CALL DestructMatrix(TransposedBBlocks_c(II2,JJ))
+          END DO
+          CALL DestructMatrix(LocalColumnContribution_c(JJ))
+       END DO
+       DEALLOCATE(TransposedBBlocks_c)
+       DEALLOCATE(LocalColumnContribution_c)
+       !! Deallocate Buffers From Multiplying The Block
+       DO II=1,matAB%process_grid%number_of_blocks_rows
+          CALL DestructMatrix(GatheredRowContributionT_c(II))
+       END DO
+       DO JJ=1,matAB%process_grid%number_of_blocks_columns
+          CALL DestructMatrix(GatheredColumnContribution_c(JJ))
+       END DO
+       DEALLOCATE(GatheredRowContributionT_c)
+       DEALLOCATE(GatheredColumnContribution_c)
+       !! Deallocate Buffers From Sum
+       DO JJ=1,matAB%process_grid%number_of_blocks_columns
+          DO II=1,matAB%process_grid%number_of_blocks_rows
+             CALL DestructMatrix(SliceContribution_c(II,JJ))
+          END DO
+       END DO
+       DEALLOCATE(SliceContribution_c)
 
-  CALL StopTimer("GEMM")
+       CALL StopTimer("GEMM")
     ELSE
-  CALL StartTimer("GEMM")
+       CALL StartTimer("GEMM")
 
-  !! The threshold needs to be smaller if we are doing a sliced version
-  !! because you might flush a value that would be kept in the summed version.
-  IF (matA%process_grid%num_process_slices .GT. 1) THEN
-     working_threshold = threshold/(matA%process_grid%num_process_slices*1000)
-  ELSE
-     working_threshold = threshold
-  END IF
+       !! The threshold needs to be smaller if we are doing a sliced version
+       !! because you might flush a value that would be kept in the summed version.
+       IF (matA%process_grid%num_process_slices .GT. 1) THEN
+          working_threshold = threshold/(matA%process_grid%num_process_slices*1000)
+       ELSE
+          working_threshold = threshold
+       END IF
 
-  !! Construct The Temporary Matrices
-  CALL ConstructEmptyMatrix(matAB, matA)
+       !! Construct The Temporary Matrices
+       CALL ConstructEmptyMatrix(matAB, matA)
 
-  ALLOCATE(AdjacentABlocks_r(matAB%process_grid%number_of_blocks_rows, &
-       & matAB%process_grid%number_of_blocks_columns/&
-       & matAB%process_grid%num_process_slices))
-  ALLOCATE(LocalRowContribution_r(matAB%process_grid%number_of_blocks_rows))
-  ALLOCATE(GatheredRowContribution_r(matAB%process_grid%number_of_blocks_rows))
-  ALLOCATE(GatheredRowContributionT_r(matAB%process_grid%number_of_blocks_rows))
+       ALLOCATE(AdjacentABlocks_r(matAB%process_grid%number_of_blocks_rows, &
+            & matAB%process_grid%number_of_blocks_columns/&
+            & matAB%process_grid%num_process_slices))
+       ALLOCATE(LocalRowContribution_r(matAB%process_grid%number_of_blocks_rows))
+       ALLOCATE(GatheredRowContribution_r(matAB%process_grid%number_of_blocks_rows))
+       ALLOCATE(GatheredRowContributionT_r(matAB%process_grid%number_of_blocks_rows))
 
-  ALLOCATE(TransposedBBlocks_r(matAB%process_grid%number_of_blocks_rows/&
-       & matAB%process_grid%num_process_slices, &
-       & matAB%process_grid%number_of_blocks_columns))
-  ALLOCATE(LocalColumnContribution_r(&
-       & matAB%process_grid%number_of_blocks_columns))
-  ALLOCATE(GatheredColumnContribution_r(&
-       & matAB%process_grid%number_of_blocks_columns))
-  ALLOCATE(SliceContribution_r(matAB%process_grid%number_of_blocks_rows, &
-       & matAB%process_grid%number_of_blocks_columns))
+       ALLOCATE(TransposedBBlocks_r(matAB%process_grid%number_of_blocks_rows/&
+            & matAB%process_grid%num_process_slices, &
+            & matAB%process_grid%number_of_blocks_columns))
+       ALLOCATE(LocalColumnContribution_r(&
+            & matAB%process_grid%number_of_blocks_columns))
+       ALLOCATE(GatheredColumnContribution_r(&
+            & matAB%process_grid%number_of_blocks_columns))
+       ALLOCATE(SliceContribution_r(matAB%process_grid%number_of_blocks_rows, &
+            & matAB%process_grid%number_of_blocks_columns))
 
-  !! Helpers
-  ALLOCATE(row_helper(matAB%process_grid%number_of_blocks_rows))
-  ALLOCATE(column_helper(matAB%process_grid%number_of_blocks_columns))
-  ALLOCATE(slice_helper(matAB%process_grid%number_of_blocks_rows, &
-       & matAB%process_grid%number_of_blocks_columns))
+       !! Helpers
+       ALLOCATE(row_helper(matAB%process_grid%number_of_blocks_rows))
+       ALLOCATE(column_helper(matAB%process_grid%number_of_blocks_columns))
+       ALLOCATE(slice_helper(matAB%process_grid%number_of_blocks_rows, &
+            & matAB%process_grid%number_of_blocks_columns))
 
-  !! Construct the task queues
-  ALLOCATE(ATasks(matAB%process_grid%number_of_blocks_rows))
-  DO II=1,matAB%process_grid%number_of_blocks_rows
-     ATasks(II) = LocalGatherA
-  END DO
-  ALLOCATE(BTasks(matAB%process_grid%number_of_blocks_columns))
-  DO JJ=1,matAB%process_grid%number_of_blocks_columns
-     BTasks(JJ) = LocalGatherB
-  END DO
-  ALLOCATE(ABTasks(matAB%process_grid%number_of_blocks_rows, &
-       & matAB%process_grid%number_of_blocks_columns))
-  DO JJ=1,matAB%process_grid%number_of_blocks_columns
-     DO II=1,matAB%process_grid%number_of_blocks_rows
-        ABTasks(II,JJ) = AwaitingAB
-     END DO
-  END DO
+       !! Construct the task queues
+       ALLOCATE(ATasks(matAB%process_grid%number_of_blocks_rows))
+       DO II=1,matAB%process_grid%number_of_blocks_rows
+          ATasks(II) = LocalGatherA
+       END DO
+       ALLOCATE(BTasks(matAB%process_grid%number_of_blocks_columns))
+       DO JJ=1,matAB%process_grid%number_of_blocks_columns
+          BTasks(JJ) = LocalGatherB
+       END DO
+       ALLOCATE(ABTasks(matAB%process_grid%number_of_blocks_rows, &
+            & matAB%process_grid%number_of_blocks_columns))
+       DO JJ=1,matAB%process_grid%number_of_blocks_columns
+          DO II=1,matAB%process_grid%number_of_blocks_rows
+             ABTasks(II,JJ) = AwaitingAB
+          END DO
+       END DO
 
-  !! Setup A Tasks
-  duplicate_start_column = matAB%process_grid%my_slice+1
-  duplicate_offset_column = matAB%process_grid%num_process_slices
+       !! Setup A Tasks
+       duplicate_start_column = matAB%process_grid%my_slice+1
+       duplicate_offset_column = matAB%process_grid%num_process_slices
 
-  !! Setup B Tasks
-  duplicate_start_row = matAB%process_grid%my_slice+1
-  duplicate_offset_row = matAB%process_grid%num_process_slices
+       !! Setup B Tasks
+       duplicate_start_row = matAB%process_grid%my_slice+1
+       duplicate_offset_row = matAB%process_grid%num_process_slices
 
-  !! Run A Tasks
-  ATasks_completed = 0
-  BTasks_completed = 0
-  ABTasks_completed = 0
-  !$OMP PARALLEL
-  !$OMP MASTER
-  DO WHILE (ATasks_completed .LT. SIZE(ATasks) .OR. &
-       & BTasks_completed .LT. SIZE(BTasks) .OR. &
-       & ABTasks_completed .LT. SIZE(ABTasks))
-     DO II=1, matAB%process_grid%number_of_blocks_rows
-        SELECT CASE (ATasks(II))
-        CASE(LocalGatherA)
-           ATasks(II) = TaskRunningA
-           !$OMP TASK DEFAULT(SHARED), PRIVATE(JJ2), FIRSTPRIVATE(II)
-           !! First Align The Data We Are Working With
-           DO JJ2=1, &
-                & matAB%process_grid%number_of_blocks_columns/ &
-                & matAB%process_grid%num_process_slices
-              CALL CopyMatrix(matA%local_data_r(II, &
-                   & duplicate_start_column+duplicate_offset_column*(JJ2-1)),&
-                   & AdjacentABlocks_r(II,JJ2))
-           END DO
-           !! Then Do A Local Gather
-           CALL ComposeMatrixColumns(AdjacentABlocks_r(II,:), &
-                & LocalRowContribution_r(II))
-           ATasks(II) = SendSizeA
-           !$OMP END TASK
-        CASE(SendSizeA)
-           !! Then Start A Global Gather
-           CALL ReduceAndComposeMatrixSizes(LocalRowContribution_r(II), &
-                & matAB%process_grid%blocked_row_comm(II), &
-                & GatheredRowContribution_r(II), row_helper(II))
-           ATasks(II) = ComposeA
-        CASE(ComposeA)
-           IF (TestReduceSizeRequest(row_helper(II))) THEN
-              CALL ReduceAndComposeMatrixData(LocalRowContribution_r(II), &
-                   & matAB%process_grid%blocked_row_comm(II), &
-                   & GatheredRowContribution_r(II), row_helper(II))
-              ATasks(II) = WaitInnerA
-           END IF
-        CASE(WaitInnerA)
-           IF (TestReduceInnerRequest(row_helper(II))) THEN
-              ATasks(II) = WaitDataA
-           END IF
-        CASE(WaitDataA)
-           IF (TestReduceDataRequest(row_helper(II))) THEN
-              ATasks(II) = AdjustIndicesA
-           END IF
-        CASE(AdjustIndicesA)
-           ATasks(II) = TaskRunningA
-           !$OMP TASK DEFAULT(SHARED), FIRSTPRIVATE(II)
-           CALL ReduceAndComposeMatrixCleanup(LocalRowContribution_r(II), &
-                & GatheredRowContribution_r(II), row_helper(II))
-           CALL TransposeMatrix(GatheredRowContribution_r(II), &
-                & GatheredRowContributionT_r(II))
-           ATasks(II) = CleanupA
-           !$OMP END TASK
-        CASE(CleanupA)
-           ATasks(II) = FinishedA
-           ATasks_completed = ATasks_completed + 1
-        END SELECT
-     END DO
-     !! B Tasks
-     DO JJ=1,matAB%process_grid%number_of_blocks_columns
-        SELECT CASE (BTasks(JJ))
-        CASE(LocalGatherB)
-           BTasks(JJ) = TaskRunningB
-           !$OMP TASK DEFAULT(SHARED), PRIVATE(II2), FIRSTPRIVATE(JJ)
-           !! First Transpose The Data We Are Working With
-           DO II2=1, matAB%process_grid%number_of_blocks_rows/&
-                & matAB%process_grid%num_process_slices
-              CALL TransposeMatrix(matB%local_data_r(duplicate_start_row+&
-                   & duplicate_offset_row*(II2-1),JJ), &
-                   & TransposedBBlocks_r(II2,JJ))
-           END DO
-           !! Then Do A Local Gather
-           CALL ComposeMatrixColumns(TransposedBBlocks_r(:,JJ), &
-                & LocalColumnContribution_r(JJ))
-           BTasks(JJ) = SendSizeB
-           !$OMP END TASK
-        CASE(SendSizeB)
-           !! Then A Global Gather
-           CALL ReduceAndComposeMatrixSizes(LocalColumnContribution_r(JJ), &
-                & matAB%process_grid%blocked_column_comm(JJ), &
-                & GatheredColumnContribution_r(JJ), column_helper(JJ))
-           BTasks(JJ) = LocalComposeB
-        CASE(LocalComposeB)
-           IF (TestReduceSizeRequest(column_helper(JJ))) THEN
-              CALL ReduceAndComposeMatrixData(LocalColumnContribution_r(JJ),&
-                   & matAB%process_grid%blocked_column_comm(JJ), &
-                   & GatheredColumnContribution_r(JJ), column_helper(JJ))
-              BTasks(JJ) = WaitInnerB
-           END IF
-        CASE(WaitInnerB)
-           IF (TestReduceInnerRequest(column_helper(JJ))) THEN
-              BTasks(JJ) = WaitDataB
-           END IF
-        CASE(WaitDataB)
-           IF (TestReduceDataRequest(column_helper(JJ))) THEN
-              BTasks(JJ) = AdjustIndicesB
-           END IF
-        CASE(AdjustIndicesB)
-           BTasks(JJ) = TaskRunningB
-           !$OMP TASK DEFAULT(SHARED), FIRSTPRIVATE(JJ)
-           CALL ReduceAndComposeMatrixCleanup(LocalColumnContribution_r(JJ), &
-                & GatheredColumnContribution_r(JJ), column_helper(JJ))
-           BTasks(JJ) = CleanupB
-           !$OMP END TASK
-        CASE(CleanupB)
-           BTasks(JJ) = FinishedB
-           BTasks_completed = BTasks_completed + 1
-        END SELECT
-     END DO
-     !! AB Tasks
-     DO II=1,matAB%process_grid%number_of_blocks_rows
-        DO JJ=1,matAB%process_grid%number_of_blocks_columns
-           SELECT CASE(ABTasks(II,JJ))
-           CASE (AwaitingAB)
-              IF (ATasks(II) .EQ. FinishedA .AND. &
-                   & BTasks(JJ) .EQ. FinishedB) THEN
-                 ABTasks(II,JJ) = GemmAB
-              END IF
-           CASE (GemmAB)
-              ABTasks(II,JJ) = TaskRunningAB
-              !$OMP TASK DEFAULT(shared), FIRSTPRIVATE(II,JJ)
-              CALL MatrixMultiply(GatheredRowContributionT_r(II), &
-                   & GatheredColumnContribution_r(JJ), &
-                   & SliceContribution_r(II,JJ), &
-                   & IsATransposed_in=.TRUE., IsBTransposed_in=.TRUE., &
-                   & alpha_in=alpha, threshold_in=working_threshold, &
-                   & blocked_memory_pool_in=memory_pool%grid_r(II,JJ))
-              !! We can exit early if there is only one process slice
-              IF (matAB%process_grid%num_process_slices .EQ. 1) THEN
-                 ABTasks(II,JJ) = CleanupAB
-                 CALL CopyMatrix(SliceContribution_r(II,JJ), matAB%local_data_r(II,JJ))
-              ELSE
-                 ABTasks(II,JJ) = SendSizeAB
-              END IF
-              !$OMP END TASK
-           CASE(SendSizeAB)
-              CALL ReduceAndSumMatrixSizes(SliceContribution_r(II,JJ),&
-                   & matAB%process_grid%blocked_between_slice_comm(II,JJ), &
-                   & matAB%local_data_r(II,JJ), slice_helper(II,JJ))
-              ABTasks(II,JJ) = GatherAndSumAB
-           CASE (GatherAndSumAB)
-              IF (TestReduceSizeRequest(slice_helper(II,JJ))) THEN
-                 CALL ReduceAndSumMatrixData(SliceContribution_r(II,JJ), &
-                      & matAB%local_data_r(II,JJ), &
-                      & matAB%process_grid%blocked_between_slice_comm(II,JJ),&
-                      & slice_helper(II,JJ))
-                 ABTasks(II,JJ) = WaitInnerAB
-              END IF
-           CASE (WaitInnerAB)
-              IF (TestReduceInnerRequest(slice_helper(II,JJ))) THEN
-                 ABTasks(II,JJ) = WaitDataAB
-              END IF
-           CASE (WaitDataAB)
-              IF (TestReduceDataRequest(slice_helper(II,JJ))) THEN
-                 ABTasks(II,JJ) = LocalSumAB
-              END IF
-           CASE(LocalSumAB)
-              ABTasks(II,JJ) = TaskRunningAB
-              !$OMP TASK DEFAULT(SHARED), FIRSTPRIVATE(II,JJ)
-              CALL ReduceAndSumMatrixCleanup(SliceContribution_r(II,JJ), &
-                   & matAB%local_data_r(II,JJ), threshold, slice_helper(II,JJ))
-              ABTasks(II,JJ) = CleanupAB
-              !$OMP END TASK
-           CASE(CleanupAB)
-              ABTasks(II,JJ) = FinishedAB
-              ABTasks_completed = ABTasks_completed + 1
-           END SELECT
-        END DO
-     END DO
-  END DO
-  !$OMP END MASTER
-  !$OMP END PARALLEL
+       !! Run A Tasks
+       ATasks_completed = 0
+       BTasks_completed = 0
+       ABTasks_completed = 0
+       !$OMP PARALLEL
+       !$OMP MASTER
+       DO WHILE (ATasks_completed .LT. SIZE(ATasks) .OR. &
+            & BTasks_completed .LT. SIZE(BTasks) .OR. &
+            & ABTasks_completed .LT. SIZE(ABTasks))
+          DO II=1, matAB%process_grid%number_of_blocks_rows
+             SELECT CASE (ATasks(II))
+             CASE(LocalGatherA)
+                ATasks(II) = TaskRunningA
+                !$OMP TASK DEFAULT(SHARED), PRIVATE(JJ2), FIRSTPRIVATE(II)
+                !! First Align The Data We Are Working With
+                DO JJ2=1, &
+                     & matAB%process_grid%number_of_blocks_columns/ &
+                     & matAB%process_grid%num_process_slices
+                   CALL CopyMatrix(matA%local_data_r(II, &
+                        & duplicate_start_column+duplicate_offset_column*(JJ2-1)),&
+                        & AdjacentABlocks_r(II,JJ2))
+                END DO
+                !! Then Do A Local Gather
+                CALL ComposeMatrixColumns(AdjacentABlocks_r(II,:), &
+                     & LocalRowContribution_r(II))
+                ATasks(II) = SendSizeA
+                !$OMP END TASK
+             CASE(SendSizeA)
+                !! Then Start A Global Gather
+                CALL ReduceAndComposeMatrixSizes(LocalRowContribution_r(II), &
+                     & matAB%process_grid%blocked_row_comm(II), &
+                     & GatheredRowContribution_r(II), row_helper(II))
+                ATasks(II) = ComposeA
+             CASE(ComposeA)
+                IF (TestReduceSizeRequest(row_helper(II))) THEN
+                   CALL ReduceAndComposeMatrixData(LocalRowContribution_r(II), &
+                        & matAB%process_grid%blocked_row_comm(II), &
+                        & GatheredRowContribution_r(II), row_helper(II))
+                   ATasks(II) = WaitInnerA
+                END IF
+             CASE(WaitInnerA)
+                IF (TestReduceInnerRequest(row_helper(II))) THEN
+                   ATasks(II) = WaitDataA
+                END IF
+             CASE(WaitDataA)
+                IF (TestReduceDataRequest(row_helper(II))) THEN
+                   ATasks(II) = AdjustIndicesA
+                END IF
+             CASE(AdjustIndicesA)
+                ATasks(II) = TaskRunningA
+                !$OMP TASK DEFAULT(SHARED), FIRSTPRIVATE(II)
+                CALL ReduceAndComposeMatrixCleanup(LocalRowContribution_r(II), &
+                     & GatheredRowContribution_r(II), row_helper(II))
+                CALL TransposeMatrix(GatheredRowContribution_r(II), &
+                     & GatheredRowContributionT_r(II))
+                ATasks(II) = CleanupA
+                !$OMP END TASK
+             CASE(CleanupA)
+                ATasks(II) = FinishedA
+                ATasks_completed = ATasks_completed + 1
+             END SELECT
+          END DO
+          !! B Tasks
+          DO JJ=1,matAB%process_grid%number_of_blocks_columns
+             SELECT CASE (BTasks(JJ))
+             CASE(LocalGatherB)
+                BTasks(JJ) = TaskRunningB
+                !$OMP TASK DEFAULT(SHARED), PRIVATE(II2), FIRSTPRIVATE(JJ)
+                !! First Transpose The Data We Are Working With
+                DO II2=1, matAB%process_grid%number_of_blocks_rows/&
+                     & matAB%process_grid%num_process_slices
+                   CALL TransposeMatrix(matB%local_data_r(duplicate_start_row+&
+                        & duplicate_offset_row*(II2-1),JJ), &
+                        & TransposedBBlocks_r(II2,JJ))
+                END DO
+                !! Then Do A Local Gather
+                CALL ComposeMatrixColumns(TransposedBBlocks_r(:,JJ), &
+                     & LocalColumnContribution_r(JJ))
+                BTasks(JJ) = SendSizeB
+                !$OMP END TASK
+             CASE(SendSizeB)
+                !! Then A Global Gather
+                CALL ReduceAndComposeMatrixSizes(LocalColumnContribution_r(JJ), &
+                     & matAB%process_grid%blocked_column_comm(JJ), &
+                     & GatheredColumnContribution_r(JJ), column_helper(JJ))
+                BTasks(JJ) = LocalComposeB
+             CASE(LocalComposeB)
+                IF (TestReduceSizeRequest(column_helper(JJ))) THEN
+                   CALL ReduceAndComposeMatrixData(LocalColumnContribution_r(JJ),&
+                        & matAB%process_grid%blocked_column_comm(JJ), &
+                        & GatheredColumnContribution_r(JJ), column_helper(JJ))
+                   BTasks(JJ) = WaitInnerB
+                END IF
+             CASE(WaitInnerB)
+                IF (TestReduceInnerRequest(column_helper(JJ))) THEN
+                   BTasks(JJ) = WaitDataB
+                END IF
+             CASE(WaitDataB)
+                IF (TestReduceDataRequest(column_helper(JJ))) THEN
+                   BTasks(JJ) = AdjustIndicesB
+                END IF
+             CASE(AdjustIndicesB)
+                BTasks(JJ) = TaskRunningB
+                !$OMP TASK DEFAULT(SHARED), FIRSTPRIVATE(JJ)
+                CALL ReduceAndComposeMatrixCleanup(LocalColumnContribution_r(JJ), &
+                     & GatheredColumnContribution_r(JJ), column_helper(JJ))
+                BTasks(JJ) = CleanupB
+                !$OMP END TASK
+             CASE(CleanupB)
+                BTasks(JJ) = FinishedB
+                BTasks_completed = BTasks_completed + 1
+             END SELECT
+          END DO
+          !! AB Tasks
+          DO II=1,matAB%process_grid%number_of_blocks_rows
+             DO JJ=1,matAB%process_grid%number_of_blocks_columns
+                SELECT CASE(ABTasks(II,JJ))
+                CASE (AwaitingAB)
+                   IF (ATasks(II) .EQ. FinishedA .AND. &
+                        & BTasks(JJ) .EQ. FinishedB) THEN
+                      ABTasks(II,JJ) = GemmAB
+                   END IF
+                CASE (GemmAB)
+                   ABTasks(II,JJ) = TaskRunningAB
+                   !$OMP TASK DEFAULT(shared), FIRSTPRIVATE(II,JJ)
+                   CALL MatrixMultiply(GatheredRowContributionT_r(II), &
+                        & GatheredColumnContribution_r(JJ), &
+                        & SliceContribution_r(II,JJ), &
+                        & IsATransposed_in=.TRUE., IsBTransposed_in=.TRUE., &
+                        & alpha_in=alpha, threshold_in=working_threshold, &
+                        & blocked_memory_pool_in=memory_pool%grid_r(II,JJ))
+                   !! We can exit early if there is only one process slice
+                   IF (matAB%process_grid%num_process_slices .EQ. 1) THEN
+                      ABTasks(II,JJ) = CleanupAB
+                      CALL CopyMatrix(SliceContribution_r(II,JJ), matAB%local_data_r(II,JJ))
+                   ELSE
+                      ABTasks(II,JJ) = SendSizeAB
+                   END IF
+                   !$OMP END TASK
+                CASE(SendSizeAB)
+                   CALL ReduceAndSumMatrixSizes(SliceContribution_r(II,JJ),&
+                        & matAB%process_grid%blocked_between_slice_comm(II,JJ), &
+                        & matAB%local_data_r(II,JJ), slice_helper(II,JJ))
+                   ABTasks(II,JJ) = GatherAndSumAB
+                CASE (GatherAndSumAB)
+                   IF (TestReduceSizeRequest(slice_helper(II,JJ))) THEN
+                      CALL ReduceAndSumMatrixData(SliceContribution_r(II,JJ), &
+                           & matAB%local_data_r(II,JJ), &
+                           & matAB%process_grid%blocked_between_slice_comm(II,JJ),&
+                           & slice_helper(II,JJ))
+                      ABTasks(II,JJ) = WaitInnerAB
+                   END IF
+                CASE (WaitInnerAB)
+                   IF (TestReduceInnerRequest(slice_helper(II,JJ))) THEN
+                      ABTasks(II,JJ) = WaitDataAB
+                   END IF
+                CASE (WaitDataAB)
+                   IF (TestReduceDataRequest(slice_helper(II,JJ))) THEN
+                      ABTasks(II,JJ) = LocalSumAB
+                   END IF
+                CASE(LocalSumAB)
+                   ABTasks(II,JJ) = TaskRunningAB
+                   !$OMP TASK DEFAULT(SHARED), FIRSTPRIVATE(II,JJ)
+                   CALL ReduceAndSumMatrixCleanup(SliceContribution_r(II,JJ), &
+                        & matAB%local_data_r(II,JJ), threshold, slice_helper(II,JJ))
+                   ABTasks(II,JJ) = CleanupAB
+                   !$OMP END TASK
+                CASE(CleanupAB)
+                   ABTasks(II,JJ) = FinishedAB
+                   ABTasks_completed = ABTasks_completed + 1
+                END SELECT
+             END DO
+          END DO
+          !! Prevent deadlock in the case where the number of tasks is capped.
+          IF (matA%process_grid%omp_max_threads .EQ. 1) THEN
+             !$OMP taskwait
+          END IF
+       END DO
+       !$OMP END MASTER
+       !$OMP END PARALLEL
 
-  !! Copy to output matrix.
-  IF (beta .EQ. 0.0) THEN
-     CALL CopyMatrix(matAB,matC)
-  ELSE
-     CALL ScaleMatrix(MatC,beta)
-     CALL IncrementMatrix(MatAB,MatC)
-  END IF
+       !! Copy to output matrix.
+       IF (beta .EQ. 0.0) THEN
+          CALL CopyMatrix(matAB,matC)
+       ELSE
+          CALL ScaleMatrix(MatC,beta)
+          CALL IncrementMatrix(MatAB,MatC)
+       END IF
 
-  !! Cleanup
-  CALL DestructMatrix(matAB)
-  DEALLOCATE(row_helper)
-  DEALLOCATE(column_helper)
-  DEALLOCATE(slice_helper)
-  DEALLOCATE(ATasks)
-  DEALLOCATE(BTasks)
-  DEALLOCATE(ABTasks)
+       !! Cleanup
+       CALL DestructMatrix(matAB)
+       DEALLOCATE(row_helper)
+       DEALLOCATE(column_helper)
+       DEALLOCATE(slice_helper)
+       DEALLOCATE(ATasks)
+       DEALLOCATE(BTasks)
+       DEALLOCATE(ABTasks)
 
-  !! Deallocate Buffers From A
-  DO II=1,matAB%process_grid%number_of_blocks_rows
-     DO JJ2=1,matAB%process_grid%number_of_blocks_columns/&
-          & matAB%process_grid%num_process_slices
-        CALL DestructMatrix(AdjacentABlocks_r(II,JJ2))
-     END DO
-     CALL DestructMatrix(LocalRowContribution_r(II))
-     CALL DestructMatrix(GatheredRowContribution_r(II))
-  END DO
-  DEALLOCATE(AdjacentABlocks_r)
-  DEALLOCATE(LocalRowContribution_r)
-  DEALLOCATE(GatheredRowContribution_r)
-  !! Deallocate Buffers From B
-  DO JJ=1,matAB%process_grid%number_of_blocks_columns
-     DO II2=1,matAB%process_grid%number_of_blocks_rows/&
-          & matAB%process_grid%num_process_slices
-        CALL DestructMatrix(TransposedBBlocks_r(II2,JJ))
-     END DO
-     CALL DestructMatrix(LocalColumnContribution_r(JJ))
-  END DO
-  DEALLOCATE(TransposedBBlocks_r)
-  DEALLOCATE(LocalColumnContribution_r)
-  !! Deallocate Buffers From Multiplying The Block
-  DO II=1,matAB%process_grid%number_of_blocks_rows
-     CALL DestructMatrix(GatheredRowContributionT_r(II))
-  END DO
-  DO JJ=1,matAB%process_grid%number_of_blocks_columns
-     CALL DestructMatrix(GatheredColumnContribution_r(JJ))
-  END DO
-  DEALLOCATE(GatheredRowContributionT_r)
-  DEALLOCATE(GatheredColumnContribution_r)
-  !! Deallocate Buffers From Sum
-  DO JJ=1,matAB%process_grid%number_of_blocks_columns
-     DO II=1,matAB%process_grid%number_of_blocks_rows
-        CALL DestructMatrix(SliceContribution_r(II,JJ))
-     END DO
-  END DO
-  DEALLOCATE(SliceContribution_r)
+       !! Deallocate Buffers From A
+       DO II=1,matAB%process_grid%number_of_blocks_rows
+          DO JJ2=1,matAB%process_grid%number_of_blocks_columns/&
+               & matAB%process_grid%num_process_slices
+             CALL DestructMatrix(AdjacentABlocks_r(II,JJ2))
+          END DO
+          CALL DestructMatrix(LocalRowContribution_r(II))
+          CALL DestructMatrix(GatheredRowContribution_r(II))
+       END DO
+       DEALLOCATE(AdjacentABlocks_r)
+       DEALLOCATE(LocalRowContribution_r)
+       DEALLOCATE(GatheredRowContribution_r)
+       !! Deallocate Buffers From B
+       DO JJ=1,matAB%process_grid%number_of_blocks_columns
+          DO II2=1,matAB%process_grid%number_of_blocks_rows/&
+               & matAB%process_grid%num_process_slices
+             CALL DestructMatrix(TransposedBBlocks_r(II2,JJ))
+          END DO
+          CALL DestructMatrix(LocalColumnContribution_r(JJ))
+       END DO
+       DEALLOCATE(TransposedBBlocks_r)
+       DEALLOCATE(LocalColumnContribution_r)
+       !! Deallocate Buffers From Multiplying The Block
+       DO II=1,matAB%process_grid%number_of_blocks_rows
+          CALL DestructMatrix(GatheredRowContributionT_r(II))
+       END DO
+       DO JJ=1,matAB%process_grid%number_of_blocks_columns
+          CALL DestructMatrix(GatheredColumnContribution_r(JJ))
+       END DO
+       DEALLOCATE(GatheredRowContributionT_r)
+       DEALLOCATE(GatheredColumnContribution_r)
+       !! Deallocate Buffers From Sum
+       DO JJ=1,matAB%process_grid%number_of_blocks_columns
+          DO II=1,matAB%process_grid%number_of_blocks_rows
+             CALL DestructMatrix(SliceContribution_r(II,JJ))
+          END DO
+       END DO
+       DEALLOCATE(SliceContribution_r)
 
-  CALL StopTimer("GEMM")
+       CALL StopTimer("GEMM")
     END IF
   END SUBROUTINE MatrixMultiply_ps_imp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -888,31 +900,43 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     COMPLEX(NTCOMPLEX) :: temp_c
     INTEGER :: ierr
 
+
     IF (this%is_complex) THEN
-  sum = 0
-  DO JJ = 1, this%process_grid%number_of_blocks_columns
-     DO II = 1, this%process_grid%number_of_blocks_rows
-        CALL MatrixGrandSum(this%local_data_c(II,JJ), temp_c)
-        sum = sum + REAL(temp_c, KIND=NTREAL)
-     END DO
-  END DO
 
-  !! Sum Among Process Slice
-  CALL MPI_Allreduce(MPI_IN_PLACE, sum, 1, MPINTREAL, &
-       & MPI_SUM, this%process_grid%within_slice_comm, ierr)
+
+
+       sum = 0
+       DO JJ = 1, this%process_grid%number_of_blocks_columns
+          DO II = 1, this%process_grid%number_of_blocks_rows
+             CALL MatrixGrandSum(this%local_data_c(II,JJ), temp_c)
+             sum = sum + REAL(temp_c, KIND=NTREAL)
+          END DO
+       END DO
+
+       !! Sum Among Process Slice
+       CALL MPI_Allreduce(MPI_IN_PLACE, sum, 1, MPINTREAL, &
+            & MPI_SUM, this%process_grid%within_slice_comm, ierr)
+
+
     ELSE
-  sum = 0
-  DO JJ = 1, this%process_grid%number_of_blocks_columns
-     DO II = 1, this%process_grid%number_of_blocks_rows
-        CALL MatrixGrandSum(this%local_data_r(II,JJ), temp_r)
-        sum = sum + REAL(temp_r, KIND=NTREAL)
-     END DO
-  END DO
 
-  !! Sum Among Process Slice
-  CALL MPI_Allreduce(MPI_IN_PLACE, sum, 1, MPINTREAL, &
-       & MPI_SUM, this%process_grid%within_slice_comm, ierr)
+
+
+       sum = 0
+       DO JJ = 1, this%process_grid%number_of_blocks_columns
+          DO II = 1, this%process_grid%number_of_blocks_rows
+             CALL MatrixGrandSum(this%local_data_r(II,JJ), temp_r)
+             sum = sum + REAL(temp_r, KIND=NTREAL)
+          END DO
+       END DO
+
+       !! Sum Among Process Slice
+       CALL MPI_Allreduce(MPI_IN_PLACE, sum, 1, MPINTREAL, &
+            & MPI_SUM, this%process_grid%within_slice_comm, ierr)
+
+
     END IF
+
   END SUBROUTINE MatrixGrandSum_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Sum up the elements in a matrix into a single value.
@@ -927,31 +951,43 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     COMPLEX(NTCOMPLEX) :: temp_c
     INTEGER :: ierr
 
+
     IF (this%is_complex) THEN
-  sum = 0
-  DO JJ = 1, this%process_grid%number_of_blocks_columns
-     DO II = 1, this%process_grid%number_of_blocks_rows
-        CALL MatrixGrandSum(this%local_data_c(II,JJ), temp_c)
-        sum = sum + REAL(temp_c, KIND=NTREAL)
-     END DO
-  END DO
 
-  !! Sum Among Process Slice
-  CALL MPI_Allreduce(MPI_IN_PLACE, sum, 1, MPINTCOMPLEX, &
-       & MPI_SUM, this%process_grid%within_slice_comm, ierr)
+
+
+       sum = 0
+       DO JJ = 1, this%process_grid%number_of_blocks_columns
+          DO II = 1, this%process_grid%number_of_blocks_rows
+             CALL MatrixGrandSum(this%local_data_c(II,JJ), temp_c)
+             sum = sum + REAL(temp_c, KIND=NTREAL)
+          END DO
+       END DO
+
+       !! Sum Among Process Slice
+       CALL MPI_Allreduce(MPI_IN_PLACE, sum, 1, MPINTCOMPLEX, &
+            & MPI_SUM, this%process_grid%within_slice_comm, ierr)
+
+
     ELSE
-  sum = 0
-  DO JJ = 1, this%process_grid%number_of_blocks_columns
-     DO II = 1, this%process_grid%number_of_blocks_rows
-        CALL MatrixGrandSum(this%local_data_r(II,JJ), temp_r)
-        sum = sum + REAL(temp_r, KIND=NTREAL)
-     END DO
-  END DO
 
-  !! Sum Among Process Slice
-  CALL MPI_Allreduce(MPI_IN_PLACE, sum, 1, MPINTCOMPLEX, &
-       & MPI_SUM, this%process_grid%within_slice_comm, ierr)
+
+
+       sum = 0
+       DO JJ = 1, this%process_grid%number_of_blocks_columns
+          DO II = 1, this%process_grid%number_of_blocks_rows
+             CALL MatrixGrandSum(this%local_data_r(II,JJ), temp_r)
+             sum = sum + REAL(temp_r, KIND=NTREAL)
+          END DO
+       END DO
+
+       !! Sum Among Process Slice
+       CALL MPI_Allreduce(MPI_IN_PLACE, sum, 1, MPINTCOMPLEX, &
+            & MPI_SUM, this%process_grid%within_slice_comm, ierr)
+
+
     END IF
+
   END SUBROUTINE MatrixGrandSum_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Elementwise multiplication. C_ij = A_ij * B_ij.
@@ -976,33 +1012,39 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL PairwiseMultiplyMatrix(converted_matrix, matB, matC)
        CALL DestructMatrix(converted_matrix)
     ELSE IF (matA%is_complex .AND. matB%is_complex) THEN
-  CALL ConstructEmptyMatrix(matC, matA%actual_matrix_dimension, &
-       & matA%process_grid, matA%is_complex)
 
-  !$omp parallel
-  !$omp do collapse(2)
-  DO JJ = 1, matA%process_grid%number_of_blocks_columns
-     DO II = 1, matA%process_grid%number_of_blocks_rows
-        CALL PairwiseMultiplyMatrix(matA%local_data_c(II,JJ), matB%local_data_c(II,JJ), &
-             & matC%local_data_c(II,JJ))
-     END DO
-  END DO
-  !$omp end do
-  !$omp end parallel
+
+       CALL ConstructEmptyMatrix(matC, matA%actual_matrix_dimension, &
+            & matA%process_grid, matA%is_complex)
+
+       !$omp parallel
+       !$omp do collapse(2)
+       DO JJ = 1, matA%process_grid%number_of_blocks_columns
+          DO II = 1, matA%process_grid%number_of_blocks_rows
+             CALL PairwiseMultiplyMatrix(matA%local_data_c(II,JJ), matB%local_data_c(II,JJ), &
+                  & matC%local_data_c(II,JJ))
+          END DO
+       END DO
+       !$omp end do
+       !$omp end parallel
+
     ELSE
-  CALL ConstructEmptyMatrix(matC, matA%actual_matrix_dimension, &
-       & matA%process_grid, matA%is_complex)
 
-  !$omp parallel
-  !$omp do collapse(2)
-  DO JJ = 1, matA%process_grid%number_of_blocks_columns
-     DO II = 1, matA%process_grid%number_of_blocks_rows
-        CALL PairwiseMultiplyMatrix(matA%local_data_r(II,JJ), matB%local_data_r(II,JJ), &
-             & matC%local_data_r(II,JJ))
-     END DO
-  END DO
-  !$omp end do
-  !$omp end parallel
+
+       CALL ConstructEmptyMatrix(matC, matA%actual_matrix_dimension, &
+            & matA%process_grid, matA%is_complex)
+
+       !$omp parallel
+       !$omp do collapse(2)
+       DO JJ = 1, matA%process_grid%number_of_blocks_columns
+          DO II = 1, matA%process_grid%number_of_blocks_rows
+             CALL PairwiseMultiplyMatrix(matA%local_data_r(II,JJ), matB%local_data_r(II,JJ), &
+                  & matC%local_data_r(II,JJ))
+          END DO
+       END DO
+       !$omp end do
+       !$omp end parallel
+
     END IF
   END SUBROUTINE PairwiseMultiplyMatrix_ps
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1019,39 +1061,45 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: ierr
 
     IF (this%is_complex) THEN
-  !! Merge all the local data
-  CALL MergeMatrixLocalBlocks(this, merged_local_data_c)
-  ALLOCATE(local_norm(merged_local_data_c%columns))
 
-  !! Sum Along Columns
-  CALL MatrixColumnNorm(merged_local_data_c,local_norm)
-  CALL MPI_Allreduce(MPI_IN_PLACE,local_norm,SIZE(local_norm), &
-       & MPINTREAL, MPI_SUM, this%process_grid%column_comm, ierr)
 
-  !! Find Max Value Amonst Columns
-  norm_value = MAXVAL(local_norm)
-  CALL MPI_Allreduce(MPI_IN_PLACE,norm_value,1,MPINTREAL,MPI_MAX, &
-       & this%process_grid%row_comm, ierr)
+       !! Merge all the local data
+       CALL MergeMatrixLocalBlocks(this, merged_local_data_c)
+       ALLOCATE(local_norm(merged_local_data_c%columns))
 
-  CALL DestructMatrix(merged_local_data_c)
-  DEALLOCATE(local_norm)
+       !! Sum Along Columns
+       CALL MatrixColumnNorm(merged_local_data_c,local_norm)
+       CALL MPI_Allreduce(MPI_IN_PLACE,local_norm,SIZE(local_norm), &
+            & MPINTREAL, MPI_SUM, this%process_grid%column_comm, ierr)
+
+       !! Find Max Value Amonst Columns
+       norm_value = MAXVAL(local_norm)
+       CALL MPI_Allreduce(MPI_IN_PLACE,norm_value,1,MPINTREAL,MPI_MAX, &
+            & this%process_grid%row_comm, ierr)
+
+       CALL DestructMatrix(merged_local_data_c)
+       DEALLOCATE(local_norm)
+
     ELSE
-  !! Merge all the local data
-  CALL MergeMatrixLocalBlocks(this, merged_local_data_r)
-  ALLOCATE(local_norm(merged_local_data_r%columns))
 
-  !! Sum Along Columns
-  CALL MatrixColumnNorm(merged_local_data_r,local_norm)
-  CALL MPI_Allreduce(MPI_IN_PLACE,local_norm,SIZE(local_norm), &
-       & MPINTREAL, MPI_SUM, this%process_grid%column_comm, ierr)
 
-  !! Find Max Value Amonst Columns
-  norm_value = MAXVAL(local_norm)
-  CALL MPI_Allreduce(MPI_IN_PLACE,norm_value,1,MPINTREAL,MPI_MAX, &
-       & this%process_grid%row_comm, ierr)
+       !! Merge all the local data
+       CALL MergeMatrixLocalBlocks(this, merged_local_data_r)
+       ALLOCATE(local_norm(merged_local_data_r%columns))
 
-  CALL DestructMatrix(merged_local_data_r)
-  DEALLOCATE(local_norm)
+       !! Sum Along Columns
+       CALL MatrixColumnNorm(merged_local_data_r,local_norm)
+       CALL MPI_Allreduce(MPI_IN_PLACE,local_norm,SIZE(local_norm), &
+            & MPINTREAL, MPI_SUM, this%process_grid%column_comm, ierr)
+
+       !! Find Max Value Amonst Columns
+       norm_value = MAXVAL(local_norm)
+       CALL MPI_Allreduce(MPI_IN_PLACE,norm_value,1,MPINTREAL,MPI_MAX, &
+            & this%process_grid%row_comm, ierr)
+
+       CALL DestructMatrix(merged_local_data_r)
+       DEALLOCATE(local_norm)
+
     END IF
   END FUNCTION MatrixNorm_ps
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1066,21 +1114,22 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The dot product.
     REAL(NTREAL), INTENT(OUT) :: product
 
-  !! Local Data
-  TYPE(Matrix_ps) :: matAH
-  TYPE(Matrix_ps) :: matC
 
-  IF (matA%is_complex) THEN
-     CALL CopyMatrix(matA, matAH)
-     CALL ConjugateMatrix(matAH)
-     CALL PairwiseMultiplyMatrix(matAH, matB, matC)
-     CALL DestructMatrix(matAH)
-  ELSE
-     CALL PairwiseMultiplyMatrix(matA,matB,matC)
-  END IF
+    !! Local Data
+    TYPE(Matrix_ps) :: matAH
+    TYPE(Matrix_ps) :: matC
 
-  CALL MatrixGrandSum(matC, product)
-  CALL DestructMatrix(matC)
+    IF (matA%is_complex) THEN
+       CALL CopyMatrix(matA, matAH)
+       CALL ConjugateMatrix(matAH)
+       CALL PairwiseMultiplyMatrix(matAH, matB, matC)
+       CALL DestructMatrix(matAH)
+    ELSE
+       CALL PairwiseMultiplyMatrix(matA,matB,matC)
+    END IF
+
+    CALL MatrixGrandSum(matC, product)
+    CALL DestructMatrix(matC)
   END SUBROUTINE DotMatrix_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> product = dot(Matrix A,Matrix B)
@@ -1094,21 +1143,22 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The dot product.
     COMPLEX(NTCOMPLEX), INTENT(OUT) :: product
 
-  !! Local Data
-  TYPE(Matrix_ps) :: matAH
-  TYPE(Matrix_ps) :: matC
 
-  IF (matA%is_complex) THEN
-     CALL CopyMatrix(matA, matAH)
-     CALL ConjugateMatrix(matAH)
-     CALL PairwiseMultiplyMatrix(matAH, matB, matC)
-     CALL DestructMatrix(matAH)
-  ELSE
-     CALL PairwiseMultiplyMatrix(matA,matB,matC)
-  END IF
+    !! Local Data
+    TYPE(Matrix_ps) :: matAH
+    TYPE(Matrix_ps) :: matC
 
-  CALL MatrixGrandSum(matC, product)
-  CALL DestructMatrix(matC)
+    IF (matA%is_complex) THEN
+       CALL CopyMatrix(matA, matAH)
+       CALL ConjugateMatrix(matAH)
+       CALL PairwiseMultiplyMatrix(matAH, matB, matC)
+       CALL DestructMatrix(matAH)
+    ELSE
+       CALL PairwiseMultiplyMatrix(matA,matB,matC)
+    END IF
+
+    CALL MatrixGrandSum(matC, product)
+    CALL DestructMatrix(matC)
   END SUBROUTINE DotMatrix_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Matrix B = alpha*Matrix A + Matrix B (AXPY)
@@ -1148,27 +1198,33 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        CALL ConvertMatrixToComplex(matA, converted_matrix)
        CALL IncrementMatrix(converted_matrix, matB, alpha, threshold)
     ELSE IF (matA%is_complex .AND. matB%is_complex) THEN
-  !$omp parallel
-  !$omp do collapse(2)
-  DO JJ = 1, matA%process_grid%number_of_blocks_columns
-     DO II = 1, matA%process_grid%number_of_blocks_rows
-        CALL IncrementMatrix(matA%local_data_c(II,JJ), matB%local_data_c(II,JJ), alpha, &
-             & threshold)
-     END DO
-  END DO
-  !$omp end do
-  !$omp end parallel
+
+
+       !$omp parallel
+       !$omp do collapse(2)
+       DO JJ = 1, matA%process_grid%number_of_blocks_columns
+          DO II = 1, matA%process_grid%number_of_blocks_rows
+             CALL IncrementMatrix(matA%local_data_c(II,JJ), matB%local_data_c(II,JJ), alpha, &
+                  & threshold)
+          END DO
+       END DO
+       !$omp end do
+       !$omp end parallel
+
     ELSE
-  !$omp parallel
-  !$omp do collapse(2)
-  DO JJ = 1, matA%process_grid%number_of_blocks_columns
-     DO II = 1, matA%process_grid%number_of_blocks_rows
-        CALL IncrementMatrix(matA%local_data_r(II,JJ), matB%local_data_r(II,JJ), alpha, &
-             & threshold)
-     END DO
-  END DO
-  !$omp end do
-  !$omp end parallel
+
+
+       !$omp parallel
+       !$omp do collapse(2)
+       DO JJ = 1, matA%process_grid%number_of_blocks_columns
+          DO II = 1, matA%process_grid%number_of_blocks_rows
+             CALL IncrementMatrix(matA%local_data_r(II,JJ), matB%local_data_r(II,JJ), alpha, &
+                  & threshold)
+          END DO
+       END DO
+       !$omp end do
+       !$omp end parallel
+
     END IF
 
     CALL DestructMatrix(converted_matrix)
@@ -1185,25 +1241,31 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: II, JJ
 
     IF (this%is_complex) THEN
-  !$omp parallel
-  !$omp do collapse(2)
-  DO JJ = 1, this%process_grid%number_of_blocks_columns
-     DO II = 1, this%process_grid%number_of_blocks_rows
-        CALL ScaleMatrix(this%local_data_c(II,JJ),constant)
-     END DO
-  END DO
-  !$omp end do
-  !$omp end parallel
+
+
+       !$omp parallel
+       !$omp do collapse(2)
+       DO JJ = 1, this%process_grid%number_of_blocks_columns
+          DO II = 1, this%process_grid%number_of_blocks_rows
+             CALL ScaleMatrix(this%local_data_c(II,JJ),constant)
+          END DO
+       END DO
+       !$omp end do
+       !$omp end parallel
+
     ELSE
-  !$omp parallel
-  !$omp do collapse(2)
-  DO JJ = 1, this%process_grid%number_of_blocks_columns
-     DO II = 1, this%process_grid%number_of_blocks_rows
-        CALL ScaleMatrix(this%local_data_r(II,JJ),constant)
-     END DO
-  END DO
-  !$omp end do
-  !$omp end parallel
+
+
+       !$omp parallel
+       !$omp do collapse(2)
+       DO JJ = 1, this%process_grid%number_of_blocks_columns
+          DO II = 1, this%process_grid%number_of_blocks_rows
+             CALL ScaleMatrix(this%local_data_r(II,JJ),constant)
+          END DO
+       END DO
+       !$omp end do
+       !$omp end parallel
+
     END IF
 
   END SUBROUTINE ScaleMatrix_psr
@@ -1219,15 +1281,18 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: II, JJ
 
     IF (this%is_complex) THEN
-  !$omp parallel
-  !$omp do collapse(2)
-  DO JJ = 1, this%process_grid%number_of_blocks_columns
-     DO II = 1, this%process_grid%number_of_blocks_rows
-        CALL ScaleMatrix(this%local_data_c(II,JJ),constant)
-     END DO
-  END DO
-  !$omp end do
-  !$omp end parallel
+
+
+       !$omp parallel
+       !$omp do collapse(2)
+       DO JJ = 1, this%process_grid%number_of_blocks_columns
+          DO II = 1, this%process_grid%number_of_blocks_rows
+             CALL ScaleMatrix(this%local_data_c(II,JJ),constant)
+          END DO
+       END DO
+       !$omp end do
+       !$omp end parallel
+
     ELSE
        CALL ConvertMatrixToComplex(this, this_c)
        CALL ScaleMatrix_psc(this_c, constant)
@@ -1253,45 +1318,59 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER :: ierr
 
     IF (this%is_complex) THEN
-  !! Merge all the local data
-  CALL MergeMatrixLocalBlocks(this, merged_local_data_c)
 
-  !! Compute The Local Contribution
-  trace_value = 0
-  CALL MatrixToTripletList(merged_local_data_c, triplet_list_c)
-  DO counter = 1, triplet_list_c%CurrentSize
-     IF (this%start_row + triplet_list_c%DATA(counter)%index_row .EQ. &
-          & this%start_column + triplet_list_c%DATA(counter)%index_column) THEN
-        trace_value = trace_value + &
-             & REAL(triplet_list_c%DATA(counter)%point_value, NTREAL)
-     END IF
-  END DO
 
-  !! Sum Among Process Slice
-  CALL MPI_Allreduce(MPI_IN_PLACE, trace_value, 1, MPINTREAL, &
-       & MPI_SUM, this%process_grid%within_slice_comm, ierr)
 
-  CALL DestructMatrix(merged_local_data_c)
+
+       !! Merge all the local data
+       CALL MergeMatrixLocalBlocks(this, merged_local_data_c)
+
+       !! Compute The Local Contribution
+       trace_value = 0
+       CALL MatrixToTripletList(merged_local_data_c, triplet_list_c)
+       DO counter = 1, triplet_list_c%CurrentSize
+          IF (this%start_row + triplet_list_c%DATA(counter)%index_row .EQ. &
+               & this%start_column + triplet_list_c%DATA(counter)%index_column) THEN
+             trace_value = trace_value + &
+                  & REAL(triplet_list_c%DATA(counter)%point_value, NTREAL)
+          END IF
+       END DO
+
+       !! Sum Among Process Slice
+       CALL MPI_Allreduce(MPI_IN_PLACE, trace_value, 1, MPINTREAL, &
+            & MPI_SUM, this%process_grid%within_slice_comm, ierr)
+
+       CALL DestructMatrix(merged_local_data_c)
+
+
+
     ELSE
-  !! Merge all the local data
-  CALL MergeMatrixLocalBlocks(this, merged_local_data_r)
 
-  !! Compute The Local Contribution
-  trace_value = 0
-  CALL MatrixToTripletList(merged_local_data_r, triplet_list_r)
-  DO counter = 1, triplet_list_r%CurrentSize
-     IF (this%start_row + triplet_list_r%DATA(counter)%index_row .EQ. &
-          & this%start_column + triplet_list_r%DATA(counter)%index_column) THEN
-        trace_value = trace_value + &
-             & REAL(triplet_list_r%DATA(counter)%point_value, NTREAL)
-     END IF
-  END DO
 
-  !! Sum Among Process Slice
-  CALL MPI_Allreduce(MPI_IN_PLACE, trace_value, 1, MPINTREAL, &
-       & MPI_SUM, this%process_grid%within_slice_comm, ierr)
 
-  CALL DestructMatrix(merged_local_data_r)
+
+       !! Merge all the local data
+       CALL MergeMatrixLocalBlocks(this, merged_local_data_r)
+
+       !! Compute The Local Contribution
+       trace_value = 0
+       CALL MatrixToTripletList(merged_local_data_r, triplet_list_r)
+       DO counter = 1, triplet_list_r%CurrentSize
+          IF (this%start_row + triplet_list_r%DATA(counter)%index_row .EQ. &
+               & this%start_column + triplet_list_r%DATA(counter)%index_column) THEN
+             trace_value = trace_value + &
+                  & REAL(triplet_list_r%DATA(counter)%point_value, NTREAL)
+          END IF
+       END DO
+
+       !! Sum Among Process Slice
+       CALL MPI_Allreduce(MPI_IN_PLACE, trace_value, 1, MPINTREAL, &
+            & MPI_SUM, this%process_grid%within_slice_comm, ierr)
+
+       CALL DestructMatrix(merged_local_data_r)
+
+
+
     END IF
   END SUBROUTINE MatrixTrace_psr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

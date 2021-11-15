@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module to store specifications for basic data types.
 MODULE DataTypesModule
@@ -19,6 +17,6 @@ MODULE DataTypesModule
   !> A long integer type for when normal ints will not do
   INTEGER, PARAMETER, PUBLIC :: NTLONG = C_LONG
   !> MPI Integer type we will use in this program.
-  INTEGER, PARAMETER, PUBLIC :: MPINTINTEGER = MPI_INTEGER
+  INTEGER, PARAMETER, PUBLIC :: MPINTINTEGER = MPI_INT
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 END MODULE DataTypesModule

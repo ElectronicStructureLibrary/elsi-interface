@@ -1,5 +1,3 @@
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !> A module for handling scratch memory for matrix multiplication.
 !> The purpose of this module is to avoid having to allocate memory on the
@@ -129,34 +127,35 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Estimated sparsity (optional).
     REAL(NTREAL), INTENT(IN), OPTIONAL :: sparsity_in
 
-  !! Temporary variables
-  INTEGER :: alloc_stat
-  INTEGER :: num_buckets
 
-  this%columns = columns
-  this%rows = rows
+    !! Temporary variables
+    INTEGER :: alloc_stat
+    INTEGER :: num_buckets
 
-  IF (.NOT. PRESENT(sparsity_in)) THEN
-     this%hash_size = 1
-  ELSE
-     this%hash_size = INT(1.0/sparsity_in)
-     IF (this%hash_size > columns) this%hash_size = columns
-  END IF
+    this%columns = columns
+    this%rows = rows
 
-  num_buckets = columns/this%hash_size + 1
+    IF (.NOT. PRESENT(sparsity_in)) THEN
+       this%hash_size = 1
+    ELSE
+       this%hash_size = INT(1.0/sparsity_in)
+       IF (this%hash_size > columns) this%hash_size = columns
+    END IF
 
-  !! Allocate
-  ALLOCATE(this%pruned_list(columns*rows), stat=alloc_stat)
-  ALLOCATE(this%value_array(columns,rows), stat=alloc_stat)
-  ALLOCATE(this%dirty_array(columns,rows), stat=alloc_stat)
+    num_buckets = columns/this%hash_size + 1
 
-  ALLOCATE(this%hash_index(columns,rows))
-  ALLOCATE(this%inserted_per_bucket(columns,rows))
+    !! Allocate
+    ALLOCATE(this%pruned_list(columns*rows), stat=alloc_stat)
+    ALLOCATE(this%value_array(columns,rows), stat=alloc_stat)
+    ALLOCATE(this%dirty_array(columns,rows), stat=alloc_stat)
 
-  this%value_array = 0
-  this%hash_index = 0
-  this%inserted_per_bucket = 0
-  this%dirty_array = .FALSE.
+    ALLOCATE(this%hash_index(columns,rows))
+    ALLOCATE(this%inserted_per_bucket(columns,rows))
+
+    this%value_array = 0
+    this%hash_index = 0
+    this%inserted_per_bucket = 0
+    this%dirty_array = .FALSE.
 
   END FUNCTION ConstructMatrixMemoryPool_lr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -171,34 +170,35 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> Estimated sparsity (optional).
     REAL(NTREAL), INTENT(IN), OPTIONAL :: sparsity_in
 
-  !! Temporary variables
-  INTEGER :: alloc_stat
-  INTEGER :: num_buckets
 
-  this%columns = columns
-  this%rows = rows
+    !! Temporary variables
+    INTEGER :: alloc_stat
+    INTEGER :: num_buckets
 
-  IF (.NOT. PRESENT(sparsity_in)) THEN
-     this%hash_size = 1
-  ELSE
-     this%hash_size = INT(1.0/sparsity_in)
-     IF (this%hash_size > columns) this%hash_size = columns
-  END IF
+    this%columns = columns
+    this%rows = rows
 
-  num_buckets = columns/this%hash_size + 1
+    IF (.NOT. PRESENT(sparsity_in)) THEN
+       this%hash_size = 1
+    ELSE
+       this%hash_size = INT(1.0/sparsity_in)
+       IF (this%hash_size > columns) this%hash_size = columns
+    END IF
 
-  !! Allocate
-  ALLOCATE(this%pruned_list(columns*rows), stat=alloc_stat)
-  ALLOCATE(this%value_array(columns,rows), stat=alloc_stat)
-  ALLOCATE(this%dirty_array(columns,rows), stat=alloc_stat)
+    num_buckets = columns/this%hash_size + 1
 
-  ALLOCATE(this%hash_index(columns,rows))
-  ALLOCATE(this%inserted_per_bucket(columns,rows))
+    !! Allocate
+    ALLOCATE(this%pruned_list(columns*rows), stat=alloc_stat)
+    ALLOCATE(this%value_array(columns,rows), stat=alloc_stat)
+    ALLOCATE(this%dirty_array(columns,rows), stat=alloc_stat)
 
-  this%value_array = 0
-  this%hash_index = 0
-  this%inserted_per_bucket = 0
-  this%dirty_array = .FALSE.
+    ALLOCATE(this%hash_index(columns,rows))
+    ALLOCATE(this%inserted_per_bucket(columns,rows))
+
+    this%value_array = 0
+    this%hash_index = 0
+    this%inserted_per_bucket = 0
+    this%dirty_array = .FALSE.
 
   END FUNCTION ConstructMatrixMemoryPool_lc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -207,12 +207,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The matrix being destructed.
     TYPE(MatrixMemoryPool_lr), INTENT(INOUT) :: this
 
-  !! Perform deallocations.
-  IF (ALLOCATED(this%pruned_list)) DEALLOCATE(this%pruned_list)
-  IF (ALLOCATED(this%value_array)) DEALLOCATE(this%value_array)
-  IF (ALLOCATED(this%dirty_array)) DEALLOCATE(this%dirty_array)
-  IF (ALLOCATED(this%hash_index)) DEALLOCATE(this%hash_index)
-  IF (ALLOCATED(this%inserted_per_bucket)) DEALLOCATE(this%inserted_per_bucket)
+
+    !! Perform deallocations.
+    IF (ALLOCATED(this%pruned_list)) DEALLOCATE(this%pruned_list)
+    IF (ALLOCATED(this%value_array)) DEALLOCATE(this%value_array)
+    IF (ALLOCATED(this%dirty_array)) DEALLOCATE(this%dirty_array)
+    IF (ALLOCATED(this%hash_index)) DEALLOCATE(this%hash_index)
+    IF (ALLOCATED(this%inserted_per_bucket)) DEALLOCATE(this%inserted_per_bucket)
 
   END SUBROUTINE DestructMatrixMemoryPool_lr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -221,12 +222,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The matrix being destructed.
     TYPE(MatrixMemoryPool_lc), INTENT(INOUT) :: this
 
-  !! Perform deallocations.
-  IF (ALLOCATED(this%pruned_list)) DEALLOCATE(this%pruned_list)
-  IF (ALLOCATED(this%value_array)) DEALLOCATE(this%value_array)
-  IF (ALLOCATED(this%dirty_array)) DEALLOCATE(this%dirty_array)
-  IF (ALLOCATED(this%hash_index)) DEALLOCATE(this%hash_index)
-  IF (ALLOCATED(this%inserted_per_bucket)) DEALLOCATE(this%inserted_per_bucket)
+
+    !! Perform deallocations.
+    IF (ALLOCATED(this%pruned_list)) DEALLOCATE(this%pruned_list)
+    IF (ALLOCATED(this%value_array)) DEALLOCATE(this%value_array)
+    IF (ALLOCATED(this%dirty_array)) DEALLOCATE(this%dirty_array)
+    IF (ALLOCATED(this%hash_index)) DEALLOCATE(this%hash_index)
+    IF (ALLOCATED(this%inserted_per_bucket)) DEALLOCATE(this%inserted_per_bucket)
 
   END SUBROUTINE DestructMatrixMemoryPool_lc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -242,18 +244,19 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> true if the memory pool is valid.
     LOGICAL :: isvalid
 
-  isvalid = .TRUE.
-  !! Check allocation
-  IF (.NOT. ALLOCATED(this%pruned_list)) isvalid = .FALSE.
-  IF (.NOT. ALLOCATED(this%value_array)) isvalid = .FALSE.
 
-  !! Check allocation size
-  IF (.NOT. SIZE(this%value_array,dim=2) .EQ. rows) THEN
-     isvalid = .FALSE.
-  END IF
-  IF (.NOT. SIZE(this%value_array,dim=1) .EQ. columns) THEN
-     isvalid = .FALSE.
-  END IF
+    isvalid = .TRUE.
+    !! Check allocation
+    IF (.NOT. ALLOCATED(this%pruned_list)) isvalid = .FALSE.
+    IF (.NOT. ALLOCATED(this%value_array)) isvalid = .FALSE.
+
+    !! Check allocation size
+    IF (.NOT. SIZE(this%value_array,dim=2) .EQ. rows) THEN
+       isvalid = .FALSE.
+    END IF
+    IF (.NOT. SIZE(this%value_array,dim=1) .EQ. columns) THEN
+       isvalid = .FALSE.
+    END IF
 
   END FUNCTION CheckMemoryPoolValidity_lr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -270,18 +273,19 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> true if the memory pool is valid.
     LOGICAL :: isvalid
 
-  isvalid = .TRUE.
-  !! Check allocation
-  IF (.NOT. ALLOCATED(this%pruned_list)) isvalid = .FALSE.
-  IF (.NOT. ALLOCATED(this%value_array)) isvalid = .FALSE.
 
-  !! Check allocation size
-  IF (.NOT. SIZE(this%value_array,dim=2) .EQ. rows) THEN
-     isvalid = .FALSE.
-  END IF
-  IF (.NOT. SIZE(this%value_array,dim=1) .EQ. columns) THEN
-     isvalid = .FALSE.
-  END IF
+    isvalid = .TRUE.
+    !! Check allocation
+    IF (.NOT. ALLOCATED(this%pruned_list)) isvalid = .FALSE.
+    IF (.NOT. ALLOCATED(this%value_array)) isvalid = .FALSE.
+
+    !! Check allocation size
+    IF (.NOT. SIZE(this%value_array,dim=2) .EQ. rows) THEN
+       isvalid = .FALSE.
+    END IF
+    IF (.NOT. SIZE(this%value_array,dim=1) .EQ. columns) THEN
+       isvalid = .FALSE.
+    END IF
 
   END FUNCTION CheckMemoryPoolValidity_lc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -292,12 +296,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The sparsity value.
     REAL(NTREAL), INTENT(IN) :: sparsity
 
-  !! Local Variables
-  INTEGER :: num_buckets
 
-  this%hash_size = INT(1.0/sparsity)
-  IF (this%hash_size > this%columns) this%hash_size = this%columns
-  num_buckets = this%columns/this%hash_size + 1
+    !! Local Variables
+    INTEGER :: num_buckets
+
+    this%hash_size = INT(1.0/sparsity)
+    IF (this%hash_size > this%columns) this%hash_size = this%columns
+    num_buckets = this%columns/this%hash_size + 1
 
   END SUBROUTINE SetPoolSparsity_lr
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -308,12 +313,13 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !> The sparsity value.
     REAL(NTREAL), INTENT(IN) :: sparsity
 
-  !! Local Variables
-  INTEGER :: num_buckets
 
-  this%hash_size = INT(1.0/sparsity)
-  IF (this%hash_size > this%columns) this%hash_size = this%columns
-  num_buckets = this%columns/this%hash_size + 1
+    !! Local Variables
+    INTEGER :: num_buckets
+
+    this%hash_size = INT(1.0/sparsity)
+    IF (this%hash_size > this%columns) this%hash_size = this%columns
+    num_buckets = this%columns/this%hash_size + 1
 
   END SUBROUTINE SetPoolSparsity_lc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
