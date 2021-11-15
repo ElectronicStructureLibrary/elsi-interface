@@ -6,7 +6,7 @@ MODULE ProcessGridModule
        & WriteHeader, WriteListElement
   USE NTMPIModule
 
-  USE omp_lib, ONLY : omp_get_num_threads, omp_get_max_threads
+  !USE omp_lib, ONLY : omp_get_num_threads, omp_get_max_threads
 
   IMPLICIT NONE
   PRIVATE
@@ -251,8 +251,10 @@ CONTAINS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
     !$omp PARALLEL
-    num_threads = omp_get_num_threads()
-    grid%omp_max_threads = omp_get_max_threads()
+    !num_threads = omp_get_num_threads()
+    !grid%omp_max_threads = omp_get_max_threads()
+    num_threads = 1
+    grid%omp_max_threads = 1
     !$omp end PARALLEL
     grid%block_multiplier = num_threads/&
          & (column_block_multiplier+row_block_multiplier)
