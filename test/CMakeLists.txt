@@ -26,38 +26,6 @@ MACRO(add_test_target arg1)
   ADD_DEPENDENCIES(${arg1} elsi)
 
   TARGET_LINK_LIBRARIES(${arg1} PRIVATE elsi)
-  IF(NOT USE_EXTERNAL_OMM)
-    TARGET_LINK_LIBRARIES(${arg1} PRIVATE OMM MatrixSwitch)
-  ENDIF()
-  IF(NOT USE_EXTERNAL_ELPA)
-    TARGET_LINK_LIBRARIES(${arg1} PRIVATE elpa)
-  ENDIF()
-  TARGET_LINK_LIBRARIES(${arg1} PRIVATE fortjson)
-  IF(ENABLE_SIPS)
-    TARGET_LINK_LIBRARIES(${arg1} PRIVATE sips)
-  ENDIF()
-  IF(ENABLE_PEXSI)
-    IF(NOT USE_EXTERNAL_PEXSI)
-      TARGET_LINK_LIBRARIES(${arg1} PRIVATE
-        pexsi
-        superlu_dist
-        ptscotchparmetis
-        ptscotch
-        ptscotcherr
-        scotchmetis
-        scotch
-        scotcherr)
-    ENDIF()
-  ENDIF()
-  IF(NOT USE_EXTERNAL_NTPOLY)
-    TARGET_LINK_LIBRARIES(${arg1} PRIVATE NTPoly)
-  ENDIF()
-  IF(ENABLE_BSEPACK)
-    IF(NOT USE_EXTERNAL_BSEPACK)
-      TARGET_LINK_LIBRARIES(${arg1} PRIVATE bsepack sseig)
-    ENDIF()
-  ENDIF()
-  TARGET_LINK_LIBRARIES(${arg1} PRIVATE ${LIBS})
 
   TARGET_INCLUDE_DIRECTORIES(${arg1} PRIVATE
     ${INC_PATHS}
