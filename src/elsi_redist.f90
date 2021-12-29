@@ -7661,9 +7661,17 @@ subroutine elsi_blacs_to_eigenexa_h_real(ph,bh,ham_den,ham_exa)
 
    character(len=*), parameter :: caller = "elsi_blacs_to_eigenexa_h_real"
 
+   integer(kind=i8) i,j
+
    call elsi_get_time(t0)
 
-   nnz_l_before = count( (abs(ham_den) > bh%def0), kind=i8)
+!   nnz_l_before = count( (abs(ham_den) > bh%def0), kind=i8)
+   nnz_l_before = 0
+   do i = 1, bh%n_lrow
+      do j = 1, bh%n_lcol
+         if (abs(ham_den(i,j)) > bh%def0) nnz_l_before=nnz_l_before+1
+      enddo
+   enddo
 
    call elsi_allocate(bh,dest,nnz_l_before,"dest",caller)
    call elsi_allocate(bh,perm,nnz_l_before,"perm",caller)

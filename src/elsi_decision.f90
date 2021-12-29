@@ -74,9 +74,17 @@ subroutine elsi_decide_dm_real(ph,bh,mat)
 
    character(len=*), parameter :: caller = "elsi_decide_dm_real"
 
+   integer(kind=i8) i,j
+
    if(ph%solver == AUTO_SOLVER) then
       if(ph%i_spin == 1 .and. ph%i_kpt == 1) then
-         nnz_l = count( (abs(mat) > bh%def0), kind=i8)
+!         nnz_l = count( (abs(mat) > bh%def0), kind=i8)
+         nnz_l = 0
+         do i = 1, bh%n_lrow
+            do j = 1, bh%n_lcol
+               if (abs(mat(i,j)) > bh%def0) nnz_l=nnz_l+1
+            enddo
+         enddo  
 
          call MPI_Allreduce(nnz_l,nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
@@ -112,9 +120,17 @@ subroutine elsi_decide_dm_cmplx(ph,bh,mat)
 
    character(len=*), parameter :: caller = "elsi_decide_dm_cmplx"
 
+   integer(kind=i8) i,j
+
    if(ph%solver == AUTO_SOLVER) then
       if(ph%i_spin == 1 .and. ph%i_kpt == 1) then
-         nnz_l = count( (abs(mat) > bh%def0), kind=i8)
+!         nnz_l = count( (abs(mat) > bh%def0), kind=i8)
+         nnz_l = 0
+         do i = 1, bh%n_lrow
+            do j = 1, bh%n_lcol
+               if (abs(mat(i,j)) > bh%def0) nnz_l=nnz_l+1
+            enddo
+         enddo
 
          call MPI_Allreduce(nnz_l,nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 

@@ -1681,7 +1681,13 @@ subroutine elsi_write_mat_sp_real(rwh,f_name,mat)
    character(len=*), parameter :: caller = "elsi_write_mat_sp_real"
 
    ! Compute nnz
-   nnz_g = count( (abs(mat) > rwh%bh%def0), kind=i8)
+!   nnz_g = count( (abs(mat) > rwh%bh%def0), kind=i8)
+   nnz_g = 0
+   do i = 1, rwh%bh%n_lrow
+      do j = 1, rwh%bh%n_lcol
+         if (abs(mat(i,j)) > rwh%bh%def0) nnz_g=nnz_g+1
+      enddo
+   enddo
 
    ! Convert to CSC
    call elsi_allocate(rwh%bh,col_ptr,rwh%n_basis+1,"col_ptr",caller)
@@ -1782,7 +1788,13 @@ subroutine elsi_write_mat_sp_cmplx(rwh,f_name,mat)
    character(len=*), parameter :: caller = "elsi_write_mat_sp_cmplx"
 
    ! Compute nnz
-   nnz_g = count( (abs(mat) > rwh%bh%def0), kind=i8)
+!   nnz_g = count( (abs(mat) > rwh%bh%def0), kind=i8)
+   nnz_g = 0
+   do i = 1, rwh%bh%n_lrow
+      do j = 1, rwh%bh%n_lcol
+         if (abs(mat(i,j)) > rwh%bh%def0) nnz_g=nnz_g+1
+      enddo
+   enddo
 
    ! Convert to CSC
    call elsi_allocate(rwh%bh,col_ptr,rwh%n_basis+1,"col_ptr",caller)
