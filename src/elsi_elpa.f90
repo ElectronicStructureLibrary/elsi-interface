@@ -366,7 +366,7 @@ subroutine elsi_solve_elpa_real(ph,bh,ham,ovlp,eval,evec)
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
-         bh%nnz_l = count( (abs(ham) > bh%def0), kind=8)
+         bh%nnz_l = count( (abs(ham) > bh%def0), kind=c_int64_t)
       end if
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
@@ -1033,7 +1033,7 @@ subroutine elsi_solve_elpa_cmplx(ph,bh,ham,ovlp,eval,evec)
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
-         bh%nnz_l = count( (abs(ham) > bh%def0), kind=8)
+         bh%nnz_l = count( (abs(ham) > bh%def0), kind=c_int64_t)
       end if
 
       call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
