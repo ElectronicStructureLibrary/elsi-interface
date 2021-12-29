@@ -11,7 +11,7 @@ subroutine test_ev_real_csc1(comm,solver,h_file,s_file)
 
    use ELSI
    use ELSI_MPI
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: r8,i4,i8
 
    implicit none
 
@@ -31,8 +31,8 @@ subroutine test_ev_real_csc1(comm,solver,h_file,s_file)
    integer(kind=i4) :: blacs_ctxt
    integer(kind=i4) :: n_states
    integer(kind=i4) :: n_basis
-   integer(kind=i4) :: nnz_g
-   integer(kind=i4) :: nnz_l
+   integer(kind=i8) :: nnz_g
+   integer(kind=i8) :: nnz_l
    integer(kind=i4) :: n_l_cols
    integer(kind=i4) :: l_rows
    integer(kind=i4) :: l_cols
@@ -56,7 +56,7 @@ subroutine test_ev_real_csc1(comm,solver,h_file,s_file)
    real(kind=r8), allocatable :: occ(:)
 
    integer(kind=i4), allocatable :: row_ind(:)
-   integer(kind=i4), allocatable :: col_ptr(:)
+   integer(kind=i8), allocatable :: col_ptr(:)
 
    type(elsi_handle) :: eh
    type(elsi_rw_handle) :: rwh

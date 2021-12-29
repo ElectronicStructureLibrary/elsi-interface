@@ -87,7 +87,7 @@ subroutine elsi_solve_sips_real(ph,bh,row_ind,col_ptr,ham,ovlp,eval,evec)
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
    real(kind=r8), intent(in) :: ham(bh%nnz_l_sp1)
    real(kind=r8), intent(in) :: ovlp(bh%nnz_l_sp1)
    real(kind=r8), intent(inout) :: eval(ph%n_states)
@@ -266,7 +266,7 @@ subroutine elsi_build_dm_edm_sips_real(ph,bh,row_ind,col_ptr,occ,dm,which)
    type(elsi_param_t), intent(in) :: ph
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(inout) :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(inout) :: col_ptr(bh%n_lcol_sp1+1)
    real(kind=r8), intent(in) :: occ(ph%n_states)
    real(kind=r8), intent(out) :: dm(bh%nnz_l_sp1)
    integer(kind=i4), intent(in) :: which

@@ -255,11 +255,11 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: nnz_g !< Global number of nonzeros
-   integer(kind=i4), intent(in) :: nnz_l !< Local number of nonzeros
+   integer(kind=i8), intent(in) :: nnz_g !< Global number of nonzeros
+   integer(kind=i8), intent(in) :: nnz_l !< Local number of nonzeros
    integer(kind=i4), intent(in) :: n_lcol !< Local number of columns
    integer(kind=i4), intent(in) :: row_ind(nnz_l) !< Row index
-   integer(kind=i4), intent(in) :: col_ptr(n_lcol+1) !< Column pointer
+   integer(kind=i8), intent(in) :: col_ptr(n_lcol+1) !< Column pointer
 
    character(len=*), parameter :: caller = "elsi_set_csc"
 
@@ -341,8 +341,8 @@ subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
    implicit none
 
    type(elsi_handle), intent(inout) :: eh !< Handle
-   integer(kind=i4), intent(in) :: nnz_g !< Global number of nonzeros
-   integer(kind=i4), intent(in) :: nnz_l !< Local number of nonzeros
+   integer(kind=i8), intent(in) :: nnz_g !< Global number of nonzeros
+   integer(kind=i8), intent(in) :: nnz_l !< Local number of nonzeros
    integer(kind=i4), intent(in) :: row_ind(nnz_l) !< Row index
    integer(kind=i4), intent(in) :: col_ind(nnz_l) !< Column index
 

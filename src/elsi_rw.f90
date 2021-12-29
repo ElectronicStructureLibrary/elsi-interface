@@ -188,8 +188,8 @@ subroutine elsi_set_rw_csc(rwh,nnz_g,nnz_l_sp,n_lcol_sp)
    implicit none
 
    type(elsi_rw_handle), intent(inout) :: rwh !< Handle
-   integer(kind=i4), intent(in) :: nnz_g !< Global number of nonzeros
-   integer(kind=i4), intent(in) :: nnz_l_sp !< Local number of nonzeros
+   integer(kind=i8), intent(in) :: nnz_g !< Global number of nonzeros
+   integer(kind=i8), intent(in) :: nnz_l_sp !< Local number of nonzeros
    integer(kind=i4), intent(in) :: n_lcol_sp !< Local number of columns
 
    character(len=*), parameter :: caller = "elsi_set_rw_csc"
@@ -450,7 +450,7 @@ subroutine elsi_read_mat_dim_mp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    integer(kind=i4) :: ierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i8) :: header(HEADER_SIZE)
    integer(kind=i8) :: offset
 
    integer(kind=i4), external :: numroc
@@ -468,7 +468,7 @@ subroutine elsi_read_mat_dim_mp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    if(rwh%bh%myid == 0) then
       offset = 0
 
-      call MPI_File_read_at(f_handle,offset,header,HEADER_SIZE,MPI_INTEGER4,&
+      call MPI_File_read_at(f_handle,offset,header,HEADER_SIZE,MPI_INTEGER8,&
            MPI_STATUS_IGNORE,ierr)
 
       call elsi_check_err(rwh%bh,"MPI_File_read_at",ierr,caller)
@@ -480,7 +480,7 @@ subroutine elsi_read_mat_dim_mp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    call elsi_check_err(rwh%bh,"MPI_File_close",ierr,caller)
 
    ! Broadcast header
-   call MPI_Bcast(header,HEADER_SIZE,MPI_INTEGER4,0,rwh%bh%comm,ierr)
+   call MPI_Bcast(header,HEADER_SIZE,MPI_INTEGER8,0,rwh%bh%comm,ierr)
 
    call elsi_check_err(rwh%bh,"MPI_Bcast",ierr,caller)
 
@@ -512,19 +512,19 @@ subroutine elsi_read_mat_dim_sparse(rwh,f_name,n_electron,n_basis,nnz_g,&
    character(len=*), intent(in) :: f_name !< File name
    real(kind=r8), intent(out) :: n_electron !< Number of electrons
    integer(kind=i4), intent(out) :: n_basis !< Matrix size
-   integer(kind=i4), intent(out) :: nnz_g !< Global number of nonzeros
-   integer(kind=i4), intent(out) :: nnz_l_sp !< Local number of nonzeros
+   integer(kind=i8), intent(out) :: nnz_g !< Global number of nonzeros
+   integer(kind=i8), intent(out) :: nnz_l_sp !< Local number of nonzeros
    integer(kind=i4), intent(out) :: n_lcol_sp !< Local number of columns
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i8) :: header(HEADER_SIZE)
    integer(kind=i4) :: n_lcol0
-   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: prev_nnz
    integer(kind=i8) :: offset
 
-   integer(kind=i4), allocatable :: col_ptr(:)
+   integer(kind=i8), allocatable :: col_ptr(:)
 
    character(len=*), parameter :: caller = "elsi_read_mat_dim_sparse"
 
@@ -541,14 +541,14 @@ subroutine elsi_read_mat_dim_sparse(rwh,f_name,n_electron,n_basis,nnz_g,&
    if(rwh%bh%myid == 0) then
       offset = 0
 
-      call MPI_File_read_at(f_handle,offset,header,HEADER_SIZE,MPI_INTEGER4,&
+      call MPI_File_read_at(f_handle,offset,header,HEADER_SIZE,MPI_INTEGER8,&
            MPI_STATUS_IGNORE,ierr)
 
       call elsi_check_err(rwh%bh,"MPI_File_read_at",ierr,caller)
    end if
 
    ! Broadcast header
-   call MPI_Bcast(header,HEADER_SIZE,MPI_INTEGER4,0,rwh%bh%comm,ierr)
+   call MPI_Bcast(header,HEADER_SIZE,MPI_INTEGER8,0,rwh%bh%comm,ierr)
 
    call elsi_check_err(rwh%bh,"MPI_Bcast",ierr,caller)
 
@@ -567,9 +567,9 @@ subroutine elsi_read_mat_dim_sparse(rwh,f_name,n_electron,n_basis,nnz_g,&
    call elsi_allocate(rwh%bh,col_ptr,n_lcol_sp+1,"col_ptr",caller)
 
    ! Read column pointer
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%bh%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%bh%myid*n_lcol0*8
 
-   call MPI_File_read_at_all(f_handle,offset,col_ptr,n_lcol_sp+1,MPI_INTEGER4,&
+   call MPI_File_read_at_all(f_handle,offset,col_ptr,n_lcol_sp+1,MPI_INTEGER8,&
         MPI_STATUS_IGNORE,ierr)
 
    call elsi_check_err(rwh%bh,"MPI_File_read_at_all",ierr,caller)
@@ -616,12 +616,12 @@ subroutine elsi_read_mat_mp_real(rwh,f_name,mat)
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
    integer(kind=i4) :: n_lcol0
-   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: prev_nnz ! **
    integer(kind=i8) :: offset
 
    real(kind=r8), allocatable :: nnz_val(:)
-   integer(kind=i4), allocatable :: row_ind(:)
-   integer(kind=i4), allocatable :: col_ptr(:)
+   integer(kind=i4), allocatable :: row_ind(:) ! **
+   integer(kind=i8), allocatable :: col_ptr(:) ! **
 
    type(elsi_param_t) :: ph
 
@@ -645,12 +645,12 @@ subroutine elsi_read_mat_mp_real(rwh,f_name,mat)
    call elsi_allocate(rwh%bh,col_ptr,rwh%bh%n_lcol_sp+1,"col_ptr",caller)
 
    ! Read column pointer
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%bh%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%bh%myid*int(n_lcol0, kind=i8)*8
 
    call MPI_File_read_at_all(f_handle,offset,col_ptr,rwh%bh%n_lcol_sp+1,&
-        MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
+        MPI_INTEGER8,MPI_STATUS_IGNORE,ierr)
 
-   call elsi_check_err(rwh%bh,"MPI_File_read_at_all",ierr,caller)
+   call elsi_check_err(rwh%bh,"MPI_File_read_at_all (col_ptr)",ierr,caller)
 
    if(rwh%bh%myid == rwh%bh%n_procs-1) then
       col_ptr(rwh%bh%n_lcol_sp+1) = rwh%bh%nnz_g+1
@@ -661,20 +661,20 @@ subroutine elsi_read_mat_mp_real(rwh,f_name,mat)
    col_ptr(:) = col_ptr-prev_nnz
 
    ! Compute nnz_l_sp
-   rwh%bh%nnz_l_sp = col_ptr(rwh%bh%n_lcol_sp+1)-col_ptr(1)
+   rwh%bh%nnz_l_sp = col_ptr(rwh%bh%n_lcol_sp+1)-col_ptr(1) ! **
 
-   call elsi_allocate(rwh%bh,row_ind,rwh%bh%nnz_l_sp,"row_ind",caller)
+   call elsi_allocate(rwh%bh,row_ind,rwh%bh%nnz_l_sp,"row_ind",caller) ! **
 
    ! Read row index
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*8+int(rwh%n_basis, kind=i8)*8+int(prev_nnz, kind=i8)*4 ! **
 
    call MPI_File_read_at_all(f_handle,offset,row_ind,rwh%bh%nnz_l_sp,&
         MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
 
-   call elsi_check_err(rwh%bh,"MPI_File_read_at_all",ierr,caller)
+   call elsi_check_err(rwh%bh,"MPI_File_read_at_all (row_ind)",ierr,caller)
 
    ! Read nonzero value
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+rwh%bh%nnz_g*4+prev_nnz*8
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(rwh%bh%nnz_g, kind=i8)*4+int(prev_nnz, kind=i8)*8
 
    call elsi_allocate(rwh%bh,nnz_val,rwh%bh%nnz_l_sp,"nnz_val",caller)
 
@@ -711,14 +711,14 @@ subroutine elsi_read_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    type(elsi_rw_handle), intent(inout) :: rwh !< Handle
    character(len=*), intent(in) :: f_name !< File name
    integer(kind=i4), intent(out) :: row_ind(rwh%bh%nnz_l_sp) !< Row index
-   integer(kind=i4), intent(out) :: col_ptr(rwh%bh%n_lcol_sp+1) !< Column pointer
+   integer(kind=i8), intent(out) :: col_ptr(rwh%bh%n_lcol_sp+1) !< Column pointer
    real(kind=r8), intent(out) :: mat(rwh%bh%nnz_l_sp) !< Matrix
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
    integer(kind=i4) :: n_lcol0
-   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: prev_nnz
    integer(kind=i8) :: offset
 
    character(len=*), parameter :: caller = "elsi_read_mat_real_sparse"
@@ -737,10 +737,10 @@ subroutine elsi_read_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    n_lcol0 = rwh%n_basis/rwh%bh%n_procs
 
    ! Read column pointer
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%bh%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%bh%myid*n_lcol0*8
 
    call MPI_File_read_at_all(f_handle,offset,col_ptr,rwh%bh%n_lcol_sp+1,&
-        MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
+        MPI_INTEGER8,MPI_STATUS_IGNORE,ierr)
 
    call elsi_check_err(rwh%bh,"MPI_File_read_at_all",ierr,caller)
 
@@ -753,7 +753,7 @@ subroutine elsi_read_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    col_ptr(:) = col_ptr-prev_nnz
 
    ! Read row index
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(prev_nnz, kind=i8)*4
 
    call MPI_File_read_at_all(f_handle,offset,row_ind,rwh%bh%nnz_l_sp,&
         MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
@@ -761,7 +761,7 @@ subroutine elsi_read_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    call elsi_check_err(rwh%bh,"MPI_File_read_at_all",ierr,caller)
 
    ! Read nonzero value
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+rwh%bh%nnz_g*4+prev_nnz*8
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(rwh%bh%nnz_g, kind=i8)*4+int(prev_nnz, kind=i8)*8
 
    call MPI_File_read_at_all(f_handle,offset,mat,rwh%bh%nnz_l_sp,MPI_REAL8,&
         MPI_STATUS_IGNORE,ierr)
@@ -790,12 +790,12 @@ subroutine elsi_read_mat_mp_cmplx(rwh,f_name,mat)
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
    integer(kind=i4) :: n_lcol0
-   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: prev_nnz
    integer(kind=i8) :: offset
 
    complex(kind=r8), allocatable :: nnz_val(:)
    integer(kind=i4), allocatable :: row_ind(:)
-   integer(kind=i4), allocatable :: col_ptr(:)
+   integer(kind=i8), allocatable :: col_ptr(:)
 
    type(elsi_param_t) :: ph
 
@@ -819,10 +819,10 @@ subroutine elsi_read_mat_mp_cmplx(rwh,f_name,mat)
    call elsi_allocate(rwh%bh,col_ptr,rwh%bh%n_lcol_sp+1,"col_ptr",caller)
 
    ! Read column pointer
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%bh%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%bh%myid*n_lcol0*8
 
    call MPI_File_read_at_all(f_handle,offset,col_ptr,rwh%bh%n_lcol_sp+1,&
-        MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
+        MPI_INTEGER8,MPI_STATUS_IGNORE,ierr)
 
    call elsi_check_err(rwh%bh,"MPI_File_read_at_all",ierr,caller)
 
@@ -840,7 +840,7 @@ subroutine elsi_read_mat_mp_cmplx(rwh,f_name,mat)
    call elsi_allocate(rwh%bh,row_ind,rwh%bh%nnz_l_sp,"row_ind",caller)
 
    ! Read row index
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(prev_nnz, kind=i8)*4
 
    call MPI_File_read_at_all(f_handle,offset,row_ind,rwh%bh%nnz_l_sp,&
         MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
@@ -848,7 +848,7 @@ subroutine elsi_read_mat_mp_cmplx(rwh,f_name,mat)
    call elsi_check_err(rwh%bh,"MPI_File_read_at_all",ierr,caller)
 
    ! Read nonzero value
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+rwh%bh%nnz_g*4+prev_nnz*16
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(rwh%bh%nnz_g, kind=i8)*4+int(prev_nnz, kind=i8)*16
 
    call elsi_allocate(rwh%bh,nnz_val,rwh%bh%nnz_l_sp,"nnz_val",caller)
 
@@ -885,14 +885,14 @@ subroutine elsi_read_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    type(elsi_rw_handle), intent(inout) :: rwh !< Handle
    character(len=*), intent(in) :: f_name !< File name
    integer(kind=i4), intent(out) :: row_ind(rwh%bh%nnz_l_sp) !< Row index
-   integer(kind=i4), intent(out) :: col_ptr(rwh%bh%n_lcol_sp+1) !< Column pointer
+   integer(kind=i8), intent(out) :: col_ptr(rwh%bh%n_lcol_sp+1) !< Column pointer
    complex(kind=r8), intent(out) :: mat(rwh%bh%nnz_l_sp) !< Matrix
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
    integer(kind=i4) :: n_lcol0
-   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: prev_nnz
    integer(kind=i8) :: offset
 
    character(len=*), parameter :: caller = "elsi_read_mat_complex_sparse"
@@ -911,10 +911,10 @@ subroutine elsi_read_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    n_lcol0 = rwh%n_basis/rwh%bh%n_procs
 
    ! Read column pointer
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%bh%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%bh%myid*n_lcol0*8
 
    call MPI_File_read_at_all(f_handle,offset,col_ptr,rwh%bh%n_lcol_sp+1,&
-        MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
+        MPI_INTEGER8,MPI_STATUS_IGNORE,ierr)
 
    call elsi_check_err(rwh%bh,"MPI_File_read_at_all",ierr,caller)
 
@@ -927,7 +927,7 @@ subroutine elsi_read_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    col_ptr(:) = col_ptr-prev_nnz
 
    ! Read row index
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(prev_nnz, kind=i8)*4
 
    call MPI_File_read_at_all(f_handle,offset,row_ind,rwh%bh%nnz_l_sp,&
         MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
@@ -935,7 +935,7 @@ subroutine elsi_read_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    call elsi_check_err(rwh%bh,"MPI_File_read_at_all",ierr,caller)
 
    ! Read nonzero value
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+rwh%bh%nnz_g*4+prev_nnz*16
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(rwh%bh%nnz_g, kind=i8)*4+int(prev_nnz, kind=i8)*16
 
    call MPI_File_read_at_all(f_handle,offset,mat,rwh%bh%nnz_l_sp,MPI_COMPLEX16,&
         MPI_STATUS_IGNORE,ierr)
@@ -965,15 +965,15 @@ subroutine elsi_write_mat_mp_real(rwh,f_name,mat)
    integer(kind=i4) :: ierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i8) :: header(HEADER_SIZE)
    integer(kind=i4) :: n_lcol0
-   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: prev_nnz
    integer(kind=i8) :: offset
 
    real(kind=r8), allocatable :: mat_csc(:)
    integer(kind=i4), allocatable :: row_ind(:)
-   integer(kind=i4), allocatable :: col_ptr(:)
-   integer(kind=i4), allocatable :: mask(:,:)
+   integer(kind=i8), allocatable :: col_ptr(:)
+   integer(kind=i8), allocatable :: mask(:,:)
 
    type(elsi_basic_t) :: bh
    type(elsi_param_t) :: ph
@@ -1025,7 +1025,7 @@ subroutine elsi_write_mat_mp_real(rwh,f_name,mat)
    if(bh%myid == 0) then
       offset = 0
 
-      call MPI_File_write_at(f_handle,offset,header,HEADER_SIZE,MPI_INTEGER4,&
+      call MPI_File_write_at(f_handle,offset,header,HEADER_SIZE,MPI_INTEGER8,&
            MPI_STATUS_IGNORE,ierr)
 
       call elsi_check_err(bh,"MPI_File_write_at",ierr,caller)
@@ -1034,7 +1034,7 @@ subroutine elsi_write_mat_mp_real(rwh,f_name,mat)
    ! Compute shift of column pointers
    prev_nnz = 0
 
-   call MPI_Exscan(bh%nnz_l_sp,prev_nnz,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+   call MPI_Exscan(bh%nnz_l_sp,prev_nnz,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
    call elsi_check_err(bh,"MPI_Exscan",ierr,caller)
 
@@ -1043,15 +1043,15 @@ subroutine elsi_write_mat_mp_real(rwh,f_name,mat)
 
    ! Write column pointer
    n_lcol0 = rwh%n_basis/bh%n_procs
-   offset = int(HEADER_SIZE,kind=i8)*4+bh%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*8+bh%myid*int(n_lcol0, kind=i8)*8
 
    call MPI_File_write_at_all(f_handle,offset,col_ptr,bh%n_lcol_sp,&
-        MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
+        MPI_INTEGER8,MPI_STATUS_IGNORE,ierr)
 
    call elsi_check_err(bh,"MPI_File_write_at_all",ierr,caller)
 
    ! Write row index
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(prev_nnz, kind=i8)*4
 
    call MPI_File_write_at_all(f_handle,offset,row_ind,bh%nnz_l_sp,MPI_INTEGER4,&
         MPI_STATUS_IGNORE,ierr)
@@ -1059,7 +1059,7 @@ subroutine elsi_write_mat_mp_real(rwh,f_name,mat)
    call elsi_check_err(bh,"MPI_File_write_at_all",ierr,caller)
 
    ! Write nonzero value
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+bh%nnz_g*4+prev_nnz*8
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(bh%nnz_g, kind=i8)*4+int(prev_nnz, kind=i8)*8
 
    call MPI_File_write_at_all(f_handle,offset,mat_csc,bh%nnz_l_sp,MPI_REAL8,&
         MPI_STATUS_IGNORE,ierr)
@@ -1093,15 +1093,15 @@ subroutine elsi_write_mat_mp_cmplx(rwh,f_name,mat)
    integer(kind=i4) :: ierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i8) :: header(HEADER_SIZE)
    integer(kind=i4) :: n_lcol0
-   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: prev_nnz
    integer(kind=i8) :: offset
 
    complex(kind=r8), allocatable :: mat_csc(:)
    integer(kind=i4), allocatable :: row_ind(:)
-   integer(kind=i4), allocatable :: col_ptr(:)
-   integer(kind=i4), allocatable :: mask(:,:)
+   integer(kind=i8), allocatable :: col_ptr(:)
+   integer(kind=i8), allocatable :: mask(:,:)
 
    type(elsi_basic_t) :: bh
    type(elsi_param_t) :: ph
@@ -1153,7 +1153,7 @@ subroutine elsi_write_mat_mp_cmplx(rwh,f_name,mat)
    if(bh%myid == 0) then
       offset = 0
 
-      call MPI_File_write_at(f_handle,offset,header,HEADER_SIZE,MPI_INTEGER4,&
+      call MPI_File_write_at(f_handle,offset,header,HEADER_SIZE,MPI_INTEGER8,&
            MPI_STATUS_IGNORE,ierr)
 
       call elsi_check_err(bh,"MPI_File_write_at",ierr,caller)
@@ -1162,7 +1162,7 @@ subroutine elsi_write_mat_mp_cmplx(rwh,f_name,mat)
    ! Compute shift of column pointers
    prev_nnz = 0
 
-   call MPI_Exscan(bh%nnz_l_sp,prev_nnz,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+   call MPI_Exscan(bh%nnz_l_sp,prev_nnz,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
    call elsi_check_err(bh,"MPI_Exscan",ierr,caller)
 
@@ -1171,15 +1171,15 @@ subroutine elsi_write_mat_mp_cmplx(rwh,f_name,mat)
 
    ! Write column pointer
    n_lcol0 = rwh%n_basis/bh%n_procs
-   offset = int(HEADER_SIZE,kind=i8)*4+bh%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*8+bh%myid*n_lcol0*8
 
    call MPI_File_write_at_all(f_handle,offset,col_ptr,bh%n_lcol_sp,&
-        MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
+        MPI_INTEGER8,MPI_STATUS_IGNORE,ierr)
 
    call elsi_check_err(bh,"MPI_File_write_at_all",ierr,caller)
 
    ! Write row index
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(prev_nnz, kind=i8)*4
 
    call MPI_File_write_at_all(f_handle,offset,row_ind,bh%nnz_l_sp,MPI_INTEGER4,&
         MPI_STATUS_IGNORE,ierr)
@@ -1187,7 +1187,7 @@ subroutine elsi_write_mat_mp_cmplx(rwh,f_name,mat)
    call elsi_check_err(bh,"MPI_File_write_at_all",ierr,caller)
 
    ! Write nonzero value
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+bh%nnz_g*4+prev_nnz*16
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(bh%nnz_g, kind=i8)*4+int(prev_nnz, kind=i8)*16
 
    call MPI_File_write_at_all(f_handle,offset,mat_csc,bh%nnz_l_sp,&
         MPI_COMPLEX16,MPI_STATUS_IGNORE,ierr)
@@ -1215,18 +1215,18 @@ subroutine elsi_write_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    type(elsi_rw_handle), intent(in) :: rwh !< Handle
    character(len=*), intent(in) :: f_name !< File name
    integer(kind=i4), intent(in) :: row_ind(rwh%bh%nnz_l_sp) !< Row index
-   integer(kind=i4), intent(in) :: col_ptr(rwh%bh%n_lcol_sp+1) !< Column pointer
+   integer(kind=i8), intent(in) :: col_ptr(rwh%bh%n_lcol_sp+1) !< Column pointer
    real(kind=r8), intent(in) :: mat(rwh%bh%nnz_l_sp) !< Matrix
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: header(HEADER_SIZE)
+   integer(kind=i8) :: prev_nnz
    integer(kind=i4) :: n_lcol0
    integer(kind=i8) :: offset
 
-   integer(kind=i4), allocatable :: col_ptr_shift(:)
+   integer(kind=i8), allocatable :: col_ptr_shift(:)
 
    character(len=*), parameter :: caller = "elsi_write_mat_real_sparse"
 
@@ -1253,7 +1253,7 @@ subroutine elsi_write_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    if(rwh%bh%myid == 0) then
       offset = 0
 
-      call MPI_File_write_at(f_handle,offset,header,HEADER_SIZE,MPI_INTEGER4,&
+      call MPI_File_write_at(f_handle,offset,header,HEADER_SIZE,MPI_INTEGER8,&
            MPI_STATUS_IGNORE,ierr)
 
       call elsi_check_err(rwh%bh,"MPI_File_write_at",ierr,caller)
@@ -1262,7 +1262,7 @@ subroutine elsi_write_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    ! Compute shift of column pointers
    prev_nnz = 0
 
-   call MPI_Exscan(rwh%bh%nnz_l_sp,prev_nnz,1,MPI_INTEGER4,MPI_SUM,rwh%bh%comm,&
+   call MPI_Exscan(rwh%bh%nnz_l_sp,prev_nnz,1,MPI_INTEGER8,MPI_SUM,rwh%bh%comm,&
         ierr)
 
    call elsi_check_err(rwh%bh,"MPI_Exscan",ierr,caller)
@@ -1275,17 +1275,17 @@ subroutine elsi_write_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
 
    ! Write column pointer
    n_lcol0 = rwh%n_basis/rwh%bh%n_procs
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%bh%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%bh%myid*n_lcol0*8
 
    call MPI_File_write_at_all(f_handle,offset,col_ptr_shift,rwh%bh%n_lcol_sp,&
-        MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
+        MPI_INTEGER8,MPI_STATUS_IGNORE,ierr)
 
    call elsi_check_err(rwh%bh,"MPI_File_write_at_all",ierr,caller)
 
    call elsi_deallocate(rwh%bh,col_ptr_shift,"col_ptr_shift")
 
    ! Write row index
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(prev_nnz, kind=i8)*4
 
    call MPI_File_write_at_all(f_handle,offset,row_ind,rwh%bh%nnz_l_sp,&
         MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
@@ -1293,7 +1293,7 @@ subroutine elsi_write_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    call elsi_check_err(rwh%bh,"MPI_File_write_at_all",ierr,caller)
 
    ! Write nonzero value
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+rwh%bh%nnz_g*4+prev_nnz*8
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(rwh%bh%nnz_g, kind=i8)*4+int(prev_nnz, kind=i8)*8
 
    call MPI_File_write_at_all(f_handle,offset,mat,rwh%bh%nnz_l_sp,MPI_REAL8,&
         MPI_STATUS_IGNORE,ierr)
@@ -1317,18 +1317,18 @@ subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    type(elsi_rw_handle), intent(in) :: rwh !< Handle
    character(len=*), intent(in) :: f_name !< File name
    integer(kind=i4), intent(in) :: row_ind(rwh%bh%nnz_l_sp) !< Row index
-   integer(kind=i4), intent(in) :: col_ptr(rwh%bh%n_lcol_sp+1) !< Column pointer
+   integer(kind=i8), intent(in) :: col_ptr(rwh%bh%n_lcol_sp+1) !< Column pointer
    complex(kind=r8), intent(in) :: mat(rwh%bh%nnz_l_sp) !< Matrix
 
    integer(kind=i4) :: ierr
    integer(kind=i4) :: f_handle
    integer(kind=i4) :: f_mode
-   integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: prev_nnz
+   integer(kind=i8) :: header(HEADER_SIZE)
+   integer(kind=i8) :: prev_nnz
    integer(kind=i4) :: n_lcol0
    integer(kind=i8) :: offset
 
-   integer(kind=i4), allocatable :: col_ptr_shift(:)
+   integer(kind=i8), allocatable :: col_ptr_shift(:)
 
    character(len=*), parameter :: caller = "elsi_write_mat_complex_sparse"
 
@@ -1355,7 +1355,7 @@ subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    if(rwh%bh%myid == 0) then
       offset = 0
 
-      call MPI_File_write_at(f_handle,offset,header,HEADER_SIZE,MPI_INTEGER4,&
+      call MPI_File_write_at(f_handle,offset,header,HEADER_SIZE,MPI_INTEGER8,&
            MPI_STATUS_IGNORE,ierr)
 
       call elsi_check_err(rwh%bh,"MPI_File_write_at",ierr,caller)
@@ -1364,7 +1364,7 @@ subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    ! Compute shift of column pointers
    prev_nnz = 0
 
-   call MPI_Exscan(rwh%bh%nnz_l_sp,prev_nnz,1,MPI_INTEGER4,MPI_SUM,rwh%bh%comm,&
+   call MPI_Exscan(rwh%bh%nnz_l_sp,prev_nnz,1,MPI_INTEGER8,MPI_SUM,rwh%bh%comm,&
         ierr)
 
    call elsi_check_err(rwh%bh,"MPI_Exscan",ierr,caller)
@@ -1377,17 +1377,17 @@ subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
 
    ! Write column pointer
    n_lcol0 = rwh%n_basis/rwh%bh%n_procs
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%bh%myid*n_lcol0*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%bh%myid*n_lcol0*8
 
    call MPI_File_write_at_all(f_handle,offset,col_ptr_shift,rwh%bh%n_lcol_sp,&
-        MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
+        MPI_INTEGER8,MPI_STATUS_IGNORE,ierr)
 
    call elsi_check_err(rwh%bh,"MPI_File_write_at_all",ierr,caller)
 
    call elsi_deallocate(rwh%bh,col_ptr_shift,"col_ptr_shift")
 
    ! Write row index
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+prev_nnz*4
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(prev_nnz, kind=i8)*4
 
    call MPI_File_write_at_all(f_handle,offset,row_ind,rwh%bh%nnz_l_sp,&
         MPI_INTEGER4,MPI_STATUS_IGNORE,ierr)
@@ -1395,7 +1395,7 @@ subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    call elsi_check_err(rwh%bh,"MPI_File_write_at_all",ierr,caller)
 
    ! Write nonzero value
-   offset = int(HEADER_SIZE,kind=i8)*4+rwh%n_basis*4+rwh%bh%nnz_g*4+prev_nnz*16
+   offset = int(HEADER_SIZE,kind=i8)*8+rwh%n_basis*8+int(rwh%bh%nnz_g, kind=i8)*4+int(prev_nnz, kind=i8)*16
 
    call MPI_File_write_at_all(f_handle,offset,mat,rwh%bh%nnz_l_sp,&
         MPI_COMPLEX16,MPI_STATUS_IGNORE,ierr)
@@ -1423,10 +1423,10 @@ subroutine elsi_read_mat_dim_sp(rwh,f_name,n_electron,n_basis,n_lrow,n_lcol)
    integer(kind=i4), intent(out) :: n_lrow !< Local number of rows
    integer(kind=i4), intent(out) :: n_lcol !< Local number of columns
 
-   integer(kind=i4) :: header(HEADER_SIZE)
+   integer(kind=i8) :: header(HEADER_SIZE)
    integer(kind=i4) :: f_unit
    integer(kind=i8) :: offset
-   integer(kind=i8) :: ierr
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    character(len=*), parameter :: caller = "elsi_read_mat_dim_sp"
@@ -1472,21 +1472,23 @@ subroutine elsi_read_mat_sp_real(rwh,f_name,mat)
    character(len=*), intent(in) :: f_name !< File name
    real(kind=r8), intent(out) :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
-   integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i
-   integer(kind=i4) :: j
-   integer(kind=i4) :: this_nnz
+   integer(kind=i8) :: header(HEADER_SIZE)
+   integer(kind=i8) :: i_val
+   integer(kind=i8) :: i
+   integer(kind=i8) :: j
+   integer(kind=i8) :: this_nnz
    integer(kind=i4) :: f_unit
    integer(kind=i8) :: offset
-   integer(kind=i8) :: ierr
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: nnz_val(:)
    integer(kind=i4), allocatable :: row_ind(:)
-   integer(kind=i4), allocatable :: col_ptr(:)
+   integer(kind=i8), allocatable :: col_ptr(:)
 
    character(len=*), parameter :: caller = "elsi_read_mat_sp_real"
+
+   !integer(kind=i8) :: nnz_l_sp_temp
 
    ! Open file
    call elsi_get_unit(f_unit)
@@ -1505,29 +1507,32 @@ subroutine elsi_read_mat_sp_real(rwh,f_name,mat)
    read(f_unit,pos=offset) header
 
    rwh%bh%nnz_g = header(6)
+   !RUYI
+   write(*,*) header(1:16)
    rwh%bh%nnz_l_sp = header(6)
+   !nnz_l_sp_temp = header(6)
    rwh%bh%n_lcol_sp = rwh%n_basis
 
    call elsi_allocate(rwh%bh,col_ptr,rwh%bh%n_lcol_sp+1,"col_ptr",caller)
 
    ! Read column pointer
-   offset = int(1,kind=i8)+HEADER_SIZE*4
+   offset = int(1,kind=i8)+HEADER_SIZE*8
 
    read(f_unit,pos=offset) col_ptr(1:rwh%bh%n_lcol_sp)
 
    col_ptr(rwh%bh%n_lcol_sp+1) = rwh%bh%nnz_g+1
-
    call elsi_allocate(rwh%bh,row_ind,rwh%bh%nnz_l_sp,"row_ind",caller)
+   !call elsi_allocate(rwh%bh,row_ind,nnz_l_sp_temp,"row_ind",caller)
 
    ! Read row index
-   offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4
+   offset = int(1,kind=i8)+HEADER_SIZE*8+rwh%n_basis*8
 
    read(f_unit,pos=offset) row_ind
 
    ! Read nonzero value
-   offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4+rwh%bh%nnz_g*4
-
+   offset = int(1,kind=i8)+int(HEADER_SIZE,kind=i8)*8+int(rwh%n_basis,kind=i4)*8+int(rwh%bh%nnz_g,kind=i8)*4
    call elsi_allocate(rwh%bh,nnz_val,rwh%bh%nnz_l_sp,"nnz_val",caller)
+   !call elsi_allocate(rwh%bh,nnz_val,nnz_l_sp_temp,"nnz_val",caller)
 
    read(f_unit,pos=offset) nnz_val
 
@@ -1565,19 +1570,19 @@ subroutine elsi_read_mat_sp_cmplx(rwh,f_name,mat)
    character(len=*), intent(in) :: f_name !< File name
    complex(kind=r8), intent(out) :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
-   integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i
-   integer(kind=i4) :: j
-   integer(kind=i4) :: this_nnz
+   integer(kind=i8) :: header(HEADER_SIZE)
+   integer(kind=i8) :: i_val
+   integer(kind=i8) :: i
+   integer(kind=i8) :: j
+   integer(kind=i8) :: this_nnz
    integer(kind=i4) :: f_unit
    integer(kind=i8) :: offset
-   integer(kind=i8) :: ierr
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    complex(kind=r8), allocatable :: nnz_val(:)
    integer(kind=i4), allocatable :: row_ind(:)
-   integer(kind=i4), allocatable :: col_ptr(:)
+   integer(kind=i8), allocatable :: col_ptr(:)
 
    character(len=*), parameter :: caller = "elsi_read_mat_sp_cmplx"
 
@@ -1604,7 +1609,7 @@ subroutine elsi_read_mat_sp_cmplx(rwh,f_name,mat)
    call elsi_allocate(rwh%bh,col_ptr,rwh%bh%n_lcol_sp+1,"col_ptr",caller)
 
    ! Read column pointer
-   offset = int(1,kind=i8)+HEADER_SIZE*4
+   offset = int(1,kind=i8)+HEADER_SIZE*8
 
    read(f_unit,pos=offset) col_ptr(1:rwh%bh%n_lcol_sp)
 
@@ -1613,12 +1618,12 @@ subroutine elsi_read_mat_sp_cmplx(rwh,f_name,mat)
    call elsi_allocate(rwh%bh,row_ind,rwh%bh%nnz_l_sp,"row_ind",caller)
 
    ! Read row index
-   offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4
+   offset = int(1,kind=i8)+HEADER_SIZE*8+rwh%n_basis*8
 
    read(f_unit,pos=offset) row_ind
 
    ! Read nonzero value
-   offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4+rwh%bh%nnz_g*4
+   offset = int(1,kind=i8)+HEADER_SIZE*8+rwh%n_basis*8+int(rwh%bh%nnz_g, kind=i8)*4
 
    call elsi_allocate(rwh%bh,nnz_val,rwh%bh%nnz_l_sp,"nnz_val",caller)
 
@@ -1658,25 +1663,31 @@ subroutine elsi_write_mat_sp_real(rwh,f_name,mat)
    character(len=*), intent(in) :: f_name !< File name
    real(kind=r8), intent(in) :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
-   integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i
-   integer(kind=i4) :: j
-   integer(kind=i4) :: this_nnz
-   integer(kind=i4) :: nnz_g
+   integer(kind=i8) :: header(HEADER_SIZE)
+   integer(kind=i8) :: i_val
+   integer(kind=i8) :: i
+   integer(kind=i8) :: j
+   integer(kind=i8) :: this_nnz
+   integer(kind=i8) :: nnz_g
    integer(kind=i4) :: f_unit
    integer(kind=i8) :: offset
-   integer(kind=i8) :: ierr
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    real(kind=r8), allocatable :: nnz_val(:)
    integer(kind=i4), allocatable :: row_ind(:)
-   integer(kind=i4), allocatable :: col_ptr(:)
+   integer(kind=i8), allocatable :: col_ptr(:)
 
    character(len=*), parameter :: caller = "elsi_write_mat_sp_real"
 
    ! Compute nnz
-   nnz_g = count(abs(mat) > rwh%bh%def0)
+!   nnz_g = count( (abs(mat) > rwh%bh%def0), kind=i8)
+   nnz_g = 0
+   do i = 1, rwh%bh%n_lrow
+      do j = 1, rwh%bh%n_lcol
+         if (abs(mat(i,j)) > rwh%bh%def0) nnz_g=nnz_g+1
+      enddo
+   enddo
 
    ! Convert to CSC
    call elsi_allocate(rwh%bh,col_ptr,rwh%n_basis+1,"col_ptr",caller)
@@ -1685,6 +1696,7 @@ subroutine elsi_write_mat_sp_real(rwh,f_name,mat)
 
    i_val = 0
    col_ptr(:) = 1
+   row_ind(:) = 0
 
    do i = 1,rwh%bh%n_lcol
       this_nnz = 0
@@ -1697,7 +1709,6 @@ subroutine elsi_write_mat_sp_real(rwh,f_name,mat)
             row_ind(i_val) = j
          end if
       end do
-
       col_ptr(i+1) = col_ptr(i)+this_nnz
    end do
 
@@ -1725,17 +1736,17 @@ subroutine elsi_write_mat_sp_real(rwh,f_name,mat)
    write(f_unit,pos=offset) header
 
    ! Write column pointer
-   offset = int(1,kind=i8)+HEADER_SIZE*4
+   offset = int(1,kind=i8)+HEADER_SIZE*8
 
    write(f_unit,pos=offset) col_ptr(1:rwh%n_basis)
 
    ! Write row index
-   offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4
+   offset = int(1,kind=i8)+HEADER_SIZE*8+rwh%n_basis*8
 
    write(f_unit,pos=offset) row_ind
 
    ! Write nonzero value
-   offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4+nnz_g*4
+   offset = int(1,kind=i8)+HEADER_SIZE*8+rwh%n_basis*8+int(nnz_g, kind=i8)*4
 
    write(f_unit,pos=offset) nnz_val
 
@@ -1759,25 +1770,31 @@ subroutine elsi_write_mat_sp_cmplx(rwh,f_name,mat)
    character(len=*), intent(in) :: f_name !< File name
    complex(kind=r8), intent(in) :: mat(rwh%bh%n_lrow,rwh%bh%n_lcol) !< Matrix
 
-   integer(kind=i4) :: header(HEADER_SIZE)
-   integer(kind=i4) :: i_val
-   integer(kind=i4) :: i
-   integer(kind=i4) :: j
-   integer(kind=i4) :: this_nnz
-   integer(kind=i4) :: nnz_g
+   integer(kind=i8) :: header(HEADER_SIZE)
+   integer(kind=i8) :: i_val
+   integer(kind=i8) :: i
+   integer(kind=i8) :: j
+   integer(kind=i8) :: this_nnz
+   integer(kind=i8) :: nnz_g
    integer(kind=i4) :: f_unit
    integer(kind=i8) :: offset
-   integer(kind=i8) :: ierr
+   integer(kind=i4) :: ierr
    character(len=200) :: msg
 
    complex(kind=r8), allocatable :: nnz_val(:)
    integer(kind=i4), allocatable :: row_ind(:)
-   integer(kind=i4), allocatable :: col_ptr(:)
+   integer(kind=i8), allocatable :: col_ptr(:)
 
    character(len=*), parameter :: caller = "elsi_write_mat_sp_cmplx"
 
    ! Compute nnz
-   nnz_g = count(abs(mat) > rwh%bh%def0)
+!   nnz_g = count( (abs(mat) > rwh%bh%def0), kind=i8)
+   nnz_g = 0
+   do i = 1, rwh%bh%n_lrow
+      do j = 1, rwh%bh%n_lcol
+         if (abs(mat(i,j)) > rwh%bh%def0) nnz_g=nnz_g+1
+      enddo
+   enddo
 
    ! Convert to CSC
    call elsi_allocate(rwh%bh,col_ptr,rwh%n_basis+1,"col_ptr",caller)
@@ -1826,17 +1843,17 @@ subroutine elsi_write_mat_sp_cmplx(rwh,f_name,mat)
    write(f_unit,pos=offset) header
 
    ! Write column pointer
-   offset = int(1,kind=i8)+HEADER_SIZE*4
+   offset = int(1,kind=i8)+HEADER_SIZE*8
 
    write(f_unit,pos=offset) col_ptr(1:rwh%n_basis)
 
    ! Write row index
-   offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4
+   offset = int(1,kind=i8)+HEADER_SIZE*8+rwh%n_basis*8
 
    write(f_unit,pos=offset) row_ind
 
    ! Write nonzero value
-   offset = int(1,kind=i8)+HEADER_SIZE*4+rwh%n_basis*4+nnz_g*4
+   offset = int(1,kind=i8)+HEADER_SIZE*8+rwh%n_basis*8+int(nnz_g, kind=i8)*4
 
    write(f_unit,pos=offset) nnz_val
 

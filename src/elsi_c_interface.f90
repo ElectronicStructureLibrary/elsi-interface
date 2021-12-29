@@ -155,11 +155,11 @@ subroutine c_elsi_set_csc(h_c,nnz_g,nnz_l,n_lcol,row_ind,col_ptr) bind(C)
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), value, intent(in) :: nnz_g
-   integer(kind=c_int), value, intent(in) :: nnz_l
+   integer(kind=c_long), value, intent(in) :: nnz_g
+   integer(kind=c_long), value, intent(in) :: nnz_l
    integer(kind=c_int), value, intent(in) :: n_lcol
    integer(kind=c_int), intent(in) :: row_ind(nnz_l)
-   integer(kind=c_int), intent(in) :: col_ptr(n_lcol+1)
+   integer(kind=c_long), intent(in) :: col_ptr(n_lcol+1)
 
    type(elsi_handle), pointer :: h_f
 
@@ -189,8 +189,8 @@ subroutine c_elsi_set_coo(h_c,nnz_g,nnz_l,row_ind,col_ind) bind(C)
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), value, intent(in) :: nnz_g
-   integer(kind=c_int), value, intent(in) :: nnz_l
+   integer(kind=c_long), value, intent(in) :: nnz_g
+   integer(kind=c_long), value, intent(in) :: nnz_l
    integer(kind=c_int), intent(in) :: row_ind(nnz_l)
    integer(kind=c_int), intent(in) :: col_ind(nnz_l)
 
@@ -317,7 +317,7 @@ subroutine c_elsi_ev_real_sparse(h_c,ham_c,ovlp_c,eval_c,evec_c) bind(C)
    real(kind=c_double), pointer :: evec_f(:,:)
 
    integer(kind=c_int) :: n_basis
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
    integer(kind=c_int) :: lrow
    integer(kind=c_int) :: lcol
 
@@ -354,7 +354,7 @@ subroutine c_elsi_ev_complex_sparse(h_c,ham_c,ovlp_c,eval_c,evec_c) bind(C)
    complex(kind=c_double), pointer :: evec_f(:,:)
 
    integer(kind=c_int) :: n_basis
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
    integer(kind=c_int) :: lrow
    integer(kind=c_int) :: lcol
 
@@ -451,7 +451,7 @@ subroutine c_elsi_dm_real_sparse(h_c,ham_c,ovlp_c,dm_c,energy) bind(C)
    real(kind=c_double), pointer :: ovlp_f(:)
    real(kind=c_double), pointer :: dm_f(:)
 
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
 
    call c_f_pointer(h_c,h_f)
 
@@ -480,7 +480,7 @@ subroutine c_elsi_dm_complex_sparse(h_c,ham_c,ovlp_c,dm_c,energy) bind(C)
    complex(kind=c_double), pointer :: ovlp_f(:)
    complex(kind=c_double), pointer :: dm_f(:)
 
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
 
    call c_f_pointer(h_c,h_f)
 
@@ -1610,7 +1610,7 @@ subroutine c_elsi_get_edm_real_sparse(h_c,edm_c) bind(C)
    type(elsi_handle), pointer :: h_f
    real(kind=c_double), pointer :: edm_f(:)
 
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
 
    call c_f_pointer(h_c,h_f)
 
@@ -1632,7 +1632,7 @@ subroutine c_elsi_get_edm_complex_sparse(h_c,edm_c) bind(C)
    type(elsi_handle), pointer :: h_f
    complex(kind=c_double), pointer :: edm_f(:)
 
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
 
    call c_f_pointer(h_c,h_f)
 
@@ -1802,7 +1802,7 @@ subroutine c_elsi_orthonormalize_ev_real_sparse(h_c,ovlp_c,evec_c) bind(C)
    real(kind=c_double), pointer :: ovlp_f(:)
    real(kind=c_double), pointer :: evec_f(:,:)
 
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
    integer(kind=c_int) :: lrow
    integer(kind=c_int) :: lcol
 
@@ -1831,7 +1831,7 @@ subroutine c_elsi_orthonormalize_ev_complex_sparse(h_c,ovlp_c,evec_c) bind(C)
    complex(kind=c_double), pointer :: ovlp_f(:)
    complex(kind=c_double), pointer :: evec_f(:,:)
 
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
    integer(kind=c_int) :: lrow
    integer(kind=c_int) :: lcol
 
@@ -1914,7 +1914,7 @@ subroutine c_elsi_extrapolate_dm_real_sparse(h_c,ovlp_c,dm_c) bind(C)
    real(kind=c_double), pointer :: ovlp_f(:)
    real(kind=c_double), pointer :: dm_f(:)
 
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
 
    call c_f_pointer(h_c,h_f)
 
@@ -1939,7 +1939,7 @@ subroutine c_elsi_extrapolate_dm_complex_sparse(h_c,ovlp_c,dm_c) bind(C)
    complex(kind=c_double), pointer :: ovlp_f(:)
    complex(kind=c_double), pointer :: dm_f(:)
 
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
 
    call c_f_pointer(h_c,h_f)
 
@@ -2008,8 +2008,8 @@ subroutine c_elsi_set_rw_csc(h_c,nnz_g,nnz_l,n_lcol) bind(C)
    implicit none
 
    type(c_ptr), value, intent(in) :: h_c
-   integer(kind=c_int), value, intent(in) :: nnz_g
-   integer(kind=c_int), value, intent(in) :: nnz_l
+   integer(kind=c_long), value, intent(in) :: nnz_g
+   integer(kind=c_long), value, intent(in) :: nnz_l
    integer(kind=c_int), value, intent(in) :: n_lcol
 
    type(elsi_rw_handle), pointer :: h_f
@@ -2082,8 +2082,8 @@ subroutine c_elsi_read_mat_dim_sparse(h_c,name_c,n_electrons,n_basis,nnz_g,&
    character(kind=c_char,len=1), intent(in) :: name_c(*)
    real(kind=c_double), intent(out) :: n_electrons
    integer(kind=c_int), intent(out) :: n_basis
-   integer(kind=c_int), intent(out) :: nnz_g
-   integer(kind=c_int), intent(out) :: nnz_l
+   integer(kind=c_long), intent(out) :: nnz_g
+   integer(kind=c_long), intent(out) :: nnz_l
    integer(kind=c_int), intent(out) :: n_lcol
 
    type(elsi_rw_handle), pointer :: h_f
@@ -2141,12 +2141,12 @@ subroutine c_elsi_read_mat_real_sparse(h_c,name_c,row_ind_c,col_ptr_c,mat_c)&
 
    type(elsi_rw_handle), pointer :: h_f
    integer(kind=c_int), pointer :: row_ind_f(:)
-   integer(kind=c_int), pointer :: col_ptr_f(:)
+   integer(kind=c_long), pointer :: col_ptr_f(:)
    real(kind=c_double), pointer :: mat_f(:)
 
    character(len=:), allocatable :: name_f
 
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
    integer(kind=c_int) :: lcol
 
    call c_f_pointer(h_c,h_f)
@@ -2206,12 +2206,12 @@ subroutine c_elsi_write_mat_real_sparse(h_c,name_c,row_ind_c,col_ptr_c,mat_c)&
 
    type(elsi_rw_handle), pointer :: h_f
    integer(kind=c_int), pointer :: row_ind_f(:)
-   integer(kind=c_int), pointer :: col_ptr_f(:)
+   integer(kind=c_long), pointer :: col_ptr_f(:)
    real(kind=c_double), pointer :: mat_f(:)
 
    character(len=:), allocatable :: name_f
 
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
    integer(kind=c_int) :: lcol
 
    call c_f_pointer(h_c,h_f)
@@ -2271,12 +2271,12 @@ subroutine c_elsi_read_mat_complex_sparse(h_c,name_c,row_ind_c,col_ptr_c,mat_c)&
 
    type(elsi_rw_handle), pointer :: h_f
    integer(kind=c_int), pointer :: row_ind_f(:)
-   integer(kind=c_int), pointer :: col_ptr_f(:)
+   integer(kind=c_long), pointer :: col_ptr_f(:)
    complex(kind=c_double), pointer :: mat_f(:)
 
    character(len=:), allocatable :: name_f
 
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
    integer(kind=c_int) :: lcol
 
    call c_f_pointer(h_c,h_f)
@@ -2336,12 +2336,12 @@ subroutine c_elsi_write_mat_complex_sparse(h_c,name_c,row_ind_c,col_ptr_c,&
 
    type(elsi_rw_handle), pointer :: h_f
    integer(kind=c_int), pointer :: row_ind_f(:)
-   integer(kind=c_int), pointer :: col_ptr_f(:)
+   integer(kind=c_long), pointer :: col_ptr_f(:)
    complex(kind=c_double), pointer :: mat_f(:)
 
    character(len=:), allocatable :: name_f
 
-   integer(kind=c_int) :: nnz_l
+   integer(kind=c_long) :: nnz_l
    integer(kind=c_int) :: lcol
 
    call c_f_pointer(h_c,h_f)
@@ -2358,5 +2358,6 @@ subroutine c_elsi_write_mat_complex_sparse(h_c,name_c,row_ind_c,col_ptr_c,&
    call elsi_write_mat_complex_sparse(h_f,name_f,row_ind_f,col_ptr_f,mat_f)
 
 end subroutine
+
 
 end module ELSI_C_INTERFACE

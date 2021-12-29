@@ -14,7 +14,7 @@ module ELSI_PEXSI
    use ELSI_MALLOC, only: elsi_allocate,elsi_deallocate
    use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_UTIL, only: elsi_check_err,elsi_reduce_energy
    use F_PPEXSI_INTERFACE, only: f_ppexsi_plan_initialize,&
        f_ppexsi_plan_finalize,f_ppexsi_set_default_options,&
@@ -180,7 +180,7 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp1+1)
    real(kind=r8), intent(out) :: ne_vec(ph%pexsi_options%nPoints)
    real(kind=r8), intent(in) :: ham(bh%nnz_l_sp1)
    real(kind=r8), intent(in) :: ovlp(bh%nnz_l_sp1)
@@ -211,6 +211,10 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    character(len=*), parameter :: caller = "elsi_solve_pexsi_real"
 
+   integer(kind=i4) :: nnz_g_convert
+   integer(kind=i4) :: nnz_l_sp1_convert
+   integer(kind=i4) :: col_ptr_convert(bh%n_lcol_sp1+1)
+
    write(msg,"(A)") "Starting PEXSI density matrix solver"
    call elsi_say(bh,msg)
 
@@ -218,13 +222,27 @@ subroutine elsi_solve_pexsi_real(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    ! Load sparse matrices for PEXSI
    if(ph%unit_ovlp) then
-      call f_ppexsi_load_real_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
-           ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,ham,&
-           1,ovlp,ierr)
+      if ( ((bh%nnz_g).gt.(2.1E9)) .or. ((bh%nnz_l_sp1).gt.(2.1E9)) ) then
+         write(*,"(A)") "***Stop in PEXSI: nnz_g reach int4 limit"
+      else
+         nnz_g_convert = bh%nnz_g
+         nnz_l_sp1_convert = bh%nnz_l_sp1
+         col_ptr_convert = col_ptr
+         call f_ppexsi_load_real_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
+              ph%n_basis,nnz_g_convert,nnz_l_sp1_convert,bh%n_lcol_sp1,col_ptr_convert,row_ind,ham,&
+              1,ovlp,ierr)
+      endif
    else
-      call f_ppexsi_load_real_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
-           ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,ham,&
-           0,ovlp,ierr)
+      if ( ((bh%nnz_g).gt.(2.1E9)) .or. ((bh%nnz_l_sp1).gt.(2.1E9)) ) then
+         write(*,"(A)") "***Stop in PEXSI: nnz_g reach int4 limit"
+      else
+         nnz_g_convert=bh%nnz_g
+         nnz_l_sp1_convert=bh%nnz_l_sp1
+         col_ptr_convert = col_ptr
+         call f_ppexsi_load_real_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
+              ph%n_basis,nnz_g_convert,nnz_l_sp1_convert,bh%n_lcol_sp1,col_ptr_convert,row_ind,ham,&
+              0,ovlp,ierr)
+      endif
    end if
 
    call elsi_check_err(bh,"PEXSI load matrices",ierr,caller)
@@ -657,7 +675,7 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
    type(elsi_param_t), intent(inout) :: ph
    type(elsi_basic_t), intent(in) :: bh
    integer(kind=i4), intent(in) :: row_ind(bh%nnz_l_sp1)
-   integer(kind=i4), intent(in) :: col_ptr(bh%n_lcol_sp1+1)
+   integer(kind=i8), intent(in) :: col_ptr(bh%n_lcol_sp1+1)
    real(kind=r8), intent(out) :: ne_vec(ph%pexsi_options%nPoints)
    complex(kind=r8), intent(in) :: ham(bh%nnz_l_sp1)
    complex(kind=r8), intent(inout) :: ovlp(bh%nnz_l_sp1)
@@ -690,6 +708,10 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    character(len=*), parameter :: caller = "elsi_solve_pexsi_cmplx"
 
+   integer(kind=i4) :: nnz_g_convert
+   integer(kind=i4) :: nnz_l_sp1_convert
+   integer(kind=i4) :: col_ptr_convert(bh%n_lcol_sp1+1)
+
    write(msg,"(A)") "Starting PEXSI density matrix solver"
    call elsi_say(bh,msg)
 
@@ -697,13 +719,27 @@ subroutine elsi_solve_pexsi_cmplx(ph,bh,row_ind,col_ptr,ne_vec,ham,ovlp,dm)
 
    ! Load sparse matrices for PEXSI
    if(ph%unit_ovlp) then
-      call f_ppexsi_load_complex_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
-           ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,ham,&
-           1,ovlp,ierr)
+      if ( ((bh%nnz_g).gt.(2.1E9)) .or. ((bh%nnz_l_sp1).gt.(2.1E9)) ) then
+         write(*,"(A)") "***Stop in PEXSI: nnz_g reach int4 limit"
+      else
+         nnz_g_convert=bh%nnz_g
+         nnz_l_sp1_convert=bh%nnz_l_sp1
+         col_ptr_convert = col_ptr
+         call f_ppexsi_load_complex_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
+              ph%n_basis,nnz_g_convert,nnz_l_sp1_convert,bh%n_lcol_sp1,col_ptr_convert,row_ind,ham,&
+              1,ovlp,ierr)
+      endif
    else
-      call f_ppexsi_load_complex_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
-           ph%n_basis,bh%nnz_g,bh%nnz_l_sp1,bh%n_lcol_sp1,col_ptr,row_ind,ham,&
-           0,ovlp,ierr)
+      if ( (bh%nnz_g).gt.(2.1E9) .or. ((bh%nnz_l_sp1).gt.(2.1E9)) ) then
+         write(*,"(A)") "***Stop in PEXSI: nnz_g reach int4 limit"
+      else
+         nnz_g_convert=bh%nnz_g
+         nnz_l_sp1_convert=bh%nnz_l_sp1
+         col_ptr_convert = col_ptr
+         call f_ppexsi_load_complex_hs_matrix(ph%pexsi_plan,ph%pexsi_options,&
+              ph%n_basis,nnz_g_convert,nnz_l_sp1_convert,bh%n_lcol_sp1,col_ptr_convert,row_ind,ham,&
+              0,ovlp,ierr)
+      endif
    end if
 
    call elsi_check_err(bh,"PEXSI load matrices",ierr,caller)

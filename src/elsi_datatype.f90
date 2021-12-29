@@ -12,7 +12,7 @@
 module ELSI_DATATYPE
 
    use, intrinsic :: ISO_C_BINDING
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: r8,i4,i8
    use ELPA, only: elpa_t,elpa_autotune_t
    use F_PPEXSI_INTERFACE, only: f_ppexsi_options
    use FORTJSON, only: fjson_handle
@@ -50,28 +50,28 @@ module ELSI_DATATYPE
       integer(kind=i4) :: my_pcol
       integer(kind=i4) :: n_lrow
       integer(kind=i4) :: n_lcol
-      integer(kind=i4) :: nnz_l ! Local number of nonzeros
+      integer(kind=i8) :: nnz_l ! Local number of nonzeros
       logical :: blacs_ready = .false.
 
       ! Sparse matrix information (common)
-      integer(kind=i4) :: nnz_g ! Global number of nonzeros
-      integer(kind=i4) :: nnz_l_sp ! Local number of nonzeros
+      integer(kind=i8) :: nnz_g ! Global number of nonzeros
+      integer(kind=i8) :: nnz_l_sp ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp ! Local number of columns
       real(kind=r8) :: def0 ! Zero threshold
 
       ! Sparse matrix information (1D block)
-      integer(kind=i4) :: nnz_l_sp1 ! Local number of nonzeros
+      integer(kind=i8) :: nnz_l_sp1 ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp1 ! Local number of columns
       logical :: pexsi_csc_ready = .false.
 
       ! Sparse matrix information (1D block-cyclic)
-      integer(kind=i4) :: nnz_l_sp2 ! Local number of nonzeros
+      integer(kind=i8) :: nnz_l_sp2 ! Local number of nonzeros
       integer(kind=i4) :: n_lcol_sp2 ! Local number of columns
       integer(kind=i4) :: blk_sp2
       logical :: siesta_csc_ready = .false.
 
       ! Sparse matrix information (generic)
-      integer(kind=i4) :: nnz_l_sp3 ! Local number of nonzeros
+      integer(kind=i8) :: nnz_l_sp3 ! Local number of nonzeros
       logical :: generic_coo_ready = .false.
 
    end type
@@ -269,9 +269,9 @@ module ELSI_DATATYPE
       real(kind=r8), allocatable :: dm_real_sp(:)
       complex(kind=r8), allocatable :: dm_cmplx_sp(:)
       integer(kind=i4), allocatable :: row_ind_sp1(:)
-      integer(kind=i4), allocatable :: col_ptr_sp1(:)
+      integer(kind=i8), allocatable :: col_ptr_sp1(:)
       integer(kind=i4), allocatable :: row_ind_sp2(:)
-      integer(kind=i4), allocatable :: col_ptr_sp2(:)
+      integer(kind=i8), allocatable :: col_ptr_sp2(:)
       integer(kind=i4), allocatable :: row_ind_sp3(:)
       integer(kind=i4), allocatable :: col_ind_sp3(:)
       type(Matrix_ps) :: nt_ham
@@ -288,10 +288,10 @@ module ELSI_DATATYPE
       complex(kind=r8), allocatable :: evec_cmplx_v(:,:)
 
       ! Matrix redistribution
-      integer(kind=i4), allocatable :: mask(:,:)
+      integer(kind=i8), allocatable :: mask(:,:)
       integer(kind=i4), allocatable :: map_den(:,:)
       integer(kind=i4), allocatable :: map_sp1(:)
-      integer(kind=i4), allocatable :: perm_sp3(:)
+      integer(kind=i8), allocatable :: perm_sp3(:)
 
       ! Auxiliary
       real(kind=r8), allocatable :: ovlp_real_copy(:,:)

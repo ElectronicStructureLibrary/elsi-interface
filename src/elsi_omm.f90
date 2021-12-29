@@ -13,7 +13,7 @@ module ELSI_OMM
    use ELSI_DATATYPE, only: elsi_param_t,elsi_basic_t
    use ELSI_MPI
    use ELSI_OUTPUT, only: elsi_say,elsi_get_time
-   use ELSI_PRECISION, only: r8,i4
+   use ELSI_PRECISION, only: r8,i4,i8
    use ELSI_UTIL, only: elsi_check_err
    use MATRIXSWITCH, only: matrix,m_register_pdbc,ms_scalapack_setup,&
        m_deallocate
@@ -107,13 +107,25 @@ subroutine elsi_solve_omm_real(ph,bh,ham,ovlp,coeff,dm)
 
    character(len=*), parameter :: caller = "elsi_solve_omm_real"
 
+   integer(kind=i8) i,j
+
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
-         bh%nnz_l = count(abs(ham) > bh%def0)
+!RS: The following count kind specification cannot work for nvfortran compiler
+!    neither i8 nor 8 works
+!
+!         bh%nnz_l = count( (abs(ham) > bh%def0), kind=i8)
+         bh%nnz_l = 0
+         do i = 1, bh%n_lrow
+            do j = 1, bh%n_lcol
+               if (abs(ham(i,j)) > bh%def0) bh%nnz_l=bh%nnz_l+1 
+            enddo
+         enddo
+
       end if
 
-      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
       call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
    end if
@@ -269,13 +281,22 @@ subroutine elsi_solve_omm_cmplx(ph,bh,ham,ovlp,coeff,dm)
 
    character(len=*), parameter :: caller = "elsi_solve_omm_cmplx"
 
+   integer(kind=i8) i,j
+
    ! Compute sparsity
    if(bh%nnz_g == UNSET) then
       if(bh%nnz_l == UNSET) then
-         bh%nnz_l = count(abs(ham) > bh%def0)
+!         bh%nnz_l = count( (abs(ham) > bh%def0), kind=i8)
+         bh%nnz_l = 0
+         do i = 1, bh%n_lrow
+            do j = 1, bh%n_lcol
+               if (abs(ham(i,j)) > bh%def0) bh%nnz_l=bh%nnz_l+1
+            enddo
+         enddo
+
       end if
 
-      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER4,MPI_SUM,bh%comm,ierr)
+      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
 
       call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
    end if
