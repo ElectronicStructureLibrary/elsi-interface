@@ -131,8 +131,8 @@ subroutine elsi_factor_ovlp_elpa_real(ph,bh,ovlp)
 
    implicit none
 
-   type(elsi_param_t), intent(in) :: ph
-   type(elsi_basic_t), intent(in) :: bh
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
 
    real(kind=r8) :: t0
@@ -143,6 +143,8 @@ subroutine elsi_factor_ovlp_elpa_real(ph,bh,ovlp)
    character(len=*), parameter :: caller = "elsi_factor_ovlp_elpa_real"
 
    call elsi_get_time(t0)
+   
+   call elsi_init_elpa(ph,bh)
 
    ! S = U
    call ph%elpa_aux%cholesky(ovlp,ierr)
@@ -465,7 +467,7 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm0,dm1)
    implicit none
 
    type(elsi_param_t), intent(inout) :: ph
-   type(elsi_basic_t), intent(in) :: bh
+   type(elsi_basic_t), intent(inout) :: bh
    real(kind=r8), intent(inout) :: ovlp0(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: ovlp1(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: dm0(bh%n_lrow,bh%n_lcol)
