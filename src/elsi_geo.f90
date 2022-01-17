@@ -32,6 +32,8 @@ module ELSI_GEO
    public :: elsi_orthonormalize_ev_complex_sparse
    public :: elsi_extrapolate_dm_real
    public :: elsi_extrapolate_dm_complex
+   public :: elsi_extrapolate_dm_restart_real
+   public :: elsi_extrapolate_dm_restart_complex
    public :: elsi_extrapolate_dm_real_sparse
    public :: elsi_extrapolate_dm_complex_sparse
 
@@ -232,6 +234,74 @@ subroutine elsi_extrapolate_dm_complex(eh,ovlp,dm)
         eh%dm_cmplx_copy,dm)
 
    call elsi_deallocate(eh%bh,tmp,"tmp")
+
+end subroutine
+
+!>
+!! Extrapolate density matrix for a new overlap when used with elsi restart 
+!! files. ovlp_old and dm are read from disk and not stored in the elsi handle, 
+!! thus, a separate interface was needed.
+!!
+subroutine elsi_extrapolate_dm_restart_real(eh,ovlp_old,ovlp_new,dm)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   real(kind=r8), intent(inout) :: ovlp_old(eh%bh%n_lrow,eh%bh%n_lcol) !< Old overlap
+   real(kind=r8), intent(in) :: ovlp_new(eh%bh%n_lrow,eh%bh%n_lcol) !< New overlap
+   real(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
+
+   real(kind=r8), allocatable :: tmp(:,:), dm_new(:,:)
+
+   character(len=*), parameter :: caller = "elsi_extrapolate_dm_real"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   call elsi_allocate(eh%bh,tmp,eh%bh%n_lrow,eh%bh%n_lcol,"tmp",caller)
+   call elsi_allocate(eh%bh,dm_new,eh%bh%n_lrow,eh%bh%n_lcol,"dm_new",caller)
+
+   tmp(:,:) = ovlp_new
+
+   call elsi_update_dm_elpa(eh%ph,eh%bh,ovlp_old,tmp,dm,dm_new)
+   
+   dm = dm_new
+
+   call elsi_deallocate(eh%bh,tmp,"tmp")
+   call elsi_deallocate(eh%bh,dm_new,"dm_new")
+
+end subroutine
+
+!>
+!! Extrapolate density matrix for a new overlap when used with elsi restart 
+!! files. ovlp_old and dm are read from disk and not stored in the elsi handle, 
+!! thus, a separate interface was needed.
+!!
+subroutine elsi_extrapolate_dm_restart_complex(eh,ovlp_old,ovlp_new,dm)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   complex(kind=r8), intent(inout) :: ovlp_old(eh%bh%n_lrow,eh%bh%n_lcol) !< Old overlap
+   complex(kind=r8), intent(in) :: ovlp_new(eh%bh%n_lrow,eh%bh%n_lcol) !< New overlap
+   complex(kind=r8), intent(inout) :: dm(eh%bh%n_lrow,eh%bh%n_lcol) !< Density matrix
+
+   complex(kind=r8), allocatable :: tmp(:,:), dm_new(:,:)
+
+   character(len=*), parameter :: caller = "elsi_extrapolate_dm_real"
+
+   call elsi_check_init(eh%bh,eh%handle_init,caller)
+
+   call elsi_allocate(eh%bh,tmp,eh%bh%n_lrow,eh%bh%n_lcol,"tmp",caller)
+   call elsi_allocate(eh%bh,dm_new,eh%bh%n_lrow,eh%bh%n_lcol,"dm_new",caller)
+
+   tmp(:,:) = ovlp_new
+
+   call elsi_update_dm_elpa(eh%ph,eh%bh,ovlp_old,tmp,dm,dm_new)
+   
+   dm = dm_new
+
+   call elsi_deallocate(eh%bh,tmp,"tmp")
+   call elsi_deallocate(eh%bh,dm_new,"dm_new")
 
 end subroutine
 

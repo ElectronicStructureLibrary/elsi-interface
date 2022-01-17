@@ -145,6 +145,8 @@ module ELSI
    public :: elsi_orthonormalize_ev_complex_sparse
    public :: elsi_extrapolate_dm_real
    public :: elsi_extrapolate_dm_complex
+   public :: elsi_extrapolate_dm_restart_real
+   public :: elsi_extrapolate_dm_restart_complex
    public :: elsi_extrapolate_dm_real_sparse
    public :: elsi_extrapolate_dm_complex_sparse
    public :: elsi_compute_dm_real
