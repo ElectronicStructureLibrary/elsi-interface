@@ -481,6 +481,8 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm0,dm1)
    character(len=*), parameter :: caller = "elsi_update_dm_elpa_real"
 
    call elsi_get_time(t0)
+   
+   call elsi_init_elpa(ph,bh)
 
    ! ovlp0 = U_0
    call ph%elpa_aux%cholesky(ovlp0,ierr)
@@ -1157,6 +1159,8 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm0,dm1)
    character(len=*), parameter :: caller = "elsi_update_dm_elpa_cmplx"
 
    call elsi_get_time(t0)
+   
+   call elsi_init_elpa(ph,bh)
 
    ! ovlp0 = U_0
    call ph%elpa_aux%cholesky(ovlp0,ierr)
