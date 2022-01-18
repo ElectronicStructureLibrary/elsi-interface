@@ -1,5 +1,11 @@
 # ELSI changelog
 
+## v2.9.0 (January 2022)
+
+Add Cholesky extrapolation for density matrix when used with elsi restart 
+files. `ovlp_old` and `dm` are read from disk and not stored in the elsi 
+handle, thus, a separate interface was needed.
+
 ## v2.8.3 (July 2021)
 * suggest BLACS distribution
 
