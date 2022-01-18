@@ -1,4 +1,4 @@
-# ELSI - ELectronic Structure Infrastructure (v2.8.3)
+# ELSI - ELectronic Structure Infrastructure (v2.9.0)
 
 ## About
 
@@ -29,4 +29,4 @@ A User's Guide is available at [`./doc/elsi_manual.pdf`](./doc/elsi_manual.pdf).
 For comments, feedback, and suggestions, please
 [contact the ELSI team](mailto:elsi-team@duke.edu).
 
-Copyright (c) 2015-2021, the ELSI team. All rights reserved.
+Copyright (c) 2015-2022, the ELSI team. All rights reserved.
