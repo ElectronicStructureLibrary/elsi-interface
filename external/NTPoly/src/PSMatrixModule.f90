@@ -65,6 +65,7 @@ MODULE PSMatrixModule
   PUBLIC :: FillMatrixFromTripletList
   PUBLIC :: FillMatrixIdentity
   PUBLIC :: FillMatrixPermutation
+  PUBLIC :: FillMatrixDense
   !! Basic Accessors
   PUBLIC :: GetMatrixActualDimension
   PUBLIC :: GetMatrixLogicalDimension
@@ -120,6 +121,9 @@ MODULE PSMatrixModule
   INTERFACE FillMatrixPermutation
      MODULE PROCEDURE FillMatrixPermutation_ps
   END INTERFACE FillMatrixPermutation
+  INTERFACE FillMatrixDense
+     MODULE PROCEDURE FillMatrixDense_psc
+  END INTERFACE FillMatrixDense
   INTERFACE GetMatrixActualDimension
      MODULE PROCEDURE GetMatrixActualDimension_ps
   END INTERFACE GetMatrixActualDimension
@@ -1582,6 +1586,95 @@ CONTAINS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL DestructTripletList(triplet_list)
 
   END SUBROUTINE FillMatrixPermutation_psc
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> This routine will fill a dense matrix so that every element has a given
+  !! a value of 1. This is useful as a starting point for further filtering
+  !! or mapping operations.
+  SUBROUTINE FillMatrixDense_ps(this)
+    !> The matrix being filled.
+    TYPE(Matrix_ps), INTENT(INOUT) :: this
+
+    IF (this%is_complex) THEN
+       CALL FillMatrixDense_psc(this)
+    ELSE
+       CALL FillMatrixDense_psr(this)
+    END IF
+
+  END SUBROUTINE FillMatrixDense_ps
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> Fill dense implementation (real).
+  SUBROUTINE FillMatrixDense_psr(this)
+    !> The matrix being filled.
+    TYPE(Matrix_ps), INTENT(INOUT) :: this
+    !! Local Data
+    TYPE(TripletList_r) :: triplet_list
+
+
+    !! Local Data
+    INTEGER :: II, JJ
+    INTEGER :: total
+
+    CALL ConstructTripletList(triplet_list, this%local_rows * this%local_columns)
+
+    total = 0
+    !! Find local identity values
+    DO JJ = this%start_row, this%end_row - 1
+       DO II = this%start_column, this%end_column - 1
+          IF (II .LE. this%actual_matrix_dimension .AND. &
+               & JJ .LE. this%actual_matrix_dimension) THEN
+             total = total + 1
+             triplet_list%DATA(total)%index_column = II
+             triplet_list%DATA(total)%index_row = JJ
+             triplet_list%DATA(total)%point_value = 1.0
+          END IF
+       END DO
+    END DO
+    triplet_list%CurrentSize = total
+
+    !! Finish constructing
+    CALL FillMatrixFromTripletList(this, triplet_list, prepartitioned_in=.TRUE.)
+
+    !! Cleanup
+    CALL DestructTripletList(triplet_list)
+
+  END SUBROUTINE FillMatrixDense_psr
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !> Fill dense implementation (complex).
+  SUBROUTINE FillMatrixDense_psc(this)
+    !> The matrix being filled.
+    TYPE(Matrix_ps), INTENT(INOUT) :: this
+    !! Local Data
+    TYPE(TripletList_c) :: triplet_list
+
+
+    !! Local Data
+    INTEGER :: II, JJ
+    INTEGER :: total
+
+    CALL ConstructTripletList(triplet_list, this%local_rows * this%local_columns)
+
+    total = 0
+    !! Find local identity values
+    DO JJ = this%start_row, this%end_row - 1
+       DO II = this%start_column, this%end_column - 1
+          IF (II .LE. this%actual_matrix_dimension .AND. &
+               & JJ .LE. this%actual_matrix_dimension) THEN
+             total = total + 1
+             triplet_list%DATA(total)%index_column = II
+             triplet_list%DATA(total)%index_row = JJ
+             triplet_list%DATA(total)%point_value = 1.0
+          END IF
+       END DO
+    END DO
+    triplet_list%CurrentSize = total
+
+    !! Finish constructing
+    CALL FillMatrixFromTripletList(this, triplet_list, prepartitioned_in=.TRUE.)
+
+    !! Cleanup
+    CALL DestructTripletList(triplet_list)
+
+  END SUBROUTINE FillMatrixDense_psc
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !> Extracts a triplet list of the data that is stored on this process.
   !> Data is returned with absolute coordinates.
