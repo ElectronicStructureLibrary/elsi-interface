@@ -502,7 +502,7 @@ subroutine elsi_get_edm_complex(eh,edm)
    end if
 
    select case(eh%ph%solver)
-   case(ELPA_SOLVER)
+   case(ELPA_SOLVER,EIGENEXA_SOLVER)
       call elsi_allocate(eh%bh,factor,eh%ph%n_states,"factor",caller)
 
       factor(:) = -eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt)*eh%eval(1:eh%ph%n_states)
@@ -562,7 +562,7 @@ subroutine elsi_get_edm_complex_sparse(eh,edm)
    end if
 
    select case(eh%ph%solver)
-   case(ELPA_SOLVER)
+   case(ELPA_SOLVER,EIGENEXA_SOLVER)
       call elsi_allocate(eh%bh,factor,eh%ph%n_states,"factor",caller)
 
       factor(:) = -eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt)*eh%eval(1:eh%ph%n_states)

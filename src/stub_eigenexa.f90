@@ -23,6 +23,7 @@ module ELSI_EIGENEXA
 
    interface elsi_solve_eigenexa
       module procedure elsi_solve_eigenexa_real
+      module procedure elsi_solve_eigenexa_cmplx
    end interface
 
 contains
@@ -46,6 +47,22 @@ subroutine elsi_solve_eigenexa_real(ph,bh,ham,ovlp,eval,evec)
    real(kind=r8) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8) :: eval(ph%n_basis)
    real(kind=r8) :: evec(bh%n_lrow,bh%n_lcol)
+
+   write(*,"(A)") "**Error! An EigenExa stub routine was called"
+   stop
+
+end subroutine
+
+subroutine elsi_solve_eigenexa_cmplx(ph,bh,ham,ovlp,eval,evec)
+
+   implicit none
+
+   type(elsi_param_t) :: ph
+   type(elsi_basic_t) :: bh
+   complex(kind=r8) :: ham(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8) :: eval(ph%n_basis)
+   complex(kind=r8) :: evec(bh%n_lrow,bh%n_lcol)
 
    write(*,"(A)") "**Error! An EigenExa stub routine was called"
    stop

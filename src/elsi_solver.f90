@@ -372,6 +372,10 @@ subroutine elsi_ev_complex(eh,ham,ovlp,eval,evec)
    case(MAGMA_SOLVER)
       call elsi_init_magma(eh%ph)
       call elsi_solve_magma(eh%ph,eh%bh,ham,ovlp,eval,evec)
+   case(EIGENEXA_SOLVER)
+      call elsi_init_elpa(eh%ph,eh%bh)
+      call elsi_init_eigenexa(eh%ph,eh%bh)
+      call elsi_solve_eigenexa(eh%ph,eh%bh,ham,ovlp,eval,evec)
    case default
       write(msg,"(A)") "Unsupported eigensolver"
       call elsi_stop(eh%bh,msg,caller)
@@ -651,6 +655,47 @@ subroutine elsi_ev_complex_sparse(eh,ham,ovlp,eval,evec)
 
       call elsi_solve_elpa(eh%ph,eh%bh,eh%ham_cmplx_den,eh%ovlp_cmplx_den,eval,&
            evec)
+   case(EIGENEXA_SOLVER)
+      call elsi_init_elpa(eh%ph,eh%bh)
+      call elsi_init_eigenexa(eh%ph,eh%bh)
+
+      if(.not. allocated(eh%ham_cmplx_den)) then
+         call elsi_allocate(eh%bh,eh%ham_cmplx_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+              "ham_cmplx_den",caller)
+      end if
+
+      if(.not. allocated(eh%ovlp_cmplx_den)) then
+         if(.not. eh%ph%unit_ovlp) then
+            call elsi_allocate(eh%bh,eh%ovlp_cmplx_den,eh%bh%n_lrow,&
+                 eh%bh%n_lcol,"ovlp_cmplx_den",caller)
+         else
+            call elsi_allocate(eh%bh,eh%ovlp_cmplx_den,1,1,"ovlp_cmplx_den",&
+                 caller)
+         end if
+      end if
+
+      select case(eh%ph%matrix_format)
+      case(PEXSI_CSC)
+         call elsi_sips_to_blacs_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp1,&
+              eh%col_ptr_sp1,eh%ham_cmplx_den,eh%ovlp_cmplx_den)
+      case(SIESTA_CSC)
+         call elsi_siesta_to_blacs_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp2,&
+              eh%col_ptr_sp2,eh%ham_cmplx_den,eh%ovlp_cmplx_den)
+      case(GENERIC_COO)
+         if(.not. allocated(eh%map_den)) then
+            call elsi_allocate(eh%bh,eh%map_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "map_den",caller)
+         end if
+
+         call elsi_generic_to_blacs_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp3,&
+              eh%col_ind_sp3,eh%ham_cmplx_den,eh%ovlp_cmplx_den,eh%map_den)
+      case default
+         write(msg,"(A)") "Unsupported matrix format"
+         call elsi_stop(eh%bh,msg,caller)
+      end select
+
+      call elsi_solve_eigenexa(eh%ph,eh%bh,eh%ham_cmplx_den,eh%ovlp_cmplx_den,&
+           eval,evec)
    case default
       write(msg,"(A)") "Unsupported eigensolver"
       call elsi_stop(eh%bh,msg,caller)
@@ -1101,6 +1146,33 @@ subroutine elsi_dm_complex(eh,ham,ovlp,dm,ebs)
       call elsi_pexsi_to_blacs_dm(eh%ph,eh%bh,eh%dm_cmplx_sp,eh%row_ind_sp1,&
            eh%col_ptr_sp1,dm)
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
+   case(EIGENEXA_SOLVER)
+      call elsi_init_elpa(eh%ph,eh%bh)
+      call elsi_init_eigenexa(eh%ph,eh%bh)
+
+      if(.not. allocated(eh%eval)) then
+         call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
+      end if
+
+      if(.not. allocated(eh%evec_cmplx)) then
+         call elsi_allocate(eh%bh,eh%evec_cmplx,eh%bh%n_lrow,eh%bh%n_lcol,&
+              "evec_cmplx",caller)
+      end if
+
+      if(.not. allocated(eh%occ)) then
+         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_states,eh%ph%n_spins,&
+              eh%ph%n_kpts,"occ",caller)
+      end if
+
+      call elsi_solve_eigenexa(eh%ph,eh%bh,ham,ovlp,eh%eval,eh%evec_cmplx)
+      call elsi_get_occ_for_dm(eh%ph,eh%bh,eh%eval,eh%occ)
+      call elsi_build_dm_edm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
+           eh%evec_cmplx,dm,GET_DM)
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
+
+      eh%ph%eval_ready = .true.
+      eh%ph%evec_ready = .true.
+      eh%ph%occ_ready = .true.
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
 
@@ -2049,6 +2121,91 @@ subroutine elsi_dm_complex_sparse(eh,ham,ovlp,dm,ebs)
       end select
 
       call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
+   case(EIGENEXA_SOLVER)
+      call elsi_init_blacs(eh)
+      call elsi_init_elpa(eh%ph,eh%bh)
+      call elsi_init_eigenexa(eh%ph,eh%bh)
+
+      if(.not. allocated(eh%ham_cmplx_den)) then
+         call elsi_allocate(eh%bh,eh%ham_cmplx_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+              "ham_cmplx_den",caller)
+      end if
+
+      if(.not. allocated(eh%ovlp_cmplx_den)) then
+         if(.not. eh%ph%unit_ovlp) then
+            call elsi_allocate(eh%bh,eh%ovlp_cmplx_den,eh%bh%n_lrow,&
+                 eh%bh%n_lcol,"ovlp_cmplx_den",caller)
+         else
+            call elsi_allocate(eh%bh,eh%ovlp_cmplx_den,1,1,"ovlp_cmplx_den",&
+                 caller)
+         end if
+      end if
+
+      select case(eh%ph%matrix_format)
+      case(PEXSI_CSC)
+         call elsi_sips_to_blacs_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp1,&
+              eh%col_ptr_sp1,eh%ham_cmplx_den,eh%ovlp_cmplx_den)
+      case(SIESTA_CSC)
+         call elsi_siesta_to_blacs_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp2,&
+              eh%col_ptr_sp2,eh%ham_cmplx_den,eh%ovlp_cmplx_den)
+      case(GENERIC_COO)
+         if(.not. allocated(eh%map_den)) then
+            call elsi_allocate(eh%bh,eh%map_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+                 "map_den",caller)
+         end if
+
+         call elsi_generic_to_blacs_hs(eh%ph,eh%bh,ham,ovlp,eh%row_ind_sp3,&
+              eh%col_ind_sp3,eh%ham_cmplx_den,eh%ovlp_cmplx_den,eh%map_den)
+      case default
+         write(msg,"(A)") "Unsupported matrix format"
+         call elsi_stop(eh%bh,msg,caller)
+      end select
+
+      if(.not. allocated(eh%eval)) then
+         call elsi_allocate(eh%bh,eh%eval,eh%ph%n_basis,"eval",caller)
+      end if
+
+      if(.not. allocated(eh%evec_cmplx)) then
+         call elsi_allocate(eh%bh,eh%evec_cmplx,eh%bh%n_lrow,eh%bh%n_lcol,&
+              "evec_cmplx",caller)
+      end if
+
+      if(.not. allocated(eh%dm_cmplx_den)) then
+         call elsi_allocate(eh%bh,eh%dm_cmplx_den,eh%bh%n_lrow,eh%bh%n_lcol,&
+              "dm_cmplx_den",caller)
+      end if
+
+      if(.not. allocated(eh%occ)) then
+         call elsi_allocate(eh%bh,eh%occ,eh%ph%n_states,eh%ph%n_spins,&
+              eh%ph%n_kpts,"occ",caller)
+      end if
+
+      call elsi_solve_eigenexa(eh%ph,eh%bh,eh%ham_cmplx_den,eh%ovlp_cmplx_den,&
+           eh%eval,eh%evec_cmplx)
+      call elsi_get_occ_for_dm(eh%ph,eh%bh,eh%eval,eh%occ)
+      call elsi_build_dm_edm(eh%ph,eh%bh,eh%occ(:,eh%ph%i_spin,eh%ph%i_kpt),&
+           eh%evec_cmplx,eh%dm_cmplx_den,GET_DM)
+
+      select case(eh%ph%matrix_format)
+      case(PEXSI_CSC)
+         call elsi_blacs_to_sips_dm(eh%ph,eh%bh,eh%dm_cmplx_den,dm,&
+              eh%row_ind_sp1,eh%col_ptr_sp1)
+      case(SIESTA_CSC)
+         call elsi_blacs_to_siesta_dm(eh%bh,eh%dm_cmplx_den,dm,eh%row_ind_sp2,&
+              eh%col_ptr_sp2)
+      case(GENERIC_COO)
+         call elsi_blacs_to_generic_dm(eh%ph,eh%bh,eh%dm_cmplx_den,eh%map_den,&
+              dm,eh%perm_sp3)
+      case default
+         write(msg,"(A)") "Unsupported matrix format"
+         call elsi_stop(eh%bh,msg,caller)
+      end select
+
+      call elsi_get_band_energy(eh%ph,eh%bh,ebs,solver)
+
+      eh%ph%eval_ready = .true.
+      eh%ph%evec_ready = .true.
+      eh%ph%occ_ready = .true.
    case(NTPOLY_SOLVER)
       call elsi_init_ntpoly(eh%ph,eh%bh)
 

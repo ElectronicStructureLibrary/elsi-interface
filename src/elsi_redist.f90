@@ -65,6 +65,7 @@ module ELSI_REDIST
 
    interface elsi_blacs_to_eigenexa_h
       module procedure elsi_blacs_to_eigenexa_h_real
+      module procedure elsi_blacs_to_eigenexa_h_cmplx
    end interface
 
    interface elsi_blacs_to_generic_dm
@@ -104,6 +105,7 @@ module ELSI_REDIST
 
    interface elsi_eigenexa_to_blacs_ev
       module procedure elsi_eigenexa_to_blacs_ev_real
+      module procedure elsi_eigenexa_to_blacs_ev_cmplx
    end interface
 
    interface elsi_generic_to_blacs_hs
@@ -7789,6 +7791,177 @@ subroutine elsi_blacs_to_eigenexa_h_real(ph,bh,ham_den,ham_exa)
 end subroutine
 
 !>
+!! Convert Halmitonian matrix stored in 2D block-cyclic dense format to EigenExa
+!! format.
+!!
+subroutine elsi_blacs_to_eigenexa_h_cmplx(ph,bh,ham_den,ham_exa)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(inout) :: bh
+   complex(kind=r8), intent(in) :: ham_den(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(out) :: ham_exa(ph%exa_n_lrow,ph%exa_n_lcol)
+
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   integer(kind=i8) :: i_val
+   integer(kind=i4) :: i_proc
+   integer(kind=i4) :: l_col
+   integer(kind=i4) :: l_row
+   integer(kind=i4) :: p_col
+   integer(kind=i4) :: p_row
+   integer(kind=i8) :: nnz_l_before
+   integer(kind=i8) :: nnz_l_after
+   character(len=200) :: msg
+
+   ! See documentation of MPI_Alltoallv
+   complex(kind=r8), allocatable :: val_send(:)
+   complex(kind=r8), allocatable :: val_recv(:)
+   integer(kind=i4), allocatable :: row_send(:)
+   integer(kind=i4), allocatable :: col_send(:)
+   integer(kind=i4), allocatable :: send_count(:)
+   integer(kind=i4), allocatable :: send_displ(:)
+   integer(kind=i4), allocatable :: row_recv(:)
+   integer(kind=i4), allocatable :: col_recv(:)
+   integer(kind=i4), allocatable :: recv_count(:)
+   integer(kind=i4), allocatable :: recv_displ(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
+
+   character(len=*), parameter :: caller = "elsi_blacs_to_eigenexa_h_cmplx"
+
+   integer(kind=i8) i,j
+
+   call elsi_get_time(t0)
+
+!   nnz_l_before = count( (abs(ham_den) > bh%def0), kind=i8)
+   nnz_l_before = 0
+   do i = 1, bh%n_lrow
+      do j = 1, bh%n_lcol
+         if (abs(ham_den(i,j)) > bh%def0) nnz_l_before=nnz_l_before+1
+      enddo
+   enddo
+
+   call elsi_allocate(bh,dest,nnz_l_before,"dest",caller)
+   call elsi_allocate(bh,perm,nnz_l_before,"perm",caller)
+   call elsi_allocate(bh,val_send,nnz_l_before,"val_send",caller)
+   call elsi_allocate(bh,row_send,nnz_l_before,"row_send",caller)
+   call elsi_allocate(bh,col_send,nnz_l_before,"col_send",caller)
+   call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
+
+   i_val = 0
+
+   do i_col = 1,bh%n_lcol
+      do i_row = 1,bh%n_lrow
+         if(abs(ham_den(i_row,i_col)) > bh%def0) then
+            i_val = i_val+1
+
+            call elsi_get_gid(bh%my_prow,bh%n_prow,bh%blk,i_row,row_send(i_val))
+            call elsi_get_gid(bh%my_pcol,bh%n_pcol,bh%blk,i_col,col_send(i_val))
+
+            ! Compute destination
+            p_row = mod(i_row-1,ph%exa_n_prow)+1
+            p_col = mod(i_col-1,ph%exa_n_pcol)+1
+            dest(i_val) = p_row-1+(p_col-1)*ph%exa_n_prow
+
+            ! Pack data
+            val_send(i_val) = ham_den(i_row,i_col)
+
+            ! Set send_count
+            send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+         end if
+      end do
+   end do
+
+   ! Sort
+   call elsi_heapsort(nnz_l_before,dest,perm)
+   call elsi_permute(nnz_l_before,perm,val_send)
+   call elsi_permute(nnz_l_before,perm,row_send)
+   call elsi_permute(nnz_l_before,perm,col_send)
+
+   call elsi_deallocate(bh,dest,"dest")
+   call elsi_deallocate(bh,perm,"perm")
+   call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
+   call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
+   call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
+
+   ! Set recv_count
+   call MPI_Alltoall(send_count,1,MPI_INTEGER4,recv_count,1,MPI_INTEGER4,&
+        bh%comm,ierr)
+
+   call elsi_check_err(bh,"MPI_Alltoall",ierr,caller)
+
+   ! Set local number of nonzero
+   nnz_l_after = sum(recv_count)
+
+   ! Set send_displ and recv_displ
+   do i_proc = 2,bh%n_procs
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
+   end do
+
+   ! Redistribute packed data
+   ! Row id
+   call elsi_allocate(bh,row_recv,nnz_l_after,"row_recv",caller)
+
+   call MPI_Alltoallv(row_send,send_count,send_displ,MPI_INTEGER4,row_recv,&
+        recv_count,recv_displ,MPI_INTEGER4,bh%comm,ierr)
+
+   call elsi_check_err(bh,"MPI_Alltoallv",ierr,caller)
+
+   call elsi_deallocate(bh,row_send,"row_send")
+
+   ! Column id
+   call elsi_allocate(bh,col_recv,nnz_l_after,"col_recv",caller)
+
+   call MPI_Alltoallv(col_send,send_count,send_displ,MPI_INTEGER4,col_recv,&
+        recv_count,recv_displ,MPI_INTEGER4,bh%comm,ierr)
+
+   call elsi_check_err(bh,"MPI_Alltoallv",ierr,caller)
+
+   call elsi_deallocate(bh,col_send,"col_send")
+
+   ! Hamiltonian value
+   call elsi_allocate(bh,val_recv,nnz_l_after,"val_recv",caller)
+
+   call MPI_Alltoallv(val_send,send_count,send_displ,MPI_COMPLEX16,val_recv,&
+        recv_count,recv_displ,MPI_COMPLEX16,bh%comm,ierr)
+
+   call elsi_check_err(bh,"MPI_Alltoallv",ierr,caller)
+
+   call elsi_deallocate(bh,val_send,"val_send")
+   call elsi_deallocate(bh,send_count,"send_count")
+   call elsi_deallocate(bh,recv_count,"recv_count")
+   call elsi_deallocate(bh,send_displ,"send_displ")
+   call elsi_deallocate(bh,recv_displ,"recv_displ")
+
+   ham_exa(:,:) = 0.0_r8
+
+   ! Unpack matrix
+   do i_val = 1,nnz_l_after
+      l_row = (row_recv(i_val)-1)/ph%exa_n_prow+1
+      l_col = (col_recv(i_val)-1)/ph%exa_n_pcol+1
+      ham_exa(l_row,l_col) = val_recv(i_val)
+   end do
+
+   call elsi_deallocate(bh,row_recv,"row_recv")
+   call elsi_deallocate(bh,col_recv,"col_recv")
+   call elsi_deallocate(bh,val_recv,"val_recv")
+
+   call elsi_get_time(t1)
+
+   write(msg,"(A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
+end subroutine
+
+!>
 !! Convert eigenvectors stored in EigenExa format to 2D block-cyclic dense
 !! format.
 !!
@@ -7942,6 +8115,194 @@ subroutine elsi_eigenexa_to_blacs_ev_real(ph,bh,evec_exa,evec)
 
    call MPI_Alltoallv(val_send,send_count,send_displ,MPI_REAL8,val_recv,&
         recv_count,recv_displ,MPI_REAL8,bh%comm,ierr)
+
+   call elsi_check_err(bh,"MPI_Alltoallv",ierr,caller)
+
+   call elsi_deallocate(bh,val_send,"val_send")
+   call elsi_deallocate(bh,send_count,"send_count")
+   call elsi_deallocate(bh,recv_count,"recv_count")
+   call elsi_deallocate(bh,send_displ,"send_displ")
+   call elsi_deallocate(bh,recv_displ,"recv_displ")
+
+   evec(:,:) = 0.0_r8
+
+   ! Unpack eigenvectors
+   do i_val = 1,nnz_l_after
+      ! Compute local id
+      call elsi_get_lid(bh%n_prow,bh%blk,row_recv(i_val),l_row)
+      call elsi_get_lid(bh%n_pcol,bh%blk,col_recv(i_val),l_col)
+
+      ! Put value to correct position
+      evec(l_row,l_col) = val_recv(i_val)
+   end do
+
+   call elsi_deallocate(bh,val_recv,"val_recv")
+   call elsi_deallocate(bh,row_recv,"row_recv")
+   call elsi_deallocate(bh,col_recv,"col_recv")
+
+   call elsi_get_time(t1)
+
+   write(msg,"(A)") "Finished matrix redistribution"
+   call elsi_say(bh,msg)
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
+end subroutine
+
+!>
+!! Convert eigenvectors stored in EigenExa format to 2D block-cyclic dense
+!! format.
+!!
+subroutine elsi_eigenexa_to_blacs_ev_cmplx(ph,bh,evec_exa,evec)
+
+   implicit none
+
+   type(elsi_param_t), intent(in) :: ph
+   type(elsi_basic_t), intent(in) :: bh
+   complex(kind=r8), intent(in) :: evec_exa(ph%exa_n_lrow,ph%exa_n_lcol)
+   complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
+   integer(kind=i4) :: i_row
+   integer(kind=i4) :: i_col
+   integer(kind=i8) :: i_val
+   integer(kind=i4) :: i_proc
+   integer(kind=i4) :: l_col
+   integer(kind=i4) :: l_row
+   integer(kind=i4) :: p_col
+   integer(kind=i4) :: p_row
+   integer(kind=i8) :: nnz_l_before
+   integer(kind=i8) :: nnz_l_after
+   character(len=200) :: msg
+
+   ! See documentation of MPI_Alltoallv
+   complex(kind=r8), allocatable :: val_send(:)
+   complex(kind=r8), allocatable :: val_recv(:)
+   integer(kind=i4), allocatable :: row_send(:)
+   integer(kind=i4), allocatable :: col_send(:)
+   integer(kind=i4), allocatable :: send_count(:)
+   integer(kind=i4), allocatable :: send_displ(:)
+   integer(kind=i4), allocatable :: row_recv(:)
+   integer(kind=i4), allocatable :: col_recv(:)
+   integer(kind=i4), allocatable :: recv_count(:)
+   integer(kind=i4), allocatable :: recv_displ(:)
+   integer(kind=i8), allocatable :: dest(:) ! Destination of each element
+   integer(kind=i8), allocatable :: perm(:)
+
+   character(len=*), parameter :: caller = "elsi_eigenexa_to_blacs_ev_cmplx"
+
+   call elsi_get_time(t0)
+
+   nnz_l_before = 0
+
+   do i_col = 1,ph%exa_n_lcol
+      if(ph%exa_my_pcol+(i_col-1)*ph%exa_n_pcol > ph%n_basis) then
+         exit
+      end if
+
+      do i_row = 1,ph%exa_n_lrow
+         if(ph%exa_my_prow+(i_row-1)*ph%exa_n_prow > ph%n_basis) then
+            exit
+         end if
+
+         if(abs(evec_exa(i_row,i_col)) > bh%def0) then
+            nnz_l_before = nnz_l_before+1
+         end if
+      end do
+   end do
+
+   call elsi_allocate(bh,dest,nnz_l_before,"dest",caller)
+   call elsi_allocate(bh,perm,nnz_l_before,"perm",caller)
+   call elsi_allocate(bh,val_send,nnz_l_before,"val_send",caller)
+   call elsi_allocate(bh,row_send,nnz_l_before,"row_send",caller)
+   call elsi_allocate(bh,col_send,nnz_l_before,"col_send",caller)
+   call elsi_allocate(bh,send_count,bh%n_procs,"send_count",caller)
+
+   i_val = 0
+
+   do i_col = 1,ph%exa_n_lcol
+      if(ph%exa_my_pcol+(i_col-1)*ph%exa_n_pcol > ph%n_basis) then
+         exit
+      end if
+
+      do i_row = 1,ph%exa_n_lrow
+         if(ph%exa_my_prow+(i_row-1)*ph%exa_n_prow > ph%n_basis) then
+            exit
+         end if
+
+         if(abs(evec_exa(i_row,i_col)) > bh%def0) then
+            i_val = i_val+1
+
+            ! Compute global id
+            row_send(i_val) = ph%exa_my_prow+(i_row-1)*ph%exa_n_prow
+            col_send(i_val) = ph%exa_my_pcol+(i_col-1)*ph%exa_n_pcol
+            val_send(i_val) = evec_exa(i_row,i_col)
+
+            ! Compute destination
+            p_row = mod((row_send(i_val)-1)/bh%blk,bh%n_prow)
+            p_col = mod((col_send(i_val)-1)/bh%blk,bh%n_pcol)
+            dest(i_val) = p_col+p_row*bh%n_pcol
+
+            ! Set send_count
+            send_count(dest(i_val)+1) = send_count(dest(i_val)+1)+1
+         end if
+      end do
+   end do
+
+   ! Sort
+   call elsi_heapsort(nnz_l_before,dest,perm)
+   call elsi_permute(nnz_l_before,perm,val_send)
+   call elsi_permute(nnz_l_before,perm,row_send)
+   call elsi_permute(nnz_l_before,perm,col_send)
+
+   call elsi_deallocate(bh,dest,"dest")
+   call elsi_deallocate(bh,perm,"perm")
+   call elsi_allocate(bh,recv_count,bh%n_procs,"recv_count",caller)
+   call elsi_allocate(bh,send_displ,bh%n_procs,"send_displ",caller)
+   call elsi_allocate(bh,recv_displ,bh%n_procs,"recv_displ",caller)
+
+   ! Set recv_count
+   call MPI_Alltoall(send_count,1,MPI_INTEGER4,recv_count,1,MPI_INTEGER4,&
+        bh%comm,ierr)
+
+   call elsi_check_err(bh,"MPI_Alltoall",ierr,caller)
+
+   nnz_l_after = sum(recv_count)
+
+   ! Set send_displ and recv_displ
+   do i_proc = 2,bh%n_procs
+      send_displ(i_proc) = sum(send_count(1:i_proc-1))
+      recv_displ(i_proc) = sum(recv_count(1:i_proc-1))
+   end do
+
+   ! Redistribute packed data
+   ! Row index
+   call elsi_allocate(bh,row_recv,nnz_l_after,"row_recv",caller)
+
+   call MPI_Alltoallv(row_send,send_count,send_displ,MPI_INTEGER4,row_recv,&
+        recv_count,recv_displ,MPI_INTEGER4,bh%comm,ierr)
+
+   call elsi_check_err(bh,"MPI_Alltoallv",ierr,caller)
+
+   call elsi_deallocate(bh,row_send,"row_send")
+
+   ! Column index
+   call elsi_allocate(bh,col_recv,nnz_l_after,"col_recv",caller)
+
+   call MPI_Alltoallv(col_send,send_count,send_displ,MPI_INTEGER4,col_recv,&
+        recv_count,recv_displ,MPI_INTEGER4,bh%comm,ierr)
+
+   call elsi_check_err(bh,"MPI_Alltoallv",ierr,caller)
+
+   call elsi_deallocate(bh,col_send,"col_send")
+
+   ! Eigenvector value
+   call elsi_allocate(bh,val_recv,nnz_l_after,"val_recv",caller)
+
+   call MPI_Alltoallv(val_send,send_count,send_displ,MPI_COMPLEX16,val_recv,&
+        recv_count,recv_displ,MPI_COMPLEX16,bh%comm,ierr)
 
    call elsi_check_err(bh,"MPI_Alltoallv",ierr,caller)
 

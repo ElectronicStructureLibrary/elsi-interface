@@ -16,7 +16,7 @@ Enabling the PEXSI solver (highly recommended) requires:
 
 Enabling the EigenExa solver requires:
 
-* EigenExa (2.3 or newer)
+* EigenExa (2.11 or newer)
 
 Enabling the SLEPc-SIPs solver requires:
 

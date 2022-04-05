@@ -32,6 +32,7 @@ module ELSI_EIGENEXA
 
    interface elsi_solve_eigenexa
       module procedure elsi_solve_eigenexa_real
+      module procedure elsi_solve_eigenexa_cmplx
    end interface
 
 contains
@@ -132,6 +133,94 @@ subroutine elsi_solve_eigenexa_real(ph,bh,ham,ovlp,eval,evec)
       call eigen_sx(ph%n_basis,ph%n_basis,ham_exa,ph%exa_n_lrow,eval,evec_exa,&
            ph%exa_n_lrow,ph%exa_blk_fwd,ph%exa_blk_bkwd,mode)
    end if
+
+   call elsi_get_time(t1)
+
+   write(msg,"(A)") "Finished solving standard eigenproblem"
+   call elsi_say(bh,msg)
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
+   ! EigenExa to BLACS
+   call elsi_eigenexa_to_blacs_ev(ph,bh,evec_exa,evec)
+
+   call elsi_deallocate(bh,ham_exa,"ham_exa")
+   call elsi_deallocate(bh,evec_exa,"evec_exa")
+
+   ! Back-transform eigenvectors
+   if(.not. ph%unit_ovlp) then
+      call elsi_back_ev_elpa(ph,bh,ham,ovlp,evec)
+   end if
+
+   ph%exa_first = .false.
+
+end subroutine
+
+!>
+!! Interface to EigenExa.
+!!
+subroutine elsi_solve_eigenexa_cmplx(ph,bh,ham,ovlp,eval,evec)
+
+   implicit none
+
+   type(elsi_param_t), intent(inout) :: ph
+   type(elsi_basic_t), intent(inout) :: bh
+   complex(kind=r8), intent(inout) :: ham(bh%n_lrow,bh%n_lcol)
+   complex(kind=r8), intent(inout) :: ovlp(bh%n_lrow,bh%n_lcol)
+   real(kind=r8), intent(out) :: eval(ph%n_basis)
+   complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
+
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   integer(kind=i4) :: ierr
+   character :: mode
+   character(len=200) :: msg
+
+   complex(kind=r8), allocatable :: ham_exa(:,:)
+   complex(kind=r8), allocatable :: evec_exa(:,:)
+
+   character(len=*), parameter :: caller = "elsi_solve_eigenexa_cmplx"
+
+   ! Compute sparsity
+   if(bh%nnz_g == UNSET) then
+      if(bh%nnz_l == UNSET) then
+         bh%nnz_l = count( (abs(ham) > bh%def0), kind=i8)
+      end if
+
+      call MPI_Allreduce(bh%nnz_l,bh%nnz_g,1,MPI_INTEGER8,MPI_SUM,bh%comm,ierr)
+
+      call elsi_check_err(bh,"MPI_Allreduce",ierr,caller)
+   end if
+
+   ! Transform to standard form
+   if(.not. ph%unit_ovlp) then
+      if(ph%exa_first) then
+         call elsi_factor_ovlp_elpa(ph,bh,ovlp)
+      end if
+
+      call elsi_reduce_evp_elpa(ph,bh,ham,ovlp,evec)
+   end if
+
+   ! BLACS to EigenExa
+   call elsi_allocate(bh,ham_exa,ph%exa_n_lrow,ph%exa_n_lcol,"ham_exa",caller)
+   call elsi_allocate(bh,evec_exa,ph%exa_n_lrow,ph%exa_n_lcol,"evec_exa",caller)
+
+   call elsi_blacs_to_eigenexa_h(ph,bh,ham,ham_exa)
+
+   ! Solve
+   write(msg,"(A)") "Starting EigenExa eigensolver"
+   call elsi_say(bh,msg)
+
+   call elsi_get_time(t0)
+
+   if(ph%n_states <= 0) then
+      mode = "N"
+   else
+      mode = "A"
+   end if
+
+   call eigen_h(ph%n_basis,ph%n_basis,ham_exa,ph%exa_n_lrow,eval,evec_exa,&
+        ph%exa_n_lrow,ph%exa_blk_fwd,ph%exa_blk_bkwd,mode)
 
    call elsi_get_time(t1)
 
