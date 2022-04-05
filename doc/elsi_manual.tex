@@ -95,7 +95,7 @@ The PEXSi, EigenExa, SLEPc-SIPs, BSEPACK, and MAGMA solvers are not enabled by d
 
 Enabling the EigenExa solver requires:
 \begin{Verbatim}[commandchars=\\\{\}]
-\tcb{EigenExa}  [version 2.3 or newer]
+\tcb{EigenExa}  [version 2.11 or newer]
 \end{Verbatim}
 
 Enabling the SLEPc-SIPs solver requires:
@@ -178,7 +178,7 @@ The ELPA, libOMM, PEXSI, NTPoly, and BSEPACK solver libraries, as well as the Su
 
 The redistributed version of ELPA comes with a few ``kernels'' written to take advantage of architecture-specific instruction sets, which may be chosen by the \texttt{ELPA2\_KERNEL} keyword. Available options are \texttt{AVX}, \texttt{AVX2}, and \texttt{AVX512}, for architectures supporting Intel AVX, AVX2, and AVX512 instruction sets, respectively. In ELPA, these kernels are employed to accelerate the calculation of eigenvectors, which is often a bottleneck when calculating a large portion of the eigenspectrum. In addition, ELPA supports GPU acceleration on NVIDIA devices via the CUDA programming model and the cuBLAS library. This feature may be enabled by the keyword \texttt{USE\_GPU\_CUDA}, which requires the CUDA runtime and cuBLAS libraries.
 
-The PEXSI, EigenExa, SLEPc-SIPs, BSEPACK, and MAGMA solvers are not enabled by default. They may be activated by the keywords \texttt{ENABLE\_PEXSI}, \texttt{ENABLE\_EIGENEXA}, \texttt{ENABLE\_SIPS}, \texttt{ENABLE\_BSEPACK}, and \texttt{ENABLE\_MAGMA}, respectively. PEXSI 1.2.0, EigenExa 2.3, 2.4, 2.6, SLEPc 3.9, 3.10, 3.11, 3.12, 3.13, BSEPACK 0.1, and MAGMA 2.5 have been tested with this version of ELSI. Older/newer versions may or may not be compatible. The PETSc library, required by SLEPc, must be compiled with MPI support, and (at least) with MUMPS and ParMETIS enabled.
+The PEXSI, EigenExa, SLEPc-SIPs, BSEPACK, and MAGMA solvers are not enabled by default. They may be activated by the keywords \texttt{ENABLE\_PEXSI}, \texttt{ENABLE\_EIGENEXA}, \texttt{ENABLE\_SIPS}, \texttt{ENABLE\_BSEPACK}, and \texttt{ENABLE\_MAGMA}, respectively. PEXSI 1.2.0, EigenExa 2.11, SLEPc 3.9, 3.10, 3.11, 3.12, 3.13, BSEPACK 0.1, and MAGMA 2.5 have been tested with this version of ELSI. Older/newer versions may or may not be compatible. The PETSc library, required by SLEPc, must be compiled with MPI support, and (at least) with MUMPS and ParMETIS enabled.
 
 Experienced users are encouraged to link ELSI against externally installed, better optimized solver libraries. The keywords \texttt{USE\_EXTERNAL\_ELPA}, \texttt{USE\_EXTERNAL\_OMM}, \texttt{USE\_EXTERNAL\_PEXSI}, \texttt{USE\_EXTERNAL\_NTPOLY}, and \texttt{USE\_EXTERNAL\_BSEPACK} control the usage of externally compiled ELPA, libOMM, PEXSI, NTPoly, and BSEPACK, respectively.
 
@@ -386,7 +386,7 @@ The table below summarizes the supported problem types for each solver.
 \hline
 \texttt{PEXSI}      & \texttt{MULTI\_PROC}  & All                   & Real/complex & KS-DM\\
 \hline
-\texttt{EigenExa}   & \texttt{MULTI\_PROC}  & All                   & Real         & KS-EV/KS-DM\\
+\texttt{EigenExa}   & \texttt{MULTI\_PROC}  & All                   & Real/complex & KS-EV/KS-DM\\
 \hline
 \texttt{SLEPc-SIPs} & \texttt{MULTI\_PROC}  & All                   & Real         & KS-EV/KS-DM\\
 \hline
