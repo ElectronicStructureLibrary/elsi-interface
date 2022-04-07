@@ -47,6 +47,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 #define _PEXSI_UTILITY_IMPL_HPP_
 
 #include <numeric>
+#include <limits>
 
 //using namespace std;
 using std::ifstream;
