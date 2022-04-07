@@ -59,9 +59,11 @@ elif mpiversion == 'openmpi':
     mpicompileargs = runcommand('mpicc -showme:compile').split()
 elif mpiversion == 'mpich':
     link_info = runcommand('mpicc -link_info')
-    mpilinkargs = re.sub(r'^\w+\s', '', link_info).split()
+    #mpilinkargs = re.sub(r'^\w+\s', '', link_info).split()
+    mpilinkargs = link_info.split()[1:]
     compile_info = runcommand('mpicc -compile_info')
-    mpicompileargs = re.sub(r'^\w+\s', '', compile_info).split()
+    #mpicompileargs = re.sub(r'^\w+\s', '', compile_info).split()
+    mpicompileargs = compile_info.split()[1:]
 else:
     raise Exception("MPI library unsupported. Please modify setup.py manually.")
 
@@ -76,7 +78,7 @@ elif scalapackversion == 'netlib':
 else:
     raise Exception("Scalapack distribution unsupported. Please modify setup.py manually.")
 
-elsi_libdir=["/home/kanaigroup/Codes-host/elsi/elsi_interface/build_shared/lib"]
+elsi_libdir=["/home/yy244/elsi/elsipy/elsi_interface/build_2/lib"]
 elsi_lib = ["elsi", "elpa", "fortjson", "MatrixSwitch", "NTPoly", "OMM"]
 
 ## Try and decide whether to use Cython to compile the source or not.
@@ -95,7 +97,7 @@ blacs_ext = Extension('elsipy.blacs', ["elsipy/blacs.pyx"],
                       define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')])
 
 elsi_ext = Extension('elsipy.elsi', ["elsipy/elsi.pyx"],
-                      include_dirs=['.',"/home/kanaigroup/Codes-host/elsi/elsi_interface/src",  np.get_include(), mpi4py.get_include()],
+                      include_dirs=['.',"/home/yy244/elsi/elsipy/elsi_interface/src/include",  np.get_include(), mpi4py.get_include()],
                       library_dirs=elsi_libdir, libraries=elsi_lib,
                       extra_compile_args=mpicompileargs,
                       extra_link_args=mpilinkargs,
