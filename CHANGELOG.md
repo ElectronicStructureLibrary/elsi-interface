@@ -1,10 +1,24 @@
 # ELSI changelog
 
-## v2.9.0 (January 2022)
+## v2.9.0 (April 2022)
 
-Add Cholesky extrapolation for density matrix when used with elsi restart 
-files. `ovlp_old` and `dm` are read from disk and not stored in the elsi 
-handle, thus, a separate interface was needed.
+The indices have been updated to integer8 instead of integer4. 
+This allows us to use a relatively small number of MPI ranks for relatively large matrices. 
+This update is essential for accelerators (GPU,TPU,...). 
+The interface is updated so that both integer8 and integer4 should work.
+
+Add Cholesky extrapolation for density matrix when used with elsi restart files. 
+ovlp_old and dm are read from disk and not stored in the elsi handle, thus, a separate interface was needed.
+
+The single precision is used for forward and backward transformation to the standard eigenvalue problem. 
+This further save the computational cost in the mixed precision calculations.
+
+We updated the ELPA version to 2021.11.001, the old ELPA version is still the default. 
+While the new version can be switched on with the cmake option USE_ELPA_2021.
+
+We provide a description and examples for elsipy.
+
+We update EigenExa to 2.11.
 
 ## v2.8.3 (July 2021)
 * suggest BLACS distribution
