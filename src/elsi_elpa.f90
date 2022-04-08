@@ -143,7 +143,7 @@ subroutine elsi_factor_ovlp_elpa_real(ph,bh,ovlp)
    character(len=*), parameter :: caller = "elsi_factor_ovlp_elpa_real"
 
    call elsi_get_time(t0)
-   
+
    call elsi_init_elpa(ph,bh)
 
    ! S = U
@@ -179,6 +179,10 @@ subroutine elsi_reduce_evp_elpa_real(ph,bh,ham,ovlp,evec)
    real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r4), allocatable :: ovlp_r4(:,:)
+   real(kind=r4), allocatable :: ham_r4(:,:)
+   real(kind=r4), allocatable :: evec_r4(:,:)
+
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
@@ -198,22 +202,56 @@ subroutine elsi_reduce_evp_elpa_real(ph,bh,ham,ovlp,evec)
            ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
            bh%desc)
    else
-      call ph%elpa_aux%hermitian_multiply("U","L",ph%n_basis,ovlp,ham,&
-           bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+      if(ph%n_calls <= ph%elpa_n_single) then
+         call elsi_allocate(bh,ovlp_r4,bh%n_lrow,bh%n_lcol,"ovlp_r4",caller)
+         call elsi_allocate(bh,ham_r4,bh%n_lrow,bh%n_lcol,"ham_r4",caller)
+         call elsi_allocate(bh,evec_r4,bh%n_lrow,bh%n_lcol,"evec_r4",caller)
 
-      call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+         ovlp_r4(:,:) = real(ovlp,kind=r4)
+         ham_r4(:,:) = real(ham,kind=r4)
+         evec_r4(:,:) = real(evec,kind=r4)
 
-      call pdtran(ph%n_basis,ph%n_basis,1.0_r8,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
-           bh%desc)
+         call ph%elpa_aux%hermitian_multiply("U","L",ph%n_basis,ovlp_r4,ham_r4,&
+              bh%n_lrow,bh%n_lcol,evec_r4,bh%n_lrow,bh%n_lcol,ierr)
 
-      evec(:,:) = ham
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
 
-      call ph%elpa_aux%hermitian_multiply("U","U",ph%n_basis,ovlp,evec,&
-           bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,ierr)
+         call pstran(ph%n_basis,ph%n_basis,1.0_r4,evec_r4,1,1,bh%desc,0.0_r4,ham_r4,1,1,&
+              bh%desc)
 
-      call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+         evec_r4(:,:) = ham_r4
 
-      call elsi_set_full_mat(ph,bh,UT_MAT,ham)
+         call ph%elpa_aux%hermitian_multiply("U","U",ph%n_basis,ovlp_r4,evec_r4,&
+              bh%n_lrow,bh%n_lcol,ham_r4,bh%n_lrow,bh%n_lcol,ierr)
+
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+
+         evec(:,:) = real(evec_r4,kind=r8)
+         ham(:,:) = real(ham_r4,kind=r8)
+
+         call elsi_set_full_mat(ph,bh,UT_MAT,ham)
+
+         call elsi_deallocate(bh,ovlp_r4,"ovlp_r4")
+         call elsi_deallocate(bh,ham_r4,"ham_r4")
+         call elsi_deallocate(bh,evec_r4,"evec_r4")
+      else
+         call ph%elpa_aux%hermitian_multiply("U","L",ph%n_basis,ovlp,ham,&
+              bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+
+         call pdtran(ph%n_basis,ph%n_basis,1.0_r8,evec,1,1,bh%desc,0.0_r8,ham,1,1,&
+              bh%desc)
+
+         evec(:,:) = ham
+
+         call ph%elpa_aux%hermitian_multiply("U","U",ph%n_basis,ovlp,evec,&
+              bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,ierr)
+
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+
+         call elsi_set_full_mat(ph,bh,UT_MAT,ham)
+      end if
    end if
 
    call elsi_get_time(t1)
@@ -302,6 +340,11 @@ subroutine elsi_back_ev_elpa_real(ph,bh,ham,ovlp,evec)
    real(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    real(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
+   real(kind=r4), allocatable :: ovlp_r4(:,:)
+   real(kind=r4), allocatable :: ham_r4(:,:)
+   real(kind=r4), allocatable :: evec_r4(:,:)
+   real(kind=r4), allocatable :: tmp_r4(:,:)
+
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
@@ -322,13 +365,40 @@ subroutine elsi_back_ev_elpa_real(ph,bh,ham,ovlp,evec)
            ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,bh%desc,0.0_r8,evec,1,1,&
            bh%desc)
    else
-      call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp,1,1,bh%desc,0.0_r8,ham,1,1,&
-           bh%desc)
+      if(ph%n_calls <= ph%elpa_n_single) then
+         call elsi_allocate(bh,ovlp_r4,bh%n_lrow,bh%n_lcol,"ovlp_r4",caller)
+         call elsi_allocate(bh,ham_r4,bh%n_lrow,bh%n_lcol,"ham_r4",caller)
+         call elsi_allocate(bh,evec_r4,bh%n_lrow,bh%n_lcol,"evec_r4",caller)
+         call elsi_allocate(bh,tmp_r4,bh%n_lrow,bh%n_lcol,"tmp_r4",caller)
 
-      call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham,tmp,&
-           bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+         ovlp_r4(:,:) = real(ovlp,kind=r4)
+         ham_r4(:,:) = real(ham,kind=r4)
+         evec_r4(:,:) = real(evec,kind=r4)
+         tmp_r4(:,:) = real(tmp,kind=r4)
 
-      call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+         call pstran(ph%n_basis,ph%n_basis,1.0_r4,ovlp_r4,1,1,bh%desc,0.0_r4,ham_r4,1,1,&
+              bh%desc)
+
+         call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham_r4,tmp_r4,&
+              bh%n_lrow,bh%n_lcol,evec_r4,bh%n_lrow,bh%n_lcol,ierr)
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+
+         evec(:,:) = real(evec_r4,kind=r8)
+         ham(:,:) = real(ham_r4,kind=r8)
+
+         call elsi_deallocate(bh,ovlp_r4,"ovlp_r4")
+         call elsi_deallocate(bh,ham_r4,"ham_r4")
+         call elsi_deallocate(bh,evec_r4,"evec_r4")
+         call elsi_deallocate(bh,tmp_r4,"tmp_r4")
+      else
+         call pdtran(ph%n_basis,ph%n_basis,1.0_r8,ovlp,1,1,bh%desc,0.0_r8,ham,1,1,&
+              bh%desc)
+
+         call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham,tmp,&
+              bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+      end if
    end if
 
    call elsi_deallocate(bh,tmp,"tmp")
@@ -481,7 +551,7 @@ subroutine elsi_update_dm_elpa_real(ph,bh,ovlp0,ovlp1,dm0,dm1)
    character(len=*), parameter :: caller = "elsi_update_dm_elpa_real"
 
    call elsi_get_time(t0)
-   
+
    call elsi_init_elpa(ph,bh)
 
    ! ovlp0 = U_0
@@ -556,7 +626,13 @@ subroutine elsi_do_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
    integer(kind=i4) :: i
    integer(kind=i4) :: ierr
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_do_fc_elpa_real"
+
+   call elsi_get_time(t0)
 
    if(ph%elpa_first) then
       if(ph%fc_perm) then
@@ -661,6 +737,13 @@ subroutine elsi_do_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
    call descinit(bh%desc,ph%n_basis,ph%n_basis,bh%blk,bh%blk,0,0,bh%blacs_ctxt,&
         max(1,bh%n_lrow),ierr)
 
+   call elsi_get_time(t1)
+
+   write(msg,"(A)") "Finished transformation to frozen core eigenproblem"
+   call elsi_say(bh,msg)
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
 end subroutine
 
 !>
@@ -690,7 +773,13 @@ subroutine elsi_undo_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,eval_c,evec_v)
    integer(kind=i4), allocatable :: idx(:)
    integer(kind=i4), allocatable :: tmp2(:)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_undo_fc_elpa_real"
+
+   call elsi_get_time(t0)
 
    call elsi_allocate(bh,ovlp_d,ph%n_basis_c,"ovlp_d",caller)
    call elsi_allocate(bh,tmp,ph%n_basis_c,"tmp",caller)
@@ -802,6 +891,13 @@ subroutine elsi_undo_fc_elpa_real(ph,bh,ham,ovlp,evec,perm,eval_c,evec_v)
       end do
    end if
 
+   call elsi_get_time(t1)
+
+   write(msg,"(A)") "Finished transformation back from frozen core eigenproblem"
+   call elsi_say(bh,msg)
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
 end subroutine
 
 !>
@@ -857,6 +953,10 @@ subroutine elsi_reduce_evp_elpa_cmplx(ph,bh,ham,ovlp,evec)
    complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(out) :: evec(bh%n_lrow,bh%n_lcol)
 
+   complex(kind=r4), allocatable :: ham_r4(:,:)
+   complex(kind=r4), allocatable :: ovlp_r4(:,:)
+   complex(kind=r4), allocatable :: evec_r4(:,:)
+
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
@@ -876,22 +976,56 @@ subroutine elsi_reduce_evp_elpa_cmplx(ph,bh,ham,ovlp,evec)
            1,ph%n_basis-ph%n_good+1,bh%desc,evec,1,1,bh%desc,(0.0_r8,0.0_r8),&
            ham,1,1,bh%desc)
    else
-      call ph%elpa_aux%hermitian_multiply("U","L",ph%n_basis,ovlp,ham,&
-           bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+      if(ph%n_calls <= ph%elpa_n_single) then
+         call elsi_allocate(bh,ovlp_r4,bh%n_lrow,bh%n_lcol,"ovlp_r4",caller)
+         call elsi_allocate(bh,ham_r4,bh%n_lrow,bh%n_lcol,"ham_r4",caller)
+         call elsi_allocate(bh,evec_r4,bh%n_lrow,bh%n_lcol,"evec_r4",caller)
 
-      call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+         ovlp_r4(:,:) = cmplx(ovlp,kind=r4)
+         ham_r4(:,:) = cmplx(ham,kind=r4)
+         evec_r4(:,:) = cmplx(evec,kind=r4)
 
-      call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),evec,1,1,bh%desc,&
-           (0.0_r8,0.0_r8),ham,1,1,bh%desc)
+         call ph%elpa_aux%hermitian_multiply("U","L",ph%n_basis,ovlp_r4,ham_r4,&
+              bh%n_lrow,bh%n_lcol,evec_r4,bh%n_lrow,bh%n_lcol,ierr)
 
-      evec(:,:) = ham
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
 
-      call ph%elpa_aux%hermitian_multiply("U","U",ph%n_basis,ovlp,evec,&
-           bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,ierr)
+         call pctranc(ph%n_basis,ph%n_basis,(1.0_r4,0.0_r4),evec_r4,1,1,bh%desc,&
+              (0.0_r4,0.0_r4),ham_r4,1,1,bh%desc)
 
-      call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+         evec_r4(:,:) = ham_r4
 
-      call elsi_set_full_mat(ph,bh,UT_MAT,ham)
+         call ph%elpa_aux%hermitian_multiply("U","U",ph%n_basis,ovlp_r4,evec_r4,&
+              bh%n_lrow,bh%n_lcol,ham_r4,bh%n_lrow,bh%n_lcol,ierr)
+
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+
+         evec(:,:) = cmplx(evec_r4,kind=r8)
+         ham(:,:) = cmplx(ham_r4,kind=r8)
+
+         call elsi_set_full_mat(ph,bh,UT_MAT,ham)
+
+         call elsi_deallocate(bh,ovlp_r4,"ovlp_r4")
+         call elsi_deallocate(bh,ham_r4,"ham_r4")
+         call elsi_deallocate(bh,evec_r4,"evec_r4")
+      else
+         call ph%elpa_aux%hermitian_multiply("U","L",ph%n_basis,ovlp,ham,&
+              bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+
+         call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),evec,1,1,bh%desc,&
+              (0.0_r8,0.0_r8),ham,1,1,bh%desc)
+
+         evec(:,:) = ham
+
+         call ph%elpa_aux%hermitian_multiply("U","U",ph%n_basis,ovlp,evec,&
+              bh%n_lrow,bh%n_lcol,ham,bh%n_lrow,bh%n_lcol,ierr)
+
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+
+         call elsi_set_full_mat(ph,bh,UT_MAT,ham)
+      end if
    end if
 
    call elsi_get_time(t1)
@@ -980,6 +1114,11 @@ subroutine elsi_back_ev_elpa_cmplx(ph,bh,ham,ovlp,evec)
    complex(kind=r8), intent(in) :: ovlp(bh%n_lrow,bh%n_lcol)
    complex(kind=r8), intent(inout) :: evec(bh%n_lrow,bh%n_lcol)
 
+   complex(kind=r4), allocatable :: ham_r4(:,:)
+   complex(kind=r4), allocatable :: ovlp_r4(:,:)
+   complex(kind=r4), allocatable :: evec_r4(:,:)
+   complex(kind=r4), allocatable :: tmp_r4(:,:)
+
    real(kind=r8) :: t0
    real(kind=r8) :: t1
    integer(kind=i4) :: ierr
@@ -1000,13 +1139,40 @@ subroutine elsi_back_ev_elpa_cmplx(ph,bh,ham,ovlp,evec)
            (1.0_r8,0.0_r8),ovlp,1,ph%n_basis-ph%n_good+1,bh%desc,tmp,1,1,&
            bh%desc,(0.0_r8,0.0_r8),evec,1,1,bh%desc)
    else
-      call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
-           (0.0_r8,0.0_r8),ham,1,1,bh%desc)
+      if(ph%n_calls <= ph%elpa_n_single) then
+         call elsi_allocate(bh,ovlp_r4,bh%n_lrow,bh%n_lcol,"ovlp_r4",caller)
+         call elsi_allocate(bh,ham_r4,bh%n_lrow,bh%n_lcol,"ham_r4",caller)
+         call elsi_allocate(bh,evec_r4,bh%n_lrow,bh%n_lcol,"evec_r4",caller)
+         call elsi_allocate(bh,tmp_r4,bh%n_lrow,bh%n_lcol,"tmp_r4",caller)
 
-      call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham,tmp,&
-           bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+         ovlp_r4(:,:) = cmplx(ovlp,kind=r4)
+         ham_r4(:,:) = cmplx(ham,kind=r4)
+         evec_r4(:,:) = cmplx(evec,kind=r4)
+         tmp_r4(:,:) = cmplx(tmp,kind=r4)
 
-      call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+         call pctranc(ph%n_basis,ph%n_basis,(1.0_r4,0.0_r4),ovlp_r4,1,1,bh%desc,&
+              (0.0_r4,0.0_r4),ham_r4,1,1,bh%desc)
+
+         call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham_r4,tmp_r4,&
+              bh%n_lrow,bh%n_lcol,evec_r4,bh%n_lrow,bh%n_lcol,ierr)
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+
+         evec(:,:) = cmplx(evec_r4,kind=r8)
+         ham(:,:) = cmplx(ham_r4,kind=r8)
+
+         call elsi_deallocate(bh,ovlp_r4,"ovlp_r4")
+         call elsi_deallocate(bh,ham_r4,"ham_r4")
+         call elsi_deallocate(bh,evec_r4,"evec_r4")
+         call elsi_deallocate(bh,tmp_r4,"tmp_r4")
+      else
+         call pztranc(ph%n_basis,ph%n_basis,(1.0_r8,0.0_r8),ovlp,1,1,bh%desc,&
+              (0.0_r8,0.0_r8),ham,1,1,bh%desc)
+
+         call ph%elpa_aux%hermitian_multiply("L","N",ph%n_states,ham,tmp,&
+              bh%n_lrow,bh%n_lcol,evec,bh%n_lrow,bh%n_lcol,ierr)
+
+         call elsi_check_err(bh,"ELPA matrix multiplication",ierr,caller)
+      end if
    end if
 
    call elsi_deallocate(bh,tmp,"tmp")
@@ -1159,7 +1325,7 @@ subroutine elsi_update_dm_elpa_cmplx(ph,bh,ovlp0,ovlp1,dm0,dm1)
    character(len=*), parameter :: caller = "elsi_update_dm_elpa_cmplx"
 
    call elsi_get_time(t0)
-   
+
    call elsi_init_elpa(ph,bh)
 
    ! ovlp0 = U_0
@@ -1234,7 +1400,13 @@ subroutine elsi_do_fc_elpa_cmplx(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
    integer(kind=i4) :: i
    integer(kind=i4) :: ierr
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_do_fc_elpa_cmplx"
+
+   call elsi_get_time(t0)
 
    if(ph%elpa_first) then
       if(ph%fc_perm) then
@@ -1339,6 +1511,13 @@ subroutine elsi_do_fc_elpa_cmplx(ph,bh,ham,ovlp,evec,perm,ham_v,ovlp_v,evec_v)
    call descinit(bh%desc,ph%n_basis,ph%n_basis,bh%blk,bh%blk,0,0,bh%blacs_ctxt,&
         max(1,bh%n_lrow),ierr)
 
+   call elsi_get_time(t1)
+
+   write(msg,"(A)") "Finished transformation to frozen core eigenproblem"
+   call elsi_say(bh,msg)
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
+
 end subroutine
 
 !>
@@ -1368,7 +1547,13 @@ subroutine elsi_undo_fc_elpa_cmplx(ph,bh,ham,ovlp,evec,perm,eval_c,evec_v)
    integer(kind=i4), allocatable :: idx(:)
    integer(kind=i4), allocatable :: tmp2(:)
 
+   real(kind=r8) :: t0
+   real(kind=r8) :: t1
+   character(len=200) :: msg
+
    character(len=*), parameter :: caller = "elsi_undo_fc_elpa_cmplx"
+
+   call elsi_get_time(t0)
 
    call elsi_allocate(bh,ovlp_d,ph%n_basis_c,"ovlp_d",caller)
    call elsi_allocate(bh,tmp,ph%n_basis_c,"tmp",caller)
@@ -1479,6 +1664,13 @@ subroutine elsi_undo_fc_elpa_cmplx(ph,bh,ham,ovlp,evec,perm,eval_c,evec_v)
          end if
       end do
    end if
+
+   call elsi_get_time(t1)
+
+   write(msg,"(A)") "Finished transformation back from frozen core eigenproblem"
+   call elsi_say(bh,msg)
+   write(msg,"(A,F10.3,A)") "| Time :",t1-t0," s"
+   call elsi_say(bh,msg)
 
 end subroutine
 
