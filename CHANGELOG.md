@@ -18,6 +18,8 @@ While the new version can be switched on with the cmake option USE_ELPA_2021.
 
 We provide a description and examples for elsipy.
 
+We update EigenExa to 2.11.
+
 ## v2.8.3 (July 2021)
 * suggest BLACS distribution
 
