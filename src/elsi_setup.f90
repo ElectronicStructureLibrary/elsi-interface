@@ -36,12 +36,22 @@ module ELSI_SETUP
    public :: elsi_set_spin
    public :: elsi_set_kpoint
    public :: elsi_set_blacs
-   public :: elsi_set_csc
    public :: elsi_set_csc_blk
-   public :: elsi_set_coo
    public :: elsi_reinit
    public :: elsi_finalize
    public :: elsi_cleanup
+
+   public :: elsi_set_csc
+   interface elsi_set_csc
+      module procedure elsi_set_csc_i8
+      module procedure elsi_set_csc_i4
+   end interface
+
+   public :: elsi_set_coo
+   interface elsi_set_coo
+      module procedure elsi_set_coo_i8
+      module procedure elsi_set_coo_i4
+   end interface
 
 contains
 
@@ -250,7 +260,7 @@ end subroutine
 !! pointer array. These variables are collectively referred to as the CSC
 !! sparsity pattern, used by the PEXSI_CSC and SIESTA_CSC matrix formats.
 !!
-subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
+subroutine elsi_set_csc_i8(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 
    implicit none
 
@@ -261,7 +271,7 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
    integer(kind=i4), intent(in) :: row_ind(nnz_l) !< Row index
    integer(kind=i8), intent(in) :: col_ptr(n_lcol+1) !< Column pointer
 
-   character(len=*), parameter :: caller = "elsi_set_csc"
+   character(len=*), parameter :: caller = "elsi_set_csc_i8"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
@@ -313,6 +323,35 @@ subroutine elsi_set_csc(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
 end subroutine
 
 !>
+!! Set the global number of nonzero matrix elements, local number of nonzero
+!! matrix elements, local number of matrix columns, row index array, and column
+!! pointer array. These variables are collectively referred to as the CSC
+!! sparsity pattern, used by the PEXSI_CSC and SIESTA_CSC matrix formats.
+!!
+subroutine elsi_set_csc_i4(eh,nnz_g_i4,nnz_l_i4,n_lcol,row_ind,col_ptr_i4)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: nnz_g_i4 !< Global number of nonzeros
+   integer(kind=i4), intent(in) :: nnz_l_i4 !< Local number of nonzeros
+   integer(kind=i4), intent(in) :: n_lcol !< Local number of columns
+   integer(kind=i4), intent(in) :: row_ind(nnz_l_i4) !< Row index
+   integer(kind=i4), intent(in) :: col_ptr_i4(n_lcol+1) !< Column pointer
+
+   integer(kind=i8) :: nnz_g, nnz_l, col_ptr(n_lcol+1)
+
+   character(len=*), parameter :: caller = "elsi_set_csc_i4"
+
+   nnz_g = int(nnz_g_i4,kind=i8)
+   nnz_l = int(nnz_l_i4,kind=i8)
+   col_ptr = int(col_ptr_i4,kind=i8)
+
+   call elsi_set_csc_i8(eh,nnz_g,nnz_l,n_lcol,row_ind,col_ptr)
+   
+end subroutine
+
+!>
 !! Set the block size in 1D block-cyclic distributed CSC format.
 !!
 subroutine elsi_set_csc_blk(eh,blk)
@@ -336,7 +375,7 @@ end subroutine
 !! collectively referred to as COO sparsity pattern, used by the GENERIC_COO
 !! matrix format.
 !!
-subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
+subroutine elsi_set_coo_i8(eh,nnz_g,nnz_l,row_ind,col_ind)
 
    implicit none
 
@@ -348,7 +387,7 @@ subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
 
    integer(kind=i8), allocatable :: gid(:) ! Global 1D id
 
-   character(len=*), parameter :: caller = "elsi_set_coo"
+   character(len=*), parameter :: caller = "elsi_set_coo_i8"
 
    call elsi_check_init(eh%bh,eh%handle_init,caller)
 
@@ -386,6 +425,33 @@ subroutine elsi_set_coo(eh,nnz_g,nnz_l,row_ind,col_ind)
    call elsi_deallocate(eh%bh,gid,"gid")
 
    eh%bh%generic_coo_ready = .true.
+
+end subroutine
+
+!>
+!! Set the global number of nonzero matrix elements, local number of nonzero
+!! matrix elements, row index array, and column index array. These variables are
+!! collectively referred to as COO sparsity pattern, used by the GENERIC_COO
+!! matrix format.
+!!
+subroutine elsi_set_coo_i4(eh,nnz_g_i4,nnz_l_i4,row_ind,col_ind)
+
+   implicit none
+
+   type(elsi_handle), intent(inout) :: eh !< Handle
+   integer(kind=i4), intent(in) :: nnz_g_i4 !< Global number of nonzeros
+   integer(kind=i4), intent(in) :: nnz_l_i4 !< Local number of nonzeros
+   integer(kind=i4), intent(in) :: row_ind(nnz_l_i4) !< Row index
+   integer(kind=i4), intent(in) :: col_ind(nnz_l_i4) !< Column index
+
+   integer(kind=i8) :: nnz_g, nnz_l
+
+   character(len=*), parameter :: caller = "elsi_set_coo_i4"
+
+   nnz_g = int(nnz_g_i4,kind=i8)
+   nnz_l = int(nnz_l_i4,kind=i8)
+
+   call elsi_set_coo_i8(eh,nnz_g,nnz_l,row_ind,col_ind)
 
 end subroutine
 

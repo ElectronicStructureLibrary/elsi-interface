@@ -29,20 +29,50 @@ module ELSI_RW
    public :: elsi_finalize_rw
    public :: elsi_set_rw_mpi
    public :: elsi_set_rw_blacs
-   public :: elsi_set_rw_csc
    public :: elsi_set_rw_zero_def
    public :: elsi_set_rw_header
    public :: elsi_get_rw_header
    public :: elsi_read_mat_dim
-   public :: elsi_read_mat_dim_sparse
    public :: elsi_read_mat_real
-   public :: elsi_read_mat_real_sparse
    public :: elsi_read_mat_complex
-   public :: elsi_read_mat_complex_sparse
    public :: elsi_write_mat_real
-   public :: elsi_write_mat_real_sparse
    public :: elsi_write_mat_complex
+
+   public :: elsi_set_rw_csc 
+   interface elsi_set_rw_csc
+      module procedure elsi_set_rw_csc_i8
+      module procedure elsi_set_rw_csc_i4
+   end interface
+
+   public :: elsi_read_mat_dim_sparse
+   interface elsi_read_mat_dim_sparse
+      module procedure elsi_read_mat_dim_sparse_i8
+      module procedure elsi_read_mat_dim_sparse_i4
+   end interface
+
+   public :: elsi_read_mat_real_sparse
+   interface elsi_read_mat_real_sparse
+      module procedure elsi_read_mat_real_sparse_i8
+      module procedure elsi_read_mat_real_sparse_i4
+   end interface
+   
+   public :: elsi_read_mat_complex_sparse
+   interface elsi_read_mat_complex_sparse
+      module procedure elsi_read_mat_complex_sparse_i8
+      module procedure elsi_read_mat_complex_sparse_i4
+   end interface
+
+   public :: elsi_write_mat_real_sparse
+   interface elsi_write_mat_real_sparse
+      module procedure elsi_write_mat_real_sparse_i8
+      module procedure elsi_write_mat_real_sparse_i4
+   end interface
+
    public :: elsi_write_mat_complex_sparse
+   interface elsi_write_mat_complex_sparse
+      module procedure elsi_write_mat_complex_sparse_i8
+      module procedure elsi_write_mat_complex_sparse_i4
+   end interface
 
    interface elsi_read_mat_mp
       module procedure elsi_read_mat_mp_real
@@ -183,7 +213,7 @@ end subroutine
 !>
 !! Set the sparsity pattern.
 !!
-subroutine elsi_set_rw_csc(rwh,nnz_g,nnz_l_sp,n_lcol_sp)
+subroutine elsi_set_rw_csc_i8(rwh,nnz_g,nnz_l_sp,n_lcol_sp)
 
    implicit none
 
@@ -192,13 +222,35 @@ subroutine elsi_set_rw_csc(rwh,nnz_g,nnz_l_sp,n_lcol_sp)
    integer(kind=i8), intent(in) :: nnz_l_sp !< Local number of nonzeros
    integer(kind=i4), intent(in) :: n_lcol_sp !< Local number of columns
 
-   character(len=*), parameter :: caller = "elsi_set_rw_csc"
+   character(len=*), parameter :: caller = "elsi_set_rw_csc_i8"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
 
    rwh%bh%nnz_g = nnz_g
    rwh%bh%nnz_l_sp = nnz_l_sp
    rwh%bh%n_lcol_sp = n_lcol_sp
+
+end subroutine
+
+!>
+!! Set the sparsity pattern.
+!!
+subroutine elsi_set_rw_csc_i4(rwh,nnz_g_i4,nnz_l_sp_i4,n_lcol_sp)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(inout) :: rwh !< Handle
+   integer(kind=i4), intent(in) :: nnz_g_i4 !< Global number of nonzeros
+   integer(kind=i4), intent(in) :: nnz_l_sp_i4 !< Local number of nonzeros
+   integer(kind=i4), intent(in) :: n_lcol_sp !< Local number of columns
+
+   integer(kind=i8) :: nnz_g, nnz_l_sp
+
+   character(len=*), parameter :: caller = "elsi_set_rw_csc_i4"
+
+   nnz_g = int(nnz_g_i4,kind=i8)
+   nnz_l_sp = int(nnz_l_sp_i4,kind=i8)
+   call elsi_set_rw_csc_i8(rwh,nnz_g,nnz_l_sp,n_lcol_sp)
 
 end subroutine
 
@@ -503,7 +555,7 @@ end subroutine
 !>
 !! Read the dimensions of a 1D block CSC matrix from file.
 !!
-subroutine elsi_read_mat_dim_sparse(rwh,f_name,n_electron,n_basis,nnz_g,&
+subroutine elsi_read_mat_dim_sparse_i8(rwh,f_name,n_electron,n_basis,nnz_g,&
    nnz_l_sp,n_lcol_sp)
 
    implicit none
@@ -526,7 +578,7 @@ subroutine elsi_read_mat_dim_sparse(rwh,f_name,n_electron,n_basis,nnz_g,&
 
    integer(kind=i8), allocatable :: col_ptr(:)
 
-   character(len=*), parameter :: caller = "elsi_read_mat_dim_sparse"
+   character(len=*), parameter :: caller = "elsi_read_mat_dim_sparse_i8"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
 
@@ -598,6 +650,32 @@ subroutine elsi_read_mat_dim_sparse(rwh,f_name,n_electron,n_basis,nnz_g,&
    rwh%bh%nnz_l_sp = nnz_l_sp
    rwh%bh%n_lcol_sp = n_lcol_sp
    rwh%header_user(:) = header(9:16)
+
+end subroutine
+
+!>
+!! Read the dimensions of a 1D block CSC matrix from file.
+!!
+subroutine elsi_read_mat_dim_sparse_i4(rwh,f_name,n_electron,n_basis,nnz_g_i4,&
+   nnz_l_sp_i4,n_lcol_sp)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(inout) :: rwh !< Handle
+   character(len=*), intent(in) :: f_name !< File name
+   real(kind=r8), intent(out) :: n_electron !< Number of electrons
+   integer(kind=i4), intent(out) :: n_basis !< Matrix size
+   integer(kind=i4), intent(out) :: nnz_g_i4 !< Global number of nonzeros
+   integer(kind=i4), intent(out) :: nnz_l_sp_i4 !< Local number of nonzeros
+   integer(kind=i4), intent(out) :: n_lcol_sp !< Local number of columns
+
+   integer(kind=i8) :: nnz_g, nnz_l_sp
+   character(len=*), parameter :: caller = "elsi_read_mat_dim_sparse_i4"
+
+   call elsi_read_mat_dim_sparse_i8(rwh,f_name,n_electron,n_basis,nnz_g,&
+           nnz_l_sp,n_lcol_sp)
+   nnz_g_i4 = int(nnz_g, kind=i4)
+   nnz_l_sp_i4 = int(nnz_l_sp, kind=i4)
 
 end subroutine
 
@@ -704,7 +782,7 @@ end subroutine
 !>
 !! Read a 1D block CSC matrix from file.
 !!
-subroutine elsi_read_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
+subroutine elsi_read_mat_real_sparse_i8(rwh,f_name,row_ind,col_ptr,mat)
 
    implicit none
 
@@ -721,7 +799,7 @@ subroutine elsi_read_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    integer(kind=i8) :: prev_nnz
    integer(kind=i8) :: offset
 
-   character(len=*), parameter :: caller = "elsi_read_mat_real_sparse"
+   character(len=*), parameter :: caller = "elsi_read_mat_real_sparse_i8"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
@@ -772,6 +850,28 @@ subroutine elsi_read_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
    call MPI_File_close(f_handle,ierr)
 
    call elsi_check_err(rwh%bh,"MPI_File_close",ierr,caller)
+
+end subroutine
+
+!>
+!! Read a 1D block CSC matrix from file.
+!!
+subroutine elsi_read_mat_real_sparse_i4(rwh,f_name,row_ind,col_ptr_i4,mat)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(inout) :: rwh !< Handle
+   character(len=*), intent(in) :: f_name !< File name
+   integer(kind=i4), intent(out) :: row_ind(rwh%bh%nnz_l_sp) !< Row index
+   integer(kind=i4), intent(out) :: col_ptr_i4(rwh%bh%n_lcol_sp+1) !< Column pointer
+   real(kind=r8), intent(out) :: mat(rwh%bh%nnz_l_sp) !< Matrix
+
+   integer(kind=i8) :: col_ptr(rwh%bh%n_lcol_sp+1)
+
+   character(len=*), parameter :: caller = "elsi_read_mat_real_sparse_i4"
+
+   call elsi_read_mat_real_sparse_i8(rwh,f_name,row_ind,col_ptr,mat)
+   col_ptr_i4 = int(col_ptr, kind=i4)
 
 end subroutine
 
@@ -878,7 +978,7 @@ end subroutine
 !>
 !! Read a 1D block CSC matrix from file.
 !!
-subroutine elsi_read_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
+subroutine elsi_read_mat_complex_sparse_i8(rwh,f_name,row_ind,col_ptr,mat)
 
    implicit none
 
@@ -895,7 +995,7 @@ subroutine elsi_read_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    integer(kind=i8) :: prev_nnz
    integer(kind=i8) :: offset
 
-   character(len=*), parameter :: caller = "elsi_read_mat_complex_sparse"
+   character(len=*), parameter :: caller = "elsi_read_mat_complex_sparse_i8"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
@@ -946,6 +1046,28 @@ subroutine elsi_read_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    call MPI_File_close(f_handle,ierr)
 
    call elsi_check_err(rwh%bh,"MPI_File_close",ierr,caller)
+
+end subroutine
+
+!>
+!! Read a 1D block CSC matrix from file.
+!!
+subroutine elsi_read_mat_complex_sparse_i4(rwh,f_name,row_ind,col_ptr_i4,mat)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(inout) :: rwh !< Handle
+   character(len=*), intent(in) :: f_name !< File name
+   integer(kind=i4), intent(out) :: row_ind(rwh%bh%nnz_l_sp) !< Row index
+   integer(kind=i4), intent(out) :: col_ptr_i4(rwh%bh%n_lcol_sp+1) !< Column pointer
+   complex(kind=r8), intent(out) :: mat(rwh%bh%nnz_l_sp) !< Matrix
+
+   integer(kind=i8) :: col_ptr(rwh%bh%n_lcol_sp+1)
+
+   character(len=*), parameter :: caller = "elsi_read_mat_complex_sparse_i4"
+
+   call elsi_read_mat_complex_sparse_i8(rwh,f_name,row_ind,col_ptr,mat)
+   col_ptr_i4 = int(col_ptr,kind=i4)
 
 end subroutine
 
@@ -1208,7 +1330,7 @@ end subroutine
 !>
 !! Write a 1D block CSC matrix to file.
 !!
-subroutine elsi_write_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
+subroutine elsi_write_mat_real_sparse_i8(rwh,f_name,row_ind,col_ptr,mat)
 
    implicit none
 
@@ -1228,7 +1350,7 @@ subroutine elsi_write_mat_real_sparse(rwh,f_name,row_ind,col_ptr,mat)
 
    integer(kind=i8), allocatable :: col_ptr_shift(:)
 
-   character(len=*), parameter :: caller = "elsi_write_mat_real_sparse"
+   character(len=*), parameter :: caller = "elsi_write_mat_real_sparse_i8"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
@@ -1310,7 +1432,28 @@ end subroutine
 !>
 !! Write a 1D block CSC matrix to file.
 !!
-subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
+subroutine elsi_write_mat_real_sparse_i4(rwh,f_name,row_ind,col_ptr_i4,mat)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(in) :: rwh !< Handle
+   character(len=*), intent(in) :: f_name !< File name
+   integer(kind=i4), intent(in) :: row_ind(rwh%bh%nnz_l_sp) !< Row index
+   integer(kind=i4), intent(in) :: col_ptr_i4(rwh%bh%n_lcol_sp+1) !< Column pointer
+   real(kind=r8), intent(in) :: mat(rwh%bh%nnz_l_sp) !< Matrix
+
+   integer(kind=i8) :: col_ptr(rwh%bh%n_lcol_sp+1)
+   character(len=*), parameter :: caller = "elsi_write_mat_real_sparse_i4"
+
+   col_ptr = int(col_ptr_i4,kind=i8)
+   call elsi_write_mat_real_sparse_i8(rwh,f_name,row_ind,col_ptr,mat)
+
+end subroutine
+
+!>
+!! Write a 1D block CSC matrix to file.
+!!
+subroutine elsi_write_mat_complex_sparse_i8(rwh,f_name,row_ind,col_ptr,mat)
 
    implicit none
 
@@ -1330,7 +1473,7 @@ subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
 
    integer(kind=i8), allocatable :: col_ptr_shift(:)
 
-   character(len=*), parameter :: caller = "elsi_write_mat_complex_sparse"
+   character(len=*), parameter :: caller = "elsi_write_mat_complex_sparse_i8"
 
    call elsi_check_init(rwh%bh,rwh%handle_init,caller)
    call elsi_check_rw(rwh%bh,rwh%parallel_mode,rwh%n_basis,caller)
@@ -1406,6 +1549,29 @@ subroutine elsi_write_mat_complex_sparse(rwh,f_name,row_ind,col_ptr,mat)
    call MPI_File_close(f_handle,ierr)
 
    call elsi_check_err(rwh%bh,"MPI_File_close",ierr,caller)
+
+end subroutine
+
+!>
+!! Write a 1D block CSC matrix to file.
+!!
+subroutine elsi_write_mat_complex_sparse_i4(rwh,f_name,row_ind,col_ptr_i4,mat)
+
+   implicit none
+
+   type(elsi_rw_handle), intent(in) :: rwh !< Handle
+   character(len=*), intent(in) :: f_name !< File name
+   integer(kind=i4), intent(in) :: row_ind(rwh%bh%nnz_l_sp) !< Row index
+   integer(kind=i4), intent(in) :: col_ptr_i4(rwh%bh%n_lcol_sp+1) !< Column pointer
+   complex(kind=r8), intent(in) :: mat(rwh%bh%nnz_l_sp) !< Matrix
+
+   integer(kind=i8) :: col_ptr(rwh%bh%n_lcol_sp+1)
+
+   character(len=*), parameter :: caller = "elsi_write_mat_complex_sparse_i4"
+
+   col_ptr = int(col_ptr_i4,kind=i8)
+
+   call elsi_write_mat_complex_sparse_i8(rwh,f_name,row_ind,col_ptr,mat)
 
 end subroutine
 
