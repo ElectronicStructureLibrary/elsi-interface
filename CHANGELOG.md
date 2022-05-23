@@ -1,4 +1,9 @@
 # ELSI changelog
+## v2.9.1 (May 2022)
+
+Bug fix version to include the interface of integer4.
+
+Add a script for compiling the doc file.
 
 ## v2.9.0 (April 2022)
 
