@@ -1,4 +1,4 @@
-# ELSI - ELectronic Structure Infrastructure (v2.9.0)
+# ELSI - ELectronic Structure Infrastructure (v2.9.1)
 
 ## About
 
