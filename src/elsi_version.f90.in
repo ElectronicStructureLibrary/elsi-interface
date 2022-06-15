@@ -34,13 +34,7 @@ subroutine elsi_get_pexsi_enabled(pexsi_enabled)
 
    integer, intent(out) :: pexsi_enabled !< PEXSI is available?
 
-   character(len=*), parameter :: tmp = "@ENABLE_PEXSI@"
-
-   if(tmp == "ON") then
-      pexsi_enabled = 1
-   else
-      pexsi_enabled = 0
-   end if
+   pexsi_enabled = @ENABLE_PEXSI_BOOL@
 
 end subroutine
 
@@ -53,13 +47,7 @@ subroutine elsi_get_sips_enabled(sips_enabled)
 
    integer, intent(out) :: sips_enabled !< SLEPc-SIPs is available?
 
-   character(len=*), parameter :: tmp = "@ENABLE_SIPS@"
-
-   if(tmp == "ON") then
-      sips_enabled = 1
-   else
-      sips_enabled = 0
-   end if
+   sips_enabled = @ENABLE_SIPS_BOOL@
 
 end subroutine
 
@@ -72,13 +60,7 @@ subroutine elsi_get_eigenexa_enabled(eigenexa_enabled)
 
    integer, intent(out) :: eigenexa_enabled !< EigenExa is available?
 
-   character(len=*), parameter :: tmp = "@ENABLE_EIGENEXA@"
-
-   if(tmp == "ON") then
-      eigenexa_enabled = 1
-   else
-      eigenexa_enabled = 0
-   end if
+   eigenexa_enabled = @ENABLE_EIGENEXA_BOOL@
 
 end subroutine
 
@@ -91,13 +73,7 @@ subroutine elsi_get_magma_enabled(magma_enabled)
 
    integer, intent(out) :: magma_enabled !< MAGMA is available?
 
-   character(len=*), parameter :: tmp = "@ENABLE_MAGMA@"
-
-   if(tmp == "ON") then
-      magma_enabled = 1
-   else
-      magma_enabled = 0
-   end if
+   magma_enabled = @ENABLE_MAGMA_BOOL@
 
 end subroutine
 
@@ -110,12 +86,6 @@ subroutine elsi_get_bsepack_enabled(bsepack_enabled)
 
    integer, intent(out) :: bsepack_enabled !< BSEPACK is available?
 
-   character(len=*), parameter :: tmp = "@ENABLE_BSEPACK@"
-
-   if(tmp == "ON") then
-      bsepack_enabled = 1
-   else
-      bsepack_enabled = 0
-   end if
+   bsepack_enabled = @ENABLE_BSEPACK_BOOL@
 
 end subroutine
