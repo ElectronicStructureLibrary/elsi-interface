@@ -34,7 +34,8 @@ LIST(APPEND elsi_src
   elsi_setup.f90
   elsi_solver.f90
   elsi_sort.f90
-  elsi_util.f90)
+  elsi_util.f90
+  elsi_inverse_slate.f90)
 
 #### add the header files
 ADD_SUBDIRECTORY(include)
@@ -48,6 +49,9 @@ ENDIF()
 SET_SOURCE_FILES_PROPERTIES(${PROJECT_BINARY_DIR}/generated/elsi_version.f90
   PROPERTIES GENERATED TRUE)
 
+IF(NOT ENABLE_SLATE)
+  LIST(APPEND elsi_src stub_slate.f90)
+ENDIF()
 IF(NOT ENABLE_PEXSI)
   LIST(APPEND elsi_src stub_pexsi.f90)
 ENDIF()
